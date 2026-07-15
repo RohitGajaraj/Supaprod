@@ -94,6 +94,8 @@ Mechanism: [`src/components/landing/inkTheme.ts`](../../../src/components/landin
 
 ### 8.1 Vercel homepage (founder screenshots + video, 2026-07-15)
 
+**The FULL study lives in [`../research/vercel-composition-playbook.md`](../research/vercel-composition-playbook.md)** — section-by-section anatomy, the eight extraction rules, and the complete waiting list with unlock conditions and pickup instructions. This subsection is the condensed map only.
+
 Adopted: the monumental hero (headline left, backlit mark center, mono descriptor right); alternating text sides per showcase (receipts flips text-right/evidence-left); the mono capability column beside every showcase (`In the loop`, `On the ledger`); framed real product screens under big headlines; interactive artifact cards.
 Deliberately NOT copied: the tilted-artifact bento and customer-logo showcases (no customers to show yet: claims law); anything that would read as mimicry. Differentiators kept ours: the Pixel hero face, the epitrochoid mark and orbit, the three-voice color grammar.
 
@@ -126,3 +128,71 @@ When the app adopts these patterns, port them THROUGH the Tempo contract, not ar
 ## 10. File inventory (the landing system)
 
 `src/routes/index.tsx` (shell: SSR, loader, head, JSON-LD, focus/hover CSS, machine view) · `src/components/landing/`: `Hero` · `TheGap` · `LoopWalkthrough` · `Receipts` · `FieldStops` · `TrustClose` · `WaitlistForm` · `LandingNav` · `LandingFooter` · `LandingBackdrop` · `MarkGlint` · `inkTheme.ts` · `replay/Replay.tsx` (FlowList, MockDecisionCard, MockLiveRun, DeadRun, StationSpine, the three logs) · `src/lib/landing.functions.ts` (stats, waitlist, funnel events) · migration `supabase/migrations/20260715100000_landing_waitlist_and_events.sql`.
+
+
+## 11. The founder's design taste, observed (2026-07-15, the full session)
+
+_Extracted from roughly twenty feedback rounds across the day. Any future agent should treat these as standing preferences unless the founder overrules them again — and should expect iteration: he refines by seeing, not by specifying upfront. Ship a faithful attempt fast, then expect two or three taste passes._
+
+### How he works (the meta-pattern)
+
+1. **He reviews page-by-page, element-by-element, and expects every input acted on.** Missing one item from a long voice note gets called out later ("earlier I asked... you have not considered"). Keep a checklist per feedback batch; close every item or say explicitly why not.
+2. **He invites pushback but expects a recommendation.** ("I'm not really sure... you think about it", "add only if it's good to add", "I'll leave that to you"). Give a verdict with reasoning; he accepts overrides grounded in his own standing rules (kept the headline against a reviewer; kept "second brain" for him; refused fake avatar faces on claims law).
+3. **He iterates on color/emphasis live.** The same word may go white -> gold -> ember -> white across rounds (Devs, second brain). Never argue the churn; implement, show, adjust.
+4. **Purpose test for every section:** "what is the purpose of this? Isn't it repetitive?" Anything duplicative dies (the journey film, the signals infographic — both built well, both removed because the walkthrough already told the story). Prefer enriching an EXISTING mechanism over adding a parallel one — his exact instruction: "add it into the same loop and same mechanism."
+5. **He supplies references and expects them mined deeply** (the Vercel shots, rauno.me, the YC video) — and asks later whether the learnings were captured. Document extractions immediately.
+
+### Composition and layout taste
+
+- One sentence per line in display lockups; a wrapped headline reads "broken" to him. Balance breaks deliberately (`textWrap: balance`, explicit `<br/>`).
+- Congestion is a defect: he asks for air above/below any dense element; sections breathe (py-32/py-40 rhythm).
+- Text must never sit on visible texture: the grid/orbit crossing behind type is "not readable" — hence `.cap-scrim`. Panels are opaque (`#0d0d0e`); translucent fills that let the grid bleed through are a bug, including inside form fields.
+- Subtext stays short (two lines max) and NEVER carries specifics the artifact should own (times live in the timeline, not the caption).
+- He values alternation and out-of-the-box placement (his words about the Vercel shots: "one time left, one time right... really great and intuitive").
+
+### Motion and interaction taste
+
+- Everything hoverable should react; a dead hover is a missed detail. Ember is his default hover accent for keywords and mono lists.
+- Animation must be SCOPED and legible: whole-sentence typing = "inconsistent with other sections"; one-word typing = right. The mark may revolve but "very slowly" (150-180s); a fast glint "steals attention."
+- Glow = white light, subtle; he flags both absence ("is it moving? I don't know") and excess ("attention is going on it"). Movement must be *felt*, not watched.
+- He wants micro-interactions everywhere but consistency beats novelty: any new animated treatment must match the page's existing grammar.
+
+### Copy and positioning taste
+
+- Vague category words are banned the moment he notices them: "operating system," "chatbot," "copilot," bare "AI," bare "agents" (fix: qualify — "agents that ship real code").
+- No competitor or vendor names anywhere on the site, including analogies (Cursor) and casual blame ("evaporates into Slack") — IP optics plus "we should not look like we bolt onto them."
+- Jargon needs a plain-words escape in prose (D+14 -> "whichever window the call sets") but is WELCOME inside product frames (traces breathe insider vocabulary; that is realism).
+- Everything must be logically believable: a 3-minute build "makes no logical sense"; sources arriving seconds before sensing reads fabricated. Timestamps are copy.
+- Problem statements must land the USP in the same breath ("is this our USP or a problem statement?" -> the Pixel line "Cadence builds that moat for you.").
+- Marketing optics can override radical honesty (the zero-users line removed) but NEVER into fabrication — omission yes, invention no.
+- Scarcity/FOMO copy should be sharpened until "users feel they're missing out," within truth.
+
+### Brand taste
+
+- The seven-petal mark everywhere; the old butterfly reads off-brand ("remove it everywhere"). Watermarks should revolve barely and carry a faint glow so they read against ink.
+- Geist Pixel is his differentiation font: heroes, page titles, USP words, key impact statements — he asks for it by name when something needs to "stand out."
+- Social proof must be gated (count floor 2,000) — small numbers "put us on the downside" — and never fake faces (accepted the abstract-orbs reasoning instantly).
+
+## 12. Session chronology (what was tried, rejected, and why — 2026-07-15)
+
+| # | Attempt | Outcome | The lesson recorded |
+| --- | --- | --- | --- |
+| 1 | Hero: "What Cursor did for writing code..." (plan-recommended) | REJECTED (IP/bolting optics) | No borrowed brands anywhere on the site |
+| 2 | Hero: "The agent-native operating system..." | REJECTED ("operating system" vague) | The YC banned-words list governs the site too |
+| 3 | Hero: "Your AI product team." | REJECTED ("AI" generic) | Concrete nouns over category adjectives |
+| 4 | Hero: "A product team of agents, answerable to you." | MOVED to the close beat | Good line, wrong altitude: hero must lead with the USP |
+| 5 | Hero final: "Cadence tells you what to build. / then builds it. ships it. grades it. gets sharper." | KEPT (Pixel Square, verbs hover ember) | USP first; learning beat via "gets sharper" |
+| 6 | Hero mission-control terminal (typed trace) | REMOVED ("not serving the purpose") | The hero shows identity, not machinery |
+| 7 | Hero product frames (decision card + live run) | REMOVED same day | Vercel-style: showcases live below the fold |
+| 8 | Hero final composition: monumental three-zone | KEPT | See playbook 2.1 |
+| 9 | JourneyFilm (8-stage self-playing strip) | BUILT then REMOVED ("repetitive... the walkthrough does everything") | Enrich the trace instead of adding a sibling |
+| 10 | SignalsIn converging-lines infographic | BUILT, praised, then REMOVED ("only tells the sense part") | Partial-story artifacts lose to the full-story trace |
+| 11 | Sources/design/memory/mark INSIDE the trace + believable timestamps | KEPT | The founder's "same loop, same mechanism" rule |
+| 12 | Honest-zero card ("External users: zero") | REMOVED (investor optics; founder reversal of his own doctrine) | Omission allowed, fabrication never |
+| 13 | Gold "second brain" | REJECTED (color off-theme) -> white -> EMBER Pixel + hover glow | Emphasis color iterates; ember won |
+| 14 | Ember "Devs" while typing | REJECTED next round (typing is differentiation enough) | Don't stack two emphasis devices on one word |
+| 15 | Whole-line typing in the gap beat | REJECTED ("inconsistent with other sections") | Scope novel motion to the smallest meaningful unit |
+| 16 | Trust strip: 4 thin labels -> 8 linked cards -> 8 UNLINKED cards + one /security line | KEPT | Cards inform; one link routes; SEO unaffected (first-anchor rule) |
+| 17 | Waitlist nudge at floor 25 | RAISED to 2,000 (founder research instinct) | Social proof only once it reads as a crowd |
+| 18 | Parchment/slate public pages | ALL RETHEMED (PUBLIC_INK_THEME + backdrop) | Every linked page speaks the landing language |
+| 19 | 9-lens stakeholder panel + content strategist + rauno/YC/Vercel studies | RUN; must-fixes applied; two reviewer suggestions overridden on founder rulings | Reviews serve rulings, not the reverse |
