@@ -7,12 +7,26 @@
 export function FieldStops() {
   return (
     <section className="py-32 px-4">
+      <style>{`
+        .sb-glow { transition: text-shadow 0.3s ease; cursor: default; }
+        .sb-glow:hover { text-shadow: 0 0 22px rgba(255,107,44,0.6); }
+      `}</style>
       <div className="max-w-5xl mx-auto">
         <h2
           className="text-4xl md:text-5xl font-semibold mb-14 text-white leading-[1.1]"
-          style={{ letterSpacing: "-0.02em", maxWidth: "24ch" }}
+          style={{ letterSpacing: "-0.02em", maxWidth: "26ch" }}
         >
-          Everyone can build now. Almost nobody knows what to build. That is the moat.
+          Everyone can build now. Knowing what to build is the moat.
+          <span
+            className="block mt-4 text-[0.62em] text-zinc-300"
+            style={{
+              fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+              fontWeight: 400,
+              letterSpacing: "0",
+            }}
+          >
+            Cadence builds that moat for you.
+          </span>
         </h2>
 
         {/* The ledger: what the field leaves on you, and what Cadence does
@@ -40,7 +54,7 @@ export function FieldStops() {
             {
               kicker: "docs and boards",
               them: "hold the plan. The taste behind it evaporates.",
-              ours: "Fourteen days after every ship, it grades the outcome against the call that caused it. The next call starts sharper.",
+              ours: "It grades every ship against the call that caused it, at D+7, D+14, whichever window the call sets. The next one starts sharper.",
             },
           ].map((row) => (
             <div
@@ -68,6 +82,7 @@ export function FieldStops() {
         >
           The result is a{" "}
           <span
+            className="sb-glow"
             style={{
               fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
               fontWeight: 400,
@@ -85,8 +100,14 @@ export function FieldStops() {
           loop when the call was made.
         </p>
 
-        {/* The compounding moment: the same bet, months apart, shown not told */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* The compounding moment: claim on the left, the evidence pair on the
+            right (the reference register: text one side, artifact the other) */}
+        <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] gap-10 items-center mb-6">
+          <p className="text-lg text-zinc-400 leading-relaxed" style={{ maxWidth: "36ch" }}>
+            The same class of bet, one month apart. The second time it arrives carrying its own
+            history. Every call it records is a call a replacement starts without.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
@@ -112,10 +133,10 @@ export function FieldStops() {
               Similar call, right 3 of 4 times
             </span>
           </div>
+          </div>
         </div>
-        <p className="text-sm text-zinc-500 mb-20" style={{ maxWidth: "62ch" }}>
-          Every call it records is a call a replacement starts without. The precedent chips are the
-          shipped UI; the pair above is an illustration.
+        <p className="text-sm text-zinc-600 mb-20 md:text-right">
+          The precedent chips are the shipped UI; the pair is an illustration.
         </p>
 
         {/* Pull line */}

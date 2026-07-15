@@ -14,7 +14,6 @@ import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
 import { TheGap } from "@/components/landing/TheGap";
-import { JourneyFilm } from "@/components/landing/JourneyFilm";
 import { LoopWalkthrough } from "@/components/landing/LoopWalkthrough";
 import { Receipts } from "@/components/landing/Receipts";
 import { FieldStops } from "@/components/landing/FieldStops";
@@ -165,7 +164,6 @@ function LandingPage() {
           <LandingNav />
           <Hero />
           <TheGap />
-          <JourneyFilm />
           <LoopWalkthrough />
           <Receipts stats={stats} />
           <FieldStops />

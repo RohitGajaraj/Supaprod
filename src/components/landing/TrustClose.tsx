@@ -81,9 +81,8 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-20">
           {promises.map((p) => (
-            <a
+            <div
               key={p.label}
-              href="/security"
               className="group border border-white/[0.08] bg-[#0d0d0e] rounded-xl p-5 hover:border-white/25 hover:-translate-y-0.5 transition-all duration-200"
             >
               <p.icon
@@ -94,9 +93,15 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
               />
               <p className="text-sm text-zinc-200 font-medium mb-1.5">{p.label}</p>
               <p className="text-xs text-zinc-500 leading-relaxed">{p.detail}</p>
-            </a>
+            </div>
           ))}
         </div>
+        <p className="text-xs text-zinc-600 -mt-16 mb-20">
+          The full answers, stated plainly:{" "}
+          <a href="/security" className="text-zinc-400 underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors">
+            /security
+          </a>
+        </p>
 
         <h2
           className="text-4xl md:text-5xl font-semibold mb-4 text-white"

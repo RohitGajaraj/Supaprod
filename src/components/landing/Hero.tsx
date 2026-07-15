@@ -44,7 +44,7 @@ export function Hero() {
         }
         .hero-rise { animation: heroRise 0.9s cubic-bezier(0.23, 1, 0.3, 1) both; }
         .hero-verb { transition: color 0.25s ease; }
-        .hero-verb:hover { color: #f4f4f5; }
+        .hero-verb:hover { color: #FF6B2C; }
         @media (prefers-reduced-motion: reduce) {
           .hero-rise { animation: none; }
         }

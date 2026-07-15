@@ -11,6 +11,7 @@
  * (claims discipline, section 1.5).
  */
 import { useEffect, useRef, useState } from "react";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 // Ink-and-metal palette, module-local.
 const R = {
@@ -44,6 +45,8 @@ export type LogEntry = {
   gate?: boolean;
   /** A station the tool never reaches (the drafting dead-end). */
   dead?: boolean;
+  /** Renders the small revolving CadenceMark: memory being written. */
+  mark?: boolean;
 };
 
 const ACTOR_STYLE: Record<NonNullable<LogEntry["actor"]>, { color: string; border: string }> = {
@@ -80,219 +83,43 @@ function ActorChip({
 }
 
 export const FULL_LOG: LogEntry[] = [
-  {
-    ts: "09:14:03",
-    tag: "SENSE",
-    col: R.blue,
-    actor: "agent",
-    agentName: "Scout",
-    station: 0,
-    msg: "Activation drop, 4% week over week, flagged",
-  },
-  {
-    ts: "09:14:03",
-    tag: "CLUSTER",
-    col: R.muted,
-    actor: "agent",
-    agentName: "Scout",
-    station: 0,
-    msg: "3 signals linked: onboarding friction",
-  },
-  {
-    ts: "09:14:04",
-    tag: "PROPOSE",
-    col: R.blue,
-    actor: "agent",
-    agentName: "Strategist",
-    station: 1,
-    msg: "Decision proposed: simplify onboarding step 2",
-  },
-  {
-    ts: "09:14:05",
-    tag: "EVIDENCE",
-    col: R.muted,
-    actor: "agent",
-    agentName: "Strategist",
-    station: 1,
-    msg: "Confidence 84%. Similar call: D+14 activation +9%",
-  },
-  {
-    ts: "09:15:22",
-    tag: "GATE",
-    col: R.ember,
-    actor: "you",
-    station: 1,
-    msg: "Your call. Approved in 2 seconds.",
-    gate: true,
-  },
-  {
-    ts: "09:15:23",
-    tag: "PLAN",
-    col: R.blue,
-    actor: "agent",
-    agentName: "Architect",
-    station: 2,
-    msg: "Spec locked: 4 criteria, 6 linked signals",
-  },
-  {
-    ts: "09:15:45",
-    tag: "BUILD",
-    col: R.amber,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "Agents dispatched: 3 commits",
-  },
-  {
-    ts: "09:16:12",
-    tag: "CI",
-    col: R.green,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "All 14 tests passing",
-  },
-  {
-    ts: "09:16:30",
-    tag: "GATE",
-    col: R.ember,
-    actor: "you",
-    station: 3,
-    msg: "Merge held for you. Approved.",
-    gate: true,
-  },
-  {
-    ts: "09:17:01",
-    tag: "SHIP",
-    col: R.green,
-    actor: "agent",
-    agentName: "Builder",
-    station: 4,
-    msg: "Merged and deployed to production",
-  },
-  {
-    ts: "D+14",
-    tag: "LEARN",
-    col: R.green,
-    actor: "agent",
-    agentName: "Sentry",
-    station: 5,
-    msg: "Activation +8%. Call validated. Memory updated.",
-  },
+  { ts: "09:12:44", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "analytics: activation down 4% week over week" },
+  { ts: "09:13:10", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
+  { ts: "09:13:26", tag: "SENSE", col: R.blue, actor: "agent", agentName: "Scout", station: 0, msg: "Flagged: the drop and the complaints are one story" },
+  { ts: "09:13:41", tag: "CLUSTER", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "3 signals linked: onboarding friction" },
+  { ts: "09:14:02", tag: "PROPOSE", col: R.blue, actor: "agent", agentName: "Strategist", station: 1, msg: "Decision proposed: simplify onboarding step 2" },
+  { ts: "09:14:05", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 1, msg: "Precedent found: a similar call was right 3 of 4 times, D+14 +9%. Confidence 84%." },
+  { ts: "09:15:22", tag: "GATE", col: R.ember, actor: "you", station: 1, msg: "Your call. Approved in 2 seconds.", gate: true },
+  { ts: "09:16:48", tag: "PLAN", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec locked: 4 criteria, 6 linked signals" },
+  { ts: "09:18:37", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 2, msg: "Screens, states, and copy drafted from the spec" },
+  { ts: "09:21:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched: 3 commits" },
+  { ts: "09:27:52", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 14 tests passing" },
+  { ts: "09:28:30", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Merge held for you. Approved.", gate: true },
+  { ts: "09:31:14", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Merged and deployed to production" },
+  { ts: "D+14", tag: "LEARN", col: R.green, actor: "agent", agentName: "Sentry", station: 5, msg: "Activation +8%. Call validated. Memory updated.", mark: true },
 ];
 
 export const OTHERS_LOG: LogEntry[] = [
-  {
-    ts: "09:14:03",
-    tag: "SENSE",
-    col: R.blue,
-    actor: "tool",
-    station: 0,
-    msg: "Activation drop, 4% week over week, flagged",
-  },
-  {
-    ts: "09:14:11",
-    tag: "HANDOFF",
-    col: R.muted,
-    actor: "you",
-    station: 1,
-    msg: "You assemble the context by hand",
-  },
-  {
-    ts: "09:14:31",
-    tag: "DRAFT",
-    col: R.blue,
-    actor: "tool",
-    station: 1,
-    msg: "A tidy document appears. Waiting for you.",
-  },
+  { ts: "09:12:44", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "analytics: activation down 4% week over week" },
+  { ts: "09:13:10", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
+  { ts: "09:15:12", tag: "HANDOFF", col: R.muted, actor: "you", station: 1, msg: "You assemble the context by hand" },
+  { ts: "09:31:40", tag: "DRAFT", col: R.blue, actor: "tool", station: 1, msg: "A tidy document appears. Waiting for you." },
   { ts: "--", tag: "BUILD", col: R.faint, msg: "Never happens here", dead: true },
   { ts: "--", tag: "SHIP", col: R.faint, msg: "Someone else's job now", dead: true },
   { ts: "--", tag: "LEARN", col: R.faint, msg: "Nobody checks how the story ended", dead: true },
 ];
 
 export const FAIL_LOG: LogEntry[] = [
-  {
-    ts: "11:43:17",
-    tag: "BUILD",
-    col: R.amber,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "Agents dispatched",
-  },
-  {
-    ts: "11:43:22",
-    tag: "CI",
-    col: R.red,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "Failed: 3 tests red, API contract mismatch",
-  },
-  {
-    ts: "11:43:22",
-    tag: "DIAGNOSE",
-    col: R.blue,
-    actor: "agent",
-    agentName: "Critic",
-    station: 3,
-    msg: "Reading the failure",
-  },
-  {
-    ts: "11:43:23",
-    tag: "ROOT CAUSE",
-    col: R.muted,
-    actor: "agent",
-    agentName: "Critic",
-    station: 3,
-    msg: "Response schema changed: user_id renamed to uid",
-  },
-  {
-    ts: "11:43:24",
-    tag: "REVISE",
-    col: R.blue,
-    actor: "agent",
-    agentName: "Architect",
-    station: 2,
-    msg: "Spec revised, one clause corrected",
-  },
-  {
-    ts: "11:43:31",
-    tag: "BUILD",
-    col: R.amber,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "Rebuild: 1 corrected commit",
-  },
-  {
-    ts: "11:43:44",
-    tag: "CI",
-    col: R.green,
-    actor: "agent",
-    agentName: "Builder",
-    station: 3,
-    msg: "All 17 tests passing",
-  },
-  {
-    ts: "11:43:45",
-    tag: "GATE",
-    col: R.ember,
-    actor: "you",
-    station: 3,
-    msg: "Your merge gate. Approved.",
-    gate: true,
-  },
-  {
-    ts: "11:43:52",
-    tag: "SHIP",
-    col: R.green,
-    actor: "agent",
-    agentName: "Builder",
-    station: 4,
-    msg: "Deployed. The loop never stopped.",
-  },
+  { ts: "11:41:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched" },
+  { ts: "11:47:32", tag: "CI", col: R.red, actor: "agent", agentName: "Builder", station: 3, msg: "Failed: 3 tests red, API contract mismatch" },
+  { ts: "11:47:40", tag: "DIAGNOSE", col: R.blue, actor: "agent", agentName: "Critic", station: 3, msg: "Reading the failure" },
+  { ts: "11:48:04", tag: "ROOT CAUSE", col: R.muted, actor: "agent", agentName: "Critic", station: 3, msg: "Response schema changed: user_id renamed to uid" },
+  { ts: "11:48:41", tag: "REVISE", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec revised, one clause corrected" },
+  { ts: "11:49:12", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Rebuild: 1 corrected commit" },
+  { ts: "11:54:47", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 17 tests passing" },
+  { ts: "11:55:20", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Your merge gate. Approved.", gate: true },
+  { ts: "11:56:02", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Deployed. The loop never stopped." },
+  { ts: "11:56:04", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 5, msg: "Failure pattern written back. The next build starts around it.", mark: true },
 ];
 
 const STATIONS = ["Discover", "Decide", "Plan", "Build", "Ship", "Learn"] as const;
@@ -592,6 +419,17 @@ export function FlowList({
                   {e.tag}
                 </span>
                 {e.actor && <ActorChip actor={e.actor} agentName={e.agentName} />}
+                {e.mark && (
+                  <span
+                    aria-hidden
+                    style={{
+                      display: "inline-flex",
+                      animation: "landingMarkSpin 9s linear infinite",
+                    }}
+                  >
+                    <CadenceMark size={13} glow={false} />
+                  </span>
+                )}
               </div>
               <p
                 style={{
@@ -984,7 +822,7 @@ const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; capti
   full: {
     log: FULL_LOG,
     litThrough: 5,
-    caption: "Agents ran nine steps. You made two calls. Every one is on the record.",
+    caption: "Agents ran twelve steps in nineteen minutes. You made two calls. Every one is on the record.",
   },
   others: {
     log: OTHERS_LOG,
@@ -1039,7 +877,8 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
             </span>
             <span style={{ fontFamily: MONO, fontSize: 9, color: R.faint }}>
               <span style={{ color: R.blue }}>agent</span> runs it &middot;{" "}
-              <span style={{ color: R.ember }}>you</span> gate it
+              <span style={{ color: R.ember }}>you</span> gate it &middot;{" "}
+              <span style={{ color: "#E8B44C" }}>memory</span> sharpens it
             </span>
           </div>
           <FlowList entries={cfg.log} shown={shown} active={active} />
@@ -1082,6 +921,10 @@ export function LoopReplay({ tab }: { tab: ReplayTab }) {
         @keyframes landingRingPulse {
           0% { transform: scale(1); opacity: 0.8; }
           100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes landingMarkSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         /* Pre-rendered silver edge light, toggled by opacity (never animate
            box-shadow). White light, not color: the ink-and-metal law. */

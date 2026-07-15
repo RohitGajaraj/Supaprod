@@ -65,7 +65,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
               readOnly
               value={shareLink}
               onFocus={(e) => e.currentTarget.select()}
-              className="flex-1 h-10 px-3 rounded-lg bg-black/40 border border-white/10 text-zinc-300 text-xs font-mono outline-none"
+              className="flex-1 h-10 px-3 rounded-lg bg-[#0d0d0e] border border-white/10 text-zinc-300 text-xs font-mono outline-none"
               aria-label="Your referral link"
             />
             <button
@@ -111,7 +111,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           aria-label="Work email"
-          className="flex-1 h-12 px-4 rounded-full bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors"
+          className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors"
         />
         <button
           type="submit"
@@ -142,7 +142,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           maxLength={2000}
           placeholder="The product bet you are least sure about"
           aria-label="The product bet you are least sure about (optional)"
-          className="w-full px-4 py-3 mb-3 rounded-xl bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors resize-none"
+          className="w-full px-4 py-3 mb-3 rounded-xl bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors resize-none"
         />
       ) : (
         <button

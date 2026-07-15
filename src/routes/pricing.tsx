@@ -633,8 +633,14 @@ function PricingPage() {
         </Link>
         <a
           href="/login"
-          className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
+          style={{
+            fontSize: 13,
+            color: "var(--ink, #f4f4f5)",
+            textDecoration: "none",
+            border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
+            borderRadius: 999,
+            padding: "7px 16px",
+          }}
         >
           Sign in
         </a>
@@ -644,9 +650,27 @@ function PricingPage() {
         <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
           {/* Headline */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <p
+              style={{
+                fontFamily: "Geist Mono, monospace",
+                fontSize: 10,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "#FF6B2C",
+                margin: "0 0 10px",
+              }}
+            >
+              Pricing
+            </p>
             <h1
-              className="font-display"
-              style={{ fontSize: 34, lineHeight: 1.12, margin: "0 0 12px", fontWeight: 440 }}
+              style={{
+                fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+                fontSize: "clamp(22px, 3vw, 30px)",
+                lineHeight: 1.3,
+                margin: "0 0 12px",
+                fontWeight: 400,
+                letterSpacing: 0,
+              }}
             >
               Start free. Get to the exact capacity that fits your team.
             </h1>

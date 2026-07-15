@@ -106,8 +106,8 @@ export function LoopWalkthrough() {
           }`}
           style={{ transitionDelay: inView ? "100ms" : "0ms" }}
         >
-          The mission from the top of the page, step by step. The last tab is the part nobody else
-          shows you.
+          One real mission, step by step: nineteen minutes from a cold signal to production. The
+          last tab is the part nobody else shows you.
         </p>
 
         {/* Reader-paced tabs: clicked, never cycled on a timer */}
@@ -132,7 +132,8 @@ export function LoopWalkthrough() {
         <LoopReplay tab={activeTab} />
 
         <p className="text-zinc-500 mt-14 text-sm leading-relaxed">
-          Proof over promises: the demo is our real workspace, read-only, no signup.{" "}
+          One system, the whole lifecycle: from the first signal to the graded outcome. And proof
+          over promises: the demo is our real workspace, read-only, no signup.{" "}
           <a
             href="/demo"
             onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
