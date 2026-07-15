@@ -1,6 +1,10 @@
+import { MachineViewToggle } from "@/components/cadence/MachineViewToggle";
+
 /**
  * Footer: Dense, honest footer for investor diligence
  * Columns: Product · Proof · Trust · Company
+ * The bottom row carries the [HUMAN]/[MACHINE] view toggle: meta chrome
+ * belongs at footer tier, aligned to the container, never loose in a corner.
  */
 export function LandingFooter() {
   return (
@@ -108,9 +112,12 @@ export function LandingFooter() {
           </div>
         </div>
 
-        {/* Bottom divider + copyright */}
-        <div className="border-t border-gray-900 pt-8 text-xs text-gray-600 text-center">
+        {/* Bottom divider: copyright on one side, the machine-view toggle on
+            the other. Agents get a stateful, labeled control (aria-pressed);
+            the M key and the Product-column link remain as entry points. */}
+        <div className="border-t border-gray-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
           <p>&copy; 2026 Cadence. All rights reserved.</p>
+          <MachineViewToggle />
         </div>
       </div>
     </footer>

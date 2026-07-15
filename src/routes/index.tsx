@@ -180,9 +180,10 @@ function LandingPage() {
           <Receipts stats={stats} />
           <FieldStops />
           <TrustClose waitlistCount={stats?.waitlistCount ?? null} />
+          {/* The [HUMAN]/[MACHINE] toggle lives inside the footer's bottom
+              row now (founder 2026-07-15): container-aligned, real spacing. */}
           <LandingFooter />
         </div>
-        <MachineViewToggle />
       </div>
     </MachineViewContainer>
   );
