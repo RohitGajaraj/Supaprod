@@ -4,8 +4,8 @@ import type { LandingStats } from "@/lib/landing.functions";
  * Beat 4 - Receipts (the investor beat).
  * Counters are pulled live from the DB at render time via the route loader;
  * if the pull fails the strip degrades to the artifact row and never renders
- * a hardcoded count (claims law, plan section 1.5). Gold numerals are the
- * palette's one sanctioned micro-detail (section 4.1b).
+ * a hardcoded count (claims law, plan section 1.5). Numerals use the blue
+ * data tone; gold is banned outside the trace's memory rows (founder ruling).
  */
 export function Receipts({ stats }: { stats: LandingStats | null }) {
   const artifacts = [
@@ -127,8 +127,8 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
             className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto py-16"
             style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
           >
-            Agents do the work. You answer for it.{" "}
-            <span style={{ color: "#FF6B2C" }}>Cadence</span> is how you answer.
+            Agents do the work. You answer for it. <span style={{ color: "#FF6B2C" }}>Cadence</span>{" "}
+            is how you answer.
           </p>
           <div
             aria-hidden
