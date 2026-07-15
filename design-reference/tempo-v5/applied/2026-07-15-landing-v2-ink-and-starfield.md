@@ -39,8 +39,8 @@ Color is meaning, never decoration (Tempo law, held):
 | Color | Value | Job |
 | --- | --- | --- |
 | **Ember** | `#FF6B2C` (hover `#ff8344`, borders `rgba(255,107,44,0.4)`) | The human voice: primary CTA (one per viewport), your GATE rows, keyboard focus, and founder-sanctioned keyword highlights (hero verbs on hover, "Product", "second brain", capability-list hover) |
-| **Machine blue** | `#6cb0f5` | The agent voice: agent chips, working states, machine labels |
-| **Memory gold** | `#E8B44C` | The memory voice: MEMORY/Brain rows, live counter numerals (Pixel), the mark's core bead |
+| **Machine blue** | `#6cb0f5` | The agent voice: agent chips, working states, machine labels, and DATA NUMERALS (live counters, matching the in-app PixelStat ruling) |
+| **Memory gold** | `#E8B44C` | The memory voice ONLY: MEMORY/Brain trace rows, the trace legend's "memory" word, the mark's core bead. **GOLD BAN (founder, late 2026-07-15): gold never appears on text, headings, key words, or metrics anywhere on the platform** — it survives exclusively inside the workflow's memory grammar. Counters were gold earlier that day; the ban supersedes. |
 | Success green | `#4ac26b` | Pass states only (CI green, shipped, graded) |
 | Failure red | `#e5534b` | Failure states only |
 | Build amber | `#d9a13c` | Build/working states only |
