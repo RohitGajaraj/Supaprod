@@ -30,7 +30,7 @@ export function TheGap() {
           }`}
           style={{ letterSpacing: "-0.025em" }}
         >
-          Engineers got agents.
+          Developers got agents that ship real code.
           <br />
           Product is still waiting for its own.
         </h2>
@@ -41,8 +41,9 @@ export function TheGap() {
           }`}
           style={{ transitionDelay: inView ? "120ms" : "0ms", maxWidth: "48ch" }}
         >
-          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning behind
-          every call still evaporates into Slack.
+          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning
+          behind every call still evaporates into chat threads, meeting notes, and someone&apos;s
+          memory.
         </p>
 
         <p
