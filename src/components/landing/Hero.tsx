@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { trackLandingEvent } from "@/lib/landing.functions";
 import { MarkGlint } from "./MarkGlint";
 
@@ -11,30 +10,6 @@ import { MarkGlint } from "./MarkGlint";
  * CTA. Entrances are pure CSS so SSR paints complete without JavaScript.
  */
 export function Hero() {
-  const floatRef = useRef<HTMLDivElement>(null);
-
-  // The mark drifts a few pixels toward the pointer: alive, never busy.
-  // Direct style writes on a non-React node; still for touch/reduced motion.
-  useEffect(() => {
-    const el = floatRef.current;
-    if (!el) return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const onMove = (e: MouseEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const dx = (e.clientX / window.innerWidth - 0.5) * 12;
-        const dy = (e.clientY / window.innerHeight - 0.5) * 12;
-        el.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
-      });
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
   return (
     <section className="relative min-h-[100dvh] flex items-center px-6 pt-24 pb-16">
       <style>{`
@@ -153,9 +128,9 @@ export function Hero() {
               }}
               aria-hidden
             />
-            <div ref={floatRef} style={{ willChange: "transform" }}>
-              <MarkGlint size={190} />
-            </div>
+            {/* Fixed position, revolving on its own clock (founder 2026-07-15):
+                no pointer drift, the mark holds still and keeps turning. */}
+            <MarkGlint size={190} />
           </div>
 
           {/* Right: the mono descriptor, machine-voice register */}
@@ -164,8 +139,13 @@ export function Hero() {
             style={{ animationDelay: "300ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
           >
             <span>for product teams</span>
-            <span>to decide what to build</span>
-            <span>and ship it, gated by you</span>
+            <span>
+              to decide <span className="hero-verb whitespace-nowrap">what to build</span>
+            </span>
+            <span>
+              and <span className="hero-verb whitespace-nowrap">ship it</span>,{" "}
+              <span className="hero-verb whitespace-nowrap">gated by you</span>
+            </span>
           </div>
         </div>
       </div>

@@ -34,8 +34,10 @@ export function LoopWalkthrough() {
     return () => observer.disconnect();
   }, []);
 
-  // The orbit scrub: stroke-dashoffset follows section scroll progress.
-  // Direct style writes on a non-React node; still under reduced motion.
+  // The orbit scrub: stroke-dashoffset eases toward the scroll target instead
+  // of tracking it 1:1, so the line draws (and undraws) with a little inertia
+  // in both scroll directions. Direct style writes on a non-React node;
+  // still under reduced motion.
   useEffect(() => {
     const path = orbitRef.current;
     const section = sectionRef.current;
@@ -45,22 +47,43 @@ export function LoopWalkthrough() {
       return;
     }
     let raf = 0;
-    const update = () => {
-      const rect = section.getBoundingClientRect();
+    let current = 100;
+    let target = 100;
+    let running = false;
+    const computeTarget = () => {
+      // Progress from the orbit's OWN viewport position, not the section's:
+      // it starts drawing the moment it appears at the bottom and completes
+      // as it reaches center screen, so the draw is always watched, and
+      // scrolling back up undraws it the same way.
+      const svg = path.ownerSVGElement ?? section;
+      const rect = svg.getBoundingClientRect();
       const vh = window.innerHeight;
-      // Completes by ~70% of the way through the section, so the reader always
-      // sees the whole orbit finish drawing before they leave the beat.
-      const progress = Math.min(1, Math.max(0, (vh - rect.top) / (rect.height * 0.7)));
-      path.style.strokeDashoffset = (100 - progress * 100).toFixed(1);
+      const span = vh / 2 + rect.height / 2;
+      const progress = Math.min(1, Math.max(0, (vh - rect.top) / span));
+      target = 100 - progress * 100;
     };
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
+    const tick = () => {
+      current += (target - current) * 0.08;
+      if (Math.abs(target - current) < 0.05) {
+        current = target;
+        path.style.strokeDashoffset = current.toFixed(2);
+        running = false;
+        return;
+      }
+      path.style.strokeDashoffset = current.toFixed(2);
+      raf = requestAnimationFrame(tick);
     };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const kick = () => {
+      computeTarget();
+      if (!running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    kick();
+    window.addEventListener("scroll", kick, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", kick);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -71,10 +94,12 @@ export function LoopWalkthrough() {
       ref={sectionRef}
       className="relative overflow-hidden py-32 px-4 scroll-mt-16"
     >
-      {/* The orbit, drawn by scroll: silver line, bleeding off the right edge */}
+      {/* The orbit, drawn by scroll: a whisper of silver bleeding off the
+          right edge (the viewBox scales the stroke ~7x, so these numbers are
+          deliberately tiny). Sits low enough to clear the replay mocks. */}
       <svg
         className="absolute pointer-events-none hidden lg:block"
-        style={{ right: -200, top: 300, width: 740, height: 740, overflow: "visible" }}
+        style={{ right: -240, top: 660, width: 740, height: 740, overflow: "visible" }}
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden
@@ -85,35 +110,35 @@ export function LoopWalkthrough() {
           pathLength={100}
           strokeDasharray="100"
           strokeDashoffset="100"
-          stroke="rgba(255,255,255,0.09)"
-          strokeWidth={1.1}
+          stroke="rgba(255,255,255,0.06)"
+          strokeWidth={0.9}
           strokeLinecap="round"
         />
       </svg>
 
       <div className="relative max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-end mb-12">
-          <div>
-            <h2
-              className={`text-4xl md:text-6xl font-semibold mb-4 text-white transition-all duration-700 ${
-                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              Signal to shipped. Watch it happen.
-            </h2>
-            <p
-              className={`text-lg text-zinc-500 transition-all duration-700 ${
-                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-              style={{ transitionDelay: inView ? "100ms" : "0ms" }}
-            >
-              One real mission, step by step, replayed exactly as it ran. The last tab is the
-              part nobody else shows you.
-            </p>
-          </div>
+        <div className="relative mb-12">
+          <h2
+            className={`text-4xl md:text-5xl lg:text-[52px] lg:whitespace-nowrap font-semibold mb-4 text-white transition-all duration-700 ${
+              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Signal to shipped. Watch it happen.
+          </h2>
+          <p
+            className={`text-lg text-zinc-500 transition-all duration-700 ${
+              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+            style={{ transitionDelay: inView ? "100ms" : "0ms" }}
+          >
+            One system, the whole lifecycle: from the first signal to the graded outcome.
+          </p>
+          {/* The echo list floats past the container's right edge on purpose:
+              a deliberate alignment break (founder 2026-07-15), sitting
+              directly on the starfield with no scrim so it blends in. */}
           <div
-            className={`cap-scrim hidden md:flex flex-col gap-2.5 py-6 px-8 -mx-8 transition-all duration-700 ${
+            className={`hidden xl:flex flex-col gap-2.5 absolute -top-2 -right-24 transition-all duration-700 ${
               inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
             style={{ transitionDelay: inView ? "200ms" : "0ms" }}
@@ -152,17 +177,22 @@ export function LoopWalkthrough() {
 
         <LoopReplay tab={activeTab} />
 
-        <p className="text-zinc-500 mt-14 text-sm leading-relaxed">
-          One system, the whole lifecycle: from the first signal to the graded outcome. And proof
-          over promises: the demo is our real workspace, read-only, no signup.{" "}
-          <a
-            href="/demo"
-            onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
-            className="text-zinc-200 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-300 transition-colors"
-          >
-            Open the live demo
-          </a>
-        </p>
+        <div className="text-zinc-500 mt-14 text-sm leading-relaxed">
+          <p>
+            One real mission, step by step, replayed exactly as it ran. The last tab is the part
+            nobody else shows you.
+          </p>
+          <p className="mt-1.5">
+            And proof over promises: the demo is our real workspace, read-only, no signup.{" "}
+            <a
+              href="/demo"
+              onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
+              className="text-zinc-200 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-300 transition-colors"
+            >
+              Open the live demo
+            </a>
+          </p>
+        </div>
       </div>
     </section>
   );

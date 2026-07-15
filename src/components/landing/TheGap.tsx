@@ -27,23 +27,46 @@ export function TheGap() {
     return () => observer.disconnect();
   }, []);
 
-  // Type just the one word, terminal-style, once the beat is looked at.
+  // Type just the one word, terminal-style, on a continuous loop (founder
+  // 2026-07-15): type, one blink, rest, erase, retype. The chain schedules
+  // one timeout at a time, so clearing the latest cancels the whole loop.
   useEffect(() => {
     if (!inView) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const at = (ms: number, fn: () => void) => {
+      timer = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+    };
+    const typeStep = (i: number) => {
+      setTyped(TYPED_WORD.slice(0, i));
+      if (i < TYPED_WORD.length) {
+        at(120, () => typeStep(i + 1));
+      } else {
+        // One quick blink, then the cursor leaves and the word rests.
+        at(550, () => {
+          setTyping(false);
+          at(2200, () => {
+            setTyping(true);
+            eraseStep(TYPED_WORD.length - 1);
+          });
+        });
+      }
+    };
+    const eraseStep = (i: number) => {
+      setTyped(TYPED_WORD.slice(0, i));
+      if (i > 0) at(70, () => eraseStep(i - 1));
+      else at(350, () => typeStep(1));
+    };
     setTyped("");
     setTyping(true);
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setTyped(TYPED_WORD.slice(0, i));
-      if (i >= TYPED_WORD.length) {
-        clearInterval(interval);
-        // The cursor blinks a beat, then leaves.
-        setTimeout(() => setTyping(false), 1100);
-      }
-    }, 120);
-    return () => clearInterval(interval);
+    at(200, () => typeStep(1));
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [inView]);
 
   return (
@@ -67,7 +90,21 @@ export function TheGap() {
               </span>
               <span className="absolute left-0 top-0" aria-hidden>
                 {typed}
-                {typing && <span className="animate-pulse text-zinc-400">▍</span>}
+                {/* Thin caret bar, not the block glyph: it fits inside the
+                    word space so it never overlaps the next word. */}
+                {typing && (
+                  <span
+                    className="animate-pulse"
+                    style={{
+                      display: "inline-block",
+                      width: "0.07em",
+                      height: "0.72em",
+                      marginLeft: "0.05em",
+                      background: "#a1a1aa",
+                      verticalAlign: "-0.02em",
+                    }}
+                  />
+                )}
               </span>
             </span>{" "}
             got agents that ship real code.
@@ -94,8 +131,8 @@ export function TheGap() {
           }`}
           style={{ transitionDelay: inView ? "120ms" : "0ms", maxWidth: "58ch" }}
         >
-          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning
-          behind every call evaporates into threads, notes, and memory.
+          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning behind
+          every call evaporates into threads, notes, and memory.
         </p>
 
         <p

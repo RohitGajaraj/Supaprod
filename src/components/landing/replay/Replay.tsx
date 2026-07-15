@@ -91,12 +91,12 @@ export const FULL_LOG: LogEntry[] = [
   { ts: "09:14:05", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 1, msg: "Precedent found: a similar call was right 3 of 4 times, D+14 +9%. Confidence 84%." },
   { ts: "09:15:22", tag: "GATE", col: R.ember, actor: "you", station: 1, msg: "Your call. Approved in 2 seconds.", gate: true },
   { ts: "09:16:48", tag: "PLAN", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec locked: 4 criteria, 6 linked signals" },
-  { ts: "09:18:37", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 2, msg: "Screens, states, and copy drafted from the spec" },
-  { ts: "09:21:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched: 3 commits" },
-  { ts: "09:27:52", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 14 tests passing" },
-  { ts: "09:28:30", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Merge held for you. Approved.", gate: true },
-  { ts: "09:31:14", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Merged and deployed to production" },
-  { ts: "D+14", tag: "LEARN", col: R.green, actor: "agent", agentName: "Sentry", station: 5, msg: "Activation +8%. Call validated. Memory updated.", mark: true },
+  { ts: "09:18:37", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 3, msg: "Screens, states, and copy drafted from the spec" },
+  { ts: "09:21:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Agents dispatched: 3 commits" },
+  { ts: "09:27:52", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "All 14 tests passing" },
+  { ts: "09:28:30", tag: "GATE", col: R.ember, actor: "you", station: 4, msg: "Merge held for you. Approved.", gate: true },
+  { ts: "09:31:14", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 5, msg: "Merged and deployed to production" },
+  { ts: "D+14", tag: "LEARN", col: R.green, actor: "agent", agentName: "Sentry", station: 6, msg: "Activation +8%. Call validated. Memory updated.", mark: true },
 ];
 
 export const OTHERS_LOG: LogEntry[] = [
@@ -104,25 +104,27 @@ export const OTHERS_LOG: LogEntry[] = [
   { ts: "08:47:03", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
   { ts: "09:15:12", tag: "HANDOFF", col: R.muted, actor: "you", station: 1, msg: "You assemble the context by hand" },
   { ts: "09:31:40", tag: "DRAFT", col: R.blue, actor: "tool", station: 1, msg: "A tidy document appears. Waiting for you." },
+  { ts: "--", tag: "DESIGN", col: R.faint, msg: "The document never becomes screens", dead: true },
   { ts: "--", tag: "BUILD", col: R.faint, msg: "Never happens here", dead: true },
   { ts: "--", tag: "SHIP", col: R.faint, msg: "Someone else's job now", dead: true },
   { ts: "--", tag: "LEARN", col: R.faint, msg: "Nobody checks how the story ended", dead: true },
 ];
 
 export const FAIL_LOG: LogEntry[] = [
-  { ts: "11:41:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched" },
-  { ts: "11:47:32", tag: "CI", col: R.red, actor: "agent", agentName: "Builder", station: 3, msg: "Failed: 3 tests red, API contract mismatch" },
-  { ts: "11:47:40", tag: "DIAGNOSE", col: R.blue, actor: "agent", agentName: "Critic", station: 3, msg: "Reading the failure" },
-  { ts: "11:48:04", tag: "ROOT CAUSE", col: R.muted, actor: "agent", agentName: "Critic", station: 3, msg: "Response schema changed: user_id renamed to uid" },
+  { ts: "11:41:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Agents dispatched" },
+  { ts: "11:47:32", tag: "CI", col: R.red, actor: "agent", agentName: "Builder", station: 4, msg: "Failed: 3 tests red, API contract mismatch" },
+  { ts: "11:47:40", tag: "DIAGNOSE", col: R.blue, actor: "agent", agentName: "Critic", station: 4, msg: "Reading the failure" },
+  { ts: "11:48:04", tag: "ROOT CAUSE", col: R.muted, actor: "agent", agentName: "Critic", station: 4, msg: "Response schema changed: user_id renamed to uid" },
   { ts: "11:48:41", tag: "REVISE", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec revised, one clause corrected" },
-  { ts: "11:49:12", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Rebuild: 1 corrected commit" },
-  { ts: "11:54:47", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 17 tests passing" },
-  { ts: "11:55:20", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Your merge gate. Approved.", gate: true },
-  { ts: "11:56:02", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Deployed. The loop never stopped." },
-  { ts: "11:56:04", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 5, msg: "Failure pattern written back. The next build starts around it.", mark: true },
+  { ts: "11:49:03", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 3, msg: "States rechecked against the revised spec, no screen change" },
+  { ts: "11:49:12", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Rebuild: 1 corrected commit" },
+  { ts: "11:54:47", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "All 17 tests passing" },
+  { ts: "11:55:20", tag: "GATE", col: R.ember, actor: "you", station: 4, msg: "Your merge gate. Approved.", gate: true },
+  { ts: "11:56:02", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 5, msg: "Deployed. The loop never stopped." },
+  { ts: "11:56:04", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 6, msg: "Failure pattern written back. The next build starts around it.", mark: true },
 ];
 
-const STATIONS = ["Discover", "Decide", "Plan", "Build", "Ship", "Learn"] as const;
+const STATIONS = ["Discover", "Decide", "Plan", "Design", "Build", "Ship", "Learn"] as const;
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -453,12 +455,18 @@ export function FlowList({
 /** The decision card mock: signal to approved to building, on one clock. */
 export function MockDecisionCard({ revealed }: { revealed: boolean }) {
   const { progress, resetting } = useSharedClock(revealed);
-  // Stations sit at 0, 1/3, 2/3, 1 of the track; deriving at x3 lights each
-  // label the exact frame the bar's edge reaches it.
-  const step = Math.min(Math.floor(progress * 3), 3);
-  const labels = ["Signal detected", "Decision proposed", "You approved", "Agents dispatched"];
-  const stepCols = [R.blue, R.blue, R.ember, R.amber];
-  const spineLabels = ["Sense", "Decide", "Plan", "Build"];
+  // Five stations sit at even quarters of the track; deriving at x4 lights
+  // each label the exact frame the bar's edge reaches it.
+  const step = Math.min(Math.floor(progress * 4), 4);
+  const labels = [
+    "Signal detected",
+    "Decision proposed",
+    "You approved",
+    "Design drafted",
+    "Agents dispatched",
+  ];
+  const stepCols = [R.blue, R.blue, R.ember, R.blue, R.amber];
+  const spineLabels = ["Sense", "Decide", "Plan", "Design", "Build"];
 
   return (
     <div
@@ -523,8 +531,9 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
             <p style={{ fontSize: 11, color: R.muted, margin: 0, lineHeight: 1.5 }}>
               {step === 0 && "3 signals clustered: friction at step 2 rising."}
               {step === 1 && "Precedent: similar fix, D+14 activation +9%."}
-              {step === 2 && "Spec locked. Agents dispatched. ETA: 8 min."}
-              {step === 3 && "3 commits. CI passing. Merge queued."}
+              {step === 2 && "Your call. Spec locked: 4 criteria."}
+              {step === 3 && "Screens, states, and copy drafted from the spec."}
+              {step === 4 && "3 commits. CI passing. Merge queued."}
             </p>
           </div>
           {step === 1 && (
@@ -584,6 +593,7 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
   const AGENTS = [
     { name: "Scout", act: "clustered 3 signals", col: R.blue },
     { name: "Architect", act: "spec locked, 4 criteria", col: R.blue },
+    { name: "Designer", act: "screens drafted from spec", col: R.blue },
     { name: "Builder", act: "3 commits, CI green", col: R.amber },
     { name: "Sentry", act: "watching D+14 outcome", col: R.green },
   ];
@@ -712,6 +722,7 @@ function DeadRun() {
   const AGENTS = [
     { name: "Scout", act: "no signal watch running" },
     { name: "Architect", act: "waiting on your handoff" },
+    { name: "Designer", act: "no spec to design from" },
     { name: "Builder", act: "nothing was dispatched" },
     { name: "Sentry", act: "no outcome to watch" },
   ];
@@ -741,7 +752,7 @@ function DeadRun() {
           live run / agent mesh
         </span>
         <span style={{ marginLeft: "auto", fontSize: 9, color: R.faint, fontFamily: MONO }}>
-          0/4 working
+          0/5 working
         </span>
       </div>
       {AGENTS.map((a, i) => (
@@ -821,7 +832,7 @@ export type ReplayTab = "full" | "others" | "failure";
 const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; caption: string }> = {
   full: {
     log: FULL_LOG,
-    litThrough: 5,
+    litThrough: 6,
     caption: "Agents ran twelve steps in nineteen minutes. You made two calls. Every one is on the record.",
   },
   others: {
@@ -831,7 +842,7 @@ const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; capti
   },
   failure: {
     log: FAIL_LOG,
-    litThrough: 5,
+    litThrough: 6,
     caption: "It never stopped; it recovered. Your gate stayed in the middle the whole time.",
   },
 };
