@@ -9,6 +9,7 @@ import {
   nodeRadius,
   truncateTitle,
   resolveKindColors,
+  computeReducedMotion,
   usePrefersReducedMotion,
 } from "../graph-visual";
 
@@ -105,6 +106,52 @@ describe("truncateTitle", () => {
     const out = truncateTitle(long, 26);
     expect(out).toBe(`${"A".repeat(25)}…`);
     expect(out.length).toBe(26);
+  });
+});
+
+describe("computeReducedMotion", () => {
+  /**
+   * Pure function that combines OS media query preference with in-product toggle.
+   * Extracted from the hook for unit testability (no DOM/browser-API coupling).
+   */
+
+  test("returns false when both mediaQueryMatches and motionDataset are falsy", () => {
+    expect(computeReducedMotion(false, undefined)).toBe(false);
+    expect(computeReducedMotion(false, null as unknown as string)).toBe(false);
+    expect(computeReducedMotion(false, "")).toBe(false);
+  });
+
+  test("returns true when OS mediaQueryMatches is true (prefers-reduced-motion)", () => {
+    expect(computeReducedMotion(true, undefined)).toBe(true);
+    expect(computeReducedMotion(true, "")).toBe(true);
+    expect(computeReducedMotion(true, "on")).toBe(true); // even with non-"off" toggle
+  });
+
+  test("returns true when in-product toggle is 'off'", () => {
+    expect(computeReducedMotion(false, "off")).toBe(true);
+  });
+
+  test("returns false when in-product toggle is 'on' (not 'off')", () => {
+    expect(computeReducedMotion(false, "on")).toBe(false);
+  });
+
+  test("returns true when OS preference is true (takes precedence)", () => {
+    // OS preference wins: even if toggle is "on", reduced motion is still true
+    expect(computeReducedMotion(true, "on")).toBe(true);
+  });
+
+  test("returns true when EITHER the OS preference OR the toggle is 'off'", () => {
+    // OR logic: true if any condition is true
+    expect(computeReducedMotion(true, "off")).toBe(true); // both true
+    expect(computeReducedMotion(true, "on")).toBe(true); // OS true, toggle not "off"
+    expect(computeReducedMotion(false, "off")).toBe(true); // OS false, toggle "off"
+  });
+
+  test("returns false only when BOTH OS preference is false AND toggle is not 'off'", () => {
+    expect(computeReducedMotion(false, undefined)).toBe(false);
+    expect(computeReducedMotion(false, "")).toBe(false);
+    expect(computeReducedMotion(false, "on")).toBe(false);
+    expect(computeReducedMotion(false, "anything_else")).toBe(false);
   });
 });
 

@@ -661,11 +661,13 @@ describe("nextActionFor verdict differentiation", () => {
     // Should suggest moving forward with building/spec/proceeding
     expect(action.toLowerCase()).toMatch(/proceed|spec|build|draft/);
     // Compare with PENDING to confirm they are different
-    const pendingAction = nextActionFor(mk({
-      id: "pending-opp",
-      status: "backlog",
-      critic_review: null,
-    }));
+    const pendingAction = nextActionFor(
+      mk({
+        id: "pending-opp",
+        status: "backlog",
+        critic_review: null,
+      }),
+    );
     expect(action).not.toBe(pendingAction);
   });
 
@@ -688,11 +690,13 @@ describe("nextActionFor verdict differentiation", () => {
     expect(action).not.toBe("Draft the spec");
     expect(action.toLowerCase()).toMatch(/signal|gather|monitor/);
     // Verify it's distinct from SHIP
-    const shipAction = nextActionFor(mk({
-      id: "ship-opp",
-      status: "backlog",
-      critic_review: critic("ship"),
-    }));
+    const shipAction = nextActionFor(
+      mk({
+        id: "ship-opp",
+        status: "backlog",
+        critic_review: critic("ship"),
+      }),
+    );
     expect(action).not.toBe(shipAction);
   });
 
