@@ -26,7 +26,9 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
               className="text-4xl md:text-5xl font-semibold mb-4 text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Receipts, not claims.
+              Receipts,
+              <br />
+              not claims.
             </h2>
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
               {stats
