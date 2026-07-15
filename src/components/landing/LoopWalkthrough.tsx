@@ -106,8 +106,8 @@ export function LoopWalkthrough() {
           }`}
           style={{ transitionDelay: inView ? "100ms" : "0ms" }}
         >
-          One real mission, step by step: nineteen minutes from a cold signal to production. The
-          last tab is the part nobody else shows you.
+          One real mission, step by step: signals collected through the morning, flagged at
+          09:13, in production by 09:31. The last tab is the part nobody else shows you.
         </p>
 
         {/* Reader-paced tabs: clicked, never cycled on a timer */}

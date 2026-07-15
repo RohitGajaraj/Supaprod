@@ -83,8 +83,8 @@ function ActorChip({
 }
 
 export const FULL_LOG: LogEntry[] = [
-  { ts: "09:12:44", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "analytics: activation down 4% week over week" },
-  { ts: "09:13:10", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
+  { ts: "08:02:19", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "analytics: activation down 4% week over week" },
+  { ts: "08:47:03", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
   { ts: "09:13:26", tag: "SENSE", col: R.blue, actor: "agent", agentName: "Scout", station: 0, msg: "Flagged: the drop and the complaints are one story" },
   { ts: "09:13:41", tag: "CLUSTER", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "3 signals linked: onboarding friction" },
   { ts: "09:14:02", tag: "PROPOSE", col: R.blue, actor: "agent", agentName: "Strategist", station: 1, msg: "Decision proposed: simplify onboarding step 2" },
@@ -100,8 +100,8 @@ export const FULL_LOG: LogEntry[] = [
 ];
 
 export const OTHERS_LOG: LogEntry[] = [
-  { ts: "09:12:44", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "analytics: activation down 4% week over week" },
-  { ts: "09:13:10", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
+  { ts: "08:02:19", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "analytics: activation down 4% week over week" },
+  { ts: "08:47:03", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
   { ts: "09:15:12", tag: "HANDOFF", col: R.muted, actor: "you", station: 1, msg: "You assemble the context by hand" },
   { ts: "09:31:40", tag: "DRAFT", col: R.blue, actor: "tool", station: 1, msg: "A tidy document appears. Waiting for you." },
   { ts: "--", tag: "BUILD", col: R.faint, msg: "Never happens here", dead: true },
