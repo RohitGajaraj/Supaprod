@@ -1,12 +1,45 @@
 {
-  "timestamp": "2026-07-12T16:03:08.264Z",
-  "mode": "local",
-  "checks": {
-    "envFilesProtected": true,
-    "gitIgnoreExists": true,
-    "noHardcodedSecrets": true
+  "timestamp": "2026-07-14T20:08:33.388Z",
+  "mode": "headless",
+  "workerType": "audit",
+  "model": "haiku",
+  "durationMs": 133196,
+  "executionId": "audit_1784059580192_ew2f6f",
+  "success": true,
+  "findings": {
+    "vulnerabilities": [
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+        "line": 23,
+        "description": "Insecure random number generator fallback. Uses Math.random() for session token generation when crypto.randomUUID() is unavailable. The code explicitly warns 'Never rely on Math.random() for security tokens' (line 18) but then uses it in the fallback (line 23). This creates weak session IDs in older environments without crypto support.",
+        "category": "cryptography"
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+        "line": 76,
+        "description": "Unencrypted session data storage. Session state is persisted to localStorage as plaintext JSON without encryption. If the session object contains sensitive data, this is exposed to XSS attacks and physical access vulnerabilities.",
+        "category": "data-exposure"
+      },
+      {
+        "severity": "low",
+        "file": "src/components/ui/chart.tsx",
+        "line": 73,
+        "description": "Potential CSS injection via dangerouslySetInnerHTML. Color values from user-provided chart config are interpolated directly into CSS template strings. While lower risk than XSS, unvalidated CSS properties could be exploited for content exfiltration or UI spoofing if config accepts arbitrary strings.",
+        "category": "injection"
+      }
+    ],
+    "riskScore": 28,
+    "recommendations": [
+      "Replace Math.random() fallback with a secure alternative: use a timestamp + secure hash or throw an error in environments without crypto.getRandomValues(). Session tokens must always be cryptographically secure.",
+      "Encrypt session data before storing in localStorage using AES-256-GCM with a locally-derived key, or move sensitive state to sessionStorage with shorter TTL and secure flags.",
+      "Validate all color values in chart config against a whitelist of valid hex/rgb/hsl formats. Use a library like color-validate or enforce strict regex before interpolating into CSS.",
+      "Enable Content Security Policy (CSP) headers to restrict inline styles and prevent CSS injection attacks.",
+      "Run `bun run lint` to verify ESLint catches no other violations. Conduct a full SCA (Software Composition Analysis) on dependencies for known vulnerabilities.",
+      "Add pre-commit hooks to detect hardcoded secrets using tools like git-secrets or detect-secrets."
+    ]
   },
-  "riskLevel": "low",
-  "recommendations": [],
-  "note": "Install Claude Code CLI for AI-powered security analysis"
+  "rawOutputPreview": "## Security Vulnerability Analysis Complete\n\nI've analyzed the Cadence codebase and identified security concerns. Here's the JSON report:\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 23,\n      \"description\": \"Insecure random number generator fallback. Uses Math.random() for session token generation when crypto.randomUUID() is unavailable. The code explicitly warns 'Never rely on Math.random() for security tokens' (line 18) but then uses it in the fallback (line 23). This creates weak session IDs in older environments without crypto support.\",\n      \"category\": \"cryptography\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 76,\n      \"description\": \"Unencrypted session data storage. Session state is persisted to localStorage as plaintext JSON without encryption. If the session object contains sensitive data, this is exposed to XSS attacks and physical access vulnerabilities.\",\n      \"category\": \"data-exposure\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \"src/components/ui/chart.tsx\",\n      \"line\": 73,\n      \"description\": \"Potential CSS injection via dangerouslySetInnerHTML. Color values from user-provided chart config are interpolated directly into CSS template strings. While lower risk than XSS, unvalidated CSS properties could be exploited for content exfiltration or UI spoofing if config accepts arbitrary strings.\",\n      \"category\": \"injection\"\n    }\n  ],\n  \"riskScore\": 28,\n  \"recommendations\": [\n    \"Replace Math.random() fallback with a secure alternative: use a timestamp + secure hash or throw an error in environments without crypto.getRandomValues(). Session tokens must always be cryptographically secure.\",\n    \"Encrypt session data before storing in localStorage using AES-256-GCM with a locally-derived key, or move sensitive state to sessionStorage with shorter TT",
+  "rawOutputLength": 3393
 }

@@ -4,14 +4,10 @@ import type { SketchBarDatum } from "./Sketch";
 
 /**
  * Unit tests for SketchBarChart dependencies and logic.
- * Gap 1 Analysis: SketchBarChart uses React hooks (useState) which require
- * a render context. Unit testing with JSX mirrors is insufficient for
- * interactive behavior (hover/focus state swapping, race-guard logic).
+ * Tests the barInsight function which powers the chart's insight text.
  *
- * Strategy:
- * 1. Test the component's pure dependencies (barInsight, formatValue)
- * 2. Provide a skeleton for E2E/integration tests (requires @testing-library/react + DOM)
- * 3. Document the missing coverage: hover->activeIdx swapping, race-guard logic in onBlur
+ * Note: Interactive behavior (hover/focus/race-guard) is tested in
+ * sketch-components-dom.test.tsx with React Testing Library + DOM.
  */
 
 describe("SketchBarChart dependencies — barInsight", () => {
@@ -72,4 +68,3 @@ describe("SketchBarChart dependencies — barInsight", () => {
     expect(insight).toContain("30"); // Peak value
   });
 });
-
