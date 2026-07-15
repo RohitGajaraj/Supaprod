@@ -107,7 +107,7 @@ export function LandingFooter() {
                   @RohitGajaraj
                 </a>
               </li>
-              <li className="text-gray-600">Built in public since June 2026</li>
+              <li className="text-gray-600">Built in public since May 2026</li>
             </ul>
           </div>
         </div>

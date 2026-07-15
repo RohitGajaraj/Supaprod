@@ -110,8 +110,8 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
           A product team of agents, answerable to you.
         </h2>
         <p className="text-xl text-zinc-400 mb-12" style={{ maxWidth: "52ch" }}>
-          It starts learning your product from the first call you grade with it. The doors are open
-          to the first cohort. Early is the offer.
+          It starts learning your product from the first call you grade with it. The private beta
+          is open for sign-ups.
         </p>
 
         <WaitlistForm waitlistCount={waitlistCount} />
