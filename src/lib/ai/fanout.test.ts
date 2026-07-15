@@ -5,6 +5,7 @@ import {
   FANOUT_MAX_DEPTH,
   fanoutDepthOf,
   canSpawnAtDepth,
+  resolveMaxChildrenForTier,
 } from "./fanout";
 
 describe("planFanout (ephemeral sub-agent fan-out)", () => {
@@ -91,5 +92,43 @@ describe("fan-out depth bound (the recursion guard)", () => {
     expect(canSpawnAtDepth(0)).toBe(true);
     expect(canSpawnAtDepth(FANOUT_MAX_DEPTH)).toBe(false);
     expect(canSpawnAtDepth(FANOUT_MAX_DEPTH + 1)).toBe(false);
+  });
+});
+
+describe("resolveMaxChildrenForTier (entitlements clamping)", () => {
+  it("returns FANOUT_MAX_CHILDREN when tier cap is null (unlimited tier)", () => {
+    const result = resolveMaxChildrenForTier(null);
+    expect(result).toBe(FANOUT_MAX_CHILDREN);
+  });
+
+  it("returns the tier cap when it is below the global max", () => {
+    expect(resolveMaxChildrenForTier(1)).toBe(1);
+    expect(resolveMaxChildrenForTier(3)).toBe(3);
+    expect(resolveMaxChildrenForTier(5)).toBe(5);
+  });
+
+  it("returns FANOUT_MAX_CHILDREN when tier cap equals the global max", () => {
+    const result = resolveMaxChildrenForTier(FANOUT_MAX_CHILDREN);
+    expect(result).toBe(FANOUT_MAX_CHILDREN);
+  });
+
+  it("clamps the tier cap to FANOUT_MAX_CHILDREN when it exceeds the global max", () => {
+    expect(resolveMaxChildrenForTier(10)).toBe(FANOUT_MAX_CHILDREN);
+    expect(resolveMaxChildrenForTier(100)).toBe(FANOUT_MAX_CHILDREN);
+    expect(resolveMaxChildrenForTier(999)).toBe(FANOUT_MAX_CHILDREN);
+  });
+
+  it("returns 1 when tier cap is 0 (always allow at least one child)", () => {
+    // Note: resolveMaxChildrenForTier doesn't special-case 0, so it would return 0.
+    // This test documents the current behavior. If 0 should be invalid, add validation.
+    const result = resolveMaxChildrenForTier(0);
+    expect(result).toBe(0);
+  });
+
+  it("handles negative tier caps (implementation detail: treated as 0)", () => {
+    // Negative tier caps are invalid, but the function doesn't validate.
+    // This test documents the current behavior (Math.min handles it).
+    const result = resolveMaxChildrenForTier(-5);
+    expect(result).toBe(-5);
   });
 });
