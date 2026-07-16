@@ -14,7 +14,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SPECIALIST_CATALOG, type AgentStation, type CatalogEntry } from "@/lib/agent-vocabulary";
 import { PLAYBOOK_REGISTRY } from "@/lib/playbooks/registry";
-import { getActiveHouseRulesForWorkspace, renderHouseRulesBlock } from "@/lib/house-rules.functions";
+import {
+  getActiveHouseRulesForWorkspace,
+  renderHouseRulesBlock,
+} from "@/lib/house-rules.functions";
 import { renderBriefBlock } from "@/lib/briefs.functions";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { z } from "zod";
