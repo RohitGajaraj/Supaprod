@@ -39,7 +39,7 @@ export const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone>
 };
 
 /** Same "when" rhythm as LearningDetail: time today, "Yesterday", else "Jun 9". */
-function whenOf(iso: string): string {
+export function whenOf(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
   const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
@@ -66,7 +66,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 /** ICE delta of one learning, or null when it did not move a ranking.
  * Mirrors moat-vis rescoresOf (round to 0.1, jitter is not a move). */
-function deltaOf(l: {
+export function deltaOf(l: {
   prior_ice: number | string | null;
   new_ice: number | string | null;
 }): number | null {
