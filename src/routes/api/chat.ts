@@ -214,8 +214,9 @@ export const Route = createFileRoute("/api/chat")({
           model?: string;
           // PC-36 workstream B: an optional retrieval scope suggested by the
           // screen Ask was opened from (or an explicit user override), see
-          // src/lib/ask-context.tsx's scopeForPath.
-          scope?: { kinds?: string[]; sourceId?: string | null };
+          // src/lib/ask-context.tsx's scopeForPath. productId narrows to one
+          // product (the panel's opt-in product chip).
+          scope?: { kinds?: string[]; sourceId?: string | null; productId?: string | null };
         };
         try {
           body = await request.json();
@@ -726,6 +727,7 @@ You must output a JSON object EXACTLY in this format:
                   mmr: true,
                   sourceKinds: body.scope?.kinds,
                   sourceId: body.scope?.sourceId ?? undefined,
+                  productId: body.scope?.productId ?? undefined,
                 });
                 workspaceChunks = chunks.length;
                 chunkRefs = chunks.map((c) => ({

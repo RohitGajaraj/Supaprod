@@ -11,13 +11,21 @@ import { MissionCanvasBlocks } from "@/components/obsidian";
 import { PendingApprovalsStrip } from "@/components/obsidian/ask-canvas";
 import { AnswerBlocks } from "@/components/obsidian/ask-blocks";
 import { supabase } from "@/integrations/supabase/client";
-import { createConversation } from "@/lib/conversations.functions";
+import { useQuery } from "@tanstack/react-query";
+import { createConversation, getConversation } from "@/lib/conversations.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { createTask } from "@/lib/tasks.functions";
 import { createNoteFromAsk } from "@/lib/ask-promote.functions";
 import { toast } from "@/lib/notify";
 import { useDictation, useReadAloud, type ReadAloudState } from "@/hooks/use-voice";
-import { answerTitle, dayLabel, needsDayDivider } from "@/lib/ask-thread";
+import { useWorkspace } from "@/hooks/use-workspace";
+import {
+  answerTitle,
+  dayLabel,
+  needsDayDivider,
+  hydrateMessages,
+  type StoredMessageRow,
+} from "@/lib/ask-thread";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 import type { ChatMeta } from "@/components/chat/MessageMeta";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
@@ -55,6 +63,9 @@ type Msg = {
 
 /** What an answer was promoted into (PC-36 E), keyed per message. */
 type PromotedRecords = Partial<{ note: string; decision: string; task: string }>;
+
+/** localStorage key for the panel's last conversation (PC-36 rehydration). */
+const ASK_CONVERSATION_KEY = "cadence.ask.conversation.v1";
 
 class AskUiError extends Error {}
 
@@ -687,6 +698,13 @@ export function AskPanel() {
     setScopeCleared(false);
   }, [scope?.label, scope?.sourceId]);
   const effectiveScope = scopeCleared ? null : scope;
+  // PC-36 gap fix: product scope. The choice of WHICH product stays with the
+  // app's own switcher (useWorkspace persists it per workspace); the chip
+  // only toggles whether Ask narrows retrieval to it. Opt-in, because
+  // product-less chunks would silently vanish from an always-on filter.
+  const { activeProduct, activeProductId, productsVisible } = useWorkspace();
+  const [productScoped, setProductScoped] = React.useState(false);
+  const effectiveProductId = productScoped && productsVisible ? activeProductId : null;
   const conversationIdRef = React.useRef<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const fCreate = useServerFn(createConversation);
@@ -698,12 +716,63 @@ export function AskPanel() {
   // PC-36 F: read-aloud is panel-level so only one answer speaks at a time.
   const readAloud = useReadAloud();
 
+  // PC-36 gap fix: the thread survives a refresh. The last conversation id
+  // is remembered client-side; on open, its persisted messages (prose, meta,
+  // typed blocks, mission links) rehydrate the thread once, and only into an
+  // empty thread so a live session is never clobbered. A stale or foreign id
+  // (RLS returns no conversation) clears itself and the panel starts fresh.
+  const fGetConversation = useServerFn(getConversation);
+  const [storedConvId, setStoredConvId] = React.useState<string | null>(() =>
+    typeof window === "undefined" ? null : window.localStorage.getItem(ASK_CONVERSATION_KEY),
+  );
+  const rememberConversationId = React.useCallback((id: string | null) => {
+    setStoredConvId(id);
+    try {
+      if (id) window.localStorage.setItem(ASK_CONVERSATION_KEY, id);
+      else window.localStorage.removeItem(ASK_CONVERSATION_KEY);
+    } catch {
+      // Storage can be unavailable (private mode); the thread just won't persist.
+    }
+  }, []);
+
   const ensureConversation = React.useCallback(async (): Promise<string> => {
     if (conversationIdRef.current) return conversationIdRef.current;
     const r = await fCreate({ data: {} });
     conversationIdRef.current = r.conversation.id;
+    rememberConversationId(r.conversation.id);
     return r.conversation.id;
-  }, [fCreate]);
+  }, [fCreate, rememberConversationId]);
+
+  const hydration = useQuery({
+    queryKey: ["ask-conversation", storedConvId],
+    queryFn: () => fGetConversation({ data: { id: storedConvId! } }),
+    enabled: isOpen && !!storedConvId && messages.length === 0,
+    staleTime: Infinity,
+  });
+  React.useEffect(() => {
+    const data = hydration.data;
+    if (!data || messages.length > 0 || !storedConvId) return;
+    if (!data.conversation) {
+      rememberConversationId(null);
+      return;
+    }
+    const hydrated = hydrateMessages((data.messages ?? []) as StoredMessageRow[]);
+    if (hydrated.length > 0) {
+      conversationIdRef.current = storedConvId;
+      setMessages(hydrated);
+    }
+    // An empty existing conversation keeps its id but needs no messages.
+    else conversationIdRef.current = storedConvId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydration.data]);
+
+  const startNewConversation = React.useCallback(() => {
+    if (streaming) return;
+    conversationIdRef.current = null;
+    rememberConversationId(null);
+    setMessages([]);
+    setPromotedByMsg({});
+  }, [streaming, rememberConversationId]);
 
   const send = React.useCallback(
     async (content: string) => {
@@ -747,8 +816,14 @@ export function AskPanel() {
           body: JSON.stringify({
             conversationId: convId,
             content,
-            ...(effectiveScope
-              ? { scope: { kinds: effectiveScope.kinds, sourceId: effectiveScope.sourceId } }
+            ...(effectiveScope || effectiveProductId
+              ? {
+                  scope: {
+                    kinds: effectiveScope?.kinds,
+                    sourceId: effectiveScope?.sourceId,
+                    productId: effectiveProductId ?? undefined,
+                  },
+                }
               : {}),
           }),
           signal: controller.signal,
@@ -832,7 +907,7 @@ export function AskPanel() {
         setLiveStatus(null);
       }
     },
-    [streaming, ensureConversation, effectiveScope],
+    [streaming, ensureConversation, effectiveScope, effectiveProductId],
   );
 
   // PC-36 E: promote an answer to a record through the EXISTING create
@@ -1022,13 +1097,33 @@ export function AskPanel() {
                   Anything in the platform · reads {context}
                 </div>
               </div>
+              {messages.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={startNewConversation}
+                  disabled={streaming}
+                  aria-label="Start a new conversation"
+                  className="transition-colors hover:[color:var(--text-primary)] disabled:opacity-50"
+                  style={{
+                    marginLeft: "auto",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    color: "var(--text-subtle)",
+                    background: "none",
+                    border: "none",
+                    cursor: streaming ? "default" : "pointer",
+                  }}
+                >
+                  New
+                </button>
+              ) : null}
               <DialogPrimitive.Close asChild>
                 <button
                   type="button"
                   aria-label="Close"
                   className="transition-colors hover:[color:var(--text-primary)]"
                   style={{
-                    marginLeft: "auto",
+                    marginLeft: messages.length > 0 ? undefined : "auto",
                     fontFamily: "var(--font-mono)",
                     fontSize: 10,
                     color: "var(--text-subtle)",
@@ -1042,34 +1137,62 @@ export function AskPanel() {
               </DialogPrimitive.Close>
             </div>
           </div>
-          {scope ? (
+          {scope || productsVisible ? (
             <div
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 flex-wrap"
               style={{ padding: "8px 20px", borderBottom: "1px solid var(--hairline)" }}
             >
-              <button
-                type="button"
-                onClick={() => setScopeCleared((prev) => !prev)}
-                aria-pressed={!scopeCleared}
-                className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
-                  letterSpacing: "0.03em",
-                  padding: "4px 8px",
-                  borderRadius: 999,
-                  border: `1px solid ${scopeCleared ? "var(--hairline)" : "var(--ember-line)"}`,
-                  color: scopeCleared ? "var(--text-subtle)" : "var(--ember)",
-                  background: scopeCleared
-                    ? "transparent"
-                    : "color-mix(in oklab, var(--ember) 8%, transparent)",
-                  cursor: "pointer",
-                }}
-              >
-                <Filter size={11} strokeWidth={2} />
-                {scopeCleared ? "Searching everything" : `Scoped to ${scope.label}`}
-              </button>
-              {!scopeCleared && (
+              {scope ? (
+                <button
+                  type="button"
+                  onClick={() => setScopeCleared((prev) => !prev)}
+                  aria-pressed={!scopeCleared}
+                  className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    letterSpacing: "0.03em",
+                    padding: "4px 8px",
+                    borderRadius: 999,
+                    border: `1px solid ${scopeCleared ? "var(--hairline)" : "var(--ember-line)"}`,
+                    color: scopeCleared ? "var(--text-subtle)" : "var(--ember)",
+                    background: scopeCleared
+                      ? "transparent"
+                      : "color-mix(in oklab, var(--ember) 8%, transparent)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Filter size={11} strokeWidth={2} />
+                  {scopeCleared ? "Searching everything" : `Scoped to ${scope.label}`}
+                </button>
+              ) : null}
+              {productsVisible && activeProduct ? (
+                // PC-36 gap fix: opt-in product narrowing. Which product is
+                // active stays the app switcher's call; this only toggles
+                // whether Ask reads that product alone.
+                <button
+                  type="button"
+                  onClick={() => setProductScoped((prev) => !prev)}
+                  aria-pressed={productScoped}
+                  className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    letterSpacing: "0.03em",
+                    padding: "4px 8px",
+                    borderRadius: 999,
+                    border: `1px solid ${productScoped ? "var(--ember-line)" : "var(--hairline)"}`,
+                    color: productScoped ? "var(--ember)" : "var(--text-subtle)",
+                    background: productScoped
+                      ? "color-mix(in oklab, var(--ember) 8%, transparent)"
+                      : "transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  {productScoped ? `${activeProduct.name} only` : "All products"}
+                </button>
+              ) : null}
+              {scope && !scopeCleared ? (
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
@@ -1079,7 +1202,7 @@ export function AskPanel() {
                 >
                   tap to search everything instead
                 </span>
-              )}
+              ) : null}
             </div>
           ) : null}
           {/* PC-36 D2: anything waiting on you, actionable without leaving

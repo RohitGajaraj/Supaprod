@@ -2,6 +2,57 @@
 // out of AskPanel.tsx per the house convention (logic in a lib file, thin
 // JSX in the component) so it is unit-testable without the component graph.
 
+import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
+import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
+
+/** The wire shape getConversation returns per message (generated types
+ * predate mission_id/metadata, so the row is typed here). */
+export type StoredMessageRow = {
+  id: string;
+  role: string;
+  content: string | null;
+  created_at: string;
+  mission_id?: string | null;
+  metadata?: unknown;
+};
+
+export type HydratedMsg = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  at: number;
+  mission_id?: string | null;
+  meta?: ChatMeta | null;
+  blocks?: AnswerBlock[];
+};
+
+/**
+ * Rehydrate persisted rows into thread messages (PC-36: nothing said in Ask
+ * may evaporate, including across a page refresh). Meta and typed blocks
+ * ride inside metadata; rows that fail to parse degrade to plain prose
+ * rather than dropping the message. System/tool rows never render.
+ */
+export function hydrateMessages(rows: StoredMessageRow[]): HydratedMsg[] {
+  const out: HydratedMsg[] = [];
+  for (const row of rows) {
+    if (row.role !== "user" && row.role !== "assistant") continue;
+    const at = Date.parse(row.created_at);
+    const meta = parseChatMeta(row.metadata);
+    const rawBlocks = (row.metadata as { blocks?: unknown } | null)?.blocks;
+    const blocks = Array.isArray(rawBlocks) ? rawBlocks.filter(isAnswerBlock) : [];
+    out.push({
+      id: row.id,
+      role: row.role,
+      content: row.content ?? "",
+      at: Number.isFinite(at) ? at : 0,
+      ...(row.mission_id ? { mission_id: row.mission_id } : {}),
+      ...(meta ? { meta } : {}),
+      ...(blocks.length > 0 ? { blocks } : {}),
+    });
+  }
+  return out;
+}
+
 /** First markdown-stripped line of an answer, for promoted record titles (PC-36 E). */
 export function answerTitle(text: string, max = 280): string {
   const line =

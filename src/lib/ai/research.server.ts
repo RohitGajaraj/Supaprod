@@ -69,7 +69,12 @@ export type ResearchResult = {
 };
 
 /** PC-36 B: the Ask panel's screen-derived retrieval scope. */
-export type ResearchScope = { kinds?: string[]; sourceId?: string | null };
+export type ResearchScope = {
+  kinds?: string[];
+  sourceId?: string | null;
+  /** Opt-in product narrowing from the panel's product chip. */
+  productId?: string | null;
+};
 
 const MAX_SUB_QUERIES = 3;
 const MAX_WEB_SOURCES = 6;
@@ -189,6 +194,7 @@ async function gatherInternal(
       mmr: true,
       sourceKinds: scope?.kinds,
       sourceId: scope?.sourceId ?? undefined,
+      productId: scope?.productId ?? undefined,
     }).catch((e) => {
       console.error("[research] workspace retrieval failed (skipping):", e);
       return [];

@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAskMissionCanvas, type AskMemoryRecall } from "@/lib/ask-canvas.functions";
 import { decideApproval, listApprovals } from "@/lib/agent_loop.functions";
+import { useApprovalPush } from "@/hooks/use-approval-push";
 import { toast } from "@/lib/notify";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import type { StudioApproval } from "@/lib/studio.functions";
@@ -255,10 +256,14 @@ export function PendingApprovalsStrip() {
   const fDecide = useServerFn(decideApproval);
   const queryClient = useQueryClient();
 
+  // Push-first (PC-36 gap fix): realtime pokes the queries the moment a
+  // gate lands or resolves anywhere; the interval is only the safety net
+  // for silently-dropped sockets.
+  useApprovalPush(true);
   const q = useQuery({
     queryKey: ["ask-pending-approvals"],
     queryFn: () => fList({ data: { status: "pending" } }),
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   const decide = useMutation({
