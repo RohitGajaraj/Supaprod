@@ -7,9 +7,34 @@ import { useRouterState } from "@tanstack/react-router";
 // awareness. Cmd/Ctrl+J is a modifier combo, so it stays active even when
 // focus sits in an input (unlike the bare 1-5/g rail shortcuts).
 
+// PC-36 workstream B: the "About: X" label above used to be purely cosmetic
+// text (Ask always ran an unscoped global k=4 lookup regardless of screen,
+// even though the empty state promised "I can also read {context} in front
+// of you"). AskScope makes that promise real for the screens where the
+// mapping is unambiguous; everywhere else stays unscoped (current behavior)
+// rather than guess a source_kind mapping we're not confident about.
+export type AskScope = {
+  kinds?: string[];
+  sourceId?: string | null;
+  /** Short label for the scope chip, e.g. "this mission". */
+  label: string;
+};
+
+export function scopeForPath(pathname: string, missionId: string | null): AskScope | null {
+  if (pathname.startsWith("/build") && missionId) {
+    return { kinds: ["mission"], sourceId: missionId, label: "this mission" };
+  }
+  if (pathname.startsWith("/plan")) return { kinds: ["prd"], label: "PRDs" };
+  if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) {
+    return { kinds: ["doc", "note", "finding"], label: "Brain" };
+  }
+  return null;
+}
+
 type AskState = {
   isOpen: boolean;
   context: string;
+  scope: AskScope | null;
   pendingIntent: string | null;
   summon: () => void;
   close: () => void;
@@ -44,6 +69,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
   });
 
   const context = React.useMemo(() => contextForPath(pathname, missionId), [pathname, missionId]);
+  const scope = React.useMemo(() => scopeForPath(pathname, missionId), [pathname, missionId]);
 
   const summon = React.useCallback(() => {
     setIsOpen(true);
@@ -92,6 +118,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isOpen,
       context,
+      scope,
       pendingIntent,
       summon,
       close,
@@ -99,7 +126,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
       runIntent,
       clearPendingIntent,
     }),
-    [isOpen, context, pendingIntent, summon, close, toggle, runIntent, clearPendingIntent],
+    [isOpen, context, scope, pendingIntent, summon, close, toggle, runIntent, clearPendingIntent],
   );
 
   return <AskContext.Provider value={value}>{children}</AskContext.Provider>;

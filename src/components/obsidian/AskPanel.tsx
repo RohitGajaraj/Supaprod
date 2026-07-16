@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Sparkles, ArrowUp } from "lucide-react";
+import { Sparkles, ArrowUp, Filter } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
@@ -379,10 +379,7 @@ function AskComposer({
             maxHeight: 80,
           }}
         />
-        <div
-          className="flex items-center justify-between"
-          style={{ marginTop: 6, gap: 8 }}
-        >
+        <div className="flex items-center justify-between" style={{ marginTop: 6, gap: 8 }}>
           <span
             style={{
               fontFamily: "var(--font-mono)",
@@ -424,10 +421,20 @@ function AskComposer({
 }
 
 export function AskPanel() {
-  const { isOpen, context, close, pendingIntent, clearPendingIntent } = useAsk();
+  const { isOpen, context, scope, close, pendingIntent, clearPendingIntent } = useAsk();
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [streaming, setStreaming] = React.useState(false);
   const [liveStatus, setLiveStatus] = React.useState<ResearchStatus | null>(null);
+  // PC-36 workstream B: scope is a suggested default from the screen you're
+  // on, never a silent restriction - the user can always drop back to
+  // searching everything. Resets whenever the underlying scope changes
+  // (navigating to a different screen/mission) so a stale override doesn't
+  // linger.
+  const [scopeCleared, setScopeCleared] = React.useState(false);
+  React.useEffect(() => {
+    setScopeCleared(false);
+  }, [scope?.label, scope?.sourceId]);
+  const effectiveScope = scopeCleared ? null : scope;
   const conversationIdRef = React.useRef<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const fCreate = useServerFn(createConversation);
@@ -468,7 +475,13 @@ export function AskPanel() {
             "Content-Type": "application/json",
             ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
           },
-          body: JSON.stringify({ conversationId: convId, content }),
+          body: JSON.stringify({
+            conversationId: convId,
+            content,
+            ...(effectiveScope
+              ? { scope: { kinds: effectiveScope.kinds, sourceId: effectiveScope.sourceId } }
+              : {}),
+          }),
           signal: controller.signal,
         });
         if (res.status === 401)
@@ -540,7 +553,7 @@ export function AskPanel() {
         setLiveStatus(null);
       }
     },
-    [streaming, ensureConversation],
+    [streaming, ensureConversation, effectiveScope],
   );
 
   // Cancel any in-flight stream if the panel closes or when pendingIntent changes
@@ -680,6 +693,46 @@ export function AskPanel() {
               </DialogPrimitive.Close>
             </div>
           </div>
+          {scope ? (
+            <div
+              className="flex items-center gap-2"
+              style={{ padding: "8px 20px", borderBottom: "1px solid var(--hairline)" }}
+            >
+              <button
+                type="button"
+                onClick={() => setScopeCleared((prev) => !prev)}
+                aria-pressed={!scopeCleared}
+                className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10.5,
+                  letterSpacing: "0.03em",
+                  padding: "4px 8px",
+                  borderRadius: 999,
+                  border: `1px solid ${scopeCleared ? "var(--hairline)" : "var(--ember-line)"}`,
+                  color: scopeCleared ? "var(--text-subtle)" : "var(--ember)",
+                  background: scopeCleared
+                    ? "transparent"
+                    : "color-mix(in oklab, var(--ember) 8%, transparent)",
+                  cursor: "pointer",
+                }}
+              >
+                <Filter size={11} strokeWidth={2} />
+                {scopeCleared ? "Searching everything" : `Scoped to ${scope.label}`}
+              </button>
+              {!scopeCleared && (
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  tap to search everything instead
+                </span>
+              )}
+            </div>
+          ) : null}
           <div
             ref={scrollContainerRef}
             onScroll={(e) => {

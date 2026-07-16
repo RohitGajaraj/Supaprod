@@ -210,6 +210,10 @@ export const Route = createFileRoute("/api/chat")({
           conversationId: string;
           content: string;
           model?: string;
+          // PC-36 workstream B: an optional retrieval scope suggested by the
+          // screen Ask was opened from (or an explicit user override), see
+          // src/lib/ask-context.tsx's scopeForPath.
+          scope?: { kinds?: string[]; sourceId?: string | null };
         };
         try {
           body = await request.json();
@@ -715,6 +719,8 @@ You must output a JSON object EXACTLY in this format:
                   query: body.content,
                   k: 4,
                   mmr: true,
+                  sourceKinds: body.scope?.kinds,
+                  sourceId: body.scope?.sourceId ?? undefined,
                 });
                 workspaceChunks = chunks.length;
                 if (chunks.length > 0) {

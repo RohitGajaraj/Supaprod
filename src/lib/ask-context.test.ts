@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { contextForPath } from "./ask-context";
+import { contextForPath, scopeForPath } from "./ask-context";
 
 describe("ask-context - contextForPath", () => {
   it("maps each canonical destination to its plain-words label", () => {
@@ -24,5 +24,41 @@ describe("ask-context - contextForPath", () => {
 
   it("falls back to a generic label for an unrecognized path", () => {
     expect(contextForPath("/settings", null)).toBe("this screen");
+  });
+});
+
+describe("ask-context - scopeForPath (PC-36 workstream B)", () => {
+  it("scopes to the exact mission by source_id when one is open", () => {
+    expect(scopeForPath("/build", "m-1")).toEqual({
+      kinds: ["mission"],
+      sourceId: "m-1",
+      label: "this mission",
+    });
+  });
+
+  it("does not scope Build when no mission is open (nothing to pin to)", () => {
+    expect(scopeForPath("/build", null)).toBeNull();
+  });
+
+  it("scopes Plan to PRDs", () => {
+    expect(scopeForPath("/plan", null)).toEqual({ kinds: ["prd"], label: "PRDs" });
+  });
+
+  it("scopes Brain/knowledge to doc/note/finding", () => {
+    expect(scopeForPath("/brain", null)).toEqual({
+      kinds: ["doc", "note", "finding"],
+      label: "Brain",
+    });
+    expect(scopeForPath("/knowledge", null)).toEqual({
+      kinds: ["doc", "note", "finding"],
+      label: "Brain",
+    });
+  });
+
+  it("stays unscoped for screens without a confident kind mapping", () => {
+    expect(scopeForPath("/today", null)).toBeNull();
+    expect(scopeForPath("/discover", null)).toBeNull();
+    expect(scopeForPath("/engine-room", null)).toBeNull();
+    expect(scopeForPath("/settings", null)).toBeNull();
   });
 });
