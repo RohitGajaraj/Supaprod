@@ -10,6 +10,49 @@ import { cn } from "@/lib/utils";
 const neutralInteractive =
   "bg-transparent text-foreground hover:bg-[var(--ds-gray-100)] active:bg-[var(--ds-gray-200)]";
 
+// UNIFIED TEMPO GRAMMAR (DESIGN-TEMPO.md §2 + obsidian compat layer)
+// Maps legacy obsidian variants to Tempo semantics with deprecation warnings.
+// Legacy obsidian variants: "primary" | "secondary" | "tertiary" | "link" | "quiet"
+// Tempo variants (correct): "accent" | "default" | "secondary" | "tertiary" | "ghost" | "outline" | "link" | "destructive" | "warning"
+//
+// Mapping rules:
+//   obsidian "primary" → Tempo "accent" (solid ember, the ONE main CTA per view)
+//   obsidian "secondary" → Tempo "secondary" (raised surface, visible border)
+//   obsidian "tertiary" → Tempo "tertiary" (transparent, low-emphasis)
+//   obsidian "link" → Tempo "link" (inline text navigation)
+//   obsidian "quiet" → Tempo "tertiary" (was alias of tertiary in obsidian, now explicit)
+type TempoVariant =
+  | "accent"
+  | "default"
+  | "secondary"
+  | "tertiary"
+  | "ghost"
+  | "outline"
+  | "link"
+  | "destructive"
+  | "warning";
+type LegacyObsidianVariant = "primary" | "quiet";
+
+function mapLegacyVariant(variant: string | undefined): TempoVariant | undefined {
+  if (variant === "primary") {
+    if (typeof window !== "undefined" && import.meta.env.DEV) {
+      console.warn(
+        "Button: variant='primary' is legacy obsidian syntax. Use variant='accent' instead (DESIGN-TEMPO.md §2). This will be removed in a future release.",
+      );
+    }
+    return "accent";
+  }
+  if (variant === "quiet") {
+    if (typeof window !== "undefined" && import.meta.env.DEV) {
+      console.warn(
+        "Button: variant='quiet' is legacy obsidian syntax. Use variant='tertiary' instead (DESIGN-TEMPO.md §2). This will be removed in a future release.",
+      );
+    }
+    return "tertiary";
+  }
+  return variant as TempoVariant | undefined;
+}
+
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md cursor-pointer select-none transition-[background-color,color,border-color,opacity,box-shadow,transform] duration-150 ease-[var(--ds-motion-timing-swift)] active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
@@ -71,7 +114,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant,
+      variant: rawVariant,
       size,
       asChild = false,
       loading = false,
@@ -81,6 +124,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
+    // Map legacy obsidian variant names to Tempo grammar, with deprecation warnings
+    const variant = mapLegacyVariant(rawVariant as any);
+
     if (import.meta.env.DEV && svgOnly && !props["aria-label"]) {
       console.warn(
         'Button: svgOnly requires an aria-label naming the action and its target (e.g. "Copy deployment URL", not "Copy").',
