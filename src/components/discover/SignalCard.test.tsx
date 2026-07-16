@@ -178,8 +178,7 @@ describe("SignalCard optional UI elements", () => {
       if (typeof elem === "string" && elem.includes(text)) return true;
       if (elem.props?.children === text) return true;
       const children = (elem.props as { children?: unknown })?.children;
-      if (Array.isArray(children))
-        return children.some((c) => findThemeText(c, text));
+      if (Array.isArray(children)) return children.some((c) => findThemeText(c, text));
       return findThemeText(children, text);
     }
 
@@ -195,8 +194,7 @@ describe("SignalCard optional UI elements", () => {
       if (typeof elem === "string" && elem.includes(text)) return true;
       if (elem.props?.children === text) return true;
       const children = (elem.props as { children?: unknown })?.children;
-      if (Array.isArray(children))
-        return children.some((c) => findThemeText(c, text));
+      if (Array.isArray(children)) return children.some((c) => findThemeText(c, text));
       return findThemeText(children, text);
     }
 
@@ -230,8 +228,7 @@ describe("SignalCard trace tail (SIG·id metadata)", () => {
       if (node == null || typeof node !== "object") return false;
       const elem = node as ReactElement;
       const children = (elem.props as { children?: unknown })?.children;
-      if (Array.isArray(children))
-        return children.some((c) => findAuditTagIndicator(c));
+      if (Array.isArray(children)) return children.some((c) => findAuditTagIndicator(c));
       return findAuditTagIndicator(children);
     }
 

@@ -63,7 +63,7 @@ export function nearestIndex(relX: number, w: number, n: number): number {
   return Math.max(0, Math.min(n - 1, Math.round(t * (n - 1))));
 }
 
-function indexOfExtreme(data: readonly number[], kind: "max" | "min"): number {
+export function indexOfExtreme(data: readonly number[], kind: "max" | "min"): number {
   let best = 0;
   for (let i = 1; i < data.length; i++) {
     if (kind === "max" ? data[i]! > data[best]! : data[i]! < data[best]!) best = i;

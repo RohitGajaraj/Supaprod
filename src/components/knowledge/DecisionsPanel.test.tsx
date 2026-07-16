@@ -39,7 +39,7 @@ describe("SourceLink", () => {
     // Verify Link component is rendered to the mission route
     expect((el?.props as { to?: string })?.to).toBe("/build/$missionId");
     expect((el?.props as { params?: { missionId: string } })?.params?.missionId).toBe(
-      "mission-abc"
+      "mission-abc",
     );
   });
 
@@ -216,45 +216,27 @@ describe("DecisionsPanel data states", () => {
 
   test.todo("renders PanelSkeleton when decisions.isLoading is true");
   test.todo("renders error card when decisions.isError is true");
-  test.todo(
-    "renders error card with decisions.refetch() button for user retry"
-  );
-  test.todo(
-    "renders empty state when decisions.data.decisions is empty array"
-  );
+  test.todo("renders error card with decisions.refetch() button for user retry");
+  test.todo("renders empty state when decisions.data.decisions is empty array");
   test.todo("renders decision rows when data.decisions has items");
   test.todo("renders table header with columns: Decision, Made by, When, Why");
   test.todo("renders VerdictChip with status-mapped tone for each row");
-  test.todo(
-    "renders AutoChip when decision title is auto-generated (via isAutoTitle)"
-  );
+  test.todo("renders AutoChip when decision title is auto-generated (via isAutoTitle)");
   test.todo("navigates to detail (tab=decisions, decision=id) on row click");
-  test.todo(
-    "renders 'Decide on Today' link for pending status (one-home law)"
-  );
+  test.todo("renders 'Decide on Today' link for pending status (one-home law)");
   test.todo("does not render 'Decide on Today' for approved/rejected status");
   test.todo("changes source filter on button click");
   test.todo("changes status filter on button click");
-  test.todo(
-    "debounces search input (275ms) before firing listDecisions query"
-  );
-  test.todo(
-    "shows 'Show N more' button when rows.length > VISIBLE_DECISIONS (8)"
-  );
+  test.todo("debounces search input (275ms) before firing listDecisions query");
+  test.todo("shows 'Show N more' button when rows.length > VISIBLE_DECISIONS (8)");
   test.todo("shows only first 8 rows by default");
   test.todo("shows all rows when showAll is true");
   test.todo("toggles to 'Show fewer' when all rows are visible");
   test.todo("opens LogDecisionDialog when 'Log decision' button is clicked");
   test.todo("invokes create mutation on dialog submit");
-  test.todo(
-    "invalidates decisions query on successful create (refetch trigger)"
-  );
-  test.todo(
-    "shows success toast on create mutation success (via toast.success)"
-  );
-  test.todo(
-    "shows error toast on create mutation error (via toast.error)"
-  );
+  test.todo("invalidates decisions query on successful create (refetch trigger)");
+  test.todo("shows success toast on create mutation success (via toast.success)");
+  test.todo("shows error toast on create mutation error (via toast.error)");
   test.todo("disables dialog buttons while create.isPending is true");
   test.todo("closes dialog on successful create");
   test.todo("clears title and rationale on dialog close");
@@ -263,9 +245,7 @@ describe("DecisionsPanel data states", () => {
 
 describe("LogDecisionDialog", () => {
   test.todo("renders DialogHeader with title 'Log decision'");
-  test.todo(
-    "renders DialogDescription with context about capturing decisions"
-  );
+  test.todo("renders DialogDescription with context about capturing decisions");
   test.todo("has title input with placeholder 'What was decided?'");
   test.todo("has rationale textarea with placeholder 'Why this, and not the alternative.'");
   test.todo("title input maxLength is 280 characters");
