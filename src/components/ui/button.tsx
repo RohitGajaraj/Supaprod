@@ -102,12 +102,15 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, Omit<VariantProps<typeof buttonVariants>, 'variant'> {
   asChild?: boolean;
   /** Shows a spinner and marks the button busy while keeping it focusable and labeled. */
   loading?: boolean;
   /** Icon-only rendering (square hit target, no label). Requires `aria-label`. */
   svgOnly?: boolean;
+  /** Tempo variant (accent/default/secondary/tertiary/ghost/outline/link/destructive/warning)
+   * or legacy obsidian variants (primary/quiet) for backward compatibility. */
+  variant?: "accent" | "default" | "secondary" | "tertiary" | "ghost" | "outline" | "link" | "destructive" | "warning" | "primary" | "quiet" | null;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

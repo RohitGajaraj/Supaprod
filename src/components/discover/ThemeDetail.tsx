@@ -284,7 +284,7 @@ export function ThemeDetail({
                         <span>{relTimeCaps(m.created_at)}</span>
                         <span style={{ color: "var(--text-faint)" }}>{"Open ›"}</span>
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
