@@ -989,7 +989,13 @@ ${grounding}`,
                 const { error: metaErr } = await supabase
                   .from("messages")
                   .insert({ ...row, metadata: persistedMeta } as typeof row);
-                if (metaErr) await supabase.from("messages").insert(row);
+                if (metaErr) {
+                  // Loud (review fix 2026-07-16): the fallback saves the prose
+                  // but drops meta + blocks; a silent drop here would read as
+                  // "metadata persistence works" forever.
+                  console.error("[chat] metadata insert failed, persisting without it:", metaErr);
+                  await supabase.from("messages").insert(row);
+                }
                 // F-BRAIN auto-retention: distill research answers + sources
                 // into the brain (rag_chunks kind 'finding') so future
                 // questions recall them. Fire-and-forget — never blocks or

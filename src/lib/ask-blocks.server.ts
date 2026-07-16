@@ -196,7 +196,11 @@ async function resolveTimeline(
     supabase
       .from("missions")
       .select("id,title,status,created_at,completed_at")
-      .gte("created_at", sinceIso)
+      // A mission belongs in the window if it STARTED or FINISHED inside it
+      // (review fix 2026-07-16): filtering on created_at alone silently
+      // dropped an older mission that completed yesterday, which is exactly
+      // the outcome "what happened last week" is asking about.
+      .or(`created_at.gte.${sinceIso},completed_at.gte.${sinceIso}`)
       .order("created_at", { ascending: false })
       .limit(TIMELINE_PER_TABLE),
     supabase
@@ -227,15 +231,18 @@ async function resolveTimeline(
     console.error("[ask-blocks] timeline missions failed (skipping):", missionsRes.error);
   } else {
     for (const row of (missionsRes.data ?? []) as TimelineMissionRow[]) {
-      events.push({
-        at: row.created_at,
-        label: row.title,
-        detail: "mission · " + row.status,
-        ref: formatAuditId("mission", row.id),
-      });
+      // The or-filter can return a mission whose kickoff predates the
+      // window (it completed inside it); only in-window kickoffs are events.
+      if (Date.parse(row.created_at) >= sinceMs) {
+        events.push({
+          at: row.created_at,
+          label: row.title,
+          detail: "mission · " + row.status,
+          ref: formatAuditId("mission", row.id),
+        });
+      }
       // A completion inside the window is its own event: "what happened" is
-      // about outcomes, not just kickoffs. Guard is defensive; the created_at
-      // filter already implies completed_at >= since for returned rows.
+      // about outcomes, not just kickoffs.
       if (row.completed_at && Date.parse(row.completed_at) >= sinceMs) {
         events.push({
           at: row.completed_at,
@@ -268,12 +275,14 @@ async function resolveTimeline(
 
 // Mission status buckets for the digest. "waiting_approval" counts as
 // waiting but still shows in the running list: a gated mission is the one
-// the user most needs to act on.
-const RUNNING_STATUSES = new Set(["running", "queued"]);
-const WAITING_STATUSES = new Set(["waiting_approval", "blocked"]);
+// the user most needs to act on. "in_progress" and "proposed" are real
+// statuses missions take in production (review fix 2026-07-16): in_progress
+// is active work, proposed is pre-approval and therefore waiting.
+const RUNNING_STATUSES = new Set(["running", "queued", "in_progress"]);
+const WAITING_STATUSES = new Set(["waiting_approval", "blocked", "proposed"]);
 const DONE_STATUSES = new Set(["completed", "done"]);
 const FAILED_STATUSES = new Set(["failed", "halted", "cancelled", "completed_with_failures"]);
-const LISTABLE_STATUSES = new Set(["running", "queued", "waiting_approval"]);
+const LISTABLE_STATUSES = new Set(["running", "queued", "in_progress", "waiting_approval"]);
 
 async function resolveStatusDigest(supabase: SupabaseClient): Promise<AnswerBlock | null> {
   const { data, error } = await supabase

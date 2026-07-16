@@ -20,7 +20,7 @@ function mockSupabase(tables: Record<string, QueryResult>, log: LoggedCall[] = [
         return Promise.resolve(result).then(resolve, reject);
       },
     };
-    for (const method of ["select", "in", "gte", "not", "order", "limit"]) {
+    for (const method of ["select", "in", "gte", "not", "or", "order", "limit"]) {
       builder[method] = (...args: any[]) => {
         log.push({ table, method, args });
         return builder;
@@ -261,6 +261,35 @@ describe("resolveAnswerBlocks", () => {
           label: "Mission m2",
           detail: "mission · running",
           ref: formatAuditId("mission", "m2"),
+        },
+      ]);
+    });
+
+    it("keeps only the completion event for a mission that started before the window (review fix)", async () => {
+      const oldMission = missionRow("m9", {
+        status: "completed",
+        created_at: daysAgo(20),
+        completed_at: daysAgo(1),
+      });
+      const supabase = mockSupabase({
+        decisions: { data: [], error: null },
+        missions: { data: [oldMission], error: null },
+        agent_approvals: { data: [], error: null },
+      });
+
+      const blocks = await resolveAnswerBlocks(supabase, {
+        question: "what happened last week?",
+        chunkRefs: [],
+      });
+
+      const timeline = blocks[0];
+      if (timeline?.kind !== "timeline") throw new Error("expected a timeline block");
+      expect(timeline.events).toEqual([
+        {
+          at: oldMission.completed_at,
+          label: "Mission m9",
+          detail: "mission completed",
+          ref: formatAuditId("mission", "m9"),
         },
       ]);
     });

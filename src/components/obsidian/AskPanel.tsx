@@ -8,6 +8,7 @@ import { findAuditIds, formatAuditId } from "@/lib/audit-id";
 import { openLineage } from "@/components/cadence/AuditLineageSheet";
 import { CadenceLoader, CadenceMark } from "@/components/cadence/CadenceMark";
 import { MissionCanvasBlocks } from "@/components/obsidian";
+import { PendingApprovalsStrip } from "@/components/obsidian/ask-canvas";
 import { AnswerBlocks } from "@/components/obsidian/ask-blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
@@ -121,13 +122,16 @@ const AskAiMessage = React.memo(function AskAiMessage({
   liveStatus,
   readAloud,
   onRetry,
+  retryDisabled,
   promoted,
   onPromote,
 }: {
   msg: Msg;
   liveStatus: ResearchStatus | null;
   readAloud: ReadAloudState;
-  onRetry: (content: string) => void;
+  onRetry: (msgId: string, content: string) => void;
+  /** True while any stream is in flight; retry waits its turn (review fix). */
+  retryDisabled: boolean;
   promoted: PromotedRecords | undefined;
   onPromote: (msg: Msg, kind: "note" | "decision" | "task") => void;
 }) {
@@ -137,48 +141,67 @@ const AskAiMessage = React.memo(function AskAiMessage({
   // Hoisted above the early returns below — hooks must run unconditionally on every render.
   const citations = React.useMemo(() => msg.meta?.sources.map((s) => s.n), [msg.meta?.sources]);
 
+  // Review fix (2026-07-16): the server emits blocks BEFORE synthesis so
+  // receipts land instantly; both early-return branches must show any
+  // already-delivered blocks or the receipts-first contract is theater.
+  const earlyBlocks =
+    msg.blocks && msg.blocks.length > 0 ? (
+      <div style={{ marginBottom: 8 }}>
+        <AnswerBlocks blocks={msg.blocks} />
+      </div>
+    ) : null;
+
   if (msg.error) {
     // PC-36 G: an error is a retry affordance, not a red wall.
     return (
-      <div
-        style={{
-          background: "var(--surface-card-deep, #0E0E10)",
-          border: "1px solid color-mix(in oklab, var(--madder) 30%, transparent)",
-          borderRadius: "var(--radius-card)",
-          padding: "10px 14px",
-          fontSize: 12.5,
-          color: "var(--text-muted)",
-        }}
-      >
-        {msg.content}
-        {msg.retryContent ? (
-          <div style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              onClick={() => onRetry(msg.retryContent!)}
-              className="transition-colors hover:[background:var(--hover)]"
-              style={{
-                fontFamily: "var(--font-ui)",
-                fontSize: 11.5,
-                fontWeight: 600,
-                padding: "4px 10px",
-                borderRadius: 999,
-                border: "1px solid var(--hairline)",
-                background: "transparent",
-                color: "var(--text-body)",
-                cursor: "pointer",
-              }}
-            >
-              Try again
-            </button>
-          </div>
-        ) : null}
+      <div>
+        {earlyBlocks}
+        <div
+          style={{
+            background: "var(--surface-card-deep, #0E0E10)",
+            border: "1px solid color-mix(in oklab, var(--madder) 30%, transparent)",
+            borderRadius: "var(--radius-card)",
+            padding: "10px 14px",
+            fontSize: 12.5,
+            color: "var(--text-muted)",
+          }}
+        >
+          {msg.content}
+          {msg.retryContent ? (
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                disabled={retryDisabled}
+                onClick={() => onRetry(msg.id, msg.retryContent!)}
+                className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  border: "1px solid var(--hairline)",
+                  background: "transparent",
+                  color: "var(--text-body)",
+                  cursor: retryDisabled ? "default" : "pointer",
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
     );
   }
 
   if (thinking) {
-    return <ShimmerStatus label={liveStatus?.label ?? "thinking it through"} />;
+    return (
+      <div>
+        {earlyBlocks}
+        <ShimmerStatus label={liveStatus?.label ?? "thinking it through"} />
+      </div>
+    );
   }
 
   const meta = msg.meta;
@@ -202,11 +225,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
         </span>
       </div>
       {/* PC-36 C: typed receipts render ABOVE the prose, full width. */}
-      {msg.blocks && msg.blocks.length > 0 ? (
-        <div style={{ marginBottom: 8 }}>
-          <AnswerBlocks blocks={msg.blocks} />
-        </div>
-      ) : null}
+      {earlyBlocks}
       <div
         style={{
           fontFamily: "var(--font-ui)",
@@ -333,8 +352,10 @@ const AskAiMessage = React.memo(function AskAiMessage({
       {/* PC-36 E (+ D's after-answer suggestions): promote the answer to a
           record. Ledger law: nothing said in Ask may evaporate. A promoted
           kind swaps its chip for the receipt (the decision one is the
-          clickable audit ref). */}
-      {settled && !msg.mission_id ? (
+          clickable audit ref). Gated on meta (review fix 2026-07-16): meta
+          arrives after the last token, so a half-streamed answer can never
+          be promoted mid-sentence. */}
+      {settled && msg.meta && !msg.mission_id ? (
         <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 8 }}>
           {(
             [
@@ -693,6 +714,15 @@ export function AskPanel() {
       const userMsg: Msg = { id: `u-${now}`, role: "user", content, at: now };
       const assistantMsg: Msg = { id: `a-${now}`, role: "assistant", content: "", at: now };
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
+      // Review fix (2026-07-16): every stream frame patches THIS message by
+      // id, never "the last message" by index, so no thread mutation (a
+      // retry removing an exchange, a future insertion) can redirect
+      // in-flight frames onto the wrong message.
+      const patchStreaming = (patch: (m: Msg) => Partial<Msg>) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantMsg.id ? { ...m, ...patch(m) } : m)),
+        );
+      };
 
       try {
         let convId: string;
@@ -757,56 +787,45 @@ export function AskPanel() {
               continue;
             }
             if (event.kind === "meta") {
-              setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = { ...next[next.length - 1], meta: event.meta };
-                return next;
-              });
+              patchStreaming(() => ({ meta: event.meta }));
               continue;
             }
             if (event.kind === "block") {
               // PC-36 C: typed receipts accumulate on the streaming message,
               // rendered above the prose that follows.
-              setMessages((prev) => {
-                const next = [...prev];
-                const last = next[next.length - 1];
-                next[next.length - 1] = {
-                  ...last,
-                  blocks: [...(last.blocks ?? []), event.block],
-                };
-                return next;
-              });
+              patchStreaming((m) => ({ blocks: [...(m.blocks ?? []), event.block] }));
               continue;
             }
             if (event.kind !== "delta") continue;
             if (event.piece) acc += event.piece;
             if (event.piece || event.missionId) {
-              setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = {
-                  ...next[next.length - 1],
-                  content: acc,
-                  ...(event.missionId ? { mission_id: event.missionId } : {}),
-                };
-                return next;
-              });
+              patchStreaming(() => ({
+                content: acc,
+                ...(event.missionId ? { mission_id: event.missionId } : {}),
+              }));
             }
           }
         }
       } catch (e) {
+        // Review fix (2026-07-16): a deliberate stop (panel closed mid
+        // stream) is not a failure. Say what happened, keep any receipts
+        // already delivered, and skip the error styling + retry.
+        if (e instanceof DOMException && e.name === "AbortError") {
+          patchStreaming((m) => ({
+            content: m.content.trim()
+              ? m.content
+              : "Stopped before the answer finished. Ask again if you still need it.",
+          }));
+          return;
+        }
         const friendly =
           e instanceof AskUiError ? e.message : "I could not reach the model just now. Try again.";
-        setMessages((prev) => {
-          const next = [...prev];
-          next[next.length - 1] = {
-            ...next[next.length - 1],
-            content: friendly,
-            error: true,
-            // PC-36 G: the error card offers retry with the original ask.
-            retryContent: content,
-          };
-          return next;
-        });
+        patchStreaming(() => ({
+          content: friendly,
+          error: true,
+          // PC-36 G: the error card offers retry with the original ask.
+          retryContent: content,
+        }));
       } finally {
         abortControllerRef.current = null;
         setStreaming(false);
@@ -820,8 +839,15 @@ export function AskPanel() {
   // seams (createDecision carries its stage-event + tracking side effects;
   // never re-implement them here). Decision promotion keeps the panel's one
   // receipt affordance: the audit ref chip that opens lineage.
+  // Review fix (2026-07-16): one promote per message+kind may be in flight.
+  // Without this, a double-click creates the record twice (both server fns
+  // are plain inserts, not idempotent).
+  const promotePendingRef = React.useRef<Set<string>>(new Set());
   const promote = React.useCallback(
     async (msg: Msg, kind: "note" | "decision" | "task") => {
+      const pendingKey = `${msg.id}:${kind}`;
+      if (promotePendingRef.current.has(pendingKey)) return;
+      promotePendingRef.current.add(pendingKey);
       try {
         if (kind === "note") {
           const r = await fCreateNote({ data: { body: msg.content.slice(0, 8000) } });
@@ -852,18 +878,29 @@ export function AskPanel() {
       } catch (e) {
         console.error("[ask] promote failed:", e);
         toast("That did not save. Try again.");
+      } finally {
+        promotePendingRef.current.delete(pendingKey);
       }
     },
     [fCreateNote, fCreateDecision, fCreateTask],
   );
 
   const retry = React.useCallback(
-    (content: string) => {
-      // Drop the failed exchange so the retried ask reads as one clean turn.
-      setMessages((prev) => prev.slice(0, Math.max(0, prev.length - 2)));
+    (msgId: string, content: string) => {
+      // Review fix (2026-07-16): id-targeted and streaming-guarded. The
+      // clicked error card can sit anywhere in the thread, so remove THAT
+      // exchange (its user turn + the error card), never a blind last-two
+      // slice that could delete a healthy exchange or orphan a live stream.
+      if (streaming) return;
+      setMessages((prev) => {
+        const i = prev.findIndex((m) => m.id === msgId);
+        if (i === -1) return prev;
+        const start = i > 0 && prev[i - 1].role === "user" ? i - 1 : i;
+        return [...prev.slice(0, start), ...prev.slice(i + 1)];
+      });
       void send(content);
     },
-    [send],
+    [send, streaming],
   );
 
   // Cancel any in-flight stream if the panel closes or when pendingIntent changes
@@ -1045,6 +1082,9 @@ export function AskPanel() {
               )}
             </div>
           ) : null}
+          {/* PC-36 D2: anything waiting on you, actionable without leaving
+              the conversation (founder directive 2026-07-16). */}
+          <PendingApprovalsStrip />
           <div
             ref={scrollContainerRef}
             onScroll={(e) => {
@@ -1143,6 +1183,7 @@ export function AskPanel() {
                         liveStatus={!m.content && !m.error ? liveStatus : null}
                         readAloud={readAloud}
                         onRetry={retry}
+                        retryDisabled={streaming}
                         promoted={promotedByMsg[m.id]}
                         onPromote={promote}
                       />

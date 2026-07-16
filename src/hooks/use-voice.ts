@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // PC-36 voice phase 1: mic dictation into the Ask composer plus optional
 // read-aloud on answers, via the browser Web Speech API only. No server
@@ -30,6 +30,7 @@ interface MinimalSpeechRecognition {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+  onstart: (() => void) | null;
   onresult: ((event: MinimalSpeechRecognitionEvent) => void) | null;
   onend: (() => void) | null;
   onerror: (() => void) | null;
@@ -121,10 +122,15 @@ export function useDictation(onFinalText: (text: string) => void): DictationStat
     };
     recognition.onend = reset;
     recognition.onerror = reset;
+    // Review fix (2026-07-16): "Listening" lights only when the engine has
+    // actually started capturing, not while the browser's permission prompt
+    // is still up in front of a dead mic.
+    recognition.onstart = () => {
+      if (mountedRef.current) setListening(true);
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
-    setListening(true);
   }, []);
 
   const stop = useCallback(() => {
@@ -133,7 +139,13 @@ export function useDictation(onFinalText: (text: string) => void): DictationStat
     recognitionRef.current?.stop();
   }, []);
 
-  return { supported, listening, interim, start, stop };
+  // Stable object identity (review fix 2026-07-16): consumers pass this
+  // whole object into memoized children, so it may only change when its
+  // values do, never per render.
+  return useMemo(
+    () => ({ supported, listening, interim, start, stop }),
+    [supported, listening, interim, start, stop],
+  );
 }
 
 export type ReadAloudState = {
@@ -231,5 +243,11 @@ export function useReadAloud(): ReadAloudState {
     [setSpeaking],
   );
 
-  return { supported, speakingId, toggle, stop };
+  // Stable object identity (review fix 2026-07-16): AskPanel passes this
+  // object to every memoized settled message; a fresh literal per render
+  // was silently defeating React.memo during token streaming.
+  return useMemo(
+    () => ({ supported, speakingId, toggle, stop }),
+    [supported, speakingId, toggle, stop],
+  );
 }

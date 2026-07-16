@@ -14,6 +14,7 @@ class FakeRecognition {
   continuous = false;
   interimResults = false;
   lang = "";
+  onstart: (() => void) | null = null;
   onresult: ((event: FakeResultEvent) => void) | null = null;
   onend: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -25,6 +26,10 @@ class FakeRecognition {
   }
   start() {
     this.startCalls += 1;
+    // Real engines fire onstart once capture actually begins; the hook now
+    // lights `listening` there (not in start()) so the permission-prompt
+    // window never shows a false "Listening".
+    this.onstart?.();
   }
   stop() {
     this.stopCalls += 1;
