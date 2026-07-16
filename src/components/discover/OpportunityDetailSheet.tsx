@@ -244,25 +244,17 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
       </MonoLabel>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             disabled={setLink.isPending}
-            className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-primary)] hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
               alignSelf: "flex-start",
-              fontFamily: "var(--font-ui)",
               fontSize: "12.5px",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-control)",
-              padding: "5px 11px",
-              cursor: "pointer",
             }}
           >
             {linkedBet ? linkedBet.title : "Not tied to a bet"}
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => setLink.mutate(null)}>
@@ -375,21 +367,16 @@ export function OpportunityDetailSheet({
                   <StatusPill status={opportunity.status} />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-muted)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         style={{
-                          fontFamily: "var(--font-ui)",
                           fontSize: "11.5px",
                           fontWeight: 500,
-                          border: "1px solid var(--hairline-strong)",
-                          borderRadius: "var(--radius-control)",
-                          padding: "3px 10px",
-                          cursor: "pointer",
                         }}
                       >
                         Move to
-                      </button>
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       {OPPORTUNITY_STATUSES.map((s) => (
@@ -545,22 +532,17 @@ export function OpportunityDetailSheet({
               heading="Where it came from"
               action={
                 opportunity.theme_id ? (
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onViewLineage}
-                    className="loom-press flex items-center outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
-                      gap: "6px",
                       fontSize: "12px",
-                      background: "transparent",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
                     }}
                   >
                     <GitBranch className="h-3.5 w-3.5" />
                     View lineage
-                  </button>
+                  </Button>
                 ) : null
               }
             >

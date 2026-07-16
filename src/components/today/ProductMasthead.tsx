@@ -4,6 +4,7 @@
 // editable today (Settings → Workspace); Lane B repoints this to the Brain
 // Brief lens when PC-34 lands.
 import * as React from "react";
+import { Button } from "@/components/obsidian";
 import type { ProductContext } from "@/lib/briefs.functions";
 
 export function ProductMasthead({
@@ -19,19 +20,16 @@ export function ProductMasthead({
   if (ctx.topBet) pieces.push(`this quarter: ${ctx.topBet}`);
   const hasStory = pieces.length > 0;
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onOpen}
       title={hasStory ? "Open the product brief" : "Write the product brief"}
-      className="loom-press group flex w-full items-baseline text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      className="group w-full justify-start px-0 py-0"
       style={{
         gap: 8,
-        background: "transparent",
-        border: "none",
-        padding: 0,
         margin: "0 0 16px",
-        cursor: "pointer",
         minWidth: 0,
+        height: "auto",
       }}
     >
       <span
@@ -65,6 +63,6 @@ export function ProductMasthead({
       >
         →
       </span>
-    </button>
+    </Button>
   );
 }

@@ -439,22 +439,18 @@ export function AutoClustered() {
         })
       )}
       {themeList.length > VISIBLE ? (
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontFamily: "var(--font-ui)",
             fontSize: 12.5,
             fontWeight: 500,
-            background: "transparent",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 14px",
             margin: "0 4px",
           }}
         >
           {showAll ? "Show fewer" : `Show ${themeList.length - VISIBLE} more`}
-        </button>
+        </Button>
       ) : null}
       <ThemeDetail
         open={!!openThemeId}
