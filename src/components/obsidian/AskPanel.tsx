@@ -1,19 +1,27 @@
 import * as React from "react";
-import { Sparkles, ArrowUp, Filter } from "lucide-react";
+import { Sparkles, ArrowUp, Filter, Mic, Volume2, Square } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
-import { findAuditIds } from "@/lib/audit-id";
+import { findAuditIds, formatAuditId } from "@/lib/audit-id";
 import { openLineage } from "@/components/cadence/AuditLineageSheet";
-import { CadenceLoader } from "@/components/cadence/CadenceMark";
+import { CadenceLoader, CadenceMark } from "@/components/cadence/CadenceMark";
 import { MissionCanvasBlocks } from "@/components/obsidian";
+import { AnswerBlocks } from "@/components/obsidian/ask-blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
+import { createDecision } from "@/lib/decisions.functions";
+import { createTask } from "@/lib/tasks.functions";
+import { createNoteFromAsk } from "@/lib/ask-promote.functions";
+import { toast } from "@/lib/notify";
+import { useDictation, useReadAloud, type ReadAloudState } from "@/hooks/use-voice";
+import { answerTitle, dayLabel, needsDayDivider } from "@/lib/ask-thread";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 import type { ChatMeta } from "@/components/chat/MessageMeta";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import { parseSseLine } from "@/lib/ask-sse";
+import type { AnswerBlock } from "@/lib/ask-blocks";
 import {
   matchSlashCommands,
   suggestedAsksForContext,
@@ -33,10 +41,19 @@ type Msg = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Local receive time, for hover timestamps and day dividers (PC-36 G). */
+  at: number;
   mission_id?: string | null;
   meta?: ChatMeta | null;
+  /** PC-36 C: typed answer blocks, rendered above the prose. */
+  blocks?: AnswerBlock[];
   error?: boolean;
+  /** The user content to resend from the error card's retry (PC-36 G). */
+  retryContent?: string;
 };
+
+/** What an answer was promoted into (PC-36 E), keyed per message. */
+type PromotedRecords = Partial<{ note: string; decision: string; task: string }>;
 
 class AskUiError extends Error {}
 
@@ -58,9 +75,29 @@ function ShimmerStatus({ label }: { label: string }) {
 // Memoized so a streaming assistant reply (which changes the messages array
 // reference on every token) never re-renders the already-settled user turns
 // above it - only the message whose props actually changed re-executes.
-const AskUserTurn = React.memo(function AskUserTurn({ content }: { content: string }) {
+const AskUserTurn = React.memo(function AskUserTurn({
+  content,
+  at,
+}: {
+  content: string;
+  at: number;
+}) {
+  // PC-36 G: right-aligned, compact, muted fill, no avatar; the mono
+  // timestamp appears on hover only, so the thread stays calm at rest.
   return (
-    <div className="flex justify-end">
+    <div className="group flex items-center justify-end" style={{ gap: 8 }}>
+      <span
+        className="opacity-0 transition-opacity group-hover:opacity-100"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 9,
+          letterSpacing: "0.05em",
+          color: "var(--text-faint)",
+          flexShrink: 0,
+        }}
+      >
+        {new Date(at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+      </span>
       <div
         style={{
           background: "var(--surface-card-deep, #0E0E10)",
@@ -82,9 +119,17 @@ const AskUserTurn = React.memo(function AskUserTurn({ content }: { content: stri
 const AskAiMessage = React.memo(function AskAiMessage({
   msg,
   liveStatus,
+  readAloud,
+  onRetry,
+  promoted,
+  onPromote,
 }: {
   msg: Msg;
   liveStatus: ResearchStatus | null;
+  readAloud: ReadAloudState;
+  onRetry: (content: string) => void;
+  promoted: PromotedRecords | undefined;
+  onPromote: (msg: Msg, kind: "note" | "decision" | "task") => void;
 }) {
   const [traceOpen, setTraceOpen] = React.useState(false);
   const thinking = !msg.content && !msg.error;
@@ -93,6 +138,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
   const citations = React.useMemo(() => msg.meta?.sources.map((s) => s.n), [msg.meta?.sources]);
 
   if (msg.error) {
+    // PC-36 G: an error is a retry affordance, not a red wall.
     return (
       <div
         style={{
@@ -105,6 +151,28 @@ const AskAiMessage = React.memo(function AskAiMessage({
         }}
       >
         {msg.content}
+        {msg.retryContent ? (
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => onRetry(msg.retryContent!)}
+              className="transition-colors hover:[background:var(--hover)]"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 11.5,
+                fontWeight: 600,
+                padding: "4px 10px",
+                borderRadius: 999,
+                border: "1px solid var(--hairline)",
+                background: "transparent",
+                color: "var(--text-body)",
+                cursor: "pointer",
+              }}
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -114,9 +182,31 @@ const AskAiMessage = React.memo(function AskAiMessage({
   }
 
   const meta = msg.meta;
+  const settled = msg.content.trim().length > 0;
 
   return (
     <div>
+      {/* PC-36 G: the answer is signed. Cadence is the accountable voice. */}
+      <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
+        <CadenceMark size={13} strokeWidth={2.6} glow={false} />
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.11em",
+            color: "var(--text-subtle)",
+          }}
+        >
+          Cadence
+        </span>
+      </div>
+      {/* PC-36 C: typed receipts render ABOVE the prose, full width. */}
+      {msg.blocks && msg.blocks.length > 0 ? (
+        <div style={{ marginBottom: 8 }}>
+          <AnswerBlocks blocks={msg.blocks} />
+        </div>
+      ) : null}
       <div
         style={{
           fontFamily: "var(--font-ui)",
@@ -163,11 +253,39 @@ const AskAiMessage = React.memo(function AskAiMessage({
           <span>{`${(meta.latency_ms / 1000).toFixed(1)}S`}</span>
           <span>·</span>
           <span>{`$${meta.cost_usd.toFixed(2)}`}</span>
+          {meta.workspace_chunks > 0 ? (
+            <>
+              <span>·</span>
+              <span>{`${meta.workspace_chunks} READ`}</span>
+            </>
+          ) : null}
           {meta.sources.length > 0 ? (
             <>
               <span>·</span>
               <span>{`${meta.sources.length} SOURCE${meta.sources.length === 1 ? "" : "S"}`}</span>
             </>
+          ) : null}
+          {readAloud.supported && settled ? (
+            <button
+              type="button"
+              onClick={() => readAloud.toggle(msg.id, msg.content)}
+              aria-label={readAloud.speakingId === msg.id ? "Stop reading" : "Read aloud"}
+              aria-pressed={readAloud.speakingId === msg.id}
+              className="inline-flex items-center transition-colors hover:[color:var(--text-primary)]"
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                color: readAloud.speakingId === msg.id ? "var(--glacier)" : "var(--text-subtle)",
+              }}
+            >
+              {readAloud.speakingId === msg.id ? (
+                <Square size={11} strokeWidth={2} />
+              ) : (
+                <Volume2 size={12} strokeWidth={2} />
+              )}
+            </button>
           ) : null}
           <button
             type="button"
@@ -212,6 +330,81 @@ const AskAiMessage = React.memo(function AskAiMessage({
           ))}
         </div>
       ) : null}
+      {/* PC-36 E (+ D's after-answer suggestions): promote the answer to a
+          record. Ledger law: nothing said in Ask may evaporate. A promoted
+          kind swaps its chip for the receipt (the decision one is the
+          clickable audit ref). */}
+      {settled && !msg.mission_id ? (
+        <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 8 }}>
+          {(
+            [
+              { kind: "note" as const, label: "Save as note" },
+              { kind: "decision" as const, label: "Log decision" },
+              { kind: "task" as const, label: "Make task" },
+            ] as const
+          ).map(({ kind, label }) => {
+            const recordId = promoted?.[kind];
+            if (recordId) {
+              return kind === "decision" ? (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => openLineage(formatAuditId("decision", recordId))}
+                  className="transition-colors hover:[color:var(--text-primary)]"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9.5,
+                    letterSpacing: "0.05em",
+                    padding: "3px 8px",
+                    borderRadius: 999,
+                    border: "1px solid var(--hairline)",
+                    background: "var(--surface-recessed)",
+                    color: "var(--text-subtle)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {formatAuditId("decision", recordId)}
+                </button>
+              ) : (
+                <span
+                  key={kind}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9.5,
+                    letterSpacing: "0.05em",
+                    padding: "3px 8px",
+                    borderRadius: 999,
+                    border: "1px solid var(--hairline)",
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  {kind === "note" ? "SAVED" : "TASKED"}
+                </span>
+              );
+            }
+            return (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => onPromote(msg, kind)}
+                className="transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)]"
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 11,
+                  padding: "3px 9px",
+                  borderRadius: 999,
+                  border: "1px solid var(--hairline)",
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 });
@@ -233,6 +426,14 @@ function AskComposer({
   const [paletteIndex, setPaletteIndex] = React.useState(0);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const { close } = useAsk();
+
+  // PC-36 F phase 1: browser dictation appends final transcripts into the
+  // draft; the interim tail previews below the composer. Absent browser
+  // support the mic simply does not render (no dead control).
+  const dictation = useDictation((text) => {
+    setValue((v) => (v ? `${v} ${text}` : text));
+    textareaRef.current?.focus();
+  });
 
   const matches = React.useMemo(() => matchSlashCommands(value), [value]);
   const paletteOpen = matches.length > 0;
@@ -381,16 +582,46 @@ function AskComposer({
         />
         <div className="flex items-center justify-between" style={{ marginTop: 6, gap: 8 }}>
           <span
+            className="truncate"
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 9,
               textTransform: "uppercase",
               letterSpacing: "0.09em",
-              color: "var(--text-faint)",
+              color: dictation.listening ? "var(--glacier)" : "var(--text-faint)",
+              minWidth: 0,
             }}
           >
-            / for commands · Enter to send
+            {dictation.listening
+              ? dictation.interim || "Listening"
+              : "/ for commands · Enter to send"}
           </span>
+          {dictation.supported ? (
+            <button
+              type="button"
+              onClick={dictation.listening ? dictation.stop : dictation.start}
+              aria-label={dictation.listening ? "Stop dictation" : "Dictate your question"}
+              aria-pressed={dictation.listening}
+              className={`inline-flex items-center justify-center outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] ${dictation.listening ? "flow-pulse" : ""}`}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 999,
+                flexShrink: 0,
+                marginLeft: "auto",
+                border: dictation.listening
+                  ? "1px solid var(--glacier)"
+                  : "1px solid var(--hairline)",
+                background: dictation.listening
+                  ? "color-mix(in oklab, var(--glacier) 12%, transparent)"
+                  : "transparent",
+                color: dictation.listening ? "var(--glacier)" : "var(--text-subtle)",
+                cursor: "pointer",
+              }}
+            >
+              <Mic size={14} strokeWidth={2} />
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={submit}
@@ -438,6 +669,13 @@ export function AskPanel() {
   const conversationIdRef = React.useRef<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const fCreate = useServerFn(createConversation);
+  // PC-36 E: what each answer was promoted into, keyed by message id.
+  const [promotedByMsg, setPromotedByMsg] = React.useState<Record<string, PromotedRecords>>({});
+  const fCreateDecision = useServerFn(createDecision);
+  const fCreateTask = useServerFn(createTask);
+  const fCreateNote = useServerFn(createNoteFromAsk);
+  // PC-36 F: read-aloud is panel-level so only one answer speaks at a time.
+  const readAloud = useReadAloud();
 
   const ensureConversation = React.useCallback(async (): Promise<string> => {
     if (conversationIdRef.current) return conversationIdRef.current;
@@ -451,8 +689,9 @@ export function AskPanel() {
       if (streaming) return;
       setStreaming(true);
       setLiveStatus(null);
-      const userMsg: Msg = { id: `u-${Date.now()}`, role: "user", content };
-      const assistantMsg: Msg = { id: `a-${Date.now()}`, role: "assistant", content: "" };
+      const now = Date.now();
+      const userMsg: Msg = { id: `u-${now}`, role: "user", content, at: now };
+      const assistantMsg: Msg = { id: `a-${now}`, role: "assistant", content: "", at: now };
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
 
       try {
@@ -525,6 +764,21 @@ export function AskPanel() {
               });
               continue;
             }
+            if (event.kind === "block") {
+              // PC-36 C: typed receipts accumulate on the streaming message,
+              // rendered above the prose that follows.
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                next[next.length - 1] = {
+                  ...last,
+                  blocks: [...(last.blocks ?? []), event.block],
+                };
+                return next;
+              });
+              continue;
+            }
+            if (event.kind !== "delta") continue;
             if (event.piece) acc += event.piece;
             if (event.piece || event.missionId) {
               setMessages((prev) => {
@@ -544,7 +798,13 @@ export function AskPanel() {
           e instanceof AskUiError ? e.message : "I could not reach the model just now. Try again.";
         setMessages((prev) => {
           const next = [...prev];
-          next[next.length - 1] = { ...next[next.length - 1], content: friendly, error: true };
+          next[next.length - 1] = {
+            ...next[next.length - 1],
+            content: friendly,
+            error: true,
+            // PC-36 G: the error card offers retry with the original ask.
+            retryContent: content,
+          };
           return next;
         });
       } finally {
@@ -556,6 +816,56 @@ export function AskPanel() {
     [streaming, ensureConversation, effectiveScope],
   );
 
+  // PC-36 E: promote an answer to a record through the EXISTING create
+  // seams (createDecision carries its stage-event + tracking side effects;
+  // never re-implement them here). Decision promotion keeps the panel's one
+  // receipt affordance: the audit ref chip that opens lineage.
+  const promote = React.useCallback(
+    async (msg: Msg, kind: "note" | "decision" | "task") => {
+      try {
+        if (kind === "note") {
+          const r = await fCreateNote({ data: { body: msg.content.slice(0, 8000) } });
+          setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], note: r.note.id } }));
+          toast("Saved to notes.");
+        } else if (kind === "decision") {
+          const r = await fCreateDecision({
+            data: {
+              title: answerTitle(msg.content),
+              rationale: msg.content.slice(0, 2000),
+              status: "pending",
+              source_kind: "manual",
+            },
+          });
+          const id = (r as { decision?: { id?: string } }).decision?.id;
+          if (id) {
+            setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], decision: id } }));
+            toast(`Decision drafted. ${formatAuditId("decision", id)}`);
+          }
+        } else {
+          const r = await fCreateTask({
+            data: { title: answerTitle(msg.content), priority: "medium" },
+          });
+          const id = (r as { task?: { id?: string } }).task?.id;
+          if (id) setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], task: id } }));
+          toast("Task created.");
+        }
+      } catch (e) {
+        console.error("[ask] promote failed:", e);
+        toast("That did not save. Try again.");
+      }
+    },
+    [fCreateNote, fCreateDecision, fCreateTask],
+  );
+
+  const retry = React.useCallback(
+    (content: string) => {
+      // Drop the failed exchange so the retried ask reads as one clean turn.
+      setMessages((prev) => prev.slice(0, Math.max(0, prev.length - 2)));
+      void send(content);
+    },
+    [send],
+  );
+
   // Cancel any in-flight stream if the panel closes or when pendingIntent changes
   React.useEffect(() => {
     if (isOpen) return; // Only cleanup when closing
@@ -564,7 +874,9 @@ export function AskPanel() {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
-  }, [isOpen]);
+    // PC-36 F: a closing panel goes quiet.
+    readAloud.stop();
+  }, [isOpen, readAloud]);
 
   React.useEffect(() => {
     if (!isOpen || !pendingIntent) return;
@@ -795,22 +1107,49 @@ export function AskPanel() {
                 </div>
               </div>
             ) : (
-              messages.map((m) =>
-                m.role === "user" ? (
-                  <AskUserTurn key={m.id} content={m.content} />
-                ) : (
-                  <AskAiMessage
-                    key={m.id}
-                    msg={m}
-                    // Only the currently-thinking message needs the live
-                    // status; passing null (referentially stable) for every
-                    // settled message lets React.memo actually skip
-                    // re-rendering them on each status tick, instead of the
-                    // shared liveStatus reference invalidating every message.
-                    liveStatus={!m.content && !m.error ? liveStatus : null}
-                  />
-                ),
-              )
+              messages.map((m, i) => {
+                // PC-36 G: a mono day divider when the calendar day turns
+                // over between messages (long-lived panel sessions).
+                const prev = messages[i - 1];
+                const divider = needsDayDivider(prev?.at, m.at) ? (
+                  <div className="flex items-center" style={{ gap: 10 }} aria-hidden="true">
+                    <span style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 9,
+                        letterSpacing: "0.11em",
+                        color: "var(--text-faint)",
+                      }}
+                    >
+                      {dayLabel(m.at)}
+                    </span>
+                    <span style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+                  </div>
+                ) : null;
+                return (
+                  <React.Fragment key={m.id}>
+                    {divider}
+                    {m.role === "user" ? (
+                      <AskUserTurn content={m.content} at={m.at} />
+                    ) : (
+                      <AskAiMessage
+                        msg={m}
+                        // Only the currently-thinking message needs the live
+                        // status; passing null (referentially stable) for every
+                        // settled message lets React.memo actually skip
+                        // re-rendering them on each status tick, instead of the
+                        // shared liveStatus reference invalidating every message.
+                        liveStatus={!m.content && !m.error ? liveStatus : null}
+                        readAloud={readAloud}
+                        onRetry={retry}
+                        promoted={promotedByMsg[m.id]}
+                        onPromote={promote}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </div>
           <div style={{ padding: "0 20px 20px" }}>

@@ -9,6 +9,8 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { advanceMissionCore } from "@/lib/ai/mission-advance.server";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { indexFinding } from "@/lib/rag/findings.server";
+import { resolveAnswerBlocks, type ChunkRef } from "@/lib/ask-blocks.server";
+import type { AnswerBlock } from "@/lib/ask-blocks";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
@@ -694,6 +696,7 @@ You must output a JSON object EXACTLY in this format:
             let webBlock = "";
             let workspaceBlock = "";
             let ragBlock = "";
+            let chunkRefs: ChunkRef[] = [];
             if (researchMode !== "chat") {
               try {
                 const r = await runResearch({
@@ -703,12 +706,14 @@ You must output a JSON object EXACTLY in this format:
                   mode: researchMode,
                   subQueries,
                   emit: (status) => send({ status }),
+                  scope: body.scope,
                 });
                 researchSources = r.sources;
                 webBlock = r.webBlock;
                 workspaceBlock = r.workspaceBlock;
                 webUsed = r.webUsed;
                 workspaceChunks = r.workspaceChunks;
+                chunkRefs = r.workspaceChunkRefs;
               } catch (e) {
                 console.error("[chat] research pipeline failed (degrading to plain answer):", e);
               }
@@ -723,6 +728,10 @@ You must output a JSON object EXACTLY in this format:
                   sourceId: body.scope?.sourceId ?? undefined,
                 });
                 workspaceChunks = chunks.length;
+                chunkRefs = chunks.map((c) => ({
+                  source_kind: c.source_kind,
+                  source_id: c.source_id,
+                }));
                 if (chunks.length > 0) {
                   const lines = chunks.map(
                     (c) =>
@@ -736,6 +745,22 @@ You must output a JSON object EXACTLY in this format:
               } catch (e) {
                 console.error("[chat] workspace retrieval failed (skipping):", e);
               }
+            }
+
+            // PC-36 C: receipts-first typed answer blocks. Resolved
+            // deterministically from what retrieval actually touched (plus
+            // temporal/status intent), fetched RLS-scoped, and emitted BEFORE
+            // synthesis so the cards land instantly and prose streams under
+            // them. Skipped for pure-web answers (no workspace grounding to
+            // receipt). resolveAnswerBlocks never throws; a failure just
+            // means a plain prose answer.
+            let answerBlocks: AnswerBlock[] = [];
+            if (researchMode !== "web") {
+              answerBlocks = await resolveAnswerBlocks(supabase, {
+                question: body.content,
+                chunkRefs,
+              });
+              for (const block of answerBlocks) send({ block });
             }
 
             // DBR-3e: the brain volunteers DECISION precedent in conversation. When the
@@ -957,9 +982,13 @@ ${grounding}`,
                   content: assistantText,
                   model: result.model,
                 };
+                // PC-36 C: blocks ride inside metadata (additive) so the
+                // typed receipts survive the stream, not just the prose.
+                const persistedMeta =
+                  answerBlocks.length > 0 ? { ...meta, blocks: answerBlocks } : meta;
                 const { error: metaErr } = await supabase
                   .from("messages")
-                  .insert({ ...row, metadata: meta } as typeof row);
+                  .insert({ ...row, metadata: persistedMeta } as typeof row);
                 if (metaErr) await supabase.from("messages").insert(row);
                 // F-BRAIN auto-retention: distill research answers + sources
                 // into the brain (rag_chunks kind 'finding') so future

@@ -1,7 +1,9 @@
 import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAskMissionCanvas, type AskMemoryRecall } from "@/lib/ask-canvas.functions";
+import { decideApproval } from "@/lib/agent_loop.functions";
+import { toast } from "@/lib/notify";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import type { StudioApproval } from "@/lib/studio.functions";
 import type { CriticReview } from "@/lib/ai/critic.server";
@@ -51,16 +53,20 @@ export function runStatusLabel(status: string): string {
 
 /** PURE. Whether the canvas has anything real to show, gating the whole
  * block area so a mission with no steps/citations/verdict yet renders
- * nothing rather than an empty shell (the no-filler law). */
+ * nothing rather than an empty shell (the no-filler law). A pending
+ * approval counts (PC-36 D): a gate waiting on the user must surface even
+ * before the run has recorded a single step. */
 export function hasCanvasContent(data: {
   run: { steps: LoopStep[] } | null;
   memoryRecalls: AskMemoryRecall[];
   criticVerdict: CriticReview | null;
+  approvals?: Array<{ status: string }>;
 }): boolean {
   return !!(
     (data.run && data.run.steps.length > 0) ||
     data.memoryRecalls.length > 0 ||
-    data.criticVerdict
+    data.criticVerdict ||
+    (data.approvals ?? []).some((a) => a.status === "pending")
   );
 }
 
@@ -93,6 +99,109 @@ export function ProgressBlock({
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * PC-36 D - act-from-Ask honors the per-tool approval modes. A confirm or
+ * review tool the loop queued becomes a decidable gate right here in the
+ * thread, through the SAME decideApproval seam the Build surface and Engine
+ * Room use (gate signals, execute-on-approve, trust arcs all apply). The
+ * panel never executes a tool itself.
+ */
+export function ApprovalGateBlock({
+  approvals,
+  missionId,
+}: {
+  approvals: StudioApproval[];
+  missionId: string;
+}) {
+  const fDecide = useServerFn(decideApproval);
+  const queryClient = useQueryClient();
+  const decide = useMutation({
+    mutationFn: (vars: { approvalId: string; decision: "approve" | "reject" }) =>
+      fDecide({ data: vars }),
+    onSuccess: (_r, vars) => {
+      toast(vars.decision === "approve" ? "Approved. Running it now." : "Rejected.");
+      queryClient.invalidateQueries({ queryKey: ["ask-mission-canvas", missionId] });
+    },
+    onError: () => toast("That decision did not save. Try again."),
+  });
+
+  const pending = approvals.filter((a) => a.status === "pending");
+  if (pending.length === 0) return null;
+
+  const buttonBase: React.CSSProperties = {
+    fontFamily: "var(--font-ui)",
+    fontSize: 11.5,
+    fontWeight: 600,
+    padding: "5px 12px",
+    borderRadius: 999,
+    cursor: "pointer",
+  };
+
+  return (
+    <div style={BLOCK_STYLE}>
+      <MonoLabel tone="muted">WAITING ON YOU</MonoLabel>
+      <div className="flex flex-col" style={{ gap: 10, marginTop: 8 }}>
+        {pending.map((a) => (
+          <div key={a.id} className="flex flex-col" style={{ gap: 6 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.04em",
+                color: "var(--text-subtle)",
+              }}
+            >
+              {a.tool_name}
+            </span>
+            {a.rationale ? (
+              <span
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  color: "var(--text-body)",
+                }}
+              >
+                {a.rationale}
+              </span>
+            ) : null}
+            <div className="flex items-center" style={{ gap: 8 }}>
+              <button
+                type="button"
+                disabled={decide.isPending}
+                onClick={() => decide.mutate({ approvalId: a.id, decision: "approve" })}
+                className="transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{
+                  ...buttonBase,
+                  background: "var(--text-primary)",
+                  color: "var(--canvas)",
+                  border: "1px solid var(--text-primary)",
+                }}
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                disabled={decide.isPending}
+                onClick={() => decide.mutate({ approvalId: a.id, decision: "reject" })}
+                className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
+                style={{
+                  ...buttonBase,
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--hairline)",
+                }}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -176,6 +285,7 @@ export function MissionCanvasBlocks({ missionId }: { missionId: string }) {
   return (
     <div className="flex flex-col" style={{ gap: 8, marginTop: 8 }}>
       {data.run ? <ProgressBlock run={data.run} approvals={data.approvals} /> : null}
+      <ApprovalGateBlock approvals={data.approvals} missionId={missionId} />
       <MemoryBlock recalls={data.memoryRecalls} />
       {data.criticVerdict ? <CriticBlock verdict={data.criticVerdict} /> : null}
     </div>

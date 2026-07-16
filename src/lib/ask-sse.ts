@@ -1,5 +1,6 @@
 import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
 import { parseResearchStatus, type ResearchStatus } from "@/components/chat/ResearchActivity";
+import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
 
 // OBS-12 - the pure half of the Ask panel's SSE line parser, split out of
 // `AskPanel.tsx` so the /api/chat protocol handling (status/meta/delta
@@ -9,6 +10,8 @@ import { parseResearchStatus, type ResearchStatus } from "@/components/chat/Rese
 export type SseEvent =
   | { kind: "status"; status: ResearchStatus }
   | { kind: "meta"; meta: ChatMeta }
+  /** PC-36 C: one typed answer block (decision/opportunity/mission/status/timeline). */
+  | { kind: "block"; block: AnswerBlock }
   | { kind: "delta"; piece?: string; missionId?: string }
   | { kind: "done" }
   | { kind: "ignored" }
@@ -33,6 +36,8 @@ export function parseSseLine(line: string): SseEvent | null {
   if (status) return { kind: "status", status };
   const meta = parseChatMeta((parsed as { meta?: unknown }).meta);
   if (meta) return { kind: "meta", meta };
+  const block = (parsed as { block?: unknown }).block;
+  if (isAnswerBlock(block)) return { kind: "block", block };
   const choices = (parsed as { choices?: { delta?: { content?: string; mission_id?: string } }[] })
     .choices;
   const piece = choices?.[0]?.delta?.content;
