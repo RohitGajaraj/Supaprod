@@ -3005,12 +3005,13 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-page-width: 1400px;
   --ds-page-width-with-margin: calc(var(--ds-page-width) + calc(2 * 24px));
   /* Focus ring color = ember brand accent (founder ruling DESIGN-TEMPO.md §2).
-     Light: oklch(65% 0.18 50) — the ember base lightened slightly for focus visibility;
-     Dark: adjusted for dark-mode readability. Uses ember hue (50), not blue (41). */
-  --ds-focus-color: oklch(65% 0.18 50);
+     Uses ember hue (50), not blue (41). Overridden per [data-theme] for contrast.
+     Light (root + [data-theme="light"]): oklch(65% 0.18 50)
+     Dark ([data-theme="dark"]): oklch(60% 0.18 50) */
+  --ds-focus-color: oklch(65% 0.18 50); /* default (light); overridden by [data-theme] */
   --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
   /* keyboard focus as a plain outline (dialog/sheet close buttons need it) */
-  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color); /* overridden by [data-theme] */
   /* modal/sheet/drawer backdrops were invisible without these (theme-invariant) */
   --ds-overlay-backdrop-color: #000;
   --ds-overlay-backdrop-opacity: 0.8;
@@ -3269,11 +3270,19 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
   --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
-  /* Dark theme: focus color = ember with adjusted lightness for dark-mode contrast.
-     Uses ember hue (50), not blue (41). */
+  --destructive: var(--ds-red-800);
+  /* Focus color for light theme: ember slightly lighter for focus visibility
+     on light backgrounds (same as root default). */
+  --ds-focus-color: oklch(65% 0.18 50);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+}
+
+/* Dark theme — focus color adjusted for dark-mode contrast (contract §1) */
+[data-theme="dark"],
+.dark-theme {
+  color-scheme: dark;
   --ds-focus-color: oklch(60% 0.18 50);
   --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
-  --destructive: var(--ds-red-800);
 }
 
 /* Obsidian-era var names → Tempo, so [data-obsidian] subtrees re-skin.
