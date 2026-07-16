@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > **PRODUCT NAME: CADENCE.** The product is **Cadence**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `cadence`/`Cadence`.
 >
+> **Rename decision 2026-07-16 (brand-only, NOT yet executed):** the founder locked **Supaprod** as the next public brand after a 5-round, 19-name ownability study. This ruling above still governs all code/DB/UI until the separate rename-execution project runs. Decision record: [`docs/pitch/naming-decision-supaprod.md`](./docs/pitch/naming-decision-supaprod.md) · execution playbook + parked-purchases register: [`docs/gtm/brand-supaprod.md`](./docs/gtm/brand-supaprod.md) · attorney handoff: [`docs/gtm/trademark-brief-supaprod.md`](./docs/gtm/trademark-brief-supaprod.md).
+>
 > _Do not perform destructive refactoring of database column/table names or folder structures that are bound to Lovable Cloud and pgvector schemas. All modifications should map the name logically at the user and documentation level while keeping underlying plumbing compatible._
 
 > The canonical record of **what Cadence is built to be** (the full feature scope), **the order we build it**, and **what already exists to reuse**. Product framing: [`README.md`](./README.md). Operating rules: [`AGENTS.md`](./AGENTS.md). Architecture: [`architecture/`](./architecture/). UI contract: [`DESIGN.md`](./DESIGN.md).
