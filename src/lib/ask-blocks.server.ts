@@ -181,18 +181,24 @@ async function resolveEntityCards(
 async function resolveTimeline(
   supabase: SupabaseClient,
   question: string,
+  productId: string | null = null,
 ): Promise<AnswerBlock | null> {
   const days = temporalWindowDays(question);
   const sinceMs = Date.now() - days * DAY_MS;
   const sinceIso = new Date(sinceMs).toISOString();
 
+  // Product scope narrows decisions (they carry product_id); missions and
+  // gates are workspace-level records with no product column, so they stay
+  // in the timeline unfiltered rather than pretending to a scoping the data
+  // model cannot express.
+  let decisionsQuery = supabase
+    .from("decisions")
+    .select("id,title,status,created_at")
+    .gte("created_at", sinceIso);
+  if (productId) decisionsQuery = decisionsQuery.eq("product_id", productId);
+
   const [decisionsRes, missionsRes, approvalsRes] = await Promise.all([
-    supabase
-      .from("decisions")
-      .select("id,title,status,created_at")
-      .gte("created_at", sinceIso)
-      .order("created_at", { ascending: false })
-      .limit(TIMELINE_PER_TABLE),
+    decisionsQuery.order("created_at", { ascending: false }).limit(TIMELINE_PER_TABLE),
     supabase
       .from("missions")
       .select("id,title,status,created_at,completed_at")
@@ -320,7 +326,7 @@ async function resolveStatusDigest(supabase: SupabaseClient): Promise<AnswerBloc
  */
 export async function resolveAnswerBlocks(
   supabase: SupabaseClient,
-  opts: { question: string; chunkRefs: ChunkRef[] },
+  opts: { question: string; chunkRefs: ChunkRef[]; productId?: string | null },
 ): Promise<AnswerBlock[]> {
   try {
     const [cards, timeline, status] = await Promise.all([
@@ -329,7 +335,7 @@ export async function resolveAnswerBlocks(
         return [];
       }),
       isTemporalQuestion(opts.question)
-        ? resolveTimeline(supabase, opts.question).catch((e): null => {
+        ? resolveTimeline(supabase, opts.question, opts.productId ?? null).catch((e): null => {
             console.error("[ask-blocks] timeline failed (skipping):", e);
             return null;
           })

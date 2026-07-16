@@ -16,6 +16,8 @@ export type StoredMessageRow = {
   metadata?: unknown;
 };
 
+export type PromotedRecordIds = Partial<{ note: string; decision: string; task: string }>;
+
 export type HydratedMsg = {
   id: string;
   role: "user" | "assistant";
@@ -24,7 +26,23 @@ export type HydratedMsg = {
   mission_id?: string | null;
   meta?: ChatMeta | null;
   blocks?: AnswerBlock[];
+  /** What this answer was already promoted into (metadata.promoted), so the
+   * receipt chips survive a refresh instead of offering a duplicate save. */
+  promoted?: PromotedRecordIds;
 };
+
+const PROMOTE_KINDS = ["note", "decision", "task"] as const;
+
+function parsePromoted(metadata: unknown): PromotedRecordIds | undefined {
+  const raw = (metadata as { promoted?: unknown } | null)?.promoted;
+  if (!raw || typeof raw !== "object") return undefined;
+  const out: PromotedRecordIds = {};
+  for (const kind of PROMOTE_KINDS) {
+    const id = (raw as Record<string, unknown>)[kind];
+    if (typeof id === "string" && id) out[kind] = id;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
 
 /**
  * Rehydrate persisted rows into thread messages (PC-36: nothing said in Ask
@@ -40,6 +58,7 @@ export function hydrateMessages(rows: StoredMessageRow[]): HydratedMsg[] {
     const meta = parseChatMeta(row.metadata);
     const rawBlocks = (row.metadata as { blocks?: unknown } | null)?.blocks;
     const blocks = Array.isArray(rawBlocks) ? rawBlocks.filter(isAnswerBlock) : [];
+    const promoted = parsePromoted(row.metadata);
     out.push({
       id: row.id,
       role: row.role,
@@ -48,6 +67,7 @@ export function hydrateMessages(rows: StoredMessageRow[]): HydratedMsg[] {
       ...(row.mission_id ? { mission_id: row.mission_id } : {}),
       ...(meta ? { meta } : {}),
       ...(blocks.length > 0 ? { blocks } : {}),
+      ...(promoted ? { promoted } : {}),
     });
   }
   return out;

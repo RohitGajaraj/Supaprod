@@ -12,6 +12,8 @@ export type SseEvent =
   | { kind: "meta"; meta: ChatMeta }
   /** PC-36 C: one typed answer block (decision/opportunity/mission/status/timeline). */
   | { kind: "block"; block: AnswerBlock }
+  /** The answer's persisted row id, so promote actions can record themselves. */
+  | { kind: "persisted"; messageId: string }
   | { kind: "delta"; piece?: string; missionId?: string }
   | { kind: "done" }
   | { kind: "ignored" }
@@ -38,6 +40,9 @@ export function parseSseLine(line: string): SseEvent | null {
   if (meta) return { kind: "meta", meta };
   const block = (parsed as { block?: unknown }).block;
   if (isAnswerBlock(block)) return { kind: "block", block };
+  const persistedId = (parsed as { persisted?: { message_id?: unknown } }).persisted?.message_id;
+  if (typeof persistedId === "string" && persistedId)
+    return { kind: "persisted", messageId: persistedId };
   const choices = (parsed as { choices?: { delta?: { content?: string; mission_id?: string } }[] })
     .choices;
   const piece = choices?.[0]?.delta?.content;

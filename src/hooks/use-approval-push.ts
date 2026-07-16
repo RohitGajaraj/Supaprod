@@ -28,18 +28,19 @@ export function useApprovalPush(enabled: boolean) {
     void supabase.auth.getUser().then(({ data }) => {
       const userId = data.user?.id;
       if (!userId || cancelled) return;
+      // INSERT + UPDATE only (review fix 2026-07-16): DELETE events cannot
+      // be filtered by column regardless of replica identity, so an
+      // event:"*" binding would fire on every tenant's deletions. Gates are
+      // never hard-deleted in the decide flow, so nothing real is lost.
+      const match = {
+        schema: "public",
+        table: "agent_approvals",
+        filter: `user_id=eq.${userId}`,
+      } as const;
       channel = supabase
         .channel(`ask-approvals-${userId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "agent_approvals",
-            filter: `user_id=eq.${userId}`,
-          },
-          invalidate,
-        )
+        .on("postgres_changes", { ...match, event: "INSERT" }, invalidate)
+        .on("postgres_changes", { ...match, event: "UPDATE" }, invalidate)
         .subscribe((status) => {
           // A (re)connect may have missed events while the socket was down;
           // one refetch on every successful subscribe closes that window.

@@ -11,11 +11,11 @@ import { MissionCanvasBlocks } from "@/components/obsidian";
 import { PendingApprovalsStrip } from "@/components/obsidian/ask-canvas";
 import { AnswerBlocks } from "@/components/obsidian/ask-blocks";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createConversation, getConversation } from "@/lib/conversations.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { createTask } from "@/lib/tasks.functions";
-import { createNoteFromAsk } from "@/lib/ask-promote.functions";
+import { createNoteFromAsk, markMessagePromoted } from "@/lib/ask-promote.functions";
 import { toast } from "@/lib/notify";
 import { useDictation, useReadAloud, type ReadAloudState } from "@/hooks/use-voice";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -56,6 +56,8 @@ type Msg = {
   meta?: ChatMeta | null;
   /** PC-36 C: typed answer blocks, rendered above the prose. */
   blocks?: AnswerBlock[];
+  /** The persisted row id (from the {persisted} frame), for promote write-back. */
+  dbId?: string;
   error?: boolean;
   /** The user content to resend from the error card's retry (PC-36 G). */
   retryContent?: string;
@@ -66,6 +68,7 @@ type PromotedRecords = Partial<{ note: string; decision: string; task: string }>
 
 /** localStorage key for the panel's last conversation (PC-36 rehydration). */
 const ASK_CONVERSATION_KEY = "cadence.ask.conversation.v1";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class AskUiError extends Error {}
 
@@ -713,6 +716,7 @@ export function AskPanel() {
   const fCreateDecision = useServerFn(createDecision);
   const fCreateTask = useServerFn(createTask);
   const fCreateNote = useServerFn(createNoteFromAsk);
+  const fMarkPromoted = useServerFn(markMessagePromoted);
   // PC-36 F: read-aloud is panel-level so only one answer speaks at a time.
   const readAloud = useReadAloud();
 
@@ -722,9 +726,15 @@ export function AskPanel() {
   // empty thread so a live session is never clobbered. A stale or foreign id
   // (RLS returns no conversation) clears itself and the panel starts fresh.
   const fGetConversation = useServerFn(getConversation);
-  const [storedConvId, setStoredConvId] = React.useState<string | null>(() =>
-    typeof window === "undefined" ? null : window.localStorage.getItem(ASK_CONVERSATION_KEY),
-  );
+  const queryClient = useQueryClient();
+  const [storedConvId, setStoredConvId] = React.useState<string | null>(() => {
+    // Malformed storage (review fix 2026-07-16) reads as absent, or the
+    // hydration query would sit in a permanent error state (the server fn
+    // rejects non-uuids) with nothing ever clearing the key.
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(ASK_CONVERSATION_KEY);
+    return v && UUID_RE.test(v) ? v : null;
+  });
   const rememberConversationId = React.useCallback((id: string | null) => {
     setStoredConvId(id);
     try {
@@ -737,11 +747,31 @@ export function AskPanel() {
 
   const ensureConversation = React.useCallback(async (): Promise<string> => {
     if (conversationIdRef.current) return conversationIdRef.current;
+    // Adopt-and-validate the stored thread first (review fix 2026-07-16): a
+    // message sent before hydration resolves must land IN the stored
+    // conversation, not mint a second one and orphan the history.
+    // fetchQuery dedupes with the in-flight hydration query (same key), so
+    // this awaits the same round-trip rather than adding one.
+    if (storedConvId) {
+      try {
+        const r = await queryClient.fetchQuery({
+          queryKey: ["ask-conversation", storedConvId],
+          queryFn: () => fGetConversation({ data: { id: storedConvId } }),
+          staleTime: Infinity,
+        });
+        if (r.conversation) {
+          conversationIdRef.current = storedConvId;
+          return storedConvId;
+        }
+      } catch {
+        // Unreachable or foreign id: fall through and start fresh.
+      }
+    }
     const r = await fCreate({ data: {} });
     conversationIdRef.current = r.conversation.id;
     rememberConversationId(r.conversation.id);
     return r.conversation.id;
-  }, [fCreate, rememberConversationId]);
+  }, [fCreate, fGetConversation, queryClient, rememberConversationId, storedConvId]);
 
   const hydration = useQuery({
     queryKey: ["ask-conversation", storedConvId],
@@ -749,22 +779,31 @@ export function AskPanel() {
     enabled: isOpen && !!storedConvId && messages.length === 0,
     staleTime: Infinity,
   });
+  // Hydrate once per stored conversation. Prepend (not replace) so an
+  // exchange the user started before history landed is kept; stream frames
+  // patch by message id, never by index, so prepending under a live stream
+  // is safe.
+  const hydratedRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     const data = hydration.data;
-    if (!data || messages.length > 0 || !storedConvId) return;
+    if (!data || !storedConvId || hydratedRef.current === storedConvId) return;
     if (!data.conversation) {
       rememberConversationId(null);
       return;
     }
+    hydratedRef.current = storedConvId;
+    conversationIdRef.current = storedConvId;
     const hydrated = hydrateMessages((data.messages ?? []) as StoredMessageRow[]);
     if (hydrated.length > 0) {
-      conversationIdRef.current = storedConvId;
-      setMessages(hydrated);
+      setMessages((prev) => (prev.length > 0 ? [...hydrated, ...prev] : hydrated));
+      setPromotedByMsg((prev) => {
+        const seeded = { ...prev };
+        for (const m of hydrated) if (m.promoted) seeded[m.id] = m.promoted;
+        return seeded;
+      });
     }
-    // An empty existing conversation keeps its id but needs no messages.
-    else conversationIdRef.current = storedConvId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydration.data]);
+  }, [hydration.data, storedConvId]);
 
   const startNewConversation = React.useCallback(() => {
     if (streaming) return;
@@ -871,6 +910,10 @@ export function AskPanel() {
               patchStreaming((m) => ({ blocks: [...(m.blocks ?? []), event.block] }));
               continue;
             }
+            if (event.kind === "persisted") {
+              patchStreaming(() => ({ dbId: event.messageId }));
+              continue;
+            }
             if (event.kind !== "delta") continue;
             if (event.piece) acc += event.piece;
             if (event.piece || event.missionId) {
@@ -918,6 +961,20 @@ export function AskPanel() {
   // Without this, a double-click creates the record twice (both server fns
   // are plain inserts, not idempotent).
   const promotePendingRef = React.useRef<Set<string>>(new Set());
+  // Write the promotion onto the message row (fire-and-forget) so the
+  // receipt chip survives a refresh instead of re-offering a duplicate
+  // save (review fix 2026-07-16). Same-session messages carry dbId from
+  // the {persisted} frame; rehydrated ones use their row uuid directly.
+  const recordPromotion = React.useCallback(
+    (msg: Msg, kind: "note" | "decision" | "task", recordId: string) => {
+      const messageId = msg.dbId ?? (UUID_RE.test(msg.id) ? msg.id : null);
+      if (!messageId) return;
+      void fMarkPromoted({ data: { messageId, kind, recordId } }).catch((e) =>
+        console.error("[ask] promotion write-back failed:", e),
+      );
+    },
+    [fMarkPromoted],
+  );
   const promote = React.useCallback(
     async (msg: Msg, kind: "note" | "decision" | "task") => {
       const pendingKey = `${msg.id}:${kind}`;
@@ -927,6 +984,7 @@ export function AskPanel() {
         if (kind === "note") {
           const r = await fCreateNote({ data: { body: msg.content.slice(0, 8000) } });
           setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], note: r.note.id } }));
+          recordPromotion(msg, "note", r.note.id);
           toast("Saved to notes.");
         } else if (kind === "decision") {
           const r = await fCreateDecision({
@@ -940,6 +998,7 @@ export function AskPanel() {
           const id = (r as { decision?: { id?: string } }).decision?.id;
           if (id) {
             setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], decision: id } }));
+            recordPromotion(msg, "decision", id);
             toast(`Decision drafted. ${formatAuditId("decision", id)}`);
           }
         } else {
@@ -947,7 +1006,10 @@ export function AskPanel() {
             data: { title: answerTitle(msg.content), priority: "medium" },
           });
           const id = (r as { task?: { id?: string } }).task?.id;
-          if (id) setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], task: id } }));
+          if (id) {
+            setPromotedByMsg((m) => ({ ...m, [msg.id]: { ...m[msg.id], task: id } }));
+            recordPromotion(msg, "task", id);
+          }
           toast("Task created.");
         }
       } catch (e) {
@@ -957,7 +1019,7 @@ export function AskPanel() {
         promotePendingRef.current.delete(pendingKey);
       }
     },
-    [fCreateNote, fCreateDecision, fCreateTask],
+    [fCreateNote, fCreateDecision, fCreateTask, recordPromotion],
   );
 
   const retry = React.useCallback(

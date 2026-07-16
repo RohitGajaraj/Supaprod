@@ -761,6 +761,7 @@ You must output a JSON object EXACTLY in this format:
               answerBlocks = await resolveAnswerBlocks(supabase, {
                 question: body.content,
                 chunkRefs,
+                productId: body.scope?.productId ?? null,
               });
               for (const block of answerBlocks) send({ block });
             }
@@ -964,18 +965,13 @@ ${grounding}`,
                 cost_usd: estimateCostUsd(result.model, tokens_in, tokens_out),
                 ...(judge !== undefined ? { judge } : {}),
               });
-              try {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`));
-                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-                controller.close();
-              } catch {
-                // Controller already errored/closed — nothing more to send.
-              }
-              // Persist assistant message (best-effort), WITH meta so the AI
-              // footer contract survives reloads (migration
-              // 20260612120000_f_design_ember_chat_meta adds messages.metadata).
-              // Pre-migration tolerance: if the column is missing the insert
-              // errors, so retry without metadata — never lose the message.
+              // Persist BEFORE the meta frame so the client learns its row id
+              // (the {persisted} frame below) and promote actions can record
+              // themselves on the message (review fix 2026-07-16). Meta
+              // survives reloads via metadata (20260612120000); blocks ride
+              // inside it too (PC-36 C). Pre-migration tolerance: retry
+              // without metadata rather than lose the message.
+              let persistedMessageId: string | null = null;
               if (assistantText.trim()) {
                 const row = {
                   conversation_id: body.conversationId,
@@ -984,20 +980,42 @@ ${grounding}`,
                   content: assistantText,
                   model: result.model,
                 };
-                // PC-36 C: blocks ride inside metadata (additive) so the
-                // typed receipts survive the stream, not just the prose.
                 const persistedMeta =
                   answerBlocks.length > 0 ? { ...meta, blocks: answerBlocks } : meta;
-                const { error: metaErr } = await supabase
+                const { data: inserted, error: metaErr } = await supabase
                   .from("messages")
-                  .insert({ ...row, metadata: persistedMeta } as typeof row);
+                  .insert({ ...row, metadata: persistedMeta } as typeof row)
+                  .select("id")
+                  .single();
                 if (metaErr) {
                   // Loud (review fix 2026-07-16): the fallback saves the prose
                   // but drops meta + blocks; a silent drop here would read as
                   // "metadata persistence works" forever.
                   console.error("[chat] metadata insert failed, persisting without it:", metaErr);
-                  await supabase.from("messages").insert(row);
+                  const { data: fallbackRow } = await supabase
+                    .from("messages")
+                    .insert(row)
+                    .select("id")
+                    .single();
+                  persistedMessageId = (fallbackRow as { id: string } | null)?.id ?? null;
+                } else {
+                  persistedMessageId = (inserted as { id: string } | null)?.id ?? null;
                 }
+              }
+              try {
+                if (persistedMessageId)
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({ persisted: { message_id: persistedMessageId } })}\n\n`,
+                    ),
+                  );
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`));
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+              } catch {
+                // Controller already errored/closed — nothing more to send.
+              }
+              if (assistantText.trim()) {
                 // F-BRAIN auto-retention: distill research answers + sources
                 // into the brain (rag_chunks kind 'finding') so future
                 // questions recall them. Fire-and-forget — never blocks or

@@ -187,6 +187,13 @@ async function gatherInternal(
   emit({ phase: "workspace", label: "Reading your workspace" });
 
   // All reads in parallel; each degrades to empty on failure (RLS-scoped client).
+  // Product scope (review fix 2026-07-16): the chip's narrowing applies to
+  // every product-attributable read, not just RAG chunks - opportunities and
+  // decisions carry product_id; missions do not (workspace-level work), so
+  // the missions snapshot stays honest and unfiltered.
+  const productId = scope?.productId ?? null;
+  const withProduct = <T extends { eq: (c: string, v: string) => T }>(q: T): T =>
+    productId ? q.eq("product_id", productId) : q;
   const [chunks, oppsRes, lanesRes, decisionsRes, missionsRes] = await Promise.all([
     retrieve(supabase, userId, {
       query,
@@ -194,27 +201,33 @@ async function gatherInternal(
       mmr: true,
       sourceKinds: scope?.kinds,
       sourceId: scope?.sourceId ?? undefined,
-      productId: scope?.productId ?? undefined,
+      productId: productId ?? undefined,
     }).catch((e) => {
       console.error("[research] workspace retrieval failed (skipping):", e);
       return [];
     }),
-    supabase
-      .from("opportunities")
-      .select("title,ice_score,status")
-      .order("ice_score", { ascending: false, nullsFirst: false })
-      .limit(5),
-    supabase
-      .from("opportunities")
-      .select("title,status")
-      .in("status", ["now", "next", "later", "shipped"])
-      .order("updated_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("decisions")
-      .select("title,status")
-      .order("created_at", { ascending: false })
-      .limit(5),
+    withProduct(
+      supabase
+        .from("opportunities")
+        .select("title,ice_score,status")
+        .order("ice_score", { ascending: false, nullsFirst: false })
+        .limit(5),
+    ),
+    withProduct(
+      supabase
+        .from("opportunities")
+        .select("title,status")
+        .in("status", ["now", "next", "later", "shipped"])
+        .order("updated_at", { ascending: false })
+        .limit(8),
+    ),
+    withProduct(
+      supabase
+        .from("decisions")
+        .select("title,status")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ),
     supabase
       .from("missions")
       .select("title,status")
