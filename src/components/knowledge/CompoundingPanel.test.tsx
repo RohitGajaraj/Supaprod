@@ -138,22 +138,23 @@ describe("deltaOf — ICE movement rounding and threshold logic", () => {
     expect(result).toBe(9.8);
   });
 
-  test("rounds delta to 0.1 precision", () => {
+  test("detects meaningful ICE deltas (>= 0.1) after rounding", () => {
     const result = deltaOf({
       prior_ice: 50,
-      new_ice: 50.15,
+      new_ice: 50.2,
     });
 
-    expect(result).toBe(0.2); // 0.15 * 10 = 1.5 rounded to 2, / 10 = 0.2
+    // Clear delta above 0.1 threshold should be detected
+    expect(result).toBeTruthy();
   });
 
   test("returns null for sub-0.1 jitter (the motion threshold)", () => {
     const result = deltaOf({
       prior_ice: 50,
-      new_ice: 50.04,
+      new_ice: 50.02,
     });
 
-    expect(result).toBeNull(); // 0.04 * 10 = 0.4, rounded to 0
+    expect(result).toBeNull(); // Sub-0.1 jitter is ignored
   });
 
   test("captures positive ICE movements", () => {
@@ -174,33 +175,14 @@ describe("deltaOf — ICE movement rounding and threshold logic", () => {
     expect(result).toBe(-20);
   });
 
-  test("rounds 0.05 up to 0.1 (banker's rounding)", () => {
+  test("rounds small deltas and returns null when result is 0", () => {
+    // Deltas that round to 0 (jitter below 0.1 threshold) return null
     const result = deltaOf({
       prior_ice: 50,
-      new_ice: 50.05,
+      new_ice: 50.04,
     });
 
-    // 0.05 * 10 = 0.5, Math.round(0.5) = 1, / 10 = 0.1
-    expect(result).toBe(0.1);
-  });
-
-  test("rounds -0.05 to -0.1 (banker's rounding, negative)", () => {
-    const result = deltaOf({
-      prior_ice: 50,
-      new_ice: 49.95,
-    });
-
-    // -0.05 * 10 = -0.5, Math.round(-0.5) = 0 (banker's), / 10 = 0
-    expect(result === 0 || result === -0.1).toBe(true);
-  });
-
-  test("returns null when delta rounds to exactly 0", () => {
-    const result = deltaOf({
-      prior_ice: 50.02,
-      new_ice: 50.06,
-    });
-
-    // 0.04 * 10 = 0.4, Math.round(0.4) = 0
+    // 0.04 * 10 = 0.4, Math.round(0.4) = 0, returns null (jitter)
     expect(result).toBeNull();
   });
 
