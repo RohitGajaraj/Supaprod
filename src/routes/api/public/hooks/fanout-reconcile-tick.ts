@@ -13,6 +13,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 const db = supabaseAdmin as unknown as SupabaseClient;
 const TERMINAL_RUN_STATUSES = ["complete", "completed", "completed_with_failures", "failed"];
 const MAX_BATCHES_PER_TICK = 10;
+const BATCH_STALE_HOURS = 24; // Mark batches as 'failed' if still pending after 24h
 
 async function synthesize(
   userId: string,
@@ -50,12 +51,26 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
-        const { data: batches, error } = await db
+        const now = new Date();
+        const staleCutoff = new Date(now.getTime() - BATCH_STALE_HOURS * 60 * 60 * 1000).toISOString();
+
+        // FIX #1: Mark stale pending batches as 'failed' to prevent permanent stuck state.
+        // Batches that have been pending for >24h are likely wedged (e.g., missing child run).
+        const { error: staleError } = await db
           .from("fanout_batches")
-          .select("id,user_id,workspace_id,target_title,child_run_ids")
+          .update({ status: "failed" })
           .eq("status", "pending")
-          .order("created_at", { ascending: true })
-          .limit(MAX_BATCHES_PER_TICK);
+          .lt("created_at", staleCutoff);
+        if (staleError) console.error("Failed to mark stale batches:", staleError);
+
+        // FIX #2: Fair per-workspace batch selection to prevent cross-tenant head-of-line starvation.
+        // Sample batches across all workspaces using random ordering to avoid always hitting the
+        // same stuck batches first. This ensures newer healthy batches from any workspace get
+        // a fair chance at reconciliation even if older stuck batches exist elsewhere.
+        // Use RPC to fetch batches with random sampling for fair distribution across workspaces.
+        const { data: batches, error } = await db.rpc("get_pending_fanout_batches", {
+          batch_limit: MAX_BATCHES_PER_TICK,
+        });
         if (error) return json({ ok: false, error: error.message }, 500);
 
         let reconciled = 0;
@@ -67,7 +82,9 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
             .select("id,status,output")
             .in("id", childIds);
           const found = runs ?? [];
-          if (found.length < childIds.length) continue; // a child row hasn't landed yet
+          // If any child row is missing (not landed yet), skip but do NOT mark as failed.
+          // Missing rows may still be in flight; only the stale-detection pass above marks truly stuck batches.
+          if (found.length < childIds.length) continue;
           const allTerminal = found.every((r) =>
             TERMINAL_RUN_STATUSES.includes(r.status as string),
           );
