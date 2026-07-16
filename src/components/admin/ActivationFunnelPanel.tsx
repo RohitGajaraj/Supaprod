@@ -1,9 +1,10 @@
 /**
  * Activation Funnel Panel (PC-06)
  * Displays signup → connect → first-teardown → first-mission → week-2-return conversion funnel
- * for the workspace over the last 30 days.
+ * for the workspace over a selectable time range (7 or 30 days).
  */
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -19,6 +20,7 @@ interface FunnelStageRow {
 export function ActivationFunnelPanel() {
   const { activeProductId } = useWorkspace();
   const fGetFunnel = useServerFn(getFunnelSnapshot);
+  const [days, setDays] = useState<7 | 30>(30);
 
   const today = new Date().toISOString().split("T")[0];
   // Hook order must not depend on activeProductId (Rules of Hooks): the query
@@ -29,9 +31,9 @@ export function ActivationFunnelPanel() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["activation-funnel", activeProductId, today],
+    queryKey: ["activation-funnel", activeProductId, today, days],
     enabled: !!activeProductId,
-    queryFn: () => fGetFunnel(activeProductId!, today, 30),
+    queryFn: () => fGetFunnel(activeProductId!, today, days),
   });
 
   if (!activeProductId) {
@@ -129,15 +131,70 @@ export function ActivationFunnelPanel() {
     <div style={{ padding: 16 }}>
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          color: "var(--text-subtle)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           marginBottom: 16,
         }}
       >
-        Activation funnel (30d)
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            color: "var(--text-subtle)",
+          }}
+        >
+          Activation funnel ({days}d)
+        </div>
+
+        {/* 7/30-day toggle */}
+        <div
+          style={{
+            display: "flex",
+            gap: 2,
+            background: "var(--surface-recessed)",
+            borderRadius: 4,
+            padding: 2,
+          }}
+        >
+          {[7, 30].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDays(d as 7 | 30)}
+              aria-label={`Show ${d}-day funnel`}
+              aria-pressed={days === d}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                padding: "4px 8px",
+                fontSize: 10,
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                border: "none",
+                borderRadius: 3,
+                background: days === d ? "var(--text-primary)" : "transparent",
+                color: days === d ? "var(--surface-card)" : "var(--text-subtle)",
+                cursor: "pointer",
+                transition: "all 0.15s var(--ease, ease)",
+              }}
+              onMouseEnter={(e) => {
+                if (days !== d) {
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--text-body)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (days !== d) {
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--text-subtle)";
+                }
+              }}
+            >
+              {d}d
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
