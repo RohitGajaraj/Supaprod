@@ -105,9 +105,9 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      // h-10 = 40px, on the control-height grid; headers use the label step one
+      // h-(--row-h) = 38px (PC-37 density pass); headers use the label step one
       // size down from body copy, in the secondary text color.
-      "h-10 px-2 text-left align-middle text-label-13 text-(--ds-gray-900) [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "h-(--row-h) px-2 text-left align-middle text-label-13 text-(--ds-gray-900) [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className,
     )}
     {...props}
@@ -122,7 +122,9 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      // min-h-(--row-h): the same 38px density floor as the header, without
+      // forcing taller cell content to clip.
+      "min-h-(--row-h) p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className,
     )}
     {...props}

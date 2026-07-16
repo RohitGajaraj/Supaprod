@@ -210,7 +210,7 @@
   --page-gutter: 24px; /* page/section horizontal margins */
   --card-pad: 16px; /* card content padding (was 18px) */
   --section-gap: 16px; /* gap between major sections (was 24px) */
-  --control-h: 32px; /* button/input height (was 40px) */
+  --control-h: var(--ds-size-small); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
   --row-h: 38px; /* table/list row height (was 48px) */
   --bento-pad: 14px; /* bento grid cell padding (from aurora cards) */
 
@@ -962,11 +962,14 @@
     border: 1px solid oklch(0.92 0.02 80 / 9%);
   }
 
-  /* Bento card — parchment, hairline, 12px. Depth from tint, not shadow. */
+  /* Bento card — parchment, hairline, 12px. Depth from tint, not shadow.
+   * Padding lives here (PC-37 density pass) so call sites stop repeating
+   * their own `style={{ padding: "var(--card-pad)" }}` override. */
   .bento {
     background-color: var(--canvas);
     border: 1px solid var(--hairline);
     border-radius: 12px;
+    padding: var(--card-pad);
   }
   /* A clickable bento (e.g. a /proof decision-receipt link) lifts on hover —
    * transform + border only, GPU-cheap, gated by the global reduced-motion rule. */
