@@ -242,8 +242,8 @@ export function ProductsTab() {
       <div className="material-medium" style={{ padding: 24 }}>
         <MonoLabel icon={Target}>Products</MonoLabel>
         <p
+          className="text-copy-14"
           style={{
-            fontSize: 12.5,
             color: "var(--ink-subtle)",
             margin: "10px 0 14px",
             maxWidth: 480,
@@ -320,8 +320,8 @@ export function ProductsTab() {
                       />
                     )}
                     <span
+                      className="text-label-14"
                       style={{
-                        fontSize: 13.5,
                         color: "var(--ink)",
                         fontWeight: isActive ? 600 : 500,
                         overflow: "hidden",
@@ -342,8 +342,8 @@ export function ProductsTab() {
                   </span>
                   {p.north_star && (
                     <p
+                      className="text-label-12"
                       style={{
-                        fontSize: 11.5,
                         color: "var(--ink-subtle)",
                         margin: "3px 0 7px",
                         overflow: "hidden",
