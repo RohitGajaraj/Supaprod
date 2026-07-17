@@ -18,7 +18,7 @@ import { getNotifications, type AppNotification } from "@/lib/notifications.func
 const SEVERITY_COLOR: Record<AppNotification["severity"], string> = {
   action: "var(--amber, #d97706)",
   warning: "var(--rose, #dc2626)",
-  info: "var(--ink-muted)",
+  info: "var(--ds-gray-800)",
 };
 
 const SEVERITY_RANK: Record<AppNotification["severity"], number> = {
@@ -51,7 +51,7 @@ export function AttentionBell() {
 
   return (
     <a
-      href="/engine-room?room=record&view=verify"
+      href="/engine-room?room=record&view=verify" className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-focus-ring)]"
       title={label}
       aria-label={label}
       style={{
@@ -59,10 +59,10 @@ export function AttentionBell() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: 28,
-        height: 28,
+        width: 32,
+        height: 32,
         borderRadius: 8,
-        color: count > 0 ? "var(--ink)" : "var(--ink-faint)",
+        color: count > 0 ? "var(--ds-gray-1000)" : "var(--ds-gray-700)",
         textDecoration: "none",
         flexShrink: 0,
       }}
@@ -86,7 +86,7 @@ export function AttentionBell() {
             lineHeight: "14px",
             textAlign: "center",
             fontVariantNumeric: "tabular-nums",
-            boxShadow: "0 0 0 2px var(--canvas)",
+            boxShadow: "0 0 0 2px var(--ds-background-100)",
           }}
         >
           {count > 9 ? "9+" : count}

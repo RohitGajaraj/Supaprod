@@ -95,7 +95,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         height: 52,
         flexShrink: 0,
         borderBottom: "1px solid var(--hairline-faint)",
-        background: "color-mix(in oklab, var(--canvas) 68%, transparent)",
+        background: "color-mix(in oklab, var(--ds-background-100) 68%, transparent)",
         backdropFilter: "blur(14px) saturate(1.5)",
         WebkitBackdropFilter: "blur(14px) saturate(1.5)",
         position: "sticky",

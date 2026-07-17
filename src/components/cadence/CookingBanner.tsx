@@ -73,7 +73,7 @@ export function CookingBanner() {
         className="mono-label"
         style={{
           fontSize: 9.5,
-          color: "var(--ink-muted)",
+          color: "var(--ds-gray-800)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",

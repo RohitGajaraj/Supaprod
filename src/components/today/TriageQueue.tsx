@@ -37,7 +37,6 @@ export interface ExpiredCall {
 }
 
 const monoBtn: React.CSSProperties = {
-  fontFamily: "var(--font-ui)",
   fontSize: 12,
   fontWeight: 500,
   background: "transparent",

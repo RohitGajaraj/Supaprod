@@ -133,7 +133,7 @@ export const SignalCard = memo(function SignalCard({
             title="Open source"
             aria-label="Open source"
             onClick={(event) => event.stopPropagation()}
-            className="loom-press inline-flex items-center outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--glacier)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="loom-press inline-flex items-center outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--ds-gray-1000)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>

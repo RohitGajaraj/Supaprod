@@ -44,7 +44,7 @@ const surface: CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "var(--canvas)",
+  background: "var(--ds-background-100)",
   color: "var(--text-primary)",
   overflow: "hidden",
   padding: 24,

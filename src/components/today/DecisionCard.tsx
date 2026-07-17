@@ -73,7 +73,7 @@ type Props = {
 // safe case stays gray, elevated risk wears the warning/danger role tokens.
 // Ember never marks reversibility; it is reserved for the gate itself.
 const REVERSIBILITY_COLOR: Record<Reversibility, string> = {
-  reversible: "var(--ink-faint)",
+  reversible: "var(--ds-gray-700)",
   partial: "var(--marigold)",
   irreversible: "var(--rose)",
 };
@@ -85,7 +85,7 @@ const cardStyle: CSSProperties = {
   padding: "12px 14px",
   border: "1px solid var(--hairline)",
   borderRadius: 8,
-  background: "var(--canvas)",
+  background: "var(--ds-background-100)",
 };
 
 function fmtCost(usd: number): string {
@@ -109,7 +109,7 @@ function MetaChip({ color, children }: { color?: string; children: ReactNode }) 
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
-        color: color ?? "var(--ink-faint)",
+        color: color ?? "var(--ds-gray-700)",
       }}
     >
       {children}
@@ -135,11 +135,11 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Gray attribution (accent restraint 2026-07-11): machine blue marks agent
                 ACTIONS, never standing name labels. */}
-            <div className="mono-label" style={{ color: "var(--ink-muted)", fontSize: 10 }}>
+            <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
               {agent}
               {trackLabel && (
                 <span
-                  style={{ color: "var(--ink-faint)" }}
+                  style={{ color: "var(--ds-gray-700)" }}
                   title="This agent's decided-approval record across your past gates"
                 >
                   {" "}
@@ -148,7 +148,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               )}{" "}
               · needs your approval · {item.toolName}
             </div>
-            <div style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 600, marginTop: 2 }}>
+            <div style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}>
               {c.effect}
             </div>
           </div>
@@ -185,7 +185,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+            className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
             style={{
               fontSize: 9.5,
               display: "inline-flex",
@@ -210,7 +210,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               borderRadius: 6,
               background: "var(--surface-2)",
               fontSize: 12,
-              color: "var(--ink-muted)",
+              color: "var(--ds-gray-800)",
               display: "flex",
               flexDirection: "column",
               gap: 6,
@@ -242,7 +242,9 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         {/* Actions */}
         {rejecting ? (
           <div style={{ marginLeft: 22, display: "flex", flexDirection: "column", gap: 6 }}>
+            <label htmlFor="rejection-reason" className="sr-only">Rejection reason</label>
             <textarea
+              id="rejection-reason"
               autoFocus
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -256,8 +258,8 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
                 padding: "6px 8px",
                 borderRadius: 6,
                 border: "1px solid var(--hairline)",
-                background: "var(--canvas)",
-                color: "var(--ink)",
+                background: "var(--ds-background-100)",
+                color: "var(--ds-gray-1000)",
               }}
             />
             <div style={{ display: "flex", gap: 6 }}>
@@ -331,10 +333,10 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         <StepDot status="gate" />
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Gray metadata (accent restraint 2026-07-11): no standing tint on labels. */}
-          <div className="mono-label" style={{ color: "var(--ink-muted)", fontSize: 10 }}>
+          <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
-          <div style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 600, marginTop: 2 }}>
+          <div style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}>
             {question}
           </div>
         </div>
@@ -361,7 +363,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         )}
         <button
           type="button"
-          className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+          className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
           style={{
             fontSize: 9.5,
             marginLeft: "auto",

@@ -49,7 +49,7 @@ describe("StatusPill", () => {
   test("renders known status with correct color", () => {
     const { container } = render(<StatusPill status="now" />);
     const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--glacier)");
+    expect(span?.style.color).toBe("var(--ds-gray-1000)");
   });
 
   test("renders backlog status with correct color", () => {
@@ -97,7 +97,7 @@ describe("StatusPill", () => {
   test("applies rounded pill style", () => {
     const { container } = render(<StatusPill status="now" />);
     const span = container.querySelector("span");
-    expect(span?.style.borderRadius).toBe("999px");
+    expect(span?.style.borderRadius).toBe("var(--ds-radius-full)");
   });
 
   test("applies custom className when provided", () => {

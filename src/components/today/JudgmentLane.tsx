@@ -22,7 +22,6 @@ const INSIGHT_LABEL: Record<string, string> = {
 // No `color` here: the base color rides the [color:…] class on each button so
 // the hover:[color:…] variant can actually win (inline style beats classes).
 const linkBtn: React.CSSProperties = {
-  fontFamily: "var(--font-ui)",
   fontSize: 12,
   fontWeight: 500,
   background: "transparent",
@@ -101,7 +100,6 @@ function InsightRow({
         className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
         style={{
           alignSelf: "flex-start",
-          fontFamily: "var(--font-ui)",
           fontSize: 12,
           fontWeight: 500,
           border: "1px solid",
@@ -168,7 +166,6 @@ export function JudgmentLane({
           className="loom-press w-full text-left outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           onClick={() => setOpen(true)}
           style={{
-            fontFamily: "var(--font-ui)",
             fontSize: 12,
             fontWeight: 500,
             background: "transparent",
@@ -208,7 +205,6 @@ export function JudgmentLane({
               className="loom-press w-full text-left outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               onClick={() => setExpiredOpen(true)}
               style={{
-                fontFamily: "var(--font-ui)",
                 fontSize: 12,
                 fontWeight: 500,
                 background: "transparent",
@@ -280,7 +276,6 @@ export function JudgmentLane({
                       className="loom-press outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onRun}
                       style={{
-                        fontFamily: "var(--font-ui)",
                         fontSize: 12,
                         fontWeight: 500,
                         background: "transparent",
@@ -297,7 +292,6 @@ export function JudgmentLane({
                       className="loom-press outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onDismiss}
                       style={{
-                        fontFamily: "var(--font-ui)",
                         fontSize: 12,
                         fontWeight: 500,
                         background: "transparent",

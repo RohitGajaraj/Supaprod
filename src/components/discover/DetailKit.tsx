@@ -19,7 +19,7 @@ export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neut
 
 const STAT_TONE_COLOR: Record<StatTone, string> = {
   moss: "var(--moss)",
-  glacier: "var(--glacier)",
+  glacier: "var(--ds-gray-1000)",
   madder: "var(--madder)",
   amber: "var(--amber)",
   muted: "var(--text-muted)",

@@ -114,7 +114,7 @@ export function WedgeTeardown() {
             gap: 6,
             fontSize: 17,
             fontWeight: 600,
-            color: "var(--ink)",
+            color: "var(--ds-gray-1000)",
             letterSpacing: "-0.01em",
           }}
         >
@@ -124,7 +124,7 @@ export function WedgeTeardown() {
         <p
           style={{
             fontSize: 13,
-            color: "var(--ink-muted)",
+            color: "var(--ds-gray-800)",
             marginTop: 6,
             maxWidth: 580,
             lineHeight: 1.5,
@@ -196,7 +196,7 @@ export function WedgeTeardown() {
             {run.isPending ? "Tearing it down…" : "Run the teardown"}
             {!run.isPending && <ArrowRight size={13} strokeWidth={2} />}
           </button>
-          <span className="mono-label" style={{ fontSize: 9.5, color: "var(--ink-faint)" }}>
+          <span className="mono-label" style={{ fontSize: 9.5, color: "var(--ds-gray-700)" }}>
             Takes about a minute
           </span>
         </div>
@@ -211,7 +211,7 @@ export function WedgeTeardown() {
               border: `1px solid ${failure.kind === "other" ? "var(--rose)" : "var(--hairline)"}`,
               fontSize: 12.5,
               lineHeight: 1.5,
-              color: "var(--ink-muted)",
+              color: "var(--ds-gray-800)",
             }}
           >
             {failure.note}
@@ -228,10 +228,10 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
   if (!review) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 2px" }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ds-gray-1000)" }}>
           Saved. The Critic could not run just now.
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", maxWidth: 560, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "var(--ds-gray-800)", maxWidth: 560, lineHeight: 1.5 }}>
           Your idea is recorded as an opportunity. The red-team needs the AI gateway, which is not
           reachable in this environment. Open the opportunity to run it again once the gateway is
           live.
@@ -272,11 +272,11 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
           <VerdictChip tone={v.tone} style={{ fontSize: 11 }}>
             {v.label}
           </VerdictChip>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ds-gray-1000)" }}>
             on "{opportunity.title}"
           </span>
         </div>
-        <p style={{ fontSize: 13.5, color: "var(--ink)", maxWidth: 620, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", maxWidth: 620, lineHeight: 1.5 }}>
           {review.summary || v.line}
         </p>
       </div>
@@ -305,10 +305,10 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
           border: "1px solid var(--hairline)",
           fontSize: 12,
           lineHeight: 1.55,
-          color: "var(--ink-muted)",
+          color: "var(--ds-gray-800)",
         }}
       >
-        <span style={{ fontWeight: 600, color: "var(--ink)" }}>Worth sharing?</span> Publishing this
+        <span style={{ fontWeight: 600, color: "var(--ds-gray-1000)" }}>Worth sharing?</span> Publishing this
         teardown gives you a public link anyone can read without an account. It is the fastest way
         to put your thinking where the right people will see it.
       </div>
@@ -324,7 +324,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
           borderTop: "1px solid var(--hairline)",
         }}
       >
-        <span className="mono-label" style={{ fontSize: 9.5, color: "var(--ink-faint)" }}>
+        <span className="mono-label" style={{ fontSize: 9.5, color: "var(--ds-gray-700)" }}>
           Confidence {(review.confidence * 100).toFixed(0)}% · saved to your opportunities
         </span>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -409,7 +409,7 @@ export function ShareTeardownButton({ id }: { id: string }) {
     return (
       <span
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)" }}
+        style={{ fontSize: 9, color: "var(--ds-gray-700)" }}
         title="Sharing lights up after the next sync applies the share columns."
       >
         share · after sync
@@ -470,7 +470,7 @@ function Field({
     <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <span
         className="mono-label"
-        style={{ fontSize: 9.5, color: "var(--ink-faint)", letterSpacing: "0.14em" }}
+        style={{ fontSize: 9.5, color: "var(--ds-gray-700)", letterSpacing: "0.14em" }}
       >
         {label}
         {optional && <span style={{ opacity: 0.6 }}> · optional</span>}
@@ -489,20 +489,20 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
           fontSize: 10,
           textTransform: "uppercase",
           letterSpacing: "0.16em",
-          color: "var(--ink-muted)",
+          color: "var(--ds-gray-800)",
           marginBottom: 6,
         }}
       >
         {title}
       </div>
       {items.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>{empty}</p>
+        <p style={{ fontSize: 12.5, color: "var(--ds-gray-800)" }}>{empty}</p>
       ) : (
         <ul
           style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
         >
           {items.map((it, i) => (
-            <li key={i} style={{ fontSize: 13, lineHeight: 1.45, color: "var(--ink)" }}>
+            <li key={i} style={{ fontSize: 13, lineHeight: 1.45, color: "var(--ds-gray-1000)" }}>
               {it}
             </li>
           ))}
@@ -519,8 +519,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "9px 11px",
   fontSize: 13,
-  color: "var(--ink)",
-  background: "var(--canvas)",
+  color: "var(--ds-gray-1000)",
+  background: "var(--ds-background-100)",
   border: "1px solid var(--hairline)",
   borderRadius: 8,
 };

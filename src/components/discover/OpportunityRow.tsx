@@ -33,8 +33,8 @@ export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
  * detail sheet so a status reads the same wherever it appears. */
 export const STATUS_META: Record<OpportunityStatus, { color: string; label: string }> = {
   backlog: { color: "var(--text-faint)", label: "Backlog" },
-  now: { color: "var(--glacier)", label: "Now" },
-  next: { color: "var(--glacier)", label: "Next" },
+  now: { color: "var(--ds-gray-1000)", label: "Now" },
+  next: { color: "var(--ds-gray-1000)", label: "Next" },
   later: { color: "var(--text-muted)", label: "Later" },
   shipped: { color: "var(--moss)", label: "Shipped" },
   dropped: { color: "var(--madder)", label: "Dropped" },
@@ -62,7 +62,7 @@ export function StatusPill({ status, className }: { status: string; className?: 
         letterSpacing: "0.02em",
         color: meta.color,
         border: "1px solid var(--hairline)",
-        borderRadius: "999px",
+        borderRadius: "var(--ds-radius-full)",
         padding: "2px 8px",
         flexShrink: 0,
         lineHeight: 1.4,

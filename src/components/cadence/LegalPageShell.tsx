@@ -8,12 +8,12 @@ import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 
 const C = {
-  bg: "#0a0a0a",
-  border: "rgba(255,255,255,0.07)",
-  divider: "rgba(255,255,255,0.06)",
-  text: "#f4f4f5",
-  muted: "#a1a1aa",
-  faint: "#565c66",
+  bg: "var(--ds-gray-1000)",
+  border: "var(--ds-gray-400)",
+  divider: "var(--ds-gray-400)",
+  text: "var(--ds-gray-50)",
+  muted: "var(--ds-gray-500)",
+  faint: "var(--ds-gray-700)",
   ember: "#FF6B2C",
   emberBright: "#FF6B2C",
 };

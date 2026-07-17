@@ -34,7 +34,7 @@ export function LoopThread() {
         height: 30,
         flexShrink: 0,
         borderBottom: "1px solid var(--hairline)",
-        background: "var(--canvas)",
+        background: "var(--ds-background-100)",
         overflow: "hidden",
         fontSize: 11.5,
       }}
@@ -48,14 +48,14 @@ export function LoopThread() {
               ? "text-[color:var(--ink)] font-semibold"
               : s.id === neighbors?.next.id
                 ? "text-[color:var(--action-blue)] font-medium hover:opacity-80"
-                : "text-[color:var(--ink-faint)] hover:text-[color:var(--ink)]";
+                : "text-[color:var(--ds-gray-700)] hover:text-[color:var(--ink)]";
           return (
             <Fragment key={s.id}>
               {i > 0 && (
                 <ChevronRight
                   size={11}
                   strokeWidth={1.75}
-                  style={{ color: "var(--ink-faint)", flexShrink: 0 }}
+                  style={{ color: "var(--ds-gray-700)", flexShrink: 0 }}
                   aria-hidden
                 />
               )}
@@ -74,7 +74,7 @@ export function LoopThread() {
           <RotateCw
             size={11}
             strokeWidth={1.75}
-            style={{ color: "var(--ink-faint)", marginLeft: 2 }}
+            style={{ color: "var(--ds-gray-700)", marginLeft: 2 }}
             aria-hidden
           />
         </span>
@@ -87,7 +87,7 @@ export function LoopThread() {
             marginLeft: "auto",
             alignItems: "center",
             gap: 6,
-            color: "var(--ink-faint)",
+            color: "var(--ds-gray-700)",
             fontSize: 9.5,
             whiteSpace: "nowrap",
           }}
