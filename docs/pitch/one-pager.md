@@ -4,7 +4,7 @@
 
 ## What Supaprod is (the answer, three depths)
 
-**One line (category):** Supaprod is the decision and outcome operating system for product teams — it owns the loop and keeps the receipts.
+**One line (category):** Supaprod is the end-to-end, agentic product management operating system — it tells you what to build, builds it, and learns your product as it goes. It owns the loop and keeps the receipts. _(Category headline updated 2026-07-18, founder ruling; the decision-and-outcome layer stays the moat story.)_
 
 **One line (the instant anchor):** _"Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."_
 
