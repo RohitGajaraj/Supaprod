@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Send, Copy } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/ui/button";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
 import { stepLabel } from "@/lib/agent-vocabulary";
@@ -101,13 +102,15 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
               ← All missions
             </Link>
           ) : (
-            <button
-              className="btn btn-ghost btn-sm loom-press"
-              style={{ marginTop: 14 }}
+            <Button
+              variant="tertiary"
+              size="sm"
+              className="loom-press"
               onClick={reset}
+              style={{ marginTop: 14 }}
             >
-              Retry · reloads the session
-            </button>
+              Reload session
+            </Button>
           )}
         </div>
       </div>

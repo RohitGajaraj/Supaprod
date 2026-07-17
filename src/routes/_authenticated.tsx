@@ -54,7 +54,7 @@ const fallbackWrap: CSSProperties = {
   gap: 12,
   padding: 24,
   textAlign: "center",
-  background: "var(--bg, #0B0A09)",
+  background: "var(--canvas)",
 };
 
 function AuthedError({ error }: { error: Error }) {
@@ -87,7 +87,7 @@ function AuthedError({ error }: { error: Error }) {
           padding: "6px 14px",
           fontSize: 12.5,
           borderRadius: 8,
-          border: "1px solid var(--line, rgba(255,255,255,0.12))",
+          border: "1px solid var(--hairline)",
           background: "transparent",
           color: "var(--text-body, #C6C0B8)",
           cursor: "pointer",
