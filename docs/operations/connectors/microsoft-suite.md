@@ -1,6 +1,6 @@
 # Microsoft Suite connector setup
 
-**Status:** Entra app registered 2026-07-17, but **not yet confirmed live** - a direct query of `user_calendar_connections` on 2026-07-17 found zero rows for any provider. Most likely cause: the app's redirect URIs were set against `cadence-flow-beta.lovable.app`, which went dead the same day when the live domain cut over to `supaprod.ai` (see this doc's Register-the-app step 4, already corrected below) - the OAuth flow likely failed before ever reaching Cadence's callback. One shared Entra app registration covers both Outlook Calendar and Outlook Mail. Re-verify per "Verify it works" below before treating this as done.
+**Status:** Entra app registered 2026-07-17, but **not yet confirmed live** - a direct query of `user_calendar_connections` on 2026-07-17 found zero rows for any provider. Most likely cause: the app's redirect URIs were set against `cadence-flow-beta.lovable.app`, which went dead the same day when the live domain cut over to `supaprod.ai` (see this doc's Register-the-app step 4, already corrected below) - the OAuth flow likely failed before ever reaching Supaprod's callback. One shared Entra app registration covers both Outlook Calendar and Outlook Mail. Re-verify per "Verify it works" below before treating this as done.
 
 **Last verified:** not yet - pending re-test against the corrected redirect URIs
 
@@ -22,7 +22,7 @@ by `provider: "microsoft"` with `product: "calendar"` or `product: "mail"`.
   personal Microsoft account works fine for this - Entra gives every personal
   account its own default tenant, and app registrations do not require a
   paid/work org.
-- To **connect an account afterward** in Cadence: any Microsoft account works
+- To **connect an account afterward** in Supaprod: any Microsoft account works
   - personal (Skype/Xbox-style) or a work/school account in any organization
     - because the app's Supported account types and the `/common/` authorize
   endpoint (see below) deliberately accept both.
@@ -32,10 +32,10 @@ by `provider: "microsoft"` with `product: "calendar"` or `product: "mail"`.
 1. Go to [entra.microsoft.com](https://entra.microsoft.com) -> **Identity** ->
    **Applications** -> **App registrations** -> **New registration**.
 2. **Name**: the operator's own choice (the working registration used
-   `Cadence`).
+   `Cadence`, the product's name at the time of registration).
 3. **Supported account types**: select **"Accounts in any organizational
    directory and personal Microsoft accounts (e.g. Skype, Xbox)"**. This is
-   required, not optional - the authorize URL Cadence calls is the `/common/`
+   required, not optional - the authorize URL Supaprod calls is the `/common/`
    endpoint (`https://login.microsoftonline.com/common/oauth2/v2.0/authorize`,
    per `registry.ts`), and a narrower account-type choice breaks login for
    some users.
@@ -78,7 +78,7 @@ environment, which Lovable Cloud secrets populate.
 
 ## Verify it works
 
-1. In Cadence, go to **Settings -> Connections**.
+1. In Supaprod, go to **Settings -> Connections**.
 2. Find the **Outlook Calendar** card and click **Connect**. It redirects to
    the real Microsoft consent screen; after signing in and approving, it
    redirects back to Settings -> Connections showing a connected Microsoft

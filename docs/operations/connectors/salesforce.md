@@ -3,7 +3,7 @@
 **Status:** Verified working - registered + tested 2026-07-10 - real per-user OAuth connection live, replaced a dead legacy admin token.
 **Last verified:** 2026-07-17
 
-Salesforce is Cadence's win/loss signal source: it pulls recently **closed-lost Opportunities** as inflow signals (`capabilities: { inflow: true, outflow: false, sync: false }` in `registry.ts`) - there is no outflow (Cadence never writes back to Salesforce) and no two-way sync. It is a **single-account connector** - one connection per Cadence user, stored in the `connections` table (`provider: "salesforce"`, `auth_kind: "token"`), not `user_calendar_connections` (that table is calendar/mail-suite only).
+Salesforce is Supaprod's win/loss signal source: it pulls recently **closed-lost Opportunities** as inflow signals (`capabilities: { inflow: true, outflow: false, sync: false }` in `registry.ts`) - there is no outflow (Supaprod never writes back to Salesforce) and no two-way sync. It is a **single-account connector** - one connection per Supaprod user, stored in the `connections` table (`provider: "salesforce"`, `auth_kind: "token"`), not `user_calendar_connections` (that table is calendar/mail-suite only).
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Salesforce is Cadence's win/loss signal source: it pulls recently **closed-lost 
 ## Register the app
 
 1. In Salesforce, open **Setup** (gear icon, top right) → Quick Find → **App Manager** → **New Connected App**. (Salesforce has been migrating this feature to **"New External Client App"** in newer orgs - if that's what your org shows instead, use it; the fields below map the same way.)
-2. **Connected App Name** / **External Client App Name**: your own choice (e.g. `Cadence`). **Contact Email**: your own email.
+2. **Connected App Name** / **External Client App Name**: your own choice (e.g. `Supaprod`). **Contact Email**: your own email.
 3. Under **API (Enable OAuth Settings)**, check **Enable OAuth Settings**.
 4. **Callback URL** - exact value:
    ```
@@ -24,7 +24,7 @@ Salesforce is Cadence's win/loss signal source: it pulls recently **closed-lost 
    - `Manage user data via APIs (api)`
    - `Perform requests at any time (refresh_token, offline_access)`
 6. Leave **Require Secret for Web Server Flow** checked (the default) - the callback (`callback.ts`) always sends `client_secret` in the token-exchange body, so this must stay on.
-7. **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**: check this if your org's security policy enforces PKCE on connected apps (this org's did - that's what drove the `pkce: true` fix in `registry.ts`, confirmed 2026-07-10). This is org-dependent, not universal - either way, nothing else to configure on the Cadence side: `pkce: true` in the registry already makes `startNativeOAuthConnect` (`connections.functions.ts`) call `makePkcePair()` (the same PKCE helper GitHub's flow uses, in `github.server.ts`) and send a real `code_challenge` on every Salesforce authorize request, and the callback echoes the matching `code_verifier` back on token exchange. Leaving the box unchecked doesn't break anything; checking it when the org doesn't require it also doesn't break anything.
+7. **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**: check this if your org's security policy enforces PKCE on connected apps (this org's did - that's what drove the `pkce: true` fix in `registry.ts`, confirmed 2026-07-10). This is org-dependent, not universal - either way, nothing else to configure on the Supaprod side: `pkce: true` in the registry already makes `startNativeOAuthConnect` (`connections.functions.ts`) call `makePkcePair()` (the same PKCE helper GitHub's flow uses, in `github.server.ts`) and send a real `code_challenge` on every Salesforce authorize request, and the callback echoes the matching `code_verifier` back on token exchange. Leaving the box unchecked doesn't break anything; checking it when the org doesn't require it also doesn't break anything.
 8. **Permitted Users**: your call depending on org policy (defaults to "All users may self-authorize" unless the org restricts Connected App access to specific profiles/permission sets).
 9. Save. Salesforce warns changes can take up to ~10 minutes to propagate - expected, not an error.
 10. Reopen the app → **Manage** → under OAuth settings click **"Consumer Key and Secret"** (may prompt an emailed verification code) → copy both the **Consumer Key** and **Consumer Secret**. They're two separate values.
@@ -40,11 +40,11 @@ Three secrets, all going into **Lovable Cloud → Project → Secrets** - not th
 | `SALESFORCE_CLIENT_SECRET`     | the Consumer Secret from step 10                  |
 | `SALESFORCE_INSTANCE_URL`      | the org's REST API host from step 11              |
 
-`SALESFORCE_INSTANCE_URL` needs a callout: Salesforce's own token response *does* return a per-connection `instance_url`, and the OAuth callback (`callback.ts`) does capture it into that connection's `metadata.instance_url` - but nothing downstream reads that per-connection value today. The adapter's `validate()` (`salesforce.server.ts`) and the ingest job (`salesforce-ingest.server.ts`) both read `process.env.SALESFORCE_INSTANCE_URL` directly instead. Practically: this one secret is **global, not per-user** - every Cadence workspace's Salesforce ingest points at whichever org this secret names, regardless of which org any individual user's OAuth connection actually authorized against. Set it, or ingest silently no-ops (`{ inserted: 0, skipped: 0, source: "none" }`) even after a fully successful Connect.
+`SALESFORCE_INSTANCE_URL` needs a callout: Salesforce's own token response *does* return a per-connection `instance_url`, and the OAuth callback (`callback.ts`) does capture it into that connection's `metadata.instance_url` - but nothing downstream reads that per-connection value today. The adapter's `validate()` (`salesforce.server.ts`) and the ingest job (`salesforce-ingest.server.ts`) both read `process.env.SALESFORCE_INSTANCE_URL` directly instead. Practically: this one secret is **global, not per-user** - every Supaprod workspace's Salesforce ingest points at whichever org this secret names, regardless of which org any individual user's OAuth connection actually authorized against. Set it, or ingest silently no-ops (`{ inserted: 0, skipped: 0, source: "none" }`) even after a fully successful Connect.
 
 ## Verify it works
 
-1. In Cadence: **Settings → Connections**, find the Salesforce card.
+1. In Supaprod: **Settings → Connections**, find the Salesforce card.
 2. Click **Connect** - it redirects to Salesforce's own login/consent screen.
 3. After approving, Salesforce redirects back through the callback, which shows a branded "Salesforce connected" interstitial, then returns to **Settings → Connections**.
 4. Success = the card shows status **Connected** with an account label pulled from Salesforce's identity endpoint (the org display name, with the organization ID in parentheses when available - e.g. `Jane Doe (00Dxx0000001234)` - falling back to just the Salesforce username if the identity lookup doesn't return a display name).
@@ -52,7 +52,7 @@ Three secrets, all going into **Lovable Cloud → Project → Secrets** - not th
 
 ## Switching to a different account or org later
 
-**Same org, different Cadence user connecting:** no new registration needed. Just have that user click Connect (or Reconnect) - the registered Connected App (Consumer Key/Secret) belongs to whoever created it in Salesforce Setup, independent of which end user later authorizes against it, so it keeps working as-is. Each Cadence user has at most one Salesforce connection row (`user_id` + `provider` + `auth_kind: "token"`); reconnecting updates that row in place and deletes the old vaulted secret (`callback.ts`'s update-or-insert logic) - nothing to clean up by hand.
+**Same org, different Supaprod user connecting:** no new registration needed. Just have that user click Connect (or Reconnect) - the registered Connected App (Consumer Key/Secret) belongs to whoever created it in Salesforce Setup, independent of which end user later authorizes against it, so it keeps working as-is. Each Supaprod user has at most one Salesforce connection row (`user_id` + `provider` + `auth_kind: "token"`); reconnecting updates that row in place and deletes the old vaulted secret (`callback.ts`'s update-or-insert logic) - nothing to clean up by hand.
 
 **Switching to a genuinely different Salesforce org:** this DOES require a new Connected App, because Salesforce Connected Apps live inside the org that created them - a Consumer Key registered in Org A is not a valid `client_id` against Org B. To move:
 

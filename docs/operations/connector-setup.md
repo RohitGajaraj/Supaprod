@@ -89,7 +89,9 @@ OAuth flow to migrate to, so there was nothing left to keep it for.
 - **`user_calendar_connections` has zero rows for any provider, live, as of 2026-07-17** - a direct query against the production database (Lovable project `371dd588-1b70-4629-9bb5-9f003f3af373`) found no rows at all, for Google Calendar/Gmail/Google Tasks OR Microsoft Outlook/Mail, despite this table's Google rows being marked "Registered + tested 2026-07-10" below. Whatever testing happened on 2026-07-10 did not leave a persisted connection in today's live database - either it was against a different environment, or a connection existed and was later removed/reset. Treat every "Registered + tested" claim in the multi-account suite table as **unconfirmed until re-verified against a live query**, not as ground truth. (The single-account `connections` table is more trustworthy by the same method - it does show real rows for GitHub, Slack, and Salesforce.)
 - **Google Calendar's native OAuth connection is not actually wired into live calendar sync** (found 2026-07-17 while writing the per-connector runbooks below). `src/lib/calendar.functions.ts` - the code `/calendar`, Today, Focus, and Knowledge panels actually call - authenticates through the older, deprecated `connector-gateway.lovable.dev` path via a separate `GOOGLE_CALENDAR_API_KEY` + `LOVABLE_API_KEY`, not through the vaulted token this section's native OAuth flow creates. `resolveSuiteAuth` (the function that reads the vaulted native-OAuth token) is only consumed by `gmail-ingest.server.ts` and `outlook-mail-ingest.server.ts` - never by anything calendar-related. Completing the Google Calendar registration above makes the Connect button succeed and stores a real, refreshing token, but does not by itself make two-way calendar sync run through that token. Same root cause, smaller blast radius, for Google Docs: a working import path already exists (`importGoogleDoc` in `src/lib/gdocs.functions.ts`) via its own separate `GOOGLE_DOCS_API_KEY`, independent of this OAuth connection. Full detail: [`connectors/google-suite.md`](./connectors/google-suite.md)'s Known caveats section. Not yet triaged as a build item - flagging here so it isn't mistaken for "done" from the Connect button succeeding alone.
 - **Google's OAuth consent screen is still in Testing publish status** (the
-  "Cadence" connector app - NOT the separate "Cadence Login" app used only
+  "Cadence" connector app in Google Cloud Console - registered under the
+  product's pre-rename name and not yet renamed there since the 2026-07-17
+  Supaprod rename - NOT the separate "Cadence Login" app used only
   for the login/signup button, which is unaffected and already open to
   anyone). While in Testing, only Google accounts explicitly added as test
   users can get past the consent screen at all - anyone else hits `Error
@@ -114,7 +116,9 @@ OAuth flow to migrate to, so there was nothing left to keep it for.
     time beyond the other three. Founder ruling: pursue Docs/Calendar/Tasks
     verification first as a separate, smaller step; treat Gmail's CASA
     assessment as its own later decision, not bundled in.
-  - To add a test user meanwhile: Google Console → the "Cadence" project →
+  - To add a test user meanwhile: Google Console → the "Cadence" project
+    (still named this in Google Cloud Console; not yet renamed to match the
+    product) →
     APIs & Services → OAuth consent screen → Test users → Add users.
 - **Zendesk's `ZENDESK_SUBDOMAIN`** is a single, shared value - there's no
   per-connecting-user subdomain-capture step in the UI yet (Zendesk's

@@ -1,9 +1,9 @@
 # Intercom connector setup
 
-**Status:** App registered 2026-07-17, but **not yet confirmed live** - a direct query of the `connections` table on 2026-07-17 found zero rows for `provider = 'intercom'`. Most likely cause: the app's registered redirect URL was set against `cadence-flow-beta.lovable.app`, which went dead the same day when the live domain cut over to `supaprod.ai` (see this doc's Register-the-app step 4, already corrected below) - the OAuth flow likely failed before ever reaching Cadence's callback. Re-verify per "Verify it works" below before treating this as done.
+**Status:** App registered 2026-07-17, but **not yet confirmed live** - a direct query of the `connections` table on 2026-07-17 found zero rows for `provider = 'intercom'`. Most likely cause: the app's registered redirect URL was set against `cadence-flow-beta.lovable.app`, which went dead the same day when the live domain cut over to `supaprod.ai` (see this doc's Register-the-app step 4, already corrected below) - the OAuth flow likely failed before ever reaching Supaprod's callback. Re-verify per "Verify it works" below before treating this as done.
 **Last verified:** not yet - pending re-test against the corrected redirect URL
 
-Intercom is an **inflow-only** connector (`capabilities: { inflow: true, outflow: false, sync: false }` in `registry.ts`): it pulls recent support conversations in as discovery signals - there is no outflow (Cadence never writes back to Intercom) and no two-way sync. It is a **single-account connector** - one connection per Cadence user, stored in the `connections` table (`provider: "intercom"`, `auth_kind: "token"`), not `user_calendar_connections` (that table is calendar/mail-suite only). Its one resource type is `inbox` (`resourceTypes: [{ kind: "inbox", label: "Inbox" }]`).
+Intercom is an **inflow-only** connector (`capabilities: { inflow: true, outflow: false, sync: false }` in `registry.ts`): it pulls recent support conversations in as discovery signals - there is no outflow (Supaprod never writes back to Intercom) and no two-way sync. It is a **single-account connector** - one connection per Supaprod user, stored in the `connections` table (`provider: "intercom"`, `auth_kind: "token"`), not `user_calendar_connections` (that table is calendar/mail-suite only). Its one resource type is `inbox` (`resourceTypes: [{ kind: "inbox", label: "Inbox" }]`).
 
 Unlike Google, Microsoft, or Slack, Intercom's authorize request carries **no `scope` parameter at all** (`scopes: []` in `registry.ts`). Intercom governs access through static capability checkboxes set once on the app itself in the Developer Hub, applying to every user who later connects it - there is nothing to request per-authorization.
 
@@ -16,14 +16,14 @@ Unlike Google, Microsoft, or Slack, Intercom's authorize request carries **no `s
 1. Log into your workspace at [app.intercom.com](https://app.intercom.com), then go to the Developer Hub: [app.intercom.com/a/apps/_/developer-hub](https://app.intercom.com/a/apps/_/developer-hub) (or navigate there via Settings inside the app if that link doesn't resolve directly for your workspace).
 
    Do **not** start at `developers.intercom.com` - that is Intercom's public documentation site, not the app-creation portal, and has no login of its own.
-2. **New app** -> name it (the working registration used `Cadence`) -> pick the workspace it should read from -> create it.
+2. **New app** -> name it (the working registration used `Cadence`, the product's name before the 2026-07-17 rename; a fresh registration today should use `Supaprod`) -> pick the workspace it should read from -> create it.
 3. Go to the app's **Authentication** page and tick **Use OAuth**. This is not on by default - without it, the app has no Client ID/Secret to register at all.
 4. On the same Authentication page, under **Redirect URLs**, add:
    ```
    https://supaprod.ai/api/public/connect/intercom/callback
    ```
    Redirect URLs must be HTTPS (this one already is).
-5. Go to the app's **Permissions** page -> under **People & conversation data** -> enable **Read conversations**. This is the one capability Cadence's ingest actually uses; nothing else needs to be enabled for this connector.
+5. Go to the app's **Permissions** page -> under **People & conversation data** -> enable **Read conversations**. This is the one capability Supaprod's ingest actually uses; nothing else needs to be enabled for this connector.
 6. Go to **Basic Information** and copy the **Client ID** and **Client Secret**.
 
 ## Copy the credentials into Lovable
@@ -37,7 +37,7 @@ These go into **Lovable Cloud secrets**, not this project's local `.env` - `.env
 
 ## Verify it works
 
-1. In Cadence, go to **Settings -> Connections**.
+1. In Supaprod, go to **Settings -> Connections**.
 2. Find the **Intercom** card and click **Connect**. It redirects to Intercom's real consent screen; after approving, it redirects back to Settings -> Connections showing a connected account (the app/workspace name).
 3. Success looks like: a row in `connections` with `provider = 'intercom'`, `auth_kind = 'token'`, and a non-null `external_handle` (the Intercom workspace id).
 4. Once connected, no further action is needed - `intercom-ingest.server.ts` runs on every sense-tick and pulls up to 30 recent conversations in as discovery signals (Pro+ tier gated), through `writeSignals`.
@@ -48,7 +48,7 @@ These go into **Lovable Cloud secrets**, not this project's local `.env` - `.env
 
 In practice:
 
-- Switching which **workspace** connects (a different company's Intercom account entirely, not just a different user) needs no re-registration - have an admin of the new workspace click **Connect** in Cadence and approve the same app at Intercom's consent screen. `INTERCOM_CLIENT_ID`/`INTERCOM_CLIENT_SECRET` already in Lovable keep working unchanged; Intercom issues a new access token scoped to that workspace.
+- Switching which **workspace** connects (a different company's Intercom account entirely, not just a different user) needs no re-registration - have an admin of the new workspace click **Connect** in Supaprod and approve the same app at Intercom's consent screen. `INTERCOM_CLIENT_ID`/`INTERCOM_CLIENT_SECRET` already in Lovable keep working unchanged; Intercom issues a new access token scoped to that workspace.
 - Switching which **end-user** connects within the same workspace needs even less - just reconnect.
 - Rotating a compromised or expiring secret does not need a new app - Intercom's Developer Hub does not expose a separate "regenerate secret" affordance documented here; if rotation is ever needed, recreating the Client Secret from the same app's Basic Information page (where available) and updating `INTERCOM_CLIENT_SECRET` in Lovable is the same-app path.
 

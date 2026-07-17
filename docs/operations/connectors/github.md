@@ -3,9 +3,9 @@
 **Status:** Verified working - registered + tested, GitHub App install flow (F-CONN Phase 1, predates the SW-7 native-OAuth rollout)
 **Last verified:** 2026-07-17
 
-GitHub is Cadence's **inflow + outflow** connector (`capabilities: { inflow: true, outflow: true, sync: false }` in `registry.ts`): it ships specs out as GitHub issues, pulls back closed issues/PRs/releases/CI status as shipped-work signals, and (via Build) reads and writes repo contents, branches, and pull requests. Its one resource type is `repo` (`resourceTypes: [{ kind: "repo", label: "Repository" }]`). The connection is stored in the plain **`connections`** table (not `user_calendar_connections` - GitHub is single-account, one App installation per Cadence user), with `provider = 'github'`, `auth_kind = 'github_app'`, `external_handle` = the GitHub installation ID, and `account_label` = the installed-on org/user login.
+GitHub is Supaprod's **inflow + outflow** connector (`capabilities: { inflow: true, outflow: true, sync: false }` in `registry.ts`): it ships specs out as GitHub issues, pulls back closed issues/PRs/releases/CI status as shipped-work signals, and (via Build) reads and writes repo contents, branches, and pull requests. Its one resource type is `repo` (`resourceTypes: [{ kind: "repo", label: "Repository" }]`). The connection is stored in the plain **`connections`** table (not `user_calendar_connections` - GitHub is single-account, one App installation per Supaprod user), with `provider = 'github'`, `auth_kind = 'github_app'`, `external_handle` = the GitHub installation ID, and `account_label` = the installed-on org/user login.
 
-Unlike every other connector in `registry.ts` (`oauth_native`, client ID + secret against a standard `/authorize` + `/token` pair), GitHub uses a distinct `kind: "github_app"` auth method - a **GitHub App** (App ID + private key JWT + per-account installation), not a classic OAuth app. Cadence authenticates purely server-to-server: it mints a short-lived App JWT from the private key, exchanges that for a per-installation access token, and never processes a user-facing OAuth `code` at all.
+Unlike every other connector in `registry.ts` (`oauth_native`, client ID + secret against a standard `/authorize` + `/token` pair), GitHub uses a distinct `kind: "github_app"` auth method - a **GitHub App** (App ID + private key JWT + per-account installation), not a classic OAuth app. Supaprod authenticates purely server-to-server: it mints a short-lived App JWT from the private key, exchanges that for a per-installation access token, and never processes a user-facing OAuth `code` at all.
 
 ## Prerequisites
 
@@ -18,9 +18,9 @@ Unlike every other connector in `registry.ts` (`oauth_native`, client ID + secre
 All of this happens in GitHub's own console, via the manual "New GitHub App" form (not the App Manifest flow):
 
 1. Go to **github.com/settings/apps** (personal account) or the target org's **Settings -> Developer settings -> GitHub Apps**, then **New GitHub App**.
-2. **GitHub App name**: the operator's own choice, but it must be globally unique across all of GitHub (the working registration used a `Cadence`-branded name). This name's slugified form becomes `GITHUB_APP_SLUG`.
+2. **GitHub App name**: the operator's own choice, but it must be globally unique across all of GitHub (the working registration used a `Cadence`-branded name, predating the 2026-07-17 rename to Supaprod - the registered App itself does not need to be renamed for the integration to keep working). This name's slugified form becomes `GITHUB_APP_SLUG`.
 3. **Homepage URL**: the operator's choice - the working registration points it at the production app, `https://supaprod.ai`.
-4. **Identifying and authorizing users -> Callback URL**: leave blank, and leave **"Request user authorization (OAuth) during installation"** unchecked. Cadence's GitHub connector never exchanges a user-facing OAuth `code` - `src/routes/api/public/connect/github/callback.ts` only ever reads `installation_id` / `setup_action` / `state`, never a `code` param.
+4. **Identifying and authorizing users -> Callback URL**: leave blank, and leave **"Request user authorization (OAuth) during installation"** unchecked. Supaprod's GitHub connector never exchanges a user-facing OAuth `code` - `src/routes/api/public/connect/github/callback.ts` only ever reads `installation_id` / `setup_action` / `state`, never a `code` param.
 5. **Post installation -> Setup URL (optional)**: set it to exactly `https://supaprod.ai/api/public/connect/github/callback` (production base URL + the callback route this repo actually implements), and check **Redirect on update** so both fresh installs and later permission-update approvals redirect back here.
 6. **Webhook**: check **Active**, set **Webhook URL** to `https://supaprod.ai/api/public/hooks/github-webhook`, and set **Webhook secret** to a strong random string you generate yourself - copy it, it becomes `GITHUB_WEBHOOK_SECRET` in Lovable and must match exactly on both sides (GitHub HMAC-signs each delivery with it; `github-webhook.ts` rejects anything that doesn't verify).
 7. **Permissions -> Repository permissions**, set:
@@ -34,7 +34,7 @@ All of this happens in GitHub's own console, via the manual "New GitHub App" for
 9. **Where can this GitHub App be installed?**: select **Any account**. This is what lets a different org or user install the app later without re-registering it (see "Switching" below).
 10. Click **Create GitHub App**.
 11. On the app's page, copy the **App ID** (near the top of **General**) for `GITHUB_APP_ID`, and note the slug from the app's own settings URL (`github.com/settings/apps/<slug>`) for `GITHUB_APP_SLUG`.
-12. Scroll to **Private keys -> Generate a private key**. This downloads a `.pem` file once - GitHub does not keep a copy, so store it securely. GitHub generates this key in PKCS#1 format (`-----BEGIN RSA PRIVATE KEY-----`); Cadence's code needs PKCS#8 and throws an explicit error if it detects PKCS#1 (`GITHUB_APP_PRIVATE_KEY is PKCS#1 ...; WebCrypto needs PKCS#8`, `github.server.ts`'s `importAppKey`). Convert it before pasting into Lovable:
+12. Scroll to **Private keys -> Generate a private key**. This downloads a `.pem` file once - GitHub does not keep a copy, so store it securely. GitHub generates this key in PKCS#1 format (`-----BEGIN RSA PRIVATE KEY-----`); Supaprod's code needs PKCS#8 and throws an explicit error if it detects PKCS#1 (`GITHUB_APP_PRIVATE_KEY is PKCS#1 ...; WebCrypto needs PKCS#8`, `github.server.ts`'s `importAppKey`). Convert it before pasting into Lovable:
     ```
     openssl pkcs8 -topk8 -nocrypt -in downloaded-key.pem -out converted-key.pem
     ```
@@ -58,7 +58,7 @@ Separately, and **not** part of the App credentials above: `GITHUB_TOKEN` is a f
 
 ## Verify it works
 
-1. In Cadence, go to **Settings -> Connections**. The GitHub card shows a real **Connect** button once `GITHUB_APP_ID` and `GITHUB_APP_SLUG` are both set (before that it renders the "Admin setup required" state, per `setupHint`: "Register the GitHub App (GitHub -> Settings -> Developer settings -> GitHub Apps).").
+1. In Supaprod, go to **Settings -> Connections**. The GitHub card shows a real **Connect** button once `GITHUB_APP_ID` and `GITHUB_APP_SLUG` are both set (before that it renders the "Admin setup required" state, per `setupHint`: "Register the GitHub App (GitHub -> Settings -> Developer settings -> GitHub Apps).").
 2. Click **Connect**. This is a full-page redirect (not a popup) to `https://github.com/apps/<slug>/installations/new?state=...` (`startGithubAppConnect` in `connections.functions.ts`).
 3. Choose the account and repos, approve. GitHub redirects back to `/api/public/connect/github/callback`, which redirects again into Settings -> Connections (or back into `/onboarding?connected=github` if the connect was started from onboarding).
 4. Success looks like: Settings -> Connections shows GitHub as connected with the installed-on org/user's login as the account label, and a row exists in `connections` with `provider = 'github'`, `auth_kind = 'github_app'`, `status = 'connected'`, `external_handle` set to the installation ID.
@@ -66,13 +66,13 @@ Separately, and **not** part of the App credentials above: `GITHUB_TOKEN` is a f
 
 ## Switching to a different account or org later
 
-**No new App registration is needed to move Cadence to a different org or repo.** The registered App (`GITHUB_APP_ID`, `GITHUB_APP_SLUG`, the private key) belongs to whoever created it in GitHub's Developer settings - that's independent of which org or user later installs it. Because this App's **"Where can this GitHub App be installed?"** was set to **Any account** during registration, any org owner (or the founder's own account) can install the same, already-registered App onto a new target without touching the registration at all.
+**No new App registration is needed to move Supaprod to a different org or repo.** The registered App (`GITHUB_APP_ID`, `GITHUB_APP_SLUG`, the private key) belongs to whoever created it in GitHub's Developer settings - that's independent of which org or user later installs it. Because this App's **"Where can this GitHub App be installed?"** was set to **Any account** during registration, any org owner (or the founder's own account) can install the same, already-registered App onto a new target without touching the registration at all.
 
 Switching is specifically an **install/uninstall** action, not a re-registration, because GitHub Apps are installed per-org/per-repo rather than authorized per-user like a normal OAuth app:
 
 1. As an owner/admin of the **new** target org (or on your own account for a personal repo), go to `github.com/apps/<slug>` and use **Install** (or **Configure** if already installed elsewhere), choosing **All repositories** or specific repos.
-2. In Cadence, click **Connect** again on the GitHub card in Settings -> Connections so the new installation gets vaulted (a fresh `installation_id`), then re-bind the repo at **/sync** if it changed.
-3. If the **old** org/repo should no longer have Cadence's access, uninstall the App from that account - from that org's **Settings -> Installed GitHub Apps -> Uninstall**, or from the app owner's side via **Install App** (which lists every account it's installed on, with an uninstall action per account).
+2. In Supaprod, click **Connect** again on the GitHub card in Settings -> Connections so the new installation gets vaulted (a fresh `installation_id`), then re-bind the repo at **/sync** if it changed.
+3. If the **old** org/repo should no longer have Supaprod's access, uninstall the App from that account - from that org's **Settings -> Installed GitHub Apps -> Uninstall**, or from the app owner's side via **Install App** (which lists every account it's installed on, with an uninstall action per account).
 
 A brand-new App registration is only needed if the App's own identity has to change - for example, if `GITHUB_APP_ID`/`GITHUB_APP_SLUG` need to move to an audience this registration doesn't cover (it was restricted to "Only on this account" and you no longer have access to loosen that), or a deliberate decision to run a second, separately-branded app. Even moving **ownership** of the app itself to a different GitHub user or org doesn't require re-registering - GitHub Apps support **Transfer ownership** under the app's **Advanced** settings tab. Rotating a compromised or expiring private key also doesn't need a new registration: **General -> Private keys -> Generate a private key** on the same app (then delete the old one), and update `GITHUB_APP_PRIVATE_KEY` in Lovable.
 
@@ -81,7 +81,7 @@ A brand-new App registration is only needed if the App's own identity has to cha
 `docs/operations/connector-setup.md` records no GitHub-specific caveat - its "Known caveats" section is about the six SW-7 native-OAuth providers (Google's Testing-mode consent screen, Zendesk's single shared subdomain, Stripe's connected-account auth model, the Linear/Notion/Google Docs/Figma/Jira/Google Tasks stub-adapter group, and the refresh-exclusion list). GitHub predates that rollout - it's the precedent the doc cites the native-OAuth pattern against - and its row is simply **"Done, working."** Two real, code-sourced notes worth keeping in mind:
 
 - The webhook (`src/routes/api/public/hooks/github-webhook.ts`) is a **latency optimization, not a dependency**. `runCiPollTick` already runs on its own 2-minute `pg_cron` tick regardless; the webhook just reacts within seconds instead of waiting for the next tick. If the Webhook URL/secret is ever left unset or misconfigured, CI-status detection still works, just slower.
-- GitHub's ingest (issues/events/releases/CI status via `github-ingest.server.ts` and `github-repo.server.ts`) runs through Cadence's Scout/sense-tick pipeline, not the newer `pull-ingestors.server.ts` registry the SW-7 providers use - it is real, wired-in logic either way, not one of the stub placeholders documented for the other six.
+- GitHub's ingest (issues/events/releases/CI status via `github-ingest.server.ts` and `github-repo.server.ts`) runs through Supaprod's Scout/sense-tick pipeline, not the newer `pull-ingestors.server.ts` registry the SW-7 providers use - it is real, wired-in logic either way, not one of the stub placeholders documented for the other six.
 
 ## Code references
 

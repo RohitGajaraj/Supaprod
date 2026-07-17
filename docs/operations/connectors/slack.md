@@ -3,7 +3,7 @@
 **Status:** Verified working - registered + tested 2026-07-09 (native OAuth, SW-7)
 **Last verified:** 2026-07-17
 
-Slack is an **inflow + outflow** connector (`capabilities: { inflow: true, outflow: true, sync: false }` in `registry.ts`): it pulls recent messages from one feedback channel in as customer-voice signals, and posts the ambient stakeholder digest out to a team channel. It is a **single-account connector** - one Slack workspace connection per Cadence user, stored in the plain `connections` table (not `user_calendar_connections`, which is only for the multi-account Google/Microsoft calendar and mail suites).
+Slack is an **inflow + outflow** connector (`capabilities: { inflow: true, outflow: true, sync: false }` in `registry.ts`): it pulls recent messages from one feedback channel in as customer-voice signals, and posts the ambient stakeholder digest out to a team channel. It is a **single-account connector** - one Slack workspace connection per Supaprod user, stored in the plain `connections` table (not `user_calendar_connections`, which is only for the multi-account Google/Microsoft calendar and mail suites).
 
 ## Prerequisites
 
@@ -12,10 +12,10 @@ Slack is an **inflow + outflow** connector (`capabilities: { inflow: true, outfl
 
 ## Register the app
 
-All of this happens in Slack's own developer console at `api.slack.com/apps`, not in Cadence or Lovable.
+All of this happens in Slack's own developer console at `api.slack.com/apps`, not in Supaprod or Lovable.
 
 1. Go to `api.slack.com/apps` and click **Create New App** -> **From scratch**.
-2. Enter an **App Name** (your own choice - Cadence doesn't read or display this string anywhere) and pick the **Slack workspace** to develop and install the app in.
+2. Enter an **App Name** (your own choice - Supaprod doesn't read or display this string anywhere) and pick the **Slack workspace** to develop and install the app in.
 3. Open the **OAuth & Permissions** page in the left sidebar.
 4. Under **Redirect URLs**, add exactly:
    - `https://supaprod.ai/api/public/connect/slack/callback`
@@ -24,7 +24,7 @@ All of this happens in Slack's own developer console at `api.slack.com/apps`, no
    - `channels:history`
    - `channels:read`
    - `chat:write`
-   Cadence's registry entry does not request any **User Token Scopes** - leave that list empty.
+   Supaprod's registry entry does not request any **User Token Scopes** - leave that list empty.
 6. Open the **Basic Information** page and find **App Credentials**. Copy the **Client ID** and **Client Secret** shown there (not any bot token from another page - the OAuth exchange in `callback.ts` needs the app's Client ID/Secret, not a `xoxb-` token).
 7. Install the app to the workspace: on either **Basic Information** or **OAuth & Permissions**, use the **Install to <workspace>** action and approve the requested scopes. This targets one specific Slack workspace. If a second, independent Slack workspace (a different company's Slack, not just a different channel in the same workspace) will ever need to connect through this same app, Slack's **Manage Distribution** page is where that audience is widened (see "Switching" below) - it is not needed for the workspace the app was created in.
 
@@ -35,7 +35,7 @@ Add the two values from step 6 above as secrets in **Lovable Cloud -> Project ->
 - `SLACK_CLIENT_ID`
 - `SLACK_CLIENT_SECRET`
 
-These are production secrets and belong in Lovable Cloud, **not** this repo's local `.env` file. The local `.env` (git-ignored, per this repo's env-var split convention) is dev-only - it exists so someone can point a local dev server at the same two variable names for local testing, not as the source Cadence's deployed app actually reads from.
+These are production secrets and belong in Lovable Cloud, **not** this repo's local `.env` file. The local `.env` (git-ignored, per this repo's env-var split convention) is dev-only - it exists so someone can point a local dev server at the same two variable names for local testing, not as the source Supaprod's deployed app actually reads from.
 
 Two more env vars round out the Slack setup, both also read via `process.env` so they belong in Lovable Cloud alongside the OAuth pair:
 
@@ -44,7 +44,7 @@ Two more env vars round out the Slack setup, both also read via `process.env` so
 
 ## Verify it works
 
-1. In Cadence, go to **Settings -> Connections**.
+1. In Supaprod, go to **Settings -> Connections**.
 2. The Slack card shows a **Connect** button once both `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` are set in Lovable.
 3. Click **Connect**. This redirects to Slack's real consent screen (`https://slack.com/oauth/v2/authorize`) showing the three requested scopes for the target workspace.
 4. After approving, Slack redirects back to `https://supaprod.ai/api/public/connect/slack/callback`, which briefly shows a "Slack connected" confirmation page, then returns to **Settings -> Connections** (or to `/onboarding?connected=slack` if the connect was started from onboarding).

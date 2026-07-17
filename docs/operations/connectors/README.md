@@ -15,7 +15,7 @@ Only connectors with a real, verified registration get a page here. A provider s
 | [Salesforce](./salesforce.md)                  | -                                            | Verified working - registered + tested 2026-07-10, confirmed via a live `connections` table query 2026-07-17 |
 | [Intercom](./intercom.md)                      | -                                            | App registered, **not yet confirmed live** - 0 rows in the live DB as of 2026-07-17, likely the domain-cutover redirect mismatch |
 
-Every page in this folder follows the same shape: what it connects, prerequisites, register the app (exact fields/values), copy the credentials into Lovable, verify it works, switching to a different account or org later, known caveats, code references, related links. Read the "Switching to a different account or org later" section on the relevant page before assuming a re-registration is needed - for most of these, it isn't; reconnecting through Cadence's own Connect button with a different login is enough, since the registered app is independent of which end-user later authorizes it.
+Every page in this folder follows the same shape: what it connects, prerequisites, register the app (exact fields/values), copy the credentials into Lovable, verify it works, switching to a different account or org later, known caveats, code references, related links. Read the "Switching to a different account or org later" section on the relevant page before assuming a re-registration is needed - for most of these, it isn't; reconnecting through Supaprod's own Connect button with a different login is enough, since the registered app is independent of which end-user later authorizes it.
 
 ## Related
 
