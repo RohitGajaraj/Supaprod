@@ -430,9 +430,9 @@ function SettingsPage() {
           </ObsidianMonoLabel>
           <h1
             style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 460,
-              fontSize: "var(--text-h1, 32px)",
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 28,
               lineHeight: 1.15,
               color: "var(--text-primary)",
               margin: 0,
@@ -2183,7 +2183,13 @@ function ByoKeysSection() {
             if (keyValue.trim()) mSaveKey.mutate();
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: 8,
+            }}
+          >
             <select
               className="input"
               value={keyProv}
