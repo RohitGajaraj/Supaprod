@@ -3152,13 +3152,18 @@ function Field({
   hint?: string;
   children: React.ReactNode;
 }) {
+  // Create a stable ID for label association - use the label text as a base
+  const fieldId = `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
+
   return (
-    <label style={{ display: "block" }}>
-      <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>{label}</div>
-      {children}
+    <div style={{ display: "block" }}>
+      <label htmlFor={fieldId} style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}>{label}</label>
+      {React.isValidElement(children)
+        ? React.cloneElement(children, { id: fieldId } as any)
+        : children}
       {hint ? (
         <div style={{ marginTop: 4, fontSize: 11, color: "var(--ink-faint)" }}>{hint}</div>
       ) : null}
-    </label>
+    </div>
   );
 }
