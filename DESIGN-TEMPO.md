@@ -69,18 +69,18 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
   only with meaning.
 - **Ember = the brand.** Primary CTAs, active/selected states, brand moments.
   One primary CTA per view. Ember takes every place Geist's own docs use blue _as brand_.
-  Focus ring uses glacier/blue (`--ds-focus-color`), not ember — see §2 focus ring rule below.
+  Focus ring uses ember (`--ds-focus-color`), see §2 focus ring rule below.
 - **Ember-on-forms ruling (founder-delegated decision, 2026-07-11):** ordinary form
   actions (Save, Apply, Update, submit rows) use the neutral `default` button variant —
   the high-contrast invert fill (gray-1000 on background), the Geist/Linear premium
   read. Ember fills are reserved for the view's ONE true primary CTA (Deploy, Upgrade,
   Start teardown, hero actions) and brand moments. A settings page full of ember Saves
   fails the restraint budget by definition.
-- **Blue = informational** (links, info notes, focus ring). **Red = danger/error. Amber = warning.
+- **Blue = informational** (links, info notes). **Red = danger/error. Amber = warning. Ember = focus ring.
   Green = success. Teal/Purple/Pink = data-viz and Geist-specified component states
   only.** Status color goes on actual status, never decoration.
 - Use `--ds-gray-alpha-*` when layering over unknown backgrounds.
-- Focus ring: `--ds-focus-ring-outline` (2px offset outline in `--ds-focus-color`, glacier/blue).
+- Focus ring: `--ds-focus-ring-outline` (2px offset outline in `--ds-focus-color`, ember). Never remove focus visibility. Dark theme: `oklch(60% 0.18 50)` / Light theme: `oklch(65% 0.18 50)`.
   Never remove focus visibility. Dark theme: `oklch(60% 0.18 50)` / Light theme: `oklch(65% 0.18 50)`.
 
 **Glacier / machine-voice narrowing (founder ruling, 2026-07-11 — supersedes the
