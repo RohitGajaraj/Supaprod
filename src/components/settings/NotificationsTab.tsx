@@ -173,8 +173,8 @@ export function NotificationsTab() {
                   }
                 >
                   <td style={{ padding: "14px 12px" }}>
-                    <div style={{ fontWeight: 550, fontSize: 13.5 }}>{r.label}</div>
-                    <div style={{ fontSize: "var(--text-label-14)", color: "var(--ink-muted)", marginTop: 2 }}>
+                    <div className="text-label-14" style={{ fontWeight: 550 }}>{r.label}</div>
+                    <div className="text-label-13" style={{ color: "var(--ink-muted)", marginTop: 2 }}>
                       {r.desc}
                     </div>
                   </td>
@@ -191,7 +191,7 @@ export function NotificationsTab() {
       <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Digest Settings</MonoLabel>
         <label style={{ display: "block", maxWidth: 320 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>
+          <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>
             Digest Delivery Frequency
           </div>
           <select
@@ -226,7 +226,7 @@ export function NotificationsTab() {
             style={CHK}
             aria-label="Include a stakeholder update in my digest"
           />
-          <span style={{ fontSize: 13 }}>Include a stakeholder update in my digest</span>
+          <span className="text-label-14">Include a stakeholder update in my digest</span>
         </label>
         <p
           style={{
@@ -240,7 +240,7 @@ export function NotificationsTab() {
         </p>
         {stakeholderUpdate ? (
           <label style={{ display: "block", maxWidth: 320 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>Written for</div>
+            <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>Written for</div>
             <select
               className="input"
               value={stakeholderAudience}
@@ -274,7 +274,7 @@ export function NotificationsTab() {
             style={CHK}
             aria-label="Sound effects on actions"
           />
-          <span style={{ fontSize: 13 }}>Sound effects</span>
+          <span className="text-label-14">Sound effects</span>
         </label>
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input
@@ -289,7 +289,7 @@ export function NotificationsTab() {
             style={CHK}
             aria-label="Haptic feedback on supported devices"
           />
-          <span style={{ fontSize: 13 }}>Haptics (supported devices)</span>
+          <span className="text-label-14">Haptics (supported devices)</span>
         </label>
       </div>
 
