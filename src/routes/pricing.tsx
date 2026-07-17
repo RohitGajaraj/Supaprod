@@ -282,7 +282,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             color: "var(--ember, #c2622e)",
           }}
         >
-          <TierIcon size={18} strokeWidth={1.6} />
+          <TierIcon size={16} strokeWidth={1.6} />
         </span>
         {isBusiness && (
           <span

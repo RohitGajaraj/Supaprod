@@ -152,7 +152,7 @@ function IncidentCard({ n }: { n: Incident }) {
           }}
         >
           {hasTrace ? "Open trace" : "Open mission"}
-          <ArrowUpRight size={12} strokeWidth={2} />
+          <ArrowUpRight size={16} strokeWidth={1.5} />
         </span>
       ) : null}
     </article>
@@ -196,7 +196,7 @@ export function IncidentsPanel() {
             marginBottom: 10,
           }}
         >
-          <AlertTriangle size={15} strokeWidth={1.9} />
+          <AlertTriangle size={16} strokeWidth={1.5} />
           The incidents record did not load. {(q.error as Error)?.message}
         </p>
         <button

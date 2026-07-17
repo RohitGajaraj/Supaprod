@@ -172,7 +172,7 @@ function CaptureMissionDecision({
         opacity: cap.isPending ? 0.5 : 1,
       }}
     >
-      <Gavel size={11} strokeWidth={1.75} />
+      <Gavel size={16} strokeWidth={1.5} />
       {cap.isPending ? "Capturing…" : "Capture · files this as a decision"}
     </button>
   );
@@ -245,7 +245,7 @@ function GatePanel({
             fontWeight: 700,
           }}
         >
-          <ShieldAlert size={13} /> Action required · governance gate
+          <ShieldAlert size={16} /> Action required · governance gate
         </div>
         {pendingApprovals.map((appr) => (
           <div key={appr.id}>
@@ -278,7 +278,7 @@ function GatePanel({
                 }}
                 onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
               >
-                <Check size={12} />
+                <Check size={16} />
                 Approve · runs the tool
               </button>
               <button
@@ -286,7 +286,7 @@ function GatePanel({
                 disabled={decide.isPending}
                 onClick={() => decide.mutate({ id: appr.id, decision: "reject" })}
               >
-                <X size={12} />
+                <X size={16} />
                 Reject · nothing runs
               </button>
             </div>
@@ -384,7 +384,7 @@ function TraceHop({
             className={`mono-label loom-press ${CHIP_BTN} ${FOCUS}`}
             style={handoffChipBtn}
           >
-            {showPayload ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+            {showPayload ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             {inbound.from_agent_slug
               ? agentDisplayName(inbound.from_agent_slug)
               : "operator"} → {agentDisplayName(inbound.to_agent_slug)} · payload
@@ -412,9 +412,9 @@ function TraceHop({
         }}
       >
         {open ? (
-          <ChevronDown size={11} style={{ color: "var(--text-faint)" }} />
+          <ChevronDown size={16} style={{ color: "var(--text-faint)" }} />
         ) : (
-          <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
+          <ChevronRight size={16} style={{ color: "var(--text-faint)" }} />
         )}
         <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
@@ -487,7 +487,7 @@ function TraceHop({
                   padding: "2px 8px",
                 }}
               >
-                {showMemories ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+                {showMemories ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 memory context · {h.recalled_memories.length}
               </button>
               {showMemories ? (
@@ -534,7 +534,7 @@ function TraceHop({
                 gap: 4,
               }}
             >
-              {showInput ? <ChevronDown size={9} /> : <ChevronRight size={9} />} input
+              {showInput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} input
             </button>
             {h.output ? (
               <button
@@ -548,7 +548,7 @@ function TraceHop({
                   gap: 4,
                 }}
               >
-                {showOutput ? <ChevronDown size={9} /> : <ChevronRight size={9} />} output
+                {showOutput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} output
               </button>
             ) : null}
           </div>
@@ -1517,7 +1517,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               whiteSpace: "normal",
             }}
           >
-            <X size={13} style={{ flexShrink: 0 }} /> Failed ·{" "}
+            <X size={16} style={{ flexShrink: 0 }} /> Failed ·{" "}
             {failedStep?.error ?? "see the trace below"}
           </div>
           {failedStep ? (
@@ -1536,7 +1536,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               disabled={replay.isPending}
               onClick={() => replay.mutate()}
             >
-              <RotateCcw size={11} />
+              <RotateCcw size={16} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
             </button>
             <Link

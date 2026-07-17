@@ -13,11 +13,11 @@
  *   <Icon as={ChevronDown} size="nav" aria-hidden />
  */
 
-import type { LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { iconSize, iconStroke } from '@/lib/icon-sizing';
+import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { iconSize, iconStroke } from "@/lib/icon-sizing";
 
-export type IconSizeVariant = 'compact' | 'standard' | 'nav' | 'large';
+export type IconSizeVariant = "compact" | "standard" | "nav" | "large";
 
 interface IconProps {
   /** Lucide icon component (e.g., ChevronDown) */
@@ -48,7 +48,7 @@ interface IconProps {
  */
 export function Icon({
   as: LucideIcon,
-  size = 'standard',
+  size = "standard",
   stroke,
   ariaHidden,
   ariaLabel,

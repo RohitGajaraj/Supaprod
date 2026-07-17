@@ -424,7 +424,7 @@ export function AnalyticsPanel() {
                     >
                       {fmtUsd(x.cost)}
                     </span>
-                    <ChevronRight size={11} style={{ color: "var(--ink-faint)", flexShrink: 0 }} />
+                    <ChevronRight size={16} style={{ color: "var(--ink-faint)", flexShrink: 0 }} />
                   </button>
                 ))}
               </div>

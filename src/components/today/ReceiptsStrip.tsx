@@ -119,7 +119,7 @@ export function ReceiptsStrip({
                 }}
               >
                 {actor.slug ? (
-                  <AgentMark slug={actor.slug} size={18} />
+                  <AgentMark slug={actor.slug} size={16} />
                 ) : (
                   <span
                     aria-hidden="true"

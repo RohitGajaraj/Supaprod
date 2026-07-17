@@ -26,9 +26,9 @@ export const iconSize = {
 
 /** Stroke width by size tier (Lucide's strokeWidth prop) */
 export const iconStroke = {
-  compact: 1.8,    // 14px and below for legibility
-  standard: 1.5,   // 16px+ standard
-  large: 1.5,      // 24px+ same as standard
+  compact: 1.8, // 14px and below for legibility
+  standard: 1.5, // 16px+ standard
+  large: 1.5, // 24px+ same as standard
 };
 
 /**

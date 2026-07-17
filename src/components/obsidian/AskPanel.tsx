@@ -225,7 +225,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
     <div>
       {/* PC-36 G: the answer is signed. Cadence is the accountable voice. */}
       <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
-        <CadenceMark size={13} strokeWidth={2.6} glow={false} />
+        <CadenceMark size={16} strokeWidth={2.6} glow={false} />
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -314,9 +314,9 @@ const AskAiMessage = React.memo(function AskAiMessage({
               }}
             >
               {readAloud.speakingId === msg.id ? (
-                <Square size={11} strokeWidth={2} />
+                <Square size={16} strokeWidth={1.5} />
               ) : (
-                <Volume2 size={12} strokeWidth={2} />
+                <Volume2 size={16} strokeWidth={1.5} />
               )}
             </button>
           ) : null}
@@ -654,7 +654,7 @@ function AskComposer({
                 cursor: "pointer",
               }}
             >
-              <Mic size={14} strokeWidth={2} />
+              <Mic size={14} strokeWidth={1.5} />
             </button>
           ) : null}
           <button
@@ -678,7 +678,7 @@ function AskComposer({
                   : "none",
             }}
           >
-            <ArrowUp size={15} strokeWidth={2.4} />
+            <ArrowUp size={16} strokeWidth={2.4} />
           </button>
         </div>
       </div>
@@ -1132,7 +1132,7 @@ export function AskPanel() {
                   boxShadow: "0 0 14px -2px color-mix(in oklab, var(--ember) 45%, transparent)",
                 }}
               >
-                <Sparkles size={14} strokeWidth={2} style={{ color: "var(--ember)" }} />
+                <Sparkles size={14} strokeWidth={1.5} style={{ color: "var(--ember)" }} />
               </span>
               <div className="min-w-0">
                 <div
@@ -1224,7 +1224,7 @@ export function AskPanel() {
                     cursor: "pointer",
                   }}
                 >
-                  <Filter size={11} strokeWidth={2} />
+                  <Filter size={16} strokeWidth={1.5} />
                   {scopeCleared ? "Searching everything" : `Scoped to ${scope.label}`}
                 </button>
               ) : null}

@@ -33,7 +33,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
         textDecoration: "none",
       }}
     >
-      <Inbox size={14} strokeWidth={1.75} style={{ color: "var(--ds-gray-700)", flexShrink: 0 }} />
+      <Inbox size={14} strokeWidth={1.5} style={{ color: "var(--ds-gray-700)", flexShrink: 0 }} />
       <span style={{ color: "var(--ds-gray-1000)" }}>
         {count} pending approval{count === 1 ? "" : "s"}
       </span>
@@ -48,7 +48,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
             fontSize: 9.5,
           }}
         >
-          <ShieldAlert size={11} strokeWidth={1.9} />
+          <ShieldAlert size={16} strokeWidth={1.5} />
           {attention} need{attention === 1 ? "s" : ""} a closer look
         </span>
       )}
@@ -63,7 +63,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
           fontSize: 9.5,
         }}
       >
-        Review <ChevronRight size={12} />
+        Review <ChevronRight size={16} />
       </span>
     </Link>
   );

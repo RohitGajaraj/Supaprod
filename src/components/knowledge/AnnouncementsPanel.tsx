@@ -382,7 +382,7 @@ export function AnnouncementsPanel() {
                       textDecoration: "none",
                     }}
                   >
-                    View <ExternalLink size={11} />
+                    View <ExternalLink size={16} />
                   </a>
                 ) : null}
               </div>

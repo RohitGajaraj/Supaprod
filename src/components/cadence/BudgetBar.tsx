@@ -45,7 +45,7 @@ export function BudgetBar() {
       className="mono-label flex items-center gap-[7px]"
       style={{ color: tone }}
     >
-      <DollarSign className="h-3 w-3" strokeWidth={1.75} />
+      <DollarSign className="h-3 w-3" strokeWidth={1.5} />
       <span className="tabular-nums">
         ${used < 0.01 && used > 0 ? "<0.01" : used.toFixed(2)} / ${cap.toFixed(0)}
       </span>

@@ -684,7 +684,7 @@ export function CalendarPanel({
               marginBottom: 14,
             }}
           >
-            <CalIcon size={18} />
+            <CalIcon size={16} />
           </span>
           <h3 className="font-display" style={{ fontSize: 19 }}>
             Nothing in the next 14 days
@@ -809,16 +809,16 @@ export function CalendarPanel({
                       aria-label="Open in provider"
                       style={{ color: "var(--ink-faint)", display: "inline-flex" }}
                     >
-                      <ExternalLink size={13} />
+                      <ExternalLink size={16} />
                     </a>
                   ) : expandable ? (
                     expanded ? (
-                      <ChevronDown size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronDown size={16} style={{ color: "var(--ink-faint)" }} />
                     ) : (
-                      <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronRight size={16} style={{ color: "var(--ink-faint)" }} />
                     )
                   ) : it.kind === "meeting" ? (
-                    <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
+                    <ChevronRight size={16} style={{ color: "var(--ink-faint)" }} />
                   ) : (
                     <span style={{ width: 13 }}></span>
                   )}
@@ -1519,7 +1519,7 @@ function EventEditor({
                 gap: 5,
               }}
             >
-              <ExternalLink size={11} /> open in provider
+              <ExternalLink size={16} /> open in provider
             </a>
           ) : null}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
@@ -1578,7 +1578,7 @@ function ConnectButton({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button aria-label="Calendar connections" className="btn btn-ghost btn-sm">
-          <Link2 size={12} strokeWidth={1.75} />
+          <Link2 size={16} strokeWidth={1.5} />
           <span
             className="dot"
             style={{
@@ -1646,7 +1646,7 @@ function ConnectButton({
               className="cmdk-item"
               style={{ fontSize: 11.5, padding: "6px 8px" }}
             >
-              <Plus size={11} style={{ marginRight: 6 }} /> Connect Google Calendar · OAuth
+              <Plus size={16} style={{ marginRight: 6 }} /> Connect Google Calendar · OAuth
             </button>
           ) : null}
           {!hasMicrosoft ? (
@@ -1657,7 +1657,7 @@ function ConnectButton({
               className="cmdk-item"
               style={{ fontSize: 11.5, padding: "6px 8px" }}
             >
-              <Plus size={11} style={{ marginRight: 6 }} /> Connect Microsoft Outlook · OAuth
+              <Plus size={16} style={{ marginRight: 6 }} /> Connect Microsoft Outlook · OAuth
             </button>
           ) : null}
         </div>

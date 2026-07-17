@@ -225,7 +225,7 @@ function HouseRuleCard({
               disabled={busy}
               onClick={onApprove}
             >
-              <Check size={11} />
+              <Check size={16} />
               Approve · applies to every AI call
             </button>
             <button
@@ -234,7 +234,7 @@ function HouseRuleCard({
               disabled={busy}
               onClick={onReject}
             >
-              <X size={11} />
+              <X size={16} />
               Reject
             </button>
           </div>

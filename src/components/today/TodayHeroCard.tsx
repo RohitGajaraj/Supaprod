@@ -158,7 +158,7 @@ export function TodayHeroCard({
             }}
           >
             Answer the first call
-            <ArrowRight size={15} strokeWidth={2} />
+            <ArrowRight size={16} strokeWidth={1.5} />
           </Button>
         ) : null}
       </div>

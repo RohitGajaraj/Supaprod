@@ -205,9 +205,9 @@ export function ChangelogPanel() {
                         textDecoration: "none",
                       }}
                     >
-                      <GitPullRequest size={13} />
+                      <GitPullRequest size={16} />
                       {e.pr_number ? `PR #${e.pr_number}` : "View PR"}
-                      <ExternalLink size={12} />
+                      <ExternalLink size={16} />
                     </a>
                   ) : null}
                 </article>

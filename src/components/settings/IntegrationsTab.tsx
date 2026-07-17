@@ -79,11 +79,11 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
     >
       {copied ? (
         <>
-          <Check size={13} strokeWidth={1.75} /> Copied
+          <Check size={16} strokeWidth={1.5} /> Copied
         </>
       ) : (
         <>
-          <Copy size={13} strokeWidth={1.75} /> {label}
+          <Copy size={16} strokeWidth={1.5} /> {label}
         </>
       )}
     </Button>
@@ -222,7 +222,7 @@ export function IntegrationsTab() {
               className="btn btn-secondary btn-sm"
               disabled={!slug.trim() || issue.isPending}
             >
-              <KeyRound size={13} strokeWidth={1.75} />
+              <KeyRound size={16} strokeWidth={1.5} />
               {issue.isPending ? "Issuing…" : "Issue token"}
             </button>
           </div>
@@ -255,7 +255,7 @@ export function IntegrationsTab() {
                   flex: 1,
                   minWidth: 0,
                   fontFamily: "var(--font-mono)",
-                  fontSize: 12,
+                  fontSize: "var(--text-label-14)",
                   wordBreak: "break-all",
                   lineHeight: 1.5,
                 }}
@@ -339,7 +339,7 @@ export function IntegrationsTab() {
                       disabled={revoke.isPending && revoke.variables === t.id}
                       onClick={() => onRevoke(t)}
                     >
-                      <Trash2 size={13} strokeWidth={1.75} />
+                      <Trash2 size={16} strokeWidth={1.5} />
                     </Button>
                   ) : null}
                 </div>
@@ -400,7 +400,7 @@ export function IntegrationsTab() {
               borderRadius: 10,
               background: "var(--surface-2)",
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               lineHeight: 1.6,
               overflowX: "auto",
               whiteSpace: "pre",

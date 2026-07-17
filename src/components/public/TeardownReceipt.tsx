@@ -54,7 +54,7 @@ function List({
     <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((item, i) => (
         <li key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-          <Icon size={15} strokeWidth={1.5} style={{ color: tone, flexShrink: 0, marginTop: 2 }} />
+          <Icon size={16} strokeWidth={1.5} style={{ color: tone, flexShrink: 0, marginTop: 2 }} />
           <span style={{ fontSize: 13.5, color: "var(--text-body)", lineHeight: 1.5 }}>{item}</span>
         </li>
       ))}
@@ -97,7 +97,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
             background: `color-mix(in oklab, ${color} 12%, transparent)`,
           }}
         >
-          <VerdictIcon size={14} strokeWidth={1.75} style={{ color }} />
+          <VerdictIcon size={14} strokeWidth={1.5} style={{ color }} />
           <span
             style={{
               fontSize: 12,
@@ -128,7 +128,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
 
       {/* Risks. */}
       <div className="mono-label" style={sectionLabel}>
-        <AlertTriangle size={12} strokeWidth={1.75} />
+        <AlertTriangle size={16} strokeWidth={1.5} />
         Risks
       </div>
       <List
@@ -142,7 +142,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
 
       {/* Gaps. */}
       <div className="mono-label" style={sectionLabel}>
-        <HelpCircle size={12} strokeWidth={1.75} />
+        <HelpCircle size={16} strokeWidth={1.5} />
         Gaps
       </div>
       <List
@@ -156,7 +156,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         <>
           <div style={hairline} />
           <div className="mono-label" style={sectionLabel}>
-            <ArrowRight size={12} strokeWidth={1.75} />
+            <ArrowRight size={16} strokeWidth={1.5} />
             Recommendation
           </div>
           <p style={{ fontSize: 13.5, color: "var(--text-body)", lineHeight: 1.55 }}>

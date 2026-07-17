@@ -84,12 +84,12 @@ export function CiPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                fontSize: 11,
+                fontSize: "var(--text-label-12)",
                 fontWeight: 600,
                 color: inspection.has_tests ? "var(--moss)" : "var(--madder)",
               }}
             >
-              {inspection.has_tests ? null : <ShieldAlert size={11} />}
+              {inspection.has_tests ? null : <ShieldAlert size={16} />}
               {inspection.has_tests ? "includes tests" : "no tests"}
             </span>
           </div>
@@ -150,7 +150,7 @@ export function CiPanel({
             }}
           >
             PR #{changeset.pr_number}
-            <ExternalLink size={9} />
+            <ExternalLink size={14} />
           </a>
           <ChangesetChip status={changeset.status} />
         </div>
@@ -198,7 +198,7 @@ export function CiPanel({
             {refresh.isPending ? (
               <span className="spinner" style={{ width: 11, height: 11 }} />
             ) : (
-              <RefreshCw size={11} />
+              <RefreshCw size={16} />
             )}
             Refresh · re-reads CI
           </button>
@@ -214,7 +214,7 @@ export function CiPanel({
             <p
               style={{
                 margin: 0,
-                fontSize: 12,
+                fontSize: "var(--text-label-14)",
                 lineHeight: 1.4,
                 color: ci.overall === "failure" ? "var(--madder)" : "var(--text-body)",
               }}
@@ -270,7 +270,7 @@ export function CiPanel({
                     aria-label={`Open ${c.name} on GitHub`}
                     style={{ color: "var(--cornflower)", display: "inline-flex" }}
                   >
-                    <ExternalLink size={9} />
+                    <ExternalLink size={14} />
                   </a>
                 ) : null}
               </div>

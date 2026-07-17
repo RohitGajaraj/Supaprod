@@ -387,13 +387,13 @@ export function ProductsTab() {
                 </button>
                 <div style={{ position: "absolute", top: 9, right: 10, display: "flex", gap: 4 }}>
                   <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={12} strokeWidth={1.75} />
+                    <Download size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Archive ${p.name}`} onClick={() => archive(p)}>
-                    <Archive size={12} strokeWidth={1.75} />
+                    <Archive size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={12} strokeWidth={1.75} />
+                    <Trash2 size={16} strokeWidth={1.5} />
                   </ActionButton>
                 </div>
               </div>
@@ -436,13 +436,13 @@ export function ProductsTab() {
                 </span>
                 <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                   <ActionButton label={`Restore ${p.name}`} onClick={() => restore(p)}>
-                    <ArchiveRestore size={12} strokeWidth={1.75} />
+                    <ArchiveRestore size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={12} strokeWidth={1.75} />
+                    <Download size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={12} strokeWidth={1.75} />
+                    <Trash2 size={16} strokeWidth={1.5} />
                   </ActionButton>
                 </div>
               </div>

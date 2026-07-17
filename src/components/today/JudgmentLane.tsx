@@ -53,7 +53,7 @@ function InsightRow({
     >
       <div className="flex items-center" style={{ gap: 8, marginBottom: 4, minWidth: 0 }}>
         {slug ? (
-          <AgentBadge slug={slug} size={18} />
+          <AgentBadge slug={slug} size={16} />
         ) : (
           <span
             className="text-label-12-mono"
@@ -171,7 +171,7 @@ export function JudgmentLane({
             cursor: "pointer",
           }}
         >
-          <PixelStat value={folded.length} tone="blue" size={12} /> more waiting →
+          <PixelStat value={folded.length} tone="blue" size={16} /> more waiting →
         </button>
       ) : null}
       {open ? (

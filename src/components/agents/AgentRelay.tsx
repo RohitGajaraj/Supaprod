@@ -124,7 +124,7 @@ function FullRelay({ missionId }: { missionId: string }) {
                             color: "var(--text-faint)",
                           }}
                         >
-                          <ArrowRight size={11} strokeWidth={1.75} />
+                          <ArrowRight size={16} strokeWidth={1.5} />
                           {s.handoffToName}
                         </span>
                       ) : null}
@@ -248,7 +248,7 @@ function StationRelayLine({
   // quiet station never reserves layout space for an empty wrapper.
   const body = (
     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, marginBottom: 16 }}>
-      <AgentMark slug={run.slug} size={18} />
+      <AgentMark slug={run.slug} size={16} />
       <span
         style={{
           fontSize: 12.5,
