@@ -141,8 +141,7 @@ export function PanelPending() {
         style={{
           width: 220,
           height: 3,
-          background:
-            "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
+          background: "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}

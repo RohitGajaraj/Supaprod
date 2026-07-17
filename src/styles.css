@@ -2913,6 +2913,19 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-ember-800: #d94e12;
   --ds-ember-900: #ff8f5e;
   --ds-ember-1000: #ffefe6;
+  /* Ember semi-transparent variants for backgrounds and subtle fills */
+  --ds-ember-bg-subtle: color-mix(in srgb, var(--ds-ember-600) 8%, transparent);
+  --ds-ember-bg-hover: color-mix(in srgb, var(--ds-ember-600) 12%, transparent);
+  /* Aurora glow effects (legacy, PC-10 Loop Health cards) — these are special decorative glows */
+  --aurora-glow-healthy-orb-a: rgba(232, 180, 76, 0.30);
+  --aurora-glow-healthy-orb-b: rgba(127, 191, 142, 0.38);
+  --aurora-glow-healthy: rgba(127, 191, 142, 0.10);
+  --aurora-glow-attention-orb-a: rgba(255, 138, 80, 0.34);
+  --aurora-glow-attention-orb-b: rgba(232, 180, 76, 0.30);
+  --aurora-glow-attention: rgba(255, 107, 44, 0.10);
+  --aurora-glow-failing-orb-a: rgba(224, 101, 87, 0.34);
+  --aurora-glow-failing-orb-b: rgba(255, 138, 80, 0.26);
+  --aurora-glow-failing: rgba(224, 101, 87, 0.10);
   /* Blue = the machine's color, RICH glacier (founder rulings 2026-07-11,
      refined same day: the reference #84b3ec anchor read chalky on black, and
      "not good" was a brief to redesign, not to flatten to gray). The scale
