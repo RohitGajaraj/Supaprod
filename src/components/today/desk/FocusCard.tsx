@@ -59,7 +59,7 @@ const card: React.CSSProperties = {
 function phaseColor(phase: FocusPhase | null): string {
   if (phase === "closing") return "var(--ember-text)";
   if (phase === "past-half") return "var(--text-primary)";
-  return "var(--glacier)";
+  return "var(--text-muted)";
 }
 
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {

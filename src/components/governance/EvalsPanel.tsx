@@ -343,7 +343,7 @@ export function EvalsPanel() {
               <button
                 key={s.id}
                 type="button"
-                className="hover:[background-color:var(--hover)] hover:[box-shadow:inset_0_1px_0_var(--ds-gray-alpha-200),0_8px_24px_-12px_rgba(0,0,0,0.55)] active:scale-[0.98] cursor-pointer"
+                className="hover:[background-color:var(--hover)] hover:[box-shadow:var(--shadow-raised)] active:scale-[0.98] cursor-pointer"
                 onClick={() => openSuite(s.id)}
                 style={{
                   textAlign: "left",

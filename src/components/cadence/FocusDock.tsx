@@ -46,7 +46,7 @@ const mono: React.CSSProperties = {
 function phaseColor(phase: FocusPhase | null): string {
   if (phase === "closing") return "var(--ember-text)";
   if (phase === "past-half") return "var(--text-primary)";
-  return "var(--glacier)";
+  return "var(--text-muted)";
 }
 
 /** Screen-reader announcement per phase transition — never the ticking value. */

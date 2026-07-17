@@ -106,7 +106,7 @@ function CapabilityCard({
         }
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
-        <span style={{ color: isExpanded ? "var(--glacier)" : "var(--text-muted)" }}>
+        <span style={{ color: isExpanded ? "var(--text-primary)" : "var(--text-muted)" }}>
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </span>
         <div style={{ flex: 1 }}>
