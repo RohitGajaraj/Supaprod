@@ -113,7 +113,7 @@ export function filterRulesForAgent(
  * load it sits beside.
  *
  * agentSlug (PC-30/RPT-50): when passed, narrows to rules that apply to that
- * agent — every workspace-wide rule (agent_slug null) plus any rule scoped
+ * agent: every workspace-wide rule (agent_slug null) plus any rule scoped
  * to exactly that agent. Omit to keep the original unscoped behavior (every
  * approved rule), which existing callers that haven't been updated still get.
  */
