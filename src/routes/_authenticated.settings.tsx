@@ -454,8 +454,10 @@ function SettingsPage() {
           />
         </header>
 
-        <div className="flex" style={{ gap: 44 }}>
-          <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+        <div className="flex flex-col md:flex-row" style={{ gap: 44 }}>
+          <div className="md:w-48">
+            <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+          </div>
 
           <div style={{ flex: 1, minWidth: 0, maxWidth: 880 }}>
             {/* Tier 2: the active pane's member sections — only shown when the pane

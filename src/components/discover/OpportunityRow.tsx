@@ -485,6 +485,7 @@ export const OpportunityRow = memo(function OpportunityRow({
               loading={draftPending}
               disabled={actionsPending}
               title="Draft the cited spec from this bet"
+              className="hidden md:flex"
             >
               Draft spec
             </Button>
@@ -499,6 +500,7 @@ export const OpportunityRow = memo(function OpportunityRow({
             loading={challengePending}
             disabled={actionsPending}
             title="The Critic red-teams this bet · receipts attached"
+            className="hidden md:flex"
           >
             Challenge
           </Button>

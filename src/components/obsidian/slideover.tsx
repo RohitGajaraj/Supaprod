@@ -23,7 +23,7 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0 z-40"
-          style={{ backgroundColor: "rgba(4,4,5,0.6)", backdropFilter: "blur(3px)" }}
+          style={{ backgroundColor: "var(--overlay-modal)", backdropFilter: "blur(3px)" }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -57,7 +57,7 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
               {title}
             </DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
-              <Button variant="quiet">CLOSE</Button>
+              <Button variant="tertiary">CLOSE</Button>
             </DialogPrimitive.Close>
           </div>
           <div className="flex-1 overflow-y-auto" style={{ padding: "24px" }}>

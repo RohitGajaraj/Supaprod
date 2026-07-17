@@ -231,6 +231,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           margin: "-36px -32px 0",
           padding: "var(--page-inset-v) var(--page-inset-h) 0",
         }}
+        className="overflow-x-clip"
       >
         <div aria-hidden="true" className="loom-glow-field" />
         <PageHeader

@@ -51,7 +51,13 @@ function AdminLayout() {
   return (
     <>
       <TopBar crumbs={["Admin"]} />
-      <div style={{ padding: "var(--page-inset-v) var(--page-inset-h) 64px", maxWidth: 1100, margin: "0 auto" }}>
+      <div
+        style={{
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
+          maxWidth: 1100,
+          margin: "0 auto",
+        }}
+      >
         <p
           style={{
             fontFamily: "var(--font-sans)",
