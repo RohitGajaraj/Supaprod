@@ -232,7 +232,7 @@ export function DiscoverSurface() {
         style={{
           maxWidth: "var(--container-standard)",
           width: "100%",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           position: "relative",
           overflow: "hidden",
         }}

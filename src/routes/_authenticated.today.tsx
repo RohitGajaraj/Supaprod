@@ -1132,7 +1132,7 @@ function Dashboard() {
           maxWidth: "var(--container-standard)",
           width: "100%",
           margin: "0 auto",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           animation: "cadRise 260ms var(--ease) both",
           position: "relative",
           overflow: "hidden",
