@@ -375,8 +375,8 @@ and the numeral-index navigation.
 
 ## 12. Enforcement
 
-- **The skill**: `.claude/skills/cadence-tempo/` loads this contract + tokens + specs +
-  patterns and MUST be invoked before any design/UI work. The old `cadence-design` skill
+- **The skill**: `.claude/skills/supaprod-tempo/` loads this contract + tokens + specs +
+  patterns and MUST be invoked before any design/UI work. The old `supaprod-design` skill
   is disconnected (deprecation stub).
 - **The Tempo test** before shipping any surface: (1) both themes render from the same
   tokens; (2) every color traces to a `--ds-*` token in its correct role step; (3) type

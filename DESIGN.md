@@ -276,7 +276,7 @@ weight never does.
 
 ## How to plan and build (instructions for any AI builder)
 
-> **STOP if you are building an app surface.** Any authenticated-app UI work follows [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (the v3 contract) via the `cadence-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
+> **STOP if you are building an app surface.** Any authenticated-app UI work follows [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (the v3 contract) via the `supaprod-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
 
 **Backend, data, and auth come from Lovable, live.** Supaprod is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
 
