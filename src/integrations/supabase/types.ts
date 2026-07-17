@@ -8931,6 +8931,17 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      get_pending_fanout_batches: {
+        Args: { batch_limit: number }
+        Returns: {
+          child_run_ids: string[]
+          created_at: string
+          id: string
+          target_title: string
+          user_id: string
+          workspace_id: string
+        }[]
+      }
       grant_subscription_credits: {
         Args: { _account_id: string; _credits: number }
         Returns: Json
