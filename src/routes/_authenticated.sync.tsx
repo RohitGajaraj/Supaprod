@@ -321,7 +321,7 @@ function SyncInboxPage() {
                         flexShrink: 0,
                       }}
                     >
-                      Open <ExternalLink size={12} />
+                      Open <ExternalLink size={16} />
                     </a>
                   )}
                 </div>
@@ -364,9 +364,9 @@ function SyncInboxPage() {
                         style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
                         {mPush.isPending && mPush.variables === m.id ? (
-                          <Loader2 size={12} className="animate-spin" />
+                          <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <ArrowUpFromLine size={12} />
+                          <ArrowUpFromLine size={16} />
                         )}
                         Push and resolve
                       </button>
@@ -377,9 +377,9 @@ function SyncInboxPage() {
                         style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
                         {mPull.isPending && mPull.variables === m.id ? (
-                          <Loader2 size={12} className="animate-spin" />
+                          <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <ArrowDownToLine size={12} />
+                          <ArrowDownToLine size={16} />
                         )}
                         Pull and resolve
                       </button>
@@ -487,7 +487,7 @@ function SyncInboxPage() {
                         >
                           {m.external_id}
                         </span>
-                        <ExternalLink size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
+                        <ExternalLink size={16} style={{ opacity: 0.6, flexShrink: 0 }} />
                       </a>
                     ) : (
                       <span
@@ -521,9 +521,9 @@ function SyncInboxPage() {
                         style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
                         {mPull.isPending && mPull.variables === m.id ? (
-                          <Loader2 size={12} className="animate-spin" />
+                          <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <ArrowDownToLine size={12} />
+                          <ArrowDownToLine size={16} />
                         )}
                         Pull
                       </button>
@@ -535,9 +535,9 @@ function SyncInboxPage() {
                         style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
                         {mPush.isPending && mPush.variables === m.id ? (
-                          <Loader2 size={12} className="animate-spin" />
+                          <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <ArrowUpFromLine size={12} />
+                          <ArrowUpFromLine size={16} />
                         )}
                         Push
                       </button>
@@ -684,7 +684,7 @@ function WebhookIngestCard() {
             onClick={() => copy(endpoint, "Endpoint")}
             style={pillBtn}
           >
-            <Copy size={12} />
+            <Copy size={16} />
             Copy
           </button>
         </div>
@@ -725,7 +725,7 @@ function WebhookIngestCard() {
                     onClick={() => setRevealed((v) => !v)}
                     style={pillBtn}
                   >
-                    {revealed ? <EyeOff size={12} /> : <Eye size={12} />}
+                    {revealed ? <EyeOff size={16} /> : <Eye size={16} />}
                     {revealed ? "Hide" : "Reveal"}
                   </button>
                   <button
@@ -733,7 +733,7 @@ function WebhookIngestCard() {
                     onClick={() => copy(freshToken, "Token")}
                     style={pillBtn}
                   >
-                    <Copy size={12} />
+                    <Copy size={16} />
                     Copy
                   </button>
                 </>
@@ -754,9 +754,9 @@ function WebhookIngestCard() {
                 }}
               >
                 {mRotate.isPending ? (
-                  <Loader2 size={12} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin" />
                 ) : (
-                  <RefreshCcw size={12} />
+                  <RefreshCcw size={16} />
                 )}
                 {rotateArmed ? "Confirm rotate?" : "Rotate"}
               </button>
@@ -773,7 +773,7 @@ function WebhookIngestCard() {
                   opacity: mRevoke.isPending ? 0.5 : 1,
                 }}
               >
-                {mRevoke.isPending && <Loader2 size={12} className="animate-spin" />}
+                {mRevoke.isPending && <Loader2 size={16} className="animate-spin" />}
                 {revokeArmed ? "Confirm revoke?" : "Revoke"}
               </button>
             </>
@@ -794,7 +794,7 @@ function WebhookIngestCard() {
               disabled={mRotate.isPending}
               onClick={() => mRotate.mutate()}
             >
-              {mRotate.isPending && <Loader2 size={12} className="animate-spin" />}
+              {mRotate.isPending && <Loader2 size={16} className="animate-spin" />}
               Generate token
             </button>
           )}
@@ -817,7 +817,7 @@ function WebhookIngestCard() {
               cursor: "pointer",
             }}
           >
-            {curlOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            {curlOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             curl example
           </button>
           {curlOpen && (

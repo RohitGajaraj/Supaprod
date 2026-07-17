@@ -74,7 +74,7 @@ export function ColdStartOnramp() {
         </div>
         <p
           style={{
-            fontSize: 13,
+            fontSize: "var(--text-label-13)",
             color: "var(--ds-gray-900)",
             marginTop: 6,
             maxWidth: 560,
@@ -122,7 +122,7 @@ export function ColdStartOnramp() {
                 </div>
                 <p
                   style={{
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                     color: "var(--ds-gray-900)",
                     marginTop: 2,
                     marginBottom: 0,
@@ -154,7 +154,7 @@ export function ColdStartOnramp() {
 
       {/* 2026-07-11: stale "Start mission in the top bar" copy fixed - the
           top bar has no such control; missions start on the Build page. */}
-      <p className="mono-label" style={{ fontSize: 9.5, color: "var(--ds-gray-600)" }}>
+      <p className="mono-label" style={{ fontSize: "var(--text-label-12)", color: "var(--ds-gray-600)" }}>
         Prefer to point at a goal?{" "}
         <Link to="/build" style={{ color: "var(--ds-blue-600)", textDecoration: "underline" }}>
           Start a mission on the Build page

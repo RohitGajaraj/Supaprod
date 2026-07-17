@@ -227,6 +227,7 @@ export function FocusCard() {
               if (e.key === "Enter") start();
             }}
             maxLength={120}
+            aria-label="Focus block intent"
             placeholder="What are you closing in this block?"
             style={{
               width: "100%",

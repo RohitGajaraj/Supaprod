@@ -45,19 +45,19 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
           display: "inline-flex",
           alignItems: "center",
           gap: 5,
-          fontSize: 11,
+          fontSize: "var(--text-label-12)",
           fontWeight: 600,
           color: "var(--moss)",
         }}
       >
-        <CheckCircle2 size={12} />
+        <CheckCircle2 size={16} />
         Quality checks passed
       </span>
     );
   if (ci.overall === "failure")
     return (
       <VerdictChip tone="madder">
-        <XCircle size={10} style={{ marginRight: 2 }} />
+        <XCircle size={14} style={{ marginRight: 2 }} />
         Checks failed
       </VerdictChip>
     );
@@ -68,7 +68,7 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          fontSize: 11,
+          fontSize: "var(--text-label-12)",
           fontWeight: 600,
           color: "var(--glacier)",
         }}
@@ -93,11 +93,11 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
         borderRadius: "var(--radius-control)",
         background: "color-mix(in oklab, var(--moss) 10%, transparent)",
         border: "1px solid color-mix(in oklab, var(--moss) 30%, transparent)",
-        fontSize: 13,
+        fontSize: "var(--text-label-14)",
         color: "var(--moss)",
       }}
     >
-      <Rocket size={13} style={{ flexShrink: 0 }} />
+      <Rocket size={16} style={{ flexShrink: 0 }} />
       <span>
         Shipped
         {changeset.pr_number != null ? ` via PR #${changeset.pr_number}` : ""}.
@@ -107,7 +107,7 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
             style={{
               marginLeft: 6,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               color: "color-mix(in oklab, var(--moss) 75%, var(--text-muted))",
             }}
           >
@@ -141,7 +141,7 @@ export function EngineRoomDisclosure({
           padding: "24px 0",
           marginTop: 12,
           textAlign: "center",
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
         }}
       >
@@ -174,9 +174,9 @@ export function EngineRoomDisclosure({
           }}
         >
           {open ? (
-            <ChevronDown size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+            <ChevronDown size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
           ) : (
-            <ChevronRight size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+            <ChevronRight size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
           )}
           <QualityBadge ci={ci} />
           {!open && (

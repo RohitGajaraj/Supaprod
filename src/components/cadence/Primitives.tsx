@@ -23,7 +23,7 @@ export function MonoLabel({
       className={`mono-label ${className ?? ""}`}
       style={{ display: "flex", alignItems: "center", gap: 6, ...style }}
     >
-      {Icon ? <Icon size={12} strokeWidth={1.75} /> : null}
+      {Icon ? <Icon size={16} strokeWidth={1.5} /> : null}
       <span>{children}</span>
     </div>
   );
@@ -187,7 +187,7 @@ export function SurfaceHeader({
       <h1 className="text-heading-26" style={{ marginTop: 7 }}>
         {title}
       </h1>
-      <p style={{ fontSize: 12.5, color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
+      <p style={{ fontSize: "var(--text-label-13)", color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
         {sub}
       </p>
     </header>
@@ -271,7 +271,7 @@ export function EmptyState({
           marginBottom: 14,
         }}
       >
-        <Icon size={18} />
+        <Icon size={16} />
       </span>
       {/* Titles stay a few words: Pixel is display-only, never multi-line copy.
           A surface showing EmptyState must not simultaneously render another

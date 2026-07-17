@@ -34,7 +34,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0 z-40"
-          style={{ backgroundColor: "rgba(4,4,5,0.6)", backdropFilter: "blur(3px)" }}
+          style={{ backgroundColor: "var(--overlay-modal)", backdropFilter: "blur(3px)" }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -82,7 +82,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />
@@ -102,7 +102,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />
@@ -111,7 +111,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             )}
           </div>
 
-          <p style={{ marginTop: 12, fontSize: 11.5, color: "var(--text-subtle)" }}>
+          <p style={{ marginTop: 12, fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
             {hasBoth
               ? "Now is the one thing the team builds next · everything else waits."
               : "A bet in Now needs a promise and a number · that is the whole point."}
@@ -122,7 +122,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               Not yet
             </Button>
             <Button
-              variant="primary"
+              variant="accent"
               disabled={!canConfirm || pending}
               loading={pending}
               onClick={() => onConfirm({ outcome: outcome.trim(), measure: measure.trim() })}

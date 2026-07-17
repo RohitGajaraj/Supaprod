@@ -38,7 +38,7 @@ function ThemeToggle() {
         cursor: "pointer",
       }}
     >
-      <Icon size={14} strokeWidth={1.9} />
+      <Icon size={14} strokeWidth={1.5} />
     </button>
   );
 }
@@ -62,11 +62,11 @@ function AskButton() {
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         color: "var(--text-muted)",
-        fontSize: 12.5,
+        fontSize: "var(--text-label-13)",
         cursor: "pointer",
       }}
     >
-      <Sparkles size={13} strokeWidth={1.9} style={{ color: "var(--ember)" }} />
+      <Sparkles size={16} strokeWidth={1.5} style={{ color: "var(--ember)" }} />
       <span className="hidden sm:inline">Ask</span>
       <span
         className="hidden sm:inline"
@@ -130,7 +130,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
                   {label}
                 </span>
               ) : typeof c === "string" ? (
-                <span className="truncate" style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
+                <span className="truncate" style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
                   {label}
                 </span>
               ) : (
@@ -138,7 +138,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
                   to={c.to}
                   search={c.search as never}
                   className="truncate rounded-[4px] outline-none transition-colors duration-150 hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-                  style={{ fontSize: 12.5, color: "var(--text-subtle)" }}
+                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}
                 >
                   {label}
                 </Link>

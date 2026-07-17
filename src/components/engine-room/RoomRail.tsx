@@ -126,8 +126,8 @@ export function RoomRail({ room, view, rooms, onOverview, onSelect }: RoomRailPr
                   }}
                 >
                   <ChevronRight
-                    size={12}
-                    strokeWidth={2}
+                    size={16}
+                    strokeWidth={1.5}
                     aria-hidden="true"
                     className="shrink-0"
                     style={{

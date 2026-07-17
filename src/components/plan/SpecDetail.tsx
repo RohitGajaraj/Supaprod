@@ -193,7 +193,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
       >
         {prdQuery.isError ? (
           <div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
               COULDN'T LOAD SPEC
             </div>
             <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -206,7 +206,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               style={{
                 marginTop: 14,
                 fontFamily: "var(--font-mono)",
-                fontSize: 11,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
                 background: "none",
                 border: "none",

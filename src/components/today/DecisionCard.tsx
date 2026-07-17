@@ -105,7 +105,7 @@ function MetaChip({ color, children }: { color?: string; children: ReactNode }) 
     <span
       className="mono-label"
       style={{
-        fontSize: 9.5,
+        fontSize: "var(--text-label-12)",
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
@@ -135,7 +135,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Gray attribution (accent restraint 2026-07-11): machine blue marks agent
                 ACTIONS, never standing name labels. */}
-            <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
+            <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: "var(--text-label-12)" }}>
               {agent}
               {trackLabel && (
                 <span
@@ -150,7 +150,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             </div>
             <div
               style={{
-                fontSize: 13.5,
+                fontSize: "var(--text-label-14)",
                 color: "var(--ds-gray-1000)",
                 fontWeight: 600,
                 marginTop: 2,
@@ -161,7 +161,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           </div>
           {item.expiresAt && (
             <MetaChip color={expired ? "var(--rose)" : undefined}>
-              <Clock size={10} strokeWidth={1.75} />
+              <Clock size={14} strokeWidth={1.5} />
               {fmtExpiry(item.expiresAt, expired)}
             </MetaChip>
           )}
@@ -178,12 +178,12 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           }}
         >
           <MetaChip color={REVERSIBILITY_COLOR[c.reversible]}>
-            <Undo2 size={10} strokeWidth={1.75} />
+            <Undo2 size={14} strokeWidth={1.5} />
             {REVERSIBILITY_LABEL[c.reversible]}
           </MetaChip>
           {toolRisk(item.toolName) === "high" && (
             <MetaChip color="var(--rose)">
-              <ShieldAlert size={10} strokeWidth={1.75} />
+              <ShieldAlert size={14} strokeWidth={1.5} />
               {RISK_LABEL.high}
             </MetaChip>
           )}
@@ -194,7 +194,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             onClick={() => setExpanded((v) => !v)}
             className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
             style={{
-              fontSize: 9.5,
+              fontSize: "var(--text-label-12)",
               display: "inline-flex",
               alignItems: "center",
               gap: 3,
@@ -202,7 +202,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             }}
             aria-expanded={expanded}
           >
-            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             {expanded ? "Less" : "Why · what happens"}
           </button>
         </div>
@@ -216,7 +216,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               padding: "8px 12px",
               borderRadius: 6,
               background: "var(--surface-2)",
-              fontSize: 12,
+              fontSize: "var(--text-label-12)",
               color: "var(--ds-gray-800)",
               display: "flex",
               flexDirection: "column",
@@ -225,20 +225,20 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           >
             {item.rationale && (
               <div>
-                <span className="mono-label" style={{ fontSize: 9 }}>
+                <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                   Evidence ·{" "}
                 </span>
                 {item.rationale}
               </div>
             )}
             <div>
-              <span className="mono-label" style={{ fontSize: 9 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                 If you approve ·{" "}
               </span>
               {c.effect}
             </div>
             <div>
-              <span className="mono-label" style={{ fontSize: 9 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                 Undo ·{" "}
               </span>
               {c.undo}
@@ -263,7 +263,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               style={{
                 width: "100%",
                 resize: "vertical",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 padding: "6px 8px",
                 borderRadius: 6,
                 border: "1px solid var(--hairline)",
@@ -278,7 +278,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
                 disabled={isDeciding}
                 onClick={() => onReject(item.id, reason.trim() || null)}
               >
-                <X size={11} strokeWidth={1.75} />
+                <X size={16} strokeWidth={1.5} />
                 Reject · nothing runs
               </button>
               <button
@@ -301,7 +301,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               disabled={isDeciding}
               onClick={() => onApprove(item.id)}
             >
-              <Check size={11} strokeWidth={1.75} />
+              <Check size={16} strokeWidth={1.5} />
               Approve · run {item.toolName}
             </button>
             <button
@@ -310,14 +310,14 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               disabled={isDeciding}
               onClick={() => setRejecting(true)}
             >
-              <X size={11} strokeWidth={1.75} />
+              <X size={16} strokeWidth={1.5} />
               Reject
             </button>
             <button
               type="button"
               className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
               style={{
-                fontSize: 9.5,
+                fontSize: "var(--text-label-12)",
                 marginLeft: "auto",
                 background: "transparent",
               }}
@@ -342,11 +342,11 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         <StepDot status="gate" />
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Gray metadata (accent restraint 2026-07-11): no standing tint on labels. */}
-          <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
+          <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: "var(--text-label-12)" }}>
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
           <div
-            style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}
+            style={{ fontSize: "var(--text-label-14)", color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}
           >
             {question}
           </div>
@@ -365,18 +365,18 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             className="btn btn-sm"
             style={{ color: "var(--action-blue)" }}
           >
-            <ExternalLink size={12} strokeWidth={1.75} /> Open spec
+            <ExternalLink size={16} strokeWidth={1.5} /> Open spec
           </Link>
         ) : (
           <Link to={openTo} className="btn btn-sm" style={{ color: "var(--action-blue)" }}>
-            <ExternalLink size={12} strokeWidth={1.75} /> Open
+            <ExternalLink size={16} strokeWidth={1.5} /> Open
           </Link>
         )}
         <button
           type="button"
           className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
           style={{
-            fontSize: 9.5,
+            fontSize: "var(--text-label-12)",
             marginLeft: "auto",
             background: "transparent",
           }}

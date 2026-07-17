@@ -264,7 +264,7 @@ function FeedbackButtons({ refId }: { refId: string }) {
         className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
         style={vote === 1 ? { color: "var(--deep-green)", opacity: 1 } : undefined}
       >
-        <ThumbsUp size={11} />
+        <ThumbsUp size={16} />
       </button>
       <button
         type="button"
@@ -275,7 +275,7 @@ function FeedbackButtons({ refId }: { refId: string }) {
         className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
         style={vote === -1 ? { color: "var(--rose)", opacity: 1 } : undefined}
       >
-        <ThumbsDown size={11} />
+        <ThumbsDown size={16} />
       </button>
     </>
   );
@@ -370,7 +370,7 @@ export function MessageMetaFooter({
         </span>
         {meta.web_used && (
           <span title="Searched the web" style={item}>
-            <Globe size={11} />
+            <Globe size={16} />
           </span>
         )}
         {meta.workspace_chunks > 0 && (
@@ -378,7 +378,7 @@ export function MessageMetaFooter({
             title={`Grounded in ${meta.workspace_chunks} workspace ${meta.workspace_chunks === 1 ? "item" : "items"}`}
             style={item}
           >
-            <Database size={11} />
+            <Database size={16} />
           </span>
         )}
         <span style={{ flex: 1 }} />
@@ -400,7 +400,7 @@ export function MessageMetaFooter({
                 className="transition-colors [color:var(--ink-subtle)] hover:[color:var(--ink-muted)]"
                 style={item}
               >
-                <RotateCcw size={11} />
+                <RotateCcw size={16} />
                 Replay with…
               </button>
             </PopoverTrigger>

@@ -202,7 +202,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           >
             {meta.label}
           </h2>
-          <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
+          <p style={{ margin: "3px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
             {meta.sub}
           </p>
         </div>
@@ -231,6 +231,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           margin: "-36px -32px 0",
           padding: "var(--page-inset-v) var(--page-inset-h) 0",
         }}
+        className="overflow-x-clip"
       >
         <div aria-hidden="true" className="loom-glow-field" />
         <PageHeader

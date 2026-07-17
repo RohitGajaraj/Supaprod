@@ -646,7 +646,7 @@ function EnterpriseCard({
             Reach your account manager to adjust seats or API rates.
           </p>
           <a
-            href="mailto:sales@cadence.app?subject=Enterprise plan management"
+            href="mailto:sales@supaprod.ai?subject=Enterprise plan management"
             className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
             style={{
               fontFamily: "var(--font-sans)",
@@ -666,7 +666,7 @@ function EnterpriseCard({
           </a>
           <div style={{ display: "flex", justifyContent: "center" }}>
             <a
-              href="mailto:sales@cadence.app?subject=Enterprise plan management"
+              href="mailto:sales@supaprod.ai?subject=Enterprise plan management"
               className={FOCUS_RING_CLASS}
               style={{
                 fontFamily: "var(--font-sans)",
@@ -681,7 +681,7 @@ function EnterpriseCard({
         </>
       ) : (
         <a
-          href="mailto:sales@cadence.app?subject=Enterprise enquiry"
+          href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
           className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
           style={{
             fontFamily: "var(--font-sans)",

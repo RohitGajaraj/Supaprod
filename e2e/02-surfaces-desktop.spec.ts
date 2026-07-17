@@ -1,0 +1,155 @@
+/**
+ * Phase 2: Visual Audit of 14 Surfaces at desktop (1280px)
+ * Captures screenshots and verifies layout for each authenticated surface
+ */
+import { test, expect, Page } from '@playwright/test';
+import { login, takeScreenshot, takeFullPageScreenshot } from './helpers/auth';
+
+const SURFACES = [
+  { path: '/today', name: 'today', label: 'Today' },
+  { path: '/discover', name: 'discover', label: 'Discovery & Signals' },
+  { path: '/plan', name: 'plan', label: 'Roadmap & Planning' },
+  { path: '/build', name: 'build', label: 'Build/Studio' },
+  { path: '/brain', name: 'brain', label: 'Brain/Knowledge' },
+  { path: '/engine-room', name: 'engine-room', label: 'Engine Room' },
+  { path: '/settings', name: 'settings', label: 'Settings' },
+  { path: '/guardrails', name: 'guardrails', label: 'Guardrails' },
+  { path: '/agents', name: 'agents', label: 'Agents' },
+  { path: '/evals', name: 'evals', label: 'Evals' },
+  { path: '/traces', name: 'traces', label: 'Traces' },
+  { path: '/drift', name: 'drift', label: 'Drift' },
+  { path: '/decide', name: 'decide', label: 'Decide' },
+  { path: '/ship', name: 'ship', label: 'Ship' },
+];
+
+async function checkHorizontalScroll(page: Page): Promise<boolean> {
+  return await page.evaluate(() => {
+    return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+  });
+}
+
+async function checkNoAdHocShadows(page: Page): Promise<string[]> {
+  return await page.evaluate(() => {
+    const elements = document.querySelectorAll('*');
+    const violations: string[] = [];
+    elements.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      const shadow = style.boxShadow;
+      if (shadow && shadow !== 'none') {
+        // Check if it uses CSS variables (acceptable) vs hardcoded rgba/rgb values
+        if (!shadow.includes('var(') && shadow.includes('rgba')) {
+          const tag = el.tagName.toLowerCase();
+          const className = (el.className || '').toString().substring(0, 50);
+          violations.push(`${tag}.${className}: ${shadow}`);
+        }
+      }
+    });
+    return violations.slice(0, 10); // Limit output
+  });
+}
+
+async function checkTokenResolution(page: Page): Promise<{ resolved: number; fallbacks: string[] }> {
+  return await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    const tokens = [
+      '--ds-background-100',
+      '--ds-background-200',
+      '--ds-gray-100',
+      '--ds-gray-900',
+      '--ds-gray-1000',
+      '--ember',
+      '--ds-focus-color',
+    ];
+
+    let resolved = 0;
+    const fallbacks: string[] = [];
+
+    tokens.forEach((token) => {
+      const value = style.getPropertyValue(token).trim();
+      if (value) {
+        resolved++;
+      } else {
+        fallbacks.push(token);
+      }
+    });
+
+    return { resolved, fallbacks };
+  });
+}
+
+async function getConsoleErrors(page: Page): Promise<string[]> {
+  const errors: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      errors.push(msg.text());
+    }
+  });
+  return errors;
+}
+
+test.describe('Surface Audit - Desktop 1280px', () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  let authCookies: any;
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await login(page);
+    authCookies = await page.context().cookies();
+    await page.close();
+  });
+
+  for (const surface of SURFACES) {
+    test(`${surface.label} (${surface.path}) - desktop layout`, async ({ page }) => {
+      // Restore auth cookies
+      await page.context().addCookies(authCookies);
+
+      const consoleErrors: string[] = [];
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          consoleErrors.push(msg.text());
+        }
+      });
+
+      await page.goto(surface.path, { waitUntil: 'networkidle' });
+
+      // Verify we're authenticated (not redirected to login)
+      if (page.url().includes('/login')) {
+        // Re-login if needed
+        const loginPage = page;
+        await login(loginPage);
+        await page.goto(surface.path, { waitUntil: 'networkidle' });
+      }
+
+      // Basic viewport screenshot
+      await takeScreenshot(page, `desktop-${surface.name}`, 'surfaces/desktop');
+
+      // Full page screenshot
+      await takeFullPageScreenshot(page, `desktop-${surface.name}`, 'surfaces/desktop');
+
+      // Check horizontal scroll
+      const hasHorizontalScroll = await checkHorizontalScroll(page);
+      if (hasHorizontalScroll) {
+        console.warn(`HORIZONTAL SCROLL detected on ${surface.path}`);
+      }
+
+      // Check token resolution
+      const tokenCheck = await checkTokenResolution(page);
+      if (tokenCheck.fallbacks.length > 0) {
+        console.warn(`Token fallbacks on ${surface.path}:`, tokenCheck.fallbacks);
+      }
+
+      // Log console errors (non-fatal)
+      if (consoleErrors.length > 0) {
+        console.warn(`Console errors on ${surface.path}:`, consoleErrors.slice(0, 5));
+      }
+
+      // The surface should render (body has content)
+      const bodyText = await page.locator('body').textContent();
+      expect(bodyText?.length).toBeGreaterThan(0);
+
+      // Assert: no horizontal scroll (critical)
+      expect(hasHorizontalScroll).toBe(false);
+    });
+  }
+});

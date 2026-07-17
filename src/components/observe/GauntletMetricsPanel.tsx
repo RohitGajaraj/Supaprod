@@ -56,7 +56,7 @@ function TrendChip({
       className="mono-label"
       style={{ display: "inline-flex", alignItems: "center", gap: 3, color, fontSize: 9 }}
     >
-      <Icon size={11} strokeWidth={2} />
+      <Icon size={16} strokeWidth={1.5} />
       {label} · {windowLabel}
     </span>
   );
@@ -97,7 +97,7 @@ function MetricCard({
       <div style={{ minHeight: 14, marginTop: 2 }}>
         {!loading && trend && <TrendChip trend={trend} hidden={trendHidden} />}
       </div>
-      <p style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 8, lineHeight: 1.45 }}>
+      <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", marginTop: 8, lineHeight: 1.45 }}>
         {meaning}
       </p>
       <div
@@ -154,7 +154,7 @@ function MemoryCompoundsCard({
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
               Of the memories the loop stored, the share it has recalled at least once. A store the
               loop reads back is a moat; one it never reopens is a log.
             </p>
@@ -180,7 +180,7 @@ function MemoryCompoundsCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {ready
             ? "Not enough data yet, no memories stored. The loop writes one each time it records an outcome or an agent reflects on a run, then recalls them on its next pass."
             : "Not enough data yet, memory tracking lights up on the next sync."}
@@ -244,7 +244,7 @@ function OutcomeAccuracyCard({
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
               Of the bets you shipped and then reviewed, the share that validated. Climbing as the
               loop's memory compounds is the moat working, not just storing.
             </p>
@@ -270,7 +270,7 @@ function OutcomeAccuracyCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {ready
             ? "Not enough data yet, no reviewed outcomes. Record an outcome on a shipped spec and its verdict lands here."
             : "Not enough data yet, outcome tracking lights up on the next sync."}
@@ -369,7 +369,7 @@ function MemoryDepthSplitCard({
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
               {meaning}
             </p>
             <div
@@ -383,7 +383,7 @@ function MemoryDepthSplitCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
       )}
       <div
         style={{
@@ -477,7 +477,7 @@ export function GauntletMetricsPanel() {
       <div
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 11.5,
+          fontSize: "var(--text-label-12)",
           color: "var(--text-faint)",
           marginBottom: 12,
           lineHeight: 1.5,

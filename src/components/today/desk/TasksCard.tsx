@@ -254,6 +254,7 @@ export function TasksCard() {
           ref={draftInputRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          aria-label="New task for today"
           placeholder="Add a task for today"
           style={{
             flex: 1,

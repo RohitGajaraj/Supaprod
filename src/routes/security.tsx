@@ -103,15 +103,21 @@ function SecurityPage() {
         <p>
           You can delete data you have created (workspaces, products, documents, signals) from
           inside the app, and export your data in open formats from Settings. Account deletion or
-          data export requests can also be made through the contact address on your account.
+          data export requests can also be made by emailing{" "}
+          <a href="mailto:privacy@supaprod.ai" style={{ color: "#ff9542" }}>
+            privacy@supaprod.ai
+          </a>
+          .
         </p>
       </LegalSection>
 
       <LegalSection title="Reporting a concern">
         <p>
-          If you find a security issue, tell us before you tell anyone else. Reach us through the
-          contact address on your account. We will acknowledge real reports and keep you posted as
-          we fix them.
+          If you find a security issue, tell us before you tell anyone else. Email{" "}
+          <a href="mailto:security@supaprod.ai" style={{ color: "#ff9542" }}>
+            security@supaprod.ai
+          </a>
+          . We will acknowledge real reports and keep you posted as we fix them.
         </p>
       </LegalSection>
 

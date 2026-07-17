@@ -23,7 +23,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
   return (
     <div className="mb-6 rounded-lg border hairline bg-card p-4">
       <div className="flex items-center gap-2.5">
-        <Palette className="h-3.5 w-3.5" style={{ color: lvl.color }} strokeWidth={1.9} />
+        <Palette className="h-3.5 w-3.5" style={{ color: lvl.color }} strokeWidth={1.5} />
         <span className="text-[13px] font-medium text-foreground">Design readiness</span>
         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
           {r.score}/{r.total}
@@ -57,7 +57,7 @@ export function DesignReadinessPanel({ body }: { body: string }) {
               <li key={c.key} className="flex items-start gap-2 text-xs leading-relaxed">
                 <ArrowRight
                   className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground"
-                  strokeWidth={1.9}
+                  strokeWidth={1.5}
                 />
                 <span>
                   <span className="text-foreground">{c.label}.</span>{" "}

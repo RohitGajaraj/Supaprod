@@ -57,7 +57,7 @@ export function SectionSummaryCard({
             style={{
               display: "block",
               marginTop: 3,
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               color: "var(--text-subtle)",
             }}
           >

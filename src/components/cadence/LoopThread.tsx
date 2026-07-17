@@ -36,7 +36,7 @@ export function LoopThread() {
         borderBottom: "1px solid var(--hairline)",
         background: "var(--ds-background-100)",
         overflow: "hidden",
-        fontSize: 11.5,
+        fontSize: "var(--text-label-12)",
       }}
     >
       <div
@@ -53,8 +53,8 @@ export function LoopThread() {
             <Fragment key={s.id}>
               {i > 0 && (
                 <ChevronRight
-                  size={11}
-                  strokeWidth={1.75}
+                  size={16}
+                  strokeWidth={1.5}
                   style={{ color: "var(--ds-gray-700)", flexShrink: 0 }}
                   aria-hidden
                 />
@@ -72,8 +72,8 @@ export function LoopThread() {
         })}
         <span title="The loop runs continuously" style={{ display: "inline-flex", flexShrink: 0 }}>
           <RotateCw
-            size={11}
-            strokeWidth={1.75}
+            size={16}
+            strokeWidth={1.5}
             style={{ color: "var(--ds-gray-700)", marginLeft: 2 }}
             aria-hidden
           />
@@ -93,7 +93,7 @@ export function LoopThread() {
           }}
         >
           {current.produces}
-          <ChevronRight size={10} strokeWidth={1.75} aria-hidden />
+          <ChevronRight size={14} strokeWidth={1.5} aria-hidden />
           {neighbors.next.label}
         </span>
       )}

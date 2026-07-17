@@ -21,7 +21,7 @@ import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getLandingStats, trackLandingEvent } from "@/lib/landing.functions";
 
-const SITE = "https://cadence-flow-beta.lovable.app";
+const SITE = "https://supaprod.ai";
 
 // The canonical identity line: hero sub, meta description, and llms.txt all
 // carry the same sentence so answer engines never reconcile drift (plan 6.3).

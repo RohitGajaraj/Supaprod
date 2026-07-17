@@ -65,7 +65,7 @@ export function LoopClosureBadge() {
         />
         <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{s.label}</span>
         <Activity
-          size={13}
+          size={16}
           strokeWidth={1.5}
           color="var(--ink-faint)"
           style={{ marginLeft: "auto" }}
@@ -78,9 +78,9 @@ export function LoopClosureBadge() {
         {s.trail.map((step, i) => (
           <span key={step.label} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
             {i > 0 ? (
-              <ChevronRight size={11} strokeWidth={1.5} color="var(--ink-faint)" aria-hidden />
+              <ChevronRight size={16} strokeWidth={1.5} color="var(--ink-faint)" aria-hidden />
             ) : null}
-            <span className="tabular-nums" style={{ fontSize: 11.5, color: "var(--ink)" }}>
+            <span className="tabular-nums" style={{ fontSize: "var(--text-label-12)", color: "var(--ink)" }}>
               <strong style={{ fontWeight: 600 }}>{step.value}</strong>{" "}
               <span style={{ color: "var(--ink-faint)" }}>
                 {trailLabel(step.label, step.value)}

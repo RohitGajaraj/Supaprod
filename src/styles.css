@@ -276,6 +276,14 @@
   --shadow-glass: 0 1px 0 0 var(--hairline) inset, 0 1px 2px -1px oklch(0.2 0.02 60 / 8%);
   --shadow-elevated: 0 1px 0 0 var(--hairline) inset, 0 8px 24px -12px oklch(0.2 0.02 60 / 16%);
   --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 70%, transparent);
+
+  /* Subscription status glow effects (Settings billing section) */
+  --glow-subscription-active: 0 0 8px color-mix(in srgb, var(--marigold) 50%, transparent);
+  --glow-subscription-past-due: 0 0 8px color-mix(in srgb, var(--madder) 50%, transparent);
+  --glow-subscription-default: 0 0 8px color-mix(in srgb, var(--moss) 50%, transparent);
+
+  /* Modal overlay backdrop (near-black, 60% opacity, blurred) */
+  --overlay-modal: oklch(0.015 0.002 60 / 60%);
 }
 
 /* === Ember Editorial — "Char night" dark theme ===
@@ -1316,6 +1324,10 @@
   }
   /* Pressable cards respond to touch (Emil: a pressable must feel heard). On
      press the lift's hover-raise yields to a small scale — instant feedback. */
+  .lift:focus-visible {
+    outline: var(--ds-focus-ring-outline);
+    outline-offset: 2px;
+  }
   .lift:active {
     transform: scale(0.99);
   }
@@ -2314,9 +2326,19 @@ html[data-motion="off"] .flow-pulse {
 }
 
 /* Every pressable answers the finger: subtle press, fast (§5). Applied via
- * class on interactive chrome; components adopt progressively. */
+ * class on interactive chrome; components adopt progressively.
+ * Mobile touch target minimum 44px (WCAG 2.1 AAA, Apple HIG). */
 [data-obsidian] .loom-press {
   transition: transform var(--dur-press) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+@media (max-width: 768px) {
+  [data-obsidian] .loom-press {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 [data-obsidian] .loom-press:active {
   transform: scale(0.98);
@@ -2913,6 +2935,19 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-ember-800: #d94e12;
   --ds-ember-900: #ff8f5e;
   --ds-ember-1000: #ffefe6;
+  /* Ember semi-transparent variants for backgrounds and subtle fills */
+  --ds-ember-bg-subtle: color-mix(in srgb, var(--ds-ember-600) 8%, transparent);
+  --ds-ember-bg-hover: color-mix(in srgb, var(--ds-ember-600) 12%, transparent);
+  /* Aurora glow effects (legacy, PC-10 Loop Health cards) — these are special decorative glows */
+  --aurora-glow-healthy-orb-a: rgba(232, 180, 76, 0.30);
+  --aurora-glow-healthy-orb-b: rgba(127, 191, 142, 0.38);
+  --aurora-glow-healthy: rgba(127, 191, 142, 0.10);
+  --aurora-glow-attention-orb-a: rgba(255, 138, 80, 0.34);
+  --aurora-glow-attention-orb-b: rgba(232, 180, 76, 0.30);
+  --aurora-glow-attention: rgba(255, 107, 44, 0.10);
+  --aurora-glow-failing-orb-a: rgba(224, 101, 87, 0.34);
+  --aurora-glow-failing-orb-b: rgba(255, 138, 80, 0.26);
+  --aurora-glow-failing: rgba(224, 101, 87, 0.10);
   /* Blue = the machine's color, RICH glacier (founder rulings 2026-07-11,
      refined same day: the reference #84b3ec anchor read chalky on black, and
      "not good" was a brief to redesign, not to flatten to gray). The scale

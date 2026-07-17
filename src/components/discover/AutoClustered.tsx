@@ -443,7 +443,7 @@ export function AutoClustered() {
           size="sm"
           onClick={() => setShowAll((v) => !v)}
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             margin: "0 4px",
           }}

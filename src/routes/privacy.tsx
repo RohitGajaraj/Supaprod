@@ -97,8 +97,11 @@ function PrivacyPage() {
 
       <LegalSection title="Contact">
         <p>
-          Questions about this policy or a request to export or delete your data: reach us through
-          the contact address on your account, or see the{" "}
+          Questions about this policy or a request to export or delete your data: email{" "}
+          <a href="mailto:privacy@supaprod.ai" style={{ color: "#ff9542" }}>
+            privacy@supaprod.ai
+          </a>
+          , or see the{" "}
           <a href="/security" style={{ color: "#ff9542" }}>
             security page
           </a>{" "}

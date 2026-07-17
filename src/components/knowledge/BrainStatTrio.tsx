@@ -134,7 +134,7 @@ export function BrainStatTrio() {
         <Link
           to="/today"
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
@@ -172,7 +172,7 @@ export function BrainStatTrio() {
           <Button variant="secondary" onClick={() => download(stats.markdown as string)}>
             Export my record
           </Button>
-          <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
+          <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
             Downloads a cited markdown record · nothing leaves your workspace
           </span>
         </div>

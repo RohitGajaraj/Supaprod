@@ -112,7 +112,7 @@ export function WorkspaceBindingsSection() {
           <div className="mono-label" style={{ color: "var(--madder)" }}>
             Couldn't load workspace bindings
           </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", margin: "8px 0 0" }}>
             {(qConnections.error as Error)?.message ??
               (qBindings.error as Error)?.message ??
               "Unknown error"}
@@ -165,7 +165,7 @@ export function WorkspaceBindingsSection() {
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>
                         {spec.label}
                       </div>
-                      <div style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>{rt.label}</div>
+                      <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)" }}>{rt.label}</div>
                     </div>
                   </div>
 
@@ -187,7 +187,7 @@ export function WorkspaceBindingsSection() {
                           </div>
                           <div
                             style={{
-                              fontSize: 12.5,
+                              fontSize: "var(--text-label-13)",
                               color: "var(--ink)",
                               marginTop: 3,
                               overflow: "hidden",

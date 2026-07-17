@@ -37,19 +37,19 @@ export interface AuroraCardProps extends React.HTMLAttributes<HTMLDivElement> {
  * glow. Hue picks the orb palette by state. */
 const AURORA_ORBS: Record<AuroraHue, { a: string; b: string; glow: string }> = {
   healthy: {
-    a: "rgba(232, 180, 76, 0.30)", // marigold
-    b: "rgba(127, 191, 142, 0.38)", // moss
-    glow: "rgba(127, 191, 142, 0.10)",
+    a: "var(--aurora-glow-healthy-orb-a)",
+    b: "var(--aurora-glow-healthy-orb-b)",
+    glow: "var(--aurora-glow-healthy)",
   },
   attention: {
-    a: "rgba(255, 138, 80, 0.34)", // ember-warm
-    b: "rgba(232, 180, 76, 0.30)", // marigold
-    glow: "rgba(255, 107, 44, 0.10)",
+    a: "var(--aurora-glow-attention-orb-a)",
+    b: "var(--aurora-glow-attention-orb-b)",
+    glow: "var(--aurora-glow-attention)",
   },
   failing: {
-    a: "rgba(224, 101, 87, 0.34)", // madder
-    b: "rgba(255, 138, 80, 0.26)", // ember-warm
-    glow: "rgba(224, 101, 87, 0.10)",
+    a: "var(--aurora-glow-failing-orb-a)",
+    b: "var(--aurora-glow-failing-orb-b)",
+    glow: "var(--aurora-glow-failing)",
   },
 };
 

@@ -688,7 +688,7 @@ export function OpportunityDetailSheet({
               }}
             >
               <Button
-                variant="primary"
+                variant="accent"
                 size="sm"
                 onClick={onDraftSpec}
                 loading={draftPending}

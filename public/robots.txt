@@ -17,7 +17,7 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://cadence-flow-beta.lovable.app/sitemap.xml
+Sitemap: https://supaprod.ai/sitemap.xml
 
 # Agentic-era machine-readable interfaces:
 # See /llms.txt for AI agent context and /agents.txt for the agent access

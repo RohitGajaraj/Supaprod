@@ -211,7 +211,7 @@ export function BudgetsPanel() {
     return (
       <div
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--ink-faint)",
           padding: "32px 0",
           textAlign: "center",
@@ -288,7 +288,7 @@ export function BudgetsPanel() {
                   <button
                     className="btn btn-primary btn-sm"
                     type="submit"
-                    style={{ fontSize: 10.5 }}
+                    style={{ fontSize: "var(--text-label-12)" }}
                   >
                     Set cap
                   </button>
@@ -356,8 +356,8 @@ export function BudgetsPanel() {
           gap: 10,
         }}
       >
-        <Shield size={13} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
-        <span style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+        <Shield size={16} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
+        <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
           Caps are hard limits: an over-cap AI call is blocked mid-mission and the run halts with
           the reason on record. Per-mission token and spend caps separately halt any one mission
           that passes its own limit.
@@ -413,7 +413,7 @@ export function BudgetsPanel() {
               className="btn btn-primary btn-sm"
               type="submit"
               disabled={saveAdvMut.isPending}
-              style={{ fontSize: 10.5 }}
+              style={{ fontSize: "var(--text-label-12)" }}
             >
               Save caps · enforced on the next call
             </button>
@@ -466,7 +466,7 @@ export function BudgetsPanel() {
         {surfaces.length === 0 ? (
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               color: "var(--ink-faint)",
               padding: "16px 18px",
               textAlign: "center",
@@ -496,7 +496,7 @@ export function BudgetsPanel() {
               >
                 <span style={{ minWidth: 0 }}>
                   <span style={{ fontWeight: 500 }}>{row.surface}</span>
-                  <span style={{ display: "block", fontSize: 11.5, color: "var(--ink-subtle)" }}>
+                  <span style={{ display: "block", fontSize: "var(--text-label-12)", color: "var(--ink-subtle)" }}>
                     {row.enabled ? "enforced" : "off · not enforced"}
                   </span>
                 </span>
@@ -620,7 +620,7 @@ export function BudgetsPanel() {
             className="btn btn-primary btn-sm"
             type="submit"
             disabled={addSurfaceMut.isPending}
-            style={{ fontSize: 10.5 }}
+            style={{ fontSize: "var(--text-label-12)" }}
           >
             Set cap · blocks over-cap calls
           </button>
@@ -633,7 +633,7 @@ export function BudgetsPanel() {
           Alerts · cap warnings and blocks
         </MonoLabel>
         {alerts.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "8px 0" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)", padding: "8px 0" }}>
             No alerts yet.
           </div>
         ) : (
@@ -657,7 +657,7 @@ export function BudgetsPanel() {
                     {a.scope === "global" ? "Global" : a.surface} · {a.window_kind} at{" "}
                     {Number(a.pct).toFixed(0)}%
                   </div>
-                  <div style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>
+                  <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)" }}>
                     {fmtUsd(a.usd_used)} of {fmtUsd(a.usd_cap)} · {relTime(a.created_at)}
                   </div>
                 </div>

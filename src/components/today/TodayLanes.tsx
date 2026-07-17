@@ -26,7 +26,7 @@ function fmtUsd(n: number): string {
 
 const monoLabel: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   letterSpacing: "0.12em",
   textTransform: "uppercase",
 };
@@ -52,7 +52,6 @@ function LaneSection({
         <h2
           style={{
             ...monoLabel,
-            fontSize: 11,
             color: accent === "ember" ? "var(--ember-text)" : "var(--text-subtle)",
             margin: 0,
           }}
@@ -60,9 +59,9 @@ function LaneSection({
           {title}
         </h2>
         {typeof count === "number" ? (
-          <span style={{ ...monoLabel, fontSize: 10.5, color: "var(--text-faint)" }}>{count}</span>
+          <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{count}</span>
         ) : null}
-        {hint ? <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>{hint}</span> : null}
+        {hint ? <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{hint}</span> : null}
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
       </div>
       {children}
@@ -73,7 +72,7 @@ function LaneSection({
 function LaneEmpty({ text }: { text: string }) {
   return (
     <p
-      style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
+      style={{ fontSize: "var(--text-label-13)", color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
     >
       {text}
     </p>
@@ -128,14 +127,14 @@ export function PushedInsights({
               <span style={{ ...monoLabel, color: "var(--ember-text)" }}>
                 {INSIGHT_LABEL[ins.kind] ?? "Insight"}
               </span>
-              <span style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}>
+              <span style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}>
                 {ins.headline}
               </span>
             </div>
             {ins.detail ? (
               <p
                 style={{
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   color: "var(--text-body)",
                   margin: "0 0 10px",
                   lineHeight: 1.5,
@@ -156,7 +155,7 @@ export function PushedInsights({
               className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
                 alignSelf: "flex-start",
-                fontSize: 12,
+                fontSize: "var(--text-label-12)",
                 fontWeight: 500,
                 border: "1px solid",
                 borderRadius: "var(--radius-control)",
@@ -231,24 +230,24 @@ export function SwarmActivityLane({
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <span
                     className="min-w-0 flex-1 truncate"
-                    style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+                    style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
                   >
                     {stripAutoPrefix(g.title)}
                   </span>
                   {isAutoTitle(g.title) ? <AutoChip /> : null}
                   {g.cost_usd > 0 ? (
-                    <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
+                    <span style={{ ...monoLabel, color: "var(--text-subtle)" }}>
                       {fmtUsd(g.cost_usd)}
                     </span>
                   ) : null}
-                  <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+                  <span style={{ ...monoLabel, color: "var(--text-faint)" }}>
                     {g.count} {g.count === 1 ? "move" : "moves"}
                   </span>
                 </div>
                 {g.goal ? (
                   <div
                     style={{
-                      fontSize: 11.5,
+                      fontSize: "var(--text-label-12)",
                       color: "var(--text-faint)",
                       marginTop: 2,
                       display: "-webkit-box",
@@ -266,7 +265,6 @@ export function SwarmActivityLane({
                       key={it.id}
                       style={{
                         ...monoLabel,
-                        fontSize: 9.5,
                         color: "var(--text-subtle)",
                         background: "var(--surface-card-deep)",
                         borderRadius: 4,
@@ -317,12 +315,12 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
             </span>
             <span
               className="min-w-0 flex-1 truncate"
-              style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+              style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
             >
               {it.title}
             </span>
             {it.confidence != null ? (
-              <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+              <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>
                 {Math.round(it.confidence * 100)}%
               </span>
             ) : null}
@@ -330,7 +328,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
           {it.description ? (
             <p
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 margin: "0 0 4px",
                 lineHeight: 1.5,
@@ -340,7 +338,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
             </p>
           ) : null}
           {it.recommendation ? (
-            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-muted)", margin: 0 }}>
               → {it.recommendation}
             </p>
           ) : null}
@@ -403,15 +401,15 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+                  style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
                 >
                   {it.title}
                 </span>
-                <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
+                <span style={{ ...monoLabel, color: "var(--text-subtle)" }}>
                   {VERDICT_LABEL[it.verdict] ?? it.verdict}
                 </span>
                 {it.spent_usd > 0 ? (
-                  <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+                  <span style={{ ...monoLabel, color: "var(--text-faint)" }}>
                     {fmtUsd(it.spent_usd)}
                   </span>
                 ) : null}
@@ -419,7 +417,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
               {it.metric_label && it.metric_value != null ? (
                 <div
                   style={{
-                    fontSize: 11.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-faint)",
                     marginTop: 3,
                     paddingLeft: 17,

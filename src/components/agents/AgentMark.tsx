@@ -83,7 +83,7 @@ export function AgentMark({ slug, size = 22 }: { slug: string | null | undefined
         flexShrink: 0,
       }}
     >
-      <Icon size={inner} strokeWidth={2} />
+      <Icon size={inner} strokeWidth={1.5} />
     </span>
   );
 }

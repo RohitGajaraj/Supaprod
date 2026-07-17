@@ -31,7 +31,7 @@ export const fieldLabelStyle: CSSProperties = {
 };
 
 export const fieldErrorStyle: CSSProperties = {
-  fontSize: 11.5,
+  fontSize: "var(--text-label-12)",
   color: "var(--madder)",
   textAlign: "left",
   lineHeight: 1.5,
@@ -77,7 +77,7 @@ const card: CSSProperties = {
 };
 
 const footerStyle: CSSProperties = {
-  fontSize: 11.5,
+  fontSize: "var(--text-label-12)",
   color: "var(--text-subtle)",
   textAlign: "center",
   marginTop: 16,

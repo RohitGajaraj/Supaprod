@@ -162,7 +162,7 @@ function CaptureMissionDecision({
       disabled={cap.isPending}
       className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
       style={{
-        fontSize: 10.5,
+        fontSize: "var(--text-label-12)",
         display: "inline-flex",
         alignItems: "center",
         gap: 5,
@@ -172,7 +172,7 @@ function CaptureMissionDecision({
         opacity: cap.isPending ? 0.5 : 1,
       }}
     >
-      <Gavel size={11} strokeWidth={1.75} />
+      <Gavel size={16} strokeWidth={1.5} />
       {cap.isPending ? "Capturing…" : "Capture · files this as a decision"}
     </button>
   );
@@ -245,7 +245,7 @@ function GatePanel({
             fontWeight: 700,
           }}
         >
-          <ShieldAlert size={13} /> Action required · governance gate
+          <ShieldAlert size={16} /> Action required · governance gate
         </div>
         {pendingApprovals.map((appr) => (
           <div key={appr.id}>
@@ -260,7 +260,7 @@ function GatePanel({
               {agentName ?? "The agent"} wants{" "}
               <span
                 className="mono-label"
-                style={{ color: "var(--text-primary)", fontSize: 10.5, display: "inline-flex" }}
+                style={{ color: "var(--text-primary)", fontSize: "var(--text-label-12)", display: "inline-flex" }}
               >
                 {appr.tool_name}
               </span>
@@ -278,7 +278,7 @@ function GatePanel({
                 }}
                 onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
               >
-                <Check size={12} />
+                <Check size={16} />
                 Approve · runs the tool
               </button>
               <button
@@ -286,7 +286,7 @@ function GatePanel({
                 disabled={decide.isPending}
                 onClick={() => decide.mutate({ id: appr.id, decision: "reject" })}
               >
-                <X size={12} />
+                <X size={16} />
                 Reject · nothing runs
               </button>
             </div>
@@ -314,7 +314,7 @@ const preStyle: CSSProperties = {
   border: "1px solid var(--hairline)",
   borderRadius: 8,
   padding: 10,
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   lineHeight: 1.6,
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
@@ -323,7 +323,7 @@ const preStyle: CSSProperties = {
   color: "var(--text-subtle)",
 };
 const handoffChip: CSSProperties = {
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
@@ -337,7 +337,7 @@ const handoffChip: CSSProperties = {
    (CHIP_BTN) so hover states can resolve — inline always beats a stylesheet
    hover (state audit 2026-07-12). */
 const handoffChipBtn: CSSProperties = {
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
@@ -384,7 +384,7 @@ function TraceHop({
             className={`mono-label loom-press ${CHIP_BTN} ${FOCUS}`}
             style={handoffChipBtn}
           >
-            {showPayload ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+            {showPayload ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             {inbound.from_agent_slug
               ? agentDisplayName(inbound.from_agent_slug)
               : "operator"} → {agentDisplayName(inbound.to_agent_slug)} · payload
@@ -412,9 +412,9 @@ function TraceHop({
         }}
       >
         {open ? (
-          <ChevronDown size={11} style={{ color: "var(--text-faint)" }} />
+          <ChevronDown size={16} style={{ color: "var(--text-faint)" }} />
         ) : (
-          <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
+          <ChevronRight size={16} style={{ color: "var(--text-faint)" }} />
         )}
         <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
@@ -450,7 +450,7 @@ function TraceHop({
             className="mono-label"
             style={{
               ...rail,
-              fontSize: 10.5,
+              fontSize: "var(--text-label-12)",
               lineHeight: 1.8,
               display: "flex",
               alignItems: "center",
@@ -478,7 +478,7 @@ function TraceHop({
                 aria-expanded={showMemories}
                 className={`mono-label loom-press ${HOVER_TEXT} ${HOVER_BG} ${FOCUS}`}
                 style={{
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
@@ -487,7 +487,7 @@ function TraceHop({
                   padding: "2px 8px",
                 }}
               >
-                {showMemories ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+                {showMemories ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 memory context · {h.recalled_memories.length}
               </button>
               {showMemories ? (
@@ -495,7 +495,7 @@ function TraceHop({
                   {h.recalled_memories.map((mem, mi) => (
                     <div
                       key={mi}
-                      style={{ fontSize: 10.5, color: "var(--text-subtle)", lineHeight: 1.7 }}
+                      style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.7 }}
                     >
                       · {mem}
                     </div>
@@ -528,13 +528,13 @@ function TraceHop({
               aria-expanded={showInput}
               className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
               style={{
-                fontSize: 10.5,
+                fontSize: "var(--text-label-12)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
               }}
             >
-              {showInput ? <ChevronDown size={9} /> : <ChevronRight size={9} />} input
+              {showInput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} input
             </button>
             {h.output ? (
               <button
@@ -542,13 +542,13 @@ function TraceHop({
                 aria-expanded={showOutput}
                 className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
                 style={{
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
                 }}
               >
-                {showOutput ? <ChevronDown size={9} /> : <ChevronRight size={9} />} output
+                {showOutput ? <ChevronDown size={14} /> : <ChevronRight size={14} />} output
               </button>
             ) : null}
           </div>
@@ -650,7 +650,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         )}
       </div>
       {n === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--text-body)", lineHeight: 1.5 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", lineHeight: 1.5 }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
           that memory compounds here. The next mission on this product will not start cold.
         </p>
@@ -677,7 +677,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 style={{
                   display: "flex",
                   gap: 10,
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   paddingTop: i === 0 ? 0 : 6,
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
@@ -966,7 +966,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             />
             <p
               style={{
-                fontSize: 13.5,
+                fontSize: "var(--text-label-14)",
                 color: "color-mix(in oklab, var(--text-primary) 70%, transparent)",
                 display: "-webkit-box",
                 WebkitLineClamp: 4,
@@ -986,7 +986,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   alignItems: "center",
                   gap: 5,
                   marginTop: 8,
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color: "color-mix(in oklab, var(--text-primary) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
@@ -1008,7 +1008,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--ember-line)",
@@ -1038,7 +1038,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
@@ -1060,7 +1060,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   onChange={(e) => setReplayModel(e.target.value)}
                   className={`mono-label ${FOCUS}`}
                   style={{
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     padding: "3px 6px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
@@ -1084,7 +1084,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 5,
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     padding: "3px 10px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
@@ -1220,7 +1220,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 5,
-              fontSize: 10.5,
+              fontSize: "var(--text-label-12)",
               padding: "3px 10px",
               borderRadius: 5,
               border: "1px solid color-mix(in oklab, var(--text-subtle) 45%, transparent)",
@@ -1261,7 +1261,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 disabled={advance.isPending}
                 className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
                 style={{
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--hairline)",
@@ -1293,7 +1293,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   aria-pressed={view === id}
                   className={`mono-label loom-press transition-colors hover:[background:var(--surface-hover)] ${FOCUS}`}
                   style={{
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     padding: "3px 10px",
                     borderRadius: 5,
                     // Inline background only on the active pill so hover resolves.
@@ -1310,7 +1310,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         {view === "plan" ? (
           <div style={{ display: "flex", flexDirection: "column" }}>
             {planRows.length === 0 ? (
-              <div style={{ fontSize: 12.5, color: "var(--text-subtle)", fontStyle: "italic" }}>
+              <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", fontStyle: "italic" }}>
                 No steps yet. The plan lands with the first hop.
               </div>
             ) : (
@@ -1343,7 +1343,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.deps.length > 0 ? (
                         <span
                           className="mono-label"
-                          style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                          style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
                         >
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
@@ -1411,7 +1411,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               {unattended.length} action{unattended.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginBottom: 12 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", marginBottom: 12 }}>
             {/* RPT-09 (amplifier voice): the operator set the trust bar these ran under
                 -- frame it as their call, not as the operator being cut out of the loop. */}
             You set the agent&apos;s trust high enough to run these on its own, so they went ahead
@@ -1476,7 +1476,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </span>
         </div>
         {hops.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", fontStyle: "italic" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", fontStyle: "italic" }}>
             No hops yet. The mission is queued.
           </div>
         ) : (
@@ -1517,16 +1517,16 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               whiteSpace: "normal",
             }}
           >
-            <X size={13} style={{ flexShrink: 0 }} /> Failed ·{" "}
+            <X size={16} style={{ flexShrink: 0 }} /> Failed ·{" "}
             {failedStep?.error ?? "see the trace below"}
           </div>
           {failedStep ? (
-            <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "6px 0 10px" }}>
+            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "6px 0 10px" }}>
               {agentDisplayName(failedStep.agent_slug)} could not finish "{failedStep.sub_goal}"
               {failedStep.error ? `: ${failedStep.error}` : ""}.
             </p>
           ) : (
-            <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "6px 0 10px" }}>
+            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "6px 0 10px" }}>
               The mission stopped before completing. The execution trace above carries the details.
             </p>
           )}
@@ -1536,7 +1536,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               disabled={replay.isPending}
               onClick={() => replay.mutate()}
             >
-              <RotateCcw size={11} />
+              <RotateCcw size={16} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
             </button>
             <Link

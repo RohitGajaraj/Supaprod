@@ -92,7 +92,7 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
             onClick={() => setRevealed((v) => !v)}
             aria-expanded={revealed}
             style={{
-              fontSize: 12,
+              fontSize: "var(--text-label-12)",
               fontWeight: 500,
               padding: 0,
             }}
@@ -176,7 +176,7 @@ export function IntelBriefPanel() {
         >
           What changed upstream
         </h2>
-        <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
+        <p style={{ margin: "3px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
           Daily market, competitor, and tech-shift briefs, each with its receipts
         </p>
       </div>
@@ -224,7 +224,7 @@ export function IntelBriefPanel() {
                 // would defeat the hover:[border-color:…] variant.
                 className="loom-press w-full outline-none transition-colors [color:var(--text-muted)] [border-color:var(--hairline-strong)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   fontWeight: 500,
                   background: "transparent",
                   border: "1px solid",

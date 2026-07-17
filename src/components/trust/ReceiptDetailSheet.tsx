@@ -81,7 +81,7 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
         }}
         style={chip}
       >
-        {copied ? <Check size={11} strokeWidth={2} /> : <Copy size={11} strokeWidth={1.8} />}
+        {copied ? <Check size={16} strokeWidth={1.5} /> : <Copy size={16} strokeWidth={1.5} />}
         {copied ? "Link copied" : "Copy public link"}
       </button>
     );
@@ -106,7 +106,7 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
       disabled={m.isPending}
       style={{ ...chip, opacity: m.isPending ? 0.6 : 1 }}
     >
-      <Share2 size={11} strokeWidth={1.8} />
+      <Share2 size={16} strokeWidth={1.5} />
       {m.isPending ? "Sharing" : m.isError ? "Retry share" : "Share"}
     </button>
   );
@@ -656,7 +656,7 @@ export function ReceiptDetailSheet({
                     cursor: "pointer",
                   }}
                 >
-                  <History size={13} strokeWidth={1.8} color="var(--text-muted)" />
+                  <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
                     {r.supersededBy.slice(0, 8)}
                   </span>
@@ -669,7 +669,7 @@ export function ReceiptDetailSheet({
                   className="flex items-center"
                   style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
                 >
-                  <History size={13} strokeWidth={1.8} color="var(--text-muted)" />
+                  <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
                     {r.supersededBy.slice(0, 8)}
                   </span>

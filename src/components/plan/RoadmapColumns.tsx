@@ -213,7 +213,7 @@ export function RoadmapColumns() {
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -226,7 +226,7 @@ export function RoadmapColumns() {
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -243,7 +243,7 @@ export function RoadmapColumns() {
     return (
       <p
         style={{
-          fontSize: 12,
+          fontSize: "var(--text-label-12)",
           color: "var(--text-subtle)",
           margin: 0,
           padding: "8px 0",
@@ -318,23 +318,28 @@ export function RoadmapColumns() {
         </div>
       )}
       {/* Columns wrap below ~780px content width so 768 stays readable
-          (three crushed 200px columns fail the responsive pass). */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: 16,
-        }}
-      >
+          (three crushed 200px columns fail the responsive pass).
+          Responsive: 1 column mobile (<640px), 2 tablet (640-1024), 3 desktop (≥1024). */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {COLUMNS.map((col) => {
           const colItems = itemsByBucket.get(col.key) ?? [];
           const expanded = expandedCols.has(col.key);
           const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
           return (
             <div key={col.key}>
-              <MonoLabel style={{ color: col.color, marginBottom: 10, display: "block" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: 16,
+                  fontWeight: 400,
+                  color: col.color,
+                  marginBottom: 10,
+                  display: "block",
+                  letterSpacing: "0.01em",
+                }}
+              >
                 {col.label} · {colItems.length}
-              </MonoLabel>
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {shownItems.map((item) => (
                   <BetCard
@@ -366,7 +371,7 @@ export function RoadmapColumns() {
                     className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 12.5,
+                      fontSize: "var(--text-label-13)",
                       fontWeight: 500,
                       color: "var(--text-muted)",
                       background: "transparent",

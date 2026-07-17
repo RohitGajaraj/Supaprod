@@ -139,8 +139,14 @@ function SubprocessorsPage() {
             paddingTop: 20,
           }}
         >
-          For a data-processing agreement (DPA) or details on processing regions, contact your
-          Cadence account team.
+          For a data-processing agreement (DPA) or details on processing regions, email{" "}
+          <a
+            href="mailto:privacy@supaprod.ai"
+            style={{ color: "var(--ink-faint)", textDecoration: "underline" }}
+          >
+            privacy@supaprod.ai
+          </a>
+          .
         </p>
       </main>
     </div>

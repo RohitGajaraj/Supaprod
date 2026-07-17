@@ -166,7 +166,7 @@ export function DayWeather() {
         <w.Icon
           className="weather-live"
           size={14}
-          strokeWidth={1.9}
+          strokeWidth={1.5}
           style={{
             color: w.tint,
             filter: `drop-shadow(0 0 6px color-mix(in oklab, ${w.tint} 60%, transparent))`,

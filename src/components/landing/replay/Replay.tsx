@@ -679,7 +679,7 @@ export function FlowList({
                       animation: "landingMarkSpin 9s linear infinite",
                     }}
                   >
-                    <CadenceMark size={13} glow={false} />
+                    <CadenceMark size={16} glow={false} />
                   </span>
                 )}
               </div>

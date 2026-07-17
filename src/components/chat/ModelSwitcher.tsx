@@ -87,7 +87,7 @@ export function ModelSwitcher({
           style={{ fontSize: 9.5, padding: "6px 4px" }}
         >
           <span className="truncate normal-case tracking-normal">{label}</span>
-          <ChevronDown size={11} className="shrink-0 opacity-60" />
+          <ChevronDown size={16} className="shrink-0 opacity-60" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" side="top" sideOffset={8} className="w-80 p-1.5">

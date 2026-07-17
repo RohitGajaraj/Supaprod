@@ -99,7 +99,7 @@ export function AuditLineageSheet() {
               {(d?.ref ?? ref ?? "").replace("·", " · ")}
             </span>
             {d?.found ? (
-              <span style={{ fontSize: 11.5, color: "var(--text-subtle)", fontWeight: 400 }}>
+              <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", fontWeight: 400 }}>
                 {d.label} · {d.stage}
               </span>
             ) : null}
