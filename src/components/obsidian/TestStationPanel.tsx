@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StatusDot } from "./status";
 import { MonoLabel } from "./primitives";
-import { useToast } from "./toast";
+import { toast } from "@/lib/notify";
 import {
   getMissionTestPlan,
   recordTestStationVerdict,
@@ -31,7 +31,6 @@ const ITEM_META = {
 
 export function TestStationPanel({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
-  const showToast = useToast();
   const fGet = useServerFn(getMissionTestPlan);
   const fToggleUat = useServerFn(toggleUatChecklistItem);
   const fRecord = useServerFn(recordTestStationVerdict);
@@ -46,18 +45,18 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
       fToggleUat({ data: vars }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-test-plan", missionId] }),
     // A silent failure would leave the checklist lying about its state.
-    onError: () => showToast("Could not update that checklist item. Try again."),
+    onError: () => toast.success("Could not update that checklist item. Try again."),
   });
 
   const record = useMutation({
     mutationFn: () => fRecord({ data: { missionId } }),
     onSuccess: (res) => {
       if (res.ok) {
-        showToast("Verdict recorded on the decision.");
+        toast.success("Verdict recorded on the decision.");
         qc.invalidateQueries({ queryKey: ["mission-test-plan", missionId] });
         qc.invalidateQueries({ queryKey: ["ledger-seal"] });
       } else {
-        showToast("Could not record the verdict yet.");
+        toast.success("Could not record the verdict yet.");
       }
     },
   });

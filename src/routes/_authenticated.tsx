@@ -8,7 +8,7 @@ import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
-import { ToastProvider } from "@/components/obsidian/toast";
+
 import { AskProvider } from "@/lib/ask-context";
 import { AskPanel } from "@/components/obsidian/AskPanel";
 import { FocusDock } from "@/components/cadence/FocusDock";
@@ -149,7 +149,7 @@ function AuthedLayout() {
     <div data-obsidian>
       <WorkspaceProvider>
         <FlowModeProvider>
-          <ToastProvider>
+
             <AskProvider>
               {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
               <BackendHealthBanner />
@@ -170,7 +170,7 @@ function AuthedLayout() {
                   page, the cross-surface countdown while a block runs (Option F). */}
               {!isOnboarding && <FocusDock />}
             </AskProvider>
-          </ToastProvider>
+
         </FlowModeProvider>
       </WorkspaceProvider>
     </div>

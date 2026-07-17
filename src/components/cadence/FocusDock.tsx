@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { useFlowMode } from "@/hooks/use-flow-mode";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -147,7 +147,6 @@ export function FocusDock() {
   // "Focus" is the default/first tab; never persisted across sessions.
   const [activeTab, setActiveTab] = React.useState<ComposerTabId>("focus");
   const { activeWorkspaceId, activeProductId } = useWorkspace();
-  const showToast = useToast();
   const qc = useQueryClient();
 
   const [taskTitle, setTaskTitle] = React.useState("");
@@ -157,10 +156,10 @@ export function FocusDock() {
       fCreateTask({ data: { title, due_date: todayStr(), project_id: activeProductId ?? null } }),
     onSuccess: () => {
       setTaskTitle("");
-      showToast("Added to today's list.");
+      toast.success("Added to today's list.");
       void qc.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // The Note tab shares the exact same store as the Desk's NotepadCard (never

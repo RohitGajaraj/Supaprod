@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button, MonoLabel } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import {
   listBriefItems,
   upsertBriefItem,
@@ -28,7 +28,6 @@ const SINGLETON_KINDS: BriefItemKind[] = ["vision", "icp", "positioning"];
  * restraint budget (this card owns zero ember — nothing here is a gate). */
 export function StrategicBriefCard() {
   const qc = useQueryClient();
-  const showToast = useToast();
   const fList = useServerFn(listBriefItems);
   const fUpsert = useServerFn(upsertBriefItem);
   const fRetire = useServerFn(retireBriefItem);
@@ -65,13 +64,13 @@ export function StrategicBriefCard() {
       setDraftBody("");
     },
     // A failed save must never end silently with the form still open.
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   const retire = useMutation({
     mutationFn: (id: string) => fRetire({ data: { id } }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["brief-items"] }),
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   function startEdit(kind: BriefItemKind, existing?: BriefItem) {

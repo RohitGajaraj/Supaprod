@@ -9,6 +9,7 @@ import {
 } from "@/lib/studio.functions";
 import { MonoLabel, StatusBadge, StepDot, VerdictChip } from "@/components/cadence/Primitives";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
+import { EmptyState } from "@/components/cadence/EmptyState";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 
 /** Per-check StepDot vocabulary — live = running, outcomes = moss/madder. */

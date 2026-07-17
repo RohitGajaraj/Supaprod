@@ -11,7 +11,9 @@ import {
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
+import { EmptyState } from "@/components/cadence/EmptyState";
 
+import { EmptyState } from "@/components/cadence/EmptyState";
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
 // parchment cmdk palette. Sections (JUMP · SETTINGS · ACT · ASK · CATALOG), a
 // flat keyboard-navigable row list, and a static searchable catalog that runs
@@ -272,33 +274,10 @@ export function CommandPalette() {
             style={{ maxHeight: 420, overflowY: "auto", padding: 6 }}
           >
             {sectioned.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 16px" }}>
-                {/* The palette's one Pixel accent (DESIGN-TEMPO §3), matching
-                    the EmptyState primitive: headline only. Input, hints, and
-                    result rows are dense UI and stay Sans/Mono; the springy
-                    settle on open remains the surface's one motion touch. */}
-                <p
-                  style={{
-                    fontFamily: "var(--font-pixel)",
-                    fontWeight: 400,
-                    fontSize: 15,
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  Nothing by that name
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-ui)",
-                    fontSize: 12.5,
-                    color: "var(--text-muted)",
-                    margin: "6px 0 0",
-                  }}
-                >
-                  Try a verb, like challenge or connect.
-                </p>
-              </div>
+              <EmptyState
+                headline="Nothing by that name"
+                body="Try a verb, like challenge or connect."
+              />
             ) : (
               sectioned.map((group) => (
                 <div

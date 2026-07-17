@@ -9,7 +9,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTasks, createTask, updateTask } from "@/lib/tasks.functions";
 import { dueRowsOf, isOverdue, openDueCountOf, todayStr, type TaskRow } from "./task-filters";
@@ -51,7 +51,6 @@ function fmtDueDate(dueDate: string | null): string {
 
 export function TasksCard() {
   const qc = useQueryClient();
-  const showToast = useToast();
   const { activeProductId } = useWorkspace();
 
   const fTasks = useServerFn(listTasks);
@@ -77,10 +76,10 @@ export function TasksCard() {
       mCreate({ data: { title, due_date: todayStr(), project_id: activeProductId ?? null } }),
     onSuccess: () => {
       setDraft("");
-      showToast("Added to today's list.");
+      toast.success("Added to today's list.");
       void qc.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // Optimistic where reversible (DESIGN-LOOM §9): the box flips the instant
@@ -111,7 +110,7 @@ export function TasksCard() {
     },
     onError: (e: Error, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["tasks"], ctx.prev);
-      showToast(e.message);
+      toast.success(e.message);
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: ["tasks"] }),
   });

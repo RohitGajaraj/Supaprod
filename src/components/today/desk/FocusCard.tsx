@@ -12,7 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { useFlowMode } from "@/hooks/use-flow-mode";
 import {
   MAX_CUSTOM_MIN,
@@ -95,7 +95,6 @@ type EventRow = { id: string; title: string; start_at: string };
 
 export function FocusCard() {
   const qc = useQueryClient();
-  const showToast = useToast();
   const {
     isFlowMode,
     remainingMs,
@@ -145,10 +144,10 @@ export function FocusCard() {
     // The orchestrator loop is awaited server-side — this can run 30s+.
     mutationFn: (data: { goal: string }) => mStart({ data }),
     onSuccess: () => {
-      showToast("Mission dispatched. Track it in Build.");
+      toast.success("Mission dispatched. Track it in Build.");
       void qc.invalidateQueries({ queryKey: ["runs"] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   const applyCustom = (v: string) => {

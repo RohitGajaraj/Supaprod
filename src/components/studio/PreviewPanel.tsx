@@ -5,6 +5,7 @@ import { getStudioPreview, type StudioChangesetSummary } from "@/lib/studio.func
 import { resolveBuildPreview } from "@/lib/exec/provider";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { LOOM_CARD } from "./studio-ui";
+import { EmptyState } from "@/components/cadence/EmptyState";
 
 /**
  * SANDBOX — the Build "Preview" tab. Renders the best standalone HTML the
@@ -17,23 +18,6 @@ import { LOOM_CARD } from "./studio-ui";
  * that capability from `resolveBuildPreview()`, so when the adapter is wired the
  * empty state and (later) the live mode update with no change here.
  */
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div
-      style={{
-        border: "1px dashed var(--hairline)",
-        borderRadius: 12,
-        padding: "48px 24px",
-        textAlign: "center",
-        fontSize: 12.5,
-        lineHeight: 1.5,
-        color: "var(--text-subtle)",
-      }}
-    >
-      {message}
-    </div>
-  );
-}
 
 export function PreviewPanel({
   missionId,

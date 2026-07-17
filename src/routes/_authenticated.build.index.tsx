@@ -51,7 +51,7 @@ import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
 import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
-import { ToastProvider, ToastHost } from "@/components/obsidian/toast";
+
 import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
 import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
 import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
@@ -670,7 +670,7 @@ function BuildPage() {
   const viewMode = hasCompletedMission ? (search.view ?? "missions") : "missions";
 
   return (
-    <ToastProvider>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Build"]} />
       <div
         data-screen-label="Build"
@@ -985,7 +985,7 @@ function BuildPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <ToastHost />
-    </ToastProvider>
+
+    </>
   );
 }

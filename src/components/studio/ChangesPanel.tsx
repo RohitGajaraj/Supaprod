@@ -29,6 +29,7 @@ import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
+import { EmptyState } from "@/components/cadence/EmptyState";
 
 // Monaco stays out of the main bundle — it only loads when a file is opened.
 const DiffEditor = lazy(() =>
