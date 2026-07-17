@@ -99,10 +99,15 @@ export function PreviewPanel({
   if (!data) {
     return (
       <EmptyState
-        message={
+        headline={
+          live.live
+            ? "Live preview coming"
+            : "No standalone output"
+        }
+        body={
           live.live
             ? "A live preview of this build will appear here shortly."
-            : "No preview for this change. A live preview appears here when the build produces a standalone page."
+            : "This build doesn't produce a standalone page. A live preview appears here when it does."
         }
       />
     );

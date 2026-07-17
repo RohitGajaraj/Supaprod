@@ -13,7 +13,6 @@ import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { EmptyState } from "@/components/cadence/EmptyState";
 
-import { EmptyState } from "@/components/cadence/EmptyState";
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
 // parchment cmdk palette. Sections (JUMP · SETTINGS · ACT · ASK · CATALOG), a
 // flat keyboard-navigable row list, and a static searchable catalog that runs
