@@ -273,7 +273,7 @@ Plus the mechanical sweep: both themes, responsive to laptop-small, keyboard-nav
 
 ## 16. Open Decisions — flag, do not assume
 
-You have a direct line to Rohit — when in doubt, ask; he prefers a question over a wrong assumption. Use this format for every gap: **[GAP] area · what's missing · impact · your recommended default · decision needed by.** Known open items to carry:
+You have a direct line to Rohit — when in doubt, ask; he prefers a question over a wrong assumption. **Overnight protocol:** much of this build runs while Rohit sleeps; his awake window is stated in the goal prompt at kickoff. Inside the window, ask freely. Outside it, never stall waiting: make every decision you can safely make (PD 8), pick the reversible default where genuinely unsure, and log it — and for the calls that truly need him (irreversible, high-risk, or founder-locked, like the landing page in PD 6), build around them and keep a **morning decision queue** in the format below, recommendations pre-filled, ready the moment he wakes. Blocked-on-founder is reserved for work that cannot proceed on any parallel front. Use this format for every gap: **[GAP] area · what's missing · impact · your recommended default · decision needed by.** Known open items to carry:
 1. Supaprod logo/wordmark and favicon — Rohit is designing these himself and will deliver; until then, ship the Geist Pixel wordmark as the interim mark, structured as a drop-in replacement for when the final logo lands.
 2. Final pricing numbers and credit quantities (scaffold ships config-driven).
 3. Auth providers to enable at launch (recommend Google + GitHub + email).
