@@ -129,4 +129,40 @@ describe("pickPlaybookForAgentStation — RF-05 mission-plan-time selection", ()
     expect(picked?.playbook.id).toBe("discovery-interview");
     expect(picked?.winRate).toBe(1);
   });
+
+  describe("excludedPlaybookIds (PC-30 skill enable/disable)", () => {
+    it("skips a disabled playbook and falls through to the next-best", () => {
+      const runs: PlaybookRun[] = [
+        { playbook_id: "discovery-interview", verdict: "validated" },
+        { playbook_id: "discovery-interview", verdict: "validated" },
+        { playbook_id: "jtbd", verdict: "validated" },
+        { playbook_id: "jtbd", verdict: "missed" },
+      ];
+      const picked = pickPlaybookForAgentStation("sense", runs, new Set(["discovery-interview"]));
+      expect(picked?.playbook.id).toBe("jtbd");
+    });
+
+    it("returns null when every bound playbook is excluded", () => {
+      const picked = pickPlaybookForAgentStation(
+        "sense",
+        [],
+        new Set(["jtbd", "discovery-interview"]),
+      );
+      expect(picked).toBeNull();
+    });
+
+    it("an empty or missing exclusion set behaves exactly like omitting it", () => {
+      const runs: PlaybookRun[] = [{ playbook_id: "jtbd", verdict: "validated" }];
+      const withEmptySet = pickPlaybookForAgentStation("sense", runs, new Set());
+      const withNull = pickPlaybookForAgentStation("sense", runs, null);
+      const omitted = pickPlaybookForAgentStation("sense", runs);
+      expect(withEmptySet?.playbook.id).toBe(omitted?.playbook.id);
+      expect(withNull?.playbook.id).toBe(omitted?.playbook.id);
+    });
+
+    it("does not mutate the ranking for a station with no exclusions", () => {
+      const picked = pickPlaybookForAgentStation("sense", [], new Set(["some-other-station-id"]));
+      expect(picked?.playbook.id).toBe(selectPlaybooksForStation("discovery")[0]!.id);
+    });
+  });
 });

@@ -5,7 +5,9 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   getCapabilities,
   updateAgentInstructions,
+  toggleAgentSkill,
   type AgentCapability,
+  type SkillInfo,
 } from "@/lib/capabilities.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
@@ -125,6 +127,7 @@ function CapabilityCard({
 }) {
   const qc = useQueryClient();
   const updateFn = useServerFn(updateAgentInstructions);
+  const toggleSkillFn = useServerFn(toggleAgentSkill);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(capability.baseInstructions);
 
@@ -144,6 +147,25 @@ function CapabilityCard({
     },
     onError: (e: unknown) => {
       toast.error(e instanceof Error ? e.message : "Could not save instructions.");
+    },
+  });
+
+  const toggleSkillMutation = useMutation({
+    mutationFn: (vars: { playbookId: string; enabled: boolean }) =>
+      toggleSkillFn({
+        data: {
+          agentSlug: capability.slug,
+          workspaceId: workspaceId ?? undefined,
+          playbookId: vars.playbookId,
+          enabled: vars.enabled,
+        },
+      }),
+    onSuccess: (_r, vars) => {
+      toast.success(`${vars.enabled ? "Enabled" : "Disabled"} that skill for ${capability.name}.`);
+      qc.invalidateQueries({ queryKey: ["capabilities", workspaceId] });
+    },
+    onError: (e: unknown) => {
+      toast.error(e instanceof Error ? e.message : "Could not update that skill.");
     },
   });
 
@@ -291,22 +313,17 @@ function CapabilityCard({
             <CapabilitySection title={`Skills (${capability.skills.length})`}>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {capability.skills.map((skill) => (
-                  <div
+                  <SkillRow
                     key={skill.id}
-                    style={{
-                      fontSize: "12px",
-                      padding: "8px 0",
-                      borderBottom: "1px solid var(--hairline)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>{skill.name}</span>
-                    <span style={{ color: "var(--text-muted)" }}>
-                      {skill.wins}/{skill.runs} ({Math.round(skill.winRate * 100)}%)
-                    </span>
-                  </div>
+                    skill={skill}
+                    isPending={
+                      toggleSkillMutation.isPending &&
+                      toggleSkillMutation.variables?.playbookId === skill.id
+                    }
+                    onToggle={() =>
+                      toggleSkillMutation.mutate({ playbookId: skill.id, enabled: !skill.enabled })
+                    }
+                  />
                 ))}
               </div>
             </CapabilitySection>
@@ -408,6 +425,48 @@ function CapabilityCard({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function SkillRow({
+  skill,
+  isPending,
+  onToggle,
+}: {
+  skill: SkillInfo;
+  isPending: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      style={{
+        fontSize: "12px",
+        padding: "8px 0",
+        borderBottom: "1px solid var(--hairline)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        opacity: skill.enabled ? 1 : 0.55,
+      }}
+    >
+      <span>{skill.name}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <span style={{ color: "var(--text-muted)" }}>
+          {skill.wins}/{skill.runs} ({Math.round(skill.winRate * 100)}%)
+        </span>
+        <button
+          onClick={onToggle}
+          disabled={isPending}
+          style={{
+            ...sectionActionButtonStyle,
+            padding: "2px 8px",
+            opacity: isPending ? 0.6 : 1,
+          }}
+        >
+          {isPending ? "…" : skill.enabled ? "Enabled" : "Disabled"}
+        </button>
+      </div>
     </div>
   );
 }
