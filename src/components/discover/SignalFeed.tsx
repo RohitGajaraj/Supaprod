@@ -38,7 +38,6 @@ function HeaderRow({ count }: { count: number }) {
         <h2
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
             fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",

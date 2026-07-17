@@ -389,7 +389,6 @@ export function OpportunityQueue() {
           }
           className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontFamily: "var(--font-ui)",
             fontSize: 12.5,
             fontWeight: 500,
             background: "transparent",
@@ -458,7 +457,6 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
         <h2
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
             fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",

@@ -135,7 +135,7 @@ export function ThemeDetail({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle style={{ fontFamily: "var(--font-ui)", color: "var(--text-primary)" }}>
+          <SheetTitle style={{ color: "var(--text-primary)" }}>
             {activeMember ? "Signal in detail" : title || "Untitled theme"}
           </SheetTitle>
           <SheetDescription style={{ fontSize: "12px", color: "var(--text-subtle)" }}>

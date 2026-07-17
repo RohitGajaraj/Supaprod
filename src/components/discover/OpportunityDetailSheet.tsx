@@ -401,9 +401,7 @@ export function OpportunityDetailSheet({
                   UPDATED {relTimeCaps(opportunity.updated_at)}
                 </span>
               }
-              traceRef={
-                <AuditTag kind="opportunity" id={opportunity.id} copyable />
-              }
+              traceRef={<AuditTag kind="opportunity" id={opportunity.id} copyable />}
             />
 
             <BriefLinkSection opportunity={opportunity} />
@@ -477,7 +475,6 @@ export function OpportunityDetailSheet({
                     </MonoLabel>
                     <span
                       style={{
-                        fontFamily: "var(--font-ui)",
                         fontSize: "13px",
                         fontWeight: 550,
                         color: "var(--text-primary)",

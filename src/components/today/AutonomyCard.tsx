@@ -107,7 +107,7 @@ export function AutonomyCard() {
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: 11.5, color: "var(--ds-gray-900)", lineHeight: 1.45 }}>
           Not enough data yet. No side-effecting work ran in the last 14 days. As the loop takes on
           reversible work, the share it carries unattended shows here, rising from observing to
           proving to trusted.
