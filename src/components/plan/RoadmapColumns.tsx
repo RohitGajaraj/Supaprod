@@ -320,18 +320,26 @@ export function RoadmapColumns() {
       {/* Columns wrap below ~780px content width so 768 stays readable
           (three crushed 200px columns fail the responsive pass).
           Responsive: 1 column mobile (<640px), 2 tablet (640-1024), 3 desktop (≥1024). */}
-      <div
-        className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {COLUMNS.map((col) => {
           const colItems = itemsByBucket.get(col.key) ?? [];
           const expanded = expandedCols.has(col.key);
           const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
           return (
             <div key={col.key}>
-              <MonoLabel style={{ color: col.color, marginBottom: 10, display: "block" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: 16,
+                  fontWeight: 400,
+                  color: col.color,
+                  marginBottom: 10,
+                  display: "block",
+                  letterSpacing: "0.01em",
+                }}
+              >
                 {col.label} · {colItems.length}
-              </MonoLabel>
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {shownItems.map((item) => (
                   <BetCard
