@@ -13,7 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { getLiveRunCounts } from "@/lib/agents.functions";
-import { CadenceMark } from "./Primitives";
+import { CadenceMark } from "./CadenceMark";
 
 const BANNER_KEY = "cadence:cooking-banner-dismissed:v2";
 const PILL_KEY = "cadence:construction-pill-dismissed:v1";
