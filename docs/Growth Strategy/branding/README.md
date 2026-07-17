@@ -3,7 +3,7 @@
 > _Created 2026-07-14. The base brand kit for Supaprod: the mark, its variations,
 > the palette, type, and ready-to-upload assets (SVG + PNG + favicon + social).
 > Ship-ready; enhance over time. Every asset is generated from the SAME
-> parametric mark the product renders (`src/components/cadence/CadenceMark.tsx`),
+> parametric mark the product renders (`src/components/supaprod/SupaprodMark.tsx`),
 > so the kit can never drift from the app._
 
 ## The mark
@@ -120,8 +120,8 @@ Fonts are SIL OFL 1.1 (self-hosted in `public/fonts/geist/`).
 ## Animation / loader
 
 The mark doubles as the product's loader wherever AI is working (thinking,
-drafting, shaping). In the app it is `CadenceMark animated` /
-`CadenceLoader` (`src/components/cadence/CadenceMark.tsx`) and the shared
+drafting, shaping). In the app it is `SupaprodMark animated` /
+`SupaprodLoader` (`src/components/supaprod/SupaprodMark.tsx`) and the shared
 `AiWorking` indicator. For marketing/video, open
 `logo/supaprod-mark-animated.html` (a self-contained, tweakable reference with a
 particle-flow trail) or use `logo/supaprod-mark-animated.svg` (SMIL). Record the

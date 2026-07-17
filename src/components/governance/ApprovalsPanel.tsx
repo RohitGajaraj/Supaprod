@@ -220,7 +220,7 @@ export function ApprovalsPanel() {
             disabled={approveAll.isPending}
             onClick={() => approveAll.mutate(lowRisk.map((a) => a.id))}
           >
-            <Check size={11} />
+            <Check size={16} />
             Approve all low-risk ({lowRisk.length})
           </button>
         ) : null}
@@ -392,7 +392,7 @@ function ApprovalCard({
                 color: expiry.expired ? "var(--marigold)" : undefined,
               }}
             >
-              <Clock size={11} />
+              <Clock size={16} />
               {expiry.text}
             </span>
           ) : null}
@@ -423,7 +423,7 @@ function ApprovalCard({
               disabled={busy}
               onClick={onApprove}
             >
-              <Check size={11} />
+              <Check size={16} />
               Approve · runs {a.tool_name}
             </button>
             <button
@@ -432,7 +432,7 @@ function ApprovalCard({
               disabled={busy}
               onClick={onReject}
             >
-              <X size={11} />
+              <X size={16} />
               Reject · nothing runs
             </button>
             {a.mission_id ? (
@@ -443,7 +443,7 @@ function ApprovalCard({
                 params={{ missionId: a.mission_id }}
               >
                 Mission
-                <ExternalLink size={11} />
+                <ExternalLink size={16} />
               </Link>
             ) : null}
             <button

@@ -679,7 +679,7 @@ export function FlowList({
                       animation: "landingMarkSpin 9s linear infinite",
                     }}
                   >
-                    <SupaprodMark size={13} glow={false} />
+                    <SupaprodMark size={16} glow={false} />
                   </span>
                 )}
               </div>

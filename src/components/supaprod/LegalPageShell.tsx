@@ -84,7 +84,7 @@ export function LegalPageShell({
                 Supaprod
               </span>
             </Link>
-            <Link to="/" style={{ fontSize: 12.5, color: C.muted, textDecoration: "none" }}>
+            <Link to="/" style={{ fontSize: "var(--text-label-13)", color: C.muted, textDecoration: "none" }}>
               ← Back to home
             </Link>
           </div>
@@ -115,7 +115,7 @@ export function LegalPageShell({
             >
               {title}
             </h1>
-            <p style={{ fontSize: 12.5, color: C.faint, margin: "0 0 40px" }}>
+            <p style={{ fontSize: "var(--text-label-13)", color: C.faint, margin: "0 0 40px" }}>
               Last updated {updated}
             </p>
             <div
@@ -156,7 +156,7 @@ export function LegalPageShell({
               <a
                 key={l.href}
                 href={l.href}
-                style={{ fontSize: 10.5, color: C.faint, textDecoration: "none" }}
+                style={{ fontSize: "var(--text-label-12)", color: C.faint, textDecoration: "none" }}
               >
                 {l.label}
               </a>

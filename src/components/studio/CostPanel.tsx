@@ -41,7 +41,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 flex: 1,
                 minWidth: 0,
                 fontFamily: "var(--font-mono)",
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
               }}
             >
@@ -54,7 +54,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 width: 84,
                 textAlign: "right",
                 flexShrink: 0,
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
               }}
             >
@@ -66,7 +66,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 width: 64,
                 textAlign: "right",
                 flexShrink: 0,
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-primary)",
               }}
             >
@@ -89,7 +89,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
         <MonoLabel>Session total</MonoLabel>
         <span
           className="tabular-nums"
-          style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)" }}
+          style={{ fontSize: "var(--text-label-13)", fontWeight: 600, color: "var(--text-primary)" }}
         >
           {fmtCost(total)}
         </span>

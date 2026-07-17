@@ -219,7 +219,7 @@ export function EvalsPanel() {
                     "border-color 160ms var(--ease), background 160ms var(--ease), box-shadow 160ms var(--ease)",
                 };
                 const labelStyle = {
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   lineHeight: 1.25,
                   letterSpacing: "0.01em",
                   whiteSpace: "normal" as const,
@@ -284,7 +284,7 @@ export function EvalsPanel() {
           <span className="mono-label" style={{ color: "var(--madder)" }}>
             Coverage floor not met
           </span>
-          <span style={{ fontSize: 12.5, color: "var(--text-primary)" }}>
+          <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-primary)" }}>
             {coverageFloor.reasons.join(" · ")}
           </span>
         </div>
@@ -366,7 +366,7 @@ export function EvalsPanel() {
                   }}
                 >
                   <MonoLabel>{s.name}</MonoLabel>
-                  <span className="mono-label" style={{ fontSize: 10.5 }}>
+                  <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                     {s.case_count} cases
                     {!s.enabled ? (
                       <span style={{ color: "var(--text-subtle)" }}> · off</span>
@@ -413,7 +413,7 @@ export function EvalsPanel() {
                   <span style={{ flex: 1 }}></span>
                   <span
                     className="mono-label"
-                    style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                    style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
                   >
                     runs · cases · config →
                   </span>

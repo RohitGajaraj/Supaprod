@@ -57,13 +57,13 @@ Architecturally OBS-02 also makes a foundation decision the whole port depends o
 
 ## 4. Current state (real files, verified 2026-07-02)
 
-- **`src/components/cadence/AppShell.tsx`** (743 lines). Parchment "Ember Editorial" shell. `<aside>` is `w-[232px]` on `bg-sidebar` with a right `hairline` border. Header is a workspace-switcher `DropdownMenu` with `<CadenceMark size={26}>` (the SVG butterfly from `Primitives.tsx`) + "Cadence" wordmark. A `Search / Jump to… / ⌘K` button dispatches `cadence:open-cmdk`. Nav renders `PRIMARY_NAV.map` through a local `NavRow` that draws a **lucide `<Icon>`** (`item.icon`) + label + optional coral badge. Footer holds the pause banner, a running-agents line (`dot-running`, links to `/missions`), the Engine Room `DropdownMenu` (door + `ENGINE_ROOM_LINKS`), `BudgetBar`, `FlowWidget`, a theme toggle (`Sun`/`Moon` lucide), and the user chip. Imports ~15 lucide glyphs (`Settings, LogOut, ShieldAlert, ChevronDown, PauseCircle, Sun, Moon, Search, Plus, Trash2, Pencil, LogOut as LeaveIcon`). `<main>` renders `{children}`.
-- **`src/components/cadence/TopBar.tsx`** (92 lines). 54px header, sticky, `border-bottom var(--hairline)`, `background var(--canvas)`. Breadcrumbs via `crumbs.map` with lucide `ChevronRight` separators; right side `ConstructionPill`, the `actions` slot, `MachineViewToggle`, `AttentionBell`, a lucide `Calendar` + date, `AmbientChip`. Renders `<LoopThread/>` and `<CookingBanner/>` below the bar. Imports lucide `Calendar, ChevronRight`.
+- **`src/components/supaprod/AppShell.tsx`** (743 lines). Parchment "Ember Editorial" shell. `<aside>` is `w-[232px]` on `bg-sidebar` with a right `hairline` border. Header is a workspace-switcher `DropdownMenu` with `<SupaprodMark size={26}>` (the SVG butterfly from `Primitives.tsx`) + "Supaprod" wordmark. A `Search / Jump to… / ⌘K` button dispatches `supaprod:open-cmdk`. Nav renders `PRIMARY_NAV.map` through a local `NavRow` that draws a **lucide `<Icon>`** (`item.icon`) + label + optional coral badge. Footer holds the pause banner, a running-agents line (`dot-running`, links to `/missions`), the Engine Room `DropdownMenu` (door + `ENGINE_ROOM_LINKS`), `BudgetBar`, `FlowWidget`, a theme toggle (`Sun`/`Moon` lucide), and the user chip. Imports ~15 lucide glyphs (`Settings, LogOut, ShieldAlert, ChevronDown, PauseCircle, Sun, Moon, Search, Plus, Trash2, Pencil, LogOut as LeaveIcon`). `<main>` renders `{children}`.
+- **`src/components/supaprod/TopBar.tsx`** (92 lines). 54px header, sticky, `border-bottom var(--hairline)`, `background var(--canvas)`. Breadcrumbs via `crumbs.map` with lucide `ChevronRight` separators; right side `ConstructionPill`, the `actions` slot, `MachineViewToggle`, `AttentionBell`, a lucide `Calendar` + date, `AmbientChip`. Renders `<LoopThread/>` and `<CookingBanner/>` below the bar. Imports lucide `Calendar, ChevronRight`.
 - **`src/lib/nav-model.ts`** (96 lines, pure, unit-tested). `NavItemDef = { to, label, icon: LucideIcon, search? }`. `PRIMARY_NAV` = Today(`/today`, `Home`) · **Ask**(`/chat`, `MessageCircle`) · **Product**(`/product`, `Telescope`) · Build(`/build`, `Hammer`) · Brain(`/knowledge`, `Brain`). `ENGINE_ROOM_DOOR` = Engine Room(`/govern`, `ShieldAlert`). `ENGINE_ROOM_LINKS` = Approvals/Spend/Engine Room/Trust Ledger/Connectors, each with a lucide icon. Pure helpers `navItemActive` and `engineRoomActive`. Imports 10 lucide glyphs + `LucideIcon`.
 - **`src/lib/nav-model.test.ts`** (96 lines). Asserts `PRIMARY_NAV` labels equal `["Today","Ask","Product","Build","Brain"]`, that every item has an `icon`, that routes are unique and flat, and the engine-room invariants. These assertions change with the reshape.
 - **`src/routes/_authenticated.tsx`** (50 lines). Layout route. Mounts `WorkspaceProvider`, `FlowModeProvider`, `BackendHealthBanner`, `BillingBanner`, `CommandPalette`, `GotoShortcuts`, `<Outlet/>`. **Does NOT render the rail** today. `data-obsidian` is not on this root yet (OBS-01 introduces it).
 - **`src/routes/_authenticated.today.tsx`** and 20 sibling routes each import and wrap `<AppShell projects={…}>` + `<TopBar crumbs={…} actions={…}>`. Confirmed count: **21 routes wrap AppShell** (`build.index`, `chat`, `fleet`, `traces.$traceId`, `govern`, `eval-health`, `impact`, `today`, `changelog`, `sync`, `stakeholder`, `settings`, `trust-ledger`, `missions.index`, `missions.$missionId`, `build.$missionId`, `knowledge`, `prds.$id`, `admin`, `product`, and one more). The `projects` prop passed to `AppShell` is typed `projects?: unknown` and is UNUSED inside the component, so it is safe to drop.
-- **`src/components/cadence/CommandPalette.tsx`** exports `GotoShortcuts` (line 174). Today it implements a `g`-prefix CHORD (press `g`, then `d`/`c`/`a`/`b`/`s`/`p`/`k`/`m`/`l`/`v` within 800ms) that navigates, plus `⌘K` opens the palette and `Esc` closes it. The Obsidian map differs (single-press `1`-`5`; `g` alone opens the Engine Room), so this handler is superseded (see §5 step 7).
+- **`src/components/supaprod/CommandPalette.tsx`** exports `GotoShortcuts` (line 174). Today it implements a `g`-prefix CHORD (press `g`, then `d`/`c`/`a`/`b`/`s`/`p`/`k`/`m`/`l`/`v` within 800ms) that navigates, plus `⌘K` opens the palette and `Esc` closes it. The Obsidian map differs (single-press `1`-`5`; `g` alone opens the Engine Room), so this handler is superseded (see §5 step 7).
 - **`design-reference/obsidian-v3/design-reference/ui-kit-shell.html`** is the readable shell reference (the 1.4MB `cadence-app.html` is a compressed blob; the ui-kit shell renders the identical rail). Every value in §7 below is quoted from it.
 - **Butterfly assets exist:** `design-reference/obsidian-v3/assets/butterfly-idle.svg` (ash `#8A8580`/`#6E6A64` wings, porcelain `#F2F0ED` body), `butterfly-working.svg` (violet `#C77DFF` wings), `butterfly-ember.svg` (the ember mark used in the rail header). Never redraw them.
 
@@ -97,11 +97,11 @@ Build top to bottom. Each step names the file and the exact change.
    - Add: indices are `["01","02","03","04","05"]` in order, and unique.
    - The engine-room tests still pass (icon is no longer asserted); if any test reads `.icon`, drop that read.
 
-4. **Rewrite the rail in `src/components/cadence/AppShell.tsx`.** Keep all data hooks and workspace/dropdown handlers (they are consumed read-only); replace the presentation:
+4. **Rewrite the rail in `src/components/supaprod/AppShell.tsx`.** Keep all data hooks and workspace/dropdown handlers (they are consumed read-only); replace the presentation:
    - Remove every `lucide-react` import from this file. The rail chrome uses NO lucide.
    - `<aside>`: `width: 236px`, `background: var(--rail)`, `border-right: 1px solid var(--hairline)`, full height, sticky.
-   - Header (`padding: 16px 16px 12px; border-bottom: 1px solid var(--hairline-faint)`): render the Butterfly. Reuse `<CadenceMark size={24}>` OR an `<img src="/assets/butterfly-ember.svg" width={24} height={24}>` with `filter: drop-shadow(0 0 6px rgba(255,107,44,0.4))` and the `cadFlutter` flutter class (transform-origin 12px 12px). Wordmark "Cadence" 13.5px/700 `var(--text-primary)` letter-spacing -0.01em; below it the workspace name 10.5px `var(--text-subtle)`. Keep the workspace-switcher `DropdownMenu`, but its menu items become plain text rows (drop the lucide glyphs; use plain-word labels).
-   - Search affordance (`padding: 10px 10px 4px`): border 1px hairline, `background: var(--card)`, radius 8, padding 7px 10px, 12px `var(--text-subtle)`, text "Search", a flex spacer, then "⌘K" in mono 9.5px. `onClick` keeps dispatching `cadence:open-cmdk`.
+   - Header (`padding: 16px 16px 12px; border-bottom: 1px solid var(--hairline-faint)`): render the Butterfly. Reuse `<SupaprodMark size={24}>` OR an `<img src="/assets/butterfly-ember.svg" width={24} height={24}>` with `filter: drop-shadow(0 0 6px rgba(255,107,44,0.4))` and the `cadFlutter` flutter class (transform-origin 12px 12px). Wordmark "Supaprod" 13.5px/700 `var(--text-primary)` letter-spacing -0.01em; below it the workspace name 10.5px `var(--text-subtle)`. Keep the workspace-switcher `DropdownMenu`, but its menu items become plain text rows (drop the lucide glyphs; use plain-word labels).
+   - Search affordance (`padding: 10px 10px 4px`): border 1px hairline, `background: var(--card)`, radius 8, padding 7px 10px, 12px `var(--text-subtle)`, text "Search", a flex spacer, then "⌘K" in mono 9.5px. `onClick` keeps dispatching `supaprod:open-cmdk`.
    - Nav (`padding: 8px 10px; display:flex; flex-direction:column; gap:2px; flex:1`): map `PRIMARY_NAV` through a new `NavRow` that renders `<span class="num">{item.index}</span>` (mono 9.5px `var(--text-faint)`) + label (flex 1, 13px) + the badge on Today only. See §7 for the exact `nav-item` states.
    - The badge: render only for the Today item when the Call count > 0, using `callCount` (already computed from `getNeedsYou`). Exact styling in §7.
    - Footer (`border-top: 1px solid var(--hairline-faint); padding: 12px 14px; gap:10px`): three rows.
@@ -110,7 +110,7 @@ Build top to bottom. Each step names the file and the exact change.
      - Row 3, the user chip: a 24px round avatar (`background: var(--hover)`, border 1px `rgba(255,107,44,0.45)`, initials 9.5px/700 `var(--text-primary)`), the name 12px `var(--text-muted)` (flex 1), and a 6px moss presence dot (`background: var(--moss); box-shadow: 0 0 7px rgba(127,191,142,0.6)`). Move the theme toggle and Settings link into the workspace dropdown or a quiet text control; do not reintroduce lucide.
    - `<main>` still renders `{children}` (which is now the `<Outlet/>` content, since the shell is hoisted).
 
-5. **Reskin `src/components/cadence/TopBar.tsx`.**
+5. **Reskin `src/components/supaprod/TopBar.tsx`.**
    - Remove the lucide imports (`Calendar, ChevronRight`).
    - Bar: `height: 52px`, `padding: 0 28px`, `gap: 14px`, `border-bottom: 1px solid var(--hairline-faint)`, `background: var(--canvas)`, sticky.
    - Left: derive the surface title from the last `crumbs` entry (13.5px/600 `var(--text-primary)`); optionally a subtitle from the penultimate crumb (12px `var(--text-faint)`). No chevron separators.
@@ -122,7 +122,7 @@ Build top to bottom. Each step names the file and the exact change.
    - Ensure the outermost rendered element carries `data-obsidian` (add it to a wrapping `<div data-obsidian>` if OBS-01 did not put it on this root). This scopes the Obsidian tokens to the whole authenticated app.
    - The keyboard hook (`GotoShortcuts`) stays mounted here; update it in step 7.
 
-7. **Wire the Obsidian keyboard map** (edit `GotoShortcuts` in `src/components/cadence/CommandPalette.tsx`, or add a small `useShellKeyboard` hook used in `_authenticated.tsx`).
+7. **Wire the Obsidian keyboard map** (edit `GotoShortcuts` in `src/components/supaprod/CommandPalette.tsx`, or add a small `useShellKeyboard` hook used in `_authenticated.tsx`).
    - `1`-`5` (single press, no chord): navigate to `PRIMARY_NAV[n-1].to`.
    - `g` (single press): navigate to `ENGINE_ROOM_DOOR.to` (`/govern`). This supersedes the legacy `g`-prefix chord; remove the chord map (its discovery role moves to the `⌘K` palette, OBS-11).
    - `Esc`: close any open overlay (keep the existing palette-close behavior).
@@ -150,7 +150,7 @@ _authenticated.tsx  (layout, data-obsidian on root)
 ├─ BackendHealthBanner · BillingBanner · CommandPalette · GotoShortcuts(keyboard)
 └─ AppShell                         ← hoisted once here
    ├─ aside (236px rail, --rail)
-   │  ├─ Header: Butterfly (cadFlutter) + Cadence + workspace name  [workspace DropdownMenu]
+   │  ├─ Header: Butterfly (cadFlutter) + Supaprod + workspace name  [workspace DropdownMenu]
    │  ├─ Search … ⌘K
    │  ├─ nav: NavRow × 5  (index 01-05, label, Today badge)
    │  └─ footer: shimmer working line · Engine Room door (DropdownMenu) · user chip
@@ -166,10 +166,10 @@ _authenticated.tsx  (layout, data-obsidian on root)
 **Modified files**
 
 - `src/lib/nav-model.ts` (reshape), `src/lib/nav-model.test.ts` (assertions).
-- `src/components/cadence/AppShell.tsx` (rail reskin, lucide removed, `NavRow` rewrite).
-- `src/components/cadence/TopBar.tsx` (bar reskin, lucide removed).
+- `src/components/supaprod/AppShell.tsx` (rail reskin, lucide removed, `NavRow` rewrite).
+- `src/components/supaprod/TopBar.tsx` (bar reskin, lucide removed).
 - `src/routes/_authenticated.tsx` (hoist shell + `data-obsidian`).
-- `src/components/cadence/CommandPalette.tsx` (`GotoShortcuts` keyboard map).
+- `src/components/supaprod/CommandPalette.tsx` (`GotoShortcuts` keyboard map).
 - 21 `_authenticated.*` routes (drop the `AppShell` wrapper + import).
 
 **File moves / renames:** none. **Data flow:** the shell CONSUMES existing server fns read-only via `useServerFn` + `useQuery`: `getWorkspacePauseState` (`["governance","pause-state",id]`), `getNeedsYou` (`["needs-you"]` → the Today badge count), `getLiveRunCounts` (`["live-run-counts"]` → the shimmer line), `amIAdmin` (`["am-i-admin"]`). No server function is added or modified in OBS-02.
@@ -231,7 +231,7 @@ All hexes/durations below are quoted from `ui-kit-shell.html` and hub §5. Never
 
 ## 9. Copy / voice (humanized)
 
-- Wordmark: `Cadence`. Workspace/product subline: the live name, e.g. `Lumen · Growth team` (middot separator).
+- Wordmark: `Supaprod`. Workspace/product subline: the live name, e.g. `Lumen · Growth team` (middot separator).
 - Search affordance: `Search` with the `⌘K` hint in mono. (No "Jump to…" ellipsis placeholder in the Obsidian rail.)
 - Nav labels: `Today` · `Discover` · `Plan` · `Build` · `Brain` (mono indices `01`-`05`).
 - Shimmer working line: `1 agent working` / `2 agents working` (pluralized, live count). Optional queued suffix: `· 3 queued`.
@@ -295,7 +295,7 @@ Open `ui-kit-shell.html` and the built shell side by side at 1440px:
 - **Keyboard collision.** The legacy `g`-chord (g then a letter) conflicts with the Obsidian single-press `g` = Engine Room and `1`-`5` = surfaces. OBS-02 supersedes the chord; the palette (OBS-11) absorbs its discovery role. Ensure the number keys are fully suppressed inside inputs/textareas or they will hijack typing on Today's task box.
 - **Route targets for Discover/Plan.** Discover points at `/product` and Plan at `/product?tab=roadmap` as the nearest existing surfaces (verified: `/product` defines a `roadmap` tab; the bare `/roadmap` route redirects to `/product?tab=opportunities`, i.e. Discover, so Plan must NOT point there). These are placeholders until OBS-10 renames the routes to `/discover` and `/plan` and adds redirects.
 - **Founder gate:** OBS-02 introduces a NEW nav destination (Plan) and drops Ask from the rail. The URLs do not change yet (OBS-10 does that), but the founder should be told the rail now reads Today · Discover · Plan · Build · Brain and that Ask moved off the rail (it returns as `⌘J`, OBS-12). No other founder gate.
-- **Butterfly source.** Prefer the shipped `butterfly-ember.svg` asset for exact parity; if using the existing `<CadenceMark>` component instead, confirm it renders the same silhouette at 24px with the ember glow, or the parity check will flag a delta.
+- **Butterfly source.** Prefer the shipped `butterfly-ember.svg` asset for exact parity; if using the existing `<SupaprodMark>` component instead, confirm it renders the same silhouette at 24px with the ember glow, or the parity check will flag a delta.
 - **Auxiliary top-bar widgets** stay parchment-styled for now (scope OUT). Note the mixed state in the ship report; their reskin rides with later items.
 
 ---

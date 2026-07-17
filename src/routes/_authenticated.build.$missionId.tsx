@@ -346,7 +346,7 @@ function SteerComposer({
             cursor: canSend ? "pointer" : "default",
           }}
         >
-          {steer.isPending ? <span className="spinner" /> : <Send size={11} />}
+          {steer.isPending ? <span className="spinner" /> : <Send size={16} />}
           Send · steers the next step
         </button>
       </div>
@@ -426,7 +426,7 @@ function ExecutionLogFold({
           color: "var(--text-subtle)",
         }}
       >
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
           Full execution log
         </span>
@@ -695,7 +695,7 @@ function BuildSessionPage() {
                 }}
               >
                 MIS·{traceRef(mission.id)}
-                <Copy size={10} />
+                <Copy size={14} />
               </button>
               {spec ? (
                 <>
@@ -741,7 +741,7 @@ function BuildSessionPage() {
                   cursor: "pointer",
                 }}
               >
-                {showBrief ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                {showBrief ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 the brief
               </button>
             </div>

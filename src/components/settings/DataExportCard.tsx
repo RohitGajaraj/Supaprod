@@ -104,7 +104,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
         onClick={onExport}
         disabled={busy || selected.size === 0}
       >
-        <Download size={14} />
+        <Download size={16} />
         {busy ? "Preparing your export" : "Download workspace export"}
       </Button>
 

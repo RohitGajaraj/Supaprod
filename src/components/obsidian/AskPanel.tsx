@@ -176,7 +176,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
             border: "1px solid color-mix(in oklab, var(--madder) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "10px 14px",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -190,7 +190,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   fontWeight: 600,
                   padding: "4px 10px",
                   borderRadius: 999,
@@ -225,7 +225,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
     <div>
       {/* PC-36 G: the answer is signed. Supaprod is the accountable voice. */}
       <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
-        <SupaprodMark size={13} strokeWidth={2.6} glow={false} />
+        <SupaprodMark size={16} strokeWidth={2.6} glow={false} />
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -314,9 +314,9 @@ const AskAiMessage = React.memo(function AskAiMessage({
               }}
             >
               {readAloud.speakingId === msg.id ? (
-                <Square size={11} strokeWidth={2} />
+                <Square size={16} strokeWidth={1.5} />
               ) : (
-                <Volume2 size={12} strokeWidth={2} />
+                <Volume2 size={16} strokeWidth={1.5} />
               )}
             </button>
           ) : null}
@@ -350,7 +350,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
             borderRadius: 10,
             padding: "10px 12px",
             fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-subtle)",
           }}
         >
@@ -539,7 +539,7 @@ function AskComposer({
                 textAlign: "left",
                 cursor: "pointer",
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-primary)",
               }}
             >
@@ -654,7 +654,7 @@ function AskComposer({
                 cursor: "pointer",
               }}
             >
-              <Mic size={14} strokeWidth={2} />
+              <Mic size={14} strokeWidth={1.5} />
             </button>
           ) : null}
           <button
@@ -678,7 +678,7 @@ function AskComposer({
                   : "none",
             }}
           >
-            <ArrowUp size={15} strokeWidth={2.4} />
+            <ArrowUp size={16} strokeWidth={2.4} />
           </button>
         </div>
       </div>
@@ -1132,7 +1132,7 @@ export function AskPanel() {
                   boxShadow: "0 0 14px -2px color-mix(in oklab, var(--ember) 45%, transparent)",
                 }}
               >
-                <Sparkles size={14} strokeWidth={2} style={{ color: "var(--ember)" }} />
+                <Sparkles size={14} strokeWidth={1.5} style={{ color: "var(--ember)" }} />
               </span>
               <div className="min-w-0">
                 <div
@@ -1212,7 +1212,7 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1224,7 +1224,7 @@ export function AskPanel() {
                     cursor: "pointer",
                   }}
                 >
-                  <Filter size={11} strokeWidth={2} />
+                  <Filter size={16} strokeWidth={1.5} />
                   {scopeCleared ? "Searching everything" : `Scoped to ${scope.label}`}
                 </button>
               ) : null}
@@ -1239,7 +1239,7 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1296,7 +1296,7 @@ export function AskPanel() {
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 12.5,
+                      fontSize: "var(--text-label-13)",
                       lineHeight: 1.5,
                       color: "var(--text-muted)",
                       margin: 0,
@@ -1321,7 +1321,7 @@ export function AskPanel() {
                         border: "1px solid var(--hairline)",
                         background: "var(--surface-card-deep)",
                         fontFamily: "var(--font-sans)",
-                        fontSize: 12.5,
+                        fontSize: "var(--text-label-13)",
                         color: "var(--text-body)",
                         cursor: "pointer",
                       }}

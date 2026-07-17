@@ -22,7 +22,7 @@ const LANE_ACCENT: Record<string, string> = {
 };
 
 function ProgressDots({ done, total }: { done: number; total: number }) {
-  if (total === 0) return <span style={{ fontSize: 10.5, color: "var(--ink-faint)" }}>-</span>;
+  if (total === 0) return <span style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>-</span>;
   // Cap the rendered dots so a long plan stays one tidy row.
   const shown = Math.min(total, 12);
   const filled = Math.round((done / total) * shown);
@@ -44,7 +44,7 @@ function ProgressDots({ done, total }: { done: number; total: number }) {
       ))}
       <span
         className="tabular-nums"
-        style={{ fontSize: 10.5, color: "var(--ink-faint)", marginLeft: 4 }}
+        style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", marginLeft: 4 }}
       >
         {done}/{total}
       </span>
@@ -78,7 +78,7 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
       {m.goal ? (
         <div
           style={{
-            fontSize: 11.5,
+            fontSize: "var(--text-label-12)",
             color: "var(--ink-subtle)",
             marginTop: 3,
             display: "-webkit-box",
@@ -115,7 +115,7 @@ function LaneColumn({
             background: LANE_ACCENT[lane.id] ?? "var(--ink-faint)",
           }}
         />
-        <h2 style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>
+        <h2 style={{ fontSize: "var(--text-label-13)", fontWeight: 600, color: "var(--ink)", margin: 0 }}>
           {lane.label}
         </h2>
         <span className="tabular-nums" style={{ fontSize: 11, color: "var(--ink-faint)" }}>
@@ -126,7 +126,7 @@ function LaneColumn({
       {lane.missions.length === 0 ? (
         <div
           style={{
-            fontSize: 11.5,
+            fontSize: "var(--text-label-12)",
             color: "var(--ink-faint)",
             fontStyle: "italic",
             padding: "4px 0",
@@ -208,7 +208,7 @@ export function DelegateBoard({ onOpenMission }: { onOpenMission: (id: string) =
 
   return (
     <>
-      <p style={{ fontSize: 13.5, color: "var(--ink)", margin: "4px 0 22px" }}>{desk.summary}</p>
+      <p style={{ fontSize: "var(--text-label-14)", color: "var(--ink)", margin: "4px 0 22px" }}>{desk.summary}</p>
       <div
         style={{
           display: "grid",

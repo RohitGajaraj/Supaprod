@@ -242,8 +242,8 @@ export function ProductsTab() {
       <div className="material-medium" style={{ padding: 24 }}>
         <MonoLabel icon={Target}>Products</MonoLabel>
         <p
+          className="text-copy-14"
           style={{
-            fontSize: 12.5,
             color: "var(--ink-subtle)",
             margin: "10px 0 14px",
             maxWidth: 480,
@@ -320,8 +320,8 @@ export function ProductsTab() {
                       />
                     )}
                     <span
+                      className="text-label-14"
                       style={{
-                        fontSize: 13.5,
                         color: "var(--ink)",
                         fontWeight: isActive ? 600 : 500,
                         overflow: "hidden",
@@ -342,8 +342,8 @@ export function ProductsTab() {
                   </span>
                   {p.north_star && (
                     <p
+                      className="text-label-12"
                       style={{
-                        fontSize: 11.5,
                         color: "var(--ink-subtle)",
                         margin: "3px 0 7px",
                         overflow: "hidden",
@@ -387,13 +387,13 @@ export function ProductsTab() {
                 </button>
                 <div style={{ position: "absolute", top: 9, right: 10, display: "flex", gap: 4 }}>
                   <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={12} strokeWidth={1.75} />
+                    <Download size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Archive ${p.name}`} onClick={() => archive(p)}>
-                    <Archive size={12} strokeWidth={1.75} />
+                    <Archive size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={12} strokeWidth={1.75} />
+                    <Trash2 size={16} strokeWidth={1.5} />
                   </ActionButton>
                 </div>
               </div>
@@ -436,13 +436,13 @@ export function ProductsTab() {
                 </span>
                 <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                   <ActionButton label={`Restore ${p.name}`} onClick={() => restore(p)}>
-                    <ArchiveRestore size={12} strokeWidth={1.75} />
+                    <ArchiveRestore size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={12} strokeWidth={1.75} />
+                    <Download size={16} strokeWidth={1.5} />
                   </ActionButton>
                   <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={12} strokeWidth={1.75} />
+                    <Trash2 size={16} strokeWidth={1.5} />
                   </ActionButton>
                 </div>
               </div>

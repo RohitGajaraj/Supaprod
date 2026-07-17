@@ -71,7 +71,7 @@ export function StatusChip({ status }: { status: string }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        fontSize: 10,
+        fontSize: "var(--text-label-12)",
         fontWeight: 600,
         color: c,
         border: `1px solid color-mix(in oklab, ${c} 35%, transparent)`,

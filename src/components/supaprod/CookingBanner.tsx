@@ -95,7 +95,7 @@ export function CookingBanner() {
         aria-label="Dismiss banner"
         className="flex text-ink-faint hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
       >
-        <X size={11} strokeWidth={2} />
+        <X size={16} strokeWidth={1.5} />
       </button>
     </div>
   );
@@ -106,7 +106,7 @@ export function ConstructionPill() {
   if (!visible) return null;
   return (
     <div className="construction-pill" role="status">
-      <SupaprodMark size={13} />
+      <SupaprodMark size={16} />
       <span>Agents are building in the back · fresh build loading</span>
       <button
         type="button"
@@ -114,7 +114,7 @@ export function ConstructionPill() {
         onClick={dismiss}
         className="flex p-[3px] text-ink-faint hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
       >
-        <X size={10} strokeWidth={2} />
+        <X size={14} strokeWidth={1.5} />
       </button>
     </div>
   );

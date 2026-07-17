@@ -50,7 +50,7 @@ function GhostButton({
       className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 10.5,
+        fontSize: "var(--text-label-12)",
         letterSpacing: "0.06em",
         color: "var(--text-subtle)",
         background: "transparent",
@@ -204,7 +204,7 @@ function StorySection({
         {label}
       </MonoLabel>
       {rows.length === 0 ? (
-        <p style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>{emptyText}</p>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>{emptyText}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {rows.slice(0, 8).map((r) => (
@@ -259,7 +259,7 @@ function SupersessionSection({
         decision history
       </MonoLabel>
       {story.revised && (
-        <p style={{ fontSize: 11.5, color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
           A later recorded outcome revised this belief.
         </p>
       )}
@@ -303,7 +303,7 @@ function SupersessionSection({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color: "var(--madder)",
@@ -332,7 +332,7 @@ function SupersessionSection({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-subtle)",
                     flexShrink: 0,
                   }}

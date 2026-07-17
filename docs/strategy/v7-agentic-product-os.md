@@ -133,7 +133,7 @@
 3. **Course-corrections committed:** moat = compounding memory · ambient + governed · hybrid + outcome pricing · complete the loop on real data before breadth. (§3, §6, §7, §9)
 4. **Deliverables phased:** this canon first; then feature map · functionality map · TRD · PRDs.
 5. **External reports are inputs, not the basis**, decisions take a holistic, independently-researched lens (founder steer). (§Evidence base)
-6. **Naming:** Cadence; unfinalized.
+6. **Naming:** Supaprod (finalized 2026-07-17; was Cadence, unfinalized, at this 2026-06-14 ruling — see [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)).
 7. **Gate on the proof gauntlet, not dates:** ≥10 PMs paying ≥$150/mo · the loop closes once on a partner's real data · autonomy ticks up on a real account.
 8. **Humanized output, zero AI fingerprints (standing rule, two levels):** no em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users (PRDs, drafts, chat). The runtime sanitizer at the AI chokepoint is the hard gate. The product should read as distinctly Supaprod, not one in a thousand AI apps. Convention: [`../conventions/humanized-output.md`](../conventions/humanized-output.md). (2026-06-14)
 

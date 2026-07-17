@@ -382,7 +382,7 @@ export function DriftPanel() {
               </span>
               <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>{d.note}</span>
               <span style={{ color: "var(--text-faint)", alignSelf: "center", display: "flex" }}>
-                <ChevronRight size={11} />
+                <ChevronRight size={16} />
               </span>
             </button>
           ))}

@@ -15,7 +15,7 @@ import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives"
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://supaprod.lovable.app/og-supaprod.png";
+const OG_IMAGE = "https://supaprod.ai/og-supaprod.png";
 
 const VERDICT: Record<
   PublicTeardown["verdict"],

@@ -303,7 +303,7 @@ export function GraphSlider({
         d={line}
         fill="none"
         stroke="var(--slate)"
-        strokeWidth={2}
+        strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
@@ -361,7 +361,7 @@ export function GraphSlider({
         r={active ? 4.5 : 3.5}
         fill="var(--canvas)"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.5}
       />
       <Readout x={cur[0]} value={formatValue(data[cursor]!)} sub={curLabel} w={w} color={color} />
     </svg>

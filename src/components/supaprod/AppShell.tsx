@@ -130,7 +130,7 @@ function NavRow({
           className={`shrink-0 inline-flex ${active ? "text-[var(--text-primary)]" : "text-[var(--text-subtle)]"}`}
           style={{ width: 17, justifyContent: "center" }}
         >
-          <Icon size={15} strokeWidth={1.75} />
+          <Icon size={16} strokeWidth={1.5} />
         </span>
       ) : navKeyHint(item) ? (
         // Every primary destination wears its shortcut as a node chip: Today 0,
@@ -718,7 +718,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span
                       className="block truncate"
                       style={{
-                        fontSize: 13.5,
+                        fontSize: "var(--text-label-14)",
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: "var(--text-primary)",

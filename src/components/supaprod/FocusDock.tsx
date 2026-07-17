@@ -37,7 +37,7 @@ export const FOCUS_COMPOSE_EVENT = "supaprod:focus-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -72,7 +72,7 @@ function DurationChip({
       className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 11.5,
+        fontSize: "var(--text-label-12)",
         fontVariantNumeric: "tabular-nums",
         padding: "4px 10px",
         borderRadius: "var(--radius-control)",
@@ -411,7 +411,7 @@ export function FocusDock() {
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "4px 8px",
-                      fontSize: 11.5,
+                      fontSize: "var(--text-label-12)",
                       fontVariantNumeric: "tabular-nums",
                       color: "var(--text-primary)",
                     }}
@@ -578,7 +578,7 @@ export function FocusDock() {
                 </span>
                 <span
                   className="truncate"
-                  style={{ fontSize: 12.5, color: "var(--text-body)", minWidth: 0 }}
+                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", minWidth: 0 }}
                 >
                   {intent ?? "Focus block"}
                 </span>

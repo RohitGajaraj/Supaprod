@@ -299,7 +299,7 @@ export function ThemeDetail({
               }}
             >
               <div className="flex items-center" style={{ gap: "10px" }}>
-                <Button variant="primary" onClick={onPromote} loading={busy} disabled={busy}>
+                <Button variant="accent" onClick={onPromote} loading={busy} disabled={busy}>
                   Promote to opportunity
                 </Button>
                 <Button variant="secondary" onClick={onDraftSpec} loading={busy} disabled={busy}>

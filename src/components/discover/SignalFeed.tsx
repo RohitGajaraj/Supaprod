@@ -337,7 +337,7 @@ export function SignalFeed() {
               onClick={() => setShowAll((v) => !v)}
               style={{
                 width: "100%",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
               }}
             >

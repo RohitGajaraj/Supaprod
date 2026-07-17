@@ -376,7 +376,7 @@ If this phase is done and the founder wants phase 2:
 2. **Customer showcase sections** (6.1 in the Vercel playbook) — unlocks when 5+ beta customers grant logo/screenshot permission
 3. **The brand shader / generative hero asset** (6.5) — build once, reuse across site hero, OG image, launch video, tickets
 4. **The journey film** — cinematic trace playback (~90 seconds) for social/email
-5. **Public landing skill** (`cadence-design` → `cadence-landing-skills`) — agent-friendly instructions for future updates
+5. **Public landing skill** (`supaprod-design` → `supaprod-landing-skills`) — agent-friendly instructions for future updates
 
 ---
 

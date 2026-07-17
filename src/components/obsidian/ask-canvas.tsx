@@ -124,7 +124,7 @@ function ApprovalGateRow({
 }) {
   const buttonBase: React.CSSProperties = {
     fontFamily: "var(--font-sans)",
-    fontSize: 11.5,
+    fontSize: "var(--text-label-12)",
     fontWeight: 600,
     padding: "5px 12px",
     borderRadius: 999,
@@ -135,7 +135,7 @@ function ApprovalGateRow({
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 10.5,
+          fontSize: "var(--text-label-12)",
           letterSpacing: "0.04em",
           color: "var(--text-subtle)",
         }}
@@ -339,7 +339,7 @@ export function MemoryBlock({ recalls }: { recalls: AskMemoryRecall[] }) {
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
+                fontSize: "var(--text-label-12)",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 color: "var(--text-subtle)",
@@ -375,7 +375,7 @@ export function CriticBlock({ verdict }: { verdict: CriticReview }) {
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           marginTop: 8,

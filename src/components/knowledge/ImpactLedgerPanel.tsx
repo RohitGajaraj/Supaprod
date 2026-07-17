@@ -92,7 +92,7 @@ export function ImpactLedgerPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Impact Ledger · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(query.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -126,7 +126,7 @@ export function ImpactLedgerPanel() {
 
   return (
     <div>
-      <p style={{ fontSize: 13.5, color: "var(--text-body)", margin: "0 0 18px", lineHeight: 1.5 }}>
+      <p style={{ fontSize: "var(--text-label-14)", color: "var(--text-body)", margin: "0 0 18px", lineHeight: 1.5 }}>
         {ledger.headline}
       </p>
 
@@ -167,7 +167,7 @@ export function ImpactLedgerPanel() {
             <div
               key={i}
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-subtle)",
                 padding: "8px 0",
                 borderTop: i ? "1px solid var(--hairline)" : "none",
@@ -199,7 +199,7 @@ export function ImpactLedgerPanel() {
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: "7px 11px",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-primary)",
           }}
         />

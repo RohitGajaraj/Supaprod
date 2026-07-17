@@ -209,7 +209,11 @@ export function CommandPalette() {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0"
-          style={{ zIndex: 80, backgroundColor: "var(--ds-overlay-backdrop-color)", backdropFilter: "blur(3px)" }}
+          style={{
+            zIndex: 80,
+            backgroundColor: "var(--ds-overlay-backdrop-color)",
+            backdropFilter: "blur(3px)",
+          }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}

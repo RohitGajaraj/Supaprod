@@ -34,7 +34,7 @@ export function ProductMasthead({
     >
       <span
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           fontWeight: 550,
           color: "var(--text-body)",
           flexShrink: 0,
@@ -46,7 +46,7 @@ export function ProductMasthead({
       <span
         className="min-w-0 truncate transition-colors [color:var(--text-muted)] group-hover:[color:var(--text-body)]"
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           transitionDuration: "140ms",
         }}
       >

@@ -227,7 +227,7 @@ export function DocsPanel() {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 8 }}>docs · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}>
           {(docs.error as Error).message}
         </p>
         <button className="btn btn-ghost btn-sm" onClick={() => void docs.refetch()}>
@@ -251,7 +251,7 @@ export function DocsPanel() {
         >
           <span style={{ position: "relative", width: 220 }}>
             <Search
-              size={12}
+              size={16}
               style={{
                 position: "absolute",
                 left: 9,
@@ -364,7 +364,7 @@ export function DocsPanel() {
                 >
                   {/* User-chosen emoji is their data; OUR fallback is the styled icon
                       (no hardcoded emoji in UI strings — the glyph law). */}
-                  {doc.icon ? doc.icon : <FileText size={18} style={{ verticalAlign: "middle" }} />}
+                  {doc.icon ? doc.icon : <FileText size={16} style={{ verticalAlign: "middle" }} />}
                 </button>
                 <input
                   defaultValue={doc.title}
@@ -406,7 +406,7 @@ export function DocsPanel() {
         )
       ) : cards.length === 0 ? (
         filter ? (
-          <div style={{ padding: "18px 2px", fontSize: 12.5, color: "var(--ink-faint)" }}>
+          <div style={{ padding: "18px 2px", fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>
             No doc matches “{search}” yet.
           </div>
         ) : (
@@ -471,7 +471,7 @@ export function DocsPanel() {
                         style={{
                           display: "block",
                           fontWeight: 500,
-                          fontSize: 13.5,
+                          fontSize: "var(--text-label-14)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -505,9 +505,9 @@ export function DocsPanel() {
                       edit
                     </button>
                     {open ? (
-                      <ChevronDown size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronDown size={16} style={{ color: "var(--ink-faint)" }} />
                     ) : (
-                      <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronRight size={16} style={{ color: "var(--ink-faint)" }} />
                     )}
                   </div>
                   {open ? (
@@ -526,7 +526,7 @@ export function DocsPanel() {
                       ) : (
                         <p
                           style={{
-                            fontSize: 13.5,
+                            fontSize: "var(--text-label-14)",
                             color: "var(--ink-muted)",
                             lineHeight: 1.6,
                             fontFamily: "var(--font-display)",
@@ -559,7 +559,7 @@ export function DocsPanel() {
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
                 color: "var(--text-muted)",
                 background: "transparent",
@@ -621,7 +621,7 @@ export function DocsPanel() {
                 aria-label="Close"
                 style={{ color: "var(--ink-subtle)", display: "inline-flex" }}
               >
-                <X size={13} />
+                <X size={16} />
               </button>
             </div>
             <div
@@ -635,7 +635,7 @@ export function DocsPanel() {
             >
               <span style={{ position: "relative" }}>
                 <Search
-                  size={12}
+                  size={16}
                   style={{
                     position: "absolute",
                     left: 9,
@@ -661,7 +661,7 @@ export function DocsPanel() {
                 className="input"
                 aria-label="Notion page URL"
                 placeholder="https://www.notion.so/…"
-                style={{ fontSize: 11.5 }}
+                style={{ fontSize: "var(--text-label-12)" }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     const v = (e.target as HTMLInputElement).value.trim();
@@ -723,7 +723,7 @@ export function DocsPanel() {
                   disabled={mImportNotion.isPending}
                   onClick={() => mImportNotion.mutate(p.id)}
                   className="cmdk-item"
-                  style={{ fontSize: 11.5, padding: "6px 8px", display: "flex", gap: 8 }}
+                  style={{ fontSize: "var(--text-label-12)", padding: "6px 8px", display: "flex", gap: 8 }}
                 >
                   <span style={{ width: 18, textAlign: "center" }}>{p.icon ?? "·"}</span>
                   <span

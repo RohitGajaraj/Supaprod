@@ -88,7 +88,7 @@ export function FirstTeardownCard({
       {teardown.summary ? (
         <p
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-body)",
             lineHeight: 1.55,
             margin: "0 0 8px",
@@ -98,16 +98,16 @@ export function FirstTeardownCard({
           {teardown.summary}
         </p>
       ) : (
-        <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 8px" }}>{v.line}</p>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "0 0 8px" }}>{v.line}</p>
       )}
       {teardown.topRisk ? (
         <div className="flex items-baseline" style={{ gap: 8, marginBottom: 10, minWidth: 0 }}>
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-subtle)", flexShrink: 0 }}>
+          <span style={{ ...mono, fontSize: "var(--text-label-12)", color: "var(--text-subtle)", flexShrink: 0 }}>
             Risk
           </span>
           <span
             className="min-w-0 flex-1 truncate"
-            style={{ fontSize: 12.5, color: "var(--text-muted)" }}
+            style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)" }}
           >
             {teardown.topRisk}
           </span>
@@ -139,7 +139,7 @@ export function FirstTeardownCard({
               }}
             />
           </div>
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-subtle)" }}>
+          <span style={{ ...mono, fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
             Confidence {pct}%
           </span>
         </div>
@@ -157,7 +157,7 @@ export function FirstTeardownCard({
             alignItems: "center",
             height: 32,
             padding: "0 12px",
-            fontSize: 12,
+            fontSize: "var(--text-label-12)",
             fontWeight: 500,
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",

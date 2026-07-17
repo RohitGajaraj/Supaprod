@@ -86,7 +86,7 @@ function OutcomePill({
         border: `1px solid ${superseded ? "var(--hairline)" : "color-mix(in srgb, var(--moss) 30%, transparent)"}`,
       }}
     >
-      {superseded ? <History size={10} strokeWidth={2} /> : null}
+      {superseded ? <History size={14} strokeWidth={1.5} /> : null}
       {label}
     </span>
   );
@@ -169,7 +169,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
             justifyContent: "center",
           }}
         >
-          <KindIcon size={15} strokeWidth={1.9} />
+          <KindIcon size={16} strokeWidth={1.5} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -334,7 +334,7 @@ function SealPanel() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <ShieldCheck size={15} strokeWidth={1.9} color="var(--moss)" />
+        <ShieldCheck size={16} strokeWidth={1.5} color="var(--moss)" />
         <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--text-primary)" }}>
           Tamper check
         </span>
@@ -364,7 +364,7 @@ function SealPanel() {
             style={chipStyle}
             title="Copy the full fingerprint to save it"
           >
-            {copied ? <Check size={11} strokeWidth={2} /> : <Copy size={11} strokeWidth={1.8} />}
+            {copied ? <Check size={16} strokeWidth={1.5} /> : <Copy size={16} strokeWidth={1.5} />}
             {copied ? "Copied" : "Copy fingerprint"}
           </button>
           <button
@@ -437,9 +437,9 @@ function SealPanel() {
               }}
             >
               {v.ok ? (
-                <Check size={13} strokeWidth={2.2} />
+                <Check size={16} strokeWidth={2.2} />
               ) : (
-                <AlertTriangle size={13} strokeWidth={2} />
+                <AlertTriangle size={16} strokeWidth={1.5} />
               )}
               {v.ok
                 ? "Unchanged. Your ledger matches this fingerprint."
@@ -731,7 +731,7 @@ export function ReceiptsPanel() {
             borderRadius: 8,
           }}
         >
-          <Search size={14} strokeWidth={1.8} color="var(--text-faint)" aria-hidden />
+          <Search size={14} strokeWidth={1.5} color="var(--text-faint)" aria-hidden />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}

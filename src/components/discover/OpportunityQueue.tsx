@@ -397,7 +397,7 @@ export function OpportunityQueue() {
           }
           className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             background: "transparent",
             borderRadius: "var(--radius-control)",

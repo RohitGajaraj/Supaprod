@@ -123,7 +123,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
               gap: 5,
             }}
           >
-            <ShieldCheck size={11} strokeWidth={1.75} /> earned, not granted
+            <ShieldCheck size={16} strokeWidth={1.5} /> earned, not granted
           </span>
         </div>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
@@ -311,8 +311,8 @@ function TrustRow({
           >
             Why
             <ChevronDown
-              size={13}
-              strokeWidth={1.75}
+              size={16}
+              strokeWidth={1.5}
               style={{
                 transform: open ? "rotate(180deg)" : "none",
                 transition: "transform var(--dur-fast)",

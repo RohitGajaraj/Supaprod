@@ -558,7 +558,7 @@ export function TraceDetail({ id }: { id: string }) {
               params={{ missionId: mission.id }}
               className="btn btn-ghost btn-sm"
             >
-              <ExternalLink size={11} />
+              <ExternalLink size={16} />
               Open mission
             </Link>
           ) : null
@@ -584,7 +584,7 @@ export function TraceDetail({ id }: { id: string }) {
           aria-controls="trace-hop-table"
           onClick={() => setShowTiming((v) => !v)}
         >
-          {showTiming ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+          {showTiming ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           Timing + cost
         </button>
       </div>
@@ -707,7 +707,7 @@ export function TraceDetail({ id }: { id: string }) {
                           color: "var(--saffron)",
                         }}
                       >
-                        <Shield size={11} /> {hits.length}
+                        <Shield size={16} /> {hits.length}
                       </span>
                     )}
                   </span>

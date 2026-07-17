@@ -58,7 +58,7 @@ function RateStat({
             }}
           >
             <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{p}</span>
-            <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>{detail}</span>
+            <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>{detail}</span>
           </div>
           <div
             style={{
@@ -204,7 +204,7 @@ export function AgentScorecardPanel() {
       }}
     >
       <MonoLabel>Track record, by agent and task type</MonoLabel>
-      <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
+      <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
         The tier list, kept for you: how often each agent's work is approved and how often it turns
         out right, per task type. Only decided history counts, so a fresh agent shows nothing rather
         than a hollow score.

@@ -349,7 +349,7 @@ function TemplateDetail({
   if (detail.isError) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
           This template did not load. {(detail.error as Error)?.message}
         </p>
         <button
@@ -373,7 +373,7 @@ function TemplateDetail({
   if (!template) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>Template not found.</p>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>Template not found.</p>
         <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={onBack}>
           ← Back to prompts
         </button>
@@ -572,7 +572,7 @@ function VersionColumn({
         {selectedId && selectedId !== activeId ? (
           <button
             className="btn btn-ghost btn-sm"
-            style={{ fontSize: 10.5 }}
+            style={{ fontSize: "var(--text-label-12)" }}
             onClick={() => onSetActive(selectedId)}
           >
             Set active · routes traffic
@@ -841,7 +841,7 @@ function PromptUsagePanel({
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 10 }}>Usage · last 30 days · {total} runs</MonoLabel>
       {total === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>No runs recorded yet.</p>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>No runs recorded yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {versions.map((v) => {

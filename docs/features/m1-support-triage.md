@@ -10,7 +10,7 @@ clusters to signals; support feeds back into Discover").
 
 ## Why it matters
 
-Cadence's moat is the decision system. Support is the richest post-launch signal of
+Supaprod's moat is the decision system. Support is the richest post-launch signal of
 what is actually broken or missing, but it normally dies in a help desk. This loop
 turns recurring support pain into governed product signal automatically, so the
 Discover -> opportunity -> PRD pipeline can act on what customers keep reporting.

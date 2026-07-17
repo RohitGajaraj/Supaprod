@@ -1,4 +1,4 @@
-# Cadence Deep-Quality Audit Register (merged, deduplicated)
+# Supaprod Deep-Quality Audit Register (merged, deduplicated)
 
 > _Created: 2026-07-04 · Last updated: 2026-07-04_
 

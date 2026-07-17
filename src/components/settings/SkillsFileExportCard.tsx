@@ -58,7 +58,7 @@ export function SkillsFileExportCard() {
         onClick={onExport}
         disabled={busy}
       >
-        <FileCode size={14} />
+        <FileCode size={16} />
         {busy ? "Preparing your bundle" : "Export agent context bundle"}
       </Button>
     </div>

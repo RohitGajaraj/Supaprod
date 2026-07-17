@@ -167,7 +167,7 @@ function BetCardComponent({
         <span
           style={{
             flex: 1,
-            fontSize: 13,
+            fontSize: "var(--text-label-13)",
             fontWeight: 600,
             color: style.ink,
             overflow: "hidden",
@@ -199,7 +199,7 @@ function BetCardComponent({
             placeholder="Outcome: what changes"
             maxLength={500}
             style={{
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               padding: "5px 8px",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
@@ -213,7 +213,7 @@ function BetCardComponent({
             placeholder="Measure: how you'll know"
             maxLength={500}
             style={{
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               padding: "5px 8px",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",

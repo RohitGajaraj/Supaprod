@@ -240,7 +240,7 @@ export function DecisionDetail({ id }: { id: string }) {
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>
           Decision · failed to load
         </MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(decisions.error as Error)?.message ?? "Unknown error"}
         </p>
         <Button variant="secondary" size="sm" onClick={() => void decisions.refetch()}>

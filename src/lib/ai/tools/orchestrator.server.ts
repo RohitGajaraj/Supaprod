@@ -245,6 +245,30 @@ export const missionPlan = def({
       // playbook_runs absent pre-migration — steps simply plan unbound.
     }
 
+    // PC-30 skill enable/disable: this workspace's per-agent disabled
+    // playbooks, so a step never binds to a playbook a human turned off for
+    // that agent. Same pre-migration-tolerant shape as playbookRuns above:
+    // a read failure just means every playbook stays eligible.
+    const disabledByAgent = new Map<string, Set<string>>();
+    try {
+      const res = await supabase
+        .from("agent_disabled_skills" as never)
+        .select("agent_slug,playbook_id")
+        .eq("workspace_id", workspaceId);
+      if (!res.error) {
+        for (const row of (res.data ?? []) as unknown as {
+          agent_slug: string;
+          playbook_id: string;
+        }[]) {
+          const set = disabledByAgent.get(row.agent_slug) ?? new Set<string>();
+          set.add(row.playbook_id);
+          disabledByAgent.set(row.agent_slug, set);
+        }
+      }
+    } catch {
+      // agent_disabled_skills absent pre-migration: nothing excluded.
+    }
+
     const rows = plan.steps.map((s, i) => {
       const resolved = resolveSlug(s.agent_slug);
       if (!resolved) {
@@ -253,7 +277,11 @@ export const missionPlan = def({
         );
       }
       const deps = (s.depends_on ?? []).filter((d) => Number.isInteger(d) && d >= 0 && d < i);
-      const picked = pickPlaybookForAgentStation(resolveStationTotal(resolved), playbookRuns);
+      const picked = pickPlaybookForAgentStation(
+        resolveStationTotal(resolved),
+        playbookRuns,
+        disabledByAgent.get(resolved),
+      );
       return {
         mission_id: missionId,
         user_id: userId,

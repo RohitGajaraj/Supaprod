@@ -2,11 +2,11 @@
 
 > _Created: 2026-06-06 · Last updated: 2026-06-14_
 
-> **What this is.** The canonical plan for the "agent ecosystem" bundle: four sequential builds that turn Cadence's substrate (chokepoint, runs, messages, missions, trust, guardrails) into actual agent-native behavior. Captured here so it survives sessions / tools and can be picked up by anyone (Claude Code · Antigravity · Gemini · Lovable).
+> **What this is.** The canonical plan for the "agent ecosystem" bundle: four sequential builds that turn Supaprod's substrate (chokepoint, runs, messages, missions, trust, guardrails) into actual agent-native behavior. Captured here so it survives sessions / tools and can be picked up by anyone (Claude Code · Antigravity · Gemini · Lovable).
 >
 > **Status (2026-06-06):** F-AGENT-1 ✅ shipped. F-AGENT-2 ☐ next. F-AGENT-3 ☐. F-AGENT-4 ☐. Live cursor lives in [`../planning/feature-backlog.md`](../planning/feature-backlog.md); active sub-steps in `../active-task.md` (root).
 >
-> **Why this bundle exists.** Ground-truth survey of the running system found the substrate ~95% complete but the _behavior_ missing: single-agent planner loops, an unused `agent_memory` table (0 rows written), no event reactor, no self-reflection, no swarm-level surface, no meta-agent that decomposes a goal into a multi-agent plan. Everything that makes Cadence "agent-native" rather than "AI-assisted" lives in this bundle. Operator explicitly deferred Restructure Phases 3 to 4 (UI/UX revamp) until this closes.
+> **Why this bundle exists.** Ground-truth survey of the running system found the substrate ~95% complete but the _behavior_ missing: single-agent planner loops, an unused `agent_memory` table (0 rows written), no event reactor, no self-reflection, no swarm-level surface, no meta-agent that decomposes a goal into a multi-agent plan. Everything that makes Supaprod "agent-native" rather than "AI-assisted" lives in this bundle. Operator explicitly deferred Restructure Phases 3 to 4 (UI/UX revamp) until this closes.
 
 ---
 

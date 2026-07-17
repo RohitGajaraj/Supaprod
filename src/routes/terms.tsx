@@ -24,7 +24,7 @@ function TermsPage() {
   return (
     <LegalPageShell eyebrow="Legal" title="Terms of service" updated="July 10, 2026">
       <p>
-        By creating a Supaprod account or using supaprod.lovable.app, you agree to these
+        By creating a Supaprod account or using supaprod.ai, you agree to these
         terms. Supaprod is in beta. Features change quickly, and we will tell you when something
         material changes.
       </p>

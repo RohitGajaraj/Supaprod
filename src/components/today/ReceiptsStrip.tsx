@@ -59,7 +59,7 @@ export function ReceiptsStrip({
         <h2
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -87,7 +87,7 @@ export function ReceiptsStrip({
       {rows.length === 0 ? (
         <p
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-faint)",
             margin: "2px 0 0",
             fontStyle: "italic",
@@ -119,7 +119,7 @@ export function ReceiptsStrip({
                 }}
               >
                 {actor.slug ? (
-                  <AgentMark slug={actor.slug} size={18} />
+                  <AgentMark slug={actor.slug} size={16} />
                 ) : (
                   <span
                     aria-hidden="true"
@@ -136,7 +136,7 @@ export function ReceiptsStrip({
                 )}
                 <span
                   style={{
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                     fontWeight: 550,
                     color: "var(--text-body)",
                     flexShrink: 0,
@@ -146,7 +146,7 @@ export function ReceiptsStrip({
                 </span>
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: 12.5, color: "var(--text-muted)" }}
+                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)" }}
                 >
                   {actLine(g)}
                 </span>
@@ -154,7 +154,7 @@ export function ReceiptsStrip({
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: "var(--text-label-12)",
                       letterSpacing: "0.06em",
                       color: "var(--text-faint)",
                       flexShrink: 0,
@@ -168,7 +168,7 @@ export function ReceiptsStrip({
                   onClick={clickable ? () => onOpenMission(g.key) : onOpenActivity}
                   className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontSize: 12,
+                    fontSize: "var(--text-label-12)",
                     fontWeight: 500,
                     color: "var(--link)",
                     background: "transparent",
@@ -193,7 +193,7 @@ export function ReceiptsStrip({
           onClick={onOpenActivity}
           className="loom-press self-start outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontSize: 12,
+            fontSize: "var(--text-label-12)",
             fontWeight: 500,
             color: "var(--link)",
             background: "transparent",

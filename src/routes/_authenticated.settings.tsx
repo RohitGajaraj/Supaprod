@@ -10,7 +10,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/supaprod/TopBar";
 import { MonoLabel } from "@/components/supaprod/Primitives";
@@ -430,9 +430,9 @@ function SettingsPage() {
           </ObsidianMonoLabel>
           <h1
             style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 460,
-              fontSize: "var(--text-h1, 32px)",
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 28,
               lineHeight: 1.15,
               color: "var(--text-primary)",
               margin: 0,
@@ -454,8 +454,10 @@ function SettingsPage() {
           />
         </header>
 
-        <div className="flex" style={{ gap: 44 }}>
-          <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+        <div className="flex flex-col md:flex-row" style={{ gap: 44 }}>
+          <div className="md:w-48">
+            <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+          </div>
 
           <div style={{ flex: 1, minWidth: 0, maxWidth: 880 }}>
             {/* Tier 2: the active pane's member sections — only shown when the pane
@@ -669,8 +671,8 @@ function BillingTab({ checkout }: { checkout?: string }) {
   const subStatusColor = sub?.cancelAtPeriodEnd
     ? "var(--marigold)"
     : isPastDue
-      ? "var(--madder)"
-      : "var(--moss)";
+      ? "var(--ds-red-600)"
+      : "var(--ds-green-600)";
   const subStatusGlow = sub?.cancelAtPeriodEnd
     ? "0 0 8px rgba(232, 180, 76, 0.5)"
     : isPastDue
@@ -1178,7 +1180,7 @@ function CreditsTabInner() {
             an eternal unexplained "--" (checklist point 7). */}
         {credits.isError && (
           <div style={{ marginTop: "var(--space-2)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
               Couldn't load your balance. {(credits.error as Error)?.message ?? "Unknown error"}
             </p>
             <div style={{ marginTop: "var(--space-2)" }}>
@@ -1291,7 +1293,7 @@ function CreditsTabInner() {
           if (attribution.isError) {
             return (
               <div style={{ marginTop: "var(--space-2)" }}>
-                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
                   Couldn't load the usage breakdown.{" "}
                   {(attribution.error as Error)?.message ?? "Unknown error"}
                 </p>
@@ -1464,7 +1466,7 @@ function CreditsTabInner() {
           </div>
         ) : catalog.error ? (
           <div style={{ marginTop: "var(--space-4)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
               Couldn't load the top-up catalog.{" "}
               {(catalog.error as Error)?.message ?? "Unknown error"}
             </p>
@@ -1552,7 +1554,7 @@ function CreditsTabInner() {
             This cycle: {data.cycleTopupCredits.toLocaleString()} of{" "}
             {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more?{" "}
             <a
-              href="mailto:sales@supaprod.app?subject=Enterprise%20credits"
+              href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
               className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ color: "var(--link)" }}
             >
@@ -1568,7 +1570,7 @@ function CreditsTabInner() {
         {credits.isLoading ? (
           <p style={helperTextStyle()}>Loading…</p>
         ) : credits.isError ? (
-          <p style={{ ...helperTextStyle(), color: "var(--madder, #E06557)" }}>
+          <p style={{ ...helperTextStyle(), color: "var(--ds-red-600)" }}>
             Couldn't load recent activity. Use Retry above to reload.
           </p>
         ) : data && data.ledger.length === 0 && data.topups.length === 0 ? (
@@ -1600,7 +1602,7 @@ function CreditsTabInner() {
               >
                 {/* Human words, not the raw price_lookup_key enum (copy audit). */}
                 <span style={{ color: "var(--text-primary)" }}>Credit top-up</span>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--moss)" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--ds-green-600)" }}>
                   +{Number(t.credits_added).toLocaleString()} credits
                 </span>
                 <span
@@ -1637,7 +1639,7 @@ function CreditsTabInner() {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    color: row.delta_credits >= 0 ? "var(--moss)" : "var(--text-body)",
+                    color: row.delta_credits >= 0 ? "var(--ds-green-600)" : "var(--text-body)",
                   }}
                 >
                   {row.delta_credits >= 0 ? "+" : ""}
@@ -1797,7 +1799,7 @@ function WorkspaceBindingsSummary() {
                     width: 6,
                     height: 6,
                     borderRadius: 99,
-                    background: healthy ? "var(--moss)" : "var(--madder)",
+                    background: healthy ? "var(--ds-green-600)" : "var(--ds-red-600)",
                     flexShrink: 0,
                   }}
                 />
@@ -2183,7 +2185,13 @@ function ByoKeysSection() {
             if (keyValue.trim()) mSaveKey.mutate();
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 3fr 4fr 2fr", gap: 8 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: 8,
+            }}
+          >
             <select
               className="input"
               value={keyProv}
@@ -3144,13 +3152,23 @@ function Field({
   hint?: string;
   children: React.ReactNode;
 }) {
+  // Create a stable ID for label association - use the label text as a base
+  const fieldId = `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
+
   return (
-    <label style={{ display: "block" }}>
-      <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>{label}</div>
-      {children}
+    <div style={{ display: "block" }}>
+      <label
+        htmlFor={fieldId}
+        style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}
+      >
+        {label}
+      </label>
+      {isValidElement(children)
+        ? cloneElement(children, { id: fieldId } as any)
+        : children}
       {hint ? (
         <div style={{ marginTop: 4, fontSize: 11, color: "var(--ink-faint)" }}>{hint}</div>
       ) : null}
-    </label>
+    </div>
   );
 }

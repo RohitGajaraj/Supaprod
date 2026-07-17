@@ -282,7 +282,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             color: "var(--ember, #c2622e)",
           }}
         >
-          <TierIcon size={18} strokeWidth={1.6} />
+          <TierIcon size={16} strokeWidth={1.6} />
         </span>
         {isBusiness && (
           <span
@@ -458,7 +458,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* CTA — right after price + credit selector, before features */}
       {isEnterprise ? (
         <a
-          href="mailto:sales@supaprod.app?subject=Enterprise enquiry"
+          href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
           style={{
             display: "block",
             textAlign: "center",

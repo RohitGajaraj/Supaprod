@@ -75,4 +75,4 @@ All registry-verified available on `.ai` (whois.nic.ai, 2026-07-15). ⚠️ **Th
 4. taktur only: open a GoDaddy inquiry on the parked `taktur.com` (no rush — brand ships on `.ai`).
 5. Before filing a trademark: attorney knockout search in Nice class 9/42 (taktur → against TAKT/TAKTILE; any name → USPTO TESS was not directly queryable tonight, web indexes only).
 
-_Deep trail: full candidate pools, per-name research, and the taken-name graveyard live in the session workflows of 2026-07-14; availability CSVs in the session scratchpad. Renaming execution (repo/docs/DB sweep) is a separate initiative — do not start it until the founder locks the name._
+_Deep trail: full candidate pools, per-name research, and the taken-name graveyard live in the session workflows of 2026-07-14; availability CSVs in the session scratchpad. Renaming execution (repo/docs/DB sweep) was a separate initiative, gated on the founder locking a name — the founder locked **Supaprod** 2026-07-16 (not this doc's Taktur recommendation) and execution ran 2026-07-17; see [naming-decision-supaprod.md](./naming-decision-supaprod.md)._

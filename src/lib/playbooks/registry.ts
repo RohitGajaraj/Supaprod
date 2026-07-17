@@ -225,16 +225,26 @@ export const AGENT_TO_PLAYBOOK_STATION: Partial<Record<AgentStation, PlaybookSta
 
 /**
  * PURE. The top-ranked playbook for a mission step's `AgentStation`, or null
- * when that station has no bound `PlaybookStation` (build/ship/learn) or the
- * station's registry is empty. Ties break by registry order via
- * `rankPlaybooksByOutcome`'s own stable sort.
+ * when that station has no bound `PlaybookStation` (build/ship/learn), the
+ * station's registry is empty, or every bound playbook is excluded. Ties
+ * break by registry order via `rankPlaybooksByOutcome`'s own stable sort.
+ *
+ * excludedPlaybookIds (PC-30 skill enable/disable): playbooks a human has
+ * turned off for THIS agent. Filtered out before picking the leader, not
+ * before ranking, so a disabled playbook's track record still exists for
+ * display elsewhere: this is the only place "disabled" has a real effect.
  */
 export function pickPlaybookForAgentStation(
   agentStation: AgentStation | null | undefined,
   runs: readonly PlaybookRun[],
+  excludedPlaybookIds?: ReadonlySet<string> | null,
 ): PlaybookRanking | null {
   const station = agentStation ? AGENT_TO_PLAYBOOK_STATION[agentStation] : undefined;
   if (!station) return null;
   const ranked = rankPlaybooksByOutcome(station, runs);
-  return ranked[0] ?? null;
+  const eligible =
+    excludedPlaybookIds && excludedPlaybookIds.size > 0
+      ? ranked.filter((r) => !excludedPlaybookIds.has(r.playbook.id))
+      : ranked;
+  return eligible[0] ?? null;
 }

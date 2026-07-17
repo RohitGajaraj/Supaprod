@@ -94,7 +94,7 @@ function ProposalCard({
           sweep's own line breaks. */}
       <p
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-body)",
           lineHeight: 1.55,
           whiteSpace: "pre-wrap",
@@ -194,7 +194,7 @@ export function PlaybookProposalsPanel() {
         }}
       >
         <MonoLabel>Playbook proposals · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -226,8 +226,8 @@ export function PlaybookProposalsPanel() {
   return (
     <section aria-label="Proposed playbooks" style={{ marginBottom: 24 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <MonoLabel style={{ fontSize: 10.5 }}>Proposed playbooks</MonoLabel>
-        <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>
+        <MonoLabel style={{ fontSize: "var(--text-label-12)" }}>Proposed playbooks</MonoLabel>
+        <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>
           the same lesson repeated until it became a method - adopt it or dismiss it
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
@@ -248,7 +248,7 @@ export function PlaybookProposalsPanel() {
             className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               fontWeight: 500,
               color: "var(--text-muted)",
               background: "transparent",

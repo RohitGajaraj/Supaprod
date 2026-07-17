@@ -218,11 +218,11 @@ Every model call rides the existing chokepoint (`callModel`, surface `'agent'`):
 | Loop: 24 steps, steer injection, pause-on-gate, resume outcome injection, gate floors, `executeApproval` mission ctx | `src/lib/ai/loop.server.ts`                                                                              |
 | Steer-vs-handoff separation (`kind='handoff'` filter)                                                                | `src/lib/ai/handoff.server.ts` (`consumeInboundHandoff`)                                                 |
 | Server functions (dispatch/list/get/steer/diff/CI)                                                                   | `src/lib/studio.functions.ts`                                                                            |
-| `mission` artifact kind (lineage)                                                                                    | `src/lib/lineage.functions.ts` · `src/components/cadence/LineageDrawer.tsx`                              |
+| `mission` artifact kind (lineage)                                                                                    | `src/lib/lineage.functions.ts` · `src/components/supaprod/LineageDrawer.tsx`                              |
 | KI-02 sweeper fixes (NULL checkpoint, `waiting_approval` pickup)                                                     | `src/routes/api/public/hooks/resume-runs.ts`                                                             |
 | Surface routes                                                                                                       | `src/routes/_authenticated.studio.{index,$missionId}.tsx`                                                |
 | Surface components (timeline, gate cards, changes/CI/cost panels)                                                    | `src/components/studio/`                                                                                 |
-| Redirect + palette                                                                                                   | `src/routes/_authenticated.build.tsx` · `src/components/cadence/CommandPalette.tsx`                      |
+| Redirect + palette                                                                                                   | `src/routes/_authenticated.build.tsx` · `src/components/supaprod/CommandPalette.tsx`                      |
 | Legacy internals (kept, ≡ Studio)                                                                                    | `src/lib/build.functions.ts`, `builder_file_claims`, single-file `github.pr.open`/`github.commit.append` |
 
 ## Notable history

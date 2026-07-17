@@ -8,7 +8,7 @@
 
 ## What it does
 
-Cadence's AI backend is now **model-agnostic**: every internal AI action (agent steps, daily briefs, idea bucketing/clustering, research synthesis, chat) can be powered by **any** model from **any** provider — Anthropic, OpenAI, Google, DeepSeek, xAI, Moonshot, Qwen, MiniMax, Mistral, Groq, OpenRouter, Together, Fireworks, Perplexity, a self-hosted vLLM/Ollama, or anything else that speaks the OpenAI Chat Completions shape (Anthropic Messages is also handled). The platform operator plugs a provider in by setting two env vars — no code change, no closed list. On top of that, a **Perplexity-style capability router** sends each call to the model **best at the task** (code, reasoning, vision, long-context, fast chat), "optimized by us," plus a consumer-facing **Auto** mode in the model picker.
+Supaprod's AI backend is now **model-agnostic**: every internal AI action (agent steps, daily briefs, idea bucketing/clustering, research synthesis, chat) can be powered by **any** model from **any** provider — Anthropic, OpenAI, Google, DeepSeek, xAI, Moonshot, Qwen, MiniMax, Mistral, Groq, OpenRouter, Together, Fireworks, Perplexity, a self-hosted vLLM/Ollama, or anything else that speaks the OpenAI Chat Completions shape (Anthropic Messages is also handled). The platform operator plugs a provider in by setting two env vars — no code change, no closed list. On top of that, a **Perplexity-style capability router** sends each call to the model **best at the task** (code, reasoning, vision, long-context, fast chat), "optimized by us," plus a consumer-facing **Auto** mode in the model picker.
 
 ## Why it exists
 
@@ -36,7 +36,7 @@ Before this, the catalog was a closed 7-provider union and the chokepoint resolv
 - **Benchmark integrity:** the `eval` subject call and the `judge` (Critic) surface are **never** routed.
 - **Kill-switch:** `AI_CAPABILITY_ROUTING` is ON by default (founder ruling); set to `off`/`0`/`false` to make routing byte-identical to pinned-model behavior.
 - **SSRF:** every resolved base URL passes `assertSafeBaseUrl` (https anywhere; http only for localhost; private IP ranges **and** internal-resolvable hostnames — `*.cluster.local`/`*.internal`/`*.corp`/metadata hosts — blocked). Provider error bodies are key-masked before they reach `ai_events`. A user base URL is only ever paired with that same user's key, never a platform key (audited 2026-06-30: 5/6 SSRF vectors not exploitable, the 6th hardened).
-- **Sub-processor disclosure:** platform-added providers ARE Cadence sub-processors and are disclosed; [`subprocessors.ts`](../../src/lib/compliance/subprocessors.ts) is now open (any provider gets a humanized name; never silently dropped). Self-hosted (Ollama) stays excluded.
+- **Sub-processor disclosure:** platform-added providers ARE Supaprod sub-processors and are disclosed; [`subprocessors.ts`](../../src/lib/compliance/subprocessors.ts) is now open (any provider gets a humanized name; never silently dropped). Self-hosted (Ollama) stays excluded.
 
 ## Verification checklist
 

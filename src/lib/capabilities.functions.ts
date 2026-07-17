@@ -14,7 +14,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SPECIALIST_CATALOG, type AgentStation, type CatalogEntry } from "@/lib/agent-vocabulary";
-import { PLAYBOOK_REGISTRY } from "@/lib/playbooks/registry";
+import {
+  AGENT_TO_PLAYBOOK_STATION,
+  findPlaybook,
+  selectPlaybooksForStation,
+  type PlaybookDefinition,
+} from "@/lib/playbooks/registry";
 import {
   getActiveHouseRulesForWorkspace,
   renderHouseRulesBlock,
@@ -55,6 +60,11 @@ export interface SkillInfo {
   wins: number;
   /** Validated outcome rate (wins / runs). */
   winRate: number;
+  /** False when a human has turned this playbook off for this agent
+   *  (agent_disabled_skills) -- disabled playbooks are never auto-picked at
+   *  mission-plan time (orchestrator.server.ts), a real effect, not just a
+   *  UI flag. */
+  enabled: boolean;
 }
 
 export interface ToolModeInfo {
@@ -203,8 +213,9 @@ async function buildCapabilityForAgent(
     }
   }
 
-  // Skills: playbooks used by this agent's station, with win-rates.
-  const skills = await getStationSkills(supabase, workspaceId, agent.station);
+  // Skills: playbooks bound to this agent's station, with win-rates and
+  // this agent's own enable/disable state.
+  const skills = await getStationSkills(supabase, workspaceId, agent.slug, agent.station);
 
   // Autonomy: the trust-ramp arc/score (computed once for all agents, above)
   // plus this agent's graduated tool modes and decided graduation history.
@@ -239,25 +250,62 @@ async function buildCapabilityForAgent(
   };
 }
 
-async function getStationSkills(
+/**
+ * PURE. Merge a station's bound playbooks with this workspace's run stats
+ * and this agent's disabled-id set into the SkillInfo list the Capabilities
+ * card renders. Every playbook bound to the station is included -- even one
+ * never run -- so there is always something to toggle, not only playbooks
+ * that already have a track record. Sorted by run frequency, registry order
+ * as the tiebreak (mirrors rankPlaybooksByOutcome's own stable sort).
+ */
+export function buildSkillInfos(
+  bound: readonly PlaybookDefinition[],
+  runsByPlaybook: ReadonlyMap<string, { wins: number; total: number }>,
+  disabledIds: ReadonlySet<string>,
+): SkillInfo[] {
+  return bound
+    .map((def) => {
+      const stats = runsByPlaybook.get(def.id) ?? { wins: 0, total: 0 };
+      return {
+        id: def.id,
+        name: def.name,
+        runs: stats.total,
+        wins: stats.wins,
+        winRate: stats.total > 0 ? stats.wins / stats.total : 0,
+        enabled: !disabledIds.has(def.id),
+      };
+    })
+    .sort((a, b) => b.runs - a.runs);
+}
+
+/**
+ * Playbooks bound to this agent's station, with win-rates and this agent's
+ * disabled state. NOTE (PC-30 fix, 2026-07-17): the prior version filtered
+ * `playbook_runs.station` (a PlaybookStation value like "discovery") against
+ * the raw AgentStation ("sense") -- those vocabularies never overlap, so the
+ * Skills section silently returned [] for every agent since it first shipped.
+ * Routing through AGENT_TO_PLAYBOOK_STATION fixes the read, not just adds
+ * the toggle.
+ */
+export async function getStationSkills(
   supabase: SupabaseClient,
   workspaceId: string | null,
+  agentSlug: string,
   station: AgentStation,
 ): Promise<SkillInfo[]> {
-  if (!workspaceId) return [];
+  const playbookStation = AGENT_TO_PLAYBOOK_STATION[station];
+  if (!playbookStation) return []; // build/ship/design/learn: no PM method bound.
 
-  // Get playbook runs for this station, grouped by playbook_id.
+  const bound = selectPlaybooksForStation(playbookStation);
+  if (bound.length === 0 || !workspaceId) return [];
+
+  const byPlaybook = new Map<string, { wins: number; total: number }>();
   const { data: runs } = await supabase
     .from("playbook_runs")
     .select("playbook_id, verdict")
     .eq("workspace_id", workspaceId)
-    .eq("station", station);
-
-  if (!runs || runs.length === 0) return [];
-
-  // Group by playbook_id and calculate win-rates.
-  const byPlaybook = new Map<string, { wins: number; total: number }>();
-  for (const run of runs) {
+    .eq("station", playbookStation);
+  for (const run of runs ?? []) {
     const current = byPlaybook.get(run.playbook_id) ?? { wins: 0, total: 0 };
     current.total += 1;
     if (run.verdict === "won" || run.verdict === "validated") {
@@ -266,22 +314,33 @@ async function getStationSkills(
     byPlaybook.set(run.playbook_id, current);
   }
 
-  // Convert to SkillInfo array, naming each from the playbook registry (falls
-  // back to the raw id for a run recorded against a since-retired playbook,
-  // never fabricated).
-  const skills: SkillInfo[] = [];
-  for (const [playbookId, stats] of byPlaybook) {
-    const def = PLAYBOOK_REGISTRY.find((p) => p.id === playbookId);
-    skills.push({
-      id: playbookId,
-      name: def?.name ?? playbookId,
-      runs: stats.total,
-      wins: stats.wins,
-      winRate: stats.total > 0 ? stats.wins / stats.total : 0,
-    });
-  }
+  const disabledIds = await getDisabledSkillIds(supabase, workspaceId, agentSlug);
 
-  return skills.sort((a, b) => b.runs - a.runs); // Sort by frequency.
+  return buildSkillInfos(bound, byPlaybook, disabledIds);
+}
+
+/** This agent's disabled-playbook set (agent_disabled_skills, PC-30). Empty
+ *  on a read error or pre-migration -- absence of a row means enabled, so
+ *  failing open here keeps every playbook available rather than silently
+ *  disabling everything on a transient read failure. */
+async function getDisabledSkillIds(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  agentSlug: string,
+): Promise<Set<string>> {
+  try {
+    const { data: rows } = await supabase
+      .from("agent_disabled_skills" as never)
+      .select("playbook_id")
+      .eq("workspace_id", workspaceId)
+      .eq("agent_slug", agentSlug);
+    return new Set(
+      ((rows ?? []) as unknown as { playbook_id: string }[]).map((r) => r.playbook_id),
+    );
+  } catch (e) {
+    console.warn(`Failed to load disabled skills for ${agentSlug}:`, e);
+    return new Set();
+  }
 }
 
 /** Tool modes graduated (or operator-set) away from their seeded default for
@@ -462,6 +521,71 @@ export const updateAgentInstructions = createServerFn({ method: "POST" })
       "instructions",
       `Updated ${data.agentSlug}'s instructions`,
       previousValue,
+    );
+
+    return { ok: true };
+  });
+
+const ToggleSkillSchema = z.object({
+  agentSlug: z.string(),
+  workspaceId: z.string().uuid().optional(),
+  playbookId: z.string(),
+  enabled: z.boolean(),
+});
+
+/**
+ * Enable or disable a playbook for one agent (PC-30). Disabling writes a
+ * deny-list row in agent_disabled_skills -- the SAME row
+ * pickPlaybookForAgentStation's caller (orchestrator.server.ts's mission.plan)
+ * reads, so a disable here has a real effect on the next mission plan, not
+ * just a logged receipt. Re-enabling deletes the row.
+ */
+export const toggleAgentSkill = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof ToggleSkillSchema> | undefined) =>
+    ToggleSkillSchema.parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    let workspaceId = data.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
+    if (!workspaceId) throw new Error("toggleAgentSkill: no workspace");
+
+    const def = findPlaybook(data.playbookId);
+    const playbookName = def?.name ?? data.playbookId;
+
+    if (data.enabled) {
+      const { error } = await supabase
+        .from("agent_disabled_skills" as never)
+        .delete()
+        .eq("workspace_id", workspaceId)
+        .eq("agent_slug", data.agentSlug)
+        .eq("playbook_id", data.playbookId);
+      if (error) throw new Error(`toggleAgentSkill: ${error.message}`);
+    } else {
+      const { error } = await supabase.from("agent_disabled_skills" as never).upsert(
+        {
+          workspace_id: workspaceId,
+          user_id: userId,
+          agent_slug: data.agentSlug,
+          playbook_id: data.playbookId,
+        } as never,
+        { onConflict: "workspace_id,agent_slug,playbook_id" },
+      );
+      if (error) throw new Error(`toggleAgentSkill: ${error.message}`);
+    }
+
+    await recordCapabilityChange(
+      supabase,
+      userId,
+      workspaceId,
+      data.agentSlug,
+      data.enabled ? "skill_enabled" : "skill_disabled",
+      `${data.enabled ? "Enabled" : "Disabled"} "${playbookName}" for ${data.agentSlug}`,
+      null,
     );
 
     return { ok: true };

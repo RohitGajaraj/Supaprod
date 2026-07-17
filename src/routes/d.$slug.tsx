@@ -13,7 +13,7 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://supaprod.lovable.app/og-supaprod.png";
+const OG_IMAGE = "https://supaprod.ai/og-supaprod.png";
 
 export const Route = createFileRoute("/d/$slug")({
   ssr: true,

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-10 · Last updated: 2026-06-19_
 
-> **What this is.** A record of the 2026-06-10 strategic pivot to the **B2B Enterprise Product Cockpit** positioning, focusing on target personas, the pluggable multi-model substrate, and the 12-stage product development lifecycle. (The rename that accompanied it was reverted on 2026-06-16; the product is Cadence.)
+> **What this is.** A record of the 2026-06-10 strategic pivot to the **B2B Enterprise Product Cockpit** positioning, focusing on target personas, the pluggable multi-model substrate, and the 12-stage product development lifecycle. (The rename that accompanied it was reverted on 2026-06-16; the product is now Supaprod, per the 2026-07-17 rename.)
 >
 > **When to revisit.** When aligning agent system prompts, adjusting UX layouts, or introducing custom tenant integrations for enterprise clients.
 >
@@ -11,7 +11,7 @@
 ---
 
 > [!IMPORTANT]
-> **PRODUCT NAME: CADENCE.** The product is **Cadence**. This is a superseded v3 positioning doc kept for its personas; a brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16 and the retired name must not be reintroduced.
+> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod** (renamed 2026-07-17; it was Cadence before that). This is a superseded v3 positioning doc kept for its personas; a brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16 and the retired name must not be reintroduced.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ### Naming note (reverted)
 
-This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name is **Cadence**; fresh-name exploration is paused, see [`../decisions/naming.md`](../decisions/naming.md).
+This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name was Cadence until the 2026-07-17 rename; it is now **Supaprod**, see [`../decisions/naming.md`](../decisions/naming.md).
 
 ### The Closed-Loop Lifecycle
 

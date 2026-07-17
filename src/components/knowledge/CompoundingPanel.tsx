@@ -98,7 +98,7 @@ export function CompoundingPanel() {
     return (
       <Card>
         <MonoLabel>Learnings · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
           {((q.error ?? lq.error) as Error)?.message ?? "Unknown error"}
         </p>
         <button

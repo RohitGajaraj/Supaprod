@@ -201,7 +201,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
   // connector, else a neutral radio glyph (a captured-directly signal).
   const isKnownProvider = record.source in CONNECTOR_REGISTRY;
   const sourceGlyph = isKnownProvider ? (
-    <ProviderLogo provider={record.source as ProviderId} size={18} />
+    <ProviderLogo provider={record.source as ProviderId} size={16} />
   ) : (
     <Radio className="h-4 w-4" style={{ color: "var(--text-subtle)" }} />
   );

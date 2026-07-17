@@ -191,7 +191,7 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
       aria-label={`${city}${weather ? `, ${weather.tempC} degrees, ${w?.label}` : ""}`}
       style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
     >
-      {w && <Icon size={12} strokeWidth={1.75} />}
+      {w && <Icon size={16} strokeWidth={1.5} />}
       {city}
       {weather && (
         <>

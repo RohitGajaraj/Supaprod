@@ -235,7 +235,7 @@ export function EngineRoomGlance() {
               with the to-date stats below instead. */}
           {throughput.totalRuns > 0 ? (
             <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
-              Supaprod ran <PixelStat value={throughput.totalRuns} tone="blue" size={18} glow />{" "}
+              Supaprod ran <PixelStat value={throughput.totalRuns} tone="blue" size={16} glow />{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
           ) : null}

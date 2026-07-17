@@ -169,7 +169,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -182,7 +182,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -286,7 +286,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                     }}
                     style={{
                       flex: 1,
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       fontWeight: 600,
                       color: "var(--text-primary)",
                       background: "var(--surface-raised)",
@@ -299,7 +299,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                   <span
                     style={{
                       flex: 1,
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       fontWeight: 600,
                       color: "var(--text-primary)",
                       overflow: "hidden",
@@ -416,7 +416,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",

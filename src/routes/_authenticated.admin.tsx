@@ -171,7 +171,7 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
           {/* No hex overrides: the primary variant already carries the
               token-traced ember gradient (--cta-grad-top/bottom), which
               resolves in both themes. */}
-          <Button variant="primary" loading={claim.isPending} onClick={() => claim.mutate()}>
+          <Button variant="accent" loading={claim.isPending} onClick={() => claim.mutate()}>
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </Button>
           <span

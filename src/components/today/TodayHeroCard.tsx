@@ -87,7 +87,7 @@ export function TodayHeroCard({
             weight so the day opens with them, not with chrome. */}
         <div
           style={{
-            fontSize: 14,
+            fontSize: "var(--text-label-14)",
             lineHeight: 1.2,
             color: "var(--text-muted)",
             marginBottom: 14,
@@ -136,7 +136,7 @@ export function TodayHeroCard({
         {pulseLine ? (
           <p
             style={{
-              fontSize: 13,
+              fontSize: "var(--text-label-13)",
               lineHeight: 1.5,
               color: "var(--text-muted)",
               margin: "14px 0 0",
@@ -158,7 +158,7 @@ export function TodayHeroCard({
             }}
           >
             Answer the first call
-            <ArrowRight size={15} strokeWidth={2} />
+            <ArrowRight size={16} strokeWidth={1.5} />
           </Button>
         ) : null}
       </div>

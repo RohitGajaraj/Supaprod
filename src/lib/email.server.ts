@@ -26,7 +26,7 @@ export function readEmailConfig(): EmailConfig {
   const apiKey = env.RESEND_API_KEY?.trim() || null;
   return {
     apiKey,
-    from: env.RESEND_FROM_EMAIL?.trim() || "Supaprod <notifications@supaprod.app>",
+    from: env.RESEND_FROM_EMAIL?.trim() || "Supaprod <notifications@supaprod.ai>",
     enabled: !!apiKey,
   };
 }

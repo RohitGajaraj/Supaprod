@@ -96,13 +96,13 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
       <Waves
         className={cn("shrink-0", isFlowMode && "flow-pulse")}
         style={{ width: 15, height: 15, color: isFlowMode ? "var(--text-primary)" : undefined }}
-        strokeWidth={1.75}
+        strokeWidth={1.5}
       />
       <span className="flex-1 truncate text-left">Focus</span>
       {isFlowMode && remainingLabel ? (
         <span
           className="tabular-nums shrink-0"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-primary)" }}
+          style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--text-primary)" }}
         >
           {remainingLabel}
         </span>
@@ -120,7 +120,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
           : "text-ink-subtle hover:text-foreground",
       )}
     >
-      <Waves className={cn("h-[13px] w-[13px]", isFlowMode && "flow-pulse")} strokeWidth={1.75} />
+      <Waves className={cn("h-[13px] w-[13px]", isFlowMode && "flow-pulse")} strokeWidth={1.5} />
       {isFlowMode && remainingLabel ? (
         <span className="font-mono text-[11px] tabular-nums">{remainingLabel}</span>
       ) : null}
@@ -143,7 +143,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
               onClick={() => exitFlow()}
               className="flex p-0.5 text-ink-subtle hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
             >
-              <X className="h-[12px] w-[12px]" strokeWidth={1.75} />
+              <X className="h-[12px] w-[12px]" strokeWidth={1.5} />
             </button>
           ) : null}
         </div>
@@ -180,7 +180,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
 
           {config.preset !== "off" ? (
             <div className="flex items-center gap-2">
-              <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink-subtle" strokeWidth={1.75} />
+              <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink-subtle" strokeWidth={1.5} />
               <Slider
                 value={[config.volume]}
                 min={0}
@@ -245,7 +245,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
               onClick={resumeSound}
               className="flex w-full items-center justify-center gap-1.5 rounded-md border border-foreground/20 py-1.5 text-[12px] text-foreground transition hover:bg-foreground/[0.04]"
             >
-              <Play className="h-3 w-3" strokeWidth={2} /> Resume sound
+              <Play className="h-3 w-3" strokeWidth={1.5} /> Resume sound
             </button>
           ) : null}
 

@@ -140,10 +140,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "The decision and outcome operating system for product teams.",
       },
-      // Branded social image (public/og-supaprod.png). Absolute URL required by
-      // crawlers; swap the host when the custom domain lands (founder note).
-      { property: "og:image", content: "https://supaprod.lovable.app/og-supaprod.png" },
-      { name: "twitter:image", content: "https://supaprod.lovable.app/og-supaprod.png" },
+      // Branded social image (public/og-supaprod.png). Absolute URL required by crawlers.
+      { property: "og:image", content: "https://supaprod.ai/og-supaprod.png" },
+      { name: "twitter:image", content: "https://supaprod.ai/og-supaprod.png" },
     ],
     links: [
       {

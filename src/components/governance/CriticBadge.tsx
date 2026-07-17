@@ -109,7 +109,7 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
           aria-expanded={open}
           title="Open Critic review"
         >
-          <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: 10.5 } : undefined}>
+          <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: "var(--text-label-12)" } : undefined}>
             {v.label}
             {riskCount > 0 && (
               <span style={{ opacity: 0.7 }}>

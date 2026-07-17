@@ -261,7 +261,7 @@ export function EvalCalibrationPanel() {
                   ) : null}
                 </div>
                 <ChevronRight
-                  size={18}
+                  size={16}
                   strokeWidth={1.5}
                   style={{ color: "var(--text-faint)", flex: "none" }}
                 />

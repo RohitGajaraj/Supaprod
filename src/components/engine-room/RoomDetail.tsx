@@ -141,8 +141,7 @@ export function PanelPending() {
         style={{
           width: 220,
           height: 3,
-          background:
-            "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
+          background: "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}
@@ -242,12 +241,13 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         <div>
           <h2
             style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 450,
-              fontSize: "var(--text-h2)",
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 22,
               lineHeight: 1.25,
               color: "var(--text-primary)",
               margin: 0,
+              letterSpacing: "0.01em",
             }}
           >
             {ROOM_QUESTIONS[room]}

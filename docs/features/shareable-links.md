@@ -31,7 +31,7 @@ Both share surfaces use one identical security posture. This is the app's first 
 
 ### What it does
 
-Any decision in Knowledge → Decisions can be made public and shared via a read-only link `/<origin>/d/<share_slug>`. The public page shows just the decision: its title, the "why" (rationale), its status, who made the call (in the five-agent vocabulary), and the date, wrapped in a "Made with Cadence" frame with a quiet CTA. The decision plus its rationale is the most self-contained, brand-safe artifact to share.
+Any decision in Knowledge → Decisions can be made public and shared via a read-only link `/<origin>/d/<share_slug>`. The public page shows just the decision: its title, the "why" (rationale), its status, who made the call (in the five-agent vocabulary), and the date, wrapped in a "Made with Supaprod" frame with a quiet CTA. The decision plus its rationale is the most self-contained, brand-safe artifact to share.
 
 ### Why it exists
 
@@ -46,7 +46,7 @@ v6 §7 names a shareable decision link as the viral mechanism: proof of the swar
 
 1. Knowledge → Decisions → open any decision.
 2. Click **Share**, the link copies to your clipboard and the control flips to **Copy link · Unshare**.
-3. Paste the link in a private/incognito window (no session). The decision renders read-only with "Made with Cadence".
+3. Paste the link in a private/incognito window (no session). The decision renders read-only with "Made with Supaprod".
 4. Paste it into Slack/X. The preview shows the decision title + rationale (dynamic OG tags).
 5. Click **Unshare**, reload the public link. It now reads "private or no longer valid".
 
@@ -79,7 +79,7 @@ v6 §7 names a shareable decision link as the viral mechanism: proof of the swar
 
 ### What it does
 
-Any WEDGE Critic-teardown result in Today can be made public and shared via a read-only link `/t/<share_slug>`. The public page shows the verdict (Ship / Revise / Kill) with its summary, plus three sections: **Risks**, **What would kill it**, and **What you cannot prove yet**, wrapped in a "Made with Cadence" frame with a quiet CTA. The teardown is Supaprod's sharpest brand artifact - evidence-backed reasoning that a PM believed in something, then got an honest red-team.
+Any WEDGE Critic-teardown result in Today can be made public and shared via a read-only link `/t/<share_slug>`. The public page shows the verdict (Ship / Revise / Kill) with its summary, plus three sections: **Risks**, **What would kill it**, and **What you cannot prove yet**, wrapped in a "Made with Supaprod" frame with a quiet CTA. The teardown is Supaprod's sharpest brand artifact - evidence-backed reasoning that a PM believed in something, then got an honest red-team.
 
 ### Why it exists
 
@@ -96,7 +96,7 @@ The wedge (WEDGE / v9-wedge) names the Critic-teardown as the launch artifact an
 2. Type an idea (e.g. "Add an AI summary to the top of every report"), optionally add the problem and target user.
 3. Click **Run the teardown**. Wait ~a minute for the Critic verdict (Ship / Revise / Kill) to land.
 4. Once the verdict appears, click **Share** (footer, first icon). The link copies to your clipboard and the button flips to **Copy link · Unshare**.
-5. Paste the link in a private/incognito window (no session). The verdict renders read-only with "Made with Cadence".
+5. Paste the link in a private/incognito window (no session). The verdict renders read-only with "Made with Supaprod".
 6. Paste it into Slack/X. The preview shows the idea title + verdict + summary snippet (dynamic OG tags).
 7. Click **Unshare**, reload the public link. It now reads "private or no longer valid".
 

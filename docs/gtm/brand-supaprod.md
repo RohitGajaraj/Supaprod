@@ -290,7 +290,7 @@ Phase 1 practical note: the **catch-all → Gmail** covers every address anyone 
 | Mark | **SUPAPROD** — standard-character word mark (file the word mark first; stylized/logo mark later, after the Tempo wordmark is finalized) |
 | Applicant | **[FOUNDER TO FILL: legal entity name & type — e.g., private limited / LLC / individual; registered address; citizenship/state of incorporation]** |
 | Correspondence | **[FOUNDER TO FILL: email — suggest `legal@supaprod.com` once Phase-1 email is live]** |
-| Current use in commerce | **NONE.** The name has never been used publicly; the product currently operates under the working name "Cadence." No public announcement is planned before filing (standing instruction). |
+| Current use in commerce | **NONE in the trademark sense.** The SUPAPROD mark has never been used publicly or in commerce; the in-product rename (code, DB, envs, UI) executed internally 2026-07-17, but no public announcement or commercial use of the name has occurred. No public announcement is planned before filing (standing instruction). |
 | US filing basis | **§1(b) intent-to-use (ITU)** — bona fide intent evidenced by this playbook, the domain registrations, and the naming-decision record (docs/pitch/naming-decision-supaprod.md). |
 
 ### Filing strategy and sequence

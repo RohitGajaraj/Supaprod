@@ -154,7 +154,7 @@ function ModeSegment({
             disabled={disabled || blocked || active}
             onClick={() => onSelect(s.mode)}
             style={{
-              fontSize: 10.5,
+              fontSize: "var(--text-label-12)",
               padding: "4px 10px",
               background: active ? "var(--surface-2)" : "transparent",
               color: blocked
@@ -357,7 +357,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     return (
       <div
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
           padding: "32px 0",
           textAlign: "center",
@@ -416,7 +416,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           </div>
         ) : null}
         {ks?.system_paused ? (
-          <div style={{ fontSize: 11.5, color: "var(--madder-bright)", marginTop: 6 }}>
+          <div style={{ fontSize: "var(--text-label-12)", color: "var(--madder-bright)", marginTop: 6 }}>
             System-wide pause is active. The workspace switch unlocks when the system resumes.
           </div>
         ) : null}
@@ -431,7 +431,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           {MISSION_CONCURRENCY_CAP}{" "}
           <span style={{ fontSize: 13, color: "var(--text-subtle)" }}>concurrent</span>
         </div>
-        <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 4 }}>
+        <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginTop: 4 }}>
           New goals queue when the mesh is at capacity.
         </div>
       </div>
@@ -465,7 +465,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           {/* A failed read may never wear the empty state's clothes
               (checklist 7): name it and offer the one retry. */}
           {subsQ.isError ? (
-            <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--madder-bright)", padding: "8px 0" }}>
               Pipeline rules did not load.{" "}
               <button
                 type="button"
@@ -476,14 +476,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   border: "none",
                   padding: 0,
                   color: "var(--text-primary)",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                 }}
               >
                 Retry
               </button>
             </div>
           ) : subs.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>
               No pipeline rules yet.
             </div>
           ) : (
@@ -510,12 +510,12 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500 }}>{pipeName(s)}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>{desc}</div>
+                    <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)" }}>{desc}</div>
                   </div>
                   <button
                     className="mono-label transition hover:brightness-125"
                     style={{
-                      fontSize: 10.5,
+                      fontSize: "var(--text-label-12)",
                       color: "var(--text-subtle)",
                       opacity: deleteSubMut.isPending ? 0.5 : 1,
                       cursor: deleteSubMut.isPending ? "not-allowed" : "pointer",
@@ -614,7 +614,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 className="btn btn-primary btn-sm"
                 type="submit"
                 disabled={addSubMut.isPending || !newAgent.trim()}
-                style={{ fontSize: 10.5 }}
+                style={{ fontSize: "var(--text-label-12)" }}
               >
                 Add rule · fires on the next event
               </button>
@@ -642,16 +642,16 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         <MonoLabel icon={ShieldCheck} style={{ marginBottom: 4 }}>
           Tool oversight
         </MonoLabel>
-        <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 10 }}>
+        <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 10 }}>
           Tighten a tool and the agent asks before every run. After five clean runs in a row,
           Supaprod proposes handing it back. You decide, in the approvals queue.
         </div>
         {toolsQ.isLoading ? (
-          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>
             Loading tools…
           </div>
         ) : toolsQ.error ? (
-          <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--madder-bright)", padding: "8px 0" }}>
             Tools did not load. {(toolsQ.error as Error).message}{" "}
             <button
               type="button"
@@ -662,14 +662,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 border: "none",
                 padding: 0,
                 color: "var(--text-primary)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
               }}
             >
               Retry
             </button>
           </div>
         ) : tools.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>
             No tools enabled yet.
           </div>
         ) : (
@@ -752,11 +752,11 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         <MonoLabel icon={Layers} style={{ marginBottom: 4 }}>
           Consent by consequence
         </MonoLabel>
-        <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 12 }}>
+        <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 12 }}>
           {CONSENT_PHILOSOPHY}
         </div>
         {tools.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+          <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>
             No tools enabled yet.
           </div>
         ) : (
@@ -774,7 +774,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600 }}>{g.label}</div>
-                      <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 2 }}>
+                      <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginTop: 2 }}>
                         {g.description}
                       </div>
                     </div>
@@ -832,7 +832,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         {runs.length === 0 ? (
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               color: "var(--text-subtle)",
               padding: "20px 18px",
               textAlign: "center",
@@ -873,7 +873,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   <span style={{ fontWeight: 500 }}>{r.agent_name}</span>
                   {halted && r.halted_reason ? (
                     <span
-                      style={{ display: "block", fontSize: 11.5, color: "var(--madder-bright)" }}
+                      style={{ display: "block", fontSize: "var(--text-label-12)", color: "var(--madder-bright)" }}
                     >
                       {r.halted_reason}
                     </span>
@@ -913,7 +913,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           {/* Same honesty rule: a failed queue read is an error, never the
               calm "No reactor events yet" (checklist 7). */}
           {queueQ.isError ? (
-            <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--madder-bright)", padding: "8px 0" }}>
               Reactor activity did not load.{" "}
               <button
                 type="button"
@@ -924,14 +924,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   border: "none",
                   padding: 0,
                   color: "var(--text-primary)",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                 }}
               >
                 Retry
               </button>
             </div>
           ) : events.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>
               No reactor events yet.
             </div>
           ) : (
@@ -968,7 +968,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     </div>
                     <div
                       style={{
-                        fontSize: 11.5,
+                        fontSize: "var(--text-label-12)",
                         color: "var(--ink-subtle)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -978,7 +978,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                       {title}
                     </div>
                     {e.error ? (
-                      <div style={{ fontSize: 11.5, color: "var(--madder-bright)" }}>{e.error}</div>
+                      <div style={{ fontSize: "var(--text-label-12)", color: "var(--madder-bright)" }}>{e.error}</div>
                     ) : null}
                   </div>
                   <span className="mono-label tabular-nums">{relTime(e.created_at)}</span>

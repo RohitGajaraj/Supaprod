@@ -186,7 +186,7 @@ Sequenced by leverage, mapped to existing dashboard IDs and v8 phases. This is a
 - **Critic as a routable agent vs. inline** (v7/v8 open): the wedge raises the Critic's importance; deciding this affects whether the teardown is a first-class loop step (DEC-02-LOOP).
 - **How far to pull MCP forward:** read-only slice now (v9 recommends) vs. wait for M-D.
 - **Outcome-pricing unit:** still TBD (v7 §14); v9 recommends deferring it out of the launch story entirely.
-- **Naming reconciliation:** product is **Cadence** (the 2026-06-10 rebrand was reverted 2026-06-16). The full repo was swept back to Cadence on 2026-06-17, so the retired name is removed everywhere (only the unrelated engineering terms remain); no naming pass is outstanding.
+- **Naming reconciliation:** product is **Supaprod** (renamed 2026-07-17 from Cadence — see [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)). Earlier history: the 2026-06-10 rebrand was reverted 2026-06-16, and the full repo was swept back to Cadence on 2026-06-17. The 2026-07-17 rename swept the repo to Supaprod in turn (only the unrelated engineering terms remain); no naming pass is outstanding.
 
 ---
 
