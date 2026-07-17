@@ -2326,9 +2326,19 @@ html[data-motion="off"] .flow-pulse {
 }
 
 /* Every pressable answers the finger: subtle press, fast (§5). Applied via
- * class on interactive chrome; components adopt progressively. */
+ * class on interactive chrome; components adopt progressively.
+ * Mobile touch target minimum 44px (WCAG 2.1 AAA, Apple HIG). */
 [data-obsidian] .loom-press {
   transition: transform var(--dur-press) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+@media (max-width: 768px) {
+  [data-obsidian] .loom-press {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 [data-obsidian] .loom-press:active {
   transform: scale(0.98);
