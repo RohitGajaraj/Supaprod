@@ -1,8 +1,8 @@
 # Cadence
 
-> The decision and outcome operating system for product teams.
+> Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
 
-Cadence senses what is happening, decides what is worth building, runs the work autonomously, and keeps a trustworthy record of every decision and whether it was right. It is not a copilot or a chatbot. It is an AI operating system that owns the full product lifecycle loop.
+Cadence senses what is happening, decides what is worth building, runs the work autonomously, and keeps a trustworthy record of every decision and whether it was right. It is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts.
 
 ## What Cadence does
 

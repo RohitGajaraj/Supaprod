@@ -12,6 +12,12 @@
 
 > [!IMPORTANT]
 >
+> ## 🎯 2026-07-14 — THE NEXT PICK IS THE PUBLIC LANDING PAGE v2 (founder-directed; plan ready, awaiting founder §9 decisions, then build)
+>
+> **Founder directive (2026-07-14): the public landing page rebuild is the directed focus and the next pick for any website/GTM-surface work.** The full strategy + copy deck + design direction + 7-phase implementation plan is **[`landing-page-v2-plan.md`](./landing-page-v2-plan.md)** — read it FIRST before touching `src/routes/index.tsx` (it supersedes the old "never touch the landing" freeze for this work). Implementation starts only after the founder answers its §9 decisions (hero variant, waitlist-vs-signup CTA, the ink-and-metal palette ruling, mark treatment); the founder's live review red-lines are already folded in (§0.5: no ambient ember, no comparison-box sections, no essay beats, hero claims beyond "deciding"). A rename from "Cadence" may land within days; all plan copy is rename-proof. **Companion ground truth: [`../Growth Strategy/07-gtm-ground-truth-2026-07-14.md`](../Growth%20Strategy/07-gtm-ground-truth-2026-07-14.md)** — the verified launch-checklist audit (3 of 11 done; waitlist has zero code; the wave calendar shifted right; two founder clock-starters open: email domain warm-up + Google OAuth verification submission). Trust these two docs over the sprint calendar in `00-launch-operating-manual.md` when they disagree on current state.
+
+> [!IMPORTANT]
+>
 > ## 🌙 2026-07-12 — LANE 2 BOARD REVIEW + WAIT STATE (Lane C holding PC-30..34; most remaining work gated)
 >
 > **Lane 2 session (2026-07-12 00:15 UTC):** Resumed autonomous build loop from yesterday's close. Verified: tree green (tsc 0 / build ok / 4079 tests pass, 0 fail); synced rescue/lane2 with origin/main (3 PC-10 commits integrated via Lane 1). **Board assessment:** 305/387 done (78.8% strict); next eligible items per `lane.sh next` are PC-29 (◐ 85% with complex documented gaps), PC-37 (taste-gated), PC-13/14/17/18/19 (all GTM/gated/business), RPT-09 (copy pass), PC-24... **Holding pattern:** no immediately autonomous buildable code items available. Lane C holding PC-30..34 claims (658m old, awaiting potential release). Reviewed SW-7's three remaining verifications (trust-ramp 4/5, CI self-correct on real failure, ci-poll-tick re-verification) — all code complete, require production environment for verification. Awaiting: Lane C completion or founder unblocking of gated items. Tree clean + pushed.

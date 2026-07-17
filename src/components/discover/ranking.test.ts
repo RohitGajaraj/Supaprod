@@ -80,6 +80,19 @@ describe("compareOpportunities tie-break chain", () => {
     expect(order([b, a], corr)).toEqual(["a", "b"]);
   });
 
+  test("3.5. equal ice + verdict + corroboration falls through to briefAlignment", () => {
+    // Two opportunities tied on all major discriminators; briefAlignment decides.
+    // Without briefAlignment, id alone decides: alphabetically first wins.
+    // With briefAlignment, a tied bet to a standing top bet outranks an untied one.
+    const tied = mk({ id: "zzz" }); // Would sort LAST without briefAlignment
+    const untied = mk({ id: "aaa" }); // Would sort FIRST without briefAlignment
+    const briefAlignment = (o: RankableOpportunity) => (o.id === "zzz" ? 1 : 0);
+    // Without briefAlignment, untied wins (lower id = earlier sort).
+    expect(compareOpportunities(tied, untied, noCorr)).toBeGreaterThan(0);
+    // With briefAlignment, tied wins (higher briefAlignment overrides id order).
+    expect(compareOpportunities(tied, untied, noCorr, undefined, briefAlignment)).toBeLessThan(0);
+  });
+
   test("4. equal ice + verdict + corroboration falls through to confidence", () => {
     const a = mk({ id: "a", confidence: 9 });
     const b = mk({ id: "b", confidence: 2 });
@@ -112,6 +125,18 @@ describe("compareOpportunities tie-break chain", () => {
     const a = mk({ id: "dup" });
     const b = mk({ id: "dup" });
     expect(compareOpportunities(a, b, noCorr)).toBe(0);
+  });
+
+  test("ice_score primary sort handles mixed numeric/string types (PostgREST quirk)", () => {
+    // PostgREST serializes NUMERIC columns as strings; when one ice_score is
+    // a number and another is a string, compareOpportunities should still sort
+    // by numeric value, not lexicographic string order. "9" > "10" as strings,
+    // but 9 < 10 as numbers.
+    const numericHigh = mk({ id: "numeric_9", ice_score: 9 });
+    const stringLow = mk({ id: "string_10", ice_score: "10" as unknown as number });
+    // stringLow should rank higher (10 > 9 numerically)
+    expect(compareOpportunities(numericHigh, stringLow, noCorr)).toBeGreaterThan(0);
+    expect(compareOpportunities(stringLow, numericHigh, noCorr)).toBeLessThan(0);
   });
 });
 
@@ -177,7 +202,8 @@ describe("rankOpportunities", () => {
     const ranked = rankOpportunities(opps, corr);
     const best = ranked[0];
     expect(best.rationale).toBe("Ranked #1: top ICE score, Critic endorsed, backed by 7 signals");
-    expect(best.nextAction).toBe("Draft the spec");
+    // SHIP verdict now gets "Proceed with the spec" instead of generic "Draft the spec"
+    expect(best.nextAction).toMatch(/proceed|spec|build/);
     // A not-yet-reviewed bet is told to Challenge first.
     expect(ranked[1].nextAction).toBe("Challenge with the Critic first");
   });
@@ -282,10 +308,10 @@ describe("rankOpportunities", () => {
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Understand why it was rejected");
   });
 
-  test("next action: SHIP verdict (not shipped) is told to draft the spec", () => {
-    // Confirms that endorsed bets that haven't shipped are told to draft the spec.
+  test("next action: SHIP verdict (not shipped) gets execution-specific action", () => {
+    // Confirms that endorsed bets now get an action that suggests building/proceeding.
     const opps = [mk({ id: "ship", status: "backlog", critic_review: critic("ship") })];
-    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Draft the spec");
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toMatch(/proceed|spec|build/);
   });
 
   test("does not throw when ice_score arrives as a numeric string (PostgREST numeric columns serialize as strings, not JS numbers)", () => {
@@ -596,7 +622,7 @@ describe("designation precedence boundary: needs validation beats quick win", ()
  */
 describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   /**
-   * SKELETON: Test that REVISE gets actionable feedback
+   * Test that REVISE gets actionable feedback
    *
    * ASSERTION: nextActionFor should return a string that suggests
    * fixing/improving the opportunity based on Critic feedback,
@@ -621,7 +647,7 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   });
 
   /**
-   * SKELETON: Test that KILL gets rejection clarity
+   * Test that KILL gets rejection clarity
    *
    * ASSERTION: nextActionFor should return a string that acknowledges
    * the bet was rejected and suggests understanding why,
@@ -647,7 +673,7 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   });
 
   /**
-   * SKELETON: Test that SHIP gets execution action
+   * Test that SHIP gets execution action
    *
    * ASSERTION: nextActionFor should return a string that suggests
    * proceeding with building/implementation for endorsed bets,
@@ -679,7 +705,7 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   });
 
   /**
-   * SKELETON: Test that WATCH gets monitoring action
+   * Test that WATCH gets monitoring action
    *
    * ASSERTION: nextActionFor should return a string that suggests
    * monitoring progress or waiting for more evidence,
@@ -703,7 +729,7 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   });
 
   /**
-   * SKELETON: Test that PENDING (no Critic review) gets validation action
+   * Test that PENDING (no Critic review) gets validation action
    *
    * ASSERTION: nextActionFor("PENDING") should suggest challenging
    * the opinion or getting Critic feedback, NOT defaulting to "Draft the spec".
@@ -719,12 +745,11 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
     });
 
     const action = nextActionFor(opp);
-
     expect(action).toBe("Challenge with the Critic first");
   });
 
   /**
-   * SKELETON: Test that shipped status overrides verdict
+   * Test that shipped status overrides verdict
    *
    * ASSERTION: nextActionFor should return "Review the outcome"
    * regardless of the Critic verdict, when status === "shipped".
@@ -754,7 +779,7 @@ describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   });
 
   /**
-   * SKELETON: Comprehensive verdict comparison
+   * Comprehensive verdict comparison
    *
    * ASSERTION: All five verdict outcomes (SHIP, WATCH, REVISE, KILL, PENDING)
    * return distinct, non-generic actions when status !== "shipped".

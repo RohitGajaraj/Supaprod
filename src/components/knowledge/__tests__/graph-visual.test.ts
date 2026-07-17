@@ -9,6 +9,7 @@ import {
   nodeRadius,
   truncateTitle,
   resolveKindColors,
+  computeReducedMotion,
   usePrefersReducedMotion,
 } from "../graph-visual";
 
@@ -105,6 +106,52 @@ describe("truncateTitle", () => {
     const out = truncateTitle(long, 26);
     expect(out).toBe(`${"A".repeat(25)}…`);
     expect(out.length).toBe(26);
+  });
+});
+
+describe("computeReducedMotion", () => {
+  /**
+   * Pure function that combines OS media query preference with in-product toggle.
+   * Extracted from the hook for unit testability (no DOM/browser-API coupling).
+   */
+
+  test("returns false when both mediaQueryMatches and motionDataset are falsy", () => {
+    expect(computeReducedMotion(false, undefined)).toBe(false);
+    expect(computeReducedMotion(false, null as unknown as string)).toBe(false);
+    expect(computeReducedMotion(false, "")).toBe(false);
+  });
+
+  test("returns true when OS mediaQueryMatches is true (prefers-reduced-motion)", () => {
+    expect(computeReducedMotion(true, undefined)).toBe(true);
+    expect(computeReducedMotion(true, "")).toBe(true);
+    expect(computeReducedMotion(true, "on")).toBe(true); // even with non-"off" toggle
+  });
+
+  test("returns true when in-product toggle is 'off'", () => {
+    expect(computeReducedMotion(false, "off")).toBe(true);
+  });
+
+  test("returns false when in-product toggle is 'on' (not 'off')", () => {
+    expect(computeReducedMotion(false, "on")).toBe(false);
+  });
+
+  test("returns true when OS preference is true (takes precedence)", () => {
+    // OS preference wins: even if toggle is "on", reduced motion is still true
+    expect(computeReducedMotion(true, "on")).toBe(true);
+  });
+
+  test("returns true when EITHER the OS preference OR the toggle is 'off'", () => {
+    // OR logic: true if any condition is true
+    expect(computeReducedMotion(true, "off")).toBe(true); // both true
+    expect(computeReducedMotion(true, "on")).toBe(true); // OS true, toggle not "off"
+    expect(computeReducedMotion(false, "off")).toBe(true); // OS false, toggle "off"
+  });
+
+  test("returns false only when BOTH OS preference is false AND toggle is not 'off'", () => {
+    expect(computeReducedMotion(false, undefined)).toBe(false);
+    expect(computeReducedMotion(false, "")).toBe(false);
+    expect(computeReducedMotion(false, "on")).toBe(false);
+    expect(computeReducedMotion(false, "anything_else")).toBe(false);
   });
 });
 
@@ -330,14 +377,34 @@ describe("usePrefersReducedMotion - computed state", () => {
   });
 });
 
-// The old "SSR safety" block simulated window === undefined by nulling the
-// global, which cannot coexist with a real registered DOM (and React effects
-// never run during SSR anyway, so the guard in the hook is belt-and-braces).
-// The guard's presence is asserted structurally instead.
+/**
+ * SSR Guard Test: Behavioral verification that the hook is SSR-safe.
+ *
+ * The hook's useEffect never runs during SSR (React ensures this). The guard
+ * in the effect body ensures that even if the effect somehow runs before window
+ * is defined, it returns gracefully (false) without crashing.
+ *
+ * Test strategy: Verify the hook returns false initially (before effect setup)
+ * and that the guard is present in the source code.
+ */
 describe("usePrefersReducedMotion - SSR guard", () => {
-  test("the effect body guards on typeof window before touching browser APIs", () => {
-    // Transpile-tolerant: bun minifies the guard to `typeof window > "u"`.
-    expect(String(usePrefersReducedMotion)).toContain("typeof window");
+  test("returns false initially (SSR-safe default before effects run)", () => {
+    // The hook initializes to false via useState(false).
+    // This is the SSR-safe default returned before any effect runs.
+    // In a real SSR scenario, effects never run, so the hook always returns false.
+    const result = renderHook(() => usePrefersReducedMotion());
+
+    // Verify: hook's initial value is false (safe for SSR)
+    expect(result.result.current).toBe(false);
+  });
+
+  test("the effect guards on typeof window before accessing browser APIs", () => {
+    // Supplementary: verify the guard is present in source code (transpile-tolerant).
+    // bun minifies `typeof window !== "undefined"` to `typeof window > "u"`.
+    // This ensures that if the effect somehow runs in an SSR context,
+    // it returns early without crashing.
+    const source = String(usePrefersReducedMotion);
+    expect(source).toContain("typeof window");
   });
 });
 

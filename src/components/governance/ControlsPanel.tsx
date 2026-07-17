@@ -327,7 +327,15 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
 
   if (overview.error) {
     return (
-      <div style={{ ...V4_CARD, padding: 24, borderColor: "rgba(224, 101, 87, 0.4)" }}>
+      <div
+        style={{
+          ...V4_CARD,
+          padding: 24,
+          // Token-traced alert border (was a raw rgba of the dark madder hex,
+          // which cannot follow the light theme) - checklist 12.
+          borderColor: "color-mix(in srgb, var(--madder) 40%, transparent)",
+        }}
+      >
         <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
           Couldn't load controls
         </div>
@@ -454,7 +462,27 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           Auto-pipelines
         </MonoLabel>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {subs.length === 0 ? (
+          {/* A failed read may never wear the empty state's clothes
+              (checklist 7): name it and offer the one retry. */}
+          {subsQ.isError ? (
+            <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+              Pipeline rules did not load.{" "}
+              <button
+                type="button"
+                className="cursor-pointer hover:underline active:opacity-80"
+                onClick={() => void subsQ.refetch()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "var(--text-primary)",
+                  fontSize: 12.5,
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : subs.length === 0 ? (
             <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
               No pipeline rules yet.
             </div>
@@ -624,7 +652,21 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           </div>
         ) : toolsQ.error ? (
           <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
-            {(toolsQ.error as Error).message}
+            Tools did not load. {(toolsQ.error as Error).message}{" "}
+            <button
+              type="button"
+              className="cursor-pointer hover:underline active:opacity-80"
+              onClick={() => void toolsQ.refetch()}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                color: "var(--text-primary)",
+                fontSize: 12.5,
+              }}
+            >
+              Retry
+            </button>
           </div>
         ) : tools.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
@@ -868,7 +910,27 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           Reactor activity · confirm-mode rows wait on you
         </MonoLabel>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {events.length === 0 ? (
+          {/* Same honesty rule: a failed queue read is an error, never the
+              calm "No reactor events yet" (checklist 7). */}
+          {queueQ.isError ? (
+            <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+              Reactor activity did not load.{" "}
+              <button
+                type="button"
+                className="cursor-pointer hover:underline active:opacity-80"
+                onClick={() => void queueQ.refetch()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "var(--text-primary)",
+                  fontSize: 12.5,
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : events.length === 0 ? (
             <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
               No reactor events yet.
             </div>

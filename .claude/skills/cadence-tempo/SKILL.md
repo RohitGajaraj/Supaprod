@@ -30,6 +30,14 @@ proven; we adopt and adapt, we do not invent.
    palette, property panels, settings, onboarding/empty states, AI interfaces, workflow
    builders). Follow the matching pattern doc; if none exists, write one per the
    extension protocol (contract §9) in the same session.
+5. **Public landing / any public page:** read FIRST the applied record
+   [`/design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](../../../design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md)
+   (ink/starfield theme, three-voice color grammar, Pixel rulings, founder vocabulary bans,
+   taste profile + session chronology) and its companion reference study
+   [`/design-reference/tempo-v5/research/vercel-composition-playbook.md`](../../../design-reference/tempo-v5/research/vercel-composition-playbook.md)
+   (the Vercel anatomy, extraction rules, and the waiting list of blocked patterns with
+   unlock conditions). Never restyle a public page without them.
+
 
 ## Hard laws (enforce in every output)
 

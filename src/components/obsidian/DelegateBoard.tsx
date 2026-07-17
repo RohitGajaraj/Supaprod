@@ -57,6 +57,7 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
     <button
       type="button"
       onClick={() => onOpen(m.id)}
+      className="loom-press transition-colors hover:[background-color:var(--hover)] hover:[border-color:var(--hairline-strong)]"
       style={{
         display: "block",
         width: "100%",
@@ -150,16 +151,56 @@ export function DelegateBoard({ onOpenMission }: { onOpenMission: (id: string) =
   const desk = query.data?.desk;
 
   if (query.isPending) {
+    // Skeleton matching the loaded lane grid (never a bare text placeholder).
     return (
-      <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "32px 0" }}>
-        Reading the desk…
+      <div role="status" style={{ padding: "16px 0" }}>
+        <span className="sr-only">Reading the desk…</span>
+        <div
+          aria-hidden="true"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+            gap: 22,
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                height: 120,
+                borderRadius: 10,
+                border: "1px solid var(--hairline)",
+                opacity: 0.4,
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
   if (query.isError) {
     return (
-      <div style={{ fontSize: 13, color: "var(--rose)", padding: "32px 0" }}>
-        Could not load the desk. {(query.error as Error)?.message}
+      <div style={{ padding: "32px 0" }}>
+        <p style={{ fontSize: 13, color: "var(--rose)", margin: 0 }}>
+          Could not load the desk. {(query.error as Error)?.message}
+        </p>
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            marginTop: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--ink-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · rereads the desk
+        </button>
       </div>
     );
   }

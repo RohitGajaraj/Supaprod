@@ -2,10 +2,11 @@
 // Global monthly/annual toggle; Free / Pro / Business / Enterprise in a 4-column grid.
 // Credit dropdown stays per-card (users configure different tiers across plans).
 // Annual toggle lifts to page level so all prices update together.
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -351,7 +352,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               marginTop: 4,
             }}
           >
-            Platform fee + $20/seat
+            Committed credits, unlimited seats
           </span>
           <span
             style={{
@@ -361,7 +362,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               marginTop: 2,
             }}
           >
-            Usage at API rates
+            Volume rate as you scale
           </span>
         </div>
       ) : isFree ? (
@@ -578,16 +579,34 @@ function PricingPage() {
   // Global billing interval — one toggle changes all 4 cards simultaneously.
   const [annual, setAnnual] = useState(false);
 
+  // The landing's ink theme, mapped onto this page's variable vocabulary
+  // (founder ruling 2026-07-15: every public page matches the parent canvas).
+  const inkTheme = {
+    "--paper": "#0a0a0a",
+    "--canvas": "#0d0d0e",
+    "--soft-stone": "#18181b",
+    "--ink": "#f4f4f5",
+    "--ink-subtle": "#a1a1aa",
+    "--ink-muted": "#71717a",
+    "--hairline": "rgba(255,255,255,0.09)",
+    "--ember": "#FF6B2C",
+    "--moss-success": "#4ac26b",
+  } as CSSProperties;
+
   return (
     <div
       style={{
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         background: "var(--paper, #f6f2ea)",
         color: "var(--ink, #1f1b16)",
+        ...inkTheme,
       }}
     >
+      <LandingBackdrop />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1 }}>
       <header
         style={{
           borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
@@ -614,8 +633,14 @@ function PricingPage() {
         </Link>
         <a
           href="/login"
-          className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
+          style={{
+            fontSize: 13,
+            color: "var(--ink, #f4f4f5)",
+            textDecoration: "none",
+            border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
+            borderRadius: 999,
+            padding: "7px 16px",
+          }}
         >
           Sign in
         </a>
@@ -625,9 +650,27 @@ function PricingPage() {
         <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
           {/* Headline */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <p
+              style={{
+                fontFamily: "Geist Mono, monospace",
+                fontSize: 10,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "#FF6B2C",
+                margin: "0 0 10px",
+              }}
+            >
+              Pricing
+            </p>
             <h1
-              className="font-display"
-              style={{ fontSize: 34, lineHeight: 1.12, margin: "0 0 12px", fontWeight: 440 }}
+              style={{
+                fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+                fontSize: "clamp(22px, 3vw, 30px)",
+                lineHeight: 1.3,
+                margin: "0 0 12px",
+                fontWeight: 400,
+                letterSpacing: 0,
+              }}
             >
               Start free. Get to the exact capacity that fits your team.
             </h1>
@@ -707,6 +750,7 @@ function PricingPage() {
           Start free -&gt;
         </a>
       </footer>
+      </div>
     </div>
   );
 }

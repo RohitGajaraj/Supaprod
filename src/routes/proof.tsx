@@ -6,10 +6,12 @@
 // Honest when sparse: a zero-decision or zero-outcome state is a real message,
 // never a placeholder made to look like data.
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicCalibration } from "@/lib/proof-share.functions";
 import { listPublicDecisions } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
@@ -56,8 +58,15 @@ function Shell({ children }: { children: React.ReactNode }) {
         flexDirection: "column",
         background: "var(--paper, #f6f2ea)",
         color: "var(--ink, #1f1b16)",
+        isolation: "isolate",
+        ...PUBLIC_INK_THEME,
       }}
     >
+      {/* The landing starfield/grid, painted above this root's background
+          but below all content (negative z inside the isolated root). */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>
+        <LandingBackdrop />
+      </div>
       <header
         style={{
           borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",

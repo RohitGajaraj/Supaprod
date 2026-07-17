@@ -404,7 +404,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
   if (query.isError) {
     return (
       <ErrorRetry
-        message="Self-improvement signals did not load."
+        message={`Self-improvement signals did not load. ${query.error instanceof Error ? query.error.message : "The read failed."}`}
         onRetry={() => void query.refetch()}
       />
     );

@@ -10,6 +10,8 @@ export function MachineViewToggle() {
     <button
       onClick={toggle}
       title={isMachineView ? "Switch to human view" : "Switch to machine-readable view"}
+      aria-pressed={isMachineView}
+      aria-label="Machine-readable view"
       style={{
         fontFamily: "'Geist Mono', monospace",
         fontSize: 11,

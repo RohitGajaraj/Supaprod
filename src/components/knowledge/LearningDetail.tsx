@@ -16,7 +16,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Copy } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { listLearnings } from "@/lib/outcome.functions";
 import { Button, MonoLabel, VerdictChip, type VerdictTone } from "@/components/obsidian";
 import {
@@ -29,7 +29,6 @@ import {
 } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { toast } from "@/lib/notify";
 import { PanelSkeleton } from "./PanelSkeleton";
 
 type LearningRow = {
@@ -147,11 +146,6 @@ export function LearningDetail({ id }: { id: string }) {
   const deltaTone: StatTone =
     delta == null || delta === 0 ? "muted" : delta > 0 ? "moss" : "madder";
 
-  const copyId = () => {
-    void navigator.clipboard?.writeText(l.id);
-    toast("Trace id copied");
-  };
-
   // The compounding value, led first (the moat made visible): what the outcome
   // moved, honestly stated. No movement reads as recorded-but-neutral.
   const headline = moved
@@ -221,27 +215,7 @@ export function LearningDetail({ id }: { id: string }) {
             </div>
           }
           traceRef={
-            <button
-              type="button"
-              onClick={copyId}
-              aria-label="Copy trace id"
-              title="Copy the full trace id"
-              className="loom-press flex items-center hover:[color:var(--text-subtle)]"
-              style={{
-                gap: "6px",
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                letterSpacing: "0.06em",
-                color: "var(--text-faint)",
-                background: "transparent",
-                border: "none",
-                padding: "3px 2px",
-                cursor: "pointer",
-              }}
-            >
-              LRN·{traceRef(l.id)}
-              <Copy className="h-3 w-3" />
-            </button>
+            <AuditTag kind="learning" id={l.id} copyable />
           }
         />
 
@@ -322,7 +296,7 @@ export function LearningDetail({ id }: { id: string }) {
               <span
                 className="tabular-nums"
                 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "16px",
                   color: "var(--text-primary)",
                 }}

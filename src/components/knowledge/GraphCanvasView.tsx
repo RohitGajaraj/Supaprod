@@ -58,6 +58,14 @@ function GraphViewToggle({
       role="tablist"
       aria-label="Graph view"
       className="inline-flex"
+      // Tabs keyboard contract: Left/Right move between the two views.
+      onKeyDown={(e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const next = view === "3D" ? "2D" : "3D";
+        onChange(next);
+        e.currentTarget.querySelector<HTMLButtonElement>(`[data-tab-id="${next}"]`)?.focus();
+      }}
       style={{
         gap: 2,
         padding: 2,
@@ -74,6 +82,8 @@ function GraphViewToggle({
             type="button"
             role="tab"
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
+            data-tab-id={o.id}
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-mono)",
@@ -112,8 +122,10 @@ function GraphSkeleton() {
     />
   );
   return (
-    <div aria-hidden="true">
+    <div role="status">
+      <span className="sr-only">Loading the graph…</span>
       <div
+        aria-hidden="true"
         style={{
           border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-card)",

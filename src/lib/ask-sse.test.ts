@@ -51,6 +51,26 @@ describe("ask-sse - parseSseLine", () => {
     expect(parseSseLine(line)).toEqual({ kind: "delta", piece: undefined, missionId: "m-1" });
   });
 
+  it("routes a typed answer block (PC-36 C)", () => {
+    const block = {
+      kind: "decision",
+      id: "d-1",
+      title: "Ship the beta",
+      status: "approved",
+      rationale: null,
+      decidedBy: null,
+      sourceKind: "manual",
+      createdAt: "2026-07-16T00:00:00Z",
+    };
+    const event = parseSseLine(`data: ${JSON.stringify({ block })}`);
+    expect(event).toEqual({ kind: "block", block });
+  });
+
+  it("ignores a block payload with an unknown kind", () => {
+    const line = `data: ${JSON.stringify({ block: { kind: "widget", id: "x" } })}`;
+    expect(parseSseLine(line)).toEqual({ kind: "ignored" });
+  });
+
   it("returns ignored for a data line with no recognizable shape", () => {
     const line = `data: ${JSON.stringify({ unrelated: true })}`;
     expect(parseSseLine(line)).toEqual({ kind: "ignored" });

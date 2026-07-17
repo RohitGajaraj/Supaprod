@@ -60,7 +60,7 @@ const cardStyle = {
 };
 
 const cardNumberStyle = {
-  fontFamily: "var(--font-serif)",
+  fontFamily: "var(--font-sans)",
   fontWeight: 460,
   fontSize: 26,
   lineHeight: 1.3,

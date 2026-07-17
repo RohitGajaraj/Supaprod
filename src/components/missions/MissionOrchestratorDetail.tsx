@@ -57,6 +57,18 @@ import { supabase } from "@/integrations/supabase/client";
 type Hop = MissionDetail["hops"][number];
 type Handoff = MissionDetail["messages"][number];
 
+/* Shared interaction affordances (state audit 2026-07-12): the token-traced
+   focus-visible ring, never removed, on every pressable in this file. */
+const FOCUS =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
+/* Hover for the quiet outline pills: background in the class (never inline)
+   so the hover can actually resolve; Tailwind preflight already gives
+   buttons a transparent base. */
+const HOVER_BG = "transition-colors hover:[background:var(--surface-hover)]";
+/* Hover for borderless mono-text controls: base + hover color both in the
+   class so the pair wins together. */
+const HOVER_TEXT = "transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)]";
+
 /** Production step statuses → the reference's StepDot vocabulary. */
 function stepDotStatus(s?: string): string {
   if (s === "dispatched" || s === "running") return "running";
@@ -148,7 +160,7 @@ function CaptureMissionDecision({
       type="button"
       onClick={() => cap.mutate()}
       disabled={cap.isPending}
-      className="mono-label loom-press"
+      className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
       style={{
         fontSize: 10.5,
         display: "inline-flex",
@@ -157,7 +169,6 @@ function CaptureMissionDecision({
         border: "1px solid var(--hairline)",
         borderRadius: 99,
         padding: "3px 10px",
-        background: "transparent",
         opacity: cap.isPending ? 0.5 : 1,
       }}
     >
@@ -322,6 +333,20 @@ const handoffChip: CSSProperties = {
   borderRadius: 99,
   padding: "2px 8px",
 };
+/* The pressable variant of the chip: color + background move into the class
+   (CHIP_BTN) so hover states can resolve — inline always beats a stylesheet
+   hover (state audit 2026-07-12). */
+const handoffChipBtn: CSSProperties = {
+  fontSize: 10.5,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  border: "1px solid var(--hairline-strong)",
+  borderRadius: 99,
+  padding: "2px 8px",
+};
+const CHIP_BTN =
+  "[background:var(--raised)] [color:var(--text-subtle)] transition-colors hover:[background:var(--surface-hover)] hover:[color:var(--text-body)]";
 
 function TraceHop({
   h,
@@ -356,8 +381,8 @@ function TraceHop({
           <button
             onClick={() => setShowPayload(!showPayload)}
             aria-expanded={showPayload}
-            className="mono-label loom-press"
-            style={handoffChip}
+            className={`mono-label loom-press ${CHIP_BTN} ${FOCUS}`}
+            style={handoffChipBtn}
           >
             {showPayload ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
             {inbound.from_agent_slug
@@ -374,13 +399,16 @@ function TraceHop({
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
+        className={`loom-press ${HOVER_BG} ${FOCUS}`}
         style={{
           display: "flex",
           alignItems: "center",
           gap: 8,
           width: "100%",
           textAlign: "left",
+          // x-padding stays 0 so the chevron keeps the rail's left alignment.
           padding: "4px 0",
+          borderRadius: 6,
         }}
       >
         {open ? (
@@ -448,13 +476,12 @@ function TraceHop({
               <button
                 onClick={() => setShowMemories(!showMemories)}
                 aria-expanded={showMemories}
-                className="mono-label loom-press"
+                className={`mono-label loom-press ${HOVER_TEXT} ${HOVER_BG} ${FOCUS}`}
                 style={{
                   fontSize: 10.5,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  color: "var(--text-subtle)",
                   border: "1px solid var(--hairline-strong)",
                   borderRadius: 99,
                   padding: "2px 8px",
@@ -499,7 +526,7 @@ function TraceHop({
             <button
               onClick={() => setShowInput(!showInput)}
               aria-expanded={showInput}
-              className="mono-label loom-press"
+              className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
               style={{
                 fontSize: 10.5,
                 display: "inline-flex",
@@ -513,7 +540,7 @@ function TraceHop({
               <button
                 onClick={() => setShowOutput(!showOutput)}
                 aria-expanded={showOutput}
-                className="mono-label loom-press"
+                className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
                 style={{
                   fontSize: 10.5,
                   display: "inline-flex",
@@ -617,7 +644,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       >
         <MonoLabel icon={Layers}>Compounding · the moat at work</MonoLabel>
         {n > 0 && (
-          <button onClick={copySnapshot} className="mono-label loom-press">
+          <button onClick={copySnapshot} className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}>
             Copy snapshot
           </button>
         )}
@@ -808,7 +835,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     ? captain.auto_dispatched
       ? `auto · owner ${captainOwnerName}`
       : captainOwnerName
-    : "—";
+    : "unknown";
   const captainTitle = captain
     ? captain.auto_dispatched
       ? "A reactor tick auto-dispatched this mission; the owner below is still accountable for the outcome"
@@ -851,6 +878,29 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         .map((tc) => ({ ...tc, agent_slug: h.agent_slug })),
     )
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  // An error is not a loading state: the old guard fell through to the
+  // skeleton forever when the query failed. Name the cause, offer retry.
+  if (m.isError) {
+    return (
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
+          <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this mission</MonoLabel>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            {(m.error as Error)?.message?.slice(0, 160)}
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm loom-press"
+            style={{ marginTop: 14 }}
+            onClick={() => m.refetch()}
+          >
+            Retry · reloads the mission
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (m.isLoading || !data) {
     // Skeleton that matches the loaded layout: hero, relay strip, two cards
@@ -895,9 +945,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{
                 fontSize: 30,
                 margin: "8px 0 6px",
-                fontFamily: "var(--font-serif)",
-                fontWeight: 430,
-                letterSpacing: "-0.015em",
+                fontFamily: "var(--font-sans)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
                 color: "var(--text-primary)",
               }}
             >
@@ -951,7 +1001,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               <button
                 onClick={() => promote.mutate()}
                 disabled={promote.isPending}
-                className="mono-label loom-press"
+                // Ember-tinted hover (the gate CTA hue), background via class
+                // so it resolves over the transparent base.
+                className={`mono-label loom-press transition-colors hover:enabled:[background:var(--ember-tint)] ${FOCUS}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -961,7 +1013,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   borderRadius: 5,
                   border: "1px solid var(--ember-line)",
                   color: "var(--ember-text)",
-                  background: "transparent",
                   opacity: promote.isPending ? 0.5 : 1,
                 }}
                 title="A trigger proposed this goal · nothing runs until you launch it"
@@ -981,7 +1032,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   if (ok) cancel.mutate();
                 }}
                 disabled={cancel.isPending}
-                className="mono-label loom-press"
+                // Destructive hover: a whisper of the madder it warns about.
+                className={`mono-label loom-press transition-colors hover:enabled:[background:color-mix(in_oklab,var(--madder)_10%,transparent)] ${FOCUS}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -991,7 +1043,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   borderRadius: 5,
                   border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
                   color: "var(--madder)",
-                  background: "transparent",
                   opacity: cancel.isPending ? 0.5 : 1,
                 }}
                 title="Stop this mission so it will not advance further"
@@ -1007,7 +1058,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   aria-label="Replay model"
                   value={replayModel}
                   onChange={(e) => setReplayModel(e.target.value)}
-                  className="mono-label"
+                  className={`mono-label ${FOCUS}`}
                   style={{
                     fontSize: 10.5,
                     padding: "3px 6px",
@@ -1028,7 +1079,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 <button
                   onClick={() => replay.mutate()}
                   disabled={replay.isPending}
-                  className="mono-label loom-press"
+                  className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -1038,7 +1089,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
                     color: "var(--text-primary)",
-                    background: "transparent",
                     opacity: replay.isPending ? 0.5 : 1,
                   }}
                   title="Re-run this goal as a new mission, optionally with a different model"
@@ -1165,7 +1215,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         <div style={{ marginBottom: 16 }}>
           <button
             onClick={() => setShowDiff((v) => !v)}
-            className="mono-label loom-press"
+            className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -1175,7 +1225,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               borderRadius: 5,
               border: "1px solid color-mix(in oklab, var(--text-subtle) 45%, transparent)",
               color: "var(--text-body)",
-              background: "transparent",
               marginBottom: showDiff ? 10 : 0,
             }}
             title="Compare this replay with the mission it was replayed from"
@@ -1210,7 +1259,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               <button
                 onClick={() => advance.mutate()}
                 disabled={advance.isPending}
-                className="mono-label loom-press"
+                className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
                 style={{
                   fontSize: 10.5,
                   padding: "3px 10px",
@@ -1241,12 +1290,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 <button
                   key={id}
                   onClick={() => setView(id)}
-                  className="mono-label loom-press"
+                  aria-pressed={view === id}
+                  className={`mono-label loom-press transition-colors hover:[background:var(--surface-hover)] ${FOCUS}`}
                   style={{
                     fontSize: 10.5,
                     padding: "3px 10px",
                     borderRadius: 5,
-                    background: view === id ? "var(--raised)" : "transparent",
+                    // Inline background only on the active pill so hover resolves.
+                    background: view === id ? "var(--raised)" : undefined,
                     color: view === id ? "var(--text-primary)" : "var(--text-subtle)",
                   }}
                 >

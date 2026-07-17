@@ -1,13 +1,20 @@
 // PC-04 - the no-signup demo. Zero-auth, read-only view of the public demo
 // workspace (docs/operations/demo-credentials.md). Every data call is a
 // GET-only server function in demo.functions.ts with no mutation path at
-// all - there is nothing on this page a visitor can change. Matches the
-// homepage's dark canvas (index.tsx) so the /signup CTA flow feels like one
-// site, not a handoff to a different page.
+// all - there is nothing on this page a visitor can change.
+//
+// Speaks the landing v2 ink language (founder 2026-07-15): the starfield
+// canvas, zinc text, mono eyebrows, blue data numerals, agent voice in blue,
+// ember reserved for the page's one ask. The header is the page's single
+// piece of pinned chrome - it carries the brand, the read-only honesty tag,
+// and the escape hatch. The footer scrolls on purpose: pinning a footer
+// permanently spends viewport height that the artifacts need.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
@@ -26,37 +33,25 @@ const TITLE = "Try Cadence, no signup - a real demo workspace";
 const DESC =
   "Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";
 
-const C = {
-  bg: "#07070f",
-  bgCard: "rgba(255,255,255,0.034)",
-  border: "rgba(255,255,255,0.07)",
-  divider: "rgba(255,255,255,0.06)",
-  ember: "#fb7100",
-  emberBright: "#ff9542",
-  emberGlow: "rgba(251,113,0,0.4)",
-  emberDim: "rgba(251,113,0,0.12)",
-  text: "#f8fafc",
-  muted: "#94a3b8",
-  faint: "#475569",
-  green: "#4ade80",
-  amber: "#fbbf24",
-  rose: "#f87171",
-};
-
+// The three-voice grammar from the landing: agents speak blue, the human
+// ask is the page's one ember object, verdicts keep their status tones.
+const AGENT_BLUE = "#6cb0f5";
 const VERDICT_COLOR: Record<string, string> = {
-  ship: C.green,
-  revise: C.amber,
-  kill: C.rose,
+  ship: "#4ac26b",
+  revise: "#d9a13c",
+  kill: "#e5534b",
 };
 
 export const Route = createFileRoute("/demo")({
   ssr: true,
   loader: async () => {
+    // Each pull degrades on its own: a failed section hides itself instead
+    // of turning the whole demo into an error page for a prospect.
     const [overview, teardown, ledger, mission] = await Promise.all([
-      getDemoOverview(),
-      getDemoTeardown(),
-      getDemoLedger(),
-      getDemoMissionTrace(),
+      getDemoOverview().catch(() => null),
+      getDemoTeardown().catch(() => null),
+      getDemoLedger().catch(() => [] as DemoLedgerRow[]),
+      getDemoMissionTrace().catch(() => null),
     ]);
     return { overview, teardown, ledger, mission };
   },
@@ -86,65 +81,59 @@ function useDemoSessionId() {
   return ref.current;
 }
 
-function Tag({ children }: { children: React.ReactNode }) {
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span
-      style={{
-        fontFamily: "Geist Mono, monospace",
-        fontSize: 9,
-        letterSpacing: "0.14em",
-        textTransform: "uppercase",
-        color: C.emberBright,
-        display: "block",
-        marginBottom: 10,
-      }}
-    >
-      {children}
-    </span>
+    <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-3">{children}</p>
   );
 }
 
 function Card({ children }: { children: React.ReactNode }) {
+  return <div className="border border-white/[0.08] bg-[#0d0d0e] rounded-xl p-6">{children}</div>;
+}
+
+// Every section that summarizes a real artifact links into the full object:
+// the demo is a hub into live pages, not a dead-end sheet.
+function ArtifactLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        border: `1px solid ${C.border}`,
-        background: C.bgCard,
-        borderRadius: 14,
-        padding: "22px 24px",
-      }}
+    <a
+      href={href}
+      className="group inline-flex items-baseline gap-2 mt-4 text-sm text-zinc-500 hover:text-zinc-200 transition-colors"
     >
-      {children}
-    </div>
+      <span>{children}</span>
+      <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+    </a>
   );
 }
 
-function OverviewSection({ overview }: { overview: DemoOverview }) {
+function OverviewSection({ overview }: { overview: DemoOverview | null }) {
+  if (!overview) return null;
   return (
-    <section style={{ padding: "0 24px 40px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Tag>Today, in {overview.workspaceName}</Tag>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: "0 0 16px" }}>
+    <section className="px-6 pb-14">
+      <div className="max-w-5xl mx-auto">
+        <Eyebrow>Today, in {overview.workspaceName}</Eyebrow>
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           What Cadence is watching right now.
         </h2>
-        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+        <div className="flex flex-wrap gap-x-10 gap-y-4">
           {[
             [overview.openOpportunities, "open opportunities"],
             [overview.decisionsRecorded, "decisions on record"],
             [overview.missionsInFlight, "missions in flight"],
           ].map(([n, label]) => (
-            <div key={label as string} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <div key={label as string} className="flex items-baseline gap-2.5">
               <span
+                className="text-2xl"
                 style={{
-                  fontFamily: "Geist Mono, monospace",
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: C.emberBright,
+                  fontFamily: "var(--font-pixel)",
+                  fontVariantNumeric: "tabular-nums",
+                  // Blue data tone (the in-app PixelStat ruling), same as the
+                  // landing's live counters.
+                  color: AGENT_BLUE,
                 }}
               >
                 {n}
               </span>
-              <span style={{ fontSize: 13, color: C.muted }}>{label}</span>
+              <span className="text-sm text-zinc-500">{label}</span>
             </div>
           ))}
         </div>
@@ -155,49 +144,39 @@ function OverviewSection({ overview }: { overview: DemoOverview }) {
 
 function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
   if (!teardown) return null;
-  const col = teardown.verdict ? (VERDICT_COLOR[teardown.verdict] ?? C.muted) : C.muted;
+  const col = teardown.verdict ? (VERDICT_COLOR[teardown.verdict] ?? "#a1a1aa") : "#a1a1aa";
   return (
-    <section style={{ padding: "0 24px 40px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Tag>A real teardown</Tag>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: "0 0 16px" }}>
+    <section className="px-6 pb-14">
+      <div className="max-w-5xl mx-auto">
+        <Eyebrow>A real teardown</Eyebrow>
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           {stripAutoPrefix(teardown.title)}
         </h2>
         <Card>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+          <div className="flex items-center gap-3 mb-4">
             {teardown.verdict ? (
               <span
-                style={{
-                  fontFamily: "Geist Mono, monospace",
-                  fontSize: 10.5,
-                  color: col,
-                  border: `1px solid ${col}55`,
-                  borderRadius: 99,
-                  padding: "3px 11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
+                className="font-mono text-[10.5px] uppercase rounded-full px-3 py-0.5"
+                style={{ color: col, border: `1px solid ${col}55`, letterSpacing: "0.06em" }}
               >
                 {teardown.verdict}
               </span>
             ) : null}
             {teardown.iceScore !== null ? (
-              <span style={{ fontSize: 12, color: C.faint }}>
+              <span className="text-xs text-zinc-600 font-mono">
                 ICE {teardown.iceScore.toFixed(1)}
               </span>
             ) : null}
           </div>
           {teardown.summary ? (
-            <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.65, margin: "0 0 16px" }}>
-              {teardown.summary}
-            </p>
+            <p className="text-sm text-zinc-400 leading-relaxed mb-4">{teardown.summary}</p>
           ) : null}
           {teardown.risks.length > 0 ? (
-            <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 11, color: C.faint, margin: "0 0 6px" }}>Risks</p>
-              <ul style={{ margin: 0, paddingLeft: 18, color: C.muted, fontSize: 13 }}>
+            <div className="mb-3">
+              <p className="text-[11px] text-zinc-600 mb-1.5">Risks</p>
+              <ul className="m-0 pl-4 list-disc text-sm text-zinc-500">
                 {teardown.risks.slice(0, 3).map((r) => (
-                  <li key={r} style={{ marginBottom: 4, lineHeight: 1.5 }}>
+                  <li key={r} className="mb-1 leading-relaxed">
                     {r}
                   </li>
                 ))}
@@ -206,12 +185,10 @@ function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
           ) : null}
           {teardown.missingEvidence.length > 0 ? (
             <div>
-              <p style={{ fontSize: 11, color: C.faint, margin: "0 0 6px" }}>
-                What you cannot prove yet
-              </p>
-              <ul style={{ margin: 0, paddingLeft: 18, color: C.muted, fontSize: 13 }}>
+              <p className="text-[11px] text-zinc-600 mb-1.5">What you cannot prove yet</p>
+              <ul className="m-0 pl-4 list-disc text-sm text-zinc-500">
                 {teardown.missingEvidence.slice(0, 3).map((r) => (
-                  <li key={r} style={{ marginBottom: 4, lineHeight: 1.5 }}>
+                  <li key={r} className="mb-1 leading-relaxed">
                     {r}
                   </li>
                 ))}
@@ -219,6 +196,7 @@ function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
             </div>
           ) : null}
         </Card>
+        <ArtifactLink href="/p/teardown">Read a full public teardown, no signup</ArtifactLink>
       </div>
     </section>
   );
@@ -227,50 +205,28 @@ function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
 function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
   if (ledger.length === 0) return null;
   return (
-    <section style={{ padding: "0 24px 40px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Tag>The Ledger</Tag>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: "0 0 16px" }}>
+    <section className="px-6 pb-14">
+      <div className="max-w-5xl mx-auto">
+        <Eyebrow>The ledger</Eyebrow>
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           Every call, on the record.
         </h2>
-        <div
-          style={{
-            borderRadius: 14,
-            border: `1px solid ${C.border}`,
-            background: C.bgCard,
-            overflow: "hidden",
-          }}
-        >
+        <div className="border border-white/[0.08] bg-[#0d0d0e] rounded-xl overflow-hidden">
           {ledger.map((row, i) => (
             <div
               key={row.title + row.createdAt}
-              style={{
-                padding: "14px 20px",
-                borderBottom: i < ledger.length - 1 ? `1px solid ${C.divider}` : undefined,
-              }}
+              className={`px-5 py-4 ${i < ledger.length - 1 ? "border-b border-white/[0.06]" : ""}`}
             >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 13.5, color: C.text, fontWeight: 550 }}>
+              <div className="flex items-baseline gap-2.5 mb-1">
+                <span className="text-sm text-zinc-100 font-medium">
                   {stripAutoPrefix(row.title)}
                 </span>
-                <span
-                  style={{
-                    fontFamily: "Geist Mono, monospace",
-                    fontSize: 9.5,
-                    color: C.faint,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {row.status}
-                </span>
+                <span className="font-mono text-[9.5px] uppercase text-zinc-600">{row.status}</span>
               </div>
               {row.rationale ? (
                 <p
+                  className="text-[13px] text-zinc-500 leading-relaxed m-0"
                   style={{
-                    fontSize: 12.5,
-                    color: C.muted,
-                    margin: 0,
-                    lineHeight: 1.5,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
@@ -280,8 +236,9 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
                   {row.rationale}
                 </p>
               ) : null}
-              <p style={{ fontSize: 11, color: C.faint, margin: "6px 0 0" }}>
-                {agentDisplayName(row.agentSlug)} ·{" "}
+              <p className="text-[11px] text-zinc-600 mt-1.5 m-0">
+                <span style={{ color: AGENT_BLUE }}>{agentDisplayName(row.agentSlug)}</span>{" "}
+                &middot;{" "}
                 {new Date(row.createdAt).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
@@ -290,6 +247,7 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
             </div>
           ))}
         </div>
+        <ArtifactLink href="/proof">The whole trust ledger, wins and misses</ArtifactLink>
       </div>
     </section>
   );
@@ -298,56 +256,33 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
 function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
   if (!mission) return null;
   return (
-    <section style={{ padding: "0 24px 56px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Tag>One mission, in motion</Tag>
-        <h2 style={{ fontSize: 22, fontWeight: 600, color: C.text, margin: "0 0 16px" }}>
+    <section className="px-6 pb-16">
+      <div className="max-w-5xl mx-auto">
+        <Eyebrow>One mission, in motion</Eyebrow>
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           {stripAutoPrefix(mission.title)}
         </h2>
         <Card>
           <p
-            style={{
-              fontFamily: "Geist Mono, monospace",
-              fontSize: 10.5,
-              color: C.emberBright,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              margin: "0 0 14px",
-            }}
+            className="font-mono text-[10.5px] uppercase mb-4"
+            style={{ color: AGENT_BLUE, letterSpacing: "0.06em" }}
           >
             {mission.status}
           </p>
           {mission.steps.length === 0 ? (
-            <p style={{ fontSize: 13, color: C.faint, margin: 0 }}>
-              This mission has not dispatched a step yet.
-            </p>
+            <p className="text-sm text-zinc-600 m-0">This mission has not dispatched a step yet.</p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="flex flex-col gap-2.5">
               {mission.steps.map((s, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                <div key={i} className="flex items-baseline gap-3">
                   <span
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      color: C.emberBright,
-                      minWidth: 100,
-                    }}
+                    className="text-[13px] font-medium shrink-0"
+                    style={{ color: AGENT_BLUE, minWidth: 100 }}
                   >
                     {agentDisplayName(s.agentSlug)}
                   </span>
-                  <span style={{ fontSize: 13, color: C.muted, flex: 1 }}>
-                    {s.subGoal ?? "Working"}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "Geist Mono, monospace",
-                      fontSize: 10,
-                      color: C.faint,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {s.status}
-                  </span>
+                  <span className="text-sm text-zinc-400 flex-1">{s.subGoal ?? "Working"}</span>
+                  <span className="font-mono text-[10px] uppercase text-zinc-600">{s.status}</span>
                 </div>
               ))}
             </div>
@@ -376,94 +311,52 @@ function DemoPage() {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        background: C.bg,
-        color: C.text,
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className="min-h-screen flex flex-col bg-[#0a0a0a] text-zinc-100"
+      style={{ ...PUBLIC_INK_THEME, isolation: "isolate" }}
     >
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          padding: "12px 24px",
-          background: "rgba(7,7,15,0.92)",
-          backdropFilter: "blur(16px)",
-          borderBottom: `1px solid ${C.divider}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1000,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Link
-            to="/"
-            style={{ display: "inline-flex", alignItems: "center", gap: 9, textDecoration: "none" }}
-          >
-            <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
-              <CadenceMark size={20} tile={false} />
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 550, color: C.text }}>Cadence</span>
+      {/* The landing starfield, painted behind all content */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>
+        <LandingBackdrop />
+      </div>
+
+      {/* The one pinned bar: brand, the read-only honesty tag, the escape
+          hatch. Neutral CTA up here so the closing ask below keeps the
+          page's single ember object (landing law 4.1b). */}
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/75 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <Link to="/" className="inline-flex items-center gap-2.5 no-underline">
+            <CadenceMark size={22} />
+            <span className="text-sm font-medium text-white">Cadence</span>
           </Link>
+          <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+            read-only demo &middot; live seeded data
+          </span>
           <a
             href="/signup"
-            className="btn btn-primary btn-sm"
-            style={{ textDecoration: "none" }}
             onClick={onSignupClick}
+            className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
           >
-            Start free
+            Join the beta
           </a>
         </div>
       </header>
 
-      {/* Sticky banner: honest about being a demo, one clear next step. */}
-      <div
-        style={{
-          position: "sticky",
-          top: 53,
-          zIndex: 40,
-          padding: "10px 24px",
-          background: C.emberDim,
-          borderBottom: `1px solid ${C.border}`,
-          textAlign: "center",
-        }}
-      >
-        <span style={{ fontSize: 12.5, color: C.text }}>
-          You are in the demo, read-only, seeded data.{" "}
-        </span>
-        <a
-          href="/signup"
-          onClick={onSignupClick}
-          style={{ fontSize: 12.5, color: C.emberBright, fontWeight: 600, textDecoration: "none" }}
-        >
-          Make it yours &rarr;
-        </a>
-      </div>
-
-      <main style={{ flex: 1, paddingTop: 40 }}>
-        <section style={{ padding: "0 24px 32px", textAlign: "center" }}>
-          <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <main className="flex-1">
+        <section className="px-6 pt-16 pb-14">
+          <div className="max-w-5xl mx-auto">
             <h1
-              style={{
-                fontSize: "clamp(26px,3.6vw,38px)",
-                fontWeight: 700,
-                letterSpacing: "-0.02em",
-                margin: "0 0 12px",
-              }}
+              className="text-3xl md:text-4xl text-white m-0"
+              style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, maxWidth: "24ch" }}
             >
               This is a real Cadence workspace.
             </h1>
-            <p style={{ fontSize: 14.5, color: C.muted, lineHeight: 1.65, margin: 0 }}>
-              No login, nothing to set up. Everything below is real data from a seeded demo
-              workspace: a real teardown, a real decision ledger, a real mission trace.
+            <p
+              className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0"
+              style={{ maxWidth: "58ch" }}
+            >
+              No login, nothing to set up. Everything below is live data from a seeded demo
+              workspace: a real teardown, a real decision ledger, a real mission trace. You cannot
+              break anything, so look around.
             </p>
           </div>
         </section>
@@ -473,44 +366,47 @@ function DemoPage() {
         <LedgerSection ledger={ledger} />
         <MissionSection mission={mission} />
 
-        <section style={{ padding: "0 24px 64px", textAlign: "center" }}>
-          <a
-            href="/signup"
-            className="btn btn-primary"
-            style={{ textDecoration: "none" }}
-            onClick={onSignupClick}
-          >
-            Tear down your own pet feature (free)
-          </a>
+        {/* The close: this page's single ember object */}
+        <section className="px-6 pb-20">
+          <div className="max-w-5xl mx-auto">
+            <a
+              href="/signup"
+              onClick={onSignupClick}
+              className="inline-block px-8 py-3 rounded-full bg-[#FF6B2C] text-white font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200 no-underline"
+            >
+              Tear down your own pet feature
+            </a>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mt-4 mb-0">
+              the beta is open for sign-ups
+            </p>
+          </div>
         </section>
       </main>
 
-      <footer style={{ padding: "16px 24px", borderTop: `1px solid ${C.divider}` }}>
-        <div
-          style={{
-            maxWidth: 1000,
-            margin: "0 auto",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 16,
-          }}
-        >
-          {[
-            { href: "/security", label: "Security" },
-            { href: "/ard", label: "ARD" },
-            { href: "/updates", label: "Changelog" },
-            { href: "/proof", label: "Proof" },
-            { href: "/privacy", label: "Privacy" },
-            { href: "/terms", label: "Terms" },
-          ].map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              style={{ fontSize: 10.5, color: C.faint, textDecoration: "none" }}
-            >
-              {l.label}
-            </a>
-          ))}
+      {/* Scrolls with the page on purpose: the pinned job (orientation and
+          the next step) belongs to the header; a fixed footer would spend
+          viewport height the artifacts need. */}
+      <footer className="border-t border-white/[0.07] px-6 py-6">
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <p className="text-xs text-zinc-600 m-0">&copy; 2026 Cadence</p>
+          <div className="flex flex-wrap gap-5">
+            {[
+              { href: "/security", label: "Security" },
+              { href: "/ard", label: "ARD" },
+              { href: "/updates", label: "Changelog" },
+              { href: "/proof", label: "Proof" },
+              { href: "/privacy", label: "Privacy" },
+              { href: "/terms", label: "Terms" },
+            ].map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors no-underline"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
         </div>
       </footer>
     </div>

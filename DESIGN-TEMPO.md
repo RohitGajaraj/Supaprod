@@ -6,7 +6,11 @@
 > Editorial landing system (`DESIGN.md`); those files are retired history. When any other
 > file disagrees with this one on look, feel, tokens, type, or component anatomy, this
 > contract wins. Lineage: v1 tokens · v2 Ember Editorial · v3 Obsidian · v4 Loom ·
-> **v5 Tempo**._
+> **v5 Tempo**. Applied records (how surfaces implement this contract, with founder
+> rulings): the app port `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`;
+> the public landing + all public pages `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`
+> with its companion reference study `design-reference/tempo-v5/research/vercel-composition-playbook.md`
+> (2026-07-15, read both before touching any public surface; the two cross-reference each other)._
 
 ## 0. What Tempo is
 
@@ -266,6 +270,17 @@ drawers & sheets; notifications & inbox; command palette; property/inspector pan
 settings screens; onboarding & empty states; **AI interfaces** (chat/ask surfaces,
 streaming output, agent activity & run timelines, approval/HITL gates, receipts & trust
 evidence, model/tool pickers); **workflow & pipeline builders**.
+
+**Named extensions shipped for the v5 app port.** The **audit trace-tag** — the clickable
+`PREFIX·XXXXXX` id chip that opens an entity's verifiable lineage (founder ruling 2026-07-13:
+"everything should have a traceable audit id generated out of this platform") — is documented at
+[`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md)
+(feature: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md)). The full
+reasoning behind every design ruling applied when porting the authenticated app to Tempo — the
+lifecycle IA ("The Cadence Loop"), the **ember = needs-human / blue = machine** color grammar (with
+purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage, monotone source
+logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
+[`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
 
 ## 10. What survives from the old contracts
 

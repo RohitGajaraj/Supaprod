@@ -36,6 +36,7 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
             className="btn btn-ghost btn-sm"
             style={{ padding: 0, minHeight: "unset", height: 20, width: 20 }}
             aria-label={expanded ? "Collapse" : "Expand"}
+            aria-expanded={expanded}
           >
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
@@ -117,9 +118,26 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
   if (tree.isError) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>
+        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
           Could not load the tree: {(tree.error as Error).message}
         </p>
+        <button
+          type="button"
+          onClick={() => void tree.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            marginTop: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads the tree
+        </button>
       </div>
     );
   }

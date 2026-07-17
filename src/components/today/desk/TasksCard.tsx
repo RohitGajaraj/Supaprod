@@ -131,7 +131,8 @@ export function TasksCard() {
   if (tasks.isPending) {
     return (
       <div
-        aria-hidden="true"
+        role="status"
+        aria-label="Loading tasks"
         style={{
           height: 120,
           borderRadius: "var(--radius-card)",
@@ -214,6 +215,7 @@ export function TasksCard() {
         <div style={{ marginBottom: 10 }}>
           <Button
             variant="tertiary"
+            aria-expanded={backlogOpen}
             onClick={() => setBacklogOpen((v) => !v)}
             style={{ fontSize: 12, alignSelf: "flex-start" }}
           >

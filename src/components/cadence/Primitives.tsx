@@ -206,8 +206,9 @@ export function VerdictChip({
   );
 }
 
-/* SurfaceHeader — the loop-screen header: mono kicker, serif h1, one-line
-   sub. Ported 1:1 from design-reference/cadence/loop.jsx (SurfaceHeader). */
+/* SurfaceHeader — the loop-screen header: mono kicker, Geist Sans h1, one-line
+   sub. Tempo weight (600, tight tracking); the old editorial 430 weight is
+   retired. */
 export function SurfaceHeader({
   kicker,
   icon,
@@ -222,7 +223,10 @@ export function SurfaceHeader({
   return (
     <header style={{ marginBottom: 26 }}>
       <MonoLabel icon={icon}>{kicker}</MonoLabel>
-      <h1 className="font-display" style={{ fontSize: 26, marginTop: 7, fontWeight: 430 }}>
+      <h1
+        className="font-display"
+        style={{ fontSize: 26, marginTop: 7, fontWeight: 600, letterSpacing: "-0.02em" }}
+      >
         {title}
       </h1>
       <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", marginTop: 3, maxWidth: 520 }}>

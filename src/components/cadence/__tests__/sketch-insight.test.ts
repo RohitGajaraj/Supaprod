@@ -32,6 +32,10 @@ describe("barInsight (honest plain-language takeaway for humans + agents)", () =
     expect(barInsight(d([0, 4]), fmt)).toContain("Up to 4");
   });
 
+  it("handles a zero base that goes negative as down-to, not a fabricated percent", () => {
+    expect(barInsight(d([0, -4]), fmt)).toContain("Down to -4");
+  });
+
   it("treats a sub-5% change as flat (not a spurious trend)", () => {
     expect(barInsight(d([100, 103]), fmt)).toContain("About flat");
   });

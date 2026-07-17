@@ -12,6 +12,7 @@ import { useRef, useState, type CSSProperties, type RefObject } from "react";
 import { z } from "zod";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { buttonVariants } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listPrds } from "@/lib/discovery.functions";
 import {
@@ -322,7 +324,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               type="button"
               onClick={() => setMode(opt.id)}
               aria-pressed={active}
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 flex: "1 1 220px",
                 minWidth: 0,
@@ -330,7 +332,9 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 padding: "9px 12px",
                 borderRadius: "var(--radius-control)",
                 border: active ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
-                background: active ? "var(--surface-raised)" : "none",
+                // Inline background only when active, so the hover class can
+                // resolve on inactive pills (inline style beats a class).
+                background: active ? "var(--surface-raised)" : undefined,
                 cursor: "pointer",
               }}
             >
@@ -368,6 +372,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           placeholder="Mission title (optional)"
           aria-label="Mission title (optional)"
           maxLength={200}
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             minHeight: 36,
             background: "var(--surface-hover)",
@@ -391,6 +396,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           }
         }}
         rows={3}
+        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         placeholder={
           mode === "ship"
             ? "Describe what to ship. Build plans against the connected repo."
@@ -413,7 +419,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               <button
                 type="button"
                 aria-label="Pick an approved spec"
-                className="loom-press"
+                className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   maxWidth: 260,
                   minHeight: 32,
@@ -423,7 +429,6 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
-                  background: "none",
                   border: "1px solid var(--hairline)",
                   borderRadius: "var(--radius-control)",
                   padding: "6px 10px",
@@ -452,7 +457,32 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                   </span>
                 </DropdownMenuItem>
               ))}
-              {approvedPrds.length === 0 && (
+              {/* State audit 2026-07-12: loading and error each speak for
+                  themselves; the empty state no longer wears their clothes. */}
+              {prds.isLoading ? (
+                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
+                  Loading approved specs…
+                </div>
+              ) : prds.isError ? (
+                <div style={{ padding: "6px 8px", fontSize: 12 }}>
+                  <span style={{ color: "var(--madder)" }}>Couldn't load specs.</span>{" "}
+                  <button
+                    type="button"
+                    onClick={() => prds.refetch()}
+                    className="outline-none [color:var(--text-subtle)] transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      fontSize: 12,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : approvedPrds.length === 0 ? (
                 // Not a dead end (audit D-42): the way to get an approved spec
                 // is /plan, so say so and link there.
                 <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
@@ -461,7 +491,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                     Approve one in Plan →
                   </Link>
                 </div>
-              )}
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -508,7 +538,16 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           type="button"
           onClick={runStart}
           disabled={!canStart}
-          className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          // Disabled pairs with an explanation (component-contract law): the
+          // title says what unlocks Start, since a bare dim button explains nothing.
+          title={
+            canStart || isPending
+              ? undefined
+              : mode === "ship"
+                ? "Describe the work (a few words) or pick an approved spec first"
+                : "Describe the goal in a few words first"
+          }
+          className="loom-press outline-none transition-colors [background:var(--surface-raised)] hover:enabled:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginLeft: "auto",
             flexShrink: 0,
@@ -519,8 +558,9 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             // needs-a-human gate. The restraint budget reserves ember for the ONE
             // gate CTA per screen (the slide-over's Approve), and Composer + a
             // gate can both be visible at once (adversarial review finding).
+            // Base background lives in the class so hover can resolve
+            // (inline style would beat the hover class).
             color: "var(--text-primary)",
-            background: "var(--surface-raised)",
             opacity: canStart ? 1 : 0.5,
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
@@ -646,35 +686,14 @@ function BuildPage() {
       >
         {/* Loom §2b glow field: the one ambient wash behind the hero. */}
         <div aria-hidden="true" className="loom-glow-field" />
-        <ProductMasthead />
         <div style={{ marginBottom: 22 }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "var(--text-hero)",
-              fontWeight: 420,
-              letterSpacing: "-0.015em",
-              lineHeight: 1.12,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            <em style={{ color: "var(--ember-text)", fontStyle: "italic" }}>Build</em>
-          </h1>
-          {/* §6: the maker's mark — a static 24px thread under the surface title. */}
-          <div
-            aria-hidden="true"
-            style={{
-              width: 24,
-              height: 1,
-              background: "var(--thread-gradient)",
-              opacity: 0.4,
-              marginTop: 8,
-            }}
+          <PageHeader
+            eyebrow="The Loop · 05 Build"
+            title="Approved specs in,"
+            accent="merged PRs out."
+            subtitle="Agents pick up approved specs, write the code, run the tests, and open the pull request. You appear only at the gates."
+            usp="Agents build, test, and open the PR autonomously, so your team ships without hand-coding every change."
           />
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
-            Approved specs go in. Merged pull requests come out.
-          </p>
           {presenceAgent ? (
             <div style={{ marginTop: 10 }}>
               <PresenceChip
@@ -729,11 +748,12 @@ function BuildPage() {
                     search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
                   })
                 }
-                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   ...MODE_PILL,
                   color: viewMode === id ? "var(--text-primary)" : "var(--text-subtle)",
-                  background: viewMode === id ? "var(--surface-raised)" : "none",
+                  // Inline background only on the active pill so hover resolves.
+                  background: viewMode === id ? "var(--surface-raised)" : undefined,
                 }}
               >
                 {label}
@@ -826,16 +846,20 @@ function BuildPage() {
                   </p>
                   <button
                     type="button"
-                    className="loom-press"
+                    className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     onClick={() => {
                       textareaRef.current?.focus();
-                      textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      // Smooth scroll is motion: gate it on prefers-reduced-motion.
+                      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                      textareaRef.current?.scrollIntoView({
+                        behavior: reduce ? "auto" : "smooth",
+                        block: "center",
+                      });
                     }}
                     style={{
                       marginTop: 14,
                       fontFamily: "var(--font-mono)",
                       fontSize: 11,
-                      color: "var(--text-subtle)",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
@@ -951,7 +975,10 @@ function BuildPage() {
             <AlertDialogAction
               onClick={() => deleteTarget && del.mutate(deleteTarget.mission_id)}
               disabled={del.isPending}
-              style={{ background: "var(--madder)" }}
+              // Destructive variant, not an inline madder background: the
+              // inline style was killing the variant's hover/active/disabled
+              // states (state audit 2026-07-12).
+              className={buttonVariants({ variant: "destructive" })}
             >
               {del.isPending ? "Deleting…" : "Delete mission"}
             </AlertDialogAction>

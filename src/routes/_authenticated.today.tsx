@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
-import { Hero } from "@/components/obsidian/today/Hero";
+import { TodayHeroCard } from "@/components/today/TodayHeroCard";
+import { PixelStat } from "@/components/cadence/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -207,7 +208,7 @@ function TodaySpotlight({
                 type="button"
                 onClick={onOpenCall}
                 title="Open this call"
-                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   color: "var(--text-primary)",
                   background: "transparent",
@@ -265,10 +266,13 @@ function TodaySpotlight({
           <button
             type="button"
             onClick={() => setFullOpen((v) => !v)}
-            className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            aria-expanded={fullOpen}
+            // Base color rides the class so the hover color can win over the
+            // monoLabel spread's inline color.
+            className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               ...monoLabel,
-              color: "var(--text-subtle)",
+              color: undefined,
               background: "transparent",
               border: "none",
               padding: 0,
@@ -300,10 +304,10 @@ function TodaySpotlight({
             <button
               type="button"
               onClick={onRefreshBrief}
-              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 ...monoLabel,
-                color: "var(--text-subtle)",
+                color: undefined,
                 background: "transparent",
                 border: "none",
                 padding: 0,
@@ -1154,10 +1158,12 @@ function Dashboard() {
             {isCold ? (
               <ColdStartOnramp />
             ) : (
-              <Hero
+              <TodayHeroCard
                 greeting={greeting.data?.greeting ?? "Hello"}
                 userName={userName}
                 pendingCalls={callCount}
+                pulseLine={lp && lp.total > 0 ? pulseSentence(lp) : undefined}
+                onAnswer={featured ? () => setActiveCallId(featured.id) : undefined}
               />
             )}
           </>
@@ -1176,12 +1182,6 @@ function Dashboard() {
             />
           </>
         )}
-        {/* PC-32 block 2 (PC-33): the product masthead — one quiet line
-            grounding the ritual in the product's story. */}
-        <ProductMasthead
-          ctx={productContext.data}
-          onOpen={() => navigate({ to: "/settings", search: { section: "workspace" } as never })}
-        />
         {/* Founder ruling (2026-07-04): the brief LEADS the ritual — a
             spotlight composed from live objects (the call that matters, what
             proved out), never a paragraph dump; the AI prose is one
@@ -1201,9 +1201,18 @@ function Dashboard() {
         {/* PC-32: ONE column, one question. The judgment lane leads; the
             receipts strip narrates the night; four quiet doors hold the rest.
             The old two-column grid (8 sections, 8 questions) is retired. */}
-        <div className="flex flex-col" style={{ gap: 26 }}>
+        {/* Founder addendum (2026-07-13): the PM's daily tools were buried
+            behind the Desk door. On wide screens they now ride an EVIDENT
+            right rail (Focus · Tasks · Capture) beside the judgment column —
+            a single-purpose rail, not the retired 8-section grid. Narrow
+            screens keep the Desk door below. */}
+        <div
+          className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_312px] items-start"
+          style={{ gap: 24 }}
+        >
+          <div className="flex flex-col" style={{ gap: 26, minWidth: 0 }}>
           <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
               <h2
                 style={{
                   fontFamily: "var(--font-mono)",
@@ -1217,16 +1226,12 @@ function Dashboard() {
                 Needs your judgment
               </h2>
               {needsYouLoaded ? (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    letterSpacing: "0.12em",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  {callCount}
-                </span>
+                <PixelStat
+                  value={callCount}
+                  tone={callCount > 0 ? "blue" : "moss"}
+                  size={12}
+                  glow={callCount > 0}
+                />
               ) : null}
               <div
                 style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
@@ -1262,7 +1267,7 @@ function Dashboard() {
               >
                 <h3
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 19,
                     fontWeight: 460,
                     color: "var(--text-primary)",
@@ -1281,7 +1286,12 @@ function Dashboard() {
                 </Button>
               </div>
             ) : !needsYouLoaded ? (
-              <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
+              <div
+                role="status"
+                aria-label="Loading your calls"
+                className="flex flex-col"
+                style={{ gap: 10 }}
+              >
                 <div
                   style={{
                     height: 12,
@@ -1303,7 +1313,7 @@ function Dashboard() {
               <div
                 style={{
                   background: "var(--card)",
-                  border: "1px solid rgba(127,191,142,0.3)",
+                  border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
                   borderRadius: "var(--radius-card)",
                   padding: "28px 26px",
                   boxShadow: "var(--top-light)",
@@ -1312,7 +1322,7 @@ function Dashboard() {
                 <ConstellationMotif />
                 <h3
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 21,
                     fontWeight: 450,
                     color: "var(--text-primary)",
@@ -1356,7 +1366,10 @@ function Dashboard() {
             )}
             {totalCalls > 0 && needsYouLoaded && (
               <div>
+                {/* Decorative: the "N answered · M open" line below carries the
+                    same numbers for AT, so the bar itself stays hidden. */}
                 <div
+                  aria-hidden="true"
                   style={{
                     height: 3,
                     background: "var(--hairline)",
@@ -1385,7 +1398,14 @@ function Dashboard() {
                   {/* LOOM W4 honesty: the old "N of M answered" denominator
                         shifted as new calls arrived mid-session. State the two
                         real numbers instead. */}
-                  {clearedSession} answered · {callCount} open
+                  <PixelStat value={clearedSession} tone="neutral" size={11} /> answered ·{" "}
+                  <PixelStat
+                    value={callCount}
+                    tone={callCount > 0 ? "blue" : "moss"}
+                    size={11}
+                    glow={callCount > 0}
+                  />{" "}
+                  open
                 </div>
               </div>
             )}
@@ -1408,7 +1428,8 @@ function Dashboard() {
           ) : null}
           {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
               one-line acts with real actor bylines, replacing the swarm
-              card grid. */}
+              card grid. A failed lanes fetch names itself with a retry —
+              never a skeleton that loads forever (audit fix 2026-07-12). */}
           {lanesData ? (
             <ReceiptsStrip
               lane={lanesData.lane2}
@@ -1417,9 +1438,28 @@ function Dashboard() {
               }
               onOpenActivity={() => navigate({ to: "/build" })}
             />
+          ) : lanes.isError ? (
+            <div
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-card)",
+                padding: "16px 18px",
+                boxShadow: "var(--top-light)",
+              }}
+            >
+              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+                The activity lanes didn't load.{" "}
+                {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
+              </p>
+              <Button variant="secondary" onClick={() => void lanes.refetch()}>
+                Try again
+              </Button>
+            </div>
           ) : (
             <div
-              aria-hidden="true"
+              role="status"
+              aria-label="Loading the night's activity"
               style={{
                 height: 140,
                 borderRadius: "var(--radius-card)",
@@ -1460,6 +1500,10 @@ function Dashboard() {
               onClick={() => setWatchOpen(true)}
             />
           </nav>
+          </div>
+          <aside className="hidden xl:block" aria-label="Your desk">
+            <DeskRail compact />
+          </aside>
         </div>
       </div>
       {/* PC-32 block 5: the Desk slide-over — personal tools are not
@@ -1470,9 +1514,20 @@ function Dashboard() {
       <SlideOver open={watchOpen} onClose={() => setWatchOpen(false)} title="At risk / watch">
         {lanesData ? (
           <WatchLane lane={lanesData.lane3} bare />
+        ) : lanes.isError ? (
+          <div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+              The watch list didn't load.{" "}
+              {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
+            </p>
+            <Button variant="secondary" onClick={() => void lanes.refetch()}>
+              Try again
+            </Button>
+          </div>
         ) : (
           <div
-            aria-hidden="true"
+            role="status"
+            aria-label="Loading the watch list"
             style={{
               height: 120,
               borderRadius: "var(--radius-card)",

@@ -15,14 +15,7 @@ export function rgba(hex: string, alpha: number): string {
 }
 
 export type MonoLabelTone =
-  | "ember"
-  | "glacier"
-  | "blossom"
-  | "moss"
-  | "madder"
-  | "marigold"
-  | "muted"
-  | "faint";
+  "ember" | "glacier" | "blossom" | "moss" | "madder" | "marigold" | "muted" | "faint";
 
 export const MONO_LABEL_TONE_COLOR: Record<MonoLabelTone, string> = {
   ember: "var(--ember)",
@@ -95,8 +88,14 @@ const BUTTON_SIZE_STYLE: Record<ButtonSize, React.CSSProperties> = {
 // either a fill or a border) so it can never be mistaken for a label. Emphasis
 // (color/weight) rides on top. Sentence case in the UI voice, never uppercase
 // mono - mono-caps is metadata, not an action.
+// Hover-conflicting properties (background-color, text color, border-color)
+// live in BASE CLASSES, not inline style: an inline style always beats a
+// hover: class on the same property, which left secondary/tertiary/quiet
+// hover fills and link's hover color dead (2026-07-12 states-audit finding).
+// Non-hoverable emphasis (weights, shadows, the primary gradient) stays inline.
 const BUTTON_VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
-  // Primary: the ONE main action per view. Solid top-lit ember gradient.
+  // Primary: the ONE main action per view. Solid top-lit ember gradient
+  // (hover rides brightness/filter, so the gradient may stay inline).
   primary: {
     background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
     color: "var(--cta-ink)",
@@ -107,25 +106,17 @@ const BUTTON_VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   // Secondary: the workhorse. A raised surface with a visible border - quiet
   // but unmistakably a button. Unlimited per screen.
   secondary: {
-    backgroundColor: "var(--surface-raised)",
-    color: "var(--text-primary)",
     fontWeight: 500,
-    border: "1px solid var(--hairline-strong)",
     boxShadow: "var(--top-light)",
   },
   // Tertiary: lowest-emphasis action. Transparent resting fill but ALWAYS a
   // border + padding + radius, so it reads as a control, never as text.
   tertiary: {
-    backgroundColor: "transparent",
-    color: "var(--text-body)",
     fontWeight: 500,
-    border: "1px solid var(--hairline-strong)",
   },
   // Link: genuine inline text navigation only (never a primary action).
   // Glacier ink, underline affordance on hover.
   link: {
-    backgroundColor: "transparent",
-    color: "var(--glacier)",
     fontFamily: "var(--font-ui)",
     fontWeight: 500,
     padding: 0,
@@ -134,18 +125,28 @@ const BUTTON_VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
   // Quiet: retained as an alias of tertiary for back-compat. Now a real
   // bordered control, no longer borderless mono text.
   quiet: {
-    backgroundColor: "transparent",
-    color: "var(--text-body)",
     fontWeight: 500,
-    border: "1px solid var(--hairline-strong)",
   },
+};
+
+// Resting fill/ink/border as classes so hover: variants can win the cascade.
+const BUTTON_VARIANT_BASE_CLASS: Record<ButtonVariant, string> = {
+  primary: "",
+  secondary:
+    "[background-color:var(--surface-raised)] [color:var(--text-primary)] border border-solid [border-color:var(--hairline-strong)]",
+  tertiary:
+    "[background-color:transparent] [color:var(--text-body)] border border-solid [border-color:var(--hairline-strong)]",
+  link: "[background-color:transparent] [color:var(--glacier)]",
+  quiet:
+    "[background-color:transparent] [color:var(--text-body)] border border-solid [border-color:var(--hairline-strong)]",
 };
 
 const BUTTON_VARIANT_HOVER_CLASS: Record<ButtonVariant, string> = {
   primary: "hover:brightness-[1.08]",
   secondary: "hover:[background-color:var(--hover)] hover:[border-color:var(--text-faint)]",
   tertiary: "hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]",
-  link: "hover:underline hover:[color:#EAF6FF]",
+  // Token-traced hover (was a hardcoded near-white hex, dark-only).
+  link: "hover:underline hover:[color:var(--text-primary)]",
   quiet: "hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]",
 };
 
@@ -187,6 +188,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "relative inline-flex items-center justify-center gap-2 outline-none",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
           !isDisabled && !isLink && "active:scale-[0.985]",
+          BUTTON_VARIANT_BASE_CLASS[variant],
           !isDisabled && BUTTON_VARIANT_HOVER_CLASS[variant],
           isDisabled ? "cursor-default opacity-45" : "cursor-pointer",
           className,

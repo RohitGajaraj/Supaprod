@@ -6,8 +6,9 @@
 // columns (hops / cost / tokens / tool calls / duration) with signed deltas, the
 // per-hop output drift, and the headline "the answer changed". Calm by default
 // (engine-room doctrine): neutral ink + directional glyphs carry the signal, no
-// celebration colour; `--rose` only when the replay regressed on failures. Fully
-// degrade-silent — a load error renders nothing rather than a broken panel.
+// celebration colour; `--rose` only when the replay regressed on failures. A
+// fetch error names its cause with a retry (the panel is user-invoked); only a
+// loaded-but-missing original degrades silent.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/cadence/Primitives";
@@ -118,8 +119,30 @@ export function MissionDiff({
       </div>
     );
   }
+  // An error never hides (state audit 2026-07-12): the user explicitly asked
+  // for this comparison, so a silent vanish is a dead end. Name the cause,
+  // offer retry. A loaded-but-missing original still degrades silent below.
+  if (q.isError) {
+    return (
+      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
+        <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the original</MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "6px 0 0" }}>
+          {(q.error as Error)?.message?.slice(0, 160) ??
+            "The original mission could not be fetched."}
+        </p>
+        <button
+          type="button"
+          onClick={() => q.refetch()}
+          className="btn btn-ghost btn-sm loom-press"
+          style={{ marginTop: 10 }}
+        >
+          Retry · reloads the original
+        </button>
+      </div>
+    );
+  }
   // Degrade silent: a missing/forbidden original renders nothing, never a broken panel.
-  if (q.isError || !q.data) return null;
+  if (!q.data) return null;
 
   const diff = diffMissions(q.data, current);
   const driftHops = diff.hops.filter(

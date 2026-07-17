@@ -35,19 +35,19 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div
       role="status"
+      className="material-menu"
       style={{
+        // Tempo v5 materials law (DESIGN-TEMPO.md section 4): the floating
+        // mark wears the menu preset (12px radius, background-100, menu
+        // shadow) instead of a hand-rolled dark-glass trio, so it resolves
+        // in both themes from the same tokens.
         position: "fixed",
         top: rect.top,
         left: rect.right + 14,
-        zIndex: 60,
+        zIndex: "var(--ds-z-toast)",
         width: 240,
         padding: "12px 14px",
-        borderRadius: "var(--radius-panel, 14px)",
-        background: "rgba(17,17,19,0.72)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderLeft: "2px solid var(--hairline-strong)",
-        animation: "cadRise 260ms var(--ease) both",
+        animation: "cadRise 260ms var(--ds-motion-timing-swift) both",
       }}
     >
       <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
@@ -56,7 +56,7 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
       <button
         type="button"
         onClick={dismiss}
-        className="text-button-12 outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className="loom-press text-button-12 outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           marginTop: 10,
           color: "var(--text-muted)",

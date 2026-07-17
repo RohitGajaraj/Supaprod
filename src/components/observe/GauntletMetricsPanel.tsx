@@ -484,7 +484,7 @@ export function GauntletMetricsPanel() {
         }}
       >
         The Gauntlet · the three proof metrics, read from real activity. The loop runs the
-        reversible work; you make the calls. Sparse windows read "not enough data yet" — never an
+        reversible work; you make the calls. Sparse windows read "not enough data yet", never an
         invented number.
       </div>
 

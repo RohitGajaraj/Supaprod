@@ -36,7 +36,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
       <div
         className="tabular-nums"
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontWeight: 450,
           fontSize: 19,
           color: "var(--text-primary)",

@@ -7,6 +7,7 @@
 // same text-clip sweep; the Butterfly mark is retired in Tempo v5
 // (DESIGN-TEMPO.md section 8). Motion guards ride the styles.css classes.
 import * as React from "react";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 export function AiPulse({
   label,
@@ -34,12 +35,8 @@ export function AiPulse({
       aria-live="polite"
       style={{ gap: 7, minWidth: 0, ...style }}
     >
-      <span
-        aria-hidden="true"
-        className={waiting ? "ai-pulse-mark waiting" : "ai-pulse-mark"}
-        style={{ fontFamily: "var(--font-pixel)", fontSize: mark, lineHeight: 1 }}
-      >
-        C
+      <span aria-hidden="true" className="shrink-0 inline-flex" style={{ lineHeight: 1 }}>
+        <CadenceMark size={mark} animated glow={false} />
       </span>
       <span
         className={waiting ? "ai-pulse-text waiting" : "ai-pulse-text"}

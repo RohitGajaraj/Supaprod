@@ -486,6 +486,7 @@ export function TraceDetail({ id }: { id: string }) {
             {(trace.error as Error).message}
           </p>
           <button
+            type="button"
             className="btn btn-ghost btn-sm"
             style={{ marginTop: 14 }}
             onClick={() => trace.refetch()}
@@ -512,9 +513,9 @@ export function TraceDetail({ id }: { id: string }) {
           }}
         >
           <span className="mono-label" style={{ flex: 1 }}>
-            No spans recorded for this trace — it may have expired or belong to another account.
+            No spans recorded for this trace. It may have expired or belong to another account.
           </span>
-          <button className="btn btn-ghost btn-sm" onClick={back}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
             Back · all traces
           </button>
         </div>
@@ -625,6 +626,9 @@ export function TraceDetail({ id }: { id: string }) {
           return (
             <button
               key={r.kind === "event" ? r.span.id : r.tool.id}
+              type="button"
+              aria-pressed={isSel}
+              className="hover:[background-color:var(--surface-2)]"
               onClick={() =>
                 setSelected({ kind: r.kind, id: r.kind === "event" ? r.span.id : r.tool.id })
               }
@@ -795,7 +799,7 @@ export function TraceDetail({ id }: { id: string }) {
 
       <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 10 }}>
         Showing every LLM span and tool call on this trace, in wall-clock order. Previews are
-        truncated — select a hop for the full input, system prompt, and output.
+        truncated. Select a hop for the full input, system prompt, and output.
         {mission && (
           <>
             {" "}
@@ -803,6 +807,7 @@ export function TraceDetail({ id }: { id: string }) {
             <Link
               to="/build/$missionId"
               params={{ missionId: mission.id }}
+              className="hover:underline"
               style={{ color: "var(--action-blue)" }}
             >
               the mission transcript

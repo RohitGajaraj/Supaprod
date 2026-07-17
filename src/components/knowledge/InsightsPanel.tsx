@@ -118,13 +118,16 @@ export function InsightsPanel() {
       />
     );
     return (
-      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {bar(22, "40%")}
-        {bar(46)}
-        {bar(46)}
-        <div style={{ display: "flex", gap: 12 }}>
-          {bar(110, "50%")}
-          {bar(110, "50%")}
+      <div role="status">
+        <span className="sr-only">Loading insights…</span>
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {bar(22, "40%")}
+          {bar(46)}
+          {bar(46)}
+          <div style={{ display: "flex", gap: 12 }}>
+            {bar(110, "50%")}
+            {bar(110, "50%")}
+          </div>
         </div>
       </div>
     );

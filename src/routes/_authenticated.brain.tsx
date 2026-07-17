@@ -25,6 +25,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
@@ -82,6 +83,11 @@ const GraphPanel = lazy(() =>
 );
 const DocsPanel = lazy(() =>
   import("@/components/knowledge/DocsPanel").then((m) => ({ default: m.DocsPanel })),
+);
+const CapabilitiesPanel = lazy(() =>
+  import("@/components/knowledge/CapabilitiesPanel").then((m) => ({
+    default: m.CapabilitiesPanel,
+  })),
 );
 const AnnouncementsPanel = lazy(() =>
   import("@/components/knowledge/AnnouncementsPanel").then((m) => ({
@@ -180,6 +186,7 @@ function MemoryMachineryDisclosure({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-controls="memory-machinery-panel"
         className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           display: "flex",
@@ -194,9 +201,19 @@ function MemoryMachineryDisclosure({
         }}
       >
         {open ? (
-          <ChevronDown size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
+          />
         ) : (
-          <ChevronRight size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+          <ChevronRight
+            size={16}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
+          />
         )}
         <MonoLabel>Under the hood</MonoLabel>
         {!open && (
@@ -214,6 +231,7 @@ function MemoryMachineryDisclosure({
       </button>
       {open && (
         <div
+          id="memory-machinery-panel"
           className="fade-up"
           style={{
             marginTop: 8,
@@ -306,11 +324,14 @@ function TabSkeleton() {
     />
   );
   return (
-    <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {bar(64)}
-      {bar(120)}
-      {bar(120)}
-      {bar(64, "70%")}
+    <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <span className="sr-only">Loading this section…</span>
+      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {bar(64)}
+        {bar(120)}
+        {bar(120)}
+        {bar(64, "70%")}
+      </div>
     </div>
   );
 }
@@ -344,7 +365,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
     };
   },
   component: MemoryPage,
-  head: () => ({ meta: [{ title: "Memory · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
     <MemorySurface>
       <div
@@ -356,7 +377,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
           padding: "16px 18px",
         }}
       >
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Memory · failed to load</MonoLabel>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brain · failed to load</MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
@@ -380,7 +401,22 @@ export const Route = createFileRoute("/_authenticated/brain")({
   ),
   notFoundComponent: () => (
     <MemorySurface>
-      <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>Not found.</p>
+      <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
+        This record doesn't exist or was removed. Everything Memory holds is on its four tabs.
+      </p>
+      <a
+        href="/brain"
+        className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{
+          display: "inline-block",
+          marginTop: 12,
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          color: "var(--glacier)",
+        }}
+      >
+        Go to Memory
+      </a>
     </MemorySurface>
   ),
 });
@@ -406,7 +442,8 @@ function StripStat({ label, value, live }: { label: string; value: string; live?
             height: 6,
             borderRadius: "50%",
             background: "var(--glacier)",
-            boxShadow: "0 0 10px rgba(132, 179, 236,0.6)",
+            // Token-traced glow (was a hardcoded rgba of the retired chalky blue).
+            boxShadow: "0 0 10px color-mix(in srgb, var(--glacier) 60%, transparent)",
             animation: "cadPulse 2s ease-in-out infinite",
           }}
         />
@@ -494,56 +531,30 @@ function MemoryPage() {
 
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Memory"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
       <MemorySurface>
-        {/* The hero: one ember italic word, mono kicker, no icon. */}
-        <div style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
-              letterSpacing: "0.14em",
-              color: "var(--text-subtle)",
-              textTransform: "uppercase",
-              marginBottom: 10,
-            }}
-          >
-            Loop · Memory
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 430,
-              fontSize: "var(--text-hero)",
-              lineHeight: 1.12,
-              letterSpacing: "-0.015em",
-              color: "var(--text-primary)",
-              margin: "0 0 8px",
-            }}
-          >
-            Your <em style={{ fontStyle: "italic", color: "var(--ember)" }}>record</em>.
-          </h1>
-          <p
-            style={{ fontSize: "var(--text-base)", color: "var(--text-body)", margin: "0 0 18px" }}
-          >
-            Every call you made, what it became, and how belief moved.
-          </p>
+        {/* The hero: Tempo PageHeader (retires the Loom serif/italic hero). */}
+        <PageHeader
+          eyebrow="Intelligence · Brain"
+          title="Your product's"
+          accent="brain."
+          subtitle="Every call you made, what it became, and how belief moved, on one substrate the whole loop reads from and reasons over."
+          usp="The brain compounds: every decision and outcome makes the next call faster and better-cited."
+        >
           {presenceAgent ? (
-            <div style={{ marginBottom: 18 }}>
-              <PresenceChip
-                agentSlug={presenceAgent.slug}
-                station="brain"
-                state={presenceAgent.state === "working" ? "working" : "idle"}
-                lastActedAt={presenceAgent.lastActiveAt}
-              />
-            </div>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="brain"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
           ) : null}
           {/* PC-29 layer 4: the inline relay, live only while Measure/Learn
               has a run going. */}
-          <div style={{ marginBottom: 18 }}>
+          <div style={{ marginTop: 12 }}>
             <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
           </div>
-        </div>
+        </PageHeader>
 
         <BrainStatTrio />
 
@@ -657,6 +668,10 @@ function MemoryPage() {
               <section>
                 <SectionTitle>Brief</SectionTitle>
                 <BriefPanel />
+              </section>
+              <section>
+                <SectionTitle>Capabilities</SectionTitle>
+                <CapabilitiesPanel />
               </section>
               <section>
                 <SectionTitle>Docs</SectionTitle>

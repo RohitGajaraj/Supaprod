@@ -9,6 +9,8 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { advanceMissionCore } from "@/lib/ai/mission-advance.server";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { indexFinding } from "@/lib/rag/findings.server";
+import { resolveAnswerBlocks, type ChunkRef } from "@/lib/ask-blocks.server";
+import type { AnswerBlock } from "@/lib/ask-blocks";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
@@ -210,6 +212,11 @@ export const Route = createFileRoute("/api/chat")({
           conversationId: string;
           content: string;
           model?: string;
+          // PC-36 workstream B: an optional retrieval scope suggested by the
+          // screen Ask was opened from (or an explicit user override), see
+          // src/lib/ask-context.tsx's scopeForPath. productId narrows to one
+          // product (the panel's opt-in product chip).
+          scope?: { kinds?: string[]; sourceId?: string | null; productId?: string | null };
         };
         try {
           body = await request.json();
@@ -690,6 +697,7 @@ You must output a JSON object EXACTLY in this format:
             let webBlock = "";
             let workspaceBlock = "";
             let ragBlock = "";
+            let chunkRefs: ChunkRef[] = [];
             if (researchMode !== "chat") {
               try {
                 const r = await runResearch({
@@ -699,12 +707,14 @@ You must output a JSON object EXACTLY in this format:
                   mode: researchMode,
                   subQueries,
                   emit: (status) => send({ status }),
+                  scope: body.scope,
                 });
                 researchSources = r.sources;
                 webBlock = r.webBlock;
                 workspaceBlock = r.workspaceBlock;
                 webUsed = r.webUsed;
                 workspaceChunks = r.workspaceChunks;
+                chunkRefs = r.workspaceChunkRefs;
               } catch (e) {
                 console.error("[chat] research pipeline failed (degrading to plain answer):", e);
               }
@@ -715,8 +725,15 @@ You must output a JSON object EXACTLY in this format:
                   query: body.content,
                   k: 4,
                   mmr: true,
+                  sourceKinds: body.scope?.kinds,
+                  sourceId: body.scope?.sourceId ?? undefined,
+                  productId: body.scope?.productId ?? undefined,
                 });
                 workspaceChunks = chunks.length;
+                chunkRefs = chunks.map((c) => ({
+                  source_kind: c.source_kind,
+                  source_id: c.source_id,
+                }));
                 if (chunks.length > 0) {
                   const lines = chunks.map(
                     (c) =>
@@ -730,6 +747,23 @@ You must output a JSON object EXACTLY in this format:
               } catch (e) {
                 console.error("[chat] workspace retrieval failed (skipping):", e);
               }
+            }
+
+            // PC-36 C: receipts-first typed answer blocks. Resolved
+            // deterministically from what retrieval actually touched (plus
+            // temporal/status intent), fetched RLS-scoped, and emitted BEFORE
+            // synthesis so the cards land instantly and prose streams under
+            // them. Skipped for pure-web answers (no workspace grounding to
+            // receipt). resolveAnswerBlocks never throws; a failure just
+            // means a plain prose answer.
+            let answerBlocks: AnswerBlock[] = [];
+            if (researchMode !== "web") {
+              answerBlocks = await resolveAnswerBlocks(supabase, {
+                question: body.content,
+                chunkRefs,
+                productId: body.scope?.productId ?? null,
+              });
+              for (const block of answerBlocks) send({ block });
             }
 
             // DBR-3e: the brain volunteers DECISION precedent in conversation. When the
@@ -931,18 +965,13 @@ ${grounding}`,
                 cost_usd: estimateCostUsd(result.model, tokens_in, tokens_out),
                 ...(judge !== undefined ? { judge } : {}),
               });
-              try {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`));
-                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-                controller.close();
-              } catch {
-                // Controller already errored/closed — nothing more to send.
-              }
-              // Persist assistant message (best-effort), WITH meta so the AI
-              // footer contract survives reloads (migration
-              // 20260612120000_f_design_ember_chat_meta adds messages.metadata).
-              // Pre-migration tolerance: if the column is missing the insert
-              // errors, so retry without metadata — never lose the message.
+              // Persist BEFORE the meta frame so the client learns its row id
+              // (the {persisted} frame below) and promote actions can record
+              // themselves on the message (review fix 2026-07-16). Meta
+              // survives reloads via metadata (20260612120000); blocks ride
+              // inside it too (PC-36 C). Pre-migration tolerance: retry
+              // without metadata rather than lose the message.
+              let persistedMessageId: string | null = null;
               if (assistantText.trim()) {
                 const row = {
                   conversation_id: body.conversationId,
@@ -951,10 +980,42 @@ ${grounding}`,
                   content: assistantText,
                   model: result.model,
                 };
-                const { error: metaErr } = await supabase
+                const persistedMeta =
+                  answerBlocks.length > 0 ? { ...meta, blocks: answerBlocks } : meta;
+                const { data: inserted, error: metaErr } = await supabase
                   .from("messages")
-                  .insert({ ...row, metadata: meta } as typeof row);
-                if (metaErr) await supabase.from("messages").insert(row);
+                  .insert({ ...row, metadata: persistedMeta } as typeof row)
+                  .select("id")
+                  .single();
+                if (metaErr) {
+                  // Loud (review fix 2026-07-16): the fallback saves the prose
+                  // but drops meta + blocks; a silent drop here would read as
+                  // "metadata persistence works" forever.
+                  console.error("[chat] metadata insert failed, persisting without it:", metaErr);
+                  const { data: fallbackRow } = await supabase
+                    .from("messages")
+                    .insert(row)
+                    .select("id")
+                    .single();
+                  persistedMessageId = (fallbackRow as { id: string } | null)?.id ?? null;
+                } else {
+                  persistedMessageId = (inserted as { id: string } | null)?.id ?? null;
+                }
+              }
+              try {
+                if (persistedMessageId)
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({ persisted: { message_id: persistedMessageId } })}\n\n`,
+                    ),
+                  );
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`));
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+              } catch {
+                // Controller already errored/closed — nothing more to send.
+              }
+              if (assistantText.trim()) {
                 // F-BRAIN auto-retention: distill research answers + sources
                 // into the brain (rag_chunks kind 'finding') so future
                 // questions recall them. Fire-and-forget — never blocks or

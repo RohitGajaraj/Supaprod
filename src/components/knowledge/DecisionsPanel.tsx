@@ -34,7 +34,7 @@ import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { AutoChip } from "@/components/cadence/AutoChip";
-import { traceRef } from "@/components/discover/format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
@@ -115,7 +115,8 @@ function FilterGroup<T extends string>({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          aria-pressed={value === o}
+          className="outline-none uppercase transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor)",
@@ -195,6 +196,7 @@ export function DecisionsPanel() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          aria-label="Search decision titles"
           placeholder="Search titles"
           className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
@@ -237,7 +239,7 @@ export function DecisionsPanel() {
         <div
           style={{
             background: "var(--card)",
-            border: "1px solid rgba(127,191,142,0.3)",
+            border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "28px 26px",
           }}
@@ -284,7 +286,7 @@ export function DecisionsPanel() {
               onClick={() =>
                 navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
               }
-              className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="w-full text-left outline-none transition-colors hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
@@ -314,17 +316,8 @@ export function DecisionsPanel() {
                   {isAutoTitle(d.title) ? <AutoChip /> : null}
                 </span>
                 {/* dim 17: the quiet, copyable-in-detail trace ref on the row. */}
-                <span
-                  style={{
-                    display: "block",
-                    marginTop: 5,
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  DEC·{traceRef(d.id)}
+                <span style={{ display: "block", marginTop: 5 }}>
+                  <AuditTag kind="decision" id={d.id} />
                 </span>
                 {d.status === "pending" ? (
                   // LOOM QA R2 (one-home law, §9b): approvals have ONE
@@ -335,10 +328,18 @@ export function DecisionsPanel() {
                         nested button is invalid HTML (hydration warning). */}
                     <span
                       role="link"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate({ to: "/today" });
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.stopPropagation();
+                          navigate({ to: "/today" });
+                        }
+                      }}
+                      className="hover:underline"
                       style={{ fontSize: 11, color: "var(--link)", cursor: "pointer" }}
                     >
                       Decide on Today &rarr;

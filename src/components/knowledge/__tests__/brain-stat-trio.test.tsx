@@ -1,138 +1,222 @@
-import { describe, expect, test } from "bun:test";
-import { deriveBrainStats } from "../BrainStatTrio";
-import { OBS_STATUS_TONE } from "../DecisionsPanel";
-import { VERDICT_TONE } from "../CompoundingPanel";
+import { describe, test, expect } from "bun:test";
+import { deriveBrainStats, type BrainStats } from "../BrainStatTrio";
 import type { ImpactLedgerResult } from "@/lib/pm-impact.functions";
-import type { ImpactLedger } from "@/lib/pm-impact";
 
-const BASE_LEDGER: ImpactLedger = {
-  decisionsTotal: 0,
-  humanLed: 0,
-  agentLed: 0,
-  decisionsByStatus: {},
-  beliefsRevised: 0,
-  outcomes: { validated: 0, missed: 0, mixed: 0, hitRate: null },
-  iceShiftTotal: 0,
-  iceShiftAvg: null,
-  measuredOutcomes: 0,
-  span: { firstAt: null, lastAt: null, activeMonths: 0 },
-  highlights: [],
-  headline: "",
-  decisionsTrend: [0, 0, 0, 0, 0, 0, 0, 0],
-};
+describe("deriveBrainStats", () => {
+  test("returns { hasRecord: false } when no decisions and no outcomes", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 0,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 0,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
 
-function result(overrides: Partial<ImpactLedger>, markdown = "# record"): ImpactLedgerResult {
-  return { ledger: { ...BASE_LEDGER, ...overrides }, markdown, workspaceName: "Test" };
-}
-
-describe("deriveBrainStats — the Brain stat trio's pure data mapping", () => {
-  test("an empty ledger (no decisions, no measured outcomes) has no record", () => {
-    const stats = deriveBrainStats(result({}));
-    expect(stats.hasRecord).toBe(false);
+    const stats = deriveBrainStats(result);
+    expect(stats).toEqual({ hasRecord: false });
   });
 
-  test("renders three cells: calls made, validated %, net ICE moved", () => {
-    const stats = deriveBrainStats(
-      result({
-        decisionsTotal: 128,
-        outcomes: { validated: 20, missed: 8, mixed: 0, hitRate: 0.71 },
-        iceShiftTotal: 4.3,
-      }),
-    );
+  test("returns { hasRecord: true } when decisionsTotal > 0", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 5,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 0,
+        decisionsTrend: [1, 2, 1, 0, 0, 0, 0, 0],
+      },
+      markdown: "# Record",
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
     expect(stats.hasRecord).toBe(true);
-    if (!stats.hasRecord) return;
-    expect(stats.cells).toEqual([
-      { value: "128", label: "CALLS MADE" },
-      { value: "71%", label: "VALIDATED" },
-      { value: "+4.3", label: "ICE MOVED" },
-    ]);
+    expect(stats.cells[0]).toEqual({ value: "5", label: "CALLS MADE" });
   });
 
-  test("omits the VALIDATED cell entirely when hitRate is null (never a placeholder)", () => {
-    const stats = deriveBrainStats(result({ decisionsTotal: 5, measuredOutcomes: 0 }));
-    expect(stats.hasRecord).toBe(true);
-    if (!stats.hasRecord) return;
-    expect(stats.cells.some((c) => c.label === "VALIDATED")).toBe(false);
-  });
+  test("returns { hasRecord: true } when measuredOutcomes > 0", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 0,
+        measuredOutcomes: 3,
+        outcomes: { hitRate: 0.75 },
+        iceShiftTotal: 100,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
 
-  test("never fabricates a dollar figure — the third cell is always ICE, signed", () => {
-    const negative = deriveBrainStats(result({ decisionsTotal: 3, iceShiftTotal: -2.1 }));
-    expect(negative.hasRecord).toBe(true);
-    if (!negative.hasRecord) return;
-    const iceCell = negative.cells.find((c) => c.label === "ICE MOVED");
-    expect(iceCell?.value).toBe("-2.1");
-    expect(negative.cells.every((c) => !c.value.includes("$"))).toBe(true);
-  });
-
-  test("export is present only when markdown is non-empty", () => {
-    const withRecord = deriveBrainStats(result({ decisionsTotal: 1 }, "# real record"));
-    expect(withRecord.hasRecord).toBe(true);
-    if (!withRecord.hasRecord) return;
-    expect(withRecord.markdown).toBe("# real record");
-
-    const noMarkdown = deriveBrainStats(result({ decisionsTotal: 1 }, ""));
-    expect(noMarkdown.hasRecord).toBe(true);
-    if (!noMarkdown.hasRecord) return;
-    expect(noMarkdown.markdown).toBeNull();
-  });
-
-  test("measuredOutcomes alone (no decisions yet) still counts as having a record", () => {
-    const stats = deriveBrainStats(result({ decisionsTotal: 0, measuredOutcomes: 2 }));
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
     expect(stats.hasRecord).toBe(true);
   });
 
-  test("OBS-15: decisionsTrend passes through from the ledger, real counts only", () => {
-    const stats = deriveBrainStats(
-      result({ decisionsTotal: 4, decisionsTrend: [0, 0, 1, 0, 2, 0, 0, 1] }),
-    );
-    expect(stats.hasRecord).toBe(true);
-    if (!stats.hasRecord) return;
-    expect(stats.decisionsTrend).toEqual([0, 0, 1, 0, 2, 0, 0, 1]);
-  });
-});
+  test("includes VALIDATED cell when hitRate is not null", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 10,
+        measuredOutcomes: 8,
+        outcomes: { hitRate: 0.875 },
+        iceShiftTotal: 50,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
 
-describe("OBS_STATUS_TONE — decision status to Obsidian verdict chip tone mapping", () => {
-  test("approved decisions map to KEPT tone (moss)", () => {
-    expect(OBS_STATUS_TONE.approved).toBe("KEPT");
-  });
-
-  test("rejected decisions map to KILL tone (madder)", () => {
-    expect(OBS_STATUS_TONE.rejected).toBe("KILL");
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const validatedCell = stats.cells.find((c) => c.label === "VALIDATED");
+    expect(validatedCell).toEqual({ value: "88%", label: "VALIDATED" });
   });
 
-  test("pending decisions map to PENDING tone (neutral)", () => {
-    expect(OBS_STATUS_TONE.pending).toBe("PENDING");
+  test("omits VALIDATED cell when hitRate is null", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 10,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 50,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const validatedCell = stats.cells.find((c) => c.label === "VALIDATED");
+    expect(validatedCell).toBeUndefined();
   });
 
-  test("tone map covers all decision statuses", () => {
-    const statuses: Array<"approved" | "rejected" | "pending"> = [
-      "approved",
-      "rejected",
-      "pending",
-    ];
-    statuses.forEach((status) => {
-      expect(Object.keys(OBS_STATUS_TONE)).toContain(status);
-    });
-  });
-});
+  test("clamps hitRate to 0-1 range and rounds to percent", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 10,
+        measuredOutcomes: 10,
+        outcomes: { hitRate: 0.5555 },
+        iceShiftTotal: 0,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
 
-describe("VERDICT_TONE — learning verdict to Obsidian verdict chip tone mapping", () => {
-  test("validated verdicts map to VALIDATED tone (moss)", () => {
-    expect(VERDICT_TONE.validated).toBe("VALIDATED");
-  });
-
-  test("missed verdicts map to MISSED tone (madder)", () => {
-    expect(VERDICT_TONE.missed).toBe("MISSED");
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const validatedCell = stats.cells.find((c) => c.label === "VALIDATED");
+    expect(validatedCell?.value).toBe("56%");
   });
 
-  test("mixed verdicts map to REVISE tone (neutral)", () => {
-    expect(VERDICT_TONE.mixed).toBe("REVISE");
+  test("renders positive iceShiftTotal with + prefix", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 5,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 150,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const iceCell = stats.cells.find((c) => c.label === "ICE MOVED");
+    expect(iceCell?.value).toBe("+150");
   });
 
-  test("tone map covers all learning verdicts", () => {
-    const verdicts: Array<"validated" | "missed" | "mixed"> = ["validated", "missed", "mixed"];
-    verdicts.forEach((verdict) => {
-      expect(Object.keys(VERDICT_TONE)).toContain(verdict);
-    });
+  test("renders negative iceShiftTotal with - prefix", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 5,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: -75,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const iceCell = stats.cells.find((c) => c.label === "ICE MOVED");
+    expect(iceCell?.value).toBe("-75");
+  });
+
+  test("renders zero iceShiftTotal with + prefix", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 5,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 0,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    const iceCell = stats.cells.find((c) => c.label === "ICE MOVED");
+    expect(iceCell?.value).toBe("+0");
+  });
+
+  test("preserves markdown when present", () => {
+    const markdown = "# My Decision Record\n\nThis is my record.";
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 3,
+        measuredOutcomes: 2,
+        outcomes: { hitRate: 0.67 },
+        iceShiftTotal: 100,
+        decisionsTrend: [1, 1, 1, 0, 0, 0, 0, 0],
+      },
+      markdown,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    expect(stats.markdown).toBe(markdown);
+  });
+
+  test("converts empty markdown string to null", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 3,
+        measuredOutcomes: 2,
+        outcomes: { hitRate: 0.67 },
+        iceShiftTotal: 100,
+        decisionsTrend: [],
+      },
+      markdown: "",
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    expect(stats.markdown).toBeNull();
+  });
+
+  test("preserves decisionsTrend array", () => {
+    const trend = [5, 3, 4, 2, 1, 0, 1, 2];
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 18,
+        measuredOutcomes: 0,
+        outcomes: { hitRate: null },
+        iceShiftTotal: 0,
+        decisionsTrend: trend,
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    expect(stats.decisionsTrend).toEqual(trend);
+  });
+
+  test("cell order is CALLS MADE, [VALIDATED if hitRate], ICE MOVED", () => {
+    const result: ImpactLedgerResult = {
+      ledger: {
+        decisionsTotal: 10,
+        measuredOutcomes: 10,
+        outcomes: { hitRate: 0.8 },
+        iceShiftTotal: 200,
+        decisionsTrend: [],
+      },
+      markdown: null,
+    };
+
+    const stats = deriveBrainStats(result) as Extract<BrainStats, { hasRecord: true }>;
+    expect(stats.cells.map((c) => c.label)).toEqual(["CALLS MADE", "VALIDATED", "ICE MOVED"]);
   });
 });

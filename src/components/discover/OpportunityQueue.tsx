@@ -20,6 +20,8 @@ import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { rankOpportunities, outcomeSupportFromCounts } from "./ranking";
+import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
+import { alignmentForOpportunity } from "@/lib/brief-opportunity";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
 import { OpportunityDetailSheet, type OpportunityDetailRecord } from "./OpportunityDetailSheet";
 import { SkeletonBar } from "./SkeletonBar";
@@ -39,6 +41,7 @@ export function OpportunityQueue() {
   const fDraftSpec = useServerFn(generatePrd);
   const fDelete = useServerFn(deleteOpportunity);
   const fUpdate = useServerFn(updateOpportunity);
+  const fBriefAlignment = useServerFn(getBriefAlignment);
   // OBS-10: a Set, not a single scalar - every mutation adds its row's id on
   // onMutate and removes it on onSettled, so ANY in-flight mutation on a row
   // keeps that row's actions disabled, and a second row's mutation can never
@@ -70,6 +73,14 @@ export function OpportunityQueue() {
   const themes = useQuery({
     queryKey: ["themes", activeProductId],
     queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
+  });
+  // RPT-47: the strategic-brief signal for the order. Which standing top bets a
+  // human tied opportunities to, and whether each bet's watched assumption is
+  // challenged, so a shaky bet demotes its opportunities. Shares the
+  // ["brief-alignment"] key with the detail sheet's link control.
+  const briefAlignment = useQuery({
+    queryKey: ["brief-alignment"],
+    queryFn: () => withTimeout(fBriefAlignment()),
   });
 
   const themeById = useMemo(() => {
@@ -142,8 +153,10 @@ export function OpportunityQueue() {
         rows,
         (o) => (o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0),
         (o) => (o.theme_id ? (outcomeSupportByTheme.get(o.theme_id) ?? 0) : 0),
+        (o) =>
+          alignmentForOpportunity(o.linked_brief_item_id, briefAlignment.data?.alignment ?? {}),
       ),
-    [rows, themeById, outcomeSupportByTheme],
+    [rows, themeById, outcomeSupportByTheme, briefAlignment.data],
   );
 
   // PC-16: at decision time, Cadence cites the account's own record directly
@@ -369,14 +382,17 @@ export function OpportunityQueue() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          title={
+            showAll
+              ? "Collapse back to the strongest few bets, so the queue stays scannable"
+              : "Show every ranked bet in the queue, not just the strongest few at the top"
+          }
+          className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
             fontWeight: 500,
-            color: "var(--text-muted)",
             background: "transparent",
-            border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             padding: "8px 14px",
             margin: "0 4px",

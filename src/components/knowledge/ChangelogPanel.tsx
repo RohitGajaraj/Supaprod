@@ -59,9 +59,25 @@ export function ChangelogPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Changelog · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(query.error as Error)?.message ?? "Unknown error"}
         </p>
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads the changelog
+        </button>
       </Card>
     );
   }
@@ -74,7 +90,7 @@ export function ChangelogPanel() {
       <div
         style={{
           background: "var(--card)",
-          border: "1px solid rgba(127,191,142,0.3)",
+          border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
           borderRadius: "var(--radius-card)",
           padding: "28px 26px",
         }}
@@ -141,7 +157,7 @@ export function ChangelogPanel() {
                   <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
                     <h3
                       style={{
-                        fontFamily: "var(--font-serif)",
+                        fontFamily: "var(--font-sans)",
                         fontWeight: 460,
                         fontSize: 15,
                         color: "var(--text-primary)",

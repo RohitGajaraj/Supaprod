@@ -102,9 +102,11 @@ Cadence/
 ├── CLAUDE.md             <- Claude Code pointer to AGENTS.md
 ├── GEMINI.md             <- Antigravity + Gemini CLI pointer to AGENTS.md
 ├── plan.md               <- feature scope + granular catalog + build order + logs
-├── DESIGN-LOOM.md        <- CURRENT v4 app design contract (additive over v3)
-├── DESIGN-OBSIDIAN.md    <- v3 app design contract (base layer Loom builds on)
-├── DESIGN.md             <- public landing page design only
+├── DESIGN-TEMPO.md       <- CURRENT v5 design contract, ALL surfaces (supersedes Loom/Obsidian/DESIGN.md)
+├── DESIGN-LOOM.md        <- RETIRED v4 app design contract (history; superseded by Tempo)
+├── DESIGN-OBSIDIAN.md    <- RETIRED v3 app design contract (history)
+├── DESIGN.md             <- RETIRED Ember landing design system (history)
+├── UI-REVAMP-HANDOFF.md  <- live UI/UX build state: DONE list + tomorrow-pickup PENDING
 ├── architecture/
 │   ├── runtime.md        <- AI chokepoint contract
 │   ├── orchestration.md  <- missions, parallel agents/sessions, automation, multi-product

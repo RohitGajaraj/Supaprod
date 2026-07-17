@@ -49,7 +49,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
         >
           <DialogPrimitive.Title
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontSize: 20,
               fontWeight: 460,
               color: "var(--text-primary)",

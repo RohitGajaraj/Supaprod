@@ -63,20 +63,25 @@ function phaseColor(phase: FocusPhase | null): string {
 }
 
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  // Colors live in classes (not inline style) so the hover variants can win;
+  // aria-pressed carries the selected state for AT.
+  const stateClass = active
+    ? "[border-color:var(--hairline-strong)] [background:var(--raised)] [color:var(--text-primary)]"
+    : "[border-color:var(--hairline)] [color:var(--text-muted)] hover:[border-color:var(--hairline-strong)] hover:[color:var(--text-primary)]";
   return (
     <button
       type="button"
       onClick={onClick}
-      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      aria-pressed={active}
+      className={`loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${stateClass}`}
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 11.5,
         fontVariantNumeric: "tabular-nums",
         padding: "4px 10px",
         borderRadius: "var(--radius-control)",
-        border: `1px solid ${active ? "var(--hairline-strong)" : "var(--hairline)"}`,
+        border: "1px solid",
         background: active ? "var(--raised)" : "transparent",
-        color: active ? "var(--text-primary)" : "var(--text-muted)",
         cursor: "pointer",
         whiteSpace: "nowrap",
       }}

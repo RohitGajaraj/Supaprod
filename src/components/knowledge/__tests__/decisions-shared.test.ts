@@ -267,10 +267,8 @@ describe("displayWho", () => {
   });
 
   test("returns 'You' when slug is empty string", () => {
-    // Note: empty string is still a string, so it will try to resolve via agentDisplayName
-    // This depends on agentDisplayName behavior, but empty slug should probably return "You"
-    const result = displayWho("");
-    expect(typeof result).toBe("string");
+    // Empty string is falsy, so displayWho should return "You" (the human's decision)
+    expect(displayWho("")).toBe("You");
   });
 
   test("returns agent display name for known agent slug", () => {

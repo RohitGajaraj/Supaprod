@@ -20,6 +20,10 @@ export type RetrieveOpts = {
   query: string;
   k?: number;
   sourceKinds?: string[];
+  /** Scope to one product (PC-36 workstream B). */
+  productId?: string;
+  /** Scope to one exact record, e.g. the mission on screen (PC-36 workstream B). */
+  sourceId?: string;
   /** Use MMR re-rank for diversity (default true) */
   mmr?: boolean;
   mmrLambda?: number;
@@ -59,6 +63,8 @@ export async function retrieve(
       for_user: userId,
       match_count: k * 3,
       source_kinds: opts.sourceKinds ?? null,
+      for_product: opts.productId ?? null,
+      for_source_id: opts.sourceId ?? null,
     });
     if (!error && data) {
       for (const r of data as RetrievedChunk[]) ann.push(r);
@@ -79,6 +85,8 @@ export async function retrieve(
       .or(`content.ilike.%${kw}%,title.ilike.%${kw}%`)
       .limit(k * 2);
     if (opts.sourceKinds?.length) q = q.in("source_kind", opts.sourceKinds);
+    if (opts.productId) q = q.eq("product_id", opts.productId);
+    if (opts.sourceId) q = q.eq("source_id", opts.sourceId);
     const { data: kwData } = await q;
     (kwData ?? []).forEach((r: Omit<RetrievedChunk, "similarity">) => {
       if (!ann.find((x) => x.id === r.id)) ann.push({ ...r, similarity: 0.4 });

@@ -1,5 +1,5 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 // The auth family (login, signup, recover, join) renders OUTSIDE the
 // _authenticated tree, so it does not inherit the app's Obsidian dark scope.
@@ -55,7 +55,7 @@ const watermark: CSSProperties = {
   right: -120,
   bottom: -130,
   color: "var(--text-primary)",
-  opacity: 0.05,
+  opacity: 0.08,
   transform: "rotate(-12deg)",
   pointerEvents: "none",
 };
@@ -116,8 +116,28 @@ export function AuthScaffold({
 
   return (
     <div data-screen-label={screenLabel} style={surface}>
+      {/* The watermark revolves barely and carries a faint white glow so it
+          reads against the ink instead of sinking into it (founder 2026-07-15). */}
       <div aria-hidden="true" style={watermark}>
-        <CadenceMark size={520} tile={false} />
+        <style>{`
+          @keyframes authMarkRevolve {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .auth-mark-revolve { animation: none !important; }
+          }
+        `}</style>
+        <div
+          className="auth-mark-revolve"
+          style={{
+            animation: "authMarkRevolve 180s linear infinite",
+            filter: "drop-shadow(0 0 22px rgba(255,255,255,0.10))",
+            willChange: "transform",
+          }}
+        >
+          <CadenceMark size={520} />
+        </div>
       </div>
 
       <div

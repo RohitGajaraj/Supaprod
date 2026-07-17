@@ -89,7 +89,41 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
     .map((id) => CONNECTOR_REGISTRY[id])
     .filter((spec) => spec.resourceTypes.length > 0);
 
-  if (qConnections.isLoading || qBindings.isLoading) return null;
+  // Never a dead blank under the "Product repo override" heading: skeleton
+  // while loading, a real error with retry on failure (checklist points 5/7).
+  if (qConnections.isLoading || qBindings.isLoading) {
+    return (
+      <div
+        className="rounded-xl border hairline bg-background/60 p-4 grid gap-2"
+        aria-hidden="true"
+      >
+        {[0, 1].map((i) => (
+          <div key={i} className="h-8 animate-pulse rounded bg-[var(--raised)]" />
+        ))}
+      </div>
+    );
+  }
+  if (qConnections.isError || qBindings.isError) {
+    const err = (qConnections.error ?? qBindings.error) as Error | null;
+    return (
+      <div className="rounded-xl border hairline bg-background/60 p-4">
+        <div className="text-xs font-medium text-[color:var(--madder)]">
+          Couldn't load product bindings
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1">{err?.message ?? "Unknown error"}</p>
+        <button
+          type="button"
+          className="mt-2 text-[11px] text-foreground underline outline-none hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          onClick={() => {
+            void qConnections.refetch();
+            void qBindings.refetch();
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const hasAnyConnection = connections.length > 0;
   if (!hasAnyConnection) return null;
@@ -111,8 +145,9 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
         {connections.some((c) => c.provider === "github" && c.status === "connected") && (
           <div className="px-4 py-2 flex justify-end">
             <button
+              type="button"
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+              className="flex items-center gap-1 text-[11px] text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             >
               <Plus className="h-3 w-3" />
               Create new GitHub repo
@@ -142,10 +177,12 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                     <CheckCircle2 className="h-3 w-3 text-[color:var(--moss)] shrink-0" />
                     <code className="text-[11px] text-foreground">{binding.resource_id}</code>
                     <button
+                      type="button"
                       onClick={() => mRemove.mutate(binding.id)}
                       disabled={mRemove.isPending}
                       title="Remove product override (falls back to workspace binding)"
-                      className="text-muted-foreground hover:text-destructive disabled:opacity-40"
+                      aria-label="Remove product override"
+                      className="text-muted-foreground outline-none hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-40"
                     >
                       {mRemove.isPending ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -157,6 +194,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                 ) : picking === pickKey ? (
                   <div className="flex items-center gap-2">
                     <select
+                      aria-label={`Pick the account for ${spec.label}`}
                       className="h-(--ds-size-small) text-xs border border-border rounded px-2 bg-background"
                       defaultValue=""
                       onChange={(e) => {
@@ -181,16 +219,18 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                       ))}
                     </select>
                     <button
+                      type="button"
                       onClick={() => setPicking(null)}
-                      className="text-[10px] text-muted-foreground hover:text-foreground"
+                      className="text-[10px] text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     >
-                      cancel
+                      Cancel
                     </button>
                   </div>
                 ) : connected.length > 0 ? (
                   <button
+                    type="button"
                     onClick={() => setPicking(pickKey)}
-                    className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+                    className="text-[11px] text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   >
                     Set product override
                   </button>

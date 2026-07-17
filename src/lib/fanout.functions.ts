@@ -121,7 +121,7 @@ export type FanoutBatch = {
   targetKind: "opportunity" | "prd";
   targetId: string;
   targetTitle: string;
-  status: "pending" | "ready" | "decided";
+  status: "pending" | "ready" | "failed" | "decided";
   composite: FanoutComposite | null;
   decision: "accepted" | "dismissed" | null;
   createdAt: string;
@@ -137,7 +137,7 @@ export const listFanoutBatches = createServerFn({ method: "GET" })
       .from("fanout_batches")
       .select("id,target_kind,target_id,target_title,status,composite,decision,created_at")
       .eq("workspace_id", workspaceId)
-      .in("status", ["ready", "pending"])
+      .in("status", ["ready", "pending", "failed"])
       .order("created_at", { ascending: false })
       .limit(20);
     if (error) throw new Error(error.message);
@@ -146,7 +146,7 @@ export const listFanoutBatches = createServerFn({ method: "GET" })
       targetKind: r.target_kind as "opportunity" | "prd",
       targetId: r.target_id as string,
       targetTitle: r.target_title as string,
-      status: r.status as "pending" | "ready" | "decided",
+      status: r.status as "pending" | "ready" | "failed" | "decided",
       composite: (r.composite as FanoutComposite | null) ?? null,
       decision: (r.decision as "accepted" | "dismissed" | null) ?? null,
       createdAt: r.created_at as string,

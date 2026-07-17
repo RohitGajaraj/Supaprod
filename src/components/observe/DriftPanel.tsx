@@ -196,6 +196,7 @@ export function DriftPanel() {
           {(error as Error).message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => refetch()}
@@ -226,10 +227,16 @@ export function DriftPanel() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => setCfgOpen((v) => !v)}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          aria-expanded={cfgOpen}
+          onClick={() => setCfgOpen((v) => !v)}
+        >
           Baseline · thresholds and windows
         </button>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           disabled={runMut.isPending}
           onClick={() => runMut.mutate()}
@@ -257,6 +264,7 @@ export function DriftPanel() {
           >
             <MonoLabel>Drift baseline</MonoLabel>
             <button
+              type="button"
               role="switch"
               aria-checked={cfg.enabled}
               className="mono-label transition-opacity hover:opacity-70"
@@ -292,10 +300,15 @@ export function DriftPanel() {
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setCfgOpen(false)}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setCfgOpen(false)}
+            >
               Dismiss
             </button>
             <button
+              type="button"
               className="btn btn-ghost btn-sm"
               disabled={saveMut.isPending}
               onClick={() => saveMut.mutate()}
@@ -335,6 +348,7 @@ export function DriftPanel() {
           {rows.map((d, i) => (
             <button
               key={d.surface}
+              type="button"
               onClick={() =>
                 navigate({
                   to: "/engine-room",

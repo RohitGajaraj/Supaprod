@@ -174,7 +174,12 @@ export function StrategySection() {
   const briefs = briefsQ.data ?? [];
 
   return (
-    <div className="grid items-start" style={{ gridTemplateColumns: "1.4fr 1fr", gap: "20px" }}>
+    // Responsive: the two panels sit side by side only when there is room;
+    // below the md breakpoint they stack, so 768px never squeezes them.
+    <div
+      className="grid grid-cols-1 items-start md:[grid-template-columns:1.4fr_1fr]"
+      style={{ gap: "20px" }}
+    >
       <PanelShell>
         <HeaderRow label="Weekly briefs" count={briefsQ.isLoading ? null : briefs.length} />
         {briefsQ.isLoading ? (
@@ -215,14 +220,12 @@ export function StrategySection() {
               <button
                 type="button"
                 onClick={() => setShowAllBriefs((v) => !v)}
-                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                className="loom-press w-full border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
                   fontWeight: 500,
-                  color: "var(--text-muted)",
                   background: "transparent",
-                  border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-control)",
                   padding: "8px 14px",
                 }}
@@ -278,14 +281,12 @@ export function StrategySection() {
               <button
                 type="button"
                 onClick={() => setShowAllEntities((v) => !v)}
-                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                className="loom-press w-full border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
                   fontWeight: 500,
-                  color: "var(--text-muted)",
                   background: "transparent",
-                  border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-control)",
                   padding: "8px 14px",
                   marginTop: "12px",

@@ -1,6 +1,24 @@
 User-agent: *
 Allow: /
 
+# AI answer engines and crawler agents are explicitly welcome (GEO).
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://cadence-flow-beta.lovable.app/sitemap.xml
+
 # Agentic-era machine-readable interfaces:
 # See /llms.txt for AI agent context and /agents.txt for the agent access
 # policy (rate limits, auth, MCP tool catalog, write scopes).

@@ -152,8 +152,17 @@ function LoginPage() {
         style={{ width: "100%", justifyContent: "center" }}
         onClick={signInGoogle}
         disabled={busy}
+        aria-busy={loadingGoogle || undefined}
+        title={loadingEmail ? "Hold on, signing you in" : undefined}
       >
-        {loadingGoogle ? <Loader2 size={14} className="animate-spin" /> : "Continue with Google"}
+        {loadingGoogle ? (
+          <>
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            Opening Google
+          </>
+        ) : (
+          "Continue with Google"
+        )}
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
@@ -206,6 +215,8 @@ function LoginPage() {
             type="button"
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            className="loom-press transition-colors hover:[color:var(--text-primary)]"
             style={{
               position: "absolute",
               right: 10,
@@ -227,10 +238,15 @@ function LoginPage() {
           className="btn btn-primary"
           type="submit"
           disabled={busy}
+          aria-busy={loadingEmail || undefined}
+          title={loadingGoogle ? "Hold on, opening Google" : undefined}
           style={{ width: "100%", justifyContent: "center" }}
         >
           {loadingEmail ? (
-            <Loader2 size={14} className="animate-spin" />
+            <>
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              Signing in
+            </>
           ) : (
             "Sign in · opens your workspace"
           )}

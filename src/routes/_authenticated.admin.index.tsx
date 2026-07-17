@@ -42,7 +42,7 @@ function cardStyle(): React.CSSProperties {
 
 function sectionTitleStyle(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-serif)",
+    fontFamily: "var(--font-sans)",
     fontWeight: 460,
     fontSize: "var(--text-card-title)",
     lineHeight: 1.3,
@@ -230,7 +230,8 @@ function AdminOverview() {
                       c.status === "pass"
                         ? "var(--moss)"
                         : c.status === "warn"
-                          ? "var(--text-muted)"
+                          ? // Amber = warning (status color on status, Tempo §2)
+                            "var(--marigold)"
                           : "var(--madder)",
                   }}
                 />
@@ -273,6 +274,7 @@ function AdminOverview() {
           <input
             type="email"
             placeholder="email@cadence.app"
+            aria-label="Email of the user to make admin"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={`${focusRingClass} placeholder:[color:var(--text-subtle)]`}
@@ -310,7 +312,7 @@ function AdminOverview() {
                 margin: 0,
               }}
             >
-              No admins yet.
+              No admins yet. Add one by email above.
             </p>
           ) : (
             adminList.map((a) => (

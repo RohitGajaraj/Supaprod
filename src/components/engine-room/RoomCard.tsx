@@ -36,8 +36,8 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
       onClick={onOpen}
       className={cn(
         "grid text-left outline-none material-medium",
-        "hover:[background-color:#141416]",
-        "hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
+        "hover:[background-color:var(--hover)]",
+        "hover:[box-shadow:inset_0_1px_0_var(--ds-gray-alpha-200),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
         "active:scale-[0.98]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
         className,
@@ -98,7 +98,7 @@ function ShimmerBar({ width, height = 10 }: { width: number | string; height?: n
         width,
         height,
         background:
-          "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.11), rgba(255,255,255,0.05))",
+          "linear-gradient(90deg, var(--ds-gray-alpha-100), var(--ds-gray-alpha-300), var(--ds-gray-alpha-100))",
         backgroundSize: "280% 100%",
         animation: "cadShimmer 1.6s linear infinite",
       }}
@@ -150,7 +150,11 @@ export function RoomCardError({
   return (
     <div
       className="grid material-medium"
-      style={{ ...CARD_BASE, gap: "7px", borderColor: "rgba(224, 101, 87, 0.4)" }}
+      style={{
+        ...CARD_BASE,
+        gap: "7px",
+        borderColor: "color-mix(in srgb, var(--madder) 40%, transparent)",
+      }}
     >
       <span className="flex items-center gap-[10px]">
         <span

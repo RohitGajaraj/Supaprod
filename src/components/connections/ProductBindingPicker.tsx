@@ -76,7 +76,8 @@ export function ProductBindingPicker({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-(--ds-size-small) items-center gap-1.5 rounded-md border hairline px-3 text-xs text-muted-foreground hover:text-foreground"
+          disabled={mBind.isPending}
+          className="inline-flex h-(--ds-size-small) items-center gap-1.5 rounded-md border hairline px-3 text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-50"
         >
           {mBind.isPending ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -99,8 +100,10 @@ export function ProductBindingPicker({
                 <Loader2 className="h-3 w-3 animate-spin" /> Loading...
               </div>
             )}
+            {/* Error reads in the error role color, not the warning amber
+                (status color on status only, checklist point 12). */}
             {q.isError && (
-              <div className="px-3 py-2 text-xs text-amber-400">
+              <div className="px-3 py-2 text-xs text-[color:var(--madder)]">
                 {q.error instanceof Error ? q.error.message : "Could not list resources"}
               </div>
             )}

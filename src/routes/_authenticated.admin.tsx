@@ -54,7 +54,7 @@ function AdminLayout() {
       <div style={{ padding: "36px 32px 64px", maxWidth: 1100, margin: "0 auto" }}>
         <p
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontWeight: 460,
             fontSize: 20,
             lineHeight: 1.3,
@@ -88,14 +88,20 @@ function AdminLayout() {
                     key={t.id}
                     type="button"
                     onClick={() => navigate({ to: t.id })}
-                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    aria-current={isActive ? "page" : undefined}
+                    // Color lives in classes so hover can win over the resting
+                    // value (inline styles beat utilities).
+                    className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${
+                      isActive
+                        ? "[color:var(--text-primary)]"
+                        : "[color:var(--text-subtle)] hover:[color:var(--text-primary)]"
+                    }`}
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-label)",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
                       padding: "8px 12px",
-                      color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
                       borderBottom: isActive
                         ? "2px solid var(--text-primary)"
                         : "2px solid transparent",
@@ -144,7 +150,7 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
         gap: 12,
       }}
     >
-      <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "var(--text-primary)" }}>
+      <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, color: "var(--text-primary)" }}>
         Admin access required
       </div>
       <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, maxWidth: 520 }}>
@@ -156,15 +162,10 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
           {/* The screen's one primary CTA: the v4 top-lit ember gradient
               (DESIGN-LOOM §3), on the Button primitive so it gets the focus
               ring and press feedback (register D-40). */}
-          <Button
-            variant="primary"
-            loading={claim.isPending}
-            onClick={() => claim.mutate()}
-            style={{
-              background: "linear-gradient(180deg, #FF7A3D, #F25E1F)",
-              color: "#160903",
-            }}
-          >
+          {/* No hex overrides: the primary variant already carries the
+              token-traced ember gradient (--cta-grad-top/bottom), which
+              resolves in both themes. */}
+          <Button variant="primary" loading={claim.isPending} onClick={() => claim.mutate()}>
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </Button>
           <span

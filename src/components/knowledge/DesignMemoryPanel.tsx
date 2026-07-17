@@ -55,7 +55,8 @@ function FilterGroup<T extends string>({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          aria-pressed={value === o}
+          className="outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 9,
@@ -152,7 +153,7 @@ export function DesignMemoryPanel() {
         <div
           style={{
             background: "var(--card)",
-            border: "1px solid rgba(127,191,142,0.3)",
+            border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "28px 26px",
           }}
@@ -255,7 +256,8 @@ function DesignMemoryRowView({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        aria-expanded={expanded}
+        className="w-full text-left outline-none transition-colors hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           display: "grid",
           gridTemplateColumns: grid,
@@ -315,7 +317,7 @@ function DesignMemoryRowView({
                   fontSize: 11,
                   color: "var(--moss)",
                   background: "transparent",
-                  border: "1px solid rgba(127,191,142,0.35)",
+                  border: "1px solid color-mix(in srgb, var(--moss) 35%, transparent)",
                   borderRadius: 6,
                   padding: "3px 9px",
                 }}
@@ -331,7 +333,7 @@ function DesignMemoryRowView({
                   fontSize: 11,
                   color: "var(--madder)",
                   background: "transparent",
-                  border: "1px solid rgba(224,101,87,0.35)",
+                  border: "1px solid color-mix(in srgb, var(--madder) 35%, transparent)",
                   borderRadius: 6,
                   padding: "3px 9px",
                 }}

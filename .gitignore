@@ -103,6 +103,15 @@ docs/screenshots/
 # Served social/preview image (the cosmic brand-band OG card) must be committed so it
 # deploys and link previews work.
 !public/og-cadence.png
+# Served favicon / apple-touch marks (the app head references these) must be committed.
+!public/favicon.png
+!public/apple-touch-icon.png
+
+# Brand kit (GTM): the ready-to-upload logo / icon / social raster set MUST be
+# committed so we never rebuild the branding assets. Exception to the global
+# *.png/*.jpg ignore, scoped to the branding folder only.
+!docs/Growth Strategy/branding/**/*.png
+!docs/Growth Strategy/branding/**/*.jpg
 
 # Claude Code runtime lock (machine-local state, never commit)
 .claude/scheduled_tasks.lock

@@ -58,3 +58,7 @@ A decision receipt can be published as a clean public **provenance artifact** �
 ## Where to see it
 
 `Sidebar → Trust row → Trust Ledger` (`/trust-ledger`).
+
+## Related — the audit id / one-click lineage
+
+Any `MIS·` audit tag anywhere in the app now opens this mission's trust chain in the global lineage sheet (the tag is a live control, not a static label): the chain engine here (`getMissionChain` / `MissionChain`) is reused by the audit-lineage sheet for mission ids. Every `DEC·` / `ACT·` receipt id on this surface is likewise a clickable audit tag. See [`audit-id-lineage.md`](./audit-id-lineage.md).

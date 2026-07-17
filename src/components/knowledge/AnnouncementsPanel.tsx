@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { relTime } from "./ship-format";
+import { PanelSkeleton } from "./PanelSkeleton";
 
 const STATUS_TONE: Record<AnnouncementRow["status"], VerdictTone> = {
   draft: "DRAFTING",
@@ -85,14 +86,14 @@ function RowAction({
 }) {
   const hue =
     tone === "moss"
-      ? { color: "var(--moss)", border: "rgba(127,191,142,0.35)" }
+      ? { color: "var(--moss)", border: "color-mix(in srgb, var(--moss) 35%, transparent)" }
       : { color: "var(--text-subtle)", border: "var(--hairline-strong)" };
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`${FIELD_CLASS} disabled:opacity-45 disabled:cursor-default`}
+      className={`${FIELD_CLASS} transition-colors hover:[background:var(--hover)] disabled:opacity-45 disabled:cursor-default disabled:hover:[background:transparent]`}
       style={{
         fontSize: 11,
         color: hue.color,
@@ -229,9 +230,7 @@ export function AnnouncementsPanel() {
       </div>
 
       {listQ.isLoading ? (
-        <Card>
-          <MonoLabel>LOADING</MonoLabel>
-        </Card>
+        <PanelSkeleton rows={[44, 44, 44]} />
       ) : listQ.isError ? (
         <Card>
           <MonoLabel style={{ marginBottom: 8 }}>Announcements · failed to load</MonoLabel>
@@ -246,7 +245,7 @@ export function AnnouncementsPanel() {
         <div
           style={{
             background: "var(--card)",
-            border: "1px solid rgba(127,191,142,0.3)",
+            border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "28px 26px",
           }}
@@ -293,6 +292,7 @@ export function AnnouncementsPanel() {
                   <input
                     value={editTitle}
                     maxLength={200}
+                    aria-label="Announcement title"
                     onChange={(e) => setEditTitle(e.target.value)}
                     className={FIELD_CLASS}
                     style={FIELD_STYLE}
@@ -301,6 +301,7 @@ export function AnnouncementsPanel() {
                     value={editBody}
                     maxLength={20000}
                     rows={4}
+                    aria-label="Announcement body"
                     onChange={(e) => setEditBody(e.target.value)}
                     className={FIELD_CLASS}
                     style={{ ...FIELD_STYLE, resize: "vertical", fontFamily: "inherit" }}

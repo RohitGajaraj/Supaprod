@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -84,6 +84,7 @@ function SignupPage() {
   const dest = safeNextPath(next);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -234,8 +235,17 @@ function SignupPage() {
         style={{ width: "100%", justifyContent: "center" }}
         onClick={signupGoogle}
         disabled={busy}
+        aria-busy={loadingGoogle || undefined}
+        title={loading ? "Hold on, creating your account" : undefined}
       >
-        {loadingGoogle ? <Loader2 size={14} className="animate-spin" /> : "Continue with Google"}
+        {loadingGoogle ? (
+          <>
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            Opening Google
+          </>
+        ) : (
+          "Continue with Google"
+        )}
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
@@ -267,23 +277,42 @@ function SignupPage() {
         <label htmlFor="signup-password" className="mono-label" style={fieldLabelStyle}>
           Password
         </label>
-        <input
-          id="signup-password"
-          className="input"
-          type="password"
-          required
-          minLength={6}
-          autoComplete="new-password"
-          placeholder="at least 6 characters"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setFormError(null);
-          }}
-          aria-invalid={formError ? true : undefined}
-          aria-describedby={formError ? "signup-error" : undefined}
-          style={{ marginBottom: formError ? 8 : 10, width: "100%" }}
-        />
+        <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>
+          <input
+            id="signup-password"
+            className="input"
+            type={showPassword ? "text" : "password"}
+            required
+            minLength={6}
+            autoComplete="new-password"
+            placeholder="at least 6 characters"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setFormError(null);
+            }}
+            aria-invalid={formError ? true : undefined}
+            aria-describedby={formError ? "signup-error" : undefined}
+            style={{ width: "100%", paddingRight: 34 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((s) => !s)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            className="loom-press transition-colors hover:[color:var(--text-primary)]"
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-subtle)",
+              display: "flex",
+            }}
+          >
+            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
         {formError ? (
           <p id="signup-error" role="alert" style={fieldErrorStyle}>
             {formError}
@@ -293,10 +322,15 @@ function SignupPage() {
           className="btn btn-primary"
           type="submit"
           disabled={busy}
+          aria-busy={loading || undefined}
+          title={loadingGoogle ? "Hold on, opening Google" : undefined}
           style={{ width: "100%", justifyContent: "center" }}
         >
           {loading ? (
-            <Loader2 size={14} className="animate-spin" />
+            <>
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              Creating your account
+            </>
           ) : (
             "Create account · setup starts"
           )}

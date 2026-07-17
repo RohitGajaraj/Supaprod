@@ -223,7 +223,7 @@ function InviteList() {
                       color: "var(--text-subtle)",
                     }}
                   >
-                    No invitations yet.
+                    No invitations yet. Create one above to bring someone in.
                   </td>
                 </tr>
               ) : null}

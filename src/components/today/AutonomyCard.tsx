@@ -52,8 +52,28 @@ export function AutonomyCard() {
       </div>
 
       {q.isLoading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <div
+          role="status"
+          className="mono-label"
+          style={{ fontSize: 9, color: "var(--ink-faint)" }}
+        >
           loading…
+        </div>
+      ) : q.isError ? (
+        // An error never wears the empty state's clothes (audit fix
+        // 2026-07-12): name the cause, offer the one action.
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11.5, color: "var(--rose)" }}>
+            The autonomy ratio didn't load.
+          </span>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+            style={{ fontSize: 9.5, background: "transparent", border: "none", cursor: "pointer" }}
+          >
+            Retry
+          </button>
         </div>
       ) : hasData ? (
         <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>

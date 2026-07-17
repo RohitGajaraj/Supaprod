@@ -28,7 +28,7 @@ import { Link } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
-import { traceRef } from "@/components/discover/format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 
@@ -39,7 +39,7 @@ export const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone>
 };
 
 /** Same "when" rhythm as LearningDetail: time today, "Yesterday", else "Jun 9". */
-function whenOf(iso: string): string {
+export function whenOf(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
   const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
@@ -66,7 +66,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 /** ICE delta of one learning, or null when it did not move a ranking.
  * Mirrors moat-vis rescoresOf (round to 0.1, jitter is not a move). */
-function deltaOf(l: {
+export function deltaOf(l: {
   prior_ice: number | string | null;
   new_ice: number | string | null;
 }): number | null {
@@ -101,6 +101,26 @@ export function CompoundingPanel() {
         <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>
           {((q.error ?? lq.error) as Error)?.message ?? "Unknown error"}
         </p>
+        <button
+          type="button"
+          onClick={() => {
+            void q.refetch();
+            void lq.refetch();
+          }}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads learnings
+        </button>
       </Card>
     );
   }
@@ -121,7 +141,7 @@ export function CompoundingPanel() {
       {headline && (
         <p
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 15,
             fontWeight: 450,
             color: "var(--text-primary)",
@@ -159,7 +179,7 @@ export function CompoundingPanel() {
               key={l.id}
               to="/brain"
               search={{ tab: "learnings", learning: l.id }}
-              className="block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="block outline-none transition-colors hover:[background:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 textDecoration: "none",
                 color: "inherit",
@@ -189,16 +209,7 @@ export function CompoundingPanel() {
                 )}
                 <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
                   {/* dim 17: the quiet trace ref, then the time a touch more present. */}
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-floor)",
-                      letterSpacing: "0.06em",
-                      color: "var(--text-faint)",
-                    }}
-                  >
-                    LRN·{traceRef(l.id)}
-                  </span>
+                  <AuditTag kind="learning" id={l.id} />
                   <span
                     style={{
                       fontSize: 11,

@@ -26,29 +26,31 @@ interface StatusStyle {
 // (0 0 10px 2px @ 55%) recolored to their own hue, since the spec names the
 // hue but not a distinct glow shape for these three.
 export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
+  // Glows are color-mix over the same role tokens as the dot (2026-07-11
+  // audit: the old rgba literals froze the retired hexes and were dark-only).
   working: {
     color: "var(--glacier)",
-    glow: "0 0 8px 1px rgba(132, 179, 236,0.6)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--glacier) 60%, transparent)",
     animation: "cadPulse 2s ease-in-out infinite",
   },
   gate: {
     color: "var(--ember)",
-    glow: "0 0 10px 2px rgba(255,107,44,0.55)",
+    glow: "0 0 10px 2px color-mix(in srgb, var(--ember) 55%, transparent)",
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
   waiting: {
     color: "var(--ember)",
-    glow: "0 0 10px 2px rgba(255,107,44,0.55)",
+    glow: "0 0 10px 2px color-mix(in srgb, var(--ember) 55%, transparent)",
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
   done: {
     color: "var(--moss)",
-    glow: "0 0 8px 1px rgba(127,191,142,0.5)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--moss) 50%, transparent)",
     animation: null,
   },
   shipped: {
     color: "var(--moss)",
-    glow: "0 0 8px 1px rgba(127,191,142,0.5)",
+    glow: "0 0 8px 1px color-mix(in srgb, var(--moss) 50%, transparent)",
     animation: null,
   },
   // Spec literal (OBS-03.md line 71): "queued #55524C flat" — that hex is
@@ -63,8 +65,11 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   // "thinking" is explicitly given a named animation ("blossom breathe
   // (cadGlow...)"). in-review/blocked get no named animation or glow in the
   // spec, so both stay static rather than inventing a glow shape or motion.
+  // Rich-blue recalibration (DESIGN-TEMPO §2, 2026-07-11 late): a machine
+  // "thinking" state speaks the blue machine voice, never the magenta band
+  // (violet/blossom retired from every machine/AI treatment).
   thinking: {
-    color: "var(--blossom)",
+    color: "var(--glacier)",
     glow: null,
     animation: "cadGlow 1.8s ease-in-out infinite",
   },
@@ -84,17 +89,17 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   // ("glowing status word"), unlike queued/blocked/in-review which don't.
   live: {
     color: "var(--moss)",
-    glow: "0 0 10px rgba(127, 191, 142, 0.55)",
+    glow: "0 0 10px color-mix(in srgb, var(--moss) 55%, transparent)",
     animation: null,
   },
   stale: {
     color: "var(--marigold)",
-    glow: "0 0 10px rgba(232, 180, 76, 0.55)",
+    glow: "0 0 10px color-mix(in srgb, var(--marigold) 55%, transparent)",
     animation: null,
   },
   failing: {
     color: "var(--madder)",
-    glow: "0 0 10px rgba(224, 101, 87, 0.55)",
+    glow: "0 0 10px color-mix(in srgb, var(--madder) 55%, transparent)",
     animation: null,
   },
 };

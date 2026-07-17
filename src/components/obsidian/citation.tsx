@@ -11,7 +11,7 @@ export interface CitationProps extends Omit<
 }
 
 /**
- * Superscript blossom `[n]` chip. Keyboard-focusable `<button>`; the popover
+ * Superscript link-role `[n]` chip. Keyboard-focusable `<button>`; the popover
  * opens on hover AND focus (CSS `group-focus-within`, not a Radix HoverCard,
  * which does not reliably open on keyboard focus).
  */
@@ -32,7 +32,9 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "10px",
-            color: "var(--blossom)",
+            // U6 link-role ruling (DESIGN-TEMPO §2): citation/source chips
+            // speak the one link role; blossom is retired from citations.
+            color: "var(--link)",
             cursor: "pointer",
           }}
           {...props}
@@ -49,7 +51,7 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
             borderRadius: "var(--radius-panel)",
             padding: "12px 14px",
             backdropFilter: "blur(20px)",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
+            boxShadow: "var(--shadow-overlay)",
             transitionProperty: "opacity",
             transitionDuration: "var(--dur-control)",
             transitionTimingFunction: "var(--ease)",

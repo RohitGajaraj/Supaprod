@@ -30,7 +30,7 @@ export function FocusNext({
       <MonoLabel style={{ fontSize: 9.5 }}>Cadence suggests</MonoLabel>
       <h3
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: 17,
           fontWeight: 460,
           lineHeight: 1.3,
@@ -77,6 +77,7 @@ export function FocusNext({
             text-button; it is now a real tertiary control. */}
         <Button
           variant="tertiary"
+          aria-expanded={showWhy}
           onClick={() => setShowWhy((v) => !v)}
           style={{ fontSize: 12, padding: "6px 14px" }}
         >

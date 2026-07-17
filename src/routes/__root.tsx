@@ -13,10 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 import appCss from "../styles.css?url";
-import faviconAsset from "../assets/favicon.png.asset.json";
 
 // Root boundaries. These render OUTSIDE the _authenticated tree, so they carry
 // their own `data-obsidian` scope to read as the same calm dark, on-brand
@@ -151,13 +150,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      // Branded favicon — the Butterfly mark on the parchment tile, with the
-      // sanctioned subtle wing flutter where SVG favicons animate (Firefox);
-      // SVG-capable browsers prefer it, the PNG stays as the fallback and
-      // the apple-touch-icon (iOS takes no SVG).
+      // Branded favicon — the Cadence mark (seven-petal spiral + ember/gold
+      // core), transparent with NO box, theme-aware: the SVG switches black
+      // (light tabs) / silver (dark tabs) via prefers-color-scheme so it is
+      // always visible. The transparent PNG + .ico are legacy fallbacks; the
+      // apple-touch icon is the same mark (iOS takes no SVG).
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "icon", type: "image/png", sizes: "64x64", href: faviconAsset.url },
-      { rel: "apple-touch-icon", href: faviconAsset.url },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
+      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       // Agent discovery breadcrumbs: an agent that fetches any page cold (no
       // prior knowledge of Cadence's specific llms.txt/agents.txt convention)
       // finds the machine-readable interfaces from the HTML <head> itself,

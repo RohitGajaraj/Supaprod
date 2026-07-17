@@ -147,7 +147,7 @@ export function VouchersPanel() {
                         color: "var(--text-subtle)",
                       }}
                     >
-                      No vouchers yet.
+                      No vouchers yet. Create one above to run a campaign.
                     </td>
                   </tr>
                 ) : null}

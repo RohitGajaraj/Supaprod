@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { FlowWidget } from "./FlowWidget";
+import { AuditLineageSheet } from "@/components/cadence/AuditLineageSheet";
 import { useFlowMode } from "@/hooks/use-flow-mode";
 import { readFocusHistory, safeLocalStorage, todaysFocusTally } from "@/lib/flow/session";
 import { listTasks } from "@/lib/tasks.functions";
@@ -35,38 +36,62 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  PRIMARY_NAV,
-  WORKFLOW_NAV,
+  HOME_NAV,
+  LOOP_NAV,
+  INTELLIGENCE_NAV,
   FOOTER_NAV,
   navItemActive,
+  navKeyHint,
   engineRoomActive,
   type NavItemDef,
 } from "@/lib/nav-model";
+import { Avatar } from "@/components/cadence/Avatar";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 
-// IA SPINE (2026-07-11) — ONE rail, seven primary destinations, keys 1-7:
-// Today pinned above all groups (unnumbered, owns the ONE attention badge),
-// the WORKFLOW group (mono indexes 01-04 live only here: Discover · Plan ·
-// Design · Build), then Memory and Engine Room (unnumbered; Engine Room keeps
-// its "g" alias, shown as a hint on the row). THE ENGINE header is gone —
-// Decide and Ledger left the rail (both are redirects now). Footer: Settings ·
-// Admin console (actual admins only) · the account chip. The rail Ask button
-// is gone (Ask = Cmd+J + the palette ASK row); Search stays Cmd+K. Data hooks
-// and workspace handlers are unchanged.
+// IA — THE CADENCE LOOP (Tempo revamp, 2026-07-13): the rail tells the
+// product's story in three narrative zones so a first-time user sees what
+// Cadence does and how to move through it with zero training:
+//   HOME         Today (pinned, owns the ONE attention badge)
+//   THE LOOP     01 Discover · 02 Plan · 03 Design · 04 Build · 05 Ship ·
+//                06 Learn — the lifecycle as one connected journey (a vertical
+//                spine links the numbered stage nodes; the active stage shows
+//                its one-line "what happens here").
+//   INTELLIGENCE Memory · Engine Room — the always-on compounding layers.
+//   (footer)     Settings · Admin (admins only) · account chip
+// The rail model + shortcuts derive from PRIMARY_NAV (nav-model.ts). Data
+// hooks and workspace handlers are unchanged.
 
-function GroupLabel({ children }: { children: string }) {
+function ZoneHeader({ label, caption }: { label: string; caption?: string }) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
-        letterSpacing: "0.14em",
-        color: "var(--text-subtle)",
-        padding: "14px 12px 5px",
-        userSelect: "none",
-      }}
-    >
-      {children}
+    <div aria-hidden="true" style={{ padding: "14px 12px 6px", userSelect: "none" }}>
+      <div
+        className="flex items-baseline"
+        style={{ gap: 8 }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9.5,
+            letterSpacing: "0.14em",
+            color: "var(--text-subtle)",
+          }}
+        >
+          {label}
+        </span>
+        {caption ? (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9.5,
+              letterSpacing: "0.04em",
+              color: "var(--text-faint)",
+            }}
+          >
+            {caption}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -78,6 +103,7 @@ function NavRow({
   badgeAnchor,
   icon: Icon,
   hint,
+  spine,
 }: {
   item: NavItemDef;
   active: boolean;
@@ -88,13 +114,17 @@ function NavRow({
   icon?: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
   /** Quiet mono key hint on the row's right edge (Engine Room's "g" alias). */
   hint?: string;
+  /** Loop rows render their mono index as a node chip sitting on the spine. */
+  spine?: boolean;
 }) {
   return (
     <Link
       to={item.to}
       search={item.search as never}
+      aria-current={active ? "page" : undefined}
+      title={item.tagline}
       data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
-      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] ${
+      className={`loom-press group relative flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] ${
         active
           ? "loom-thread-active bg-[var(--surface-active)] font-semibold text-[var(--text-primary)]"
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
@@ -107,51 +137,94 @@ function NavRow({
         >
           <Icon size={15} strokeWidth={1.75} />
         </span>
-      ) : item.index ? (
+      ) : navKeyHint(item) ? (
+        // Every primary destination wears its shortcut as a node chip: Today 0,
+        // the loop 1-7 (in order), Brain 8, Pulse 9 — the number you SEE is the
+        // key you PRESS (both derive from navKeyHint, so they can't drift). The
+        // loop rows additionally sit on the connecting spine drawn by LoopRail;
+        // Today/Brain/Pulse are standalone nodes off the line.
         <span
-          className={`shrink-0 ${active ? "text-[var(--ember-text)]" : "text-[var(--text-faint)]"}`}
-          style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}
-        >
-          {item.index}
-        </span>
-      ) : (
-        <span className="shrink-0" style={{ width: 17 }} aria-hidden="true" />
-      )}
-      <span className="flex-1 truncate">{item.label}</span>
-      {badge ? (
-        <span
-          data-coach-anchor={badgeAnchor}
-          className="inline-flex items-center justify-center"
+          className="relative z-10 shrink-0 inline-flex items-center justify-center"
           style={{
+            width: 18,
+            height: 18,
+            borderRadius: 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
-            fontWeight: 700,
-            background: "var(--ember-tint)",
-            color: "var(--ember-text)",
-            border: "1px solid var(--ember-line)",
-            borderRadius: 99,
-            minWidth: 17,
-            height: 16,
-            padding: "0 5px",
+            fontSize: 9,
+            fontWeight: 600,
+            background: active ? "var(--ember)" : "var(--card)",
+            color: active ? "#fff" : "var(--text-faint)",
+            border: `1px solid ${active ? "var(--ember)" : "var(--hairline-strong)"}`,
+            boxShadow: active ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)" : "none",
           }}
         >
-          {badge}
-        </span>
-      ) : hint ? (
-        <span
-          aria-hidden="true"
-          className="shrink-0"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
-            color: "var(--text-faint)",
-          }}
-        >
-          {hint}
+          {navKeyHint(item)}
         </span>
       ) : null}
+      <span className="flex-1 min-w-0">
+        <span className="flex items-center gap-[8px]">
+          <span className="flex-1 truncate">{item.label}</span>
+          {badge ? (
+            <span
+              data-coach-anchor={badgeAnchor}
+              className="inline-flex items-center justify-center"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                fontWeight: 700,
+                background: "var(--ember-tint)",
+                color: "var(--ember-text)",
+                border: "1px solid var(--ember-line)",
+                borderRadius: 99,
+                minWidth: 17,
+                height: 16,
+                padding: "0 5px",
+              }}
+            >
+              {badge}
+            </span>
+          ) : hint ? (
+            <span
+              aria-hidden="true"
+              className="shrink-0"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                color: "var(--text-faint)",
+              }}
+            >
+              {hint}
+            </span>
+          ) : null}
+        </span>
+        {/* The active row reveals its one-line "what happens here" — the
+            reason-for-everything, shown in context without cluttering the
+            resting rail. Every other row carries the same line as a tooltip. */}
+        {active && item.tagline ? (
+          <span
+            className="block truncate"
+            style={{
+              marginTop: 2,
+              fontSize: 10.5,
+              lineHeight: 1.3,
+              color: "var(--text-subtle)",
+              fontWeight: 400,
+            }}
+          >
+            {item.tagline}
+          </span>
+        ) : null}
+      </span>
     </Link>
   );
+}
+
+/** The loop stages, rendered as numbered nodes (01-06). No connecting line:
+ *  the stages are destinations you can jump to in any order, not a gated
+ *  sequence (founder ruling 2026-07-13 — a spine implied you had to finish
+ *  the prior step first). */
+function LoopRail({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>;
 }
 
 // LOOM W4 perf: the shell's polls stop while the tab is hidden (a background
@@ -300,6 +373,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const [avatarChoice] = useAvatarChoice(userName);
 
   const activeProduct = products.find((p) => p.id === activeProductId) ?? null;
   const { isMachineView } = useMachineView();
@@ -354,12 +428,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     "/build":
       "Build surface · live agent activity, PR and CI status, cost per session, build controls.",
     "/brain":
-      "Memory · the decision record and memory layer: beliefs, supersession graph, learnings, precedents.",
+      "Brain · the decision record and knowledge layer: beliefs, supersession graph, learnings, precedents.",
     "/engine-room":
-      "Engine Room · spend, quality, safety, and the record (traces, receipts, the ledger), at a glance.",
+      "Pulse · spend, quality, safety, and the record (traces, receipts, the ledger), at a glance.",
     "/discover":
       "Discovery feed · raw signals clustered into ranked themes, the decision queue, competitor moves.",
+    "/decide":
+      "Decide · the judgment gate: every ranked bet awaiting your keep/kill call, drafted into a spec on approve.",
     "/plan": "Plan · cited specs and the outcome-declared roadmap.",
+    "/ship":
+      "Ship · what reached production, launch announcements, and the running changelog — preview to promote, with a receipt per release.",
+    "/learn":
+      "Learn · outcomes, verdicts, impact ledger, and support signals: the loop closing back into the Brain.",
     "/settings": "Settings · account, workspace, connections, AI keys, billing.",
     "/sync": "Sync and bindings · workspace bindings, sync conflicts, recently-synced items.",
     "/trust": "Trust and privacy statement.",
@@ -389,10 +469,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `|---|---|`,
       `| /today | Live dashboard: active missions, recent decisions, signal queue, pending approvals |`,
       `| /discover | Discovery feed: raw signals clustered into ranked themes, the decision queue |`,
+      `| /decide | The judgment gate: keep or kill each ranked bet; approve drafts a spec |`,
       `| /plan | Cited specs and the outcome-declared roadmap |`,
       `| /design | Prototypes and the brand kit |`,
       `| /build | Live build surface: agent activity, PR/CI status, cost per session |`,
-      `| /brain | Memory: beliefs, supersession graph, learnings, precedents |`,
+      `| /ship | What reached production, launch announcements, and the changelog |`,
+      `| /learn | Outcomes, verdicts, impact ledger, and support signals |`,
+      `| /brain | Brain: beliefs, supersession graph, learnings, precedents |`,
       `| /engine-room | Spend, quality, safety, and the record (traces, receipts, ledger) |`,
       ``,
       `## Agent interfaces`,
@@ -557,7 +640,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className="hidden lg:flex h-screen sticky top-0 shrink-0 flex-col"
           style={{
             width: 248,
-            background: "var(--rail)",
+            background: "color-mix(in oklab, var(--rail) 80%, transparent)",
+            backdropFilter: "blur(16px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(16px) saturate(1.4)",
             borderRight: "1px solid var(--hairline)",
           }}
         >
@@ -572,31 +657,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="loom-press w-full flex items-center text-left outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-                  style={{ gap: 11 }}
+                  className="loom-press w-full flex items-center rounded-[8px] text-left outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                  style={{ gap: 11, padding: "6px 8px", margin: "-6px -8px" }}
                   aria-label="Workspace switcher"
                 >
-                  {/* Pixel C monogram (DESIGN-TEMPO §8): THE compact mark; the
-                      retired Butterfly is not carried into v5. Rail chrome, not
-                      a per-screen brand moment, so it does not consume the
-                      one-Pixel-per-screen budget. Gray-1000 only; the ember
-                      variant is reserved for active/brand states. The 22px box
-                      around the ~15px glyph plus the header padding gives clear
-                      space roughly equal to the monogram's own width. */}
-                  <span
-                    aria-hidden="true"
-                    className="shrink-0 inline-flex items-center justify-center"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      fontFamily: "var(--font-pixel)",
-                      fontWeight: 400,
-                      fontSize: 15,
-                      lineHeight: 1,
-                      color: "var(--ds-gray-1000)",
-                    }}
-                  >
-                    C
+                  {/* The Cadence mark (DESIGN-TEMPO §8, founder ruling
+                      2026-07-14): the six-petal spiral brand, an ember→blue
+                      gradient. Rail chrome, not a per-screen brand moment. The
+                      22px box gives clear space roughly equal to the mark. */}
+                  <span aria-hidden="true" className="shrink-0">
+                    <CadenceMark size={30} />
                   </span>
                   <span className="flex-1 min-w-0">
                     {/* Wordmark: Geist Sans 600 with tight tracking, per the
@@ -672,7 +742,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   );
                 })}
                 {workspaces.length === 0 && (
-                  <div className="px-2 py-1.5 text-xs text-ink-faint italic">No workspaces yet</div>
+                  <div className="px-2 py-1.5 text-xs text-ink-faint">
+                    No workspaces yet. Create one below to get started.
+                  </div>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={createWorkspace} className="cursor-pointer">
@@ -708,11 +780,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem onClick={createProduct} className="cursor-pointer">
                       New product
                     </DropdownMenuItem>
-                    <Link to="/settings" search={{ section: "workspace" } as never}>
-                      <DropdownMenuItem className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/settings" search={{ section: "workspace" } as never}>
                         Workspace settings
-                      </DropdownMenuItem>
-                    </Link>
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={leaveActiveWorkspace} className="cursor-pointer">
                       Leave
                     </DropdownMenuItem>
@@ -735,16 +807,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="loom-press flex flex-1 items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+              className="loom-press flex flex-1 items-center rounded-[8px] border border-[var(--hairline)] bg-[var(--card)] text-[var(--text-subtle)] outline-none transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
               style={{
                 gap: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--card)",
                 boxShadow: "var(--top-light)",
-                borderRadius: 8,
                 padding: "7px 10px",
                 fontSize: 12,
-                color: "var(--text-subtle)",
               }}
             >
               <span className="flex-1 text-left">Search</span>
@@ -752,50 +820,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Nav — Today pinned above all groups, then WORKFLOW (mono 01-04),
-              then Memory and Engine Room, unnumbered (IA SPINE 2026-07-11). */}
+          {/* Nav — HOME (Today) · THE LOOP (01-06, connected spine) ·
+              INTELLIGENCE (Memory, Engine Room). The rail tells the product
+              story top to bottom (Tempo revamp 2026-07-13). */}
           <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
             <nav
               className="flex flex-col"
               style={{ padding: "8px 10px 0", gap: 2 }}
-              aria-label="Today"
+              aria-label="Home"
             >
-              {PRIMARY_NAV.filter((n) => n.to === "/today").map((n) => (
+              {HOME_NAV.map((n) => (
                 <NavRow
                   key={n.to}
                   item={n}
                   active={isItemActive(n)}
-                  badge={callCount}
-                  badgeAnchor="today-badge"
+                  badge={n.to === "/today" ? callCount : undefined}
+                  badgeAnchor={n.to === "/today" ? "today-badge" : undefined}
                 />
               ))}
             </nav>
-            <GroupLabel>WORKFLOW</GroupLabel>
+            <ZoneHeader label="THE LOOP" />
             <nav
               className="flex flex-col"
               style={{ padding: "0 10px", gap: 2 }}
-              aria-label="Workflow"
+              aria-label="The loop"
             >
-              {WORKFLOW_NAV.map((n) => (
-                <NavRow key={n.to} item={n} active={isItemActive(n)} />
-              ))}
+              <LoopRail>
+                {LOOP_NAV.map((n) => (
+                  <NavRow key={n.to} item={n} active={isItemActive(n)} spine />
+                ))}
+              </LoopRail>
             </nav>
+            <ZoneHeader label="INTELLIGENCE" />
             <nav
               className="flex flex-col"
-              style={{ padding: "12px 10px 0", gap: 2 }}
-              aria-label="Memory and engine room"
+              style={{ padding: "0 10px", gap: 2 }}
+              aria-label="Intelligence"
             >
-              {PRIMARY_NAV.filter((n) => n.to === "/brain" || n.to === "/engine-room").map((n) => (
+              {INTELLIGENCE_NAV.map((n) => (
                 <NavRow
                   key={n.to}
                   item={n}
                   active={
-                    // Engine Room is the glance for the whole engine (its
-                    // drill layers /govern, /sync, and the folded ledger all
-                    // live inside it), so it lights via engineRoomActive.
+                    // Pulse is the glance for the whole engine (its drill layers
+                    // /govern, /sync, and the folded ledger all live inside it),
+                    // so it lights via engineRoomActive.
                     n.to === "/engine-room" ? engineRoomActive(path) : isItemActive(n)
                   }
-                  hint={n.to === "/engine-room" ? "g" : undefined}
                 />
               ))}
             </nav>
@@ -807,15 +878,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="shrink-0 flex flex-col"
             style={{
               borderTop: "1px solid var(--hairline-faint)",
-              padding: "8px 10px 10px",
-              gap: 2,
+              padding: "4px 10px 6px",
+              gap: 1,
             }}
           >
             {pauseState?.paused && (
               <Link
                 to="/engine-room"
                 search={{ room: "safety" }}
-                className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+                className="block rounded-[8px] outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                 style={{
                   border: "1px solid var(--hairline-strong)",
                   padding: "7px 10px",
@@ -840,6 +911,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 item={n}
                 active={isItemActive(n)}
                 icon={n.to === "/admin" ? Shield : SettingsIcon}
+                hint={navKeyHint(n)}
               />
             ))}
 
@@ -852,23 +924,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   aria-label="Account menu"
-                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-                  style={{ gap: 11, padding: "8px 10px" }}
+                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                  style={{ gap: 11, padding: "6px 10px" }}
                 >
-                  <span
-                    className="inline-flex shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      width: 24,
-                      height: 24,
-                      background: "var(--hover)",
-                      border: "1px solid var(--ember-line)",
-                      color: "var(--text-primary)",
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {userInitials}
-                  </span>
+                  <Avatar
+                    seed={userName}
+                    variant={avatarChoice}
+                    initials={userInitials}
+                    size={26}
+                    title="Your account"
+                  />
                   <span
                     className="flex-1 truncate text-left"
                     style={{ fontSize: 12, color: "var(--text-muted)" }}
@@ -891,14 +956,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent side="top" align="start" className="w-52">
                 <DropdownMenuLabel className="mono-label">Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link to="/settings" search={{ section: "you" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-                </Link>
-                <Link to="/settings" search={{ section: "plan" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/settings" search={{ section: "you" } as never}>
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/settings" search={{ section: "plan" } as never}>
                     Pricing and billing
-                  </DropdownMenuItem>
-                </Link>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer">
                   Sign out
@@ -920,6 +987,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      {/* Global audit-lineage viewer: opened by any AuditTag or by Ask when a
+          question names an id (cadence:open-lineage). Renders nothing until
+          opened. */}
+      <AuditLineageSheet />
     </MachineViewContainer>
   );
 }

@@ -63,6 +63,17 @@ export type ResearchResult = {
   webUsed: boolean;
   /** RAG chunk count — feeds the legacy workspace_chunks meta field. */
   workspaceChunks: number;
+  /** PC-36 C (additive): the retrieved chunks' entity refs, so the chat
+   * route can resolve typed answer blocks without a second retrieval. */
+  workspaceChunkRefs: Array<{ source_kind: string; source_id: string | null }>;
+};
+
+/** PC-36 B: the Ask panel's screen-derived retrieval scope. */
+export type ResearchScope = {
+  kinds?: string[];
+  sourceId?: string | null;
+  /** Opt-in product narrowing from the panel's product chip. */
+  productId?: string | null;
 };
 
 const MAX_SUB_QUERIES = 3;
@@ -166,31 +177,57 @@ async function gatherInternal(
   userId: string,
   query: string,
   emit: (s: ResearchStatus) => void,
-): Promise<{ ragSources: RagSource[]; snapshots: Snapshot[]; workspaceChunks: number }> {
+  scope?: ResearchScope,
+): Promise<{
+  ragSources: RagSource[];
+  snapshots: Snapshot[];
+  workspaceChunks: number;
+  chunkRefs: Array<{ source_kind: string; source_id: string | null }>;
+}> {
   emit({ phase: "workspace", label: "Reading your workspace" });
 
   // All reads in parallel; each degrades to empty on failure (RLS-scoped client).
+  // Product scope (review fix 2026-07-16): the chip's narrowing applies to
+  // every product-attributable read, not just RAG chunks - opportunities and
+  // decisions carry product_id; missions do not (workspace-level work), so
+  // the missions snapshot stays honest and unfiltered.
+  const productId = scope?.productId ?? null;
+  const withProduct = <T extends { eq: (c: string, v: string) => T }>(q: T): T =>
+    productId ? q.eq("product_id", productId) : q;
   const [chunks, oppsRes, lanesRes, decisionsRes, missionsRes] = await Promise.all([
-    retrieve(supabase, userId, { query, k: 8, mmr: true }).catch((e) => {
+    retrieve(supabase, userId, {
+      query,
+      k: 8,
+      mmr: true,
+      sourceKinds: scope?.kinds,
+      sourceId: scope?.sourceId ?? undefined,
+      productId: productId ?? undefined,
+    }).catch((e) => {
       console.error("[research] workspace retrieval failed (skipping):", e);
       return [];
     }),
-    supabase
-      .from("opportunities")
-      .select("title,ice_score,status")
-      .order("ice_score", { ascending: false, nullsFirst: false })
-      .limit(5),
-    supabase
-      .from("opportunities")
-      .select("title,status")
-      .in("status", ["now", "next", "later", "shipped"])
-      .order("updated_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("decisions")
-      .select("title,status")
-      .order("created_at", { ascending: false })
-      .limit(5),
+    withProduct(
+      supabase
+        .from("opportunities")
+        .select("title,ice_score,status")
+        .order("ice_score", { ascending: false, nullsFirst: false })
+        .limit(5),
+    ),
+    withProduct(
+      supabase
+        .from("opportunities")
+        .select("title,status")
+        .in("status", ["now", "next", "later", "shipped"])
+        .order("updated_at", { ascending: false })
+        .limit(8),
+    ),
+    withProduct(
+      supabase
+        .from("decisions")
+        .select("title,status")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ),
     supabase
       .from("missions")
       .select("title,status")
@@ -276,7 +313,12 @@ async function gatherInternal(
     });
   }
 
-  return { ragSources: [...bySource.values()], snapshots, workspaceChunks: chunks.length };
+  return {
+    ragSources: [...bySource.values()],
+    snapshots,
+    workspaceChunks: chunks.length,
+    chunkRefs: chunks.map((c) => ({ source_kind: c.source_kind, source_id: c.source_id })),
+  };
 }
 
 function buildWorkspaceBlock(
@@ -314,8 +356,10 @@ export async function runResearch(opts: {
   mode: ResearchMode;
   subQueries: string[];
   emit: (status: ResearchStatus) => void;
+  /** PC-36 B: thread the Ask panel's screen scope into workspace retrieval. */
+  scope?: ResearchScope;
 }): Promise<ResearchResult> {
-  const { supabase, userId, query, mode, subQueries, emit } = opts;
+  const { supabase, userId, query, mode, subQueries, emit, scope } = opts;
   // FIRECRAWL-FLOOR-b: gate web mode on whether ANY web backend is configured, not
   // Firecrawl alone. `webSearch` already routes through `selectWebBackend` (Firecrawl
   // first, else the self-host SearXNG floor), so a SearXNG-only deployment must reach
@@ -345,13 +389,13 @@ export async function runResearch(opts: {
         })
       : Promise.resolve<WebSearchHit[]>([]),
     wantInternal
-      ? gatherInternal(supabase, userId, query, emit).catch(
-          (e): { ragSources: RagSource[]; snapshots: Snapshot[]; workspaceChunks: number } => {
+      ? gatherInternal(supabase, userId, query, emit, scope).catch(
+          (e): Awaited<ReturnType<typeof gatherInternal>> => {
             console.error("[research] internal research failed (degrading):", e);
-            return { ragSources: [], snapshots: [], workspaceChunks: 0 };
+            return { ragSources: [], snapshots: [], workspaceChunks: 0, chunkRefs: [] };
           },
         )
-      : Promise.resolve({ ragSources: [], snapshots: [], workspaceChunks: 0 }),
+      : Promise.resolve({ ragSources: [], snapshots: [], workspaceChunks: 0, chunkRefs: [] }),
   ]);
 
   // ONE citation space: web sources numbered first, workspace continues.
@@ -368,5 +412,6 @@ export async function runResearch(opts: {
     workspaceBlock: workspace.block,
     webUsed: web.sources.length > 0,
     workspaceChunks: internal.workspaceChunks,
+    workspaceChunkRefs: internal.chunkRefs,
   };
 }

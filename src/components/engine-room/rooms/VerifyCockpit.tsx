@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useTheme } from "@/hooks/use-theme";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listGovernApprovals } from "@/lib/governance.functions";
@@ -117,6 +118,12 @@ const CARD: React.CSSProperties = {
   overflow: "hidden",
 };
 
+/** Shared interactive chrome for the small mono buttons: quiet hover lift,
+ * pressed dim, honest disabled. Focus ring rides the global
+ * [data-obsidian] :focus-visible rule (outline never removed). */
+const SMALL_BTN_CLASS =
+  "hover:enabled:[background-color:var(--raised)] active:enabled:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed";
+
 const SMALL_BTN: React.CSSProperties = {
   padding: "4px 10px",
   fontFamily: "var(--font-mono)",
@@ -131,10 +138,7 @@ const SMALL_BTN: React.CSSProperties = {
 
 function SectionHead({ label, note }: { label: string; note?: string | null }) {
   return (
-    <div
-      className="flex items-baseline gap-3"
-      style={{ margin: "0 0 10px", paddingBottom: "2px" }}
-    >
+    <div className="flex items-baseline gap-3" style={{ margin: "0 0 10px", paddingBottom: "2px" }}>
       <span
         className="uppercase"
         style={{
@@ -241,8 +245,7 @@ function PendingApprovals({
                 <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
                   {a.agent_slug ?? "agent"}
                 </span>{" "}
-                wants{" "}
-                <span style={{ fontFamily: "var(--font-mono)" }}>{a.tool_name}</span>
+                wants <span style={{ fontFamily: "var(--font-mono)" }}>{a.tool_name}</span>
               </div>
               <div
                 className="truncate"
@@ -265,6 +268,7 @@ function PendingApprovals({
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "reject" })}
+                className={SMALL_BTN_CLASS}
                 style={{ ...SMALL_BTN, color: "var(--text-subtle)" }}
               >
                 Reject
@@ -273,6 +277,7 @@ function PendingApprovals({
                 type="button"
                 disabled={busy}
                 onClick={() => decide.mutate({ approvalId: a.id, decision: "approve" })}
+                className={SMALL_BTN_CLASS}
                 style={{
                   ...SMALL_BTN,
                   color: "var(--text-primary)",
@@ -325,6 +330,7 @@ function JustHappened() {
 /* ----------------- 3. Applied changes (diff + rollback) ----------------- */
 
 function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChanged: () => void }) {
+  const { resolvedTheme } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [selectedPath, setSelectedPath] = React.useState<string | null>(null);
   const confirm = useConfirm();
@@ -373,7 +379,8 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="min-w-0 flex-1 text-left"
+          aria-expanded={open}
+          className="min-w-0 flex-1 text-left hover:opacity-90 active:opacity-80"
           style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
         >
           <div
@@ -411,7 +418,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               href={change.pr_url}
               target="_blank"
               rel="noreferrer"
-              className="uppercase"
+              className="uppercase hover:underline"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--text-mono-floor)",
@@ -423,13 +430,20 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               {change.pr_number ? `PR #${change.pr_number}` : "PR"}
             </a>
           ) : null}
-          <button type="button" onClick={() => setOpen((v) => !v)} style={SMALL_BTN}>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className={SMALL_BTN_CLASS}
+            style={SMALL_BTN}
+          >
             {open ? "Hide diff" : "Verify diff"}
           </button>
           <button
             type="button"
             disabled={rollbackMut.isPending}
             onClick={triggerRollback}
+            className={SMALL_BTN_CLASS}
             style={{ ...SMALL_BTN, color: "var(--madder-bright)" }}
           >
             {rollbackMut.isPending ? "Rolling back..." : "Roll back"}
@@ -461,7 +475,8 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                         key={f.id}
                         type="button"
                         onClick={() => setSelectedPath(f.path)}
-                        className="truncate"
+                        aria-pressed={active}
+                        className={`truncate ${SMALL_BTN_CLASS}`}
                         style={{
                           ...SMALL_BTN,
                           maxWidth: 260,
@@ -507,7 +522,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                 <Suspense fallback={<DiffPending />}>
                   <DiffEditor
                     height="360px"
-                    theme="vs-dark"
+                    theme={resolvedTheme === "light" ? "light" : "vs-dark"}
                     language={selectedPath ? languageFor(selectedPath) : undefined}
                     original={selected.base_content ?? ""}
                     modified={selected.new_content ?? ""}
@@ -626,7 +641,7 @@ export function VerifyCockpit(_props: RoomBodyProps) {
       <button
         type="button"
         onClick={() => navigate({ to: "/traces" })}
-        className="uppercase self-start"
+        className="uppercase self-start hover:underline active:opacity-80"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-mono-floor)",

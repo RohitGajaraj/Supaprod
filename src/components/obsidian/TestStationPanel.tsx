@@ -45,6 +45,8 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
     mutationFn: (vars: { id: string; clause_id: string; checked: boolean }) =>
       fToggleUat({ data: vars }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-test-plan", missionId] }),
+    // A silent failure would leave the checklist lying about its state.
+    onError: () => showToast("Could not update that checklist item. Try again."),
   });
 
   const record = useMutation({
@@ -83,7 +85,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
               type="button"
               onClick={() => record.mutate()}
               disabled={record.isPending}
-              className="ml-auto"
+              className="loom-press ml-auto transition-colors hover:[color:var(--text-primary)]"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 10.5,
@@ -141,7 +143,8 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
                 })
               }
               disabled={toggleUat.isPending}
-              className="flex w-full items-center gap-3 text-left"
+              aria-pressed={item.checked}
+              className="loom-press flex w-full items-center gap-3 text-left transition-colors hover:[background-color:var(--hover)]"
               style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
             >
               <StatusDot

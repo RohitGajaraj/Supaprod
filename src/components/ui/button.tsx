@@ -13,11 +13,22 @@ const neutralInteractive =
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md cursor-pointer select-none transition-[background-color,color,border-color,opacity,box-shadow,transform] duration-150 ease-[var(--ds-motion-timing-swift)] active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
+    // COLOR GRAMMAR (contract §2 · founder ruling 2026-07-14) — a button's
+    // color states its role, one rule platform-wide:
+    //   accent (ember)  = the SINGLE primary "needs-human" CTA per view.
+    //   default (neutral invert) = ordinary confirmations (Save, Apply, Add).
+    //   secondary / tertiary / ghost / outline = supporting, low-emphasis.
+    //   link (blue)     = navigation / the machine's voice (blue = data/machine).
+    //   destructive (red) / warning (amber) = risk + caution.
+    // At most ONE accent button per screen; everything else stays neutral.
     variants: {
       variant: {
         // default = neutral high-contrast invert (contract §2 ember-on-forms ruling):
         // --primary/--primary-foreground are already re-pointed to gray-1000/background-100.
         default: "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
+        // accent = the one ember primary CTA per view. Prefer this over ad-hoc
+        // inline ember styles so the brand action is consistent everywhere.
+        accent: "bg-[var(--ember)] text-white hover:brightness-110 active:brightness-95",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[var(--ds-gray-200)] active:bg-[var(--ds-gray-300)]",
         // tertiary is the spec name (button.md); ghost is the existing API name for the

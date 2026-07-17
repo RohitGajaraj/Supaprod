@@ -16,6 +16,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import * as React from "react";
 import { useState } from "react";
 import { ChevronRight, Gauge, X } from "lucide-react";
 import {
@@ -109,6 +110,7 @@ export function AnalyticsPanel() {
           {(overview.error as Error).message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => overview.refetch()}
@@ -336,6 +338,24 @@ export function AnalyticsPanel() {
             </div>
             {byAgentQ.isLoading ? (
               <p style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading agent spend…</p>
+            ) : byAgentQ.isError ? (
+              <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+                Agent spend did not load.{" "}
+                <button
+                  type="button"
+                  className="cursor-pointer hover:underline"
+                  onClick={() => void byAgentQ.refetch()}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "var(--ink)",
+                    fontSize: 12.5,
+                  }}
+                >
+                  Retry
+                </button>
+              </p>
             ) : byAgents.length === 0 ? (
               <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
                 No agent calls in this window yet.
@@ -345,6 +365,7 @@ export function AnalyticsPanel() {
                 {byAgents.map((x) => (
                   <button
                     key={x.slug}
+                    type="button"
                     className="lift"
                     onClick={() =>
                       navigate({
@@ -484,6 +505,24 @@ export function AnalyticsPanel() {
               <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "14px 18px" }}>
                 Loading runs…
               </p>
+            ) : events.isError ? (
+              <p style={{ fontSize: 12.5, color: "var(--madder)", padding: "14px 18px" }}>
+                Runs did not load.{" "}
+                <button
+                  type="button"
+                  className="cursor-pointer hover:underline"
+                  onClick={() => void events.refetch()}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "var(--ink)",
+                    fontSize: 12.5,
+                  }}
+                >
+                  Retry
+                </button>
+              </p>
             ) : (events.data?.events ?? []).length === 0 ? (
               <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", padding: "14px 18px" }}>
                 No AI events yet. Run an agent or a chat first.
@@ -492,6 +531,8 @@ export function AnalyticsPanel() {
               (events.data?.events ?? []).map((e, i, arr) => (
                 <button
                   key={e.id}
+                  type="button"
+                  className="lift"
                   onClick={() => setOpenId(e.id)}
                   style={{
                     display: "flex",
@@ -541,6 +582,24 @@ export function AnalyticsPanel() {
             <MonoLabel style={{ marginBottom: 10 }}>Guardrail hits · last 30 days</MonoLabel>
             {guards.isLoading ? (
               <p style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading guardrail hits…</p>
+            ) : guards.isError ? (
+              <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+                Guardrail hits did not load.{" "}
+                <button
+                  type="button"
+                  className="cursor-pointer hover:underline"
+                  onClick={() => void guards.refetch()}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "var(--ink)",
+                    fontSize: 12.5,
+                  }}
+                >
+                  Retry
+                </button>
+              </p>
             ) : (guards.data?.hits ?? []).length === 0 ? (
               <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
                 No guardrail hits. Inputs and outputs have been clean.
@@ -580,7 +639,27 @@ export function AnalyticsPanel() {
 
       {openId && (
         <Drawer onClose={() => setOpenId(null)}>
-          {detail.isLoading || !detail.data ? (
+          {/* An error never wears the loading state's clothes (checklist 7):
+              a failed detail read names itself and offers one retry. */}
+          {detail.isError ? (
+            <div style={{ fontSize: 12.5, color: "var(--madder)" }}>
+              This event did not load. {(detail.error as Error)?.message}{" "}
+              <button
+                type="button"
+                className="cursor-pointer hover:underline active:opacity-80"
+                onClick={() => void detail.refetch()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "var(--ink)",
+                  fontSize: 12.5,
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : detail.isLoading || !detail.data ? (
             <div style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading event…</div>
           ) : (
             <EventDetail data={detail.data as EventDetailData} />
@@ -594,14 +673,30 @@ export function AnalyticsPanel() {
 /* Event-detail drawer — production's existing AI-event drill-down, restyled
    quiet-Ember (canvas panel, hairline edge). */
 function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  // Escape closes the drawer (the innermost open layer here).
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const closeRef = React.useRef<HTMLButtonElement | null>(null);
+  React.useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
   return (
     <>
       <div
+        aria-hidden="true"
         style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 40 }}
         onClick={onClose}
       />
       <aside
         className="fade-up"
+        role="dialog"
+        aria-modal="true"
+        aria-label="AI event detail"
         style={{
           position: "fixed",
           right: 0,
@@ -617,8 +712,11 @@ function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () 
         }}
       >
         <button
+          type="button"
+          ref={closeRef}
           onClick={onClose}
           aria-label="Close"
+          className="cursor-pointer transition-opacity hover:opacity-70 active:opacity-60"
           style={{ position: "absolute", right: 16, top: 16, color: "var(--ink-subtle)" }}
         >
           <X size={14} />

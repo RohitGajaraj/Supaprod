@@ -1,13 +1,12 @@
 import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
-import { Copy } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { SlideOver } from "@/components/obsidian/slideover";
 import { MonoLabel, VerdictChip, Citation } from "@/components/obsidian";
 import type { Citation as CitationRecord } from "@/components/product/CitationsCard";
-import { toast } from "@/lib/notify";
 import { getPrd, type CriticReview } from "@/lib/discovery.functions";
 import { getLineage, getProvenance } from "@/lib/lineage.functions";
 import { LineageDrawer } from "@/components/cadence/LineageDrawer";
@@ -170,12 +169,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
     ? verdictFor({ status: prd.status, critic_review: prd.critic_review })
     : "PENDING";
 
-  const copyTraceId = () => {
-    if (!prd) return;
-    void navigator.clipboard?.writeText(prd.id);
-    toast.success("Trace id copied");
-  };
-
   return (
     <>
       <SlideOver
@@ -188,6 +181,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               <Link
                 to="/plan/spec/$id"
                 params={{ id }}
+                className="hover:underline"
                 style={{ color: "var(--glacier)", fontFamily: "var(--font-mono)", fontSize: 11 }}
               >
                 Open full spec →
@@ -259,27 +253,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 >
                   UPDATED {relTimeCaps(prd.updated_at)}
                 </span>
-                <button
-                  type="button"
-                  onClick={copyTraceId}
-                  aria-label="Copy trace id"
-                  title="Copy the full trace id"
-                  className="loom-press flex items-center hover:[color:var(--text-subtle)]"
-                  style={{
-                    gap: "6px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                    background: "transparent",
-                    border: "none",
-                    padding: "3px 2px",
-                    cursor: "pointer",
-                  }}
-                >
-                  PRD·{traceRef(prd.id)}
-                  <Copy className="h-3 w-3" />
-                </button>
+                <AuditTag kind="spec" id={prd.id} copyable />
               </span>
             </div>
 
@@ -412,7 +386,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
             <DetailSection heading="The spec">
               <div
                 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 15,
                   lineHeight: 1.7,
                   color: "var(--text-body)",
@@ -425,17 +399,17 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                     ),
                     li: ({ children }) => <li>{withCitations(children, citations)}</li>,
                     h1: ({ children }) => (
-                      <h1 style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif)" }}>
+                      <h1 style={{ color: "var(--text-primary)", fontFamily: "var(--font-sans)" }}>
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif)" }}>
+                      <h2 style={{ color: "var(--text-primary)", fontFamily: "var(--font-sans)" }}>
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif)" }}>
+                      <h3 style={{ color: "var(--text-primary)", fontFamily: "var(--font-sans)" }}>
                         {children}
                       </h3>
                     ),

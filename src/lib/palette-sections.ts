@@ -7,16 +7,17 @@
  * The displayed key hint is the destination's 1-based rail position (the
  * same keys GotoShortcuts binds).
  */
-import { PRIMARY_NAV } from "@/lib/nav-model";
+import { PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { TASK_COMPOSE_EVENT, SIGNAL_COMPOSE_EVENT, STATUS_COMPOSE_EVENT } from "@/lib/desk-compose";
 
 export type PaletteRun = { to: string; search?: Record<string, string>; event?: string };
 
-export type JumpDestination = { label: string; hint: string; run: PaletteRun };
+export type JumpDestination = { label: string; hint: string; tagline: string; run: PaletteRun };
 
-export const JUMP_DESTINATIONS: readonly JumpDestination[] = PRIMARY_NAV.map((n, i) => ({
+export const JUMP_DESTINATIONS: readonly JumpDestination[] = PRIMARY_NAV.map((n) => ({
   label: n.label,
-  hint: String(i + 1),
+  hint: navKeyHint(n),
+  tagline: n.tagline,
   run: { to: n.to, search: n.search },
 }));
 

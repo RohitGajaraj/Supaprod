@@ -158,6 +158,7 @@ export function ApprovalsPanel() {
           {(q.error as Error)?.message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => q.refetch()}
@@ -214,6 +215,7 @@ export function ApprovalsPanel() {
         </MonoLabel>
         {lowRisk.length > 1 ? (
           <button
+            type="button"
             className="btn btn-ghost btn-sm"
             disabled={approveAll.isPending}
             onClick={() => approveAll.mutate(lowRisk.map((a) => a.id))}
@@ -415,11 +417,11 @@ function ApprovalCard({
           </span>
         ) : (
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
+            <button type="button" className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
               <Check size={11} />
               Approve · runs {a.tool_name}
             </button>
-            <button className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
+            <button type="button" className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
               <X size={11} />
               Reject · nothing runs
             </button>
@@ -434,7 +436,7 @@ function ApprovalCard({
                 <ExternalLink size={11} />
               </Link>
             ) : null}
-            <button className="btn btn-ghost btn-sm" disabled={extending} onClick={onExtend}>
+            <button type="button" className="btn btn-ghost btn-sm" disabled={extending} onClick={onExtend}>
               Extend · 24h more
             </button>
           </div>

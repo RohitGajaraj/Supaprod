@@ -17,7 +17,7 @@ To have another agent build this without you re-explaining anything, give it a p
 The agent has everything it needs from those two files: **what** to build (the task cards), **why** (the reasoning chain in the architecture doc), and the **order**. The tasks are self-contained (each lists its `touches`/`depends`), so an agent can pick up any unblocked task cold. See the `G-PRICE` rows in [`../../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) once greenlit — those are the claimable units.
 
 ## The build, in one line
-Turn the finalized architecture into product: **seats-free credits** metered **only on delivered artifacts** (never a per-action dollar), **platform-managed models** for everyone with **enterprise-only BYOK**, the **Free/Pro/Team/Enterprise** packaging, and the **top-ups + PAYG + guardrails** that keep it fair — reusing the existing credit/billing/entitlements engine wherever possible.
+Turn the finalized architecture into product: **seats-free credits** metered **only on delivered artifacts** (never a per-action dollar), **platform-managed models** for everyone with **enterprise-only BYOK**, the **Free/Pro/Business/Enterprise** packaging, and the **top-ups + PAYG + guardrails** that keep it fair — reusing the existing credit/billing/entitlements engine wherever possible.
 
 ---
 
@@ -116,10 +116,10 @@ Turn the finalized architecture into product: **seats-free credits** metered **o
 
 ## Group E — Packaging + surfaces
 
-### PR-E1 — Tier rename Business → Team; the 4-tier packaging surfaces
-- **What:** display name `team` → "Team" (zero-migration; slug already `team`); ensure the pricing page + billing tab render Free/Pro/Team/Enterprise with the finalized value matrix + the new model/BYOK dimensions.
-- **Why:** finalized naming (pricing-architecture §6a); the packaging must reflect the model.
-- **Includes:** `planPresentation("team")` display "Team"; pricing page rows for supported-models + BYOK-availability per tier; the credit dropdown (exists) on Pro + Team.
+### PR-E1 — Keep tier name Business (no rename); the 4-tier packaging surfaces
+- **What:** display name `team` slug stays "Business" (founder correction, 2026-07-13: an earlier rename to "Team" was reverted; the DB slug `team` is unchanged either way). Ensure the pricing page + billing tab render Free/Pro/Business/Enterprise with the finalized value matrix + the new model/BYOK dimensions.
+- **Why:** founder correction 2026-07-13 supersedes the original naming call in pricing-architecture §6a; the packaging must still reflect the model, under the Business name.
+- **Includes:** `planPresentation("team")` displays "Business"; pricing page rows for supported-models + BYOK-availability per tier; the credit dropdown (exists) on Pro + Business.
 - **Touches:** `src/lib/entitlements.ts`, `src/routes/pricing.tsx`, `src/routes/_authenticated.settings.tsx` (billing tab).
 - **Depends:** PR-A3, PR-B2, PR-C1.
 

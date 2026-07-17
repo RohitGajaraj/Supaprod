@@ -250,23 +250,30 @@ function FeedbackButtons({ refId }: { refId: string }) {
 
   return (
     <>
+      {/* Base color rides a class so hover can win; the voted color stays
+          inline (inline beats the hover class, which is what we want). */}
+      {/* Once rated (or in flight) both buttons disable: the untouched one
+          dims (disabled:opacity), the voted one keeps full presence via the
+          inline opacity, which beats the class. */}
       <button
         type="button"
         aria-label="Good response"
+        title={vote !== null ? "Already rated" : "Good response"}
         disabled={vote !== null || m.isPending}
         onClick={() => m.mutate(1)}
-        className="inline-flex items-center disabled:pointer-events-none"
-        style={{ color: vote === 1 ? "var(--deep-green)" : "var(--ink-faint)" }}
+        className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
+        style={vote === 1 ? { color: "var(--deep-green)", opacity: 1 } : undefined}
       >
         <ThumbsUp size={11} />
       </button>
       <button
         type="button"
         aria-label="Bad response"
+        title={vote !== null ? "Already rated" : "Bad response"}
         disabled={vote !== null || m.isPending}
         onClick={() => m.mutate(-1)}
-        className="inline-flex items-center disabled:pointer-events-none"
-        style={{ color: vote === -1 ? "var(--rose)" : "var(--ink-faint)" }}
+        className="inline-flex items-center transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)] disabled:pointer-events-none disabled:opacity-45"
+        style={vote === -1 ? { color: "var(--rose)", opacity: 1 } : undefined}
       >
         <ThumbsDown size={11} />
       </button>
@@ -377,7 +384,11 @@ export function MessageMetaFooter({
         <span style={{ flex: 1 }} />
         {canVote && <FeedbackButtons refId={feedbackId!} />}
         {actions}
-        <Link to="/traces" style={{ ...item, color: "var(--action-blue)" }}>
+        <Link
+          to="/traces"
+          className="transition-colors hover:underline"
+          style={{ ...item, color: "var(--action-blue)" }}
+        >
           View trace
         </Link>
         {onReplay && (
@@ -386,7 +397,8 @@ export function MessageMetaFooter({
               <button
                 type="button"
                 aria-expanded={replayOpen}
-                style={{ ...item, color: "var(--ink-subtle)" }}
+                className="transition-colors [color:var(--ink-subtle)] hover:[color:var(--ink-muted)]"
+                style={item}
               >
                 <RotateCcw size={11} />
                 Replay with…
@@ -396,7 +408,8 @@ export function MessageMetaFooter({
               align="end"
               side="top"
               sideOffset={6}
-              style={{ width: 190, padding: 5 }}
+              // Popover anatomy (DESIGN-TEMPO §5): 6px pad, 36px rows.
+              style={{ width: 190, padding: 6 }}
             >
               <span
                 className="mono-label"
@@ -409,7 +422,12 @@ export function MessageMetaFooter({
                   key={m.id}
                   type="button"
                   className="cmdk-item"
-                  style={{ fontSize: 11.5, padding: "6px 8px", fontFamily: "var(--font-mono)" }}
+                  style={{
+                    fontSize: 11.5,
+                    minHeight: 36,
+                    padding: "6px 8px",
+                    fontFamily: "var(--font-mono)",
+                  }}
                   onClick={() => {
                     setReplayOpen(false);
                     onReplay(m.id);

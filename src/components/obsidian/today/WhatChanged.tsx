@@ -84,7 +84,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
                 type="button"
                 onClick={it.onOpen}
                 title="Open this learning"
-                className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+                className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   gap: 10,
                   background: "transparent",
@@ -104,14 +104,14 @@ export function WhatChanged({ items }: WhatChangedProps) {
           {folded > 0 ? (
             <button
               type="button"
+              aria-expanded={showAll}
               onClick={() => setShowAll((v) => !v)}
-              className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+              className="loom-press self-start outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 10.5,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: "var(--text-muted)",
                 background: "transparent",
                 border: "none",
                 padding: "2px 0",

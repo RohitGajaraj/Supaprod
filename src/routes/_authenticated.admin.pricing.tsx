@@ -93,7 +93,7 @@ function cardStyle(): React.CSSProperties {
 
 function sectionTitleStyle(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-serif)",
+    fontFamily: "var(--font-sans)",
     fontWeight: 460,
     fontSize: "var(--text-card-title)",
     lineHeight: 1.3,
@@ -244,13 +244,16 @@ function TierSection({
         </MonoLabel>
       </div>
 
-      <div style={{ display: "grid", gap: "var(--space-2)" }}>
+      {/* Wide editor rows scroll inside their own container instead of
+          breaking the page at 1024/768 (checklist point 10). */}
+      <div style={{ display: "grid", gap: "var(--space-2)", overflowX: "auto" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 70px 90px",
             gap: "var(--space-2)",
             padding: "0 4px",
+            minWidth: 680,
           }}
         >
           <MonoLabel tone="muted">Credits</MonoLabel>
@@ -354,6 +357,7 @@ function BundleRow({
         padding: "8px 4px",
         borderBottom: "1px solid var(--hairline)",
         alignItems: "center",
+        minWidth: 680,
       }}
     >
       <input
@@ -362,6 +366,7 @@ function BundleRow({
         type="number"
         value={credits}
         onChange={(e) => setCredits(Number(e.target.value))}
+        aria-label="Credits in this bundle"
       />
       <input
         className={focusRingClass}
@@ -370,6 +375,7 @@ function BundleRow({
         step="0.01"
         value={monthly}
         onChange={(e) => setMonthly(Number(e.target.value))}
+        aria-label="Monthly price in dollars"
       />
       <input
         className={focusRingClass}
@@ -378,6 +384,7 @@ function BundleRow({
         step="0.01"
         value={yearly}
         onChange={(e) => setYearly(Number(e.target.value))}
+        aria-label="Yearly price in dollars"
       />
       <input
         className={focusRingClass}
@@ -385,6 +392,7 @@ function BundleRow({
         value={priceM}
         onChange={(e) => setPriceM(e.target.value)}
         placeholder="price_..."
+        aria-label="Stripe price id, monthly"
       />
       <input
         className={focusRingClass}
@@ -392,12 +400,14 @@ function BundleRow({
         value={priceY}
         onChange={(e) => setPriceY(e.target.value)}
         placeholder="price_..."
+        aria-label="Stripe price id, yearly"
       />
       <input
         className={focusRingClass}
         type="checkbox"
         checked={active}
         onChange={(e) => setActive(e.target.checked)}
+        aria-label="Bundle is active"
         style={{ width: 14, height: 14, accentColor: "var(--text-primary)", cursor: "pointer" }}
       />
       <div style={{ display: "flex", gap: "var(--space-1)" }}>
@@ -574,6 +584,7 @@ function TopupRow({
         type="number"
         value={credits}
         onChange={(e) => setCredits(Number(e.target.value))}
+        aria-label="Credits in this top-up"
       />
       <input
         className={focusRingClass}
@@ -582,6 +593,7 @@ function TopupRow({
         step="0.01"
         value={price}
         onChange={(e) => setPrice(Number(e.target.value))}
+        aria-label="Price in dollars"
       />
       <input
         className={focusRingClass}
@@ -589,12 +601,14 @@ function TopupRow({
         value={stripeId}
         onChange={(e) => setStripeId(e.target.value)}
         placeholder="price_..."
+        aria-label="Stripe price id"
       />
       <input
         className={focusRingClass}
         type="checkbox"
         checked={active}
         onChange={(e) => setActive(e.target.checked)}
+        aria-label="Top-up is active"
         style={{ width: 14, height: 14, accentColor: "var(--text-primary)", cursor: "pointer" }}
       />
       <div style={{ display: "flex", gap: "var(--space-1)" }}>

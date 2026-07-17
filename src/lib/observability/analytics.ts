@@ -20,7 +20,12 @@ export type TrackEvent =
   | "connection_disconnected"
   | "signal_ingested"
   | "ai_kill_switch_flipped"
-  | "budget_exceeded";
+  | "budget_exceeded"
+  // Landing funnel (docs/planning/landing-page-v2-plan.md section 7.2)
+  | "landing_visit"
+  | "waitlist_join"
+  | "referral_share"
+  | "demo_click";
 
 export type TrackProps = Record<string, string | number | boolean | null | undefined>;
 

@@ -1,6 +1,9 @@
-import { Copy, GitBranch } from "lucide-react";
+import { GitBranch } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { listBriefItems } from "@/lib/briefs.functions";
+import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
 import { PulsePrompt } from "@/components/cadence/PulsePrompt";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
@@ -25,6 +28,8 @@ import { tierFromProbability } from "@/lib/confidence";
 import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import type { Designation } from "./ranking";
 import {
   BestBetStamp,
@@ -54,6 +59,8 @@ export interface OpportunityDetailRecord {
   theme_id: string | null;
   created_at: string;
   updated_at: string;
+  // RPT-47: the strategic top bet a human tied this opportunity to (nullable).
+  linked_brief_item_id?: string | null;
 }
 
 /** A label/value block: a quiet mono caps label over a readable body value. */
@@ -120,6 +127,23 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     margin: 0,
   };
 
+  // An error never wears the empty state's clothes (a failed judgment read
+  // used to render "No recorded outcome matches this bet yet"): cause + retry.
+  if (q.isError) {
+    return (
+      <DetailSection heading="Precedent">
+        <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
+          <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+            Could not read this bet's judgment. {(q.error as Error).message}
+          </p>
+          <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
+            Retry
+          </Button>
+        </div>
+      </DetailSection>
+    );
+  }
+
   return (
     <>
       <DetailSection heading="Precedent">
@@ -184,6 +208,81 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   );
 }
 
+/**
+ * RPT-47: tie this opportunity to a strategic top bet, the human action that
+ * lets a watched assumption feed the ranking. A standing bet lifts the
+ * opportunity in the queue; if that bet's assumption is later challenged, the
+ * opportunity sinks. Never inferred: the operator chooses. Hidden until at least
+ * one top bet exists to tie to, so it never offers an empty choice.
+ */
+function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecord }) {
+  const qc = useQueryClient();
+  const fList = useServerFn(listBriefItems);
+  const fSetLink = useServerFn(setOpportunityBriefLink);
+
+  const bets = useQuery({ queryKey: ["brief-items"], queryFn: () => fList({ data: {} }) });
+  const topBets = (bets.data ?? []).filter((b) => b.kind === "top_bet");
+  const linkedId = opportunity.linked_brief_item_id ?? null;
+  const linkedBet = topBets.find((b) => b.id === linkedId) ?? null;
+
+  const setLink = useMutation({
+    mutationFn: (briefItemId: string | null) =>
+      fSetLink({ data: { opportunityId: opportunity.id, briefItemId } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      void qc.invalidateQueries({ queryKey: ["brief-alignment"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (topBets.length === 0) return null;
+
+  return (
+    <div style={{ display: "grid", gap: "7px" }}>
+      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+        Strategic bet
+      </MonoLabel>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            disabled={setLink.isPending}
+            className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-primary)] hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              alignSelf: "flex-start",
+              fontFamily: "var(--font-ui)",
+              fontSize: "12.5px",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--radius-control)",
+              padding: "5px 11px",
+              cursor: "pointer",
+            }}
+          >
+            {linkedBet ? linkedBet.title : "Not tied to a bet"}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => setLink.mutate(null)}>
+            Not tied to a bet
+          </DropdownMenuItem>
+          {topBets.map((b) => (
+            <DropdownMenuItem key={b.id} onClick={() => setLink.mutate(b.id)}>
+              {b.title}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <p style={{ fontSize: "11px", color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}>
+        Tie this to a top bet so its watched assumptions steer where it ranks. A challenged
+        assumption sinks it.
+      </p>
+    </div>
+  );
+}
+
 export interface OpportunityDetailSheetProps {
   open: boolean;
   onOpenChange: (next: boolean) => void;
@@ -242,12 +341,7 @@ export function OpportunityDetailSheet({
   challengePending = false,
   draftPending = false,
 }: OpportunityDetailSheetProps) {
-  const copyTraceId = () => {
-    if (!opportunity) return;
-    void navigator.clipboard?.writeText(opportunity.id);
-    toast("Trace id copied");
-  };
-
+  const { activeWorkspaceId } = useWorkspace();
   const isBestBet = rank === 1;
   // The one-line meaning shown in the band for a non-best designation, so the
   // reader knows what the bet is and what to do about it. Best bet is already
@@ -283,13 +377,11 @@ export function OpportunityDetailSheet({
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                        className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-muted)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                         style={{
                           fontFamily: "var(--font-ui)",
                           fontSize: "11.5px",
                           fontWeight: 500,
-                          color: "var(--text-muted)",
-                          background: "transparent",
                           border: "1px solid var(--hairline-strong)",
                           borderRadius: "var(--radius-control)",
                           padding: "3px 10px",
@@ -323,29 +415,11 @@ export function OpportunityDetailSheet({
                 </span>
               }
               traceRef={
-                <button
-                  type="button"
-                  onClick={copyTraceId}
-                  aria-label="Copy trace id"
-                  title="Copy the full trace id"
-                  className="loom-press flex items-center outline-none hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    gap: "6px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                    background: "transparent",
-                    border: "none",
-                    padding: "3px 2px",
-                    cursor: "pointer",
-                  }}
-                >
-                  OPP·{traceRef(opportunity.id)}
-                  <Copy className="h-3 w-3" />
-                </button>
+                <AuditTag kind="opportunity" id={opportunity.id} copyable />
               }
             />
+
+            <BriefLinkSection opportunity={opportunity} />
 
             {/* Priority band: the agent-and-human priority cue, high in the
                 view. The queue position, the single best bet, the recommended
@@ -474,11 +548,10 @@ export function OpportunityDetailSheet({
                   <button
                     type="button"
                     onClick={onViewLineage}
-                    className="loom-press flex items-center outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    className="loom-press flex items-center outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       gap: "6px",
                       fontSize: "12px",
-                      color: "var(--text-muted)",
                       background: "transparent",
                       border: "none",
                       padding: 0,
@@ -566,6 +639,17 @@ export function OpportunityDetailSheet({
                 the first transition lands. */}
             <StageTimeline entityType="opportunity" entityId={opportunity.id} />
 
+            {/* Post-ship product analytics for this bet (adoption vs. the
+                outcome it declared). Self-fetches; renders nothing until real
+                analytics exist. Rehomed here from orphan status + restyled to
+                Tempo (2026-07-13). */}
+            {activeWorkspaceId ? (
+              <ProductAnalyticsPanel
+                opportunityId={opportunity.id}
+                workspaceId={activeWorkspaceId}
+              />
+            ) : null}
+
             {/* Activity: when it was promoted and last changed. */}
             <DetailSection heading="Activity">
               <div style={{ display: "grid", gap: "10px" }}>
@@ -613,6 +697,8 @@ export function OpportunityDetailSheet({
                 variant="tertiary"
                 size="sm"
                 onClick={onDelete}
+                disabled={busy}
+                title={busy ? "Working on this bet…" : undefined}
                 style={{ marginLeft: "auto", color: "var(--madder)" }}
               >
                 Delete

@@ -160,7 +160,7 @@ function ScoreView() {
           label="GUARDRAIL HITS"
           value={
             hitsQ.isError
-              ? "—"
+              ? "not loaded"
               : hitsQ.isLoading
                 ? "…"
                 : (hitsQ.data?.count ?? 0).toLocaleString("en-US")

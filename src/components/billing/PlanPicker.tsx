@@ -158,8 +158,10 @@ function pillButtonStyle(active: boolean): React.CSSProperties {
     fontFamily: "var(--font-ui)",
     fontSize: "var(--text-sm)",
     fontWeight: active ? 600 : 500,
-    background: active ? "var(--hover)" : "transparent",
-    color: active ? "var(--text-primary)" : "var(--text-subtle)",
+    // Inactive background/color live in the hover classes so hover can win
+    // (inline styles beat utilities).
+    background: active ? "var(--hover)" : undefined,
+    color: active ? "var(--text-primary)" : undefined,
     transitionProperty: "background-color, color",
     transitionDuration: "var(--dur-control)",
     transitionTimingFunction: "var(--ease)",
@@ -206,7 +208,8 @@ export function PlanTable({
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                className={FOCUS_RING_CLASS}
+                aria-pressed={active}
+                className={`${FOCUS_RING_CLASS}${active ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
                 style={pillButtonStyle(active)}
               >
                 {t === "personal" ? "Personal" : "Teams"}
@@ -224,7 +227,8 @@ export function PlanTable({
                 key={mode}
                 type="button"
                 onClick={() => setAnnual(mode === "annual")}
-                className={FOCUS_RING_CLASS}
+                aria-pressed={active}
+                className={`${FOCUS_RING_CLASS}${active ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
                 style={{
                   ...pillButtonStyle(active),
                   display: "flex",
@@ -237,7 +241,7 @@ export function PlanTable({
                   <MonoLabel
                     tone="moss"
                     style={{
-                      background: rgba("#7FBF8E", 0.14),
+                      background: "color-mix(in oklab, var(--moss) 14%, transparent)",
                       borderRadius: "var(--radius-pill)",
                       padding: "1px 6px",
                     }}
@@ -252,7 +256,13 @@ export function PlanTable({
       </div>
 
       {/* 2-column grid per tab — recommended badge tracks the user's actual next step */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
+          gap: "var(--space-4)",
+        }}
+      >
         {tab === "personal" ? (
           <>
             <FreeCard isCurrent={currentTier === "free"} />
@@ -393,7 +403,7 @@ function CardHeader({
       </div>
       <div
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontWeight: 460,
           fontSize: "var(--text-card-title)",
           lineHeight: 1.3,
@@ -478,7 +488,8 @@ function ExpandableBullets({ items }: { items: string[] }) {
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className={FOCUS_RING_CLASS}
+          aria-expanded={expanded}
+          className={`${FOCUS_RING_CLASS} hover:underline`}
           style={{
             background: "none",
             border: "none",
@@ -538,7 +549,16 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
       >
         No credit card needed
       </p>
-      <Button variant="secondary" disabled style={{ width: "100%", justifyContent: "center" }}>
+      <Button
+        variant="secondary"
+        disabled
+        title={
+          isCurrent
+            ? "This is your current plan."
+            : "Every workspace starts on Free automatically. Pick a paid plan to upgrade."
+        }
+        style={{ width: "100%", justifyContent: "center" }}
+      >
         {isCurrent ? "You are on Free" : "Start on Free"}
       </Button>
       <div style={{ height: 1, background: "var(--hairline)" }} />
@@ -627,7 +647,7 @@ function EnterpriseCard({
           </p>
           <a
             href="mailto:sales@cadence.app?subject=Enterprise plan management"
-            className={`${FOCUS_RING_CLASS} hover:[background-color:#242429]`}
+            className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
             style={{
               fontFamily: "var(--font-ui)",
               fontSize: "var(--text-base)",
@@ -662,7 +682,7 @@ function EnterpriseCard({
       ) : (
         <a
           href="mailto:sales@cadence.app?subject=Enterprise enquiry"
-          className={`${FOCUS_RING_CLASS} hover:[background-color:#242429]`}
+          className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: "var(--text-base)",
@@ -824,7 +844,7 @@ function PaidTierCard({
             <MonoLabel
               tone="moss"
               style={{
-                background: rgba("#7FBF8E", 0.14),
+                background: "color-mix(in oklab, var(--moss) 14%, transparent)",
                 borderRadius: "var(--radius-pill)",
                 padding: "2px 7px",
               }}
@@ -873,6 +893,15 @@ function PaidTierCard({
         <Button
           variant="secondary"
           disabled={!canSelect || !lookupKey || isCurrent}
+          title={
+            isCurrent
+              ? "This is your current plan."
+              : !canSelect
+                ? "Only the workspace owner can change the plan."
+                : !lookupKey
+                  ? "This credit tier has no published price yet."
+                  : undefined
+          }
           onClick={onSubscribe}
           style={{ width: "100%", justifyContent: "center" }}
         >

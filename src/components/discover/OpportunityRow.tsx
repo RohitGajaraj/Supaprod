@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AskInContext } from "@/components/obsidian/AskInContext";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 import { tierFromProbability } from "@/lib/confidence";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
@@ -157,20 +158,10 @@ export function BestBetStamp({ className }: { className?: string }) {
 }
 
 /** A quiet mono trace chip, `OPP·XXXXXX`, so every bet carries a stable,
- * human-quotable reference. Display-only on the card (the sheet adds copy). */
+ * human-quotable reference. Now a live AuditTag: clicking it opens the bet's
+ * verifiable lineage (audit-ID system, 2026-07-13). */
 function TraceChip({ id }: { id: string }) {
-  return (
-    <span
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "9.5px",
-        letterSpacing: "0.06em",
-        color: "var(--text-faint)",
-      }}
-    >
-      OPP·{traceRef(id)}
-    </span>
-  );
+  return <AuditTag kind="opportunity" id={id} />;
 }
 
 /** The rank spotlight: a small solid badge that reads the queue position in
@@ -325,13 +316,12 @@ export const OpportunityRow = memo(function OpportunityRow({
   const subParts = sub.split(" · ").filter(Boolean);
   return (
     <div
-      className={`relative flex items-center transition-[background-color,box-shadow,transform] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
+      className={`relative flex items-center transition-[background-color,box-shadow,transform] [background-color:var(--card)] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
         clickable
           ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           : ""
       }`}
       style={{
-        backgroundColor: "var(--card)",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "16px 18px",
@@ -358,9 +348,9 @@ export const OpportunityRow = memo(function OpportunityRow({
       <div className="flex flex-none flex-col items-center" style={{ width: "54px" }}>
         <div
           style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "23px",
-            fontWeight: 460,
+            fontFamily: "var(--font-pixel)",
+            fontSize: "22px",
+            fontWeight: 400,
             color: tier,
             lineHeight: 1,
             fontVariantNumeric: "tabular-nums",
@@ -520,12 +510,12 @@ export const OpportunityRow = memo(function OpportunityRow({
                   aria-label="Opportunity actions"
                   disabled={actionsPending}
                   onClick={(event) => event.stopPropagation()}
-                  className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  title={actionsPending ? "Working on this bet…" : undefined}
+                  className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     flexShrink: 0,
                     fontFamily: "var(--font-mono)",
                     fontSize: "14px",
-                    color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
                     cursor: actionsPending ? "default" : "pointer",

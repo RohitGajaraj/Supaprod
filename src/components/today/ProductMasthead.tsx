@@ -45,12 +45,12 @@ export function ProductMasthead({
       >
         {ctx.productName}
       </span>
+      {/* Base color rides the class so group-hover can win (inline beats classes). */}
       <span
-        className="min-w-0 truncate transition-colors group-hover:[color:var(--text-body)]"
+        className="min-w-0 truncate transition-colors [color:var(--text-muted)] group-hover:[color:var(--text-body)]"
         style={{
           fontFamily: "var(--font-ui)",
           fontSize: 12.5,
-          color: "var(--text-muted)",
           transitionDuration: "140ms",
         }}
       >
@@ -60,8 +60,8 @@ export function ProductMasthead({
       </span>
       <span
         aria-hidden="true"
-        className="transition-colors group-hover:[color:var(--text-body)]"
-        style={{ color: "var(--text-faint)", fontSize: 12, flexShrink: 0 }}
+        className="transition-colors [color:var(--text-faint)] group-hover:[color:var(--text-body)]"
+        style={{ fontSize: 12, flexShrink: 0 }}
       >
         →
       </span>

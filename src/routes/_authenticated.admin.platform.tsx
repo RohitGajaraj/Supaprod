@@ -102,6 +102,7 @@ function DeployPanel() {
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Reason (optional)"
+          aria-label="Deploy reason"
           style={input(320)}
         />
         <Button variant="secondary" disabled={deploy.isPending} onClick={() => deploy.mutate()}>
@@ -180,6 +181,7 @@ function HostingPocPanel() {
           className={focusRingClass}
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
+          aria-label="Product to deploy"
           style={input(260)}
         >
           <option value="">
@@ -199,10 +201,32 @@ function HostingPocPanel() {
           {deploy.isPending ? "Deploying…" : "Deploy proof of concept"}
         </Button>
       </div>
+      {/* A failed project read must not sit behind an eternal empty select
+          (error never wears an empty state's clothes, checklist point 7). */}
+      {projectsQuery.isError ? (
+        <p style={{ ...bodyTextStyle(), color: "var(--madder)" }}>
+          Couldn't load your Products.{" "}
+          {projectsQuery.error instanceof Error ? projectsQuery.error.message : "Request failed."}{" "}
+          <button
+            type="button"
+            onClick={() => projectsQuery.refetch()}
+            className={`${focusRingClass} cursor-pointer hover:underline`}
+            style={{ background: "none", border: "none", padding: 0, color: "var(--text-primary)" }}
+          >
+            Retry
+          </button>
+        </p>
+      ) : null}
       {lastUrl ? (
         <p style={bodyTextStyle()}>
           Live at:{" "}
-          <a href={lastUrl} target="_blank" rel="noreferrer" style={{ color: "var(--link)" }}>
+          <a
+            href={lastUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={`${focusRingClass} hover:underline`}
+            style={{ color: "var(--link)" }}
+          >
             {lastUrl}
           </a>
         </p>
@@ -319,12 +343,14 @@ function BannerPanel() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Banner message"
+          aria-label="Banner message"
           style={{ ...input(), flex: 1, minWidth: 220 }}
         />
         <select
           className={focusRingClass}
           value={level}
           onChange={(e) => setLevel(e.target.value as typeof level)}
+          aria-label="Banner severity level"
           style={input(110)}
         >
           <option value="info">Info</option>
@@ -337,6 +363,7 @@ function BannerPanel() {
           value={days}
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
+          aria-label="Banner duration in days"
           style={input(80)}
         />
         <Button
@@ -350,9 +377,10 @@ function BannerPanel() {
           <Button
             variant="secondary"
             style={{ color: "var(--text-subtle)" }}
+            disabled={clear.isPending}
             onClick={() => clear.mutate()}
           >
-            Clear
+            {clear.isPending ? "Clearing…" : "Clear"}
           </Button>
         ) : null}
       </div>
@@ -430,6 +458,7 @@ function FlagsPanel() {
           value={key}
           onChange={(e) => setKey(e.target.value)}
           placeholder="experimental.x"
+          aria-label="Flag key"
           style={input(220)}
         />
         <label
@@ -456,6 +485,7 @@ function FlagsPanel() {
           value={payload}
           onChange={(e) => setPayload(e.target.value)}
           placeholder='{"rolloutPct":10}'
+          aria-label="Flag details as JSON"
           style={input(220)}
         />
         <Button
@@ -668,6 +698,7 @@ function AuditPanel() {
           value={targetKind}
           onChange={(e) => setTargetKind(e.target.value)}
           className={focusRingClass}
+          aria-label="Filter the audit log by target kind"
           style={{ ...input(180), marginLeft: "auto" }}
         >
           <option value="">All kinds</option>
@@ -750,7 +781,7 @@ function cardStyle(): React.CSSProperties {
 
 function sectionTitleStyle(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-serif)",
+    fontFamily: "var(--font-sans)",
     fontWeight: 460,
     fontSize: "var(--text-card-title)",
     lineHeight: 1.3,

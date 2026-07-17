@@ -103,6 +103,7 @@ export function InjectionDefenseCard() {
         <MonoLabel icon={Beaker}>Test a string</MonoLabel>
         <textarea
           className="input"
+          aria-label="String to classify"
           placeholder="Paste a suspicious string to see how the defense classifies it…"
           value={text}
           maxLength={20000}
@@ -117,6 +118,7 @@ export function InjectionDefenseCard() {
             type="button"
             className="btn btn-primary btn-sm"
             disabled={!text.trim() || assess.isPending}
+            title={!text.trim() ? "Paste a string to classify first" : undefined}
             onClick={() => assess.mutate(text)}
           >
             {assess.isPending ? "Assessing…" : "Assess"}

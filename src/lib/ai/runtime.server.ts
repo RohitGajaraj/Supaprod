@@ -22,6 +22,14 @@ import {
   sumDebitCredits,
   type LedgerDebitRow,
 } from "../credits.functions";
+import {
+  isChargeableSurface,
+  isAmbientSurface,
+  isMoatSurfaceLockedToManaged,
+  byokFeeUsd,
+  BYOK_FEE_PCT,
+  withinBoundedOverage,
+} from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
@@ -447,6 +455,11 @@ async function byokAllowedForCall(
  *
  * Resolving per-attempt-model (rather than once for the primary) means a cross-provider
  * fallback uses the RIGHT key for the model it actually tries.
+ *
+ * G-PRICE PR-C1: `surface` gates the vault-key branch (step 2) — a moat surface
+ * (judge/eval/decision) never resolves to an enterprise's BYOK vault key, so it always
+ * stays on Cadence's own managed models (pricing-architecture §5's "approved-model
+ * lists" default). The byoOverride test path and the platform's own key are unaffected.
  */
 async function resolveCallKey(
   supabase: SupabaseClient,
@@ -454,6 +467,7 @@ async function resolveCallKey(
   provider: string,
   byoOverride?: { provider: string; apiKey: string; baseUrl?: string },
   workspaceId?: string | null,
+  surface?: CallSurface,
 ): Promise<{
   apiKey: string;
   baseUrl: string | null;
@@ -462,7 +476,8 @@ async function resolveCallKey(
   if (byoOverride) {
     return { apiKey: byoOverride.apiKey, baseUrl: byoOverride.baseUrl ?? null, source: "override" };
   }
-  if (await byokAllowedForCall(supabase, userId, workspaceId)) {
+  const vaultEligible = !surface || !isMoatSurfaceLockedToManaged(surface);
+  if (vaultEligible && (await byokAllowedForCall(supabase, userId, workspaceId))) {
     const { loadBYOKey } = await import("@/lib/byokeys-vault.server");
     const vault = await loadBYOKey(supabase, userId, provider);
     if (vault?.api_key) return { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" };
@@ -742,7 +757,7 @@ async function checkBudget(supabase: SupabaseClient, userId: string): Promise<vo
     b.day_window === today &&
     Number(b.daily_usd_used) >= Number(b.daily_usd_cap)
   )
-    throw new Error("Daily AI budget reached. Raise the cap in Engine Room → Spend.");
+    throw new Error("Daily AI budget reached. Raise the cap in Pulse → Spend.");
   if (
     b.monthly_usd_cap != null &&
     b.month_window === thisMonth &&
@@ -882,7 +897,10 @@ async function creditsEnabled(supabase: SupabaseClient): Promise<boolean> {
 
 // Resolve the account that owns this call: the workspace's account, else the user's
 // default account. Best-effort, never throws on the hot path (null on any error).
-async function resolveCreditAccountId(
+// Exported (G-PRICE PR-A1): the abandon-refund path in loop.server.ts resolves the
+// same account a run's debits were drawn from, so a refund targets the right pool
+// without re-deriving the workspace-to-account lookup a second way.
+export async function resolveCreditAccountId(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string | null | undefined,
@@ -962,42 +980,127 @@ async function logCreditExhausted(
   );
 }
 
+// G-PRICE PR-D2: log the ambient-surface downgrade-to-free as an informational (not
+// blocked) ai_events row, so the account owner can see in their trace that an ambient
+// tick ran on the free floor rather than silently drawing (or silently skipping).
+async function logAmbientDowngrade(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: CallOpts,
+  accountId: string,
+  balance: number,
+  projected: number,
+): Promise<void> {
+  try {
+    await supabase.from("ai_events").insert({
+      user_id: userId,
+      trace_id: opts.traceId ?? null,
+      parent_event_id: opts.parentEventId ?? null,
+      surface: opts.surface,
+      surface_ref: opts.surface_ref ?? null,
+      ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
+      provider: "credits",
+      via: "gateway",
+      model: opts.model,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+      est_cost_usd: 0,
+      latency_ms: 0,
+      status: "ok",
+      error_message: `ambient_downgrade: account ${accountId} balance ${balance} below projected ${projected}, routed to free floor`,
+      input_preview: "",
+      system_preview: "",
+      output_preview: "",
+    });
+  } catch (e) {
+    console.error("ambient downgrade event insert failed:", e);
+  }
+}
+
 /**
  * Pre-call: when credits are enabled, project the call's cost and halt with
  * CreditExhaustedError (after logging a blocked ai_events row) if the account pool
  * (included + top-up) cannot cover it. No-op while dormant. A read failure degrades to
  * "allow" so the engine can never block a real call by accident.
+ *
+ * G-PRICE PR-D2 — returns a model-id OVERRIDE (or null) rather than plain void: an
+ * AMBIENT surface (sense — autonomous, self-initiated signal ingestion) that would
+ * otherwise halt on an empty pool instead DOWNGRADES to the free floor (the cheapest
+ * live model, whose call then costs 0 credits at the coarse artifact-cost table used
+ * everywhere else) rather than dead-stopping. Every other surface still hard-halts
+ * (pricing-architecture §2 Rule 4: default stop-at-allowance, never silent overspend —
+ * the downgrade-to-free is an EXCEPTION carved out only for ambient/autonomous work,
+ * never a general bypass).
  */
 async function assertAccountCredits(
   supabase: SupabaseClient,
   userId: string,
   opts: CallOpts,
   effectiveModel: string,
-): Promise<void> {
-  if (!(await creditsEnabled(supabase))) return;
+): Promise<string | null> {
+  if (!(await creditsEnabled(supabase))) return null;
+  // G-PRICE PR-A2: a FREE surface (eval/judge/embed/scheduler/test) never halts on an
+  // empty pool either — it must always be able to run so it can keep grading/screening
+  // even when the account is out of billable credits.
+  if (!isChargeableSurface(opts.surface)) return null;
   const accountId = await resolveCreditAccountId(supabase, userId, opts.workspaceId ?? null);
-  if (!accountId) return;
+  if (!accountId) return null;
   const admin = supabaseAdmin as unknown as SupabaseClient;
   let balance = 0;
   let cycleAnchorIso: string | null = null;
+  let monthlyGrant = 0;
+  let overageEnabled = false;
+  let overageCapMultiplier = 1.25;
   try {
     const { data } = await admin
       .from("account_credits")
-      .select("balance_credits, topup_credits, cycle_anchor")
+      .select(
+        "balance_credits, topup_credits, cycle_anchor, monthly_grant_credits, overage_enabled, overage_cap_multiplier",
+      )
       .eq("account_id", accountId)
       .maybeSingle();
     const row = (data ?? {}) as {
       balance_credits?: number;
       topup_credits?: number;
       cycle_anchor?: string | null;
+      monthly_grant_credits?: number;
+      overage_enabled?: boolean;
+      overage_cap_multiplier?: number;
     };
     balance = Number(row.balance_credits ?? 0) + Number(row.topup_credits ?? 0);
     cycleAnchorIso = row.cycle_anchor ?? null;
+    monthlyGrant = Number(row.monthly_grant_credits ?? 0);
+    overageEnabled = row.overage_enabled === true;
+    overageCapMultiplier = Number(row.overage_cap_multiplier ?? 1.25);
   } catch {
-    return;
+    return null;
   }
   const projected = projectCallCredits(effectiveModel, opts.messages);
   if (balance <= 0 || balance < projected) {
+    // G-PRICE PR-D2: ambient/autonomous work downgrades to the free floor at the cap
+    // rather than dead-stopping (pricing-architecture §2 Rule 4, §5). `sense` is the
+    // one ambient-tick surface that runs unattended (cron-driven signal ingestion);
+    // route it to the cheapest live model instead of halting, so the account keeps its
+    // baseline ambient intelligence even at zero credits. Every other chargeable
+    // surface still hard-halts below — this is a narrow, named exception, not a bypass.
+    if (isAmbientSurface(opts.surface)) {
+      const downgraded = cheapestLiveModel();
+      await logAmbientDowngrade(supabase, userId, opts, accountId, balance, projected);
+      return downgraded;
+    }
+    // G-PRICE PR-D2: bounded, opt-in overage. The account must have explicitly turned
+    // this on (never a default); even then the draw is capped at a bounded multiplier
+    // of the monthly grant (1.0-3.0x, Zapier's precedent), never unlimited. The "spent
+    // since grant" basis is (monthlyGrant - balance) clamped to 0 - the pool's own
+    // draw-down already tracks this without a second ledger scan.
+    if (overageEnabled) {
+      const spentSinceGrant = Math.max(0, monthlyGrant - balance);
+      if (withinBoundedOverage(spentSinceGrant, projected, monthlyGrant, overageCapMultiplier)) {
+        await assertCreditCaps(supabase, userId, opts, accountId, projected, cycleAnchorIso);
+        return null;
+      }
+    }
     await logCreditExhausted(supabase, userId, opts, accountId, balance, projected);
     throw new CreditExhaustedError(
       accountId,
@@ -1007,6 +1110,7 @@ async function assertAccountCredits(
   // WM-M14: the account pool can cover the call, but an owner-set per-product / per-member
   // cap may still halt this one scope. Only runs when an enabled cap exists.
   await assertCreditCaps(supabase, userId, opts, accountId, projected, cycleAnchorIso);
+  return null;
 }
 
 /**
@@ -1106,6 +1210,11 @@ async function debitAccountCredits(
   model: string,
 ): Promise<void> {
   if (!(await creditsEnabled(supabase))) return;
+  // G-PRICE PR-A2: the free-vs-charged surface map. eval/judge/embed/scheduler/test
+  // are the trust + plumbing layer (pricing-architecture §2 Rule 1) and never draw
+  // the meter, no matter their token cost — charging for verifying our own output
+  // would suppress the exact mechanism that is the moat.
+  if (!isChargeableSurface(opts.surface)) return;
   // WM-M15: meter the credit RATE on the model that ACTUALLY ran (cost-routed and/or
   // fallback), matching the est_cost_usd basis, not the originally-requested opts.model.
   const credits = creditsForCost(estCostUsd, model);
@@ -1123,6 +1232,42 @@ async function debitAccountCredits(
     });
   } catch (e) {
     console.error("debitAccountCredits failed:", e);
+  }
+}
+
+/**
+ * G-PRICE PR-C2: accrue the thin BYOK platform fee for one enterprise BYOK call. The
+ * customer's own key already paid the raw model tokens (pricing-architecture §4) - this
+ * writes ONE byok_fee_accrual row of Cadence's orchestration-margin cut on that rated
+ * spend, read back later as a single contract-invoice line, never a live meter. Runs
+ * independently of credits_enabled() (a contract-billing concern, not the consumer
+ * credit engine) but is itself always a no-op unless the call actually resolved a BYOK
+ * vault key (via === "byo"), checked by the caller before this is invoked. Best-effort;
+ * never throws (a metering failure must not fail a completed call).
+ */
+async function accrueByokFee(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: CallOpts,
+  estCostUsd: number,
+  aiEventId: string | null,
+): Promise<void> {
+  const feeUsd = byokFeeUsd(estCostUsd);
+  if (feeUsd <= 0) return;
+  try {
+    const accountId = await resolveCreditAccountId(supabase, userId, opts.workspaceId ?? null);
+    if (!accountId) return;
+    await (supabaseAdmin as unknown as SupabaseClient).from("byok_fee_accrual").insert({
+      account_id: accountId,
+      user_id: userId,
+      ai_event_id: aiEventId,
+      surface: opts.surface,
+      rated_spend_usd: estCostUsd,
+      fee_pct: BYOK_FEE_PCT,
+      fee_usd: feeUsd,
+    });
+  } catch (e) {
+    console.error("accrueByokFee failed:", e);
   }
 }
 
@@ -1333,11 +1478,13 @@ export async function callModel(
     isAvailable: modelAvailability(),
     enabled: capabilityRoutingEnabled(),
   });
-  const effectiveModel = costRoutingEnabled()
+  let effectiveModel = costRoutingEnabled()
     ? costRoutedModel(opts.surface, capabilityResolved)
     : capabilityResolved;
   // WM-M4: dormant account-level credit pre-check (no-op while credits_enabled() is false).
-  await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  // G-PRICE PR-D2: a non-null return is the ambient-surface downgrade-to-free override.
+  const ambientOverride = await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
   const rules = useGuards ? await loadGuardrails(supabase, userId) : [];
@@ -1462,6 +1609,7 @@ export async function callModel(
       prov,
       opts.byoOverride,
       opts.workspaceId,
+      opts.surface,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
@@ -1643,6 +1791,9 @@ export async function callModel(
       await recordMissionUsage(supabase, opts.runId ?? null, totalTok, est);
       // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
       await debitAccountCredits(supabase, userId, opts, est, eventId, modelUsed);
+      // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin platform
+      // fee on the rated spend, independent of the consumer credit meter above.
+      if ((via as string) === "byo") await accrueByokFee(supabase, userId, opts, est, eventId);
     }
     if (resolvedPrompt && eventId) {
       await logPromptRun(supabase, userId, {
@@ -1850,11 +2001,13 @@ export async function callModelStream(
     isAvailable: modelAvailability(),
     enabled: capabilityRoutingEnabled(),
   });
-  const effectiveModel = costRoutingEnabled()
+  let effectiveModel = costRoutingEnabled()
     ? costRoutedModel(opts.surface, capabilityResolved)
     : capabilityResolved;
   // WM-M4: dormant account-level credit pre-check (no-op while credits_enabled() is false).
-  await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  // G-PRICE PR-D2: a non-null return is the ambient-surface downgrade-to-free override.
+  const ambientOverride = await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
   const rules = useGuards ? await loadGuardrails(supabase, userId) : [];
@@ -1946,6 +2099,7 @@ export async function callModelStream(
       prov,
       opts.byoOverride,
       opts.workspaceId,
+      opts.surface,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
@@ -2265,6 +2419,9 @@ export async function callModelStream(
             await recordMissionUsage(supabase, opts.runId ?? null, inTok + outTok, estCost);
             // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
             await debitAccountCredits(supabase, userId, opts, estCost, eventId, modelUsed);
+            // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin
+            // platform fee on the rated spend, independent of the credit meter above.
+            if (via === "byo") await accrueByokFee(supabase, userId, opts, estCost, eventId);
           }
 
           if (resolvedPrompt && eventId) {

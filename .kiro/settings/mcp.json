@@ -3,6 +3,11 @@
     "lovable": {
       "url": "https://mcp.lovable.dev",
       "timeout": 120000
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "timeout": 120000
     }
   }
 }

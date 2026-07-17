@@ -56,6 +56,14 @@ export function HouseRulesPanel() {
         <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message}
         </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 14 }}
+          onClick={() => void q.refetch()}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -192,7 +200,7 @@ function HouseRuleCard({
               {resolvedLine.text}
             </span>
             {r.status === "approved" && !replacing ? (
-              <button className="btn btn-ghost btn-sm" onClick={() => setReplacing(true)}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setReplacing(true)}>
                 Supersede · draft a replacement
               </button>
             ) : null}
@@ -207,11 +215,11 @@ function HouseRuleCard({
               marginTop: 8,
             }}
           >
-            <button className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
+            <button type="button" className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
               <Check size={11} />
               Approve · applies to every AI call
             </button>
-            <button className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
+            <button type="button" className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
               <X size={11} />
               Reject
             </button>
@@ -223,6 +231,7 @@ function HouseRuleCard({
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              aria-label="Replacement rule text"
               rows={2}
               style={{
                 fontSize: 13,
@@ -236,8 +245,10 @@ function HouseRuleCard({
             />
             <div style={{ display: "flex", gap: 8 }}>
               <button
+                type="button"
                 className="btn btn-approve btn-sm"
                 disabled={supersedeBusy || !draft.trim()}
+                title={!draft.trim() ? "Write the replacement rule first" : undefined}
                 onClick={() => {
                   onSupersede(draft.trim());
                   setReplacing(false);
@@ -245,7 +256,7 @@ function HouseRuleCard({
               >
                 Draft replacement
               </button>
-              <button className="btn btn-ghost btn-sm" onClick={() => setReplacing(false)}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setReplacing(false)}>
                 Cancel
               </button>
             </div>

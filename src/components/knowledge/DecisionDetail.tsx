@@ -18,7 +18,8 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Copy, ExternalLink } from "lucide-react";
+import { ExternalLink, Link2 } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
@@ -160,8 +161,9 @@ export function ShareDecisionButton({ id }: { id: string }) {
         size="sm"
         onClick={() => s.share_slug && copyDecisionLink(s.share_slug)}
         title="Copy the public link"
+        aria-label="Copy the public link"
       >
-        Copy link
+        <Link2 size={14} strokeWidth={1.7} />
       </Button>
       <Button
         variant="tertiary"
@@ -275,11 +277,6 @@ export function DecisionDetail({ id }: { id: string }) {
   const evidenceIn = lineage.data?.ancestors ?? [];
   const evidenceOut = lineage.data?.descendants ?? [];
 
-  const copyId = () => {
-    void navigator.clipboard?.writeText(d.id);
-    toast("Trace id copied");
-  };
-
   return (
     <div className="fade-up" style={{ maxWidth: 760 }}>
       <div style={{ marginBottom: 12 }}>
@@ -333,27 +330,7 @@ export function DecisionDetail({ id }: { id: string }) {
             </span>
           }
           traceRef={
-            <button
-              type="button"
-              onClick={copyId}
-              aria-label="Copy trace id"
-              title="Copy the full trace id"
-              className="loom-press flex items-center hover:[color:var(--text-subtle)]"
-              style={{
-                gap: "6px",
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                letterSpacing: "0.06em",
-                color: "var(--text-faint)",
-                background: "transparent",
-                border: "none",
-                padding: "3px 2px",
-                cursor: "pointer",
-              }}
-            >
-              DEC·{traceRef(d.id)}
-              <Copy className="h-3 w-3" />
-            </button>
+            <AuditTag kind="decision" id={d.id} copyable />
           }
         />
 
@@ -592,7 +569,9 @@ export function DecisionDetail({ id }: { id: string }) {
                     disabled={update.isPending}
                     onClick={() => update.mutate({ id: d.id, status: s })}
                     aria-pressed={selected}
-                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    className={`outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${
+                      selected ? "" : " hover:opacity-80"
+                    }`}
                     style={{
                       background: "transparent",
                       border: "none",

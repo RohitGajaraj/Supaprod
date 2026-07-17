@@ -212,11 +212,14 @@ export function DocsPanel() {
       />
     );
     return (
-      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {bar(34, "55%")}
-        {bar(52)}
-        {bar(52)}
-        {bar(52, "80%")}
+      <div role="status">
+        <span className="sr-only">Loading docs…</span>
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {bar(34, "55%")}
+          {bar(52)}
+          {bar(52)}
+          {bar(52, "80%")}
+        </div>
       </div>
     );
   }
@@ -261,6 +264,7 @@ export function DocsPanel() {
               className="input"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search docs"
               placeholder="Search docs…"
               style={{ paddingLeft: 28, fontSize: 12 }}
             />
@@ -374,7 +378,8 @@ export function DocsPanel() {
                   style={{
                     flex: 1,
                     border: 0,
-                    outline: "none",
+                    // No outline:none: the global [data-obsidian] :focus-visible
+                    // ring is this borderless title input's focus indicator.
                     background: "transparent",
                     fontFamily: "var(--font-display)",
                     fontSize: 24,
@@ -644,6 +649,7 @@ export function DocsPanel() {
                   autoFocus
                   value={notionQuery}
                   onChange={(e) => setNotionQuery(e.target.value)}
+                  aria-label="Search your shared Notion pages"
                   placeholder="Search your shared Notion pages…"
                   style={{ paddingLeft: 28, fontSize: 12 }}
                 />
@@ -653,6 +659,7 @@ export function DocsPanel() {
               </span>
               <input
                 className="input"
+                aria-label="Notion page URL"
                 placeholder="https://www.notion.so/…"
                 style={{ fontSize: 11.5 }}
                 onKeyDown={(e) => {
@@ -684,9 +691,19 @@ export function DocsPanel() {
                 </div>
               )}
               {notionSearch.isError && (
-                <p style={{ fontSize: 12, color: "var(--ink-muted)", padding: "10px 8px" }}>
-                  {(notionSearch.error as Error)?.message ?? "Failed to load Notion pages"}
-                </p>
+                <div style={{ padding: "10px 8px" }}>
+                  <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
+                    {(notionSearch.error as Error)?.message ?? "Failed to load Notion pages"}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ marginTop: 8 }}
+                    onClick={() => void notionSearch.refetch()}
+                  >
+                    Retry · searches again
+                  </button>
+                </div>
               )}
               {notionSearch.data?.pages?.length === 0 && (
                 <p

@@ -9,7 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, FOOTER_NAV } from "@/lib/nav-model";
+import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
@@ -22,7 +22,14 @@ import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 // destinations, hints = keys 1-7); the separate ENGINE section is gone.
 
 type PaletteRow =
-  | { section: "JUMP"; label: string; hint: string; to: string; search?: Record<string, string> }
+  | {
+      section: "JUMP";
+      label: string;
+      hint: string;
+      sub?: string;
+      to: string;
+      search?: Record<string, string>;
+    }
   | {
       section: "SETTINGS";
       label: string;
@@ -42,7 +49,14 @@ type PaletteRow =
     };
 
 function jumpToRow(d: JumpDestination): PaletteRow {
-  return { section: "JUMP", label: d.label, hint: d.hint, to: d.run.to, search: d.run.search };
+  return {
+    section: "JUMP",
+    label: d.label,
+    hint: d.hint,
+    sub: d.tagline,
+    to: d.run.to,
+    search: d.run.search,
+  };
 }
 
 const SETTINGS_ROWS: PaletteRow[] = FOOTER_NAV.map((d) => ({
@@ -118,6 +132,15 @@ export function CommandPalette() {
   useEffect(() => {
     setActiveIndex(0);
   }, [rows.length]);
+
+  // Keyboard nav must keep the active row in view inside the scrolling list
+  // (block: "nearest" jumps without smooth-scroll, so no reduced-motion leak).
+  useEffect(() => {
+    if (!open) return;
+    document.getElementById(`cadence-cmdk-row-${activeIndex}`)?.scrollIntoView({
+      block: "nearest",
+    });
+  }, [activeIndex, open]);
 
   const runRow = (row: PaletteRow) => {
     setOpen(false);
@@ -212,6 +235,11 @@ export function CommandPalette() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onInputKeyDown}
               placeholder="Search, act, or ask what it can do"
+              role="combobox"
+              aria-expanded={rows.length > 0}
+              aria-controls="cadence-cmdk-listbox"
+              aria-activedescendant={rows.length ? `cadence-cmdk-row-${activeIndex}` : undefined}
+              aria-label="Search, act, or ask what it can do"
               className="flex-1 bg-transparent outline-none"
               style={{
                 fontFamily: "var(--font-ui)",
@@ -235,7 +263,14 @@ export function CommandPalette() {
               ESC
             </span>
           </div>
-          <div style={{ maxHeight: 420, overflowY: "auto" }}>
+          <div
+            id="cadence-cmdk-listbox"
+            role="listbox"
+            aria-label="Results"
+            // Menu anatomy (patterns/command-palette.md): 6px interior
+            // padding around 36px rows with 6px row radius.
+            style={{ maxHeight: 420, overflowY: "auto", padding: 6 }}
+          >
             {sectioned.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 16px" }}>
                 {/* The palette's one Pixel accent (DESIGN-TEMPO §3), matching
@@ -266,15 +301,20 @@ export function CommandPalette() {
               </div>
             ) : (
               sectioned.map((group) => (
-                <div key={group.label}>
+                <div
+                  key={group.label}
+                  role="group"
+                  aria-label={SECTION_HEADING[group.label] ?? group.label}
+                >
                   <div
+                    aria-hidden="true"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 9.5,
                       letterSpacing: "0.11em",
                       textTransform: "uppercase",
                       color: "var(--text-subtle)",
-                      padding: "12px 16px 6px",
+                      padding: "12px 10px 6px",
                     }}
                   >
                     {SECTION_HEADING[group.label] ?? group.label}
@@ -297,6 +337,7 @@ export function CommandPalette() {
                     return (
                       <div
                         key={`${row.section}-${row.label}-${i}`}
+                        id={`cadence-cmdk-row-${i}`}
                         onMouseEnter={() => setActiveIndex(i)}
                         onClick={() => runRow(row)}
                         role="option"
@@ -307,7 +348,9 @@ export function CommandPalette() {
                           gridTemplateColumns: "28px 1fr auto",
                           alignItems: "center",
                           gap: 10,
-                          padding: "9px 16px",
+                          minHeight: 36,
+                          padding: "0 10px",
+                          borderRadius: 6,
                           background: active ? "var(--surface-active)" : "transparent",
                           outline: active ? "2px solid var(--ember)" : "none",
                           outlineOffset: -2,
@@ -324,12 +367,34 @@ export function CommandPalette() {
                         </span>
                         <span
                           style={{
-                            fontFamily: "var(--font-ui)",
-                            fontSize: 13,
-                            color: active ? "var(--text-primary)" : "var(--text-body)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                            minWidth: 0,
                           }}
                         >
-                          {row.label}
+                          <span
+                            style={{
+                              fontFamily: "var(--font-ui)",
+                              fontSize: 13,
+                              color: active ? "var(--text-primary)" : "var(--text-body)",
+                            }}
+                          >
+                            {row.label}
+                          </span>
+                          {row.section === "JUMP" && row.sub ? (
+                            <span
+                              className="truncate"
+                              style={{
+                                fontFamily: "var(--font-ui)",
+                                fontSize: 11,
+                                lineHeight: 1.3,
+                                color: "var(--text-subtle)",
+                              }}
+                            >
+                              {row.sub}
+                            </span>
+                          ) : null}
                         </span>
                         {isCatalog ? (
                           <button
@@ -338,14 +403,11 @@ export function CommandPalette() {
                               e.stopPropagation();
                               runRow(row);
                             }}
+                            className="loom-press rounded-[var(--radius-control)] border border-[var(--hairline)] bg-transparent text-[var(--text-muted)] transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                             style={{
                               fontFamily: "var(--font-ui)",
                               fontSize: 12,
-                              color: "var(--text-muted)",
-                              border: "1px solid var(--hairline)",
-                              borderRadius: "var(--radius-control)",
                               padding: "3px 9px",
-                              background: "transparent",
                             }}
                           >
                             Try it
@@ -397,19 +459,18 @@ export function GotoShortcuts() {
         )
       )
         return;
-      const n = Number(e.key);
-      if (Number.isInteger(n) && n >= 1 && n <= PRIMARY_NAV.length) {
-        const item = PRIMARY_NAV[n - 1];
+      // The bound key EQUALS the visible hint (navKeyHint): 0 Today, 1-7 the
+      // loop, 8 Brain, 9 Engine, s Settings, a Admin — so pressing what you
+      // see does what you expect. `g` stays a standing Engine alias.
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const target =
+        [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
+          const hint = navKeyHint(item);
+          return hint !== "" && hint === key;
+        }) ?? (key === "g" ? PRIMARY_NAV.find((item) => item.to === "/engine-room") : undefined);
+      if (target) {
         e.preventDefault();
-        navigate({ to: item.to, search: item.search as never });
-        return;
-      }
-      if (e.key.toLowerCase() === "g") {
-        const engineRoom = PRIMARY_NAV.find((item) => item.to === "/engine-room");
-        if (engineRoom) {
-          e.preventDefault();
-          navigate({ to: engineRoom.to });
-        }
+        navigate({ to: target.to, search: target.search as never });
       }
     };
     window.addEventListener("keydown", onKey);

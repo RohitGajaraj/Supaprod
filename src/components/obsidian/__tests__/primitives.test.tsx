@@ -41,20 +41,20 @@ describe("StatusDot state -> style map", () => {
     }
   });
 
-  test("the four core states match the prototype's verbatim glow + color", () => {
+  test("the four core states match the token-traced glow + color (2026-07-11 color-mix migration)", () => {
     expect(STATUS_STYLES.working).toEqual({
       color: "var(--glacier)",
-      glow: "0 0 8px 1px rgba(132, 179, 236,0.6)",
+      glow: "0 0 8px 1px color-mix(in srgb, var(--glacier) 60%, transparent)",
       animation: "cadPulse 2s ease-in-out infinite",
     });
     expect(STATUS_STYLES.gate).toEqual({
       color: "var(--ember)",
-      glow: "0 0 10px 2px rgba(255,107,44,0.55)",
+      glow: "0 0 10px 2px color-mix(in srgb, var(--ember) 55%, transparent)",
       animation: "cadGlow 1.8s ease-in-out infinite",
     });
     expect(STATUS_STYLES.done).toEqual({
       color: "var(--moss)",
-      glow: "0 0 8px 1px rgba(127,191,142,0.5)",
+      glow: "0 0 8px 1px color-mix(in srgb, var(--moss) 50%, transparent)",
       animation: null,
     });
     expect(STATUS_STYLES.queued).toEqual({

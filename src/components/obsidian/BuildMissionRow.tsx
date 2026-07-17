@@ -5,7 +5,7 @@
  * and nesting an interactive `<button>` inside another is invalid HTML, so the
  * quiet `⋯` trigger is a flex sibling rather than a fork of the primitive.
  */
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,8 @@ import {
   COMPLETION_EVIDENCE_REASON,
   COMPLETION_EVIDENCE_TONE,
 } from "@/lib/build/verification";
+import { InlineApprovalMarker } from "@/components/studio/InlineApprovalMarker";
+import { useMissionApprovals } from "@/hooks/use-mission-approvals";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
 
 const EVIDENCE_COLOR: Record<"moss" | "ember" | "faint", string> = {
@@ -108,6 +110,7 @@ export function BuildMissionRow({
   const rawStatus = session.run_status ?? session.status;
   const status = studioToMissionRowStatus(rawStatus, session.pending_approvals);
   const verdict = studioVerdict(rawStatus, session.changeset?.status);
+  const approvals = useMissionApprovals(session.mission_id);
 
   return (
     <div className="flex items-center">
@@ -124,23 +127,26 @@ export function BuildMissionRow({
         onOpen={onOpen}
       />
       <CompletionEvidenceBadge session={session} />
+      {/* PC-29 Layer 7a: inline approval marker shows which gate is blocking
+          this mission - trust plane made felt on the card itself. */}
+      {approvals.data && <InlineApprovalMarker approvals={approvals.data} />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             aria-label="Session actions"
+            className="loom-press transition-colors hover:[color:var(--text-body)]"
             style={{
               flexShrink: 0,
               padding: "4px 12px",
-              fontFamily: "var(--font-mono)",
-              fontSize: 14,
               color: "var(--text-faint)",
               background: "none",
               border: "none",
               cursor: "pointer",
             }}
           >
-            ⋯
+            {/* Tempo §8: lucide outline icon, one treatment (was a text "⋯" glyph). */}
+            <MoreHorizontal size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

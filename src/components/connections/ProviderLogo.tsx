@@ -1,11 +1,12 @@
 // Logos: simple-icons (MIT)
 //
 // The brand mark for a connector, rendered MONOTONE (a single muted tone) on a
-// subtle dark tile, for a consistent, premium Linear/Vercel look on the obsidian
-// canvas. Full brand colors read busy and inconsistent on dark (and clash with
-// the monogram fallbacks), so we deliberately keep one tone across every
-// provider. Paths are inlined single 0 0 24 24 marks from simple-icons (MIT);
-// providers without a bundled mark use a same-tone first-letter monogram.
+// subtle tile, for a consistent, premium Linear/Vercel look. Full brand colors
+// read busy, add cognitive load, and carry trademark/IP exposure, so we
+// deliberately keep ONE tone across every provider (founder ruling 2026-07-13:
+// monotone, frictionless). The tile shape + first-letter monogram fallback are
+// enough to differentiate at a glance. Paths are inlined single 0 0 24 24
+// marks from simple-icons (MIT).
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 
 // Verbatim single-path marks from simple-icons (MIT). canny and productboard
@@ -56,8 +57,8 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
         alignItems: "center",
         justifyContent: "center",
         borderRadius: Math.max(8, Math.round(size * 0.26)),
-        // Monotone: one muted tone on a subtle dark tile, consistent across
-        // every provider (premium Linear/Vercel restraint on the obsidian canvas).
+        // Monotone: one muted tone on a subtle tile, consistent across every
+        // provider (premium, frictionless — founder ruling 2026-07-13).
         background: "var(--surface-raised)",
         boxShadow: "inset 0 0 0 1px var(--hairline)",
         color: "var(--text-body)",

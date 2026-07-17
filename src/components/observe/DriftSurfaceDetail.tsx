@@ -250,6 +250,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
           {(error as Error).message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => refetch()}
@@ -286,9 +287,9 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
           }}
         >
           <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-subtle)" }}>
-            No drift data for this surface — nothing sampled in the last 30 days.
+            No drift data for this surface. Nothing sampled in the last 30 days.
           </span>
-          <button className="btn btn-ghost btn-sm" onClick={back}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
             Back · all surfaces
           </button>
         </div>
@@ -306,6 +307,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         right={
           watch ? (
             <button
+              type="button"
               className="btn btn-primary btn-sm"
               disabled={runMut.isPending}
               onClick={() => runMut.mutate()}
@@ -348,7 +350,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                 <VerdictChip tone="moss">stable</VerdictChip>
               </div>
               <div style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 6 }}>
-                within baseline band — no open incidents
+                within baseline band, no open incidents
               </div>
             </>
           )}
@@ -368,7 +370,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             />
           ) : (
             <div style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>
-              First sampled day — the trend draws from day two.
+              First sampled day. The trend draws from day two.
             </div>
           )}
         </div>
@@ -415,6 +417,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                     </span>
                     <span style={{ flex: 1 }}></span>
                     <button
+                      type="button"
                       className="btn btn-ghost btn-sm"
                       style={{ fontSize: 11 }}
                       disabled={decideMut.isPending && decideMut.variables?.incidentId === inc.id}
@@ -437,7 +440,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
           <MonoLabel style={{ marginBottom: 8 }}>Recent samples</MonoLabel>
           {recentDays.length === 0 ? (
             <p style={{ fontSize: 12.5, color: "var(--ink-faint)", margin: 0 }}>
-              No snapshot days yet — run a drift check to roll up today.
+              No snapshot days yet. Run a drift check to roll up today.
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column" }}>

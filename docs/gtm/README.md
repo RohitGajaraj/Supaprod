@@ -1,6 +1,6 @@
 # GTM — go-to-market operations
 
-> _Created: 2026-07-16 · This folder holds **operational** go-to-market material: brand identity, naming, domains, social handles, email infrastructure, and trademark filings. It is the execution twin of [`../pitch/`](../pitch/README.md) (the Pitch Room) — the Pitch Room holds what we **say** outward; this folder holds what we **do** to own and operate the brand._
+> _Created: 2026-07-16 · This folder holds **brand-ownership operations**: naming, domains, social handles, email infrastructure, and trademark filings. It is the ownership twin of [`../pitch/`](../pitch/README.md) (the Pitch Room) — the Pitch Room holds what we **say** outward; this folder holds what we **do** to own and operate the brand. Channel/launch/growth **execution** (playbooks, outreach, experiments) lives in its sibling [`../Growth Strategy/`](../Growth%20Strategy/README.md) — don't blur the two._
 
 ## The files
 

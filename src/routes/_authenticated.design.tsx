@@ -10,7 +10,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
+import { SkeletonBar } from "@/components/discover/SkeletonBar";
 import { listPrds } from "@/lib/discovery.functions";
 import {
   listPrototypes,
@@ -70,7 +74,7 @@ function PrototypeRow({ proto }: { proto: PrototypeSummary }) {
       <Button
         variant="secondary"
         onClick={() => toggle.mutate(!proto.isPublic)}
-        disabled={toggle.isPending}
+        loading={toggle.isPending}
       >
         {proto.isPublic ? "Make private" : "Share"}
       </Button>
@@ -102,44 +106,71 @@ function PublishFromSpec() {
   });
 
   const specs = prds.data?.prds ?? [];
+  // The select's placeholder does honest triple duty: loading, the
+  // instructional empty state, and the ready prompt. An error never wears the
+  // empty state's clothes; it gets its own line below with a retry.
+  const placeholder = prds.isLoading
+    ? "Loading your specs…"
+    : specs.length === 0 && !prds.isError
+      ? "No specs yet. Draft one in Plan first."
+      : "Publish a prototype from a spec…";
 
   return (
     <div
       style={{
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
         gap: 8,
         padding: "12px 16px",
         borderBottom: "1px solid var(--hairline)",
       }}
     >
-      <select
-        value={prdId}
-        onChange={(e) => setPrdId(e.target.value)}
-        style={{
-          flex: 1,
-          background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: 8,
-          padding: "7px 10px",
-          fontSize: 13,
-          color: "var(--text-primary)",
-        }}
-      >
-        <option value="">Publish a prototype from a spec…</option>
-        {specs.map((s) => (
-          <option key={s.id as string} value={s.id as string}>
-            {s.title as string}
-          </option>
-        ))}
-      </select>
-      <Button
-        variant="secondary"
-        onClick={() => publish.mutate()}
-        disabled={!prdId || publish.isPending}
-      >
-        {publish.isPending ? "Publishing…" : "Publish"}
-      </Button>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <select
+          value={prdId}
+          onChange={(e) => setPrdId(e.target.value)}
+          aria-label="Spec to publish a prototype from"
+          disabled={prds.isLoading || specs.length === 0}
+          className="border outline-none transition-[border-color] [border-color:var(--hairline)] hover:enabled:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-60"
+          style={{
+            flex: 1,
+            minWidth: 220,
+            height: 36,
+            background: "var(--card)",
+            borderRadius: "var(--radius-control)",
+            padding: "0 10px",
+            fontSize: 13,
+            color: "var(--text-primary)",
+            cursor: prds.isLoading || specs.length === 0 ? "default" : "pointer",
+          }}
+        >
+          <option value="">{placeholder}</option>
+          {specs.map((s) => (
+            <option key={s.id as string} value={s.id as string}>
+              {s.title as string}
+            </option>
+          ))}
+        </select>
+        <Button
+          variant="secondary"
+          onClick={() => publish.mutate()}
+          loading={publish.isPending}
+          disabled={!prdId}
+          title={!prdId ? "Pick a spec first" : undefined}
+        >
+          Publish
+        </Button>
+      </div>
+      {prds.isError ? (
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <p style={{ fontSize: 12, color: "var(--madder)", margin: 0 }}>
+            Could not load your specs. {(prds.error as Error).message}
+          </p>
+          <Button variant="tertiary" size="sm" onClick={() => prds.refetch()}>
+            Retry
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -160,8 +191,35 @@ function PrototypesPane() {
     >
       <PublishFromSpec />
       {items.isLoading ? (
-        <div style={{ padding: "24px 16px", textAlign: "center" }}>
-          <MonoLabel>Loading</MonoLabel>
+        // Skeleton rows matching the loaded row layout (name line, meta line),
+        // never a dead blank or a bare "Loading".
+        <div role="status" aria-label="Loading prototypes">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="grid gap-2"
+              style={{
+                padding: "12px 16px",
+                borderBottom: i === 1 ? undefined : "1px solid var(--hairline)",
+              }}
+            >
+              <SkeletonBar width="45%" height={13} />
+              <SkeletonBar width="30%" height={10} />
+            </div>
+          ))}
+        </div>
+      ) : items.isError ? (
+        // An error never wears the empty state's clothes: cause + one action.
+        <div style={{ padding: "20px 16px" }}>
+          <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+            Could not load prototypes
+          </MonoLabel>
+          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 0" }}>
+            {(items.error as Error).message}
+          </p>
+          <Button variant="secondary" style={{ marginTop: 12 }} onClick={() => items.refetch()}>
+            Retry
+          </Button>
         </div>
       ) : rows.length === 0 ? (
         <div style={{ padding: "28px 16px", textAlign: "center" }}>
@@ -178,58 +236,38 @@ function PrototypesPane() {
 }
 
 function DesignSurface() {
+  const { activeWorkspace } = useWorkspace();
   return (
-    <div
-      style={{
-        maxWidth: "var(--container-work, 1520px)",
-        width: "100%",
-        margin: "0 auto",
-        padding: "36px 32px 64px",
-      }}
-    >
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
-            letterSpacing: "0.14em",
-            color: "var(--text-subtle)",
-            textTransform: "uppercase",
-            marginBottom: 10,
-          }}
-        >
-          Loop · Design
-        </div>
-        <h1
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 430,
-            fontSize: "var(--text-hero)",
-            lineHeight: 1.12,
-            letterSpacing: "-0.015em",
-            color: "var(--text-primary)",
-            margin: "0 0 8px",
-          }}
-        >
-          Your <em style={{ fontStyle: "italic", color: "var(--ember)" }}>brand</em>, in every
-          build.
-        </h1>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-body)", margin: 0 }}>
-          Import your brand once, then every mockup and prototype renders through it.
-        </p>
-      </div>
+    <>
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Design"]} />
+      <div
+        style={{
+          maxWidth: "var(--container-work, 1520px)",
+          width: "100%",
+          margin: "0 auto",
+          padding: "36px 32px 64px",
+        }}
+      >
+        <PageHeader
+          eyebrow="The Loop · 04 Design"
+          title="Your brand, in every"
+          accent="build."
+          subtitle="Import your brand once, then every mockup and prototype renders through it."
+          usp="One brand kit flows into every generated build, so what agents ship already looks like you."
+        />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-        <section>
-          <MonoLabel style={{ display: "block", marginBottom: 10 }}>Brand kit</MonoLabel>
-          <DesignMemoryPanel />
-        </section>
-        <section>
-          <MonoLabel style={{ display: "block", marginBottom: 10 }}>Prototypes</MonoLabel>
-          <PrototypesPane />
-        </section>
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <section>
+            <MonoLabel style={{ display: "block", marginBottom: 10 }}>Brand kit</MonoLabel>
+            <DesignMemoryPanel />
+          </section>
+          <section>
+            <MonoLabel style={{ display: "block", marginBottom: 10 }}>Prototypes</MonoLabel>
+            <PrototypesPane />
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

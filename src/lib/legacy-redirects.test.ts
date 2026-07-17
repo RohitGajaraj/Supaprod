@@ -12,9 +12,9 @@ describe("legacy-redirects", () => {
     }
   });
 
-  it("has exactly seven canonical paths, one per primary destination (IA SPINE 2026-07-11)", () => {
-    expect(CANONICAL_PATHS.length).toBe(7);
-    expect(new Set(CANONICAL_PATHS).size).toBe(7);
+  it("has exactly ten canonical paths, one per primary destination (Option B 2026-07-13)", () => {
+    expect(CANONICAL_PATHS.length).toBe(10);
+    expect(new Set(CANONICAL_PATHS).size).toBe(10);
   });
 
   it("no path appears in both the canonical set and the door-internal set", () => {

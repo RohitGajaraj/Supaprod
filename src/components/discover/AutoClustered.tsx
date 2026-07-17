@@ -80,7 +80,7 @@ function SourceFilterRow({
   active: string | null;
   onSelect: (source: string | null) => void;
 }) {
-  const chipStyle = (isActive: boolean) => ({
+  const chipStyle = {
     fontFamily: "var(--font-mono)",
     fontSize: "10.5px",
     letterSpacing: "0.08em",
@@ -88,18 +88,23 @@ function SourceFilterRow({
     borderRadius: "var(--radius-pill)",
     padding: "3px 10px",
     cursor: "pointer",
-    background: isActive ? "var(--surface-raised)" : "transparent",
-    color: isActive ? "var(--text-primary)" : "var(--text-muted)",
-    border: isActive ? "1px solid var(--hairline)" : "1px solid transparent",
-  });
+  };
+  // Color/background/border live in classes, not inline style, so the hover
+  // state (which the chips previously lacked) can actually apply.
+  const chipClass = (isActive: boolean) =>
+    `loom-press border outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${
+      isActive
+        ? "[background-color:var(--surface-raised)] [border-color:var(--hairline)] [color:var(--text-primary)]"
+        : "[background-color:transparent] [border-color:transparent] [color:var(--text-muted)] hover:[background-color:var(--hover)] hover:[color:var(--text-body)]"
+    }`;
   return (
     <div className="flex flex-wrap items-center gap-1.5" style={{ padding: "0 4px" }}>
       <button
         type="button"
         onClick={() => onSelect(null)}
         aria-pressed={active === null}
-        className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={chipStyle(active === null)}
+        className={chipClass(active === null)}
+        style={chipStyle}
       >
         ALL
       </button>
@@ -109,8 +114,8 @@ function SourceFilterRow({
           type="button"
           onClick={() => onSelect(active === s.source ? null : s.source)}
           aria-pressed={active === s.source}
-          className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={chipStyle(active === s.source)}
+          className={chipClass(active === s.source)}
+          style={chipStyle}
         >
           {sourceCaps(s.source)} {s.count}
         </button>
@@ -355,16 +360,26 @@ export function AutoClustered() {
     );
   }
 
-  if (themes.error) {
+  // Either query failing gets the honest error state (a themes-only guard let
+  // a signals failure silently render every theme with zero members/sources).
+  const loadError = (themes.error ?? signals.error) as Error | null;
+  if (loadError) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
         <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
           Could not load themes
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
-          {(themes.error as Error).message}
+          {loadError.message}
         </p>
-        <Button variant="secondary" style={{ marginTop: "14px" }} onClick={() => themes.refetch()}>
+        <Button
+          variant="secondary"
+          style={{ marginTop: "14px" }}
+          onClick={() => {
+            if (themes.error) void themes.refetch();
+            if (signals.error) void signals.refetch();
+          }}
+        >
           Retry
         </Button>
         <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
@@ -427,14 +442,12 @@ export function AutoClustered() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
             fontWeight: 500,
-            color: "var(--text-muted)",
             background: "transparent",
-            border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             padding: "8px 14px",
             margin: "0 4px",

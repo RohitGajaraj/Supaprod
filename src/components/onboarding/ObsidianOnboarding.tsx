@@ -246,9 +246,14 @@ function ConfidenceBar({ value }: { value: number }) {
 // first; one submit saves both, so the counted path stays three steps.
 function ProductStep({
   needsName,
+  busy,
   onDone,
 }: {
   needsName: boolean;
+  /** The parent's workspace seeding is in flight; if it fails, the parent
+   * toasts and this flag drops, so the button re-enables for a retry instead
+   * of holding a dead "Saving" state forever. */
+  busy?: boolean;
   onDone: (name: string, oneLiner: string) => void;
 }) {
   const fUpdate = useServerFn(updateProfile);
@@ -287,6 +292,9 @@ function ProductStep({
       // mSeedWorkspace.onSuccess instead, after seeding has resolved a real
       // workspace, not from this component.
       onDone(name, oneLiner.trim());
+      // Hand the pending state to the parent's `busy` (the seed mutation): if
+      // seeding fails, busy drops and the button comes back for a retry.
+      setSaving(false);
     } catch (err) {
       setSaving(false);
       toast.error(err instanceof Error ? err.message : "Could not save your details");
@@ -352,8 +360,13 @@ function ProductStep({
           style={{ ...INPUT_STYLE, marginTop: 8 }}
         />
         <div style={{ marginTop: 16 }}>
-          <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? "Saving…" : "Continue"}
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={saving || busy}
+            loading={saving || busy}
+          >
+            {saving || busy ? "Saving…" : "Continue"}
           </Button>
         </div>
       </form>
@@ -781,6 +794,7 @@ export function ObsidianOnboarding() {
     return (
       <ProductStep
         needsName={needsDetails}
+        busy={mSeedWorkspace.isPending}
         onDone={(name, oneLiner) => {
           setProductName(name);
           setPendingOneLiner(oneLiner);
@@ -798,6 +812,43 @@ export function ObsidianOnboarding() {
         <Frame eyebrow="STEP 2 OF 3" heading="What should Cadence read?" showTimer={elapsed}>
           {!showPaste ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* While the availability reads are in flight, say so - without
+                  this, every row rendered dimmed as "not set up", a loading
+                  state wearing a disabled state's clothes. */}
+              {connectionsQ.isLoading || suiteQ.isLoading ? (
+                <AiPulse label="Checking your sources" />
+              ) : null}
+              {/* A failed availability read is an ERROR, not an empty list of
+                  configured sources: name the cause, offer the one action. */}
+              {connectionsQ.isError || suiteQ.isError ? (
+                <div
+                  role="alert"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "10px 12px",
+                    borderRadius: "var(--ds-radius-small)",
+                    background: "var(--ds-red-100)",
+                    border: "1px solid var(--ds-red-400)",
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: "var(--ds-red-900)", lineHeight: 1.5 }}>
+                    Could not load your sources. Check your connection.
+                  </span>
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    onClick={() => {
+                      if (connectionsQ.isError) void connectionsQ.refetch();
+                      if (suiteQ.isError) void suiteQ.refetch();
+                    }}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              ) : null}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {providers.slice(0, 5).map((spec) => {
                   const on = isConnected(spec);
@@ -956,6 +1007,7 @@ export function ObsidianOnboarding() {
                 <Button
                   variant="primary"
                   disabled={!pasteNotes.trim()}
+                  title={!pasteNotes.trim() ? "Paste some notes first" : undefined}
                   onClick={() => {
                     if (pasteNotes.trim()) {
                       setBelief(pasteNotes.slice(0, 200));

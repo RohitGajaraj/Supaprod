@@ -92,6 +92,31 @@ export function ModelSwitcher({
       </PopoverTrigger>
       <PopoverContent align="start" side="top" sideOffset={8} className="w-80 p-1.5">
         <div className="max-h-96 overflow-y-auto scrollbar-thin">
+          {/* An error never wears the keyless state's clothes: without this
+              strip a transient key-list failure silently rendered every BYO
+              model as "Add key" (2026-07-12 states-audit finding). */}
+          {(keys.isError || platform.isError) && (
+            <div
+              role="alert"
+              className="mb-1 flex items-center justify-between gap-2 rounded-md px-2 py-1.5"
+              style={{ backgroundColor: "color-mix(in srgb, var(--madder) 10%, transparent)" }}
+            >
+              <span className="text-[11px]" style={{ color: "var(--madder-bright)" }}>
+                Couldn't load your keys. Key status may be wrong.
+              </span>
+              <button
+                type="button"
+                className="text-[11px] underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                style={{ color: "var(--text-primary)" }}
+                onClick={() => {
+                  void keys.refetch();
+                  void platform.refetch();
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
           {/* Auto / capability routing — the recommended default. */}
           <button
             type="button"

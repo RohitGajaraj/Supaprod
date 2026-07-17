@@ -62,6 +62,28 @@ describe("hasCanvasContent", () => {
     ).toBe(false);
   });
 
+  it("is true for a pending approval even before the run records a step (PC-36 D)", () => {
+    expect(
+      hasCanvasContent({
+        run: { steps: [] },
+        memoryRecalls: [],
+        criticVerdict: null,
+        approvals: [{ status: "pending" }],
+      }),
+    ).toBe(true);
+  });
+
+  it("stays false when every approval is already decided", () => {
+    expect(
+      hasCanvasContent({
+        run: { steps: [] },
+        memoryRecalls: [],
+        criticVerdict: null,
+        approvals: [{ status: "approved" }, { status: "rejected" }],
+      }),
+    ).toBe(false);
+  });
+
   it("is true once the run has at least one step", () => {
     expect(
       hasCanvasContent({

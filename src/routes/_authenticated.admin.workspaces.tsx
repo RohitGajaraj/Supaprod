@@ -103,6 +103,7 @@ function AdminWorkspaces() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, slug, or owner email"
+            aria-label="Search workspaces by name, slug, or owner email"
             className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] placeholder:[color:var(--text-faint)]"
             style={{
               flex: 1,
@@ -355,7 +356,7 @@ function WorkspaceDrawer({
         >
           <SheetTitle
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: "var(--text-card-title)",
               lineHeight: 1.3,
@@ -429,6 +430,7 @@ function WorkspaceDrawer({
                     <select
                       value={m.role}
                       disabled={setRole.isPending}
+                      aria-label={`Role for ${m.email ?? "this member"}`}
                       onChange={(e) => {
                         const role = e.target.value;
                         void (async () => {

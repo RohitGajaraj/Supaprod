@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { useState, type CSSProperties } from "react";
 import { Loader2, ArrowRight, Clock } from "lucide-react";
 import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { TeardownReceipt } from "@/components/public/TeardownReceipt";
 import type { Teardown } from "@/lib/ai/public-teardown.server";
 
@@ -38,6 +39,7 @@ type UiState =
 
 const surface: CSSProperties = {
   position: "relative",
+  isolation: "isolate",
   minHeight: "100vh",
   background: "var(--canvas)",
   color: "var(--text-primary)",
@@ -115,6 +117,10 @@ function TeardownPage() {
 
   return (
     <div style={surface}>
+      {/* The landing starfield/grid, below all content. */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>
+        <LandingBackdrop />
+      </div>
       {/* Watermark brand mark, same treatment as the auth surface. */}
       <div
         aria-hidden="true"
@@ -128,7 +134,7 @@ function TeardownPage() {
           pointerEvents: "none",
         }}
       >
-        <CadenceMark size={520} tile={false} />
+        <CadenceMark size={520} />
       </div>
 
       <div

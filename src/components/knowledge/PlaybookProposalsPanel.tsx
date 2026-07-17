@@ -79,7 +79,7 @@ function ProposalCard({
 
       <p
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: 15,
           fontWeight: 450,
           color: "var(--text-primary)",
@@ -197,6 +197,23 @@ export function PlaybookProposalsPanel() {
         <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads proposals
+        </button>
       </div>
     );
   }

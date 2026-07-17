@@ -119,10 +119,14 @@ function ForgotPasswordPage() {
             className="btn btn-primary"
             type="submit"
             disabled={loading}
+            aria-busy={loading || undefined}
             style={{ width: "100%", justifyContent: "center" }}
           >
             {loading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <>
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                Sending the link
+              </>
             ) : (
               "Send reset link · lands in your inbox"
             )}

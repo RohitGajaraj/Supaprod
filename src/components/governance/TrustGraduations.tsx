@@ -34,6 +34,22 @@ export function TrustGraduationsBlock() {
   });
 
   const pending = (q.data ?? []).filter((p) => p.status === "pending");
+  // A failed read may not vanish silently: one quiet line with the retry.
+  if (q.isError) {
+    return (
+      <div style={{ marginBottom: 18, fontSize: 12.5, color: "var(--madder)" }}>
+        Trust graduations did not load.{" "}
+        <button
+          type="button"
+          className="cursor-pointer hover:underline active:opacity-80"
+          onClick={() => void q.refetch()}
+          style={{ background: "none", border: "none", padding: 0, color: "var(--text-primary)", fontSize: 12.5 }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
   if (q.isLoading || pending.length === 0) return null;
 
   return (
@@ -98,10 +114,10 @@ function GraduationCard({
         changes unless you accept; high-risk gates keep their floors either way.
       </p>
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-        <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onDecide(true)}>
+        <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onDecide(true)}>
           <Check size={13} aria-hidden="true" /> Accept · {p.to_mode} from next run
         </button>
-        <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onDecide(false)}>
+        <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onDecide(false)}>
           <X size={13} aria-hidden="true" /> Decline · stays on {p.from_mode}
         </button>
       </div>

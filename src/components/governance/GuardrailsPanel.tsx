@@ -10,7 +10,7 @@
 // mono-caps loading, and mono-caps relative time; no functional or server change.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -91,6 +91,15 @@ export function GuardrailsPanel() {
   const overview = useQuery({ queryKey: ["guardrails"], queryFn: () => fOverview() });
 
   const [editing, setEditing] = useState<RuleForm | null>(null);
+  // Escape closes the editor, the innermost open layer here (checklist 9).
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) setEditing(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
   const [testText, setTestText] = useState("");
   const [testResult, setTestResult] = useState<{
     text: string;
@@ -263,6 +272,8 @@ export function GuardrailsPanel() {
                 }}
               >
                 <button
+                  type="button"
+                  className="hover:underline active:opacity-80"
                   onClick={() =>
                     setEditing({
                       id: g.id,
@@ -442,6 +453,9 @@ export function GuardrailsPanel() {
         >
           <div
             className="bento fade-up"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editing.id ? "Edit guardrail rule" : "New guardrail rule"}
             style={{ width: "100%", maxWidth: 620, padding: 20, background: "var(--card)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -457,7 +471,8 @@ export function GuardrailsPanel() {
                 {editing.id ? "Edit rule" : "New rule"}
               </h2>
               <button
-                className="mono-label"
+                type="button"
+                className="mono-label cursor-pointer hover:underline active:opacity-80"
                 style={{ color: "var(--text-faint)" }}
                 onClick={() => setEditing(null)}
               >
@@ -469,6 +484,7 @@ export function GuardrailsPanel() {
                 Name
                 <input
                   className="input"
+                  autoFocus
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                   style={{ marginTop: 5, fontSize: 13 }}
@@ -574,6 +590,7 @@ export function GuardrailsPanel() {
                 <button
                   className="btn btn-ghost btn-sm"
                   disabled={!testText.trim() || test.isPending}
+                  title={!testText.trim() ? "Paste sample text to test first" : undefined}
                   onClick={() => test.mutate(editing)}
                 >
                   {test.isPending ? (
@@ -640,6 +657,11 @@ export function GuardrailsPanel() {
               <button
                 className="btn btn-primary btn-sm"
                 disabled={!editing.name.trim() || !editing.pattern.trim() || upsert.isPending}
+                title={
+                  !editing.name.trim() || !editing.pattern.trim()
+                    ? "A rule needs a name and a pattern"
+                    : undefined
+                }
                 onClick={() => upsert.mutate(editing)}
               >
                 Save · applies on the next call

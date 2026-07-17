@@ -19,11 +19,22 @@ export const getConversation = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
     const { supabase } = context;
-    const [{ data: conv }, { data: msgs }] = await Promise.all([
-      supabase.from("conversations").select("*").eq("id", data.id).single(),
-      supabase.from("messages").select("*").eq("conversation_id", data.id).order("created_at"),
+    // PC-36 rehydration hardening: named columns (metadata carries the typed
+    // answer blocks; the generated types predate it), a bound (the newest 80
+    // rows, returned oldest-first), and surfaced errors instead of a silent
+    // { conversation: null } that reads like an empty thread.
+    const [convRes, msgRes] = await Promise.all([
+      supabase.from("conversations").select("*").eq("id", data.id).maybeSingle(),
+      supabase
+        .from("messages")
+        .select("id,role,content,model,created_at,mission_id,metadata" as "*")
+        .eq("conversation_id", data.id)
+        .order("created_at", { ascending: false })
+        .limit(80),
     ]);
-    return { conversation: conv, messages: msgs ?? [] };
+    if (convRes.error) throw new Error(convRes.error.message);
+    if (msgRes.error) throw new Error(msgRes.error.message);
+    return { conversation: convRes.data, messages: (msgRes.data ?? []).reverse() };
   });
 
 export const createConversation = createServerFn({ method: "POST" })

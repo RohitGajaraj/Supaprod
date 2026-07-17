@@ -87,7 +87,8 @@ function AdminPeople() {
               key={t.id}
               type="button"
               onClick={() => setSub(t.id)}
-              className={FOCUS_RING}
+              aria-pressed={isActive}
+              className={`${FOCUS_RING}${isActive ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--text-mono-label)",
@@ -96,8 +97,10 @@ function AdminPeople() {
                 padding: "var(--space-2) var(--space-3)",
                 borderRadius: "6px",
                 border: "none",
-                background: isActive ? "var(--hover)" : "transparent",
-                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                // Inactive background lives in the hover class above; an
+                // inline value would beat the utility and kill hover.
+                background: isActive ? "var(--hover)" : undefined,
+                color: isActive ? "var(--text-primary)" : undefined,
                 cursor: "pointer",
                 transitionProperty: "background-color, color",
                 transitionDuration: "var(--dur-control)",
@@ -165,6 +168,7 @@ function UsersPanel() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search by email or display name…"
+          aria-label="Search users by email or display name"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={{
             flex: 1,
@@ -414,7 +418,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
         <SheetHeader>
           <SheetTitle
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: "var(--text-card-title)",
               lineHeight: 1.3,
@@ -703,6 +707,7 @@ function GrantCreditsForm({
         type="number"
         value={delta}
         onChange={(e) => setDelta(Number(e.target.value))}
+        aria-label="Credits to grant"
         className={FOCUS_RING}
         style={{ ...fieldStyle, width: 100 }}
       />
@@ -710,6 +715,7 @@ function GrantCreditsForm({
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason"
+        aria-label="Reason for the credit grant"
         className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
         style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
       />
@@ -722,7 +728,7 @@ function GrantCreditsForm({
       */}
       <button
         disabled={pending}
-        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:#242429] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
+        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
         style={{
           fontFamily: "var(--font-ui)",
           borderRadius: "var(--radius-control)",
@@ -783,6 +789,7 @@ function PlanOverrideForm({
       <select
         value={tier}
         onChange={(e) => setTier(e.target.value)}
+        aria-label="Override plan tier"
         className={FOCUS_RING}
         style={fieldStyle}
       >
@@ -797,6 +804,7 @@ function PlanOverrideForm({
         value={days}
         min={0}
         onChange={(e) => setDays(Number(e.target.value))}
+        aria-label="Override duration in days"
         className={FOCUS_RING}
         style={{ ...fieldStyle, width: 80 }}
       />
@@ -813,6 +821,7 @@ function PlanOverrideForm({
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason"
+        aria-label="Reason for the plan override"
         className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
         style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
       />
@@ -820,7 +829,7 @@ function PlanOverrideForm({
           same reasoning applies (this form's onSubmit relies on it). */}
       <button
         disabled={pending}
-        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:#242429] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
+        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
         style={{
           fontFamily: "var(--font-ui)",
           borderRadius: "var(--radius-control)",
