@@ -100,7 +100,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@happy-dom/global-registrator": "^20.10.6",
-    "@lovable.dev/vite-tanstack-config": "2.7.1",
+    "@lovable.dev/vite-tanstack-config": "2.7.6",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.6.1",
     "@types/bun": "latest",
