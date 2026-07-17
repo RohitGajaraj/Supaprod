@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sdk_version": "0.20.0",
+  "sdk_version": "0.20.1",
   "path": "/mcp",
   "auth": {
     "type": "oauth",
@@ -11,15 +11,15 @@
   },
   "mcp": {
     "server": {
-      "name": "cadence-mcp",
+      "name": "supaprod-mcp",
       "version": "0.1.0",
-      "title": "Cadence"
+      "title": "Supaprod"
     },
     "tools": [
       {
         "name": "whoami",
         "title": "Who am I",
-        "description": "Return the connected Cadence user's id and email.",
+        "description": "Return the connected Supaprod user's id and email.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -35,7 +35,7 @@
       {
         "name": "list_workspaces",
         "title": "List workspaces",
-        "description": "List the Cadence workspaces the connected user can access.",
+        "description": "List the Supaprod workspaces the connected user can access.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -51,7 +51,7 @@
       {
         "name": "list_decisions",
         "title": "List decisions",
-        "description": "List recent decisions in a Cadence workspace. Use list_workspaces to find the workspace_id.",
+        "description": "List recent decisions in a Supaprod workspace. Use list_workspaces to find the workspace_id.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
