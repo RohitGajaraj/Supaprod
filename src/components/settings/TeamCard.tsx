@@ -146,7 +146,7 @@ export function TeamCard() {
             {lastLink}
           </code>
           <Button variant="ghost" size="sm" onClick={copyLink} style={{ flexShrink: 0 }}>
-            <Copy size={13} />
+            <Copy size={16} />
             Copy link
           </Button>
         </div>
@@ -203,7 +203,7 @@ export function TeamCard() {
                     style={{ flexShrink: 0 }}
                     aria-label={`Revoke invitation for ${inv.email}`}
                   >
-                    <X size={13} />
+                    <X size={16} />
                     Revoke
                   </Button>
                 )}

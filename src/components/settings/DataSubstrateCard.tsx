@@ -37,7 +37,7 @@ export function DataSubstrateCard() {
   return (
     <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
       <div className="text-label-13-mono flex items-center gap-[7px]">
-        <Database size={13} strokeWidth={1.8} />
+        <Database size={16} strokeWidth={1.5} />
         Where your brain lives
       </div>
 
@@ -87,7 +87,7 @@ export function DataSubstrateCard() {
             <span className="text-[var(--ink-faint)]">
               · {seal.count} record{seal.count === 1 ? "" : "s"}
             </span>
-            <ArrowRight size={11} strokeWidth={1.8} />
+            <ArrowRight size={16} strokeWidth={1.5} />
           </Link>
         </div>
       )}

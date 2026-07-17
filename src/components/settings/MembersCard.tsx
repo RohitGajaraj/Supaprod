@@ -69,7 +69,7 @@ function RoleChip({ role }: { role: string }) {
         border: "1px solid var(--hairline)",
       }}
     >
-      {isOwner && <Crown size={14} strokeWidth={1.8} aria-hidden />}
+      {isOwner && <Crown size={16} strokeWidth={1.5} aria-hidden />}
       {ROLE_LABEL[role] ?? role}
     </span>
   );
@@ -352,7 +352,7 @@ export function MembersCard() {
                             onClick={() => setConfirmTransfer(m.userId)}
                             aria-label={`Make ${name} the owner`}
                           >
-                            <Crown size={13} />
+                            <Crown size={16} />
                             Make owner
                           </Button>
                         )}
@@ -365,7 +365,7 @@ export function MembersCard() {
                             style={{ color: "var(--rose)" }}
                             aria-label={`Remove ${name}`}
                           >
-                            <UserMinus size={13} />
+                            <UserMinus size={16} />
                             Remove
                           </Button>
                         )}
