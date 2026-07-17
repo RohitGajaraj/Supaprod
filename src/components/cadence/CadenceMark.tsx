@@ -121,7 +121,8 @@ export function CadenceMark({
             style={{
               transformBox: "fill-box",
               transformOrigin: "center",
-              filter: "drop-shadow(0 0 4px color-mix(in oklab, var(--ember, #ff6b2c) 55%, transparent))",
+              filter:
+                "drop-shadow(0 0 4px color-mix(in oklab, var(--ember, #ff6b2c) 55%, transparent))",
             }}
           >
             <circle cx="50" cy="50" r="6.2" fill={`url(#core-${id})`} />

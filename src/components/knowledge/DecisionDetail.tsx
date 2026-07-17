@@ -329,9 +329,7 @@ export function DecisionDetail({ id }: { id: string }) {
               DECIDED {relTimeCaps(d.created_at)}
             </span>
           }
-          traceRef={
-            <AuditTag kind="decision" id={d.id} copyable />
-          }
+          traceRef={<AuditTag kind="decision" id={d.id} copyable />}
         />
 
         {/* Summary band: the call + rationale, led first (calm neutral tint,

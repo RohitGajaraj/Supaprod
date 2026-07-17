@@ -126,7 +126,6 @@ export function NotepadCard() {
           padding: "8px 12px",
           fontSize: 13,
           color: "var(--text-primary)",
-          fontFamily: "var(--font-ui)",
         }}
       />
       <div className="flex items-center justify-end" style={{ marginTop: 8 }}>

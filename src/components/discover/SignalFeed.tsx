@@ -38,7 +38,6 @@ function HeaderRow({ count }: { count: number }) {
         <h2
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
             fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",
@@ -331,21 +330,18 @@ export function SignalFeed() {
             );
           })}
           {rows.length > VISIBLE_SIGNALS ? (
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowAll((v) => !v)}
-              className="loom-press w-full border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
-                fontFamily: "var(--font-ui)",
+                width: "100%",
                 fontSize: 12.5,
                 fontWeight: 500,
-                background: "transparent",
-                borderRadius: "var(--radius-control)",
-                padding: "8px 14px",
               }}
             >
               {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_SIGNALS} more`}
-            </button>
+            </Button>
           ) : null}
         </div>
       )}

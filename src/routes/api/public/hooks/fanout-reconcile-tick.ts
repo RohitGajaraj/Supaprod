@@ -52,7 +52,9 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
         if (unauth) return unauth;
 
         const now = new Date();
-        const staleCutoff = new Date(now.getTime() - BATCH_STALE_HOURS * 60 * 60 * 1000).toISOString();
+        const staleCutoff = new Date(
+          now.getTime() - BATCH_STALE_HOURS * 60 * 60 * 1000,
+        ).toISOString();
 
         // FIX #1: Mark stale pending batches as 'failed' to prevent permanent stuck state.
         // Batches that have been pending for >24h are likely wedged (e.g., missing child run).

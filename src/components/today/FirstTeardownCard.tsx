@@ -157,7 +157,6 @@ export function FirstTeardownCard({
             alignItems: "center",
             height: 32,
             padding: "0 12px",
-            fontFamily: "var(--font-ui)",
             fontSize: 12,
             fontWeight: 500,
             border: "1px solid var(--hairline-strong)",

@@ -36,80 +36,55 @@ export function DataSubstrateCard() {
 
   return (
     <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
-      <div className="mono-label" style={{ display: "flex", alignItems: "center", gap: 7 }}>
+      <div className="text-label-13-mono flex items-center gap-[7px]">
         <Database size={13} strokeWidth={1.8} />
         Where your brain lives
       </div>
 
-      <p
-        className="text-copy-13"
-        style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
-      >
+      <p className="text-copy-13 mt-2 max-w-[520px] text-[var(--ink-muted)]">
         Your workspace runs on a dedicated Postgres database, with pgvector for semantic memory
         search. It is not a shared model or a black box. It is your data, in a database you can
         query, export, and take with you.
       </p>
 
-      <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
-        <div className="mono-label" style={{ fontSize: 10 }}>
-          Ownership
-        </div>
-        <p
-          className="text-copy-13"
-          style={{ color: "var(--ink-muted)", marginTop: 6, maxWidth: 520 }}
-        >
+      <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
+        <div className="text-label-12-mono">Ownership</div>
+        <p className="text-copy-13 mt-[6px] max-w-[520px] text-[var(--ink-muted)]">
           This data is yours. Cadence does not train shared models on it or sell it. The full export
           below is the same data you own, in one file, with no lock-in.
         </p>
       </div>
 
-      <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
-        <div className="mono-label" style={{ fontSize: 10 }}>
-          Archive, delete, forget
-        </div>
-        <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
+      <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
+        <div className="text-label-12-mono">Archive, delete, forget</div>
+        <div className="grid gap-[10px] mt-2">
           {TIERS.map((t) => (
-            <div key={t.label} style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-              <span
-                className="mono-label"
-                style={{ fontSize: 10, color: "var(--ink-subtle)", width: 56, flexShrink: 0 }}
-              >
+            <div key={t.label} className="flex gap-[10px] items-baseline">
+              <span className="text-label-12-mono w-14 shrink-0 text-[var(--ink-subtle)]">
                 {t.label}
               </span>
-              <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0, lineHeight: 1.5 }}>
-                {t.body}
-              </p>
+              <p className="text-copy-13 m-0 leading-[1.5] text-[var(--ink-muted)]">{t.body}</p>
             </div>
           ))}
         </div>
       </div>
 
       {hasSeal && seal && (
-        <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
-          <div className="mono-label" style={{ fontSize: 10 }}>
-            Integrity seal
-          </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 6, maxWidth: 520 }}>
+        <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
+          <div className="text-label-12-mono">Integrity seal</div>
+          <p className="text-copy-13 mt-[6px] max-w-[520px] text-[var(--ink-muted)]">
             A SHA-256 fingerprint of your decision and outcome record, so you can confirm later it
             has not been altered. No blockchain, no keys, just a checksum every user can run.
           </p>
           <Link
             to="/engine-room"
             search={{ room: "record" }}
-            style={{
-              marginTop: 10,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              color: "var(--ink-subtle)",
-            }}
+            className="text-label-12-mono mt-[10px] inline-flex items-center gap-1.5 text-[var(--ink-subtle)]"
           >
             <span className="tabular-nums" title={seal.head}>
               {shortHead(seal.head)}
             </span>
-            <span style={{ color: "var(--ink-faint)" }}>
+            <span className="text-[var(--ink-faint)]">
               · {seal.count} record{seal.count === 1 ? "" : "s"}
             </span>
             <ArrowRight size={11} strokeWidth={1.8} />

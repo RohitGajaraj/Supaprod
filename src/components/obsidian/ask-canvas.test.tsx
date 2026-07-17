@@ -239,17 +239,13 @@ describe("MemoryBlock", () => {
   });
 
   it("displays recall kind as label", () => {
-    const recalls: AskMemoryRecall[] = [
-      { id: "m1", kind: "past session", content: "Some memory" },
-    ];
+    const recalls: AskMemoryRecall[] = [{ id: "m1", kind: "past session", content: "Some memory" }];
     const { container } = render(MemoryBlock({ recalls }) as React.ReactElement);
     expect(container.textContent).toContain("past session");
   });
 
   it("handles recalls with null kind (falls back to 'past session')", () => {
-    const recalls: AskMemoryRecall[] = [
-      { id: "m1", kind: null, content: "Some memory" },
-    ];
+    const recalls: AskMemoryRecall[] = [{ id: "m1", kind: null, content: "Some memory" }];
     const { container } = render(MemoryBlock({ recalls }) as React.ReactElement);
     expect(container.textContent).toContain("past session");
   });
@@ -266,9 +262,7 @@ describe("MemoryBlock", () => {
   });
 
   it("renders with correct block styling", () => {
-    const recalls: AskMemoryRecall[] = [
-      { id: "m1", kind: "past session", content: "Memory" },
-    ];
+    const recalls: AskMemoryRecall[] = [{ id: "m1", kind: "past session", content: "Memory" }];
     const { container } = render(MemoryBlock({ recalls }) as React.ReactElement);
     const block = container.querySelector('[style*="surface-recessed"]');
     expect(block).toBeDefined();

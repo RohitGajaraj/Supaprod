@@ -446,6 +446,7 @@ Picked a strong, self-contained capability in the Interop lane (skipped the IA/U
 ## 2026-07-11 (overnight, founder /goal directive, resuming after a disk-full interruption)
 
 **Shipped this session:**
+
 - **PC-29** (◐→ closed to ~85%): recovered a disk-full-interrupted "felt agent layer" build. Roster-seed collision fix, PresenceChip + station AgentRelay on 5 surfaces, attribution wiring, AskInContext delegation verbs. A 3-lens 9-agent adversarial review caught and fixed 2 real cross-workspace data leaks (getSwarmHud/getAgentFleet missing workspace_id scoping) before ship. Documented remainder: Decide-card attribution (no clean join exists), layer-7 inline approvals (real sub-feature), silent-failure UX (low severity).
 - **PC-30** (◐, read side shipped): the agent capability layer. Real per-workspace skill win-rates from playbook_runs, wired into Brain's Capability lens exactly where PC-34 left the placeholder. Found and fixed a real bug: `context.workspaceId` didn't exist on the auth middleware at all - every call was silently querying with an undefined workspace. Documented remainder: instructions wiring, history/lineage receipts, the 3 learning inlets.
 - **RPT-04** ✅: "designed wrongness" - live-schema-verified via Lovable MCP that the rewind receipt insert targeted 3 nonexistent columns (silently failing every time) AND was marked `status: "approved"` instead of `"rejected"` (backwards from the row's own intent - a correction should count against the agent, not for it). Fixed both.

@@ -88,7 +88,7 @@ const INPUT_STYLE: React.CSSProperties = {
   borderRadius: "var(--ds-radius-small)",
   padding: "0 12px",
   color: "var(--ds-gray-1000)",
-  fontSize: 13,
+  fontSize: "13px",
   fontFamily: "var(--font-sans)",
   boxSizing: "border-box",
 };
@@ -135,8 +135,8 @@ function Frame({
 
 // A full-width clickable card row (the data step's source/paste/demo
 // choices). Tempo chrome: gray 100/200/300 for default/hover/active, 6px
-// radius, alpha borders; the global focus-visible ring applies. Hover and
-// pressed ride React state because the rows are styled inline.
+// radius, alpha borders; the global focus-visible ring applies. All state
+// (hover, active, focus-visible) is CSS-driven for keyboard accessibility.
 function ChoiceCard({
   onClick,
   disabled,
@@ -158,15 +158,7 @@ function ChoiceCard({
    * with an explanation). */
   title?: string;
 }) {
-  const [hover, setHover] = useState(false);
-  const [pressed, setPressed] = useState(false);
   const interactive = !disabled && !busy;
-  const background =
-    interactive && pressed
-      ? "var(--ds-gray-300)"
-      : interactive && hover
-        ? "var(--ds-gray-200)"
-        : "var(--ds-gray-100)";
   return (
     <button
       type="button"
@@ -175,20 +167,13 @@ function ChoiceCard({
       aria-label={ariaLabel}
       title={title}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => {
-        setHover(false);
-        setPressed(false);
-      }}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
       style={{
         textAlign: "left",
         width: "100%",
         padding: "13px 14px",
         borderRadius: "var(--ds-radius-small)",
-        background,
-        border: `1px solid ${hover && interactive ? "var(--ds-gray-alpha-500)" : "var(--ds-gray-alpha-400)"}`,
+        background: "var(--ds-gray-100)",
+        border: "1px solid var(--ds-gray-alpha-400)",
         opacity: dimmed ? 0.45 : 1,
         display: "flex",
         alignItems: "center",
@@ -197,6 +182,28 @@ function ChoiceCard({
         cursor: interactive ? "pointer" : "default",
         transition:
           "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
+      }}
+      onMouseEnter={(e) => {
+        if (interactive) {
+          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-200)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-gray-alpha-500)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (interactive) {
+          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-100)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-gray-alpha-400)";
+        }
+      }}
+      onMouseDown={(e) => {
+        if (interactive) {
+          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-300)";
+        }
+      }}
+      onMouseUp={(e) => {
+        if (interactive) {
+          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-200)";
+        }
       }}
     >
       {children}
@@ -302,7 +309,6 @@ function ProductStep({
   }
 
   const helpStyle: React.CSSProperties = {
-    fontSize: 13,
     color: "var(--ds-gray-900)",
     marginTop: 20,
     marginBottom: 0,
@@ -316,12 +322,14 @@ function ProductStep({
         <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
           What are you building?
         </h1>
-        <p style={{ ...helpStyle, marginTop: 10 }}>
+        <p className="text-copy-13" style={{ ...helpStyle, marginTop: 10 }}>
           A product name, feature, or bet. Cadence will challenge your thinking and show its work.
         </p>
         {needsName ? (
           <>
-            <p style={helpStyle}>First, your name, so Cadence signs every decision with you.</p>
+            <p className="text-copy-13" style={helpStyle}>
+              First, your name, so Cadence signs every decision with you.
+            </p>
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <input
                 autoFocus
@@ -351,7 +359,9 @@ function ProductStep({
           onChange={(e) => setProductName(e.target.value)}
           style={{ ...INPUT_STYLE, marginTop: 20 }}
         />
-        <p style={helpStyle}>In one sentence, what does it do?</p>
+        <p className="text-copy-13" style={helpStyle}>
+          In one sentence, what does it do?
+        </p>
         <input
           aria-label="One sentence description"
           placeholder="e.g. Turns customer conversations into a prioritized roadmap"
@@ -383,7 +393,7 @@ function Screen({ children }: { children: React.ReactNode }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--canvas)",
+        background: "var(--ds-background-100)",
         padding: 24,
       }}
     >
@@ -771,7 +781,10 @@ export function ObsidianOnboarding() {
           >
             Judgment, with receipts.
           </p>
-          <p style={{ fontSize: 13, color: "var(--ds-gray-900)", marginTop: 12, maxWidth: 380 }}>
+          <p
+            className="text-copy-13"
+            style={{ color: "var(--ds-gray-900)", marginTop: 12, maxWidth: 380 }}
+          >
             In the next 10 minutes: name your product, give Cadence one data point, and see what it
             thinks. Receipts included.
           </p>
@@ -834,7 +847,10 @@ export function ObsidianOnboarding() {
                     border: "1px solid var(--ds-red-400)",
                   }}
                 >
-                  <span style={{ fontSize: 12, color: "var(--ds-red-900)", lineHeight: 1.5 }}>
+                  <span
+                    className="text-label-12"
+                    style={{ color: "var(--ds-red-900)", lineHeight: 1.5 }}
+                  >
                     Could not load your sources. Check your connection.
                   </span>
                   <Button
@@ -910,9 +926,9 @@ export function ObsidianOnboarding() {
                       Or paste your notes
                     </span>
                     <span
+                      className="text-label-12"
                       style={{
                         display: "block",
-                        fontSize: 11.5,
                         color: "var(--ds-gray-600)",
                         marginTop: 3,
                       }}
@@ -936,9 +952,9 @@ export function ObsidianOnboarding() {
                         Watch it on demo data first
                       </span>
                       <span
+                        className="text-label-12"
                         style={{
                           display: "block",
-                          fontSize: 11.5,
                           color: "var(--ds-gray-600)",
                           marginTop: 3,
                         }}
@@ -964,7 +980,8 @@ export function ObsidianOnboarding() {
               {connectError ? (
                 <p
                   role="alert"
-                  style={{ fontSize: 11.5, color: "var(--ds-red-900)", marginTop: 4 }}
+                  className="text-label-12"
+                  style={{ color: "var(--ds-red-900)", marginTop: 4 }}
                 >
                   {connectError} · try a different source
                 </p>
@@ -997,7 +1014,7 @@ export function ObsidianOnboarding() {
                   borderRadius: "var(--ds-radius-small)",
                   padding: "10px 12px",
                   color: "var(--ds-gray-1000)",
-                  fontSize: 13,
+                  fontSize: "13px",
                   fontFamily: "var(--font-sans)",
                   boxSizing: "border-box",
                   resize: "vertical",
@@ -1044,7 +1061,7 @@ export function ObsidianOnboarding() {
             value={belief}
             disabled={running}
             onChange={(e) => setBelief(e.target.value)}
-            style={{ ...INPUT_STYLE, fontSize: 13.5, opacity: running ? 0.6 : 1 }}
+            style={{ ...INPUT_STYLE, fontSize: "13.5px", opacity: running ? 0.6 : 1 }}
           />
           {running ? (
             // Critic-run theater: the glacier shimmer cycles the honest
@@ -1054,8 +1071,8 @@ export function ObsidianOnboarding() {
             </div>
           ) : (
             <p
+              className="text-label-12"
               style={{
-                fontSize: 11.5,
                 color: "var(--ds-gray-700)",
                 marginTop: 12,
                 marginBottom: 0,
@@ -1101,13 +1118,13 @@ export function ObsidianOnboarding() {
           ? "var(--ds-red-400)"
           : "var(--ds-amber-400)";
     const sectionLabel: React.CSSProperties = {
-      fontSize: 11,
       color: "var(--ds-gray-900)",
       margin: 0,
       marginBottom: 8,
       textTransform: "uppercase",
       fontWeight: 550,
       letterSpacing: "0.06em",
+      fontSize: "11px",
     };
 
     function leave() {
@@ -1172,7 +1189,8 @@ export function ObsidianOnboarding() {
                     {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
                       <div
                         key={i}
-                        style={{ fontSize: 12, color: "var(--ds-gray-900)", lineHeight: 1.5 }}
+                        className="text-label-12"
+                        style={{ color: "var(--ds-gray-900)", lineHeight: 1.5 }}
                       >
                         • {risk}
                       </div>
@@ -1185,7 +1203,10 @@ export function ObsidianOnboarding() {
               {(criticReview.missing_evidence ?? []).length > 0 ? (
                 <div>
                   <p style={sectionLabel}>What you need to test</p>
-                  <div style={{ fontSize: 12, color: "var(--ds-gray-900)", lineHeight: 1.5 }}>
+                  <div
+                    className="text-label-12"
+                    style={{ color: "var(--ds-gray-900)", lineHeight: 1.5 }}
+                  >
                     {criticReview.missing_evidence[0]}
                   </div>
                 </div>

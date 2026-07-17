@@ -271,9 +271,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
             CAPTURED {relTimeCaps(record.created_at)}
           </span>
         }
-        traceRef={
-          <AuditTag kind="signal" id={record.id} copyable />
-        }
+        traceRef={<AuditTag kind="signal" id={record.id} copyable />}
       />
 
       {/* The glanceable summary: how it reads, where it is from, how many

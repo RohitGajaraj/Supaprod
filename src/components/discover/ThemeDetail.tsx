@@ -60,23 +60,21 @@ const plural = (n: number) => (n === 1 ? "" : "s");
 function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () => void }) {
   return (
     <div className="mt-2" style={{ display: "grid", gap: "12px" }}>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onBack}
-        className="loom-press w-fit outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
+          justifySelf: "flex-start",
           fontFamily: "var(--font-mono)",
           fontSize: "10.5px",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          background: "transparent",
-          border: "none",
           padding: 0,
-          cursor: "pointer",
         }}
       >
         {"< Back to theme"}
-      </button>
+      </Button>
       <SignalRecordBody record={member} />
     </div>
   );
@@ -137,7 +135,7 @@ export function ThemeDetail({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle style={{ fontFamily: "var(--font-ui)", color: "var(--text-primary)" }}>
+          <SheetTitle style={{ color: "var(--text-primary)" }}>
             {activeMember ? "Signal in detail" : title || "Untitled theme"}
           </SheetTitle>
           <SheetDescription style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
@@ -248,17 +246,17 @@ export function ThemeDetail({
                 </MonoLabel>
                 <div style={{ display: "grid", gap: "8px" }}>
                   {groupMembers.map((m) => (
-                    <button
+                    <Button
                       key={m.id}
-                      type="button"
+                      variant="outline"
                       onClick={() => setActiveSignalId(m.id)}
-                      className="loom-press w-full border text-left outline-none transition-[background-color,border-color] [background-color:transparent] [border-color:var(--hairline)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         display: "grid",
                         gap: "4px",
-                        borderRadius: "var(--radius-control)",
+                        justifyContent: "flex-start",
+                        textAlign: "left",
                         padding: "10px 12px",
-                        cursor: "pointer",
+                        height: "auto",
                       }}
                     >
                       <span
@@ -286,7 +284,7 @@ export function ThemeDetail({
                         <span>{relTimeCaps(m.created_at)}</span>
                         <span style={{ color: "var(--text-faint)" }}>{"Open ›"}</span>
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

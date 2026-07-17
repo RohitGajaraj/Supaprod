@@ -125,6 +125,52 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
     });
   });
 
+  it("should detect and bypass stale onBlur events (focus race guard logic)", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+      { label: "Wed", value: 15 },
+    ];
+    const { container } = render(
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
+    );
+
+    const buttons = container.querySelectorAll("button");
+    const btn0 = buttons[0] as HTMLElement;
+    const btn1 = buttons[1] as HTMLElement;
+
+    // Simulate the problematic sequence (equivalent to hover race condition):
+    // 1. Focus on btn0 -> activeIdx becomes 0, readout shows "Mon"
+    btn0.focus();
+    fireEvent.focus(btn0);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Mon");
+    });
+
+    // 2. Focus on btn1 -> activeIdx becomes 1, readout shows "Tue"
+    btn1.focus();
+    fireEvent.focus(btn1);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Tue");
+    });
+
+    // 3. Blur btn0 (a stale event from the old focus) -> should NOT reset
+    //    because the functional updater checks h === i before clearing.
+    //    Since btn1 is now active (h === 1), blurring btn0 (i === 0) does nothing.
+    fireEvent.blur(btn0);
+
+    // 4. Verify "Tue" is STILL shown (not reverted to default or "Mon")
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Tue");
+    });
+
+    // 5. Now blur btn1 intentionally -> activeIdx falls back to the default
+    fireEvent.blur(btn1);
+    await waitFor(() => {
+      // The default active bar is the last one (Wed) when focus is lost
+      expect(getReadout(container).textContent).toContain("Wed");
+    });
+  });
   it("should spotlight the hovered bar and dim the others (inline styles)", async () => {
     const data: SketchBarDatum[] = [
       { label: "Mon", value: 10 },
@@ -335,9 +381,7 @@ describe("SketchLine — Path Rendering (DOM-mounted)", () => {
   it("should handle flat series (all identical values) without crashing and draw baseline when it matches the data range", () => {
     // Flat series where all points have the same value (e.g., [50, 50, 50])
     // sketchLineGeometry should compute a path where all y-coords map to the same position
-    const { container } = render(
-      <SketchLine data={[50, 50, 50]} w={100} h={50} baseline={50} />,
-    );
+    const { container } = render(<SketchLine data={[50, 50, 50]} w={100} h={50} baseline={50} />);
 
     // Should render the SVG and paths without NaN
     const svg = container.querySelector("svg");

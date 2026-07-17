@@ -475,7 +475,6 @@ export function FocusDock() {
                   padding: "8px 12px",
                   fontSize: 13,
                   color: "var(--text-primary)",
-                  fontFamily: "var(--font-ui)",
                 }}
               />
             ) : null}

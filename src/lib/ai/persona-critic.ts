@@ -46,7 +46,10 @@ function coerceObjections(raw: unknown): string[] {
 
 /** Normalize a persona key so "customer-of-record" / "Customer Of Record" map to the canonical kind. */
 function normPersona(k: string): string {
-  return k.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return k
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 }
 
 /**

@@ -22,7 +22,6 @@ import {
 import { FigmaEmbed } from "./editor/FigmaEmbed";
 import { usePrompt } from "@/hooks/use-confirm";
 
-
 // Toolbar button component: factored out to module scope so buttons don't remount
 // on every keystroke (when useEditor triggers a parent re-render).
 function Btn({
@@ -103,8 +102,6 @@ export function DocEditor({
   }, []);
 
   if (!editor) return null;
-
-
 
   function deleteSlashChar() {
     // Remove the "/" the user just typed before inserting the block.

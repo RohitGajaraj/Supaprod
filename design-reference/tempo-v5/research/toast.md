@@ -183,7 +183,7 @@ toasts.error("The Evil Rabbit jumped over the fence.");
 - Keep it to one sentence, sentence case, and drop the trailing period on single-sentence toasts.
 - Completion messages follow a "{Noun} {past participle}" shape (e.g. "Blob deleted", "Domain added", "Environment variable saved") and should never contain the word "successfully" — the past-tense verb already implies success.
 - Error toasts get two full sentences with periods, and the second sentence is always the recovery step (e.g. "Couldn't verify domain. Try again.").
-- Use "Couldn't **_" phrasing for errors caused by user/account state, and "Failed to _**" for system/infrastructure errors — pick one register and don't mix it mid-flow with whatever copy is already shipped nearby.
+- Use "Couldn't **\_" phrasing for errors caused by user/account state, and "Failed to _**" for system/infrastructure errors — pick one register and don't mix it mid-flow with whatever copy is already shipped nearby.
 - Make the toast verb match the button verb that triggered it 1:1 (clicking "Delete Project" should produce "Project deleted", never a different verb like "Project removed").
 - Undo actions must use the literal word "Undo" — never "Restore", "Bring Back", or "Cancel" — and this pattern should only be offered when the rollback is actually safe to perform.
 

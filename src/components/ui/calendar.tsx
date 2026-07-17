@@ -44,12 +44,12 @@ function Calendar({
           defaultClassNames.nav,
         ),
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
+          buttonVariants({ variant: buttonVariant as any }),
           "h-(--cell-size) w-(--cell-size) select-none p-0 aria-disabled:opacity-50",
           defaultClassNames.button_previous,
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
+          buttonVariants({ variant: buttonVariant as any }),
           "h-(--cell-size) w-(--cell-size) select-none p-0 aria-disabled:opacity-50",
           defaultClassNames.button_next,
         ),

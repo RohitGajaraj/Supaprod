@@ -65,14 +65,10 @@ import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 function ZoneHeader({ label, caption }: { label: string; caption?: string }) {
   return (
     <div aria-hidden="true" style={{ padding: "14px 12px 6px", userSelect: "none" }}>
-      <div
-        className="flex items-baseline"
-        style={{ gap: 8 }}
-      >
+      <div className="flex items-baseline" style={{ gap: 8 }}>
         <span
+          className="text-label-12-mono"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
             letterSpacing: "0.14em",
             color: "var(--text-subtle)",
           }}
@@ -81,9 +77,8 @@ function ZoneHeader({ label, caption }: { label: string; caption?: string }) {
         </span>
         {caption ? (
           <span
+            className="text-label-12-mono"
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 9.5,
               letterSpacing: "0.04em",
               color: "var(--text-faint)",
             }}
@@ -144,18 +139,18 @@ function NavRow({
         // loop rows additionally sit on the connecting spine drawn by LoopRail;
         // Today/Brain/Pulse are standalone nodes off the line.
         <span
-          className="relative z-10 shrink-0 inline-flex items-center justify-center"
+          className="relative z-10 shrink-0 inline-flex items-center justify-center text-label-12-mono"
           style={{
             width: 18,
             height: 18,
             borderRadius: 6,
-            fontFamily: "var(--font-mono)",
-            fontSize: 9,
             fontWeight: 600,
             background: active ? "var(--ember)" : "var(--card)",
             color: active ? "#fff" : "var(--text-faint)",
             border: `1px solid ${active ? "var(--ember)" : "var(--hairline-strong)"}`,
-            boxShadow: active ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)" : "none",
+            boxShadow: active
+              ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)"
+              : "none",
           }}
         >
           {navKeyHint(item)}
@@ -167,10 +162,8 @@ function NavRow({
           {badge ? (
             <span
               data-coach-anchor={badgeAnchor}
-              className="inline-flex items-center justify-center"
+              className="inline-flex items-center justify-center text-label-12-mono"
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
                 fontWeight: 700,
                 background: "var(--ember-tint)",
                 color: "var(--ember-text)",
@@ -186,10 +179,8 @@ function NavRow({
           ) : hint ? (
             <span
               aria-hidden="true"
-              className="shrink-0"
+              className="shrink-0 text-label-12-mono"
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
                 color: "var(--text-faint)",
               }}
             >
@@ -202,10 +193,9 @@ function NavRow({
             resting rail. Every other row carries the same line as a tooltip. */}
         {active && item.tagline ? (
           <span
-            className="block truncate"
+            className="block truncate text-label-12"
             style={{
               marginTop: 2,
-              fontSize: 10.5,
               lineHeight: 1.3,
               color: "var(--text-subtle)",
               fontWeight: 400,
@@ -254,9 +244,8 @@ function SampleWorkspaceBanner() {
       }}
     >
       <span
+        className="text-label-12-mono"
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "10.5px",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           color: "var(--text-muted)",
@@ -264,7 +253,7 @@ function SampleWorkspaceBanner() {
       >
         Sample data
       </span>
-      <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+      <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
         This workspace holds example data so you can explore. Connect a real source to start your
         own.
       </span>
@@ -685,8 +674,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       Cadence
                     </span>
                     <span
-                      className="block truncate"
-                      style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                      className="block truncate text-label-12"
+                      style={{ color: "var(--text-subtle)" }}
                     >
                       {activeWorkspace?.name || "Select workspace"}
                       {activeProduct ? ` · ${activeProduct.name}` : ""}
@@ -711,9 +700,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           <span className="truncate font-medium">{w.name}</span>
                           {w.is_sample ? (
                             <span
+                              className="text-label-12-mono"
                               style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "9.5px",
                                 letterSpacing: "0.05em",
                                 textTransform: "uppercase",
                                 color: "var(--text-muted)",
@@ -729,8 +717,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       </span>
                       {oneLiner ? (
                         <span
-                          className="truncate"
-                          style={{ fontSize: 11, color: "var(--text-subtle)" }}
+                          className="truncate text-label-12"
+                          style={{ color: "var(--text-subtle)" }}
                         >
                           {oneLiner}
                           {portfolioRow.callsWaiting > 0
@@ -807,16 +795,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="loom-press flex flex-1 items-center rounded-[8px] border border-[var(--hairline)] bg-[var(--card)] text-[var(--text-subtle)] outline-none transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+              className="loom-press flex flex-1 items-center rounded-[8px] border border-[var(--hairline)] bg-[var(--card)] text-[var(--text-subtle)] text-label-12 outline-none transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
               style={{
                 gap: 8,
                 boxShadow: "var(--top-light)",
                 padding: "7px 10px",
-                fontSize: 12,
               }}
             >
               <span className="flex-1 text-left">Search</span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘K</span>
+              <span className="text-label-12-mono">⌘K</span>
             </button>
           </div>
 
@@ -886,11 +873,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 to="/engine-room"
                 search={{ room: "safety" }}
-                className="block rounded-[8px] outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                className="block rounded-[8px] text-label-12 outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                 style={{
                   border: "1px solid var(--hairline-strong)",
                   padding: "7px 10px",
-                  fontSize: 11,
                   color: "var(--madder)",
                 }}
               >
@@ -935,8 +921,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     title="Your account"
                   />
                   <span
-                    className="flex-1 truncate text-left"
-                    style={{ fontSize: 12, color: "var(--text-muted)" }}
+                    className="flex-1 truncate text-left text-label-12"
+                    style={{ color: "var(--text-muted)" }}
                   >
                     {userName}
                   </span>

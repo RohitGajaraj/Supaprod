@@ -86,27 +86,21 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
 
       {hasReceipts ? (
         <div style={{ marginTop: "2px" }}>
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => setRevealed((v) => !v)}
             aria-expanded={revealed}
-            className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
-              fontFamily: "var(--font-ui)",
               fontSize: 12,
               fontWeight: 500,
-              color: "var(--link)",
-              background: "transparent",
-              border: "none",
               padding: 0,
-              cursor: "pointer",
-              transitionDuration: "140ms",
             }}
           >
             {revealed
               ? "Hide receipts"
               : `${brief.receiptCount} ${brief.receiptCount === 1 ? "receipt" : "receipts"}`}
-          </button>
+          </Button>
           {revealed ? (
             <ul
               style={{
@@ -174,7 +168,6 @@ export function IntelBriefPanel() {
         <h2
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
             fontSize: 16,
             fontWeight: 600,
             color: "var(--text-primary)",
@@ -231,7 +224,6 @@ export function IntelBriefPanel() {
                 // would defeat the hover:[border-color:…] variant.
                 className="loom-press w-full outline-none transition-colors [color:var(--text-muted)] [border-color:var(--hairline-strong)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
                   fontWeight: 500,
                   background: "transparent",

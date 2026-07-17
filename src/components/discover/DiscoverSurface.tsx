@@ -59,9 +59,7 @@ function ConstellationMotif() {
   );
 }
 
-const TABS: { id: "signals" | "queue"; label: string }[] = [
-  { id: "signals", label: "Signals" },
-];
+const TABS: { id: "signals" | "queue"; label: string }[] = [{ id: "signals", label: "Signals" }];
 
 /** The two-tab switch between the signal pipeline and the absorbed Decide
  * queue. A real tablist (roving tabindex, arrow keys, Home/End) whose active
@@ -121,7 +119,6 @@ function TabBar({
                 : "[color:var(--text-muted)] hover:[color:var(--text-body)]"
             }`}
             style={{
-              fontFamily: "var(--font-ui)",
               fontSize: "13px",
               fontWeight: selected ? 600 : 500,
               height: "36px",
@@ -161,8 +158,13 @@ export function DiscoverSurface() {
   // simply lands on Signals. The queue lives at /decide.
   void tab;
   const activeTab = "signals" as "signals" | "queue";
-  const { activeProductId, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =
-    useWorkspace();
+  const {
+    activeProductId,
+    activeWorkspace,
+    activeWorkspaceId,
+    setActiveWorkspaceId,
+    refreshWorkspaces,
+  } = useWorkspace();
   const fSignals = useServerFn(listSignals);
   const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
   const fTriggerSample = useServerFn(triggerSampleWorkspace);
@@ -224,200 +226,206 @@ export function DiscoverSurface() {
 
   return (
     <>
-    <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Discover"]} />
-    <div
-      className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
-      style={{
-        maxWidth: "var(--container-standard)",
-        width: "100%",
-        padding: "36px 32px 64px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Loom §2b glow field: the one ambient wash behind the hero (default
-          glacier, the machine surface light). */}
-      <div aria-hidden="true" className="loom-glow-field" />
-      <PageHeader
-        eyebrow="The Loop · 01 Discover"
-        title="Raw signal in,"
-        accent="ranked bets out."
-        subtitle="The evidence desk: every opportunity ranked and cited back to the signals behind it."
-        usp="The reasoning engine clusters raw signals into ranked, cited bets, so you decide what matters instead of sifting noise."
-      />
-      {presenceAgent ? (
-        <div style={{ marginBottom: 14 }}>
-          <PresenceChip
-            agentSlug={presenceAgent.slug}
-            station={activeTab === "queue" ? "decide" : "discover"}
-            state={presenceAgent.state === "working" ? "working" : "idle"}
-            lastActedAt={presenceAgent.lastActiveAt}
-          />
-        </div>
-      ) : null}
-      {/* The pipeline sentence, once at the top: the whole front of the loop
-          in three plain steps. */}
-      <p
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Discover"]} />
+      <div
+        className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
         style={{
-          fontSize: "13px",
-          lineHeight: 1.6,
-          color: "var(--text-muted)",
-          maxWidth: "640px",
-          margin: "0 0 20px",
+          maxWidth: "var(--container-standard)",
+          width: "100%",
+          padding: "36px 32px 64px",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        Signals cluster into bets. Bets get decided. Decided bets become specs.
-      </p>
-
-      {activeTab === "queue" ? (
-        <div
-          role="tabpanel"
-          id="discover-panel-queue"
-          aria-labelledby="discover-tab-queue"
-          style={{ maxWidth: "880px" }}
+        {/* Loom §2b glow field: the one ambient wash behind the hero (default
+          glacier, the machine surface light). */}
+        <div aria-hidden="true" className="loom-glow-field" />
+        <PageHeader
+          eyebrow="The Loop · 01 Discover"
+          title="Raw signal in,"
+          accent="ranked bets out."
+          subtitle="The evidence desk: every opportunity ranked and cited back to the signals behind it."
+          usp="The reasoning engine clusters raw signals into ranked, cited bets, so you decide what matters instead of sifting noise."
+        />
+        {presenceAgent ? (
+          <div style={{ marginBottom: 14 }}>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station={activeTab === "queue" ? "decide" : "discover"}
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
+          </div>
+        ) : null}
+        {/* The pipeline sentence, once at the top: the whole front of the loop
+          in three plain steps. */}
+        <p
+          style={{
+            fontSize: "13px",
+            lineHeight: 1.6,
+            color: "var(--text-muted)",
+            maxWidth: "640px",
+            margin: "0 0 20px",
+          }}
         >
-          <p
-            style={{
-              fontSize: "var(--text-base)",
-              color: "var(--text-muted)",
-              margin: "0 0 20px",
-              maxWidth: "640px",
-              lineHeight: 1.6,
-            }}
-          >
-            The ranked opportunities, red-teamed by the Critic. Promote what is worth building and
-            it moves to Plan.
-          </p>
-          {/* PC-29 layer 4: the inline relay, live only while the queue has a
-              run going (e.g. the Critic red-teaming a bet). */}
-          <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
-          <OpportunityQueue />
-        </div>
-      ) : (
-        <div role="tabpanel" id="discover-panel-signals" aria-labelledby="discover-tab-signals">
-          {/* PC-29 layer 4: the inline relay, live only while Sense has a run
-              going. Reuses the same station data as PresenceChip above -
-              quiet when nothing is working. */}
-          <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
+          Signals cluster into bets. Bets get decided. Decided bets become specs.
+        </p>
 
-          {signalsEmpty ? (
-            <div
-              className="material-medium"
+        {activeTab === "queue" ? (
+          <div
+            role="tabpanel"
+            id="discover-panel-queue"
+            aria-labelledby="discover-tab-queue"
+            style={{ maxWidth: "880px" }}
+          >
+            <p
               style={{
-                padding: "44px 40px",
-                textAlign: "center",
+                fontSize: "var(--text-base)",
+                color: "var(--text-muted)",
+                margin: "0 0 20px",
+                maxWidth: "640px",
+                lineHeight: 1.6,
               }}
             >
-              <ConstellationMotif />
-              {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
+              The ranked opportunities, red-teamed by the Critic. Promote what is worth building and
+              it moves to Plan.
+            </p>
+            {/* PC-29 layer 4: the inline relay, live only while the queue has a
+              run going (e.g. the Critic red-teaming a bet). */}
+            <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
+            <OpportunityQueue />
+          </div>
+        ) : (
+          <div role="tabpanel" id="discover-panel-signals" aria-labelledby="discover-tab-signals">
+            {/* PC-29 layer 4: the inline relay, live only while Sense has a run
+              going. Reuses the same station data as PresenceChip above -
+              quiet when nothing is working. */}
+            <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
+
+            {signalsEmpty ? (
+              <div
+                className="material-medium"
+                style={{
+                  padding: "44px 40px",
+                  textAlign: "center",
+                }}
+              >
+                <ConstellationMotif />
+                {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
                   the empty-state headline, short and display-only, never the
                   supporting line beneath it. */}
-              <p
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  fontSize: "20px",
-                  lineHeight: 1.3,
-                  color: "var(--text-primary)",
-                  margin: "0 0 6px",
-                }}
-              >
-                Nothing sensed yet
-              </p>
-              <p
-                style={{
-                  fontSize: "var(--text-base)",
-                  color: "var(--text-body)",
-                  margin: "0 0 16px",
-                }}
-              >
-                Connect a source and give it ten minutes.
-              </p>
-              <Button
-                variant="primary"
-                style={{
-                  background:
-                    "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
-                  color: "var(--cta-ink)",
-                }}
-                onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
-              >
-                Connect a source
-              </Button>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-subtle)",
-                  marginTop: "10px",
-                }}
-              >
-                Opens Connections · reading starts the moment a source is linked
-              </p>
-              {sampleOffered ? (
-                <div
+                <p
                   style={{
-                    marginTop: "22px",
-                    paddingTop: "20px",
-                    borderTop: "1px solid var(--hairline)",
+                    fontFamily: "var(--font-pixel)",
+                    fontSize: "20px",
+                    lineHeight: 1.3,
+                    color: "var(--text-primary)",
+                    margin: "0 0 6px",
                   }}
                 >
-                  <Button
-                    variant="tertiary"
-                    disabled={sampleMutation.isPending}
-                    onClick={() => sampleMutation.mutate()}
-                  >
-                    {sampleMutation.isPending
-                      ? "Opening sample workspace…"
-                      : "Explore a sample workspace"}
-                  </Button>
-                  <p
+                  Nothing sensed yet
+                </p>
+                <p
+                  style={{
+                    fontSize: "var(--text-base)",
+                    color: "var(--text-body)",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  Connect a source and give it ten minutes.
+                </p>
+                <Button
+                  variant="primary"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                    color: "var(--cta-ink)",
+                  }}
+                  onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+                >
+                  Connect a source
+                </Button>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--text-subtle)",
+                    marginTop: "10px",
+                  }}
+                >
+                  Opens Connections · reading starts the moment a source is linked
+                </p>
+                {sampleOffered ? (
+                  <div
                     style={{
-                      fontSize: "12px",
-                      color: "var(--text-subtle)",
-                      marginTop: "10px",
+                      marginTop: "22px",
+                      paddingTop: "20px",
+                      borderTop: "1px solid var(--hairline)",
                     }}
                   >
-                    Opens a separate Explore workspace of clearly labelled example data · your own
-                    workspace stays empty · about 5 seconds
-                  </p>
-                  {sampleMutation.isError ? (
-                    // An error wears error clothes (madder), never quiet gray.
-                    <p style={{ fontSize: "12px", color: "var(--madder)", marginTop: "6px" }}>
-                      Could not open the sample workspace. Try again.
+                    <Button
+                      variant="tertiary"
+                      disabled={sampleMutation.isPending}
+                      onClick={() => sampleMutation.mutate()}
+                    >
+                      {sampleMutation.isPending
+                        ? "Opening sample workspace…"
+                        : "Explore a sample workspace"}
+                    </Button>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--text-subtle)",
+                        marginTop: "10px",
+                      }}
+                    >
+                      Opens a separate Explore workspace of clearly labelled example data · your own
+                      workspace stays empty · about 5 seconds
                     </p>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 items-start lg:grid-cols-2" style={{ gap: "24px" }}>
-                <div className="min-w-0">
-                  <SignalFeed />
-                </div>
-                <div className="min-w-0">
-                  <AutoClustered />
-                </div>
+                    {sampleMutation.isError ? (
+                      // An error wears error clothes (madder), never quiet gray.
+                      <p style={{ fontSize: "12px", color: "var(--madder)", marginTop: "6px" }}>
+                        Could not open the sample workspace. Try again.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
+            ) : (
+              <>
+                <div
+                  className="grid grid-cols-1 items-start lg:grid-cols-2"
+                  style={{ gap: "24px" }}
+                >
+                  <div className="min-w-0">
+                    <SignalFeed />
+                  </div>
+                  <div className="min-w-0">
+                    <AutoClustered />
+                  </div>
+                </div>
 
-              {/* Market watch: the tracked competitors + platforms and the
+                {/* Market watch: the tracked competitors + platforms and the
                   weekly briefs Cadence writes when one of them moves. Lives
                   below the signal pipeline as its own labelled section so its
                   purpose reads plainly. */}
-              <div style={{ marginTop: 44 }}>
-                <h2 className="text-heading-16" style={{ margin: 0, color: "var(--text-primary)" }}>
-                  Market watch
-                </h2>
-                <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
-                  Competitors and platforms you track. Cadence writes you a brief the first Monday
-                  after one of them actually moves.
-                </p>
-                <StrategySection />
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
+                <div style={{ marginTop: 44 }}>
+                  <h2
+                    className="text-heading-16"
+                    style={{ margin: 0, color: "var(--text-primary)" }}
+                  >
+                    Market watch
+                  </h2>
+                  <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+                    Competitors and platforms you track. Cadence writes you a brief the first Monday
+                    after one of them actually moves.
+                  </p>
+                  <StrategySection />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }

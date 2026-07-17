@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
-import { Avatar, orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/cadence/Avatar";
+import {
+  Avatar,
+  orbBackground,
+  AVATAR_VARIANTS,
+  defaultAvatarVariant,
+} from "@/components/cadence/Avatar";
 import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";

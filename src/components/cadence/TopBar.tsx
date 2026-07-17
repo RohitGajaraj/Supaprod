@@ -27,8 +27,8 @@ function ThemeToggle() {
       title={`Theme: ${theme} — click for ${next}`}
       className="loom-press inline-flex items-center justify-center outline-none transition-colors duration-150 hover:text-[var(--text-primary)] hover:border-[var(--hairline-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
       style={{
-        width: 30,
-        height: 30,
+        width: 32,
+        height: 32,
         borderRadius: 999,
         border: "1px solid var(--hairline)",
         background: "color-mix(in oklab, var(--card) 70%, transparent)",
@@ -95,7 +95,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         height: 52,
         flexShrink: 0,
         borderBottom: "1px solid var(--hairline-faint)",
-        background: "color-mix(in oklab, var(--canvas) 68%, transparent)",
+        background: "color-mix(in oklab, var(--ds-background-100) 68%, transparent)",
         backdropFilter: "blur(14px) saturate(1.5)",
         WebkitBackdropFilter: "blur(14px) saturate(1.5)",
         position: "sticky",

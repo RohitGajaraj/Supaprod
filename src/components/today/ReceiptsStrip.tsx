@@ -168,7 +168,6 @@ export function ReceiptsStrip({
                   onClick={clickable ? () => onOpenMission(g.key) : onOpenActivity}
                   className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontFamily: "var(--font-ui)",
                     fontSize: 12,
                     fontWeight: 500,
                     color: "var(--link)",
@@ -194,7 +193,6 @@ export function ReceiptsStrip({
           onClick={onOpenActivity}
           className="loom-press self-start outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontFamily: "var(--font-ui)",
             fontSize: 12,
             fontWeight: 500,
             color: "var(--link)",

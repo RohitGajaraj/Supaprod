@@ -36,17 +36,17 @@ export function CostPerOutcomeChip() {
         marginTop: 12,
         paddingTop: 12,
         borderTop: "1px solid var(--hairline)",
-        color: "var(--ink-subtle)",
+        color: "var(--ds-gray-900)",
       }}
     >
-      <span style={{ color: "var(--ink-faint)" }}>Shipped this week</span>
-      <span style={{ color: "var(--ink)" }}>
+      <span style={{ color: "var(--ds-gray-700)" }}>Shipped this week</span>
+      <span style={{ color: "var(--ds-gray-1000)" }}>
         {outcomes.length > 0 ? outcomes.join(" · ") : "nothing yet"}
       </span>
-      <span style={{ color: "var(--ink-faint)" }}>for</span>
-      <span style={{ color: "var(--ink)" }}>${d.weekSpendUsd.toFixed(2)}</span>
+      <span style={{ color: "var(--ds-gray-700)" }}>for</span>
+      <span style={{ color: "var(--ds-gray-1000)" }}>${d.weekSpendUsd.toFixed(2)}</span>
       {d.monthCapUsd != null && (
-        <span style={{ marginLeft: "auto", color: "var(--ink-faint)" }}>
+        <span style={{ marginLeft: "auto", color: "var(--ds-gray-700)" }}>
           ${d.monthUsedUsd.toFixed(2)} of ${d.monthCapUsd.toFixed(0)} this month
         </span>
       )}

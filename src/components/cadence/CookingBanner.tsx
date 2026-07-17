@@ -13,7 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { getLiveRunCounts } from "@/lib/agents.functions";
-import { CadenceMark } from "./Primitives";
+import { CadenceMark } from "./CadenceMark";
 
 const BANNER_KEY = "cadence:cooking-banner-dismissed:v2";
 const PILL_KEY = "cadence:construction-pill-dismissed:v1";
@@ -73,7 +73,7 @@ export function CookingBanner() {
         className="mono-label"
         style={{
           fontSize: 9.5,
-          color: "var(--ink-muted)",
+          color: "var(--ds-gray-800)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",

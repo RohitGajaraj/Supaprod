@@ -165,7 +165,9 @@ function TranscriptCard({
           {expanded && transcript.chunks.length === 0 && transcript.transcript_text && (
             <>
               <Separator />
-              <p className="text-sm text-foreground leading-relaxed">{transcript.transcript_text}</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                {transcript.transcript_text}
+              </p>
             </>
           )}
 
@@ -182,7 +184,9 @@ function TranscriptCard({
                       <span className="text-emerald-500 mt-0.5">+</span>
                       <div>
                         <span className="font-medium">{item.title}</span>
-                        {item.owner && <span className="text-muted-foreground ml-1">— {item.owner}</span>}
+                        {item.owner && (
+                          <span className="text-muted-foreground ml-1">— {item.owner}</span>
+                        )}
                         {item.due_date && (
                           <span className="text-muted-foreground ml-1">by {item.due_date}</span>
                         )}
@@ -342,7 +346,9 @@ export function AudioTranscriptPanel() {
         <div className="rounded-lg border-2 border-dashed border-border py-8 text-center">
           <Mic className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">No transcripts yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Upload a meeting recording to get started</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Upload a meeting recording to get started
+          </p>
         </div>
       )}
 

@@ -673,18 +673,18 @@ First step: book the first session. [CALENDAR LINK]
 
 ## Approval tracker
 
-| # | Asset | Slot | Approved |
-| --- | --- | --- | --- |
-| 1 | Founder story thread (X) | Day 3 AM | [ ] |
-| 2 | Founder story (LinkedIn) | Day 3 AM | [ ] |
-| 3 | Receipts drop (X + LI + video) | Day 4 AM | [ ] |
-| 4 | Teardown #1 case choice + thread | Day 5 AM | [ ] |
-| 5 | Challenge post | Day 5 PM | [ ] |
-| 6 | While-you-sleep post + AMA promo | Day 6 | [ ] |
-| 7 | Launch Ledger recap | Day 7 | [ ] |
-| 8 | DM templates (a-d) + each send batch | Days 2-7 | [ ] |
-| 9 | Community posts (a-c) per community | Days 4-6 | [ ] |
-| 10 | Newsletter/podcast target list + sends | Day 4 | [ ] |
-| 11 | Waitlist page + emails | Day 1 | [ ] |
+| #   | Asset                                  | Slot     | Approved |
+| --- | -------------------------------------- | -------- | -------- |
+| 1   | Founder story thread (X)               | Day 3 AM | [ ]      |
+| 2   | Founder story (LinkedIn)               | Day 3 AM | [ ]      |
+| 3   | Receipts drop (X + LI + video)         | Day 4 AM | [ ]      |
+| 4   | Teardown #1 case choice + thread       | Day 5 AM | [ ]      |
+| 5   | Challenge post                         | Day 5 PM | [ ]      |
+| 6   | While-you-sleep post + AMA promo       | Day 6    | [ ]      |
+| 7   | Launch Ledger recap                    | Day 7    | [ ]      |
+| 8   | DM templates (a-d) + each send batch   | Days 2-7 | [ ]      |
+| 9   | Community posts (a-c) per community    | Days 4-6 | [ ]      |
+| 10  | Newsletter/podcast target list + sends | Day 4    | [ ]      |
+| 11  | Waitlist page + emails                 | Day 1    | [ ]      |
 
 Nothing on this page sends without its box checked. Standing rule.

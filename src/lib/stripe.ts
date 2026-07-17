@@ -1,15 +1,40 @@
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 
-type StripeEnv = "sandbox" | "live";
+export type StripeEnv = "sandbox" | "live";
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
 
-function paymentsEnvironment(): StripeEnv {
-  if (clientToken?.startsWith("pk_test_")) return "sandbox";
-  if (clientToken?.startsWith("pk_live_")) return "live";
+/**
+ * Pure function to parse Stripe environment from a publishable key token.
+ *
+ * Testable in isolation without depending on import.meta.env capture.
+ * @param token - Stripe publishable key (pk_test_*, pk_live_*, or undefined)
+ * @returns "sandbox" for pk_test_*, "live" for pk_live_*, null if undefined/unconfigured
+ * @throws if token is a non-standard prefix (should not happen with real Stripe keys)
+ */
+export function parseStripeEnv(token: string | undefined): StripeEnv | null {
+  if (!token) return null;
+
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("pk_test_")) return "sandbox";
+  if (trimmed.startsWith("pk_live_")) return "live";
+
+  // Reject malformed tokens (not a recognized Stripe prefix)
   throw new Error(
     "Payments are not configured for this build. Complete payment provider go-live to enable production checkout.",
   );
+}
+
+function paymentsEnvironment(): StripeEnv {
+  const env = parseStripeEnv(clientToken);
+  if (env === null) {
+    throw new Error(
+      "Payments are not configured for this build. Complete payment provider go-live to enable production checkout.",
+    );
+  }
+  return env;
 }
 
 /**
@@ -19,12 +44,12 @@ function paymentsEnvironment(): StripeEnv {
  * surfaces as an uncaught exception. Only a real checkout attempt may throw.
  */
 export function paymentsConfigured(): boolean {
-  return !!clientToken?.startsWith("pk_test_") || !!clientToken?.startsWith("pk_live_");
+  return parseStripeEnv(clientToken) !== null;
 }
 
 /** Non-throwing variant for ambient consumers (banners, polls). */
 export function getStripeEnvironmentOrNull(): StripeEnv | null {
-  return paymentsConfigured() ? paymentsEnvironment() : null;
+  return parseStripeEnv(clientToken);
 }
 
 let stripePromise: Promise<Stripe | null> | null = null;

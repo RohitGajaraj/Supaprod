@@ -10,13 +10,13 @@
 
 ## 1. Source inventory
 
-| Source | What it showed | Where analyzed |
-| --- | --- | --- |
-| Homepage hero screenshot ("Agentic Infrastructure") | The monumental three-zone hero | Section 2.1 |
-| Screen recording + stills: Notion, Zapier, Mintlify showcase sections | The customer-showcase grammar | Section 2.2 |
-| "Recently shipped" screenshot | The artifact bento | Section 2.3 |
-| rauno.me/craft (six entries fetched) | The craft micro-rules behind the above | Section 4 |
-| YC "How to Design With AI" (Head of Design episode, 2026-07-10) | The production method behind pages like these | Section 5 |
+| Source                                                                | What it showed                                | Where analyzed |
+| --------------------------------------------------------------------- | --------------------------------------------- | -------------- |
+| Homepage hero screenshot ("Agentic Infrastructure")                   | The monumental three-zone hero                | Section 2.1    |
+| Screen recording + stills: Notion, Zapier, Mintlify showcase sections | The customer-showcase grammar                 | Section 2.2    |
+| "Recently shipped" screenshot                                         | The artifact bento                            | Section 2.3    |
+| rauno.me/craft (six entries fetched)                                  | The craft micro-rules behind the above        | Section 4      |
+| YC "How to Design With AI" (Head of Design episode, 2026-07-10)       | The production method behind pages like these | Section 5      |
 
 ## 2. The Vercel homepage anatomy (what is actually on the page)
 
