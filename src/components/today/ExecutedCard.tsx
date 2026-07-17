@@ -17,7 +17,7 @@ import { MonoLabel } from "@/components/cadence/Primitives";
 // map as DecisionCard: the safe case stays gray, elevated risk wears the
 // warning/danger role tokens.
 const REVERSIBILITY_COLOR: Record<Reversibility, string> = {
-  reversible: "var(--ink-faint)",
+  reversible: "var(--ds-gray-700)",
   partial: "var(--marigold)",
   irreversible: "var(--rose)",
 };
@@ -46,7 +46,7 @@ export function ExecutedCard() {
       <p
         style={{
           fontSize: 11.5,
-          color: "var(--ink-subtle)",
+          color: "var(--ds-gray-900)",
           lineHeight: 1.45,
           margin: "2px 0 10px",
         }}
@@ -69,15 +69,15 @@ export function ExecutedCard() {
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                 {/* Gray attribution (accent restraint 2026-07-11): settled work
                     carries no standing agent tint. */}
-                <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-muted)" }}>
+                <span className="mono-label" style={{ fontSize: 9, color: "var(--ds-gray-800)" }}>
                   {who}
                 </span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ds-gray-1000)" }}>
                   {r.tool_name}
                 </span>
                 <span
                   className="mono-label"
-                  style={{ fontSize: 8.5, color: "var(--ink-faint)", marginLeft: "auto" }}
+                  style={{ fontSize: 8.5, color: "var(--ds-gray-700)", marginLeft: "auto" }}
                 >
                   {timeAgo(r.created_at)}
                 </span>
@@ -85,7 +85,7 @@ export function ExecutedCard() {
               <p
                 style={{
                   fontSize: 12,
-                  color: "var(--ink-muted)",
+                  color: "var(--ds-gray-800)",
                   margin: "4px 0 0",
                   lineHeight: 1.4,
                 }}
@@ -122,7 +122,7 @@ export function ExecutedCard() {
                   />
                   {REVERSIBILITY_LABEL[c.reversible]}
                 </span>
-                <span style={{ fontSize: 11, color: "var(--ink-subtle)" }}>{c.undo}</span>
+                <span style={{ fontSize: 11, color: "var(--ds-gray-900)" }}>{c.undo}</span>
               </div>
             </div>
           );

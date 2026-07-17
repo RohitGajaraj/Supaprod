@@ -42,7 +42,7 @@ export function AttentionBell() {
     if (top === null) return n.severity;
     return SEVERITY_RANK[n.severity] < SEVERITY_RANK[top] ? n.severity : top;
   }, null);
-  const accent = topSeverity ? SEVERITY_COLOR[topSeverity] : "var(--ink-faint)";
+  const accent = topSeverity ? SEVERITY_COLOR[topSeverity] : "var(--ds-gray-700)";
 
   const label =
     count === 0

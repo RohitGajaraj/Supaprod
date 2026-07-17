@@ -37,7 +37,7 @@ export function BudgetBar() {
   // Reference BudgetChip (shell.jsx): mono "$burn / $cap" + slim 52px bar,
   // toned by burn fraction — ink → ember → madder as the cap approaches.
   const tone =
-    pct >= 100 || pct >= alertAt ? "var(--rose)" : pct > 50 ? "var(--coral)" : "var(--ink-subtle)";
+    pct >= 100 || pct >= alertAt ? "var(--rose)" : pct > 50 ? "var(--coral)" : "var(--ds-gray-900)";
   return (
     <Link
       to="/budgets"

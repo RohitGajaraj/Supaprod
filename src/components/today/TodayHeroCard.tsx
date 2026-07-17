@@ -87,7 +87,7 @@ export function TodayHeroCard({
             weight so the day opens with them, not with chrome. */}
         <div
           style={{
-            fontSize: 15,
+            fontSize: 14,
             lineHeight: 1.2,
             color: "var(--text-muted)",
             marginBottom: 14,

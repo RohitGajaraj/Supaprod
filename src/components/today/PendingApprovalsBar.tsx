@@ -28,13 +28,13 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
         borderRadius: 8,
         border: "1px solid var(--hairline)",
         background: "var(--surface-2)",
-        color: "var(--ink-muted)",
+        color: "var(--ds-gray-800)",
         fontSize: 12.5,
         textDecoration: "none",
       }}
     >
-      <Inbox size={14} strokeWidth={1.75} style={{ color: "var(--ink-faint)", flexShrink: 0 }} />
-      <span style={{ color: "var(--ink)" }}>
+      <Inbox size={14} strokeWidth={1.75} style={{ color: "var(--ds-gray-700)", flexShrink: 0 }} />
+      <span style={{ color: "var(--ds-gray-1000)" }}>
         {count} pending approval{count === 1 ? "" : "s"}
       </span>
       {attention > 0 && (

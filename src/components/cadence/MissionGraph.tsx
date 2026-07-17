@@ -197,7 +197,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               close
             </button>
           </div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 5 }}>{sel.goal}</div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-gray-800)", marginTop: 5 }}>{sel.goal}</div>
           {sel.note ? (
             <div style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
           ) : null}

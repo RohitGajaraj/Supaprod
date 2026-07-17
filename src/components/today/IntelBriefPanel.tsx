@@ -168,7 +168,6 @@ export function IntelBriefPanel() {
         <h2
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
             fontSize: 16,
             fontWeight: 600,
             color: "var(--text-primary)",
@@ -225,7 +224,6 @@ export function IntelBriefPanel() {
                 // would defeat the hover:[border-color:…] variant.
                 className="loom-press w-full outline-none transition-colors [color:var(--text-muted)] [border-color:var(--hairline-strong)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
                   fontWeight: 500,
                   background: "transparent",

@@ -34,7 +34,6 @@ export function ProductMasthead({
     >
       <span
         style={{
-          fontFamily: "var(--font-ui)",
           fontSize: 12.5,
           fontWeight: 550,
           color: "var(--text-body)",
@@ -47,7 +46,6 @@ export function ProductMasthead({
       <span
         className="min-w-0 truncate transition-colors [color:var(--text-muted)] group-hover:[color:var(--text-body)]"
         style={{
-          fontFamily: "var(--font-ui)",
           fontSize: 12.5,
           transitionDuration: "140ms",
         }}
