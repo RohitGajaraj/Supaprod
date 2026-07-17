@@ -50,7 +50,7 @@
 //     ("evals · guardrails") but never as the headline.
 
 export type AgentFace = "scout" | "strategist" | "critic" | "scribe" | "chief-of-staff";
-export type AgentStation = "sense" | "decide" | "define" | "build" | "ship" | "learn";
+export type AgentStation = "sense" | "decide" | "define" | "design" | "build" | "ship" | "learn";
 export type AgentTier = "cast" | "crew";
 
 export interface AgentFaceMeta {
@@ -102,7 +102,12 @@ export interface AgentStationMeta {
   blurb: string;
 }
 
-/** The six stations, in loop order. The standing spine the user navigates. */
+/** The seven stations, in loop order. The standing spine the user navigates.
+ *  ("Design" joined 2026-07-17, PC-29 repair pass: the Tempo nav revamp
+ *  (2026-07-13) added Design as its own loop stage between Plan and Build,
+ *  but the agent-experience canon was never updated to match - ux-architect
+ *  carried the display name "Design" while still bucketed under "define",
+ *  so its live relay showed Plan's drafting activity instead of its own.) */
 export const AGENT_STATIONS: Record<AgentStation, AgentStationMeta> = {
   sense: {
     id: "sense",
@@ -121,6 +126,12 @@ export const AGENT_STATIONS: Record<AgentStation, AgentStationMeta> = {
     name: "Plan",
     verb: "plans",
     blurb: "Turns the decision into a spec and a plan.",
+  },
+  design: {
+    id: "design",
+    name: "Design",
+    verb: "designs",
+    blurb: "Maps the experience and renders it through your brand.",
   },
   build: {
     id: "build",
@@ -146,6 +157,7 @@ export const AGENT_STATION_ORDER: AgentStation[] = [
   "sense",
   "decide",
   "define",
+  "design",
   "build",
   "ship",
   "learn",
@@ -259,18 +271,6 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
     status: "active",
   },
   {
-    slug: "ux-architect",
-    name: "Design",
-    station: "define",
-    face: "scribe",
-    tier: "cast",
-    relayVerb: "mapping the experience",
-    blurb: "Maps the experience and the flows.",
-    hue: "oklch(0.585 0.12 213)",
-    glyph: "pen-tool",
-    status: "active",
-  },
-  {
     slug: "sprint-planner",
     name: "Plan",
     station: "define",
@@ -280,6 +280,19 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
     blurb: "Breaks the spec into sprint-ready work.",
     hue: "oklch(0.55 0.11 180)",
     glyph: "list-checks",
+    status: "active",
+  },
+  // --- CAST: Design ---
+  {
+    slug: "ux-architect",
+    name: "Design",
+    station: "design",
+    face: "scribe",
+    tier: "cast",
+    relayVerb: "mapping the experience",
+    blurb: "Maps the experience and renders it through your brand.",
+    hue: "oklch(0.585 0.12 213)",
+    glyph: "pen-tool",
     status: "active",
   },
   // --- CAST: Build ---

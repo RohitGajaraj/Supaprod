@@ -59,8 +59,8 @@ Internal DB slugs are never renamed (the rename-disclaimer rule). Naming and ide
 | **Decide**  | Strategist     | `strategist`                        | cast           | Ranks and re-scores the bets by impact.                   |
 | Decide      | Critic         | `critic` (NEW agent row)            | cast           | Red-teams the call before you commit.                     |
 | **Define**  | Scribe         | `prd-writer`                        | cast           | Turns the decision into a clear spec.                     |
-| Define      | Sketch         | `ux-architect` (re-enable)          | cast           | Maps the experience and the flows.                        |
 | Define      | Planner        | `sprint-planner` (re-enable)        | cast           | Breaks the spec into sprint-ready work.                   |
+| **Design**  | Design         | `ux-architect` (2026-07-17: moved off Define onto its own station - the Tempo nav revamp gave Design a first-class loop stage, but the agent canon still had this cast member bucketed under Define, so its relay showed Plan's activity instead of its own) | cast | Maps the experience and renders it through your brand.    |
 | **Build**   | Maker          | `builder` (display "Studio" today)  | cast           | Writes the change in your codebase.                       |
 | Build       | Reviewer       | `reviewer` (NEW; or re-enable `qa`) | cast           | Checks the diff before it ships.                          |
 | **Ship**    | Herald         | `herald` (NEW)                      | cast           | Announces what shipped: notes, changelog, post.           |

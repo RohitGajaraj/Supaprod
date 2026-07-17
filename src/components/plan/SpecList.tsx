@@ -23,7 +23,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { relTimeCaps } from "@/components/discover/format";
 import { AuditTag } from "@/components/cadence/AuditTag";
+import { InlineApprovalMarker } from "@/components/studio/InlineApprovalMarker";
+import { useSpecApprovals } from "@/hooks/use-mission-approvals";
 import { stateChip, citesLabel } from "./format";
+
+/** PC-29 layer 7 (2026-07-17): the inline gate marker for a single spec row,
+ * split out so its hook only runs per-row (not once for the whole list). */
+function SpecApprovalMarker({ prdId }: { prdId: string }) {
+  const approvals = useSpecApprovals(prdId);
+  if (!approvals.data?.length) return null;
+  return <InlineApprovalMarker approvals={approvals.data} />;
+}
 
 export interface SpecListProps {
   onOpen: (id: string) => void;
@@ -320,6 +330,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                   {relTimeCaps(spec.updated_at)}
                 </span>
                 <AuditTag kind="spec" id={spec.id} />
+                <SpecApprovalMarker prdId={spec.id} />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -11,10 +11,18 @@
 //   - ChangelogPanel     the running changelog
 import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { TopBar } from "@/components/cadence/TopBar";
 import { PageHeader } from "@/components/cadence/PageHeader";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
+
+/** PC-29 layer 2/4 (2026-07-17 repair pass): Ship's one station agent. */
+const SHIP_STATION_AGENTS = ["release"];
 
 const ShipHistoryPanel = lazy(() =>
   import("@/components/knowledge/ShipHistoryPanel").then((m) => ({
@@ -53,7 +61,17 @@ function PanelFallback() {
 }
 
 function ShipSurface() {
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
+  // PC-29 layer 2 (2026-07-17): shared cache with FleetView's "By Agent" tab
+  // and every other station header (same queryKey pattern). Scoped by
+  // workspaceId so switching workspaces doesn't show another workspace's
+  // agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) => SHIP_STATION_AGENTS.includes(a.slug));
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Ship"]} />
@@ -73,6 +91,18 @@ function ShipSurface() {
           subtitle="Every merged change gets a preview, a promote, and a receipt. This is the record of what reached your users and the story you told them about it."
           usp="Preview to production with a receipt for every release, so shipping is provable, not a claim."
         />
+        {presenceAgent ? (
+          <div style={{ marginBottom: 14 }}>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="ship"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
+          </div>
+        ) : null}
+        {/* PC-29 layer 4: the inline relay, live only while Ship has a run going. */}
+        <AgentRelay variant="station" station="ship" workspaceId={activeWorkspaceId} />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <section>

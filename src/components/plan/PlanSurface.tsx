@@ -18,8 +18,11 @@ import { GoalsPanel } from "./GoalsPanel";
 import { LoopsPanel } from "./LoopsPanel";
 
 /** PC-29 layer 2: Define's station agents, most-relevant first (the fleet is
- * already sorted attention-first, agent-fleet.ts). */
-const DEFINE_STATION_AGENTS = ["prd-writer", "sprint-planner", "ux-architect"];
+ * already sorted attention-first, agent-fleet.ts). ux-architect moved to its
+ * own "design" station (2026-07-17 repair pass) - it now has a home on
+ * /design instead of showing up here under a name ("Design") that never
+ * matched what Plan's page actually does. */
+const DEFINE_STATION_AGENTS = ["prd-writer", "sprint-planner"];
 
 /** The deep-linkable Plan sections (?view=), honored by scrolling the
  * section into view and moving focus to its heading (DESIGN-LOOM §9b).

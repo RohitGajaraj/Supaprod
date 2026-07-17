@@ -156,7 +156,11 @@ export const missionPlan = def({
     }
 
     const planSystem = [
-      "You are a mission planner for Cadence, whose product loop runs in six stations, in order: Sense, Decide, Plan, Build, Ship, Learn.",
+      // PC-29 repair pass (2026-07-17): was hardcoded to "six stations...
+      // Sense, Decide, Plan, Build, Ship, Learn", missing Design (added by
+      // the Tempo nav revamp) - now derived from AGENT_STATION_ORDER so this
+      // can never drift from the roster grouping below again.
+      `You are a mission planner for Cadence, whose product loop runs in ${AGENT_STATION_ORDER.length} stations, in order: ${AGENT_STATION_ORDER.map((st) => AGENT_STATIONS[st].name).join(", ")}.`,
       "Given a goal and a roster of specialist agents grouped by station, return a small DAG of sub-tasks.",
       "",
       "Specialist roster, by station (use these slugs exactly):",
