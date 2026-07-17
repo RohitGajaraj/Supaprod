@@ -1,0 +1,279 @@
+# SuperProd — Front-End Rebuild Master Brief
+
+**For:** Fable (executing agent) · **From:** Rohit (Founder) · **Version:** 2.1 · **Status:** Authoritative — supersedes all prior goal statements, including the v5 Tempo overhaul brief.
+
+---
+
+## 0. Prime Directives
+
+Read these first. When any instruction below seems to conflict, these win.
+
+1. **The product is now SuperProd.** The name Cadence is retired. Purge every trace — strings, tokens, logos, metadata, route names, comments, storage keys. The repo must grep clean for `cadence` (case-insensitive) except in migration/redirect code.
+2. **The backend is tested capital — reuse first, modify where the experience demands it.** This is not a UI-only pass: you may change code at any layer, including the backend, when the new experience requires it (e.g., moving design-system config behind an API, adding an approvals feed, wiring model routing). Guardrails: prefer additive, surgical changes over rewrites; never delete working capability for convenience; keep the existing test suite green and extend it for anything you touch; log every backend change with its reason in the decision ledger. If a change is ambiguous or risky, ask Rohit (§16) rather than assume.
+3. **Conversation is the interface.** Natural language in, finished artifacts out. Agents do the work in the background; humans decide only at gates. If a screen requires the user to operate machinery instead of expressing intent, the screen is wrong.
+4. **Justify or cut.** Every screen, section, button, and pixel of spacing must answer, in one line, "what job does this do for the user?" No answer, no ship.
+5. **Work in a sandbox.** All work — front-end and any backend changes — happens on a sandbox branch/environment with a sandboxed backend instance. All live testing, including Playwright-driven runs, happens against sandbox/dev only — never against the production application. Nothing merges to production paths until the Definition of Done (§17) passes.
+6. **The public landing page: the design is the loved baseline; the messaging may evolve.** The landing page's visual design is what Rohit loves — it is the design source of truth for the app (§9). You may enhance it, never degrade it; for any visual change beyond trivial, propose before touching. Its **messaging**, however, should be updated directly to the new positioning (§5): the SuperProd name, the product-OS + memory story, and the agentic-first promise — aligned word-for-word with the in-app copy deck.
+7. **You have full creative authority within this brief.** No existing design-system file, component library, or prior doctrine in the repo binds you — v1–v5 artifacts are reference history, nothing more. The bar is a platform that stands alongside multibillion-dollar products like Vercel. Where the brief is silent, choose the simpler option and log the decision in your build notes.
+
+---
+
+## 1. Context
+
+SuperProd is an agentic, end-to-end product lifecycle platform: a user brings an idea and the platform's agents carry it through planning, design, build, ship, launch, and go-to-market — with the human approving at defined gates. The backend engine (agent orchestration, reasoning, lifecycle intelligence) is powerful and already validated. The front-end is not. This brief commissions a complete rebuild of the front-end layer — information architecture, screens, design system, copy, and demo data — with authority to make supporting code changes at the backend level where the new experience requires them. It replaces every prior design direction from v1 through v5 (Tempo).
+
+Timeline: the rebuild completes in the next 2–3 days; the product goes in front of paying customers and into the YC application within ~4. This is a no-compromise build — features, look, and feel all ship at full quality. If the clock ever forces a trade-off, surface it to Rohit as an explicit decision (§16); never silently cut scope or polish. This build is for real customers and for YC — in that order, and the application must speak for itself.
+
+---
+
+## 2. The Problem, Stated Honestly
+
+The current application fails the ten-second test. A new user — and today, even the founder — cannot tell what the product does, where to start, or why any given section exists. Symptoms:
+
+- **Cognitive overload.** Too many tabs, sections, and parallel interactions — including multiple visible agents whose purposes are unclear. Information density with no hierarchy. The user must spend brainpower on navigating the platform and its agents instead of on their product.
+- **The engine is hidden.** The platform's real power (agents, reasoning, lifecycle intelligence) lives in the backend while the front-end surfaces plumbing. Example: the hub shell's *Design* area currently exposes design-system file setup — configuration that belongs to the machine — instead of showing design *work*.
+- **Friction contradicts the pitch.** We claim "agentic-first, near-zero learning curve." The interface demands manual steps everywhere. If using SuperProd takes as much effort as the user's existing stack, they have no reason to switch.
+- **Five named design systems (v1 → v5 — Ember, Obsidian, Loom, and Tempo among them) have not fixed this,** because each iterated on the same flawed architecture. Tempo gestured at Vercel but didn't land. Treat all five as reference history to mine for lessons, not as a foundation.
+
+The bar for failure: a prospective user who lands here today would not sign up. Demolish that baseline.
+
+---
+
+## 3. Objective
+
+Rebuild the SuperProd front-end so that a first-time user understands what the platform does within ten seconds, produces something real within five minutes, and moves from idea to launched product through conversation and approvals — never through hunting, configuring, or learning. The governing criterion above all others: a surface so minimal and light that users love it, over an engine powerful enough that everything gets done — executable from one place, and enterable at any stage of the lifecycle. The result must be minimal on the surface, powerful underneath, world-class in craft, enterprise-credible in trust, and architected to stay relevant as frontier models evolve over the next decade.
+
+---
+
+## 4. Success Criteria (testable — verify each before declaring done)
+
+1. **Ten-second comprehension:** an outsider shown the signed-in home screen can state what SuperProd does, unprompted.
+2. **Five-minute first value:** signup → first meaningful artifact (a plan, a screen, a draft) in ≤ 5 minutes and ≤ 3 user decisions.
+3. **IA budget:** global navigation ≤ 4 items. Every screen has exactly one primary action. No screen requires horizontal scanning of more than ~7 elements to parse.
+4. **Single pull point:** the Approvals queue is the only place a user must check. Nothing essential lives anywhere the user has to remember to look.
+5. **Zero Cadence:** grep clean, per Prime Directive 1.
+6. **Theme parity:** every route renders correctly in dark and light, and the System setting tracks the OS preference (including a live OS switch mid-session).
+7. **Journey completeness:** using seeded demo data only, a full walkthrough from login → plan → build → approve → ship → launch assets → GTM checklist works end to end without setup.
+8. **Craft floor:** WCAG AA contrast, visible keyboard focus, reduced-motion respected, empty/loading/error states designed for every screen, p75 route interactive < 2s on mid-tier hardware.
+9. **Founder demo:** Rohit can demo idea-to-launch in under 5 minutes without notes, following the demo script you deliver (§17).
+10. **Justification ledger:** every screen and major component carries a one-line job annotation, compiled into a reviewable ledger.
+11. **Backend integrity:** the pre-existing backend test suite stays green after all changes; anything modified gains new or updated tests.
+12. **Any-stage entry:** "design a mockup" and "add a feature to my existing product" both reach useful work directly, without passing through unrelated lifecycle stages.
+13. **Context-native canvas:** generated code renders in a Codex/Cursor-grade code-and-terminal view; design work renders as live previews; the canvas adapts to the work automatically, with zero user configuration.
+
+---
+
+## 5. Product Thesis — USP and Moat (this must be *felt* on screen, not written in a tagline)
+
+**Positioning.** SuperProd solves a real, felt problem in the product-management space — the gap between deciding what to build and actually getting it built, shipped, and sold — and stakes early claims in two adjacent categories: the agentic **product operating system** (one OS for the entire lifecycle) and the **memory layer** (the Memory Brain, §11, as a first-class capability). Every piece of messaging, in-app and on the landing page, carries this story.
+
+**USP: the entire product lifecycle, executed by agents, in one place.** Competitors tell you what to build and send you elsewhere to build it. SuperProd never hands the user off. Planning, design, code, shipping, launch copy, GTM — agents execute all of it natively by orchestrating frontier models (Claude family, OpenAI/Codex-class, Kimi K3, and successors) through the platform's own keys. The user never brings an API key, never opens Cursor/Devin/Windsurf, never leaves.
+
+**Moat, in layers:**
+1. **Workspace memory — the Memory Brain.** Every approval, rejection, and edit teaches the workspace. Decisions, taste, and conventions accumulate — switching away means abandoning a system that already knows how this team builds. (Full treatment in §11; today this exists mostly in name, and fixing that is a core deliverable of this rebuild.)
+2. **End-to-end context.** Because SuperProd sees plan → build → launch → results in one graph, its agents make better calls than point tools that see one slice.
+3. **Model-agnostic orchestration.** The experience contract is stable while models underneath are swappable. When better models ship, SuperProd gets better overnight — users feel compounding improvement without migration. This is the ten-year design.
+4. **Trust rails.** Approval gates, audit trails, and role controls make autonomy safe enough for enterprises — the hardest thing for agent products to earn.
+
+Every screen should quietly reinforce one of these four. If a screen reinforces none, question it.
+
+---
+
+## 6. Experience Principles — laws every screen obeys
+
+1. **Intent in, artifact out — from one place.** The user says what they want; the system returns finished work plus a decision, never a form to fill. Every capability is reachable from the command surface: users execute from one place and never tour sections to discover what they do. Sections exist to review work, not to find features.
+2. **Agents move by default; humans decide at gates.** Autonomy with brakes, not steering wheels. Gates exist only where judgment, spend, or irreversibility genuinely require a human.
+3. **Human brainpower is reserved for product craft.** Taste, priorities, positioning, final calls — those get rich review surfaces. Everything mechanical (setup, config, file plumbing, dependency wrangling) is invisible backend work.
+4. **Show state, not machinery.** Users see progress, results, and reasons. They never see design-system file setup, model names mid-task, or orchestration internals — and they never manage a roster of agents: however many run underneath, the user experiences one coherent system doing the work. (This retires the current Design-section failure: the Design area shows only design *work* — screens, components, review states. System configuration moves behind the curtain.)
+5. **Anticipate.** The next likely need is pre-staged before it's asked: shipped yesterday → launch copy is already drafted this morning. Prediction is presented as a quiet, dismissible suggestion — one, not a feed.
+6. **Everything essential is flagged; nothing essential must be found.** One approvals queue. One notification discipline. Zero "did I miss something?" anxiety.
+7. **One primary action per screen.** Secondary actions exist but recede. If two actions compete, the screen splits or one demotes.
+8. **Fast is a feature.** Stream agent output. Optimistic UI. Perceived latency is a design material.
+9. **Calm density.** Vercel-grade: precise, quiet, engineered. Delight comes from rhythm, motion, and responsiveness — never from ornament.
+10. **Ten-year rule.** Models, providers, and capabilities will change; the interface contract (intent → plan → execution → gate → artifact) must not. Design the shell so new capabilities slot into the same loop rather than adding new tabs.
+11. **Feels small, does everything.** The interface never displays its full capability up front; depth reveals itself exactly when intent calls for it. The emotion to engineer, again and again: *"wait — it does that too?"* Surprise comes from power appearing on demand — never from features shouting for attention, and never at the cost of the low learning curve. However much the platform grows, it must still *look* like almost nothing.
+
+---
+
+## 7. Information Architecture — the three-surface model
+
+Collapse today's tab sprawl into three surfaces plus a minimal shell. You may refine naming and boundaries, but any alternative must be *simpler*, not busier, and you must log the reasoning.
+
+**Surface 1 — Home.** The daily entry point, replacing the current "Today" section. One conversational command bar as the hero ("What are we building?"), recent projects beneath as quiet cards, and at most one proactive suggestion. The command bar accepts intent at any lifecycle stage — "plan a habit tracker," "design a mockup for our checkout," "add SSO to my existing app," "write the launch post for v2" — and routes each to the right starting point (§8, Entry at any stage). No dashboards, no widget grids. If ambient touches (date, a single status line) survive the justify-or-cut test, they may exist as one quiet line — the previous weather/focus-dock widgets do not return as widgets.
+
+**Surface 2 — Project.** Where the lifecycle lives. A persistent conversation/command rail; **the adaptive canvas**; and a visible agent-activity timeline so autonomy is legible ("what the agents did while you were away"). The adaptive canvas is one canvas with many faces — it dynamically renders the native representation of whatever the agents are producing, with zero configuration: code generation appears as a Codex/Cursor-grade code-and-terminal surface (streaming Geist Mono output, syntax highlighting, file context, diffs); design work appears as live rendered screen previews; a plan appears as a clean, readable document; shipping shows deploy state; launch shows the actual assets. The canvas switches automatically as the work changes, and the user can pin or flip views at will — this is how the app feels tiny while doing everything. Two working modes, echoing the intent→execution loop (inspired by, not copied from, Lovable's plan/build): **Plan** — the agent drafts scope, spec, and approach for human judgment; **Build** — agents execute across design, code, and content with streaming progress. Lifecycle stages (plan → design → build → ship → launch → grow) appear as a single progress spine within the project, not as separate app sections. Each stage surfaces its star capability *in the stage where it's used*.
+
+**Surface 3 — Approvals.** The single queue of everything awaiting human judgment: plan sign-offs, spend confirmations, deploy gates, copy reviews. Each item shows what the agent proposes, why, cost/impact, and one-tap approve/reject/edit. This queue is the answer to cognitive load: the platform brings decisions to the human; the human never patrols the platform.
+
+**Shell.** Project switcher, Approvals (with count), Settings, account. Nothing else at global level. Settings absorbs workspace, billing, members, and integrations behind progressive disclosure.
+
+**Demotions to backend (invisible):** design-system/file configuration, model selection and routing, environment plumbing, dependency management, agent tooling setup. If it's machinery, it's not a screen.
+
+**Namesake sections die or earn their keep.** Today's Design area, and any standalone Ask/chat tab, exist more in name than in function. Design is rebuilt as pure execution-layer work — screens, components, review states — living inside the Project lifecycle spine; if it cannot justify a standalone home even there, fold it. A separate Ask tab dissolves entirely: conversation is the whole interface, not a destination. Apply this test to every current section — justify-or-cut governs sections, not just buttons.
+
+---
+
+## 8. The User Journey — end to end (each step lists: job · primary action · agent behavior)
+
+1. **Landing/Auth.** Job: state the value in one line and get the user in. Inherits the public site's ink/engineering-grid/starry language exactly. One sentence, one auth block (SSO/social + email), zero clutter. No feature tour.
+2. **Onboarding (≤ 3 steps, conversational).** Job: create the workspace and first project from a sentence. The agent asks what they're building; the answer becomes the project; the agent immediately begins a draft plan. No empty states on day one — the user's first screen already contains work in motion.
+3. **Home.** Job: resume or start. Primary action: the command bar.
+4. **Project · Plan.** Job: turn intent into an approved plan. Agent drafts scope/spec/milestones; user reviews, edits in place, approves. This is a *product-craft* surface — generous, readable, built for judgment.
+5. **Project · Build.** Job: watch work happen and unblock it. Agents execute (design, code, content) with streamed progress on the canvas; anything needing judgment routes to Approvals. Human steps here should be near zero.
+6. **Ship.** Job: one action to production. Preview → approve → shipped, with environment plumbing invisible and a clear rollback affordance. (Flag: confirm the backend's deploy targets — §16.)
+7. **Launch & GTM.** Job: the platform doesn't stop at shipping. Agents pre-draft the launch kit — announcement copy, changelog, social posts, positioning one-pager, GTM checklist — the moment ship succeeds. User reviews and fires. This stage is a core USP; give it first-class treatment, not an afterthought tab.
+8. **Grow.** Job: close the loop. A calm digest (adoption signal, feedback themes) with one suggested next move, feeding the learning system. No analytics jungle.
+
+**Entry at any stage — the lifecycle is a spine, not a rail.** Users will not all start at journey zero. Design every entry point below as first-class, never as a degraded version of the full journey:
+- **Mockup-only.** "Design a mockup for X" opens a project directly in design work — no forced planning stage; the agent infers a lightweight brief and keeps it editable.
+- **Existing product.** "Add these two features to my app" starts with import — connect a repo or URL, agents ingest the codebase and product context, then open directly in Plan or Build scoped to just those features. Earlier stages display as *imported/inferred*, never as fake progress or nagging incompletes.
+- **Launch-only.** A product built elsewhere can enter at Launch & GTM for the launch kit alone.
+- **Anywhere in between.** The router infers the stage from intent; the user can also reposition on the spine explicitly. Skipped stages are backfilled by agents on demand (e.g., infer a plan from an existing codebase) or marked not applicable.
+The rule: the platform meets the user at their stage; it never marches them through stages they didn't come for.
+
+---
+
+## 9. Design Language — codename **Ink** (design system v6)
+
+**Source of truth:** the public landing site's theme (ink / engineering grid / starry dark) plus the Vercel reference screenshots collected in the repo's design report. In Phase 0 (§13) you extract exact tokens from both. Where the landing site and this section conflict, the landing site wins.
+
+**Inspiration library (study, don't copy):** the Vercel product and site are the primary reference — revisit the screenshots documented in the repo report and their live product. Alongside them, the craft references Rohit follows — Devouring Details and Interface Craft — and world-class benchmarks like Linear, Arc, and Dia. Mine all of these for interaction details, motion timing, and the user psychology behind why their surfaces feel effortless, and think from every angle: what world-class products do, what users feel, what agents need. Distill the lessons into a one-page **taste document** in Phase 0 that guides every subsequent decision. Inspiration means principles and standards — never lifted pixels, cloned layouts, or copied content.
+
+**The bar for Ink:** today we reference Vercel; tomorrow, founders building their own applications should reference *this* design system. Build and document Ink to publishable quality — tokens, components, interaction patterns, and principles written up as if the system itself will ship as a public reference. Every interactive element gets considered hover, focus, and press states; interactions feel tactile; animation stays subtle and purposeful; and light and dark modes are each crafted as first-class expressions of the same system, not one derived from the other.
+
+**Explicit supersessions from v1–v5** (retired unless the landing site itself uses them): liquid-glass effects, decorative gradients, widget-grid layouts, and the Tempo component skins. Mine v4 Loom and v5 Tempo only for *lessons* (what felt clean, what flowed), never for pixels.
+
+**Direction:**
+- **Color.** Dark-first: near-black ink surfaces, hairline borders, high-contrast type, one accent maximum (taken from the landing site). The starry texture is an accent for hero/empty moments, never wallpaper. Full light mode: paper-white inversion on the same semantic tokens, equal craft, not an afterthought. Ship three theme settings — **Dark, Light, and System** — with System following the OS preference exactly as the app behaves today. System is the default; dark remains the brand-forward design target.
+- **Grid.** The "engineering grid" is structural, not decorative: a strict baseline grid, aligned hairlines, and spacing that reads as machined. Structure should encode meaning — dividers and labels mark real boundaries in the content, nothing ornamental.
+- **Type.** Geist Sans for UI, Geist Mono for agent output/data/logs, Geist Pixel *sparingly* as the brand signature (wordmark, stage markers, one hero moment). Deliberate scale, generous line-height in reading surfaces, tight in dense ones.
+- **Components.** Cards only where grouping is real; Vercel-grade tables and lists; a Codex/Cursor-grade code-and-terminal surface for generated code (streaming Geist Mono, syntax highlighting, diff views); live rendered previews for design work; skeletons that match final layout; toasts that confirm in the exact words of the action taken.
+- **Motion.** 150–250ms, ease-out, purposeful: state changes, streaming text, approval confirmations. One orchestrated moment (e.g., plan → build transition) is the signature; everything else stays quiet. Respect reduced-motion.
+- **Signature element.** Choose one memorable, ownable element that embodies "agents at work" — e.g., the live agent-activity spine rendered in Geist Mono on the engineering grid. Spend the design boldness there and keep everything else disciplined.
+- **The mirror rule.** Before finalizing any screen, remove one element. If nothing can be removed, look harder.
+
+---
+
+## 10. Voice and Copy — words are design material
+
+- **Verbs over nouns.** "Ship it," "Approve plan," "Draft launch post" — never "Deployment Management" or "Content Generation Module."
+- **Outcomes over machinery.** "Your launch post is ready," not "Content generation task complete." Model names, agent jargon, and orchestration terms never appear in primary UI.
+- **Consistent action vocabulary.** The button that says "Ship" produces a toast that says "Shipped." One name per action across the whole product.
+- **From the user's side of the screen.** Name things by what people recognize and control, not by how the system is built.
+- **Empty states teach in one line and offer one action.** Errors own the problem, say what happened, and offer the fix — never vague, never apologetic filler.
+- **Desire and stickiness through receipts, not adjectives.** Show value earned: "Agents completed 14 tasks while you were away." "Idea to shipped in 3 days." The product proves itself; copy never brags.
+- **Naming pass.** Every section, feature, and concept gets a deliberate, human name — deliver a naming table (old → new → rationale), the product one-liner, and a one-liner per surface. Names and taglines are design-system components; anything named "for the namesake" is renamed into meaning or removed. The pass includes the public landing page's messaging (Prime Directive 6): headline, one-liner, and category story aligned to the §5 positioning.
+- Deliver a **copy deck** (all primary UI strings, section names, one-liners, empty/error states, onboarding script, launch-kit templates) as a build artifact so wording is reviewable in one place.
+
+---
+
+## 11. Intelligence Layer
+
+**Model orchestration (product feature).** A backend router assigns every task to the cheapest model that clears its quality bar, escalating on complexity or failure:
+- **Haiku** — classification, tagging, autocomplete, quick summaries, microcopy variants.
+- **Sonnet** — the workhorse: standard code generation, drafting, transforms, design-token application.
+- **Opus** — multi-step planning, architecture decisions, cross-artifact consistency review.
+- **Fable** — mission-critical synthesis: full plan generation, pre-ship QA, anything that defines user trust.
+Route by task class + confidence; log cost per task; cap spend per task class. Users never pick models; at most they see a quiet "thinking deeper" state. Third-party frontier models (OpenAI/Codex-class, Kimi K3, etc.) join through the same adapter interface.
+
+**Provider abstraction (the ten-year mechanism).** A capability registry + adapter layer + eval harness so that adopting a new model is configuration plus an eval run — never a rebuild. This is what makes "sustained for a decade" an architecture, not a slogan.
+
+**Native execution — the first-party build engine.** Code generation, preview, and shipping run in SuperProd's own sandboxed execution environment, powered directly by frontier-model APIs. The platform previously leaned on external code-gen engines (Cursor/Devin-class); that dependency is retired — remove any remaining hand-off to outside tools from the product flow. No BYO keys, no external IDE detour: the user never leaves, which is the moat made literal. The economics support this — inference costs for code generation have fallen sharply and keep falling — but treat that as a hypothesis to verify, not a given: the per-task cost logging above, plus credit pricing (§12), must confirm healthy unit economics with real data.
+
+**Prediction.** Pre-stage the next likely artifact at each lifecycle transition (ship → launch kit; plan approved → first build tasks queued). Always one suggestion, always dismissible, always learned from.
+
+**The Memory Brain — from namesake to moat.** Today the memory brain exists mostly in name; it must become the platform's richest layer, because it is moat layer 1 (§5) made tangible — and a category claim in its own right (§5 positioning). Before designing it, scan the memory-layer landscape — what users ask for, what practitioners say, where the market is heading — and fold the findings into the Phase 0 taste document. Then define it precisely and build to that definition:
+- **Purpose:** the compounding context layer that makes every agent smarter about *this* workspace tomorrow than it was today — so output quality visibly improves with use, and leaving SuperProd means starting from zero somewhere else.
+- **What it captures:** approved and rejected decisions with their reasons, product facts and positioning, conventions (naming, tone, code style, design taste), stakeholder preferences, and outcomes from shipped work.
+- **The brain graph:** structure memory as a connected graph, not a pile of notes — products, features, decisions, stakeholders, conventions, and outcomes as entities with relationships, so context can be traversed, not just retrieved. One unified context layer serves three consumers at once: the **user** (recall, continuity, "why did we decide this?"), the **agents** (task-scoped context injection), and the **system** (prediction, routing, defaults). Everything anyone — human or agent — needs lives in this one place, on this one platform.
+- **How it works:** relevant memory is injected into every agent task automatically; it powers the prediction layer and every default. The user never "manages" memory as a chore.
+- **How it surfaces:** (a) evidence lines in the flow of work — "Applied your naming conventions from Atlas" — so learning is felt, not claimed; (b) one browsable, curatable Memory view in Workspace settings where users can inspect, correct, or delete what the platform knows. That single view is both the stickiness display (§12) and the enterprise trust control.
+- **Claim rule (unchanged):** the UI may only claim learning behaviors the backend demonstrably performs — no "reinforcement learning" or "self-training" language unless literally true. If the current memory backend is thin, you now have authority to design and **build** the enrichment yourself within Prime Directive 2's guardrails — propose the schema in Phase 0, build it, log it. What you must never do is fake depth in the UI. Trust is the enterprise product; inflated AI claims destroy it.
+
+---
+
+## 12. Monetization and Enterprise Readiness
+
+Design the front-end to make value legible and gates natural; final pricing numbers are Rohit's call (§16).
+
+- **Tier scaffold:** Free (1 project, capped agent credits, SuperProd badge on shipped output) → Pro (individual: more credits, custom domains, full launch kit) → Team (seats, shared workspace memory, roles) → Enterprise (SSO/SAML, audit log, RBAC, private model routing, SLA). Wire the UI gating and upgrade surfaces; keep price points as config.
+- **Usage-based agent credits** align cost with the metered model spend underneath — the natural unit for an agentic product. Show a calm usage meter in Settings; warn before caps, never interrupt mid-task.
+- **Upgrade moments are earned, not popped:** at value peaks (project shipped, launch kit ready), one quiet line — "Take this live on your own domain → Pro." Never modal-block work.
+- **Stickiness = accumulated memory + shipped history.** Make the workspace's learned conventions and shipped-product timeline *visible* in Settings/Workspace — the user should be able to see what they'd lose by leaving.
+- **Trust surface:** audit log of every agent action and human approval, role-based permissions, data-handling summary. Reuse backend capabilities where they exist; flag gaps where they don't.
+
+---
+
+## 13. Execution Protocol for Fable
+
+**Phase 0 — Audit (no pixels yet).** Read the repo design report and its Vercel reference screenshots; study the inspiration library (§9) and distill it into the one-page taste document; discover and inventory the skills installed in this platform — Rohit has curated design-taste and craft skills for exactly this work — and apply the relevant ones throughout the build; extract exact tokens from the public landing site; inventory backend APIs and reusable components; map current routes/screens to keep-merge-kill with a one-line reason each. Deliver the audit as a short doc before building.
+
+**Phase 1 — Architecture.** Three-surface IA, route map, user-journey flows, approval-gate inventory, copy deck v1.
+
+**Phase 2 — Design system "Ink".** Tokens (color/type/space/motion/elevation, dark+light), core components, the signature element. Build as a token-driven system so themes are config. Capture tokens and component notes lightly as you build; the full reference-grade write-up (§9 bar) is a committed fast-follow after launch, not a blocker in this sprint.
+
+**Phase 3 — Screens.** Build in the sandbox in journey order (§8). Parallelize independent workstreams (e.g., Approvals surface ∥ launch-kit screens ∥ settings) with sub-agents where available.
+
+**Phase 4 — Integration & purge.** Wire to the tested backend read-safely; remove dead routes and the v1–v5 remnants; execute the Cadence purge; add redirects from any legacy paths.
+
+**Phase 5 — Seed demo data (§14), then run the full journey walkthrough.**
+
+**Phase 6 — Review gauntlet (§15), fix, and deliver.** Verification is live, not theoretical: drive every journey end to end with Playwright in the sandbox, screenshot each judge-relevant state, and attach the run results to the deliverables.
+
+**Standing rules:** reuse before rebuild — backend changes are permitted per Prime Directive 2, but working capability is never discarded and the test suite never goes red; do not preserve front-end surface area out of sentiment; every gap flagged in the §16 format rather than assumed — and when a decision blocks progress or carries real risk, ask Rohit directly instead of choosing for him; maintain a running decision + justification ledger covering front-end and backend changes alike; keep the sandbox demo-able at the end of every phase.
+
+**Tooling:** use every relevant capability available in the environment — installed skills, MCP connections, and plugins — rather than working blind. For anything touching the database, inspect and verify through the connected database MCP (e.g., Supabase) directly instead of guessing at schema or state. For live verification, run the application via Claude Code and drive it with the Playwright plugin — click through every journey, capture screenshots, and confirm flows behave as designed. All of this runs against the sandbox/dev environment only; nothing ever touches the live production application (Prime Directive 5).
+
+**Work preservation — commit early, commit often.** Sessions can hit token limits, memory ceilings, or unexpected shutdowns; none of those may cost finished work. Commit after every coherent unit — a completed component, screen, or phase milestone — and at least every 30–45 minutes of active work, with atomic, descriptive messages, pushed to the remote sandbox branch (local-only commits don't count as safe). Maintain a terse `PROGRESS.md` state note updated at every checkpoint — current phase, what's done, what's in flight, the next three steps — so a fresh session resumes in minutes with zero rework. If context or token limits approach, stop starting new work: commit, update the state note, and end cleanly. Add any further resilience mechanisms you judge useful; losing work is the one failure with no excuse.
+
+**Build-first session.** This sprint is build mode: code over prose. Required artifacts (ledgers, gap flags, checkpoint notes) stay terse — bullet-level, written as you go — and documentation never crowds out build time. The reference-grade Ink write-up (§9 bar) is a committed fast-follow after launch; during the sprint, just capture its raw material (tokens, component notes, decisions) lightly alongside the work.
+
+**Build economics:** route your *own* work the same way the product routes tasks — Haiku/Sonnet for mechanical generation and refactors, Opus/Fable for architecture, IA, and final QA passes. Spend tokens where judgment lives.
+
+---
+
+## 14. Demo Data Seed (deterministic, idempotent script — realistic, clearly fictional)
+
+One workspace, **Helio Labs**, three members with distinct roles, and four projects staged to demonstrate the whole story:
+1. **Shipped:** "Atlas" — complete history from idea → launch, with launch kit sent and a Grow digest showing early traction. Proves the end state.
+2. **Mid-build:** "Relay" — agents actively working, streamed activity timeline, **two items pending in Approvals** (one plan change, one deploy gate). Proves the core loop; this is the demo centerpiece.
+3. **Fresh:** "Comet" — one-sentence idea with a draft plan awaiting first approval. Proves the starting experience.
+4. **Imported:** "Beacon" — an existing product brought in mid-lifecycle with one feature request ("add SSO") active in Build; earlier stages display as imported/inferred. Proves entry at any stage.
+Include agent-activity logs, workspace-memory examples ("learned: Helio prefers concise release notes"), a partially complete launch checklist, and believable timestamps. No lorem ipsum anywhere.
+
+---
+
+## 15. Review Gauntlet — every screen, dropdown, and micro-interaction must survive all six judges
+
+1. **The outsider power user** (persona of record): expects Vercel-grade craft; allergic to clutter; will churn at the first "where am I?"
+2. **The brand-new founder-user:** ten-second comprehension, five-minute value.
+3. **The enterprise buyer:** scans for trust — approvals, audit, roles, honest claims.
+4. **The investor (YC application reviewer):** the acceptance bar is on the order of one in a hundred, so the product must argue for itself — can the 5-minute demo tell the idea→launch story with zero fumbling, and does every screen communicate problem, solution, and why-now without a human explaining it?
+5. **The serial founder** — has built multibillion-dollar, customer-loved products more than once. This judge never asks "does it work?"; they ask what turns users into fans: Is there one moment of genuine delight in the first session? Does every interaction respect the user's time — fast, smart defaults, never asking the same thing twice? Do the details (alignment, wording, transitions, empty states) prove that someone cared? Does the product show its value in receipts, so users brag about it unprompted? Would a customer demo this to a colleague without being asked? *Loved* beats *used* — a screen that is merely functional gets sent back.
+6. **Rohit:** would he sign up if this weren't his product? If any judge fails a screen, the screen is not done.
+Plus the mechanical sweep: both themes, responsive to laptop-small, keyboard-navigable, empty/loading/error states, perf budget, a11y AA.
+
+---
+
+## 16. Open Decisions — flag, do not assume
+
+You have a direct line to Rohit — when in doubt, ask; he prefers a question over a wrong assumption. Use this format for every gap: **[GAP] area · what's missing · impact · your recommended default · decision needed by.** Known open items to carry:
+1. SuperProd logo/wordmark and favicon — Rohit is designing these himself and will deliver; until then, ship the Geist Pixel wordmark as the interim mark, structured as a drop-in replacement for when the final logo lands.
+2. Final pricing numbers and credit quantities (scaffold ships config-driven).
+3. Auth providers to enable at launch (recommend Google + GitHub + email).
+4. Deploy targets for shipped products (custom domains? which infra?) — confirm backend support.
+5. Migration/redirect story for existing Cadence users and URLs.
+6. Telemetry & consent copy for the learning system (enterprise-sensitive).
+7. Legal pages (terms/privacy) — link targets needed.
+8. Confirm retirements: liquid-glass direction, Today-section weather/focus-dock widgets (this brief retires them; Rohit may veto).
+9. Billing provider integration status in the backend.
+10. Memory-brain backend depth — what is actually stored and retrievable today (audit in Phase 0; if thin, propose the schema and build the enrichment per §11 — Rohit has pre-approved this).
+11. Existing-product import — what ingestion the backend supports today (repo connect, URL, docs); scope what ships at launch vs. what is flagged for fast-follow.
+
+---
+
+## 17. Definition of Done
+
+Sandbox build passes all Success Criteria (§4) · Cadence grep clean · backend test suite green, with a logged change list for any backend modifications · audit doc, decision ledger, justification ledger, copy deck, and gap report delivered · demo data seeds in one command · all three theme settings ship (Dark / Light / System) · the **5-minute founder demo script** (login → Relay approvals → ship → launch kit → the one-line moat story) is written and rehearsable · open decisions list handed back with recommendations · a **launch handoff pack** assembled — demo script, seeded walkthrough path, and hero-flow screenshots packaged as raw material for SuperProd's own GTM push and the YC application (the GTM plan itself is the next engagement after this build).
+
+**End state:** a first-time user opens SuperProd, understands it in ten seconds, ships something real the same day, and feels one thing throughout — *this was crafted with intention, and it's working for me even when I'm not looking.*

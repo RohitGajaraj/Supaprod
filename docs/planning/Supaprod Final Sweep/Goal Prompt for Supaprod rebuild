@@ -1,0 +1,52 @@
+# Goal for Fable — SuperProd Front-End Rebuild
+
+Attached is the SuperProd Front-End Rebuild Master Brief (v2.1) — the authoritative spec for this build. Follow every prime directive, section, success criterion, and open decision as written. Where this goal statement is silent, the brief governs. Where it flags a gap or asks you to confirm something with Rohit, do that — don't assume.
+
+**In one line:** rebuild SuperProd's front end (and backend where truly needed) from a cluttered, plumbing-exposed app into a minimal, conversational, agentic product-lifecycle platform — Vercel-grade craft, three-surface IA (Home / Project / Approvals), the Ink design system, full Cadence-to-SuperProd purge — shipped to a sandbox in 2–3 days, ready for customers and the YC application in ~4.
+
+Work phase by phase (Audit → Architecture → Design System → Screens → Integration & Purge → Demo Data → Review Gauntlet), commit early and often, keep a running decision ledger, and verify everything live in the sandbox with Playwright before calling anything done. Never touch production. Never silently cut scope.
+
+## Non-negotiable: this must read as made by humans, for humans
+
+Every word and pixel must feel like it came from a human designer and writer who cared — never like it was generated. This applies to UI copy, empty states, error messages, onboarding scripts, launch-kit templates, the copy deck, and landing page messaging alike.
+
+- No em/en dashes as a stylistic tic, no "delve," "leverage," "seamless," "unlock," "elevate," "robust," or other AI-tell vocabulary. No listy, symmetrical, three-things-in-a-row patterns. No hedging filler.
+- Sentences should read like a sharp human product writer wrote them once and meant every word — plain, direct, specific. Reread every string out loud before it ships; if it sounds like it came out of a prompt, rewrite it.
+- The craft standard from §9 and §10 applies literally: verbs over nouns, outcomes over machinery, receipts instead of adjectives. This is an anti-AI-slop discipline, not just a tone guideline.
+- The product's agents do real work behind the scenes and must be well served technically — fast, reliable, legible to each other — but the human on the other side of the screen is the primary user. Every screen is judged by whether a person would feel it was designed *for them*, not at them.
+
+## How to use the attached brief
+
+The brief is the single source of truth for IA, design language, the intelligence layer, monetization, demo data, the review gauntlet, and the definition of done. Don't work from a summary of it — return to the actual document at every phase boundary and re-check your work line by line. If this goal statement and the brief ever conflict, the brief wins, per its Prime Directives.
+
+## Read this first, in full, before anything else
+
+Before touching the codebase or any other reference material, open the attached brief and read it completely, start to finish, line by line, until you actually understand it — not skim it for keywords. This document is your working bible for the entire build. Everything in it is to be followed strictly: prime directives, IA, design language, copy rules, intelligence layer, phases, review gauntlet, all of it.
+
+Only after that should you move to the repo's other documents — the design report, existing codebase, prior design-system artifacts, positioning notes, anything showing where the product stands today. Those ground you in current reality; the brief tells you what to do about it. Bible first, then the world you're building in.
+
+If you hit a genuine gap during the build — something the brief doesn't address and no other document resolves — you have standing authority to make a reasonable call and build it, per Prime Directive 7 and §16. Document the gap and your decision in the ledger using the §16 format rather than silently improvising or blocking. A gap is a reason to decide, build, and log — not to stall.
+
+
+--------------------
+
+# Goal for Fable — SuperProd Front-End Rebuild
+
+Attached is the SuperProd Front-End Rebuild Master Brief (v2.1) — the authoritative spec for this build. Treat it as your bible: read it end to end before writing a single line of code, and follow every section, prime directive, success criterion, and open decision exactly as written. Where anything in this goal statement is silent, the brief governs. Where the brief flags a gap or asks you to confirm something with Rohit, do that — do not assume.
+
+**In one line:** rebuild SuperProd's front end (and backend where the experience genuinely requires it) from a cluttered, plumbing-exposed app into a minimal, conversational, agentic product-lifecycle platform — Vercel-grade craft, three-surface IA (Home / Project / Approvals), the Ink design system, full Cadence-to-SuperProd purge — shipped to a sandbox in 2–3 days, ready for paying customers and the YC application in ~4.
+
+Work phase by phase (Audit → Architecture → Design System → Screens → Integration & Purge → Demo Data → Review Gauntlet), commit early and often, keep a running decision ledger, and verify everything live in the sandbox with Playwright before calling anything done. Never touch production. Never silently cut scope — surface trade-offs as explicit decisions.
+
+## Non-negotiable: this must read as made by humans, for humans
+
+Every word and every pixel must feel like it came from a human designer and a human writer who cared — never like it was generated. This applies to UI copy, empty states, error messages, onboarding scripts, the launch-kit templates, the copy deck, and the landing page messaging alike. Concretely:
+
+- No em dashes, no en dashes used as a stylistic tic, no "delve," "leverage," "seamless," "unlock," "elevate," "robust," or any other AI-tell vocabulary. No listy, symmetrical, three-things-in-a-row copy patterns. No hedging filler, no "I hope this helps"-register language anywhere in the product.
+- Sentences should read like a sharp human product writer wrote them once and meant every word — plain, direct, specific, occasionally imperfect in the way real writing is. Reread every string out loud before it ships; if it sounds like it came out of a prompt, rewrite it.
+- The craft standard from §9 and §10 of the brief applies literally: verbs over nouns, outcomes over machinery, receipts instead of adjectives. This is also an anti-AI-slop discipline, not just a tone guideline.
+- The product's agents do real work behind the scenes and must be well served technically — fast, reliable, legible to each other — but the human on the other side of the screen is the primary user. Every screen is judged by whether a person would feel it was designed *for them*, not at them.
+
+## How to use the attached brief
+
+The brief is long and detailed on purpose — it is the single source of truth for information architecture, design language, the intelligence layer, monetization, demo data, the review gauntlet, and the definition of done. Do not summarize it and work from your summary; go back to the actual document at every phase boundary and re-check your work against it line by line. If any instruction here and any instruction in the brief appear to conflict, the brief wins, per its own Prime Directives.
