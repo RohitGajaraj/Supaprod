@@ -69,7 +69,7 @@ function RoleChip({ role }: { role: string }) {
         border: "1px solid var(--hairline)",
       }}
     >
-      {isOwner && <Crown size={10} aria-hidden />}
+      {isOwner && <Crown size={14} strokeWidth={1.8} aria-hidden />}
       {ROLE_LABEL[role] ?? role}
     </span>
   );

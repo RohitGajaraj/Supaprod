@@ -7,7 +7,6 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
-import { PixelStat } from "@/components/cadence/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -1224,14 +1223,6 @@ function Dashboard() {
                 >
                   Needs your judgment
                 </h2>
-                {needsYouLoaded ? (
-                  <PixelStat
-                    value={callCount}
-                    tone={callCount > 0 ? "blue" : "moss"}
-                    size={12}
-                    glow={callCount > 0}
-                  />
-                ) : null}
                 <div
                   style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
                 />
@@ -1397,14 +1388,7 @@ function Dashboard() {
                     {/* LOOM W4 honesty: the old "N of M answered" denominator
                         shifted as new calls arrived mid-session. State the two
                         real numbers instead. */}
-                    <PixelStat value={clearedSession} tone="neutral" size={11} /> answered ·{" "}
-                    <PixelStat
-                      value={callCount}
-                      tone={callCount > 0 ? "blue" : "moss"}
-                      size={11}
-                      glow={callCount > 0}
-                    />{" "}
-                    open
+                    {clearedSession} answered · {callCount} open
                   </div>
                 </div>
               )}

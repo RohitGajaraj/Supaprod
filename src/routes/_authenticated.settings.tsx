@@ -671,8 +671,8 @@ function BillingTab({ checkout }: { checkout?: string }) {
   const subStatusColor = sub?.cancelAtPeriodEnd
     ? "var(--marigold)"
     : isPastDue
-      ? "var(--madder)"
-      : "var(--moss)";
+      ? "var(--ds-red-600)"
+      : "var(--ds-green-600)";
   const subStatusGlow = sub?.cancelAtPeriodEnd
     ? "0 0 8px rgba(232, 180, 76, 0.5)"
     : isPastDue
@@ -1180,7 +1180,7 @@ function CreditsTabInner() {
             an eternal unexplained "--" (checklist point 7). */}
         {credits.isError && (
           <div style={{ marginTop: "var(--space-2)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
               Couldn't load your balance. {(credits.error as Error)?.message ?? "Unknown error"}
             </p>
             <div style={{ marginTop: "var(--space-2)" }}>
@@ -1293,7 +1293,7 @@ function CreditsTabInner() {
           if (attribution.isError) {
             return (
               <div style={{ marginTop: "var(--space-2)" }}>
-                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
                   Couldn't load the usage breakdown.{" "}
                   {(attribution.error as Error)?.message ?? "Unknown error"}
                 </p>
@@ -1466,7 +1466,7 @@ function CreditsTabInner() {
           </div>
         ) : catalog.error ? (
           <div style={{ marginTop: "var(--space-4)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
               Couldn't load the top-up catalog.{" "}
               {(catalog.error as Error)?.message ?? "Unknown error"}
             </p>
@@ -1570,7 +1570,7 @@ function CreditsTabInner() {
         {credits.isLoading ? (
           <p style={helperTextStyle()}>Loading…</p>
         ) : credits.isError ? (
-          <p style={{ ...helperTextStyle(), color: "var(--madder, #E06557)" }}>
+          <p style={{ ...helperTextStyle(), color: "var(--ds-red-600)" }}>
             Couldn't load recent activity. Use Retry above to reload.
           </p>
         ) : data && data.ledger.length === 0 && data.topups.length === 0 ? (
@@ -1602,7 +1602,7 @@ function CreditsTabInner() {
               >
                 {/* Human words, not the raw price_lookup_key enum (copy audit). */}
                 <span style={{ color: "var(--text-primary)" }}>Credit top-up</span>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--moss)" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--ds-green-600)" }}>
                   +{Number(t.credits_added).toLocaleString()} credits
                 </span>
                 <span
@@ -1639,7 +1639,7 @@ function CreditsTabInner() {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    color: row.delta_credits >= 0 ? "var(--moss)" : "var(--text-body)",
+                    color: row.delta_credits >= 0 ? "var(--ds-green-600)" : "var(--text-body)",
                   }}
                 >
                   {row.delta_credits >= 0 ? "+" : ""}
@@ -1799,7 +1799,7 @@ function WorkspaceBindingsSummary() {
                     width: 6,
                     height: 6,
                     borderRadius: 99,
-                    background: healthy ? "var(--moss)" : "var(--madder)",
+                    background: healthy ? "var(--ds-green-600)" : "var(--ds-red-600)",
                     flexShrink: 0,
                   }}
                 />
@@ -3157,7 +3157,12 @@ function Field({
 
   return (
     <div style={{ display: "block" }}>
-      <label htmlFor={fieldId} style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}>{label}</label>
+      <label
+        htmlFor={fieldId}
+        style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}
+      >
+        {label}
+      </label>
       {React.isValidElement(children)
         ? React.cloneElement(children, { id: fieldId } as any)
         : children}
