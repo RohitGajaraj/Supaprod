@@ -318,13 +318,10 @@ export function RoadmapColumns() {
         </div>
       )}
       {/* Columns wrap below ~780px content width so 768 stays readable
-          (three crushed 200px columns fail the responsive pass). */}
+          (three crushed 200px columns fail the responsive pass).
+          Responsive: 1 column mobile (<640px), 2 tablet (640-1024), 3 desktop (≥1024). */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: 16,
-        }}
+        className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       >
         {COLUMNS.map((col) => {
           const colItems = itemsByBucket.get(col.key) ?? [];
