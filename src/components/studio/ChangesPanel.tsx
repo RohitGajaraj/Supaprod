@@ -700,7 +700,7 @@ export function ChangesPanel({
               )}
               <span
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 12.5,
                   color: "var(--text-subtle)",
                 }}
@@ -992,7 +992,7 @@ export function ChangesPanel({
               style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
               <label
-                style={{ fontFamily: "var(--font-ui)", fontSize: 12.5, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--text-body)" }}
               >
                 Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
               </label>

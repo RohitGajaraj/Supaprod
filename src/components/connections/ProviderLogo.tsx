@@ -71,7 +71,7 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
       ) : (
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: Math.round(size * 0.44),
             fontWeight: 700,
             color: "var(--text-body)",

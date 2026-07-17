@@ -252,7 +252,7 @@ function AdminObservability() {
                     <td
                       style={{
                         padding: 8,
-                        fontFamily: "var(--font-ui)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: "var(--text-base)",
                         color: "var(--text-body)",
                       }}
@@ -313,7 +313,7 @@ function VendorRow({
       <div>
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             color: "var(--text-primary)",
           }}
@@ -322,7 +322,7 @@ function VendorRow({
         </span>
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             color: "var(--text-muted)",
           }}
@@ -392,7 +392,7 @@ function CardDescription({ children }: { children: ReactNode }) {
   return (
     <p
       style={{
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: "var(--text-base)",
         lineHeight: "var(--leading-body)",
         color: "var(--text-body)",

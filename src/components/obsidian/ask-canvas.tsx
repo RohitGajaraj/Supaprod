@@ -93,7 +93,7 @@ export function ProgressBlock({
               <StatusDot state={dotState} word={STATUS_WORD[dotState]} style={{ flexShrink: 0 }} />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-ui)", fontSize: 12, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
               >
                 {stepDescription(step)}
               </span>
@@ -123,7 +123,7 @@ function ApprovalGateRow({
   onDecide: (approvalId: string, decision: "approve" | "reject") => void;
 }) {
   const buttonBase: React.CSSProperties = {
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 11.5,
     fontWeight: 600,
     padding: "5px 12px",
@@ -146,7 +146,7 @@ function ApprovalGateRow({
       {approval.rationale ? (
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 12,
             lineHeight: 1.5,
             color: "var(--text-body)",
@@ -374,7 +374,7 @@ export function CriticBlock({ verdict }: { verdict: CriticReview }) {
       </div>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 12.5,
           lineHeight: 1.55,
           color: "var(--text-body)",

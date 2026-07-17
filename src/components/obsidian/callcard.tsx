@@ -166,7 +166,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
 
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "13px",
             lineHeight: 1.65,
             color: "var(--text-muted)",
@@ -199,7 +199,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "12.5px",
                     color: "var(--text-body)",
                   }}
@@ -246,7 +246,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
           </div>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
             }}

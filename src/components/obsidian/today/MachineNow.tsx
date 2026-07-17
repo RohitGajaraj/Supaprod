@@ -87,7 +87,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
                 <span
                   className="block truncate"
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 12.5,
                     color: "var(--text-primary)",
                   }}

@@ -71,7 +71,7 @@ export function ContradictionAuditSection({ decisionId }: { decisionId: string }
         <div style={{ display: "grid", gap: "10px" }}>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "13px",
               fontWeight: 550,
               color: "var(--text-primary)",

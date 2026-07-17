@@ -91,7 +91,7 @@ export function AdminErrorCard({
         <p
           style={{
             margin: 0,
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-muted)",
             maxWidth: 520,

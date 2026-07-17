@@ -353,7 +353,7 @@ export function DecisionDetail({ id }: { id: string }) {
             </MonoLabel>
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "13px",
                 fontWeight: 550,
                 color: "var(--text-primary)",
@@ -440,7 +440,7 @@ export function DecisionDetail({ id }: { id: string }) {
                 className="loom-press flex items-center hover:[color:var(--text-primary)]"
                 style={{
                   gap: "6px",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "12px",
                   color: "var(--link)",
                 }}

@@ -193,7 +193,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           <h2
             style={{
               margin: 0,
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 600,
               color: "var(--text-primary)",

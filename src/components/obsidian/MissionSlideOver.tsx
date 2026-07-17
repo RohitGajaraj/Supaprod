@@ -322,7 +322,7 @@ export function MissionSlideOver({
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontFamily: "var(--font-ui)", fontSize: 13, color: "var(--text-body)" }}
+                  style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--text-body)" }}
                 >
                   {stepDescription(step)}
                 </span>

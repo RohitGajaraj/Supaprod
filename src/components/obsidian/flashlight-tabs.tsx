@@ -184,7 +184,7 @@ export function FlashlightTabs({
             style={{
               position: "relative",
               zIndex: 1,
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize,
               fontWeight: isActive ? 600 : 500,
               padding: `${padY}px 14px`,

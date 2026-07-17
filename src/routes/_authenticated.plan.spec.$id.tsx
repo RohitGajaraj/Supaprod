@@ -676,7 +676,7 @@ function SpecEditorPage() {
             style={{
               fontSize: 13,
               fontWeight: 600,
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               color: "var(--cta-ink)",
               background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
               border: "none",
@@ -734,7 +734,7 @@ function SpecEditorPage() {
               className="loom-press hover:[color:var(--text-primary)]"
               style={{
                 fontSize: 11,
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 textTransform: "capitalize",
                 color: "var(--text-subtle)",
                 background: "none",

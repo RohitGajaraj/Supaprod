@@ -145,7 +145,7 @@ export const Route = createFileRoute("/_authenticated/learn")({
     console.error("[Learn] route crashed:", error);
     return (
       <div style={{ padding: "64px 32px", textAlign: "center" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Learn
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>

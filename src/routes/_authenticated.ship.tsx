@@ -136,7 +136,7 @@ export const Route = createFileRoute("/_authenticated/ship")({
     console.error("[Ship] route crashed:", error);
     return (
       <div style={{ padding: "64px 32px", textAlign: "center" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Ship
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>

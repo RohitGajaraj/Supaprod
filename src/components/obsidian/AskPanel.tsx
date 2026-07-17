@@ -119,7 +119,7 @@ const AskUserTurn = React.memo(function AskUserTurn({
           borderRadius: "var(--radius-card)",
           padding: "10px 14px",
           maxWidth: "80%",
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 13,
           lineHeight: 1.55,
           color: "var(--text-primary)",
@@ -189,7 +189,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 onClick={() => onRetry(msg.id, msg.retryContent!)}
                 className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 11.5,
                   fontWeight: 600,
                   padding: "4px 10px",
@@ -242,7 +242,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
       {earlyBlocks}
       <div
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 13,
           lineHeight: 1.65,
           color: "var(--text-body)",
@@ -424,7 +424,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 onClick={() => onPromote(msg, kind)}
                 className="transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)]"
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 11,
                   padding: "3px 9px",
                   borderRadius: 999,
@@ -538,7 +538,7 @@ function AskComposer({
                 border: "none",
                 textAlign: "left",
                 cursor: "pointer",
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 12.5,
                 color: "var(--text-primary)",
               }}
@@ -608,7 +608,7 @@ function AskComposer({
             border: "none",
             // No outline:none: the global [data-obsidian] :focus-visible ring
             // is this borderless composer's focus indicator (never removed).
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 13,
             lineHeight: 1.55,
             color: "var(--text-primary)",
@@ -1295,7 +1295,7 @@ export function AskPanel() {
                   </p>
                   <p
                     style={{
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: 12.5,
                       lineHeight: 1.5,
                       color: "var(--text-muted)",
@@ -1320,7 +1320,7 @@ export function AskPanel() {
                         borderRadius: "var(--radius-card)",
                         border: "1px solid var(--hairline)",
                         background: "var(--surface-card-deep)",
-                        fontFamily: "var(--font-ui)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: 12.5,
                         color: "var(--text-body)",
                         cursor: "pointer",

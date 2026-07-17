@@ -289,7 +289,7 @@ export function OpportunityQueue() {
   if (opps.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load opportunities
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>

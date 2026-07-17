@@ -149,28 +149,26 @@ function AuthedLayout() {
     <div data-obsidian>
       <WorkspaceProvider>
         <FlowModeProvider>
-
-            <AskProvider>
-              {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
-              <BackendHealthBanner />
-              <BillingBanner />
-              <CommandPalette />
-              {!isOnboarding && <GotoShortcuts />}
-              {isOnboarding ? (
+          <AskProvider>
+            {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
+            <BackendHealthBanner />
+            <BillingBanner />
+            <CommandPalette />
+            {!isOnboarding && <GotoShortcuts />}
+            {isOnboarding ? (
+              <Outlet />
+            ) : (
+              <AppShell>
                 <Outlet />
-              ) : (
-                <AppShell>
-                  <Outlet />
-                </AppShell>
-              )}
-              {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
+              </AppShell>
+            )}
+            {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
                   rail destination - mounted once, floats over the whole shell. */}
-              {!isOnboarding && <AskPanel />}
-              {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
+            {!isOnboarding && <AskPanel />}
+            {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
                   page, the cross-surface countdown while a block runs (Option F). */}
-              {!isOnboarding && <FocusDock />}
-            </AskProvider>
-
+            {!isOnboarding && <FocusDock />}
+          </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>
     </div>

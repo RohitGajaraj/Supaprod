@@ -209,7 +209,7 @@ export function CommandPalette() {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0"
-          style={{ zIndex: 80, backgroundColor: "rgba(4,4,5,0.6)", backdropFilter: "blur(3px)" }}
+          style={{ zIndex: 80, backgroundColor: "var(--ds-overlay-backdrop-color)", backdropFilter: "blur(3px)" }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -243,7 +243,7 @@ export function CommandPalette() {
               aria-label="Search, act, or ask what it can do"
               className="flex-1 bg-transparent outline-none"
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 15,
                 color: "var(--text-primary)",
                 caretColor: "var(--ember)",
@@ -353,7 +353,7 @@ export function CommandPalette() {
                         >
                           <span
                             style={{
-                              fontFamily: "var(--font-ui)",
+                              fontFamily: "var(--font-sans)",
                               fontSize: 13,
                               color: active ? "var(--text-primary)" : "var(--text-body)",
                             }}
@@ -364,7 +364,7 @@ export function CommandPalette() {
                             <span
                               className="truncate"
                               style={{
-                                fontFamily: "var(--font-ui)",
+                                fontFamily: "var(--font-sans)",
                                 fontSize: 11,
                                 lineHeight: 1.3,
                                 color: "var(--text-subtle)",
@@ -383,7 +383,7 @@ export function CommandPalette() {
                             }}
                             className="loom-press rounded-[var(--radius-control)] border border-[var(--hairline)] bg-transparent text-[var(--text-muted)] transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                             style={{
-                              fontFamily: "var(--font-ui)",
+                              fontFamily: "var(--font-sans)",
                               fontSize: 12,
                               padding: "3px 9px",
                             }}

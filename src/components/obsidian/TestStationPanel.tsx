@@ -153,7 +153,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
               />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-ui)", fontSize: 13, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--text-body)" }}
               >
                 {item.text}
               </span>
@@ -196,7 +196,7 @@ function TestItemRow({
       <StatusDot state={meta.state} word={meta.word} style={{ width: 84, flexShrink: 0 }} />
       <span
         className="min-w-0 flex-1 truncate"
-        style={{ fontFamily: "var(--font-ui)", fontSize: 13, color: "var(--text-body)" }}
+        style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--text-body)" }}
       >
         {text}
       </span>

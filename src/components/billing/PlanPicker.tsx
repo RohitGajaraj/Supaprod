@@ -155,7 +155,7 @@ function pillButtonStyle(active: boolean): React.CSSProperties {
     borderRadius: "var(--radius-pill)",
     border: "none",
     cursor: "pointer",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
     fontWeight: active ? 600 : 500,
     // Inactive background/color live in the hover classes so hover can win
@@ -415,7 +415,7 @@ function CardHeader({
       </div>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
           margin: "3px 0 0",
@@ -426,7 +426,7 @@ function CardHeader({
       </p>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-sm)",
           color: "var(--text-body)",
           margin: "var(--space-1) 0 0",
@@ -456,7 +456,7 @@ function ExpandableBullets({ items }: { items: string[] }) {
             <li
               key={h}
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-helper)",
                 color: "var(--text-body)",
                 display: "flex",
@@ -494,7 +494,7 @@ function ExpandableBullets({ items }: { items: string[] }) {
             background: "none",
             border: "none",
             padding: "var(--space-2) 0 0",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-helper)",
             color: "var(--text-muted)",
             cursor: "pointer",
@@ -531,7 +531,7 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
         </span>
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
           }}
@@ -541,7 +541,7 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
       </div>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
           margin: 0,
@@ -602,7 +602,7 @@ function EnterpriseCard({
         {isComingFromBusiness ? (
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-sm)",
               color: "var(--text-body)",
             }}
@@ -613,7 +613,7 @@ function EnterpriseCard({
           <>
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
               }}
@@ -622,7 +622,7 @@ function EnterpriseCard({
             </span>
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-helper)",
                 color: "var(--text-subtle)",
               }}
@@ -636,7 +636,7 @@ function EnterpriseCard({
         <>
           <p
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
               margin: 0,
@@ -649,7 +649,7 @@ function EnterpriseCard({
             href="mailto:sales@cadence.app?subject=Enterprise plan management"
             className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-base)",
               fontWeight: 500,
               color: "var(--text-primary)",
@@ -669,7 +669,7 @@ function EnterpriseCard({
               href="mailto:sales@cadence.app?subject=Enterprise plan management"
               className={FOCUS_RING_CLASS}
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-helper)",
                 color: "var(--blossom)",
                 textDecoration: "underline",
@@ -684,7 +684,7 @@ function EnterpriseCard({
           href="mailto:sales@cadence.app?subject=Enterprise enquiry"
           className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             fontWeight: 500,
             color: "var(--text-primary)",
@@ -814,7 +814,7 @@ function PaidTierCard({
           </span>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-sm)",
               color: "var(--text-subtle)",
             }}
@@ -833,7 +833,7 @@ function PaidTierCard({
         >
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
             }}
@@ -867,7 +867,7 @@ function PaidTierCard({
             borderRadius: "var(--radius-control)",
             border: "1px solid var(--hairline-strong)",
             background: "var(--raised)",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             color: "var(--text-primary)",
             cursor: "pointer",
@@ -910,7 +910,7 @@ function PaidTierCard({
       ) : (
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-helper)",
             color: "var(--text-subtle)",
             margin: 0,
@@ -925,7 +925,7 @@ function PaidTierCard({
       {statusMessage && (
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-helper)",
             color: "var(--text-subtle)",
             margin: 0,

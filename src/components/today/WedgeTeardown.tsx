@@ -374,7 +374,7 @@ const shareBtnStyle: React.CSSProperties = {
   gap: 6,
   height: 32,
   padding: "0 12px",
-  fontFamily: "var(--font-ui)",
+  fontFamily: "var(--font-sans)",
   fontWeight: 500,
   border: "1px solid var(--hairline-strong)",
   borderRadius: "var(--radius-control)",

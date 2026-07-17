@@ -398,7 +398,7 @@ function DoorLink({
       className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 6,
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: 12.5,
         fontWeight: 500,
         color: "var(--text-muted)",

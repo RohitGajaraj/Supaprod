@@ -96,7 +96,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           {isNotFound ? (
             <Link
               to="/build"
-              className="mono-label loom-press"
+              className="mono-label loom-press hover:underline underline-offset-4"
               style={{ display: "inline-flex", marginTop: 14, color: "var(--glacier)" }}
             >
               ← All missions
@@ -258,7 +258,7 @@ function JourneyStrip({
         <Link
           to="/brain"
           search={{ tab: "docs" }}
-          className="mono-label"
+          className="mono-label hover:underline underline-offset-4"
           style={{ fontSize: "var(--text-mono-floor)", color: "var(--glacier)", marginLeft: 4 }}
         >
           lands in Releases →
@@ -334,7 +334,7 @@ function SteerComposer({
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 13,
             fontWeight: 600,
             color: "var(--text-primary)",

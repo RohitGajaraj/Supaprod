@@ -219,7 +219,7 @@ function PrototypesPane() {
       ) : items.isError ? (
         // An error never wears the empty state's clothes: cause + one action.
         <div style={{ padding: "20px 16px" }}>
-          <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+          <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
             Could not load prototypes
           </MonoLabel>
           <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 0" }}>
@@ -311,7 +311,7 @@ export const Route = createFileRoute("/_authenticated/design")({
     console.error("[Design] route crashed:", error);
     return (
       <div style={{ padding: "64px 32px", textAlign: "center" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Design
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
