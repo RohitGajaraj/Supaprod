@@ -145,7 +145,7 @@ export function AnalyticsPanel() {
       {overview.isLoading ? (
         <div
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--ink-faint)",
             padding: "32px 0",
             textAlign: "center",
@@ -259,7 +259,7 @@ export function AnalyticsPanel() {
               </span>
             </div>
             {bySurface.length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
                 No AI calls in this window yet.
               </p>
             ) : (
@@ -337,9 +337,9 @@ export function AnalyticsPanel() {
               </span>
             </div>
             {byAgentQ.isLoading ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading agent spend…</p>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>Loading agent spend…</p>
             ) : byAgentQ.isError ? (
-              <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
                 Agent spend did not load.{" "}
                 <button
                   type="button"
@@ -350,14 +350,14 @@ export function AnalyticsPanel() {
                     border: "none",
                     padding: 0,
                     color: "var(--ink)",
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   Retry
                 </button>
               </p>
             ) : byAgents.length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
                 No agent calls in this window yet.
               </p>
             ) : (
@@ -468,7 +468,7 @@ export function AnalyticsPanel() {
               <span>Spend</span>
             </div>
             {byModel.length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", padding: "14px 18px" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", padding: "14px 18px" }}>
                 No AI calls in this window yet.
               </p>
             ) : (
@@ -502,11 +502,11 @@ export function AnalyticsPanel() {
         ) : section === "Runs" ? (
           <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
             {events.isLoading ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "14px 18px" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)", padding: "14px 18px" }}>
                 Loading runs…
               </p>
             ) : events.isError ? (
-              <p style={{ fontSize: 12.5, color: "var(--madder)", padding: "14px 18px" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--madder)", padding: "14px 18px" }}>
                 Runs did not load.{" "}
                 <button
                   type="button"
@@ -517,14 +517,14 @@ export function AnalyticsPanel() {
                     border: "none",
                     padding: 0,
                     color: "var(--ink)",
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   Retry
                 </button>
               </p>
             ) : (events.data?.events ?? []).length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", padding: "14px 18px" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", padding: "14px 18px" }}>
                 No AI events yet. Run an agent or a chat first.
               </p>
             ) : (
@@ -542,7 +542,7 @@ export function AnalyticsPanel() {
                     width: "100%",
                     textAlign: "left",
                     borderBottom: i < arr.length - 1 ? "1px solid var(--hairline)" : "none",
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   <VerdictChip tone={e.status === "ok" ? "moss" : "madder"}>
@@ -581,9 +581,9 @@ export function AnalyticsPanel() {
           <div className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 10 }}>Guardrail hits · last 30 days</MonoLabel>
             {guards.isLoading ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading guardrail hits…</p>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>Loading guardrail hits…</p>
             ) : guards.isError ? (
-              <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
                 Guardrail hits did not load.{" "}
                 <button
                   type="button"
@@ -594,14 +594,14 @@ export function AnalyticsPanel() {
                     border: "none",
                     padding: 0,
                     color: "var(--ink)",
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   Retry
                 </button>
               </p>
             ) : (guards.data?.hits ?? []).length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
                 No guardrail hits. Inputs and outputs have been clean.
               </p>
             ) : (
@@ -642,7 +642,7 @@ export function AnalyticsPanel() {
           {/* An error never wears the loading state's clothes (checklist 7):
               a failed detail read names itself and offers one retry. */}
           {detail.isError ? (
-            <div style={{ fontSize: 12.5, color: "var(--madder)" }}>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
               This event did not load. {(detail.error as Error)?.message}{" "}
               <button
                 type="button"
@@ -653,14 +653,14 @@ export function AnalyticsPanel() {
                   border: "none",
                   padding: 0,
                   color: "var(--ink)",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                 }}
               >
                 Retry
               </button>
             </div>
           ) : detail.isLoading || !detail.data ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>Loading event…</div>
+            <div style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>Loading event…</div>
           ) : (
             <EventDetail data={detail.data as EventDetailData} />
           )}
@@ -759,7 +759,7 @@ type EventDetailData = {
 
 function EventDetail({ data }: { data: EventDetailData }) {
   const e = data.event;
-  if (!e) return <div style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>Event not found.</div>;
+  if (!e) return <div style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>Event not found.</div>;
   const ev = data.eval;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -821,7 +821,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
           {ev.judge_rationale && (
             <p
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--ink-subtle)",
                 marginTop: 10,
                 paddingTop: 10,
@@ -844,7 +844,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
               style={{
                 display: "flex",
                 gap: 8,
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 padding: "3px 0",
                 alignItems: "baseline",
               }}

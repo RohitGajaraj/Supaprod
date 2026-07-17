@@ -123,7 +123,7 @@ export function SpecProjectionsPanel({
         <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 8px" }}>
           No Outcome Contract yet, so there is nothing to project.
         </p>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
           Draft one on the Contract tab. The PRD, FRD, status, and one-pager then generate from that
           typed spine automatically, so no document is ever hand-maintained.
         </p>
@@ -135,7 +135,7 @@ export function SpecProjectionsPanel({
     <div>
       <p
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-muted)",
           lineHeight: 1.6,
           margin: "0 0 16px",
@@ -207,7 +207,7 @@ export function SpecProjectionsPanel({
 
       <div style={{ marginBottom: 16 }}>{stamp}</div>
       <p
-        style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}
+        style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}
       >
         {set.drift.detail}
       </p>
@@ -252,7 +252,7 @@ export function SpecProjectionsPanel({
               >
                 Sources
               </div>
-              <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "var(--text-body)" }}>
+              <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
                 {current.sources.map((c, i) => (
                   <li key={i}>{c.label}</li>
                 ))}

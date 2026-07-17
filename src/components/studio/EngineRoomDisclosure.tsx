@@ -141,7 +141,7 @@ export function EngineRoomDisclosure({
           padding: "24px 0",
           marginTop: 12,
           textAlign: "center",
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
         }}
       >

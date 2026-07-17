@@ -55,7 +55,7 @@ export function ShipHistoryPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Ship history · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(outcome.error as Error).message}
         </p>
         <Button variant="secondary" onClick={() => void outcome.refetch()}>
@@ -84,7 +84,7 @@ export function ShipHistoryPanel() {
         <Link
           to="/build"
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
@@ -162,7 +162,7 @@ export function ShipHistoryPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",

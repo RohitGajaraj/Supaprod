@@ -80,7 +80,7 @@ export function LoopClosureBadge() {
             {i > 0 ? (
               <ChevronRight size={16} strokeWidth={1.5} color="var(--ink-faint)" aria-hidden />
             ) : null}
-            <span className="tabular-nums" style={{ fontSize: 11.5, color: "var(--ink)" }}>
+            <span className="tabular-nums" style={{ fontSize: "var(--text-label-12)", color: "var(--ink)" }}>
               <strong style={{ fontWeight: 600 }}>{step.value}</strong>{" "}
               <span style={{ color: "var(--ink-faint)" }}>
                 {trailLabel(step.label, step.value)}

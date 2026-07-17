@@ -36,7 +36,7 @@ export function LoopThread() {
         borderBottom: "1px solid var(--hairline)",
         background: "var(--ds-background-100)",
         overflow: "hidden",
-        fontSize: 11.5,
+        fontSize: "var(--text-label-12)",
       }}
     >
       <div

@@ -118,7 +118,7 @@ function IncidentCard({ n }: { n: Incident }) {
       </div>
       <div
         style={{
-          fontSize: 13.5,
+          fontSize: "var(--text-label-14)",
           fontWeight: 500,
           color: "var(--text-primary)",
           marginTop: 8,
@@ -128,7 +128,7 @@ function IncidentCard({ n }: { n: Incident }) {
       </div>
       <p
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-body)",
           marginTop: 4,
           lineHeight: 1.5,

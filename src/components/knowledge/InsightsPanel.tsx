@@ -67,7 +67,7 @@ function Stat({ value, label, color }: { value: string; label: string; color?: s
       >
         {value}
       </span>
-      <span className="mono-label" style={{ fontSize: 10.5, color: "var(--ink-subtle)" }}>
+      <span className="mono-label" style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)" }}>
         {label}
       </span>
     </div>
@@ -144,7 +144,7 @@ export function InsightsPanel() {
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>
           Insights · failed to load
         </MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -214,7 +214,7 @@ export function InsightsPanel() {
                 }}
               >
                 <ToneDot color={t.color} />
-                <span style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5 }}>
+                <span style={{ fontSize: "var(--text-label-14)", color: "var(--ink)", lineHeight: 1.5 }}>
                   {ins.text}
                 </span>
               </div>
@@ -235,7 +235,7 @@ export function InsightsPanel() {
             />
             <Stat value={String(d.beliefs.superseded)} label="revised" />
           </div>
-          <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
+          <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {totalDecisions === 0
               ? "No decisions recorded yet."
               : "Counts your recorded decisions only: the calls that still hold, and the ones a later call replaced. The loop trail above counts revision links across everything on the graph."}
@@ -256,7 +256,7 @@ export function InsightsPanel() {
             <Stat value={String(d.learned.missed)} label="missed" color="var(--madder-bright)" />
             <Stat value={String(d.learned.mixed)} label="mixed" color="var(--ink-subtle)" />
           </div>
-          <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
+          <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {d.learned.total === 0
               ? "No outcomes recorded yet. The hit rate appears once results come back."
               : `Across ${d.learned.total} recorded outcome${d.learned.total === 1 ? "" : "s"}.`}
@@ -275,7 +275,7 @@ export function InsightsPanel() {
                   <span
                     className="mono-label"
                     style={{
-                      fontSize: 10.5,
+                      fontSize: "var(--text-label-12)",
                       color: b.superseded ? "var(--ink-subtle)" : "var(--moss-bright)",
                       flexShrink: 0,
                       textTransform: "uppercase",
@@ -309,7 +309,7 @@ export function InsightsPanel() {
                 ) : (
                   <span
                     style={{
-                      fontSize: 11.5,
+                      fontSize: "var(--text-label-12)",
                       color: "var(--ink-faint)",
                       fontStyle: "italic",
                       paddingLeft: 2,
@@ -319,7 +319,7 @@ export function InsightsPanel() {
                   </span>
                 )}
                 {b.superseded && b.revisedBy ? (
-                  <span style={{ fontSize: 11.5, color: "var(--madder-bright)", paddingLeft: 2 }}>
+                  <span style={{ fontSize: "var(--text-label-12)", color: "var(--madder-bright)", paddingLeft: 2 }}>
                     now replaced by: {b.revisedBy}
                   </span>
                 ) : null}
@@ -339,7 +339,7 @@ export function InsightsPanel() {
       >
         <MonoLabel style={{ marginBottom: 10 }}>What is unresolved</MonoLabel>
         {d.unresolved.count === 0 ? (
-          <p style={{ fontSize: 12.5, color: "var(--ink-faint)", lineHeight: 1.5 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)", lineHeight: 1.5 }}>
             Nothing open right now: no recorded decisions are in active conflict, and no outcomes
             are sitting mixed.
           </p>
@@ -348,14 +348,14 @@ export function InsightsPanel() {
             {d.unresolved.contradictions.map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
                 <ToneDot color="var(--madder)" />
-                <span style={{ fontSize: 12.5, color: "var(--ink)", lineHeight: 1.5 }}>
+                <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink)", lineHeight: 1.5 }}>
                   <span style={{ color: "var(--ink-muted)" }}>{c.title}</span> · {c.detail}
                 </span>
               </div>
             ))}
             {d.unresolved.mixedOutcomes > 0 ? (
               <p
-                style={{ fontSize: 11.5, color: "var(--ink-faint)", lineHeight: 1.5, marginTop: 2 }}
+                style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", lineHeight: 1.5, marginTop: 2 }}
               >
                 {d.unresolved.mixedOutcomes} outcome{d.unresolved.mixedOutcomes === 1 ? "" : "s"}{" "}
                 came back mixed: partial signal, still waiting on a clean result.
@@ -386,7 +386,7 @@ export function InsightsPanel() {
                 <span
                   className="mono-label"
                   style={{
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     color: VERDICT_COLOR[l.verdict?.toLowerCase()] ?? "var(--ink-subtle)",
                     flexShrink: 0,
                     minWidth: 60,
@@ -397,7 +397,7 @@ export function InsightsPanel() {
                 </span>
                 <span
                   style={{
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                     color: "var(--ink-muted)",
                     lineHeight: 1.5,
                     flex: 1,
@@ -407,7 +407,7 @@ export function InsightsPanel() {
                   {l.metricLabel && l.metricValue ? (
                     <span
                       className="mono-label"
-                      style={{ fontSize: 10.5, color: "var(--ink-subtle)", marginLeft: 6 }}
+                      style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginLeft: 6 }}
                     >
                       {l.metricLabel}: {l.metricValue}
                     </span>
@@ -416,7 +416,7 @@ export function InsightsPanel() {
                     <span
                       className="mono-label tabular-nums"
                       style={{
-                        fontSize: 10.5,
+                        fontSize: "var(--text-label-12)",
                         marginLeft: 6,
                         color: l.iceShift > 0 ? "var(--moss-bright)" : "var(--madder-bright)",
                       }}

@@ -139,7 +139,7 @@ export function FleetView() {
 
   return (
     <>
-      <p style={{ fontSize: 13.5, color: "var(--ink)", margin: "4px 0 22px" }}>{fleet.headline}</p>
+      <p style={{ fontSize: "var(--text-label-14)", color: "var(--ink)", margin: "4px 0 22px" }}>{fleet.headline}</p>
       {fleet.agents.length === 0 ? (
         <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "8px 0" }}>
           No agents have run yet. Dispatch a mission and your fleet shows up here.

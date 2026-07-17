@@ -36,10 +36,10 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
     return (
       <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div>
-          <div style={{ fontWeight: 500, fontSize: 12.5, color: "var(--text-primary)" }}>
+          <div style={{ fontWeight: 500, fontSize: "var(--text-label-13)", color: "var(--text-primary)" }}>
             Missing a connector?
           </div>
-          <div style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 2 }}>
+          <div style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", marginTop: 2 }}>
             Tell us what to build next.
           </div>
         </div>
@@ -50,7 +50,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
           placeholder="e.g. Amplitude"
           maxLength={120}
           aria-label="Connector you want"
-          style={{ width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 12.5 }}
+          style={{ width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: "var(--text-label-13)" }}
         />
         <button
           type="submit"
@@ -94,7 +94,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
         <Plus size={16} strokeWidth={1.5} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 500, fontSize: 13.5, color: "var(--ink)" }}>
+        <div style={{ fontWeight: 500, fontSize: "var(--text-label-14)", color: "var(--ink)" }}>
           Request a connector
         </div>
         <div style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>

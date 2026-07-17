@@ -43,14 +43,14 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
         ) : (
           <div style={{ width: 20 }} />
         )}
-        <span className="mono-label" style={{ fontSize: 10.5, minWidth: 60 }}>
+        <span className="mono-label" style={{ fontSize: "var(--text-label-12)", minWidth: 60 }}>
           {node.kind}
         </span>
         <span style={{ fontSize: 13, color: "var(--ink)" }}>{node.title || "Untitled"}</span>
         {superseding && (
           <span
             className="mono-label"
-            style={{ fontSize: 10.5, color: "var(--madder)" }}
+            style={{ fontSize: "var(--text-label-12)", color: "var(--madder)" }}
             title={
               node.retired
                 ? "This revision was itself later reversed (kept as history)"
@@ -109,7 +109,7 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
         <span className="spinner" />
-        <span className="mono-label" style={{ fontSize: 10.5 }}>
+        <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
           loading tree…
         </span>
       </div>
@@ -118,7 +118,7 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
   if (tree.isError) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", margin: 0 }}>
           Could not load the tree: {(tree.error as Error).message}
         </p>
         <button

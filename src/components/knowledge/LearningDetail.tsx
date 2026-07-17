@@ -113,7 +113,7 @@ export function LearningDetail({ id }: { id: string }) {
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>
           Learning · failed to load
         </MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(learnings.error as Error)?.message ?? "Unknown error"}
         </p>
         <Button variant="secondary" size="sm" onClick={() => void learnings.refetch()}>

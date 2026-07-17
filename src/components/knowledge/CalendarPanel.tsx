@@ -563,7 +563,7 @@ export function CalendarPanel({
             </button>
           </div>
           {mPlan.isPending ? (
-            <span style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+            <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
               fitting your deep-work tasks around your calendar…
             </span>
           ) : blocks.length === 0 ? (
@@ -591,7 +591,7 @@ export function CalendarPanel({
                     <span
                       style={{
                         flex: 1,
-                        fontSize: 12.5,
+                        fontSize: "var(--text-label-13)",
                         color: "var(--ink-muted)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -650,7 +650,7 @@ export function CalendarPanel({
       ) : loadError ? (
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 8 }}>calendar · failed to load</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}>
             {loadError.message}
           </p>
           <button
@@ -760,7 +760,7 @@ export function CalendarPanel({
                     {whenLabel(it.start_at, it.allDay)}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontWeight: 500, fontSize: 13.5 }}>
+                    <span style={{ display: "block", fontWeight: 500, fontSize: "var(--text-label-14)" }}>
                       {it.title}
                     </span>
                     {it.kind === "meeting" ? (
@@ -768,7 +768,7 @@ export function CalendarPanel({
                         <span
                           style={{
                             display: "block",
-                            fontSize: 11.5,
+                            fontSize: "var(--text-label-12)",
                             color: "var(--ink-faint)",
                             marginTop: 1,
                           }}
@@ -780,7 +780,7 @@ export function CalendarPanel({
                       <span
                         style={{
                           display: "block",
-                          fontSize: 11.5,
+                          fontSize: "var(--text-label-12)",
                           color: "var(--ink-faint)",
                           marginTop: 1,
                         }}
@@ -838,7 +838,7 @@ export function CalendarPanel({
                     >
                       capture · extracted by Historian
                     </div>
-                    <p style={{ fontSize: 12.5, color: "var(--ink-muted)", lineHeight: 1.6 }}>
+                    <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", lineHeight: 1.6 }}>
                       {it.summary}
                     </p>
                     <button
@@ -964,7 +964,7 @@ function MonthGrid({
         </button>
         <button
           className="btn btn-ghost btn-sm"
-          style={{ fontSize: 10.5 }}
+          style={{ fontSize: "var(--text-label-12)" }}
           onClick={() => {
             const d = new Date();
             const day = d.getDate();
@@ -1164,7 +1164,7 @@ function MonthGrid({
             </button>
           ))}
           {selItems.length === 0 ? (
-            <div style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>
+            <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>
               Nothing scheduled · a good deep-work day.
             </div>
           ) : null}
@@ -1224,7 +1224,7 @@ function YearGrid({ buckets }: { buckets: Record<string, DayItem[]> }) {
         <span className="font-display" style={{ fontSize: 16, flex: 1 }}>
           {year} · occupancy
         </span>
-        <span className="mono-label" style={{ fontSize: 10.5 }}>
+        <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
           like a contribution graph · but for your time
         </span>
       </div>
@@ -1595,7 +1595,7 @@ function ConnectButton({
           calendar accounts
         </div>
         {connections.length === 0 ? (
-          <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 8 }}>
+          <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 8 }}>
             Connect once and your events flow into Cadence. You can change this anytime.
           </p>
         ) : null}
@@ -1615,7 +1615,7 @@ function ConnectButton({
               <span className="dot" style={{ width: 5, height: 5, background: "var(--emerald)" }} />
               <span
                 style={{
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   flex: 1,
                   minWidth: 0,
                   overflow: "hidden",
@@ -1644,7 +1644,7 @@ function ConnectButton({
               disabled={connecting}
               title={available.google ? "" : "Provider credentials not yet configured"}
               className="cmdk-item"
-              style={{ fontSize: 11.5, padding: "6px 8px" }}
+              style={{ fontSize: "var(--text-label-12)", padding: "6px 8px" }}
             >
               <Plus size={16} style={{ marginRight: 6 }} /> Connect Google Calendar · OAuth
             </button>
@@ -1655,7 +1655,7 @@ function ConnectButton({
               disabled={connecting}
               title={available.microsoft ? "" : "Provider credentials not yet configured"}
               className="cmdk-item"
-              style={{ fontSize: 11.5, padding: "6px 8px" }}
+              style={{ fontSize: "var(--text-label-12)", padding: "6px 8px" }}
             >
               <Plus size={16} style={{ marginRight: 6 }} /> Connect Microsoft Outlook · OAuth
             </button>

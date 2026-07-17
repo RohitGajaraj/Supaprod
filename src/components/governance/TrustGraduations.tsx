@@ -37,7 +37,7 @@ export function TrustGraduationsBlock() {
   // A failed read may not vanish silently: one quiet line with the retry.
   if (q.isError) {
     return (
-      <div style={{ marginBottom: 18, fontSize: 12.5, color: "var(--madder)" }}>
+      <div style={{ marginBottom: 18, fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
         Trust graduations did not load.{" "}
         <button
           type="button"
@@ -48,7 +48,7 @@ export function TrustGraduationsBlock() {
             border: "none",
             padding: 0,
             color: "var(--text-primary)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
           }}
         >
           Retry
@@ -107,14 +107,14 @@ function GraduationCard({
         >
           {p.agent_slug}
         </span>
-        <span style={{ fontSize: 12.5, color: "var(--text-body)" }}>
+        <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
           has earned looser reins on
         </span>
         <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-body)" }}>
           {p.tool_name}
         </span>
       </div>
-      <p style={{ margin: "7px 0 0", fontSize: 12.5, color: "var(--text-body)" }}>
+      <p style={{ margin: "7px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
         {p.clean_streak} clean approvals in a row. Proposal: move this one tool from{" "}
         <strong>{p.from_mode}</strong> to <strong>{p.to_mode}</strong> for this agent. Nothing
         changes unless you accept; high-risk gates keep their floors either way.

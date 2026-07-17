@@ -718,7 +718,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span
                       className="block truncate"
                       style={{
-                        fontSize: 13.5,
+                        fontSize: "var(--text-label-14)",
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: "var(--text-primary)",

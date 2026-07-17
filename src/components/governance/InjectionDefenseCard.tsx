@@ -65,7 +65,7 @@ export function InjectionDefenseCard() {
         <MonoLabel icon={ShieldCheck}>Prompt-injection defense</MonoLabel>
         <VerdictChip tone="moss">active</VerdictChip>
       </div>
-      <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--ink-muted)", lineHeight: 1.5 }}>
+      <p style={{ margin: "8px 0 0", fontSize: "var(--text-label-13)", color: "var(--ink-muted)", lineHeight: 1.5 }}>
         Beyond the pattern rules above, every untrusted input (retrieved context, ingested signals,
         tool output) runs through a weighted-evidence classifier that scores the whole string. A
         structural breakout (a forged{" "}
@@ -157,7 +157,7 @@ export function InjectionDefenseCard() {
             <VerdictChip tone={DECISION_TONE[verdict.decision] ?? "ember"}>
               {verdict.decision}
             </VerdictChip>
-            <span style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>
+            <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)" }}>
               score{" "}
               <strong className="tabular-nums" style={{ color: "var(--ink)" }}>
                 {verdict.score.toFixed(3)}
@@ -196,7 +196,7 @@ export function InjectionDefenseCard() {
               </div>
             </div>
           ) : (
-            <p style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-faint)" }}>
+            <p style={{ marginTop: 8, fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>
               No injection signals fired; this reads as clean first-party content.
             </p>
           )}

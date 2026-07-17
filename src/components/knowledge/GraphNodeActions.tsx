@@ -43,7 +43,7 @@ function ActionButton({
       className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 10.5,
+        fontSize: "var(--text-label-12)",
         letterSpacing: "0.06em",
         color: pending ? "var(--text-faint)" : "var(--text-subtle)",
         background: "transparent",

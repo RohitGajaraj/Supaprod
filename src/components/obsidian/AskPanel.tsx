@@ -176,7 +176,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
             border: "1px solid color-mix(in oklab, var(--madder) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "10px 14px",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -190,7 +190,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   fontWeight: 600,
                   padding: "4px 10px",
                   borderRadius: 999,
@@ -350,7 +350,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
             borderRadius: 10,
             padding: "10px 12px",
             fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-subtle)",
           }}
         >
@@ -539,7 +539,7 @@ function AskComposer({
                 textAlign: "left",
                 cursor: "pointer",
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-primary)",
               }}
             >
@@ -1212,7 +1212,7 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1239,7 +1239,7 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1296,7 +1296,7 @@ export function AskPanel() {
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 12.5,
+                      fontSize: "var(--text-label-13)",
                       lineHeight: 1.5,
                       color: "var(--text-muted)",
                       margin: 0,
@@ -1321,7 +1321,7 @@ export function AskPanel() {
                         border: "1px solid var(--hairline)",
                         background: "var(--surface-card-deep)",
                         fontFamily: "var(--font-sans)",
-                        fontSize: 12.5,
+                        fontSize: "var(--text-label-13)",
                         color: "var(--text-body)",
                         cursor: "pointer",
                       }}

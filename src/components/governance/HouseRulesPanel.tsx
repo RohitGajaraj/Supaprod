@@ -72,7 +72,7 @@ export function HouseRulesPanel() {
     return (
       <div
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--ink-faint)",
           padding: "32px 0",
           textAlign: "center",
@@ -96,7 +96,7 @@ export function HouseRulesPanel() {
       {all.length === 0 ? (
         <div
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--ink-faint)",
             padding: "32px 0",
             textAlign: "center",
@@ -171,7 +171,7 @@ function HouseRuleCard({
         <StepDot status={dot} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13.5, color: "var(--ink)", margin: "0 0 6px", lineHeight: 1.5 }}>
+        <p style={{ fontSize: "var(--text-label-14)", color: "var(--ink)", margin: "0 0 6px", lineHeight: 1.5 }}>
           {r.rule_text}
         </p>
         {r.rationale ? (

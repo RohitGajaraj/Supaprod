@@ -379,7 +379,7 @@ export function GuardrailsPanel() {
         {hits.length === 0 ? (
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               color: "var(--text-faint)",
               padding: "20px 18px",
               textAlign: "center",
@@ -398,7 +398,7 @@ export function GuardrailsPanel() {
                 padding: "11px 18px",
                 alignItems: "baseline",
                 borderBottom: i < hits.length - 1 ? "1px solid var(--hairline)" : "none",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
               }}
             >
               <span className="mono-label tabular-nums">{relTimeCaps(h.created_at)}</span>

@@ -171,13 +171,13 @@ function ProposalEnricher({
       }}
     >
       <MonoLabel style={{ display: "block", marginBottom: 5 }}>Why this is happening</MonoLabel>
-      <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+      <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
         {data.explanation}
       </p>
       {data.suggested_fix ? (
         <>
           <MonoLabel style={{ display: "block", margin: "10px 0 5px" }}>Suggested fix</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
             {data.suggested_fix}
           </p>
         </>
@@ -205,7 +205,7 @@ function ProposalEnricher({
       {data.suggested_fix ? (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
           {applied ? (
-            <p style={{ fontSize: 12.5, color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: "var(--text-label-13)", color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
               Applied. Your agents now follow this as a house rule, and the change is on the Trust
               Ledger. It is reversible.
             </p>
@@ -316,7 +316,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
             borderRadius: "var(--radius-control)",
             background: "var(--ember-wash, var(--surface-recessed))",
             border: "1px solid var(--ember-line, var(--hairline-strong))",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             lineHeight: 1.5,
             color: "var(--ember-text)",
           }}
@@ -377,7 +377,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <p
-        style={{ fontSize: 12.5, color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
+        style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
       >
         {copy.outcome}
       </p>
@@ -498,7 +498,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                     </div>
                     <p
                       style={{
-                        fontSize: 12.5,
+                        fontSize: "var(--text-label-13)",
                         color: "var(--text-subtle)",
                         marginTop: 8,
                         lineHeight: 1.55,

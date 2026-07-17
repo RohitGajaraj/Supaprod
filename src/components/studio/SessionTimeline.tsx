@@ -107,7 +107,7 @@ function StepLine({ step, idx, live }: { step: LoopStep; idx: number; live: bool
           minWidth: 0,
           flex: 1,
           margin: 0,
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           whiteSpace: "pre-wrap",
@@ -141,7 +141,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
           <div
             style={{
               ...rail,
-              fontSize: 12.5,
+              fontSize: "var(--text-label-13)",
               lineHeight: 1.8,
               color: "var(--text-subtle)",
               fontStyle: "italic",
@@ -233,7 +233,7 @@ function SteerRow({ steer }: { steer: Steer }) {
           flex: 1,
           minWidth: 0,
           margin: 0,
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           whiteSpace: "pre-wrap",
@@ -286,7 +286,7 @@ export function SessionTimeline({
           borderRadius: 12,
           padding: "48px 0",
           textAlign: "center",
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
         }}
       >

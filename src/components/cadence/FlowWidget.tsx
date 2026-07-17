@@ -102,7 +102,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
       {isFlowMode && remainingLabel ? (
         <span
           className="tabular-nums shrink-0"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-primary)" }}
+          style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--text-primary)" }}
         >
           {remainingLabel}
         </span>

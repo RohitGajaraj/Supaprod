@@ -420,7 +420,7 @@ export function ChangesPanel({
           className="truncate"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11.5,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             minWidth: 0,
           }}
@@ -432,7 +432,7 @@ export function ChangesPanel({
             className="truncate"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 11.5,
+              fontSize: "var(--text-label-12)",
               color: "var(--text-subtle)",
               minWidth: 0,
             }}
@@ -450,7 +450,7 @@ export function ChangesPanel({
             style={{
               marginLeft: "auto",
               padding: "4px 10px",
-              fontSize: 11.5,
+              fontSize: "var(--text-label-12)",
               borderRadius: 6,
               border: "1px solid var(--hairline)",
               color: "var(--text-body)",
@@ -470,7 +470,7 @@ export function ChangesPanel({
             className={PRESS_HOVER}
             style={{
               padding: "4px 10px",
-              fontSize: 11.5,
+              fontSize: "var(--text-label-12)",
               borderRadius: 6,
               border: "1px solid var(--hairline)",
               color: "var(--text-body)",
@@ -506,7 +506,7 @@ export function ChangesPanel({
               className="truncate"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
                 minWidth: 0,
               }}
@@ -514,7 +514,7 @@ export function ChangesPanel({
               preview: {previewDep.deploy_url}
             </a>
           ) : (
-            <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
+            <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
               Preview deploys automatically after merge on Cadence-managed repos, within about two
               minutes.
             </span>
@@ -528,7 +528,7 @@ export function ChangesPanel({
               style={{
                 marginLeft: "auto",
                 fontFamily: "var(--font-mono)",
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
                 minWidth: 0,
               }}
@@ -544,7 +544,7 @@ export function ChangesPanel({
               style={{
                 marginLeft: "auto",
                 padding: "4px 10px",
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 borderRadius: 6,
                 border: "1px solid var(--hairline)",
                 color: "var(--text-body)",
@@ -597,7 +597,7 @@ export function ChangesPanel({
             <div
               style={{
                 padding: "12px 18px",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 lineHeight: 1.6,
                 color: "var(--text-primary)",
                 whiteSpace: "pre-wrap",
@@ -684,7 +684,7 @@ export function ChangesPanel({
                     </div>
                     <div
                       style={{
-                        fontSize: 12.5,
+                        fontSize: "var(--text-label-13)",
                         lineHeight: 1.6,
                         color: "var(--text-primary)",
                         whiteSpace: "pre-wrap",
@@ -701,7 +701,7 @@ export function ChangesPanel({
               <span
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   color: "var(--text-subtle)",
                 }}
               >
@@ -741,7 +741,7 @@ export function ChangesPanel({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                <span style={{ fontSize: 11.5, color: "var(--text-body)" }}>
+                <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-body)" }}>
                   {rb.status === "reverted" ? "done" : "open"}
                 </span>
                 <span
@@ -773,7 +773,7 @@ export function ChangesPanel({
               {rb.note ? (
                 <p
                   style={{
-                    fontSize: 11.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-body)",
                     fontStyle: "italic",
                     margin: 0,
@@ -850,7 +850,7 @@ export function ChangesPanel({
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color: "var(--text-subtle)",
                 }}
               >
@@ -864,7 +864,7 @@ export function ChangesPanel({
                   className="mono-label"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-body)",
                   }}
                 >
@@ -875,7 +875,7 @@ export function ChangesPanel({
                   className="mono-label"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-subtle)",
                   }}
                 >
@@ -934,7 +934,7 @@ export function ChangesPanel({
             {fileSetPolicy && (fileSetPolicy.hasTouchList || fileSetPolicy.hasCap) ? (
               <span
                 style={{
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   color: fileSetPolicy.clean ? "var(--text-body)" : "var(--marigold)",
                 }}
               >
@@ -952,7 +952,7 @@ export function ChangesPanel({
                       .join(" · ")}
               </span>
             ) : (
-              <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>No scope set</span>
+              <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>No scope set</span>
             )}
             {canCurate && fileSetPolicy?.hasTouchList && fileSetPolicy.outOfPolicy.length > 0 ? (
               <button
@@ -992,7 +992,7 @@ export function ChangesPanel({
               style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
               <label
-                style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: "var(--text-label-13)", color: "var(--text-body)" }}
               >
                 Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
               </label>
@@ -1008,7 +1008,7 @@ export function ChangesPanel({
                   width: "100%",
                   resize: "vertical",
                   fontFamily: "var(--font-mono)",
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   lineHeight: 1.6,
                   color: "var(--text-primary)",
                   background: "var(--surface-raised)",
@@ -1032,7 +1032,7 @@ export function ChangesPanel({
                   style={{
                     width: 90,
                     fontFamily: "var(--font-mono)",
-                    fontSize: 11.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-primary)",
                     background: "var(--surface-raised)",
                     border: "1px solid var(--hairline)",
@@ -1114,7 +1114,7 @@ export function ChangesPanel({
                   flex: 1,
                   minWidth: 0,
                   fontFamily: "var(--font-mono)",
-                  fontSize: 11.5,
+                  fontSize: "var(--text-label-12)",
                   color: "var(--text-primary)",
                 }}
               >
@@ -1148,7 +1148,7 @@ export function ChangesPanel({
                   width: 52,
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color: "var(--moss)",
                 }}
               >
@@ -1160,7 +1160,7 @@ export function ChangesPanel({
                   width: 52,
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color: "var(--madder)",
                 }}
               >
@@ -1194,7 +1194,7 @@ export function ChangesPanel({
                 flex: 1,
                 minWidth: 0,
                 fontFamily: "var(--font-mono)",
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--text-primary)",
               }}
             >
@@ -1251,7 +1251,7 @@ export function ChangesPanel({
             // !selected branch). An error names its cause and offers retry.
             <div style={{ padding: 24 }}>
               <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the diff</MonoLabel>
-              <p style={{ marginTop: 6, fontSize: 12.5, color: "var(--text-subtle)" }}>
+              <p style={{ marginTop: 6, fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
                 {(diff.error as Error)?.message?.slice(0, 160)}
               </p>
               <button
@@ -1372,7 +1372,7 @@ export function ChangesPanel({
                       className="tabular-nums"
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 10.5,
+                        fontSize: "var(--text-label-12)",
                         color: "var(--text-subtle)",
                       }}
                     >

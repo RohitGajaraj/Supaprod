@@ -31,7 +31,7 @@ function NoticeLine({ color, children }: { color?: string; children: React.React
       style={{
         margin: "0 0 8px",
         fontFamily: "var(--font-sans)",
-        fontSize: 12.5,
+        fontSize: "var(--text-label-13)",
         lineHeight: 1.5,
         color: color ?? "var(--text-subtle)",
       }}
@@ -309,7 +309,7 @@ export function GraphCanvasView({
         }}
       >
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>Graph · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
           {(graphQ.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -358,7 +358,7 @@ export function GraphCanvasView({
         </div>
         <p
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
             maxWidth: 440,
             margin: "0 auto 14px",

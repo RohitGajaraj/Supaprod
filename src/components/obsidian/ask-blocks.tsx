@@ -30,7 +30,7 @@ const BLOCK_STYLE: React.CSSProperties = {
 
 const TITLE_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
-  fontSize: 12.5,
+  fontSize: "var(--text-label-13)",
   fontWeight: 600,
   color: "var(--text-primary)",
   marginTop: 6,
@@ -161,7 +161,7 @@ export function StatusDigestBlock({ block }: { block: StatusBlock }) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 10.5,
+          fontSize: "var(--text-label-12)",
           letterSpacing: "0.05em",
           color: "var(--text-subtle)",
           marginTop: 8,

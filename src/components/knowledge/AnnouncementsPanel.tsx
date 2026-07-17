@@ -212,7 +212,7 @@ export function AnnouncementsPanel() {
           style={{
             flex: 1,
             minWidth: 240,
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-faint)",
             margin: 0,
             lineHeight: 1.5,
@@ -234,7 +234,7 @@ export function AnnouncementsPanel() {
       ) : listQ.isError ? (
         <Card>
           <MonoLabel style={{ marginBottom: 8 }}>Announcements · failed to load</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
             {(listQ.error as Error).message}
           </p>
           <Button variant="secondary" onClick={() => void listQ.refetch()}>
@@ -398,7 +398,7 @@ export function AnnouncementsPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -427,7 +427,7 @@ export function AnnouncementsPanel() {
             <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
               New announcement
             </DialogTitle>
-            <DialogDescription style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
+            <DialogDescription style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
               Draft what changed for your customers. It stays private until submitted and published.
             </DialogDescription>
           </DialogHeader>
