@@ -10,7 +10,7 @@ Read `docs/planning/Supaprod Final Sweep/Supaprod Front-End Rebuild.md` (Master 
 
 **Non-negotiables in the work:**
 - Nothing goes orphan (§7): justify-or-cut kills surfaces, never capabilities. Every capability behind today's ~67 routes stays reachable — command surface, spine stage, or a progressive-disclosure door. Phase 1 delivers the capability coverage matrix.
-- Model orchestration (§11): capability classes with auto routing by default, operator override to pin models; zero model or vendor names baked into product code.
+- Model orchestration (§11): a per-surface routing table, Auto by default, operator pins on demand; control tiers per §11; zero model or vendor names baked into product code.
 - Positioning (§5): the end-to-end product management OS, agentic-first; it tells you what to build from evidence — no competitor makes that call; it learns your product as it works. Users only ever see credits; keys are an enterprise-edge option, never the judgment core.
 - Design (§9): Ink, dark-first with first-class light and System themes; landing tokens inherited, starfield on landing/auth only; taste calls are yours — research the world's most-loved products and decide before building; don't prototype to decide, don't route taste to Rohit.
 
