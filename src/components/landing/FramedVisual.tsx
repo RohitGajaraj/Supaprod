@@ -20,7 +20,12 @@ interface FramedVisualProps {
   dimmed?: boolean;
 }
 
-export function FramedVisual({ src, alt, aspectRatio = "16 / 10", dimmed = false }: FramedVisualProps) {
+export function FramedVisual({
+  src,
+  alt,
+  aspectRatio = "16 / 10",
+  dimmed = false,
+}: FramedVisualProps) {
   const containerStyle: CSSProperties = {
     position: "relative",
     borderRadius: "12px",
@@ -56,11 +61,15 @@ export function FramedVisual({ src, alt, aspectRatio = "16 / 10", dimmed = false
       style={containerStyle}
       className="replay-frame"
       onMouseEnter={(e) => {
-        const glow = (e.currentTarget as HTMLElement).querySelector(".replay-frame-glow") as HTMLElement;
+        const glow = (e.currentTarget as HTMLElement).querySelector(
+          ".replay-frame-glow",
+        ) as HTMLElement;
         if (glow) glow.style.opacity = "1";
       }}
       onMouseLeave={(e) => {
-        const glow = (e.currentTarget as HTMLElement).querySelector(".replay-frame-glow") as HTMLElement;
+        const glow = (e.currentTarget as HTMLElement).querySelector(
+          ".replay-frame-glow",
+        ) as HTMLElement;
         if (glow) glow.style.opacity = "0";
       }}
     >

@@ -142,7 +142,8 @@ function ProductPage() {
               marginRight: "auto",
             }}
           >
-            From market signal to shipped outcome, every step runs end-to-end. Agents handle the grunt. You handle the gates. Ledger records both.
+            From market signal to shipped outcome, every step runs end-to-end. Agents handle the
+            grunt. You handle the gates. Ledger records both.
           </p>
         </section>
 
@@ -153,9 +154,7 @@ function ProductPage() {
             index={idx}
             headline={section.headline}
             body={section.body}
-            visual={
-              <FramedVisual src={section.imagePath} alt={section.imageAlt} dimmed />
-            }
+            visual={<FramedVisual src={section.imagePath} alt={section.imageAlt} dimmed />}
             capabilities={section.capabilities}
           />
         ))}

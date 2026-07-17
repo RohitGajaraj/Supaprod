@@ -135,6 +135,13 @@
   --spacing-section-gap: var(--section-gap);
   --spacing-control-h: var(--control-h);
   --spacing-row-h: var(--row-h);
+
+  /* Responsive page insets — replaces hardcoded "36px 32px 64px" patterns */
+  --page-inset-v: 36px;
+  --page-inset-h: 32px;
+
+  /* Bottom nav safe-area for iOS home indicator */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 :root {
@@ -372,6 +379,21 @@
   --shadow-elevated:
     0 1px 0 0 oklch(0.95 0.015 85 / 5%) inset, 0 24px 60px -20px oklch(0 0 0 / 70%);
   --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 65%, transparent);
+}
+
+/* Responsive breakpoints — fluid padding and spacing */
+@media (max-width: 768px) {
+  :root {
+    --page-inset-v: 24px;
+    --page-inset-h: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-inset-v: 16px;
+    --page-inset-h: 16px;
+  }
 }
 
 @layer base {

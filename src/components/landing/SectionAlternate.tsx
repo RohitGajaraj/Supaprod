@@ -55,15 +55,8 @@ export function SectionAlternate({
         maxWidth: "1280px",
         marginLeft: "auto",
         marginRight: "auto",
-        paddingLeft: "96px", // 24 in Tailwind units
+        paddingLeft: "96px",
         paddingRight: "96px",
-        // Responsive: stack on mobile
-        "@media (max-width: 768px)": {
-          gridTemplateColumns: "1fr",
-          gap: "48px",
-          paddingLeft: "24px",
-          paddingRight: "24px",
-        },
       }}
     >
       {/* Text zone */}
