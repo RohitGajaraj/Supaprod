@@ -241,12 +241,13 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         <div>
           <h2
             style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 450,
-              fontSize: "var(--text-h2)",
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 22,
               lineHeight: 1.25,
               color: "var(--text-primary)",
               margin: 0,
+              letterSpacing: "0.01em",
             }}
           >
             {ROOM_QUESTIONS[room]}
