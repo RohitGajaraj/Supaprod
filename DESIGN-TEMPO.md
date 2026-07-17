@@ -69,6 +69,7 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
   only with meaning.
 - **Ember = the brand.** Primary CTAs, active/selected states, brand moments.
   One primary CTA per view. Ember takes every place Geist's own docs use blue _as brand_.
+  Focus ring uses glacier/blue (`--ds-focus-color`), not ember — see §2 focus ring rule below.
 - **Ember-on-forms ruling (founder-delegated decision, 2026-07-11):** ordinary form
   actions (Save, Apply, Update, submit rows) use the neutral `default` button variant —
   the high-contrast invert fill (gray-1000 on background), the Geist/Linear premium
