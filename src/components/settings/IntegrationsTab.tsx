@@ -160,7 +160,7 @@ export function IntegrationsTab() {
 
   if (!activeWorkspaceId) {
     return (
-      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
+      <p className="text-copy-14" style={{ color: "var(--ink-faint)", padding: "24px 0" }}>
         Pick a workspace to manage its agent access.
       </p>
     );
@@ -173,7 +173,7 @@ export function IntegrationsTab() {
         <MonoLabel icon={Plug} style={{ marginBottom: 4 }}>
           Agent access
         </MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
+        <p className="text-copy-14" style={{ color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
           Let an external AI agent use Cadence as a tool. A token grants read access to this
           workspace's signals, opportunities, and specs, plus the ability to append a decision
           (which still waits for your approval). Every call is rate-limited and audited.
@@ -213,7 +213,7 @@ export function IntegrationsTab() {
                 aria-label="Rate limit per minute"
                 style={{ flex: 1 }}
               />
-              <span className="mono-label" style={{ fontSize: 8.5, whiteSpace: "nowrap" }}>
+              <span className="text-label-12-mono" style={{ whiteSpace: "nowrap" }}>
                 /min
               </span>
             </label>
@@ -240,9 +240,8 @@ export function IntegrationsTab() {
             }}
           >
             <div
+              className="text-label-14"
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
                 color: "var(--ember)",
                 marginBottom: 6,
               }}
@@ -284,7 +283,7 @@ export function IntegrationsTab() {
             loading…
           </div>
         ) : tokensQ.error ? (
-          <p style={{ fontSize: 12.5, color: "var(--rose)", margin: 0 }}>
+          <p className="text-copy-14" style={{ color: "var(--rose)", margin: 0 }}>
             {(tokensQ.error as Error).message}
           </p>
         ) : tokens.length === 0 ? (
@@ -315,15 +314,15 @@ export function IntegrationsTab() {
                       {revoked ? (
                         <span
                           className="mono-label"
-                          style={{ fontSize: 8.5, color: "var(--rose)", marginLeft: 8 }}
+                          style={{ color: "var(--rose)", marginLeft: 8 }}
                         >
                           revoked
                         </span>
                       ) : null}
                     </div>
                     <div
-                      className="mono-label tabular-nums"
-                      style={{ fontSize: 9, color: "var(--ink-subtle)" }}
+                      className="text-label-12-mono tabular-nums"
+                      style={{ color: "var(--ink-subtle)" }}
                     >
                       created {fmtDate(t.created_at)} · last used {fmtDate(t.last_used_at)} ·{" "}
                       {t.rate_limit_per_min}/min
@@ -360,7 +359,7 @@ export function IntegrationsTab() {
         </p>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <span className="mono-label" style={{ fontSize: 8.5, width: 64, flexShrink: 0 }}>
+          <span className="mono-label" style={{ width: 64, flexShrink: 0 }}>
             Endpoint
           </span>
           <code
@@ -379,7 +378,7 @@ export function IntegrationsTab() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <span className="mono-label" style={{ fontSize: 8.5, width: 64, flexShrink: 0 }}>
+          <span className="mono-label" style={{ width: 64, flexShrink: 0 }}>
             Auth
           </span>
           <code className="text-label-12-mono">Authorization: Bearer &lt;your-token&gt;</code>
@@ -387,7 +386,7 @@ export function IntegrationsTab() {
 
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="mono-label" style={{ fontSize: 8.5 }}>
+            <span className="mono-label" >
               Example
             </span>
             <CopyButton text={curl} label="Copy curl" />
@@ -411,16 +410,15 @@ export function IntegrationsTab() {
         </div>
 
         <div>
-          <span className="mono-label" style={{ fontSize: 8.5 }}>
+          <span className="mono-label" >
             Methods
           </span>
           <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
             {MCP_METHODS.map((m) => (
-              <div key={m.name} style={{ display: "flex", gap: 10, fontSize: 12 }}>
+              <div key={m.name} className="text-copy-12" style={{ display: "flex", gap: 10 }}>
                 <code
+                  className="text-label-12-mono"
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11.5,
                     color: "var(--ink)",
                     width: 170,
                     flexShrink: 0,
