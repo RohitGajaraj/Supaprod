@@ -67,7 +67,10 @@ export interface OpportunityDetailRecord {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "grid", gap: "5px" }}>
-      <MonoLabel className="text-label-12-mono" style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+      <MonoLabel
+        className="text-label-12-mono"
+        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+      >
         {label}
       </MonoLabel>
       <p
@@ -131,7 +134,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     return (
       <DetailSection heading="Precedent">
         <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
-          <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+          <p className="text-label-12" style={{ color: "var(--madder)", margin: 0 }}>
             Could not read this bet's judgment. {(q.error as Error).message}
           </p>
           <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
@@ -146,26 +149,31 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     <>
       <DetailSection heading="Precedent">
         {q.isPending ? (
-          <p style={emptyLine}>Recalling past outcomes…</p>
+          <p style={emptyLine} className="text-label-12">
+            Recalling past outcomes…
+          </p>
         ) : precedents.length > 0 ? (
           <div style={{ display: "grid", gap: "8px" }}>
-            <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+            <p className="text-label-12" style={{ color: "var(--text-subtle)", margin: 0 }}>
               Last time we reasoned this way, here is what happened.
             </p>
             {precedents.map((p) => (
               <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
                   {p.verdict.toUpperCase()}
                   {p.title ? ` · ${p.title}` : ""}
                 </span>
-                <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                <span
+                  className="text-label-12"
+                  style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}
+                >
                   {p.summary}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p style={emptyLine}>
+          <p style={emptyLine} className="text-label-12">
             No recorded outcome matches this bet yet. As outcomes land, Memory recalls them here.
           </p>
         )}
@@ -173,21 +181,22 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
 
       <DetailSection heading="Considered against">
         {q.isPending ? (
-          <p style={emptyLine}>Reading the queue…</p>
+          <p style={emptyLine} className="text-label-12">
+            Reading the queue…
+          </p>
         ) : peers.length > 0 ? (
           <div style={{ display: "grid", gap: "6px" }}>
             {peers.map((a) => (
               <div
                 key={a.id}
-                className="flex items-baseline"
-                style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                className="flex items-baseline text-copy-13"
+                style={{ gap: "8px", color: "var(--text-body)" }}
               >
                 <span style={{ flex: 1, minWidth: 0 }}>{a.title}</span>
                 {a.ice != null ? (
                   <span
+                    className="text-label-12-mono"
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10.5px",
                       letterSpacing: "0.06em",
                       color: "var(--text-subtle)",
                     }}
@@ -199,7 +208,9 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
             ))}
           </div>
         ) : (
-          <p style={emptyLine}>Nothing else is live in the queue right now.</p>
+          <p style={emptyLine} className="text-label-12">
+            Nothing else is live in the queue right now.
+          </p>
         )}
       </DetailSection>
     </>
@@ -237,7 +248,10 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
 
   return (
     <div style={{ display: "grid", gap: "7px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+      <MonoLabel
+        className="text-label-12-mono"
+        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+      >
         Strategic bet
       </MonoLabel>
       <DropdownMenu>
@@ -246,9 +260,9 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
             variant="outline"
             size="sm"
             disabled={setLink.isPending}
+            className="text-copy-13"
             style={{
               alignSelf: "flex-start",
-              fontSize: "12.5px",
             }}
           >
             {linkedBet ? linkedBet.title : "Not tied to a bet"}
@@ -265,7 +279,10 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <p style={{ fontSize: "11px", color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}>
+      <p
+        className="text-label-12"
+        style={{ color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}
+      >
         Tie this to a top bet so its watched assumptions steer where it ranks. A challenged
         assumption sinks it.
       </p>
@@ -428,9 +445,8 @@ export function OpportunityDetailSheet({
                   <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
                     {rank != null ? (
                       <span
+                        className="text-label-13-mono"
                         style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "11px",
                           letterSpacing: "0.04em",
                           color: "var(--text-muted)",
                           fontVariantNumeric: "tabular-nums",
@@ -450,8 +466,8 @@ export function OpportunityDetailSheet({
                 ) : null}
                 {designationMeaning ? (
                   <p
+                    className="text-copy-13"
                     style={{
-                      fontSize: "12.5px",
                       lineHeight: 1.6,
                       color: "var(--text-body)",
                       margin: 0,
@@ -463,8 +479,8 @@ export function OpportunityDetailSheet({
                 {nextAction ? (
                   <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
                     <MonoLabel
+                      className="text-label-12-mono"
                       style={{
-                        fontSize: "10px",
                         letterSpacing: "0.1em",
                         color: "var(--text-subtle)",
                       }}
@@ -472,8 +488,8 @@ export function OpportunityDetailSheet({
                       Recommended next
                     </MonoLabel>
                     <span
+                      className="text-copy-13"
                       style={{
-                        fontSize: "13px",
                         fontWeight: 550,
                         color: "var(--text-primary)",
                       }}
@@ -484,8 +500,8 @@ export function OpportunityDetailSheet({
                 ) : null}
                 {rationale ? (
                   <p
+                    className="text-copy-13"
                     style={{
-                      fontSize: "12.5px",
                       lineHeight: 1.6,
                       color: "var(--text-subtle)",
                       margin: 0,
@@ -531,9 +547,7 @@ export function OpportunityDetailSheet({
                     variant="ghost"
                     size="sm"
                     onClick={onViewLineage}
-                    style={{
-                      fontSize: "12px",
-                    }}
+                    className="text-label-12"
                   >
                     <GitBranch className="h-3.5 w-3.5" />
                     View lineage
@@ -541,7 +555,7 @@ export function OpportunityDetailSheet({
                 ) : null
               }
             >
-              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+              <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
                 {opportunity.theme_id ? "Promoted from a Discover theme." : "Promoted directly."}
               </span>
             </DetailSection>
@@ -581,8 +595,8 @@ export function OpportunityDetailSheet({
                 {opportunity.critic_review?.summary ? (
                   <>
                     <p
+                      className="text-copy-13"
                       style={{
-                        fontSize: "12.5px",
                         lineHeight: 1.6,
                         color: "var(--text-body)",
                         margin: 0,
@@ -594,8 +608,8 @@ export function OpportunityDetailSheet({
                   </>
                 ) : (
                   <p
+                    className="text-label-12"
                     style={{
-                      fontSize: "12px",
                       color: "var(--text-subtle)",
                       fontStyle: "italic",
                       margin: 0,
@@ -631,11 +645,13 @@ export function OpportunityDetailSheet({
             <DetailSection heading="Activity">
               <div style={{ display: "grid", gap: "10px" }}>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Promoted</span>
+                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
+                    Promoted
+                  </span>
                   <TimeLine iso={opportunity.created_at} />
                 </div>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
                     Last updated
                   </span>
                   <TimeLine iso={opportunity.updated_at} />
