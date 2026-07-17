@@ -73,6 +73,49 @@ agentdb*.lock
 .claude/skills/vercel-react-view-transitions
 .claude/skills/web-design-guidelines
 .claude/skills/writing-guidelines
+# Same pattern, later media/video-skill installer batch (also symlinks into .agents/);
+# mirrored under .kiro/skills/ for the Kiro IDE. .kiro/skills/impeccable is real
+# committed content, not a symlink, so it is unaffected by this list.
+.claude/skills/embedded-captions
+.claude/skills/faceless-explainer
+.claude/skills/figma
+.claude/skills/general-video
+.claude/skills/hyperframes
+.claude/skills/hyperframes-animation
+.claude/skills/hyperframes-cli
+.claude/skills/hyperframes-core
+.claude/skills/hyperframes-creative
+.claude/skills/hyperframes-keyframes
+.claude/skills/hyperframes-registry
+.claude/skills/media-use
+.claude/skills/motion-graphics
+.claude/skills/music-to-video
+.claude/skills/pr-to-video
+.claude/skills/product-launch-video
+.claude/skills/remotion-to-hyperframes
+.claude/skills/slideshow
+.claude/skills/talking-head-recut
+.claude/skills/website-to-video
+.kiro/skills/embedded-captions
+.kiro/skills/faceless-explainer
+.kiro/skills/figma
+.kiro/skills/general-video
+.kiro/skills/hyperframes
+.kiro/skills/hyperframes-animation
+.kiro/skills/hyperframes-cli
+.kiro/skills/hyperframes-core
+.kiro/skills/hyperframes-creative
+.kiro/skills/hyperframes-keyframes
+.kiro/skills/hyperframes-registry
+.kiro/skills/media-use
+.kiro/skills/motion-graphics
+.kiro/skills/music-to-video
+.kiro/skills/pr-to-video
+.kiro/skills/product-launch-video
+.kiro/skills/remotion-to-hyperframes
+.kiro/skills/slideshow
+.kiro/skills/talking-head-recut
+.kiro/skills/website-to-video
 # Images are local-only by default (bucket map + retention:
 # docs/conventions/workspace-hygiene.md). design-reference/ is re-included below.
 *.png
