@@ -45,7 +45,7 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
           display: "inline-flex",
           alignItems: "center",
           gap: 5,
-          fontSize: 11,
+          fontSize: "var(--text-label-12)",
           fontWeight: 600,
           color: "var(--moss)",
         }}
@@ -68,7 +68,7 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          fontSize: 11,
+          fontSize: "var(--text-label-12)",
           fontWeight: 600,
           color: "var(--glacier)",
         }}
@@ -93,7 +93,7 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
         borderRadius: "var(--radius-control)",
         background: "color-mix(in oklab, var(--moss) 10%, transparent)",
         border: "1px solid color-mix(in oklab, var(--moss) 30%, transparent)",
-        fontSize: 13,
+        fontSize: "var(--text-label-14)",
         color: "var(--moss)",
       }}
     >
@@ -107,7 +107,7 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
             style={{
               marginLeft: 6,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               color: "color-mix(in oklab, var(--moss) 75%, var(--text-muted))",
             }}
           >

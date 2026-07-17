@@ -747,7 +747,7 @@ export function ChangesPanel({
                 <span
                   style={{
                     flex: 1,
-                    fontSize: 12,
+                    fontSize: "var(--text-label-14)",
                     color: "var(--text-primary)",
                     fontFamily: "var(--font-mono)",
                   }}
@@ -760,7 +760,7 @@ export function ChangesPanel({
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      fontSize: 11,
+                      fontSize: "var(--text-label-12)",
                       color: "var(--link)",
                       textDecoration: "none",
                       whiteSpace: "nowrap",
@@ -789,7 +789,7 @@ export function ChangesPanel({
                   disabled={noteMut.isPending}
                   className={`${PRESS} hover:enabled:underline`}
                   style={{
-                    fontSize: 11,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-body)",
                     background: "none",
                     border: "none",
@@ -842,7 +842,7 @@ export function ChangesPanel({
               </span>
               <span
                 className="truncate"
-                style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-primary)" }}
+                style={{ flex: 1, minWidth: 0, fontSize: "var(--text-label-14)", color: "var(--text-primary)" }}
               >
                 {r.message || "(no message)"}
               </span>
@@ -901,7 +901,7 @@ export function ChangesPanel({
                     border: "1px solid var(--hairline)",
                     borderRadius: 6,
                     padding: "2px 8px",
-                    fontSize: 10,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-body)",
                     cursor: revertMut.isPending ? "default" : "pointer",
                   }}
@@ -1281,7 +1281,7 @@ export function ChangesPanel({
                   readOnly: true,
                   renderSideBySide: false,
                   minimap: { enabled: false },
-                  fontSize: 12,
+                  fontSize: "var(--text-label-14)",
                   scrollBeyondLastLine: false,
                   automaticLayout: true,
                 }}
@@ -1383,7 +1383,7 @@ export function ChangesPanel({
                         flex: 1,
                         minWidth: 0,
                         fontFamily: "var(--font-mono)",
-                        fontSize: 11,
+                        fontSize: "var(--text-label-12)",
                         color: "var(--text-body)",
                       }}
                     >

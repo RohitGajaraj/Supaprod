@@ -17,7 +17,7 @@ const rail: CSSProperties = {
 const stepLine: CSSProperties = {
   ...rail,
   fontFamily: "var(--font-mono)",
-  fontSize: 11,
+  fontSize: "var(--text-label-12)",
   lineHeight: 1.8,
   display: "flex",
   gap: 8,

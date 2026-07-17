@@ -84,7 +84,7 @@ export function CiPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                fontSize: 11,
+                fontSize: "var(--text-label-12)",
                 fontWeight: 600,
                 color: inspection.has_tests ? "var(--moss)" : "var(--madder)",
               }}
@@ -214,7 +214,7 @@ export function CiPanel({
             <p
               style={{
                 margin: 0,
-                fontSize: 12,
+                fontSize: "var(--text-label-14)",
                 lineHeight: 1.4,
                 color: ci.overall === "failure" ? "var(--madder)" : "var(--text-body)",
               }}

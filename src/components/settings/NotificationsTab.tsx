@@ -37,7 +37,7 @@ const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; d
 const TH: React.CSSProperties = {
   textAlign: "center",
   padding: "8px 12px 12px 12px",
-  fontSize: 11,
+  fontSize: "var(--text-label-12)",
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.05em",
@@ -174,7 +174,7 @@ export function NotificationsTab() {
                 >
                   <td style={{ padding: "14px 12px" }}>
                     <div style={{ fontWeight: 550, fontSize: 13.5 }}>{r.label}</div>
-                    <div style={{ fontSize: 12, color: "var(--ink-muted)", marginTop: 2 }}>
+                    <div style={{ fontSize: "var(--text-label-14)", color: "var(--ink-muted)", marginTop: 2 }}>
                       {r.desc}
                     </div>
                   </td>
@@ -203,7 +203,7 @@ export function NotificationsTab() {
             <option value="daily">Daily summary</option>
             <option value="weekly">Weekly summary</option>
           </select>
-          <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-muted)" }}>
+          <div style={{ marginTop: 6, fontSize: "var(--text-label-12)", color: "var(--ink-muted)" }}>
             How often email digests are aggregated and sent to you.
           </div>
         </label>
@@ -230,7 +230,7 @@ export function NotificationsTab() {
         </label>
         <p
           style={{
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             color: "var(--ink-muted)",
             margin: stakeholderUpdate ? "0 0 14px" : 0,
           }}
@@ -257,7 +257,7 @@ export function NotificationsTab() {
 
       <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 4 }}>Interaction feedback</MonoLabel>
-        <p style={{ fontSize: 11, color: "var(--ink-muted)", margin: "0 0 14px" }}>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-muted)", margin: "0 0 14px" }}>
           Sound and touch feedback on actions. Applies instantly on this device. Sound is
           synthesized and subtle; haptics only fire on devices that support it.
         </p>

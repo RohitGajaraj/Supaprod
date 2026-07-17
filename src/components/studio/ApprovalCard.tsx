@@ -65,7 +65,7 @@ export function ApprovalCard({
         <code
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             background: "var(--surface-raised)",
             border: "1px solid var(--hairline)",
             borderRadius: 6,
