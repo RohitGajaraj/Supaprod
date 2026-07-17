@@ -126,7 +126,7 @@ function GraduationCard({
           disabled={busy}
           onClick={() => onDecide(true)}
         >
-          <Check size={13} aria-hidden="true" /> Accept · {p.to_mode} from next run
+          <Check size={16} aria-hidden="true" /> Accept · {p.to_mode} from next run
         </button>
         <button
           type="button"
@@ -134,7 +134,7 @@ function GraduationCard({
           disabled={busy}
           onClick={() => onDecide(false)}
         >
-          <X size={13} aria-hidden="true" /> Decline · stays on {p.from_mode}
+          <X size={16} aria-hidden="true" /> Decline · stays on {p.from_mode}
         </button>
       </div>
     </div>

@@ -251,7 +251,7 @@ export function DocsPanel() {
         >
           <span style={{ position: "relative", width: 220 }}>
             <Search
-              size={12}
+              size={16}
               style={{
                 position: "absolute",
                 left: 9,
@@ -364,7 +364,7 @@ export function DocsPanel() {
                 >
                   {/* User-chosen emoji is their data; OUR fallback is the styled icon
                       (no hardcoded emoji in UI strings — the glyph law). */}
-                  {doc.icon ? doc.icon : <FileText size={18} style={{ verticalAlign: "middle" }} />}
+                  {doc.icon ? doc.icon : <FileText size={16} style={{ verticalAlign: "middle" }} />}
                 </button>
                 <input
                   defaultValue={doc.title}
@@ -505,9 +505,9 @@ export function DocsPanel() {
                       edit
                     </button>
                     {open ? (
-                      <ChevronDown size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronDown size={16} style={{ color: "var(--ink-faint)" }} />
                     ) : (
-                      <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
+                      <ChevronRight size={16} style={{ color: "var(--ink-faint)" }} />
                     )}
                   </div>
                   {open ? (
@@ -621,7 +621,7 @@ export function DocsPanel() {
                 aria-label="Close"
                 style={{ color: "var(--ink-subtle)", display: "inline-flex" }}
               >
-                <X size={13} />
+                <X size={16} />
               </button>
             </div>
             <div
@@ -635,7 +635,7 @@ export function DocsPanel() {
             >
               <span style={{ position: "relative" }}>
                 <Search
-                  size={12}
+                  size={16}
                   style={{
                     position: "absolute",
                     left: 9,

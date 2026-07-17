@@ -41,7 +41,7 @@ export function BackendHealthBanner() {
         lineHeight: 1.45,
       }}
     >
-      <AlertTriangle size={15} style={{ color: "var(--amber)", flexShrink: 0 }} />
+      <AlertTriangle size={16} style={{ color: "var(--amber)", flexShrink: 0 }} />
       <span>
         Backend update pending. Some actions (including onboarding setup) may fail until the
         operator applies the latest migrations.

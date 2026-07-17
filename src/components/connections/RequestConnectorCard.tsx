@@ -58,7 +58,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
           disabled={!trimmed || submit.isPending}
           style={{ width: "100%" }}
         >
-          {submit.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
+          {submit.isPending ? <Loader2 size={16} className="animate-spin" /> : null}
           Request
         </button>
       </form>
@@ -116,7 +116,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
             disabled={!trimmed || submit.isPending}
             style={{ flexShrink: 0 }}
           >
-            {submit.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
+            {submit.isPending ? <Loader2 size={16} className="animate-spin" /> : null}
             Submit
           </button>
         </div>

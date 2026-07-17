@@ -68,7 +68,7 @@ export function AttentionBell() {
         flexShrink: 0,
       }}
     >
-      <Bell size={15} strokeWidth={1.75} />
+      <Bell size={16} strokeWidth={1.5} />
       {count > 0 && (
         <span
           aria-hidden

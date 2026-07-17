@@ -56,7 +56,7 @@ function TrendChip({
       className="mono-label"
       style={{ display: "inline-flex", alignItems: "center", gap: 3, color, fontSize: 9 }}
     >
-      <Icon size={11} strokeWidth={2} />
+      <Icon size={16} strokeWidth={1.5} />
       {label} · {windowLabel}
     </span>
   );

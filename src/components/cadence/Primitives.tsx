@@ -23,7 +23,7 @@ export function MonoLabel({
       className={`mono-label ${className ?? ""}`}
       style={{ display: "flex", alignItems: "center", gap: 6, ...style }}
     >
-      {Icon ? <Icon size={12} strokeWidth={1.75} /> : null}
+      {Icon ? <Icon size={16} strokeWidth={1.5} /> : null}
       <span>{children}</span>
     </div>
   );
@@ -271,7 +271,7 @@ export function EmptyState({
           marginBottom: 14,
         }}
       >
-        <Icon size={18} />
+        <Icon size={16} />
       </span>
       {/* Titles stay a few words: Pixel is display-only, never multi-line copy.
           A surface showing EmptyState must not simultaneously render another

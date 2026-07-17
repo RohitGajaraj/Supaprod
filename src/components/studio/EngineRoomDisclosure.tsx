@@ -50,14 +50,14 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
           color: "var(--moss)",
         }}
       >
-        <CheckCircle2 size={12} />
+        <CheckCircle2 size={16} />
         Quality checks passed
       </span>
     );
   if (ci.overall === "failure")
     return (
       <VerdictChip tone="madder">
-        <XCircle size={10} style={{ marginRight: 2 }} />
+        <XCircle size={14} style={{ marginRight: 2 }} />
         Checks failed
       </VerdictChip>
     );
@@ -97,7 +97,7 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
         color: "var(--moss)",
       }}
     >
-      <Rocket size={13} style={{ flexShrink: 0 }} />
+      <Rocket size={16} style={{ flexShrink: 0 }} />
       <span>
         Shipped
         {changeset.pr_number != null ? ` via PR #${changeset.pr_number}` : ""}.
@@ -174,9 +174,9 @@ export function EngineRoomDisclosure({
           }}
         >
           {open ? (
-            <ChevronDown size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+            <ChevronDown size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
           ) : (
-            <ChevronRight size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+            <ChevronRight size={16} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
           )}
           <QualityBadge ci={ci} />
           {!open && (

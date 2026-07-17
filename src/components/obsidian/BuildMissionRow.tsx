@@ -74,7 +74,7 @@ function CompletionEvidenceBadge({ session }: { session: StudioSessionListItem }
         }}
       >
         {label}
-        <ExternalLink size={11} />
+        <ExternalLink size={16} />
       </a>
     );
   }

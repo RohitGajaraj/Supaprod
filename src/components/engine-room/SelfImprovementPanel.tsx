@@ -154,7 +154,7 @@ function ProposalEnricher({
           cursor: "pointer",
         }}
       >
-        <Sparkles size={12} aria-hidden="true" />
+        <Sparkles size={16} aria-hidden="true" />
         Explain + suggest a fix
       </button>
     );
@@ -475,7 +475,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
               >
                 <div className="flex items-start" style={{ gap: 12 }}>
                   <Icon
-                    size={15}
+                    size={16}
                     aria-hidden="true"
                     style={{ color: meta.color, flexShrink: 0, marginTop: 2 }}
                   />

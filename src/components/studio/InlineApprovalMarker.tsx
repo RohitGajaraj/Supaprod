@@ -39,11 +39,11 @@ export function InlineApprovalMarker({ approvals }: { approvals: MissionApproval
       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-ember-bg-hover)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "var(--ds-ember-bg-subtle)")}
     >
-      <Lock size={10} style={{ flexShrink: 0 }} />
+      <Lock size={14} style={{ flexShrink: 0 }} />
       <span style={{ textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
         {approvals.length} approval{approvals.length !== 1 ? "s" : ""}
       </span>
-      {hasExpiry && <Clock size={10} style={{ flexShrink: 0, opacity: 0.7 }} />}
+      {hasExpiry && <Clock size={14} style={{ flexShrink: 0, opacity: 0.7 }} />}
     </Link>
   );
 }

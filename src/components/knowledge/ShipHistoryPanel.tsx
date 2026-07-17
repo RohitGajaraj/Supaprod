@@ -151,7 +151,7 @@ export function ShipHistoryPanel() {
           >
             {relTime(m.completed_at ?? m.updated_at)}
           </span>
-          <ChevronRight size={12} style={{ color: "var(--text-faint)" }} />
+          <ChevronRight size={16} style={{ color: "var(--text-faint)" }} />
         </Link>
       ))}
 
@@ -242,7 +242,7 @@ export function ShipHistoryPanel() {
               aria-label="Open mission"
               style={{ display: "inline-flex", color: "var(--text-faint)" }}
             >
-              <ChevronRight size={12} />
+              <ChevronRight size={16} />
             </Link>
           ) : null}
         </div>

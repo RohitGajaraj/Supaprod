@@ -159,7 +159,7 @@ function JoinPage() {
                 marginBottom: 12,
               }}
             >
-              <Check size={18} />
+              <Check size={16} />
             </div>
             <h1
               className="font-display"

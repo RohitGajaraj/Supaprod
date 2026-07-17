@@ -38,7 +38,7 @@ function ThemeToggle() {
         cursor: "pointer",
       }}
     >
-      <Icon size={14} strokeWidth={1.9} />
+      <Icon size={14} strokeWidth={1.5} />
     </button>
   );
 }
@@ -66,7 +66,7 @@ function AskButton() {
         cursor: "pointer",
       }}
     >
-      <Sparkles size={13} strokeWidth={1.9} style={{ color: "var(--ember)" }} />
+      <Sparkles size={16} strokeWidth={1.5} style={{ color: "var(--ember)" }} />
       <span className="hidden sm:inline">Ask</span>
       <span
         className="hidden sm:inline"

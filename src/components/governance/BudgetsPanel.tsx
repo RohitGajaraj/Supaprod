@@ -356,7 +356,7 @@ export function BudgetsPanel() {
           gap: 10,
         }}
       >
-        <Shield size={13} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
+        <Shield size={16} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
         <span style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
           Caps are hard limits: an over-cap AI call is blocked mid-mission and the run halts with
           the reason on record. Per-mission token and spend caps separately halt any one mission
