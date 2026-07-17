@@ -161,7 +161,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           </div>
           {item.expiresAt && (
             <MetaChip color={expired ? "var(--rose)" : undefined}>
-              <Clock size={10} strokeWidth={1.75} />
+              <Clock size={14} strokeWidth={1.5} />
               {fmtExpiry(item.expiresAt, expired)}
             </MetaChip>
           )}
@@ -178,12 +178,12 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           }}
         >
           <MetaChip color={REVERSIBILITY_COLOR[c.reversible]}>
-            <Undo2 size={10} strokeWidth={1.75} />
+            <Undo2 size={14} strokeWidth={1.5} />
             {REVERSIBILITY_LABEL[c.reversible]}
           </MetaChip>
           {toolRisk(item.toolName) === "high" && (
             <MetaChip color="var(--rose)">
-              <ShieldAlert size={10} strokeWidth={1.75} />
+              <ShieldAlert size={14} strokeWidth={1.5} />
               {RISK_LABEL.high}
             </MetaChip>
           )}
@@ -202,7 +202,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             }}
             aria-expanded={expanded}
           >
-            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             {expanded ? "Less" : "Why · what happens"}
           </button>
         </div>
@@ -278,7 +278,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
                 disabled={isDeciding}
                 onClick={() => onReject(item.id, reason.trim() || null)}
               >
-                <X size={11} strokeWidth={1.75} />
+                <X size={16} strokeWidth={1.5} />
                 Reject · nothing runs
               </button>
               <button
@@ -301,7 +301,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               disabled={isDeciding}
               onClick={() => onApprove(item.id)}
             >
-              <Check size={11} strokeWidth={1.75} />
+              <Check size={16} strokeWidth={1.5} />
               Approve · run {item.toolName}
             </button>
             <button
@@ -310,7 +310,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               disabled={isDeciding}
               onClick={() => setRejecting(true)}
             >
-              <X size={11} strokeWidth={1.75} />
+              <X size={16} strokeWidth={1.5} />
               Reject
             </button>
             <button
@@ -365,11 +365,11 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             className="btn btn-sm"
             style={{ color: "var(--action-blue)" }}
           >
-            <ExternalLink size={12} strokeWidth={1.75} /> Open spec
+            <ExternalLink size={16} strokeWidth={1.5} /> Open spec
           </Link>
         ) : (
           <Link to={openTo} className="btn btn-sm" style={{ color: "var(--action-blue)" }}>
-            <ExternalLink size={12} strokeWidth={1.75} /> Open
+            <ExternalLink size={16} strokeWidth={1.5} /> Open
           </Link>
         )}
         <button

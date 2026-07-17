@@ -118,7 +118,7 @@ export function WedgeTeardown() {
             letterSpacing: "-0.01em",
           }}
         >
-          <Sparkles size={15} strokeWidth={1.75} style={{ color: "var(--ember)" }} />
+          <Sparkles size={16} strokeWidth={1.5} style={{ color: "var(--ember)" }} />
           See why your idea might be wrong.
         </div>
         <p
@@ -193,7 +193,7 @@ export function WedgeTeardown() {
             }}
           >
             {run.isPending ? "Tearing it down…" : "Run the teardown"}
-            {!run.isPending && <ArrowRight size={13} strokeWidth={2} />}
+            {!run.isPending && <ArrowRight size={16} strokeWidth={1.5} />}
           </button>
           <span className="mono-label text-label-12-mono" style={{ color: "var(--ds-gray-700)" }}>
             Takes about a minute
@@ -245,7 +245,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
             style={{ color: "var(--action-blue)", fontWeight: 600 }}
           >
             Open the opportunity
-            <ArrowRight size={12} strokeWidth={2} style={{ marginLeft: 4 }} />
+            <ArrowRight size={16} strokeWidth={1.5} style={{ marginLeft: 4 }} />
           </Link>
           <button
             type="button"
@@ -269,7 +269,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <Icon size={18} strokeWidth={1.5} style={{ color: `var(--${v.tone})` }} />
+          <Icon size={16} strokeWidth={1.5} style={{ color: `var(--${v.tone})` }} />
           <VerdictChip tone={v.tone} style={{ fontSize: "12px" }}>
             {v.label}
           </VerdictChip>
@@ -339,7 +339,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
             style={{ color: "var(--action-blue)", fontWeight: 600 }}
           >
             Take it further
-            <ArrowRight size={12} strokeWidth={2} style={{ marginLeft: 4 }} />
+            <ArrowRight size={16} strokeWidth={1.5} style={{ marginLeft: 4 }} />
           </Link>
           <button
             type="button"
