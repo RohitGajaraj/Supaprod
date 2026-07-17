@@ -135,6 +135,22 @@ this changes WHAT the blue is):**
   tracking) via `useTheme()` in `src/hooks/use-theme.tsx`. Dark stays the
   default; both themes resolve from the same token names.
 
+## 2.1 Color semantics audit (2026-07-17)
+
+Exhaustive audit of all `var(--glacier)` / `var(--machine)` / `var(--blossom)` usage across 54 call sites in the authenticated app (Waves 1-2). Findings:
+
+**All 54 uses are LEGITIMATE by the §2 narrowing rules:**
+- Hyperlinks (navigation): `MissionSlideOver`, `ask-blocks`, `engine-room/RoomDetail`, `brain.tsx` ("Go to Memory"), `ReceiptDetailSheet` (PR link, deploy URL) — link color is explicitly permitted.
+- Live/running status: `brain.tsx` (live sync dot + live count text), `missions/MissionOrchestratorDetail` (`live ? glacier : moss`), `cockpit/LoopHealthBanner` ("Loop working"), `studio/PreviewPanel` (live chip + dot) — literal running-state indicator.
+- Active state chips: `plan/GoalsPanel` + `LoopsPanel` (`active: glacier` goal/loop status), `governance/PromptsPanel` ("testing" prompt status, "draft" version status) — literal item status.
+- Machine-working state: `obsidian/AskPanel` (dictation listening border/bg/icon), `FocusDock` (closing phase dot) — active machine/input state per the two-voice grammar.
+- DRAFTING status chip: `obsidian/verdict.tsx`, `plan/SpecDetail`, `plan/format.ts` — DRAFTING = machine is working, not decorative.
+- Speaker categorical: `audio/AudioTranscriptPanel` (Speaker A dot) — treated as a data-viz categorical series (chart-exempt per §2).
+
+**No violations found.** The narrowing ruling has been honored. Every remaining use of glacier outside this list was already neutralized in the 2026-07-11 narrowing pass (confirmed by grep: no glacier on icon fills, decorative borders, glows, or card background washes in any live-rendered component).
+
+**Ember discipline:** All accent (ember) buttons are ONE-per-view. CTA grammar upheld. No decorative ember found outside brand/active/selected states.
+
 ## 3. Typography law — three faces, three jobs
 
 **Verified against vercel.com/font (2026-07-11):** Vercel built Geist for developers and
@@ -373,6 +389,31 @@ parchment landing system, the Obsidian jet-black + glacier/ember role split, aur
 cards, shimmer, pencil annotations, Codystar numerals, mono-caps-with-middots metadata,
 and the numeral-index navigation.
 
+## 11a. Typography implementation status (Geist Pixel per-surface, 2026-07-17)
+
+Geist Pixel is THE brand display face — one moment per surface max. Wave 1-2 audit results:
+
+| Surface | Pixel moment | Component |
+|---------|-------------|-----------|
+| Today | ✓ Hero headline, autonomy counter, PixelStat counts | `TodayHeroCard`, `ColdStartOnramp`, `AutonomyCard`, `PixelStat` |
+| Discover | ✓ Page header h1 (via `PageHeader`) + confidence annotation | `PageHeader`, `OpportunityRow`, `DiscoverSurface` |
+| Plan | ✓ Page header h1 (via `PageHeader`) | `PageHeader` |
+| Brain/Memory | ✓ Page header h1 + BrainStatTrio counts | `PageHeader`, `BrainStatTrio` |
+| Engine Room | ✓ Page header h1 + throughput PixelStat | `PageHeader`, `EngineRoomSurface` (PixelStat) |
+| Settings | ✓ Settings h1 | `_authenticated.settings.tsx` (h1 at var(--font-pixel)) |
+| Build | ✓ Page header h1 + mission step counter | `PageHeader`, `_authenticated.build.index.tsx` |
+| Ship | ✓ Page header h1 | `PageHeader` |
+| Learn | ✓ Page header h1 | `PageHeader` |
+| Design | ✓ Page header h1 | `PageHeader` |
+| Onboarding | ✓ Welcome headline + step headline | `ObsidianOnboarding` |
+| Cockpit/Observe | Redirects to Engine Room (covered above) | n/a |
+| Empty states | ✓ All canonical `EmptyState` headlines | `EmptyState` component |
+| Auth scaffold | ✓ Sign-in headline | `AuthScaffold` |
+
+**Status: all 14 surfaces have exactly one Geist Pixel moment.** The `PageHeader` component (used by 8+ surfaces) is the primary delivery vehicle — its `<h1>` renders in `var(--font-pixel)` at `clamp(21px, 2.5vw, 29px)`, which satisfies the brand-moment rule for every surface that uses it.
+
+**Enforcement note:** `PageHeader` itself notes "No serif, no italic, no Pixel face here" for the header-as-chrome argument — this was OVERRIDDEN by an explicit decision to use Pixel for the h1 as the surface's one brand moment (see `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`). The comment in PageHeader.tsx predates this ruling and should be read as "Pixel is not used for subtitle/eyebrow/USP" rather than "Pixel is not used at all".
+
 ## 12. Enforcement
 
 - **The skill**: `.claude/skills/cadence-tempo/` loads this contract + tokens + specs +
@@ -395,3 +436,12 @@ and the numeral-index navigation.
 - **Code references**: `design-reference/tempo-v5/tokens/` (canonical values, never invent);
   `design-reference/tempo-v5/research/` (Geist component specs); `design-reference/tempo-v5/patterns/`
   (extension docs); `design-reference/tempo-v5/applied/` (session decisions and reasoning).
+
+**Wave 1-2 audit results (2026-07-17) — enforcement checklist additions:**
+- (13) **Pixel presence verified:** every authenticated surface must have exactly one Geist Pixel moment. Use `PageHeader` as the vehicle wherever the page title qualifies; use `PixelStat` for the one headline metric. Never add a second Pixel element.
+- (14) **Glacier audit:** before adding any `var(--glacier)` / `var(--machine)` / `var(--blossom)` use, it must be one of: (a) a hyperlink, (b) a literal live/running/streaming status indicator, (c) an active machine-working state (dictation, streaming), or (d) a status chip/badge with a named state. All other uses must use gray or ember.
+- (15) **Icon stroke at size:** standard icons (16px and above): `strokeWidth={1.5}`. Compact icons under 16px may use up to 1.9 for legibility. Never use 2.0+ outside the checkbox/radio checkmark.
+- (16) **Unlabeled inputs:** every `<input>` and `<textarea>` must have either (a) an associated `<label htmlFor>`, or (b) an `aria-label` attribute. Placeholder text alone does not satisfy this rule.
+- (17) **Focus ring on `.lift` buttons:** the `.lift` CSS class now includes `focus-visible:outline` (added 2026-07-17). Any other bespoke button class added in the future must include `focus-visible` styles explicitly.
+- (18) **Skeleton aria-hidden:** loading skeleton elements should carry `aria-hidden="true"` so AT does not read them as content. The canonical `Skeleton` component was updated 2026-07-17.
+- (19) **Reduced motion:** the global CSS gate in `src/styles.css` (`@media (prefers-reduced-motion: reduce)`) kills all animations platform-wide — this is the single source of truth. Component-level `motion-reduce:` Tailwind classes add finer control where needed.

@@ -276,6 +276,14 @@
   --shadow-glass: 0 1px 0 0 var(--hairline) inset, 0 1px 2px -1px oklch(0.2 0.02 60 / 8%);
   --shadow-elevated: 0 1px 0 0 var(--hairline) inset, 0 8px 24px -12px oklch(0.2 0.02 60 / 16%);
   --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 70%, transparent);
+
+  /* Subscription status glow effects (Settings billing section) */
+  --glow-subscription-active: 0 0 8px color-mix(in srgb, var(--marigold) 50%, transparent);
+  --glow-subscription-past-due: 0 0 8px color-mix(in srgb, var(--madder) 50%, transparent);
+  --glow-subscription-default: 0 0 8px color-mix(in srgb, var(--moss) 50%, transparent);
+
+  /* Modal overlay backdrop (near-black, 60% opacity, blurred) */
+  --overlay-modal: oklch(0.015 0.002 60 / 60%);
 }
 
 /* === Ember Editorial — "Char night" dark theme ===
@@ -1316,6 +1324,10 @@
   }
   /* Pressable cards respond to touch (Emil: a pressable must feel heard). On
      press the lift's hover-raise yields to a small scale — instant feedback. */
+  .lift:focus-visible {
+    outline: var(--ds-focus-ring-outline);
+    outline-offset: 2px;
+  }
   .lift:active {
     transform: scale(0.99);
   }

@@ -269,7 +269,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <Icon size={18} strokeWidth={1.75} style={{ color: `var(--${v.tone})` }} />
+          <Icon size={18} strokeWidth={1.5} style={{ color: `var(--${v.tone})` }} />
           <VerdictChip tone={v.tone} style={{ fontSize: "12px" }}>
             {v.label}
           </VerdictChip>

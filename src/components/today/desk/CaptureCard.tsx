@@ -73,6 +73,7 @@ export function CaptureCard() {
           onKeyDown={(e) => {
             if (e.key === "Escape") setContent("");
           }}
+          aria-label="Signal content, source optional"
           placeholder="What did you hear, and from where?"
           style={{
             flex: 1,
