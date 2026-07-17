@@ -46,7 +46,7 @@ the exclusion list below that still reads "Cadence" is a miss, not an intentiona
 | --- | --- |
 | `demo@redcadence.app` / `demo2@redcadence.app` and the `Cadence!Demo2026` password | Documented in `docs/operations/demo-credentials.md`: changing them risks breaking live Supabase auth sessions for the seeded demo accounts. Functional, not cosmetic. |
 | The DB `cadence` column (`hourly`/`daily`/`weekly` schedule frequency — e.g. `scout_watchtower`, `sw4_loop_mode`) | The English word (a schedule's cadence), not the brand. Verified: no table or column in `supabase/migrations/` is literally brand-named. |
-| Local repo folder `project_cadence_v5` and the GitHub remote `project_cadence_v5.git` | Renaming the working directory and the GitHub repo are external, disruptive actions (breaks every open terminal/IDE reference, requires a coordinated remote rename + re-clone). Founder action item, not a file edit — see `docs/planning/SOURCE-OF-TRUTH.md`. |
+| Local repo folder `project_cadence_v5` (still named this on disk) | Renaming the working directory is disruptive (breaks every open terminal/IDE reference) and wasn't asked for. The GitHub remote itself *was* renamed by the founder (see below) — GitHub transparently redirects the old `project_cadence_v5.git` URL, but the local `origin` remote now points straight at the new one. |
 | `docs/strategy/archive/v3-positioning-cadence.md` | An already-archived, superseded historical doc; the filename accurately names what it was about at the time. Left as history, matching how `docs/strategy/archive/` generally preserves dated snapshots. |
 | Historical/dated narrative (session decision logs, changelog-style entries, `DELIVERY-SUMMARY-*.md`, anything describing what happened before 2026-07-17) | Stays factually accurate to what the product was called when the event happened. Not rewritten. |
 | Supabase project ref (`ysszyrczxanuzhiohygx.supabase.co`), Cloudflare worker name (`tanstack-start-app` in `wrangler.jsonc`), `package.json` name (`tanstack_start_ts`) | Never brand-derived — nothing to rename. |
@@ -54,8 +54,14 @@ the exclusion list below that still reads "Cadence" is a miss, not an intentiona
 
 ## Founder-only follow-ups (not file edits — see the chat summary for the full list)
 
-Lovable project `display_name`/`description` metadata (still reads "Project-Cadence-v5" in
-the Lovable dashboard — no MCP tool exposes a rename, needs a manual dashboard edit), the
-GitHub repo rename + local folder rename + git remote URL update, and confirming the
-`supaprod.com`/`supaprod.ai` domain purchase + DNS/custom-domain connection status (per
-`docs/gtm/brand-supaprod.md` §3-4).
+Done since this ledger was first written: the founder renamed the GitHub repo to
+`RohitGajaraj/Supaprod` (confirmed via GitHub's redirect notice on push, 2026-07-17; local
+`origin` remote updated to point at it directly) and renamed the Lovable project (`name`/
+`display_name` now `supaprod`/`Supaprod`, confirmed via the Lovable MCP). The
+`supaprod.com`/`supaprod.ai` domain purchase + DNS/custom-domain connection is live (see
+`docs/operations/domain-and-email-setup.md`).
+
+Still open, cosmetic only: the Lovable project's AI-generated `description` field still
+opens with "Project Cadence v5 is an AI-powered platform..." — no MCP tool exposes rewriting
+it, needs a manual Lovable dashboard edit whenever the founder gets to it. The local repo
+folder on disk is still named `project_cadence_v5` (see above — left alone on purpose).
