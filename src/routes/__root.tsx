@@ -140,10 +140,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "The decision and outcome operating system for product teams.",
       },
-      // Branded social image (public/og-cadence.png). Absolute URL required by
-      // crawlers; swap the host when the custom domain lands (founder note).
-      { property: "og:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
-      { name: "twitter:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
+      // Branded social image (public/og-cadence.png). Absolute URL required by crawlers.
+      { property: "og:image", content: "https://supaprod.ai/og-cadence.png" },
+      { name: "twitter:image", content: "https://supaprod.ai/og-cadence.png" },
     ],
     links: [
       {

@@ -15,7 +15,7 @@ import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://cadence-flow-beta.lovable.app/og-cadence.png";
+const OG_IMAGE = "https://supaprod.ai/og-cadence.png";
 
 const VERDICT: Record<
   PublicTeardown["verdict"],

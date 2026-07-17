@@ -15,7 +15,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
 const TITLE = "Sub-processors · Cadence";
-const DESC = "Every third party that touches Cadence data, what it does, and the region it runs in.";
+const DESC =
+  "Every third party that touches Cadence data, what it does, and the region it runs in.";
 
 export const Route = createFileRoute("/subprocessors")({
   component: SubprocessorsPage,
@@ -138,8 +139,14 @@ function SubprocessorsPage() {
             paddingTop: 20,
           }}
         >
-          For a data-processing agreement (DPA) or details on processing regions, contact your
-          Cadence account team.
+          For a data-processing agreement (DPA) or details on processing regions, email{" "}
+          <a
+            href="mailto:privacy@supaprod.ai"
+            style={{ color: "var(--ink-faint)", textDecoration: "underline" }}
+          >
+            privacy@supaprod.ai
+          </a>
+          .
         </p>
       </main>
     </div>

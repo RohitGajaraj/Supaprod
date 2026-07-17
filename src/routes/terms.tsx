@@ -24,9 +24,8 @@ function TermsPage() {
   return (
     <LegalPageShell eyebrow="Legal" title="Terms of service" updated="July 10, 2026">
       <p>
-        By creating a Cadence account or using cadence-flow-beta.lovable.app, you agree to these
-        terms. Cadence is in beta. Features change quickly, and we will tell you when something
-        material changes.
+        By creating a Cadence account or using supaprod.ai, you agree to these terms. Cadence is in
+        beta. Features change quickly, and we will tell you when something material changes.
       </p>
 
       <LegalSection title="What Cadence does">

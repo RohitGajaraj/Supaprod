@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
-import { Avatar, orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/cadence/Avatar";
+import {
+  Avatar,
+  orbBackground,
+  AVATAR_VARIANTS,
+  defaultAvatarVariant,
+} from "@/components/cadence/Avatar";
 import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
@@ -1547,7 +1552,7 @@ function CreditsTabInner() {
             This cycle: {data.cycleTopupCredits.toLocaleString()} of{" "}
             {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more?{" "}
             <a
-              href="mailto:sales@cadence.app?subject=Enterprise%20credits"
+              href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
               className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ color: "var(--link)" }}
             >
