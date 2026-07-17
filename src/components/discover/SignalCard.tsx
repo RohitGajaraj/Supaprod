@@ -228,9 +228,7 @@ export const SignalCard = memo(function SignalCard({
           {theme}
         </span>
       ) : null}
-      {id ? (
-        <AuditTag kind="signal" id={id} />
-      ) : null}
+      {id ? <AuditTag kind="signal" id={id} /> : null}
     </div>
   );
 });
