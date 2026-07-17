@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     >
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           color: "var(--text-primary)",
         }}
@@ -93,7 +93,7 @@ function EngineRoomPage() {
           sub-tabs, Vercel project-settings pattern) stays visible from the
           glance and from any room depth; the content column swaps. */}
         <div
-          className="md:grid"
+          className="flex flex-col md:grid"
           style={{ gridTemplateColumns: "196px minmax(0, 1fr)", gap: 32, alignItems: "start" }}
         >
           <RoomRail

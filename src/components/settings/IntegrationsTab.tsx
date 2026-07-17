@@ -241,7 +241,7 @@ export function IntegrationsTab() {
           >
             <div
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 12.5,
                 color: "var(--ember)",
                 marginBottom: 6,

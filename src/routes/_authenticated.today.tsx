@@ -5,7 +5,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
 import { PixelStat } from "@/components/cadence/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
@@ -398,7 +398,7 @@ function DoorLink({
       className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 6,
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: 12.5,
         fontWeight: 500,
         color: "var(--text-muted)",
@@ -432,7 +432,6 @@ function DoorLink({
 function Dashboard() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const showToast = useToast();
   const { activeWorkspace } = useWorkspace();
   // PM Desk: the hero glow yields to the session edge glow while a block runs.
   const { isFlowMode } = useFlowMode();
@@ -515,9 +514,9 @@ function Dashboard() {
     mutationFn: () => mBrief(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      showToast("Brief refreshed.");
+      toast.success("Brief refreshed.");
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   const [localHour, setLocalHour] = useState<number | null>(null);
@@ -602,13 +601,13 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.decision === "approved"
           ? "Approved. The agent is unblocked."
           : "Sent back. Nothing runs without you.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // LATER — the honest defer verb on a tool gate: snoozed_until hides the row
@@ -634,9 +633,9 @@ function Dashboard() {
     },
     onError: (e: Error, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["needs-you"], ctx.prev);
-      showToast(e.message);
+      toast.success(e.message);
     },
-    onSuccess: () => showToast("Set aside. It returns in 24 hours."),
+    onSuccess: () => toast.success("Set aside. It returns in 24 hours."),
     onSettled: () => qc.invalidateQueries({ queryKey: ["needs-you"] }),
   });
 
@@ -650,9 +649,9 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
+      toast.success(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // SW-7 (mission 3.4): the design station's gate, decided from the same
@@ -666,11 +665,11 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.ok ? "Design approved. This spec can now dispatch to Build." : "Changes requested.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // WORTH BUILDING? (opportunity) — the Critic said revise/kill; the human's
@@ -683,11 +682,11 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.ok ? "Kept. It moves to Now on the roadmap." : "Dropped. The Critic's concern stands.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // FS-02: a separate mutation — resolveAssumptionChallenge, not
@@ -699,13 +698,13 @@ function Dashboard() {
       for (const key of ["needs-you", "decisions", "today-lanes"])
         qc.invalidateQueries({ queryKey: [key] });
       answered();
-      showToast(
+      toast.success(
         vars.action === "confirm"
           ? "Reopened for review. The decision is back in your queue."
           : "Still holds. No change made.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // SW-3 (mission 3.8b): adopt/dismiss a compounding-pass playbook proposal.
@@ -720,13 +719,13 @@ function Dashboard() {
       for (const key of ["needs-you", "playbook-proposals"])
         qc.invalidateQueries({ queryKey: [key] });
       answered();
-      showToast(
+      toast.success(
         vars.decision === "confirm"
           ? "Playbook adopted. It stays on the record with its source learnings."
           : "Proposal dismissed for good.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
   const dismissProposal = (proposalId: string) => {
     void confirmDialog({
@@ -1133,7 +1132,7 @@ function Dashboard() {
           maxWidth: "var(--container-standard)",
           width: "100%",
           margin: "0 auto",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           animation: "cadRise 260ms var(--ease) both",
           position: "relative",
           overflow: "hidden",

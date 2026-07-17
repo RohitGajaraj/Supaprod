@@ -33,7 +33,7 @@ export function ProductMasthead() {
       search={{ tab: "brief" }}
       className="loom-press inline-block hover:underline"
       style={{
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: "13px",
         lineHeight: 1.5,
         color: "var(--glacier)",

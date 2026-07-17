@@ -19,7 +19,7 @@ import { SlideOver } from "./slideover";
 import { CallCard } from "./callcard";
 import { StatusDot, STATUS_WORD } from "./status";
 import { MonoLabel } from "./primitives";
-import { useToast } from "./toast";
+import { toast } from "@/lib/notify";
 import { TestStationPanel } from "./TestStationPanel";
 import {
   studioToStatusState,
@@ -91,7 +91,6 @@ export function MissionSlideOver({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
-  const showToast = useToast();
   const fGet = useServerFn(getStudioSession);
   const fDecide = useServerFn(decideApproval);
   const fPromote = useServerFn(promoteMission);
@@ -112,7 +111,7 @@ export function MissionSlideOver({
     mutationFn: (vars: { approvalId: string; decision: "approve" | "reject" }) =>
       fDecide({ data: vars }),
     onSuccess: (_r, vars) => {
-      showToast(
+      toast.success(
         vars.decision === "approve"
           ? "Good call. The PR is open."
           : "Sent back. It is reworking it for your next look.",
@@ -122,7 +121,7 @@ export function MissionSlideOver({
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
       qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
@@ -131,11 +130,11 @@ export function MissionSlideOver({
   const promote = useMutation({
     mutationFn: () => fPromote({ data: { missionId: missionId! } }),
     onSuccess: () => {
-      showToast("Mission queued. The agent will pick it up shortly.");
+      toast.success("Mission queued. The agent will pick it up shortly.");
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
       qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   const data = session.data;
@@ -323,7 +322,7 @@ export function MissionSlideOver({
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontFamily: "var(--font-ui)", fontSize: 13, color: "var(--text-body)" }}
+                  style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--text-body)" }}
                 >
                   {stepDescription(step)}
                 </span>

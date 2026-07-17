@@ -29,6 +29,7 @@ import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import type { Designation } from "./ranking";
 import {
@@ -61,6 +62,10 @@ export interface OpportunityDetailRecord {
   updated_at: string;
   // RPT-47: the strategic top bet a human tied this opportunity to (nullable).
   linked_brief_item_id?: string | null;
+  // PC-29 layer 3 (2026-07-17): the agent that recorded the decision behind
+  // this bet's linked spec, if any (null until a spec exists and carries a
+  // decision with decided_by_agent_slug set).
+  decided_by_agent_slug?: string | null;
 }
 
 /** A label/value block: a quiet mono caps label over a readable body value. */
@@ -561,7 +566,10 @@ export function OpportunityDetailSheet({
             </DetailSection>
 
             {/* The bet itself: real fields, blanks skipped. */}
-            {opportunity.problem || opportunity.hypothesis || opportunity.target_user ? (
+            {opportunity.problem ||
+            opportunity.hypothesis ||
+            opportunity.target_user ||
+            opportunity.decided_by_agent_slug ? (
               <DetailSection heading="The bet">
                 <div style={{ display: "grid", gap: "14px" }}>
                   {opportunity.problem ? (
@@ -572,6 +580,17 @@ export function OpportunityDetailSheet({
                   ) : null}
                   {opportunity.target_user ? (
                     <Field label="Target user" value={opportunity.target_user} />
+                  ) : null}
+                  {/* PC-29 layer 3 (2026-07-17): the never-shown
+                      decided_by_agent_slug field, finally rendered here too -
+                      the queue row already surfaces it in its subtitle
+                      (OpportunityQueue.tsx), this keeps the detail sheet from
+                      silently dropping the same attribution. */}
+                  {opportunity.decided_by_agent_slug ? (
+                    <Field
+                      label="Decided by"
+                      value={agentDisplayName(opportunity.decided_by_agent_slug)}
+                    />
                   ) : null}
                 </div>
               </DetailSection>

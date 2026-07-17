@@ -254,7 +254,7 @@ function RootComponent() {
         <ConfirmProvider>
           <MachineViewProvider>
             <Outlet />
-            <Toaster position="top-right" richColors />
+            <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           </MachineViewProvider>
         </ConfirmProvider>
       </ThemeProvider>

@@ -183,7 +183,7 @@ function SettingsIndex({
             </span>
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-base, 14px)",
                 color: isActive ? "var(--text-primary)" : "var(--text-body)",
               }}
@@ -216,7 +216,7 @@ function DensityToggle() {
             aria-pressed={density === d}
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12.5,
               height: 32,
               padding: "0 12px",
@@ -272,7 +272,7 @@ function AppearanceSection() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 7,
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 12.5,
                 height: 32,
                 padding: "0 12px",
@@ -416,7 +416,7 @@ function SettingsPage() {
       <div
         data-screen-label="Settings"
         style={{
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           width: "100%",
           maxWidth: "var(--container-standard, 1240px)",
           margin: "0 auto",
@@ -786,7 +786,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
         {/* Tagline */}
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             color: "var(--text-body)",
             margin: "var(--space-2) 0 0",
@@ -817,7 +817,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
         {state && !state.isOwner && (
           <p
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
               margin: "var(--space-3) 0 0",
@@ -886,7 +886,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
             {currentTier === "free" && (
               <span
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-helper)",
                   color: "var(--text-subtle)",
                 }}
@@ -942,7 +942,7 @@ function cardTitleStyle(): React.CSSProperties {
 
 function helperTextStyle(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-helper)",
     color: "var(--text-subtle)",
     margin: "var(--space-3) 0 0",
@@ -1046,7 +1046,7 @@ function BundleGrid({
             </span>
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-base)",
                 color: "var(--text-body)",
               }}
@@ -1201,7 +1201,7 @@ function CreditsTabInner() {
             {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "--"}
             <span
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-subtle)",
                 marginLeft: "var(--space-2)",
@@ -1225,7 +1225,7 @@ function CreditsTabInner() {
               <div
                 style={{
                   marginTop: "var(--space-1)",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   color: "var(--text-body)",
                 }}
@@ -1238,7 +1238,7 @@ function CreditsTabInner() {
               <div
                 style={{
                   marginTop: "var(--space-1)",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   color: "var(--text-body)",
                 }}
@@ -1252,7 +1252,7 @@ function CreditsTabInner() {
                 <div
                   style={{
                     marginTop: "var(--space-1)",
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-base)",
                     color: "var(--text-body)",
                   }}
@@ -1317,7 +1317,7 @@ function CreditsTabInner() {
             <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-2)" }}>
               <div
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   color: "var(--text-subtle)",
                 }}
@@ -1333,7 +1333,7 @@ function CreditsTabInner() {
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-base)",
                     }}
                   >
@@ -1397,7 +1397,7 @@ function CreditsTabInner() {
             </div>
             <p
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
                 margin: "var(--space-1) 0 0",
@@ -1592,7 +1592,7 @@ function CreditsTabInner() {
                   display: "flex",
                   justifyContent: "space-between",
                   gap: "var(--space-3)",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   padding: "var(--space-2) 0",
                   borderBottom: "1px solid var(--hairline)",
@@ -1623,7 +1623,7 @@ function CreditsTabInner() {
                   display: "flex",
                   justifyContent: "space-between",
                   gap: "var(--space-3)",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   padding: "var(--space-2) 0",
                   borderBottom: "1px solid var(--hairline)",

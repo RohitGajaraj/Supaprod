@@ -73,7 +73,7 @@ function inputStyle(): React.CSSProperties {
     padding: "8px 10px",
     border: "1px solid var(--hairline-strong)",
     borderRadius: "var(--radius-control)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 12.5,
     color: "var(--text-primary)",
     background: "var(--raised)",
@@ -139,7 +139,7 @@ function AdminPricing() {
     <div style={{ display: "grid", gap: "var(--space-6)" }}>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           lineHeight: "var(--leading-body)",
           color: "var(--text-body)",

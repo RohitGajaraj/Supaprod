@@ -169,7 +169,7 @@ function AdminOverview() {
               <div style={sectionTitleStyle()}>Charging is {enabled ? "ON" : "OFF"}</div>
               <p
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-sm)",
                   color: "var(--text-muted)",
                   margin: "4px 0 0",
@@ -237,7 +237,7 @@ function AdminOverview() {
                 />
                 <span
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-primary)",
                     fontWeight: 500,
@@ -248,7 +248,7 @@ function AdminOverview() {
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-muted)",
                     minWidth: 0,
@@ -283,7 +283,7 @@ function AdminOverview() {
               padding: "8px 10px",
               border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-base)",
               color: "var(--text-primary)",
               background: "var(--raised)",
@@ -306,7 +306,7 @@ function AdminOverview() {
           ) : adminList.length === 0 ? (
             <p
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-subtle)",
                 margin: 0,
@@ -328,7 +328,7 @@ function AdminOverview() {
               >
                 <div
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-base)",
                     color: "var(--text-body)",
                   }}

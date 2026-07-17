@@ -188,7 +188,7 @@ function MemoryCompoundsCard({
       )}
       <div
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 11,
           color: "var(--text-faint)",
           marginTop: 10,
@@ -278,7 +278,7 @@ function OutcomeAccuracyCard({
       )}
       <div
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 11,
           color: "var(--text-faint)",
           marginTop: 10,
@@ -387,7 +387,7 @@ function MemoryDepthSplitCard({
       )}
       <div
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 11,
           color: "var(--text-faint)",
           marginTop: 10,
@@ -476,7 +476,7 @@ export function GauntletMetricsPanel() {
     <div>
       <div
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 11.5,
           color: "var(--text-faint)",
           marginBottom: 12,

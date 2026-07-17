@@ -190,7 +190,7 @@ export function StrategySection() {
           </div>
         ) : briefsQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
               Could not load briefs
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -246,7 +246,7 @@ export function StrategySection() {
           </div>
         ) : entitiesQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
               Could not load the watch list
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>

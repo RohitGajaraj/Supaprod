@@ -30,7 +30,7 @@ function NoticeLine({ color, children }: { color?: string; children: React.React
     <p
       style={{
         margin: "0 0 8px",
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: 12.5,
         lineHeight: 1.5,
         color: color ?? "var(--text-subtle)",

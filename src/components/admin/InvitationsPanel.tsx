@@ -218,7 +218,7 @@ function InviteList() {
                     style={{
                       padding: "var(--space-3)",
                       textAlign: "center",
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-sm)",
                       color: "var(--text-subtle)",
                     }}
@@ -310,7 +310,7 @@ function DomainList() {
       ) : rows.length === 0 ? (
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
             margin: 0,
@@ -324,7 +324,7 @@ function DomainList() {
             <li
               key={d.id}
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
                 display: "flex",
@@ -392,7 +392,7 @@ function SignupApprovalsList() {
       ) : rows.length === 0 ? (
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
             margin: 0,
@@ -409,7 +409,7 @@ function SignupApprovalsList() {
                 display: "flex",
                 gap: "var(--space-2)",
                 alignItems: "center",
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
               }}
@@ -455,7 +455,7 @@ function input(width?: number): React.CSSProperties {
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 12.5,
     width,
   };
@@ -477,7 +477,7 @@ function td(): React.CSSProperties {
   return {
     padding: "10px",
     verticalAlign: "middle",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
     color: "var(--text-body)",
   };

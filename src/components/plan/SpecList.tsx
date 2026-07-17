@@ -23,7 +23,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { relTimeCaps } from "@/components/discover/format";
 import { AuditTag } from "@/components/cadence/AuditTag";
+import { InlineApprovalMarker } from "@/components/studio/InlineApprovalMarker";
+import { useSpecApprovals } from "@/hooks/use-mission-approvals";
 import { stateChip, citesLabel } from "./format";
+
+/** PC-29 layer 7 (2026-07-17): the inline gate marker for a single spec row,
+ * split out so its hook only runs per-row (not once for the whole list). */
+function SpecApprovalMarker({ prdId }: { prdId: string }) {
+  const approvals = useSpecApprovals(prdId);
+  if (!approvals.data?.length) return null;
+  return <InlineApprovalMarker approvals={approvals.data} />;
+}
 
 export interface SpecListProps {
   onOpen: (id: string) => void;
@@ -320,6 +330,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                   {relTimeCaps(spec.updated_at)}
                 </span>
                 <AuditTag kind="spec" id={spec.id} />
+                <SpecApprovalMarker prdId={spec.id} />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -404,7 +415,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           onClick={() => setShowAll((v) => !v)}
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 12.5,
             fontWeight: 500,
             color: "var(--text-muted)",

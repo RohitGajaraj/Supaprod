@@ -262,7 +262,7 @@ function RailRow({
     >
       <span
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 13,
           color: active ? "var(--text-primary)" : "var(--text-body)",
           overflow: "hidden",

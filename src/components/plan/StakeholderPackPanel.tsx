@@ -298,7 +298,7 @@ export function StakeholderPackPanel({
             <div key={i} style={{ marginBottom: 16 }}>
               <div
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 13,
                   fontWeight: 600,
                   color: "var(--text-primary)",
@@ -318,7 +318,7 @@ export function StakeholderPackPanel({
             <div style={{ marginBottom: 16 }}>
               <div
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 13,
                   fontWeight: 600,
                   color: "var(--text-primary)",

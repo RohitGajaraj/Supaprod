@@ -19,6 +19,7 @@ import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
 import { SkeletonBar } from "./SkeletonBar";
 import { SignalDetailSheet, readSignalReferences, type SignalRecord } from "./SignalRecord";
+import { EmptyState } from "@/components/cadence/EmptyState";
 import type { ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -251,7 +252,7 @@ export function SignalFeed() {
   if (signals.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load signals
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -294,10 +295,10 @@ export function SignalFeed() {
       <HeaderRow count={thisWeekCount} />
       <SignalComposer unclusteredCount={unclusteredCount} />
       {rows.length === 0 ? (
-        <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}>
-          Nothing sensed yet. Capture what you heard, or connect a source and let the feed fill
-          itself.
-        </p>
+        <EmptyState
+          headline="Nothing sensed yet"
+          body="Capture what you heard, or connect a source and let the feed fill itself."
+        />
       ) : (
         <div className="grid gap-3.5 min-w-0">
           {(showAll ? rows : rows.slice(0, VISIBLE_SIGNALS)).map((s, i, shown) => {

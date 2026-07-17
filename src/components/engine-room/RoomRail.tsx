@@ -22,7 +22,7 @@ const railItemStyle: React.CSSProperties = {
   padding: "0 10px",
   border: "none",
   background: "transparent",
-  fontFamily: "var(--font-ui)",
+  fontFamily: "var(--font-sans)",
   fontSize: "var(--text-base)",
   transitionProperty: "background-color, color",
   transitionDuration: "var(--dur-control)",

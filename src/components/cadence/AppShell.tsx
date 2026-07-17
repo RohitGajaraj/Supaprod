@@ -261,6 +261,59 @@ function SampleWorkspaceBanner() {
   );
 }
 
+function BottomNav({ path }: { path: string }) {
+  // Five primary destinations: Today, Discover, Plan, Build, Brain
+  const navItems = [
+    { to: "/today" as const, label: "Today", icon: "📌" },
+    { to: "/discover" as const, label: "Discover", icon: "🔍" },
+    { to: "/plan" as const, label: "Plan", icon: "📋" },
+    { to: "/build" as const, label: "Build", icon: "⚡" },
+    { to: "/brain" as const, label: "Brain", icon: "🧠" },
+  ];
+
+  return (
+    <nav
+      aria-label="Main navigation"
+      className="fixed bottom-0 left-0 right-0 md:hidden flex items-center justify-around"
+      style={{
+        height: "calc(56px + var(--safe-area-bottom))",
+        paddingBottom: "var(--safe-area-bottom)",
+        background: "color-mix(in oklab, var(--rail) 85%, transparent)",
+        backdropFilter: "blur(12px)",
+        borderTop: "1px solid var(--hairline)",
+        zIndex: 40,
+      }}
+    >
+      {navItems.map((item) => {
+        const isActive = path.startsWith(item.to);
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            aria-current={isActive ? "page" : undefined}
+            className="flex flex-col items-center justify-center flex-1 min-h-[44px] gap-0.5 outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+            style={{
+              color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+            }}
+          >
+            <span style={{ fontSize: "18px" }}>{item.icon}</span>
+            <span
+              style={{
+                fontSize: "10px",
+                fontFamily: "var(--font-sans)",
+                fontWeight: 500,
+                textAlign: "center",
+              }}
+            >
+              {item.label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const searchTab = useRouterState({
@@ -626,7 +679,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     >
       <div className="flex min-h-screen">
         <aside
-          className="hidden lg:flex h-screen sticky top-0 shrink-0 flex-col"
+          className="hidden md:flex h-screen sticky top-0 shrink-0 flex-col"
           style={{
             width: 248,
             background: "color-mix(in oklab, var(--rail) 80%, transparent)",
@@ -971,6 +1024,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1 min-w-0 min-h-0 flex flex-col relative" style={{ zIndex: 1 }}>
             {children}
           </div>
+          <BottomNav path={path} />
         </main>
       </div>
       {/* Global audit-lineage viewer: opened by any AuditTag or by Ask when a

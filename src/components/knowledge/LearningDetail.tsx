@@ -237,7 +237,7 @@ export function LearningDetail({ id }: { id: string }) {
           </MonoLabel>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "13px",
               fontWeight: 550,
               color: "var(--text-primary)",

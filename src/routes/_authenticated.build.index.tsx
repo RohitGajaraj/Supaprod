@@ -51,7 +51,7 @@ import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
 import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
-import { ToastProvider, ToastHost } from "@/components/obsidian/toast";
+
 import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
 import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
 import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
@@ -115,7 +115,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
 });
 
 const MODE_PILL: CSSProperties = {
-  fontFamily: "var(--font-ui)",
+  fontFamily: "var(--font-sans)",
   fontSize: "12.5px",
   fontWeight: 500,
   padding: "5px 12px",
@@ -341,7 +341,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               <span
                 style={{
                   display: "block",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 13,
                   fontWeight: 600,
                   color: active ? "var(--text-primary)" : "var(--text-body)",
@@ -352,7 +352,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               <span
                 style={{
                   display: "block",
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 11.5,
                   lineHeight: 1.45,
                   color: "var(--text-subtle)",
@@ -551,7 +551,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           style={{
             marginLeft: "auto",
             flexShrink: 0,
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 13,
             fontWeight: 600,
             // Neutral, not ember: Start is the user's own initiating click, not a
@@ -670,7 +670,7 @@ function BuildPage() {
   const viewMode = hasCompletedMission ? (search.view ?? "missions") : "missions";
 
   return (
-    <ToastProvider>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Build"]} />
       <div
         data-screen-label="Build"
@@ -934,7 +934,7 @@ function BuildPage() {
                     className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       marginTop: 10,
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: 12.5,
                       fontWeight: 500,
                       color: "var(--text-muted)",
@@ -985,7 +985,7 @@ function BuildPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <ToastHost />
-    </ToastProvider>
+
+    </>
   );
 }

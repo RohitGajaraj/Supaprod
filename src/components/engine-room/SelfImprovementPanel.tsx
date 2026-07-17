@@ -422,7 +422,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
             guesses. It stays true whether the list is full or empty. */}
         <p
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             lineHeight: 1.5,
             color: "var(--text-muted)",
@@ -448,7 +448,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
         >
           <p
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-base)",
               lineHeight: 1.5,
               color: "var(--text-subtle)",
@@ -483,7 +483,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                     <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
                       <h3
                         style={{
-                          fontFamily: "var(--font-ui)",
+                          fontFamily: "var(--font-sans)",
                           fontWeight: 600,
                           fontSize: "var(--text-base)",
                           color: "var(--text-primary)",

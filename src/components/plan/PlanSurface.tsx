@@ -18,8 +18,11 @@ import { GoalsPanel } from "./GoalsPanel";
 import { LoopsPanel } from "./LoopsPanel";
 
 /** PC-29 layer 2: Define's station agents, most-relevant first (the fleet is
- * already sorted attention-first, agent-fleet.ts). */
-const DEFINE_STATION_AGENTS = ["prd-writer", "sprint-planner", "ux-architect"];
+ * already sorted attention-first, agent-fleet.ts). ux-architect moved to its
+ * own "design" station (2026-07-17 repair pass) - it now has a home on
+ * /design instead of showing up here under a name ("Design") that never
+ * matched what Plan's page actually does. */
+const DEFINE_STATION_AGENTS = ["prd-writer", "sprint-planner"];
 
 /** The deep-linkable Plan sections (?view=), honored by scrolling the
  * section into view and moving focus to its heading (DESIGN-LOOM §9b).
@@ -190,7 +193,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           <h2
             style={{
               margin: 0,
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 600,
               color: "var(--text-primary)",
@@ -213,7 +216,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         maxWidth: "var(--container-standard)",
         width: "100%",
         margin: "0 auto",
-        padding: "36px 32px 64px",
+        padding: "var(--page-inset-v) var(--page-inset-h) 64px",
         animation: "cadRise 260ms var(--ease) both",
         position: "relative",
       }}
@@ -226,7 +229,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           position: "relative",
           overflow: "hidden",
           margin: "-36px -32px 0",
-          padding: "36px 32px 0",
+          padding: "var(--page-inset-v) var(--page-inset-h) 0",
         }}
       >
         <div aria-hidden="true" className="loom-glow-field" />

@@ -61,7 +61,7 @@ function AdminPeople() {
     <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-4)" }}>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
           margin: 0,
@@ -177,7 +177,7 @@ function UsersPanel() {
             borderRadius: "var(--radius-control)",
             background: "var(--raised)",
             color: "var(--text-primary)",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
           }}
         />
@@ -259,7 +259,7 @@ function UsersPanel() {
                     style={{
                       padding: "var(--space-4)",
                       textAlign: "center",
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-base)",
                       color: "var(--text-subtle)",
                     }}
@@ -293,7 +293,7 @@ function td(): React.CSSProperties {
   return {
     padding: "var(--space-3)",
     verticalAlign: "middle",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-base)",
     color: "var(--text-body)",
   };
@@ -449,7 +449,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               </MonoLabel>
               <div
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   color: "var(--text-body)",
                   display: "grid",
@@ -477,7 +477,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               {d.subscription ? (
                 <div
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-base)",
                     color: "var(--text-body)",
                     display: "grid",
@@ -494,7 +494,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               ) : (
                 <p
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-subtle)",
                   }}
@@ -563,7 +563,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               {(d.workspaces ?? []).length === 0 ? (
                 <p
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-subtle)",
                   }}
@@ -575,7 +575,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                   style={{
                     margin: 0,
                     paddingLeft: "var(--space-4)",
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-base)",
                     color: "var(--text-body)",
                     display: "grid",
@@ -635,7 +635,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               {(d.audit ?? []).length === 0 ? (
                 <p
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-subtle)",
                   }}
@@ -685,7 +685,7 @@ function GrantCreditsForm({
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
   };
   return (
@@ -730,7 +730,7 @@ function GrantCreditsForm({
         disabled={pending}
         className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           borderRadius: "var(--radius-control)",
           backgroundColor: "var(--hover)",
           color: "var(--text-primary)",
@@ -769,7 +769,7 @@ function PlanOverrideForm({
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
   };
   return (
@@ -810,7 +810,7 @@ function PlanOverrideForm({
       />
       <span
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
         }}
@@ -831,7 +831,7 @@ function PlanOverrideForm({
         disabled={pending}
         className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           borderRadius: "var(--radius-control)",
           backgroundColor: "var(--hover)",
           color: "var(--text-primary)",

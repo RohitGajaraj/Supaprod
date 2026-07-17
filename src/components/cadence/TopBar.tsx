@@ -67,8 +67,11 @@ function AskButton() {
       }}
     >
       <Sparkles size={13} strokeWidth={1.9} style={{ color: "var(--ember)" }} />
-      <span>Ask</span>
-      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-faint)" }}>
+      <span className="hidden sm:inline">Ask</span>
+      <span
+        className="hidden sm:inline"
+        style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-faint)" }}
+      >
         ⌘J
       </span>
     </button>
@@ -91,8 +94,8 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         display: "flex",
         alignItems: "center",
         gap: 14,
-        padding: "0 28px",
-        height: 52,
+        padding: "0 clamp(12px, 4vw, 28px)",
+        minHeight: 52,
         flexShrink: 0,
         borderBottom: "1px solid var(--hairline-faint)",
         background: "color-mix(in oklab, var(--ds-background-100) 68%, transparent)",
@@ -145,10 +148,12 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         })}
       </nav>
       <span style={{ flex: 1 }} />
-      <AskButton />
-      <DayWeather />
-      <LiveTicker />
-      <ThemeToggle />
+      <div className="hidden sm:flex items-center gap-3">
+        <AskButton />
+        <DayWeather />
+        <LiveTicker />
+        <ThemeToggle />
+      </div>
       {actions}
     </header>
   );

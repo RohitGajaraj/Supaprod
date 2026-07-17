@@ -87,7 +87,7 @@ export function ReliabilityGlance() {
           <span
             style={{
               color: "var(--text-body)",
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: 12.5,
               letterSpacing: "normal",
               textTransform: "none",

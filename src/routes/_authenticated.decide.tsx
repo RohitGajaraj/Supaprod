@@ -26,7 +26,7 @@ function DecideSurface() {
           maxWidth: "var(--container-standard)",
           width: "100%",
           margin: "0 auto",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           animation: "cadRise 260ms var(--ease) both",
         }}
       >
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/_authenticated/decide")({
     console.error("[Decide] route crashed:", error);
     return (
       <div style={{ padding: "64px 32px", textAlign: "center" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Decide
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>

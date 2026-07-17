@@ -151,7 +151,7 @@ function SyncInboxPage() {
         width: "100%",
         maxWidth: "var(--container-standard, 1240px)",
         margin: "0 auto",
-        padding: "36px 32px 64px",
+        padding: "var(--page-inset-v) var(--page-inset-h) 64px",
       }}
     >
       {/* Back-link: account-level connections live in Settings (one home). */}

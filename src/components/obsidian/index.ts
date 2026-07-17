@@ -24,9 +24,6 @@ export type { PencilInk, PencilNoteProps } from "./pencil";
 
 export {
   Toast,
-  ToastHost,
-  ToastProvider,
-  useToast,
   createToastController,
   TOAST_DURATION_MS,
 } from "./toast";

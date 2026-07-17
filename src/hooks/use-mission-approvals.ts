@@ -48,3 +48,51 @@ export function useMissionApprovals(missionId: string) {
     queryFn: () => fGetApprovals({ data: { missionId } }).then((r) => r.approvals),
   });
 }
+
+/**
+ * PC-29 layer 7 (2026-07-17 repair pass): the spec-scoped sibling, for cards
+ * that know a prd_id but not a mission_id (Plan's SpecList). `missions`
+ * carries no `prd_id` column - the established join is
+ * `studio_changesets.mission_id -> studio_changesets.prd_id`, already relied
+ * on by test-station.functions.ts and outcome.functions.ts. A spec can have
+ * more than one changeset/mission over its life, so this collects pending
+ * approvals across all of them rather than assuming a single active run.
+ */
+const getSpecApprovalsServerFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context, data }: { context: any; data: { prdId: string } }) => {
+    const { supabase } = context;
+    const db = supabase as unknown as SupabaseClient;
+
+    const { data: changesetRows, error: csError } = await db
+      .from("studio_changesets")
+      .select("mission_id")
+      .eq("prd_id", data.prdId)
+      .not("mission_id", "is", null);
+    if (csError) throw new Error(csError.message);
+    const missionIds = [
+      ...new Set(
+        (changesetRows ?? [])
+          .map((r: { mission_id: string | null }) => r.mission_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    if (!missionIds.length) return { approvals: [] as MissionApprovalRow[] };
+
+    const { data: rows, error } = await db
+      .from("agent_approvals")
+      .select("id,agent_slug,tool_name,rationale,status,expires_at")
+      .in("mission_id", missionIds)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { approvals: (rows ?? []) as MissionApprovalRow[] };
+  });
+
+export function useSpecApprovals(prdId: string) {
+  const fGetApprovals = useServerFn(getSpecApprovalsServerFn);
+  return useQuery({
+    queryKey: ["spec-approvals", prdId],
+    queryFn: () => fGetApprovals({ data: { prdId } }).then((r) => r.approvals),
+  });
+}

@@ -101,7 +101,7 @@ export function MemoryReviewQueue() {
             padding: "8px 10px",
             fontSize: 13,
             color: "var(--text-primary)",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
           }}
         />
         <div className="flex items-center" style={{ gap: 10, marginTop: 8 }}>

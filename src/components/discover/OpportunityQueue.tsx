@@ -18,6 +18,7 @@ import {
 import { listLearnings } from "@/lib/outcome.functions";
 import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { rankOpportunities, outcomeSupportFromCounts } from "./ranking";
 import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
@@ -288,7 +289,7 @@ export function OpportunityQueue() {
   if (opps.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load opportunities
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -349,7 +350,14 @@ export function OpportunityQueue() {
             verdict === "PENDING"
               ? "not yet reviewed by the Critic"
               : `Critic says ${verdict.toLowerCase()}`;
-          const sub = [signalPart, criticPart, rescoreNote].filter(Boolean).join(" · ");
+          // PC-29 layer 3: the never-shown decided_by_agent_slug field,
+          // finally rendered - who recorded the call behind this bet's spec.
+          const decidedByPart = o.decided_by_agent_slug
+            ? `decided by ${agentDisplayName(o.decided_by_agent_slug)}`
+            : null;
+          const sub = [signalPart, criticPart, decidedByPart, rescoreNote]
+            .filter(Boolean)
+            .join(" · ");
           const rowBusy = busyIds.has(o.id);
           return (
             <OpportunityRow

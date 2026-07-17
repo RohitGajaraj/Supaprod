@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Send, Copy } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/ui/button";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
 import { stepLabel } from "@/lib/agent-vocabulary";
@@ -95,19 +96,21 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           {isNotFound ? (
             <Link
               to="/build"
-              className="mono-label loom-press"
+              className="mono-label loom-press hover:underline underline-offset-4"
               style={{ display: "inline-flex", marginTop: 14, color: "var(--glacier)" }}
             >
               ← All missions
             </Link>
           ) : (
-            <button
-              className="btn btn-ghost btn-sm loom-press"
-              style={{ marginTop: 14 }}
+            <Button
+              variant="tertiary"
+              size="sm"
+              className="loom-press"
               onClick={reset}
+              style={{ marginTop: 14 }}
             >
-              Retry · reloads the session
-            </button>
+              Reload session
+            </Button>
           )}
         </div>
       </div>
@@ -255,7 +258,7 @@ function JourneyStrip({
         <Link
           to="/brain"
           search={{ tab: "docs" }}
-          className="mono-label"
+          className="mono-label hover:underline underline-offset-4"
           style={{ fontSize: "var(--text-mono-floor)", color: "var(--glacier)", marginLeft: 4 }}
         >
           lands in Releases →
@@ -331,7 +334,7 @@ function SteerComposer({
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 13,
             fontWeight: 600,
             color: "var(--text-primary)",
@@ -455,7 +458,7 @@ function SessionSkeleton() {
       <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
       {/* Same responsive collapse as the loaded grid, so the skeleton never
           overflows at narrow widths while the real layout stacks. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SkeletonBlock height={180} />
           <SkeletonBlock height={88} />
@@ -795,7 +798,7 @@ function BuildSessionPage() {
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Real heading (quality register: MonoLabel spans left the page
                   with no navigable outline); the mono-caps look stays via style. */}

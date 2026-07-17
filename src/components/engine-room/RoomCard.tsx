@@ -37,7 +37,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
       className={cn(
         "grid text-left outline-none material-medium",
         "hover:[background-color:var(--hover)]",
-        "hover:[box-shadow:inset_0_1px_0_var(--ds-gray-alpha-200),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
+        "hover:[box-shadow:var(--shadow-raised)]",
         "active:scale-[0.98]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
         className,
@@ -54,7 +54,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
         <span
           className="flex-1"
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
@@ -69,7 +69,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
         </VerdictChip>
       </span>
       <span
-        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
       >
         {glance.question}
       </span>
@@ -116,7 +116,7 @@ export function RoomCardSkeleton({ room }: { room: RoomKey }) {
         <span
           className="flex-1"
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
@@ -127,7 +127,7 @@ export function RoomCardSkeleton({ room }: { room: RoomKey }) {
         <ShimmerBar width={56} height={16} />
       </span>
       <span
-        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
       >
         {ROOM_QUESTIONS[room]}
       </span>
@@ -160,7 +160,7 @@ export function RoomCardError({
         <span
           className="flex-1"
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
@@ -181,7 +181,7 @@ export function RoomCardError({
         </span>
       </span>
       <span
-        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
       >
         {ROOM_QUESTIONS[room]}
       </span>

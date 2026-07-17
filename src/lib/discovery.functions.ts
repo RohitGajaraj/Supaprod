@@ -404,7 +404,56 @@ export const listOpportunities = createServerFn({ method: "GET" })
       .order("ice_score", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
-    return { opportunities: data ?? [] };
+    const opportunities = data ?? [];
+
+    // PC-29 layer 3 (2026-07-17 repair pass): decided_by_agent_slug
+    // attribution on Decide's opportunity cards. No FK runs from
+    // opportunities to decisions directly (decisions key off prd_id, not
+    // opportunity_id), so this is a two-hop join in JS, same idiom as
+    // governance.functions.ts's outcomeByAgent (learnings -> decisions via
+    // prd_id). Both hops are scoped to ids drawn from the opportunities
+    // result above, which RLS already filtered for this caller, so this can
+    // only enrich rows already visible, never widen what's visible.
+    const oppIds = opportunities.map((o) => o.id as string);
+    const agentSlugByOpportunity = new Map<string, string>();
+    if (oppIds.length) {
+      const { data: prdRows } = await context.supabase
+        .from("prds")
+        .select("id,opportunity_id")
+        .in("opportunity_id", oppIds);
+      const prdToOpp = new Map<string, string>(
+        ((prdRows ?? []) as { id: string; opportunity_id: string | null }[])
+          .filter((p) => p.opportunity_id)
+          .map((p) => [p.id, p.opportunity_id as string]),
+      );
+      const prdIds = [...prdToOpp.keys()];
+      if (prdIds.length) {
+        const { data: decisionRows } = await context.supabase
+          .from("decisions")
+          .select("prd_id,decided_by_agent_slug,created_at")
+          .in("prd_id", prdIds)
+          .not("decided_by_agent_slug", "is", null)
+          .order("created_at", { ascending: false });
+        for (const d of (decisionRows ?? []) as {
+          prd_id: string | null;
+          decided_by_agent_slug: string | null;
+        }[]) {
+          const oppId = d.prd_id ? prdToOpp.get(d.prd_id) : undefined;
+          // Descending order + set-if-absent keeps the MOST RECENT decision
+          // per opportunity (a bet can be revisited more than once).
+          if (oppId && d.decided_by_agent_slug && !agentSlugByOpportunity.has(oppId)) {
+            agentSlugByOpportunity.set(oppId, d.decided_by_agent_slug);
+          }
+        }
+      }
+    }
+
+    return {
+      opportunities: opportunities.map((o) => ({
+        ...o,
+        decided_by_agent_slug: agentSlugByOpportunity.get(o.id as string) ?? null,
+      })),
+    };
   });
 
 export const promoteThemeToOpportunity = createServerFn({ method: "POST" })

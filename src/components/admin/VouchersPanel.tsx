@@ -142,7 +142,7 @@ export function VouchersPanel() {
                       style={{
                         padding: "var(--space-3)",
                         textAlign: "center",
-                        fontFamily: "var(--font-ui)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: "var(--text-sm)",
                         color: "var(--text-subtle)",
                       }}
@@ -275,7 +275,7 @@ function VoucherCreator() {
             display: "flex",
             alignItems: "center",
             gap: 6,
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-body)",
           }}
@@ -349,7 +349,7 @@ function RedemptionsDrawer({
               listStyle: "none",
               display: "grid",
               gap: 6,
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-sm)",
               color: "var(--text-body)",
             }}
@@ -385,7 +385,7 @@ function input(width?: number): React.CSSProperties {
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 12.5,
     width,
   };
@@ -407,7 +407,7 @@ function td(): React.CSSProperties {
   return {
     padding: "10px",
     verticalAlign: "middle",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
     color: "var(--text-body)",
   };

@@ -2,23 +2,16 @@ import type { StudioRunDetail } from "@/lib/studio.functions";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost } from "./studio-format";
+import { EmptyState } from "@/components/cadence/EmptyState";
 
 /** Cost tab — per-run model, status, tokens, and cost, with the session total. */
 export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: number }) {
   if (runs.length === 0) {
     return (
-      <div
-        style={{
-          border: "1px dashed var(--hairline)",
-          borderRadius: 12,
-          padding: "48px 0",
-          textAlign: "center",
-          fontSize: 12.5,
-          color: "var(--text-subtle)",
-        }}
-      >
-        No runs yet, so nothing spent.
-      </div>
+      <EmptyState
+        headline="No runs yet"
+        body="So nothing spent."
+      />
     );
   }
   return (

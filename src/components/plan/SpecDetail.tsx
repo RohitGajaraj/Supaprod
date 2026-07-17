@@ -278,7 +278,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 </MonoLabel>
                 <span
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "13px",
                     fontWeight: 550,
                     color: "var(--text-primary)",

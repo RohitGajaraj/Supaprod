@@ -3,6 +3,7 @@
 // here, so the promote hand-off token (?tab=queue) keeps working everywhere.
 import { createFileRoute } from "@tanstack/react-router";
 import { MonoLabel } from "@/components/obsidian";
+import { TopBar } from "@/components/cadence/TopBar";
 import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
 
 export type DiscoverTab = "signals" | "queue";
@@ -24,13 +25,51 @@ export const Route = createFileRoute("/_authenticated/discover")({
   component: DiscoverSurface,
   head: () => ({ meta: [{ title: "Discover · Cadence" }] }),
   errorComponent: () => (
-    <div style={{ padding: "64px 32px", textAlign: "center" }}>
-      <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
-        Could not load Discover
-      </MonoLabel>
-      <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
-        Reload the page. Nothing here is lost.
-      </p>
-    </div>
+    <>
+      <TopBar crumbs={["Workspace", "Discover"]} />
+      <div
+        style={{
+          maxWidth: "var(--container-standard)",
+          width: "100%",
+          margin: "0 auto",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
+        }}
+      >
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            boxShadow: "var(--top-light)",
+            padding: "16px 18px",
+            maxWidth: 560,
+          }}
+        >
+          <MonoLabel style={{ marginBottom: 8, display: "block" }}>
+            Discover · failed to load
+          </MonoLabel>
+          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12, margin: 0 }}>
+            Reload the page. Nothing here is lost.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              marginTop: 12,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-subtle)",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+            }}
+          >
+            Reload the page
+          </button>
+        </div>
+      </div>
+    </>
   ),
 });
