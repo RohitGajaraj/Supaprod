@@ -52,7 +52,6 @@ function LaneSection({
         <h2
           style={{
             ...monoLabel,
-            fontSize: 11,
             color: accent === "ember" ? "var(--ember-text)" : "var(--text-subtle)",
             margin: 0,
           }}
@@ -156,7 +155,7 @@ export function PushedInsights({
               className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
                 alignSelf: "flex-start",
-                fontSize: 12,
+                fontSize: "var(--text-label-12)",
                 fontWeight: 500,
                 border: "1px solid",
                 borderRadius: "var(--radius-control)",
@@ -237,11 +236,11 @@ export function SwarmActivityLane({
                   </span>
                   {isAutoTitle(g.title) ? <AutoChip /> : null}
                   {g.cost_usd > 0 ? (
-                    <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
+                    <span style={{ ...monoLabel, color: "var(--text-subtle)" }}>
                       {fmtUsd(g.cost_usd)}
                     </span>
                   ) : null}
-                  <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+                  <span style={{ ...monoLabel, color: "var(--text-faint)" }}>
                     {g.count} {g.count === 1 ? "move" : "moves"}
                   </span>
                 </div>
@@ -266,7 +265,6 @@ export function SwarmActivityLane({
                       key={it.id}
                       style={{
                         ...monoLabel,
-                        fontSize: 9.5,
                         color: "var(--text-subtle)",
                         background: "var(--surface-card-deep)",
                         borderRadius: 4,
@@ -322,7 +320,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
               {it.title}
             </span>
             {it.confidence != null ? (
-              <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+              <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>
                 {Math.round(it.confidence * 100)}%
               </span>
             ) : null}
@@ -340,7 +338,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
             </p>
           ) : null}
           {it.recommendation ? (
-            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-muted)", margin: 0 }}>
               → {it.recommendation}
             </p>
           ) : null}
@@ -407,11 +405,11 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                 >
                   {it.title}
                 </span>
-                <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
+                <span style={{ ...monoLabel, color: "var(--text-subtle)" }}>
                   {VERDICT_LABEL[it.verdict] ?? it.verdict}
                 </span>
                 {it.spent_usd > 0 ? (
-                  <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+                  <span style={{ ...monoLabel, color: "var(--text-faint)" }}>
                     {fmtUsd(it.spent_usd)}
                   </span>
                 ) : null}

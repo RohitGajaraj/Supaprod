@@ -55,7 +55,7 @@ export function AutonomyCard() {
         <div
           role="status"
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--ds-gray-700)" }}
+          style={{ fontSize: "var(--text-label-12)", color: "var(--ds-gray-700)" }}
         >
           loading…
         </div>
@@ -70,7 +70,7 @@ export function AutonomyCard() {
             type="button"
             onClick={() => void q.refetch()}
             className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
-            style={{ fontSize: 9.5, background: "transparent", border: "none", cursor: "pointer" }}
+            style={{ fontSize: "var(--text-label-12)", background: "transparent", border: "none", cursor: "pointer" }}
           >
             Retry
           </button>

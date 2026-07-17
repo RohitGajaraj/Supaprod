@@ -39,7 +39,7 @@ const selectStyle: React.CSSProperties = {
   padding: "9px 12px",
   border: "1px solid var(--hairline)",
   borderRadius: "var(--radius-control)",
-  fontSize: 13,
+  fontSize: "var(--text-label-13)",
   color: "var(--text-primary)",
   background: "var(--surface-raised)",
 };
@@ -213,10 +213,10 @@ export function LoopsPanel({
             borderRadius: "var(--radius-panel)",
           }}
         >
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
             COULDN'T LOAD RECURRING MISSIONS
           </div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
             {(loopsQ.error as Error)?.message}
           </p>
           <button
@@ -226,7 +226,7 @@ export function LoopsPanel({
             style={{
               marginTop: 14,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               color: "var(--text-body)",
               background: "none",
               border: "none",
@@ -237,7 +237,7 @@ export function LoopsPanel({
           </button>
         </div>
       ) : loops.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", margin: 0 }}>
           No recurring missions yet. Start one above: it runs on its cadence and every run shows up
           here with its cost.
         </p>

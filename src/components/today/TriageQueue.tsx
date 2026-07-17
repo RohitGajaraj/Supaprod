@@ -37,7 +37,7 @@ export interface ExpiredCall {
 }
 
 const monoBtn: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: "var(--text-label-12)",
   fontWeight: 500,
   background: "transparent",
   border: "1px solid var(--hairline-strong)",

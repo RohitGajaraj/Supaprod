@@ -59,7 +59,7 @@ export function ReceiptsStrip({
         <h2
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -154,7 +154,7 @@ export function ReceiptsStrip({
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: "var(--text-label-12)",
                       letterSpacing: "0.06em",
                       color: "var(--text-faint)",
                       flexShrink: 0,
@@ -168,7 +168,7 @@ export function ReceiptsStrip({
                   onClick={clickable ? () => onOpenMission(g.key) : onOpenActivity}
                   className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontSize: 12,
+                    fontSize: "var(--text-label-12)",
                     fontWeight: 500,
                     color: "var(--link)",
                     background: "transparent",
@@ -193,7 +193,7 @@ export function ReceiptsStrip({
           onClick={onOpenActivity}
           className="loom-press self-start outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontSize: 12,
+            fontSize: "var(--text-label-12)",
             fontWeight: 500,
             color: "var(--link)",
             background: "transparent",

@@ -105,7 +105,7 @@ function MetaChip({ color, children }: { color?: string; children: ReactNode }) 
     <span
       className="mono-label"
       style={{
-        fontSize: 9.5,
+        fontSize: "var(--text-label-12)",
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
@@ -135,7 +135,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Gray attribution (accent restraint 2026-07-11): machine blue marks agent
                 ACTIONS, never standing name labels. */}
-            <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
+            <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: "var(--text-label-12)" }}>
               {agent}
               {trackLabel && (
                 <span
@@ -194,7 +194,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             onClick={() => setExpanded((v) => !v)}
             className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
             style={{
-              fontSize: 9.5,
+              fontSize: "var(--text-label-12)",
               display: "inline-flex",
               alignItems: "center",
               gap: 3,
@@ -216,7 +216,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               padding: "8px 12px",
               borderRadius: 6,
               background: "var(--surface-2)",
-              fontSize: 12,
+              fontSize: "var(--text-label-12)",
               color: "var(--ds-gray-800)",
               display: "flex",
               flexDirection: "column",
@@ -225,20 +225,20 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           >
             {item.rationale && (
               <div>
-                <span className="mono-label" style={{ fontSize: 9 }}>
+                <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                   Evidence ·{" "}
                 </span>
                 {item.rationale}
               </div>
             )}
             <div>
-              <span className="mono-label" style={{ fontSize: 9 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                 If you approve ·{" "}
               </span>
               {c.effect}
             </div>
             <div>
-              <span className="mono-label" style={{ fontSize: 9 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
                 Undo ·{" "}
               </span>
               {c.undo}
@@ -317,7 +317,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               type="button"
               className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
               style={{
-                fontSize: 9.5,
+                fontSize: "var(--text-label-12)",
                 marginLeft: "auto",
                 background: "transparent",
               }}
@@ -342,7 +342,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         <StepDot status="gate" />
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Gray metadata (accent restraint 2026-07-11): no standing tint on labels. */}
-          <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
+          <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: "var(--text-label-12)" }}>
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
           <div
@@ -376,7 +376,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           type="button"
           className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
           style={{
-            fontSize: 9.5,
+            fontSize: "var(--text-label-12)",
             marginLeft: "auto",
             background: "transparent",
           }}

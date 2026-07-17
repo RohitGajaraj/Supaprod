@@ -134,7 +134,7 @@ export function StakeholderPackPanel({
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
           COULDN'T LOAD STAKEHOLDER PACK
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -147,7 +147,7 @@ export function StakeholderPackPanel({
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
+            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -299,7 +299,7 @@ export function StakeholderPackPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 13,
+                  fontSize: "var(--text-label-13)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -319,7 +319,7 @@ export function StakeholderPackPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 13,
+                  fontSize: "var(--text-label-13)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -336,7 +336,7 @@ export function StakeholderPackPanel({
           ) : null}
           <div
             style={{
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               color: "var(--text-faint)",
               borderTop: "1px solid var(--hairline)",
               paddingTop: 10,

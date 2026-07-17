@@ -168,7 +168,7 @@ export function GoalsPanel({
               padding: "9px 12px",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
-              fontSize: 13,
+              fontSize: "var(--text-label-13)",
               color: "var(--text-primary)",
               background: "var(--surface-raised)",
             }}
@@ -205,7 +205,7 @@ export function GoalsPanel({
             borderRadius: "var(--radius-panel)",
           }}
         >
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
             COULDN'T LOAD GOALS
           </div>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -218,7 +218,7 @@ export function GoalsPanel({
             style={{
               marginTop: 14,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
+              fontSize: "var(--text-label-12)",
               color: "var(--text-body)",
               background: "none",
               border: "none",

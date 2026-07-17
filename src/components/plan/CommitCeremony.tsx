@@ -82,7 +82,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />
@@ -102,7 +102,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: 13,
+                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />

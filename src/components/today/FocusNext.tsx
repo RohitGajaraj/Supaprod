@@ -43,7 +43,7 @@ export function FocusNext({
       {insight.detail ? (
         <p
           style={{
-            fontSize: 13,
+            fontSize: "var(--text-label-13)",
             lineHeight: 1.55,
             color: "var(--text-muted)",
             margin: "4px 0 0",

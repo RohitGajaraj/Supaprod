@@ -45,7 +45,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
             alignItems: "center",
             gap: 4,
             color: "var(--rose)",
-            fontSize: 9.5,
+            fontSize: "var(--text-label-12)",
           }}
         >
           <ShieldAlert size={16} strokeWidth={1.5} />
@@ -60,7 +60,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
           alignItems: "center",
           gap: 2,
           color: "var(--action-blue)",
-          fontSize: 9.5,
+          fontSize: "var(--text-label-12)",
         }}
       >
         Review <ChevronRight size={16} />

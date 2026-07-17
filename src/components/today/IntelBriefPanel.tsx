@@ -92,7 +92,7 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
             onClick={() => setRevealed((v) => !v)}
             aria-expanded={revealed}
             style={{
-              fontSize: 12,
+              fontSize: "var(--text-label-12)",
               fontWeight: 500,
               padding: 0,
             }}

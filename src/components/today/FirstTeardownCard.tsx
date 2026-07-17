@@ -102,7 +102,7 @@ export function FirstTeardownCard({
       )}
       {teardown.topRisk ? (
         <div className="flex items-baseline" style={{ gap: 8, marginBottom: 10, minWidth: 0 }}>
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-subtle)", flexShrink: 0 }}>
+          <span style={{ ...mono, fontSize: "var(--text-label-12)", color: "var(--text-subtle)", flexShrink: 0 }}>
             Risk
           </span>
           <span
@@ -139,7 +139,7 @@ export function FirstTeardownCard({
               }}
             />
           </div>
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-subtle)" }}>
+          <span style={{ ...mono, fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
             Confidence {pct}%
           </span>
         </div>
@@ -157,7 +157,7 @@ export function FirstTeardownCard({
             alignItems: "center",
             height: 32,
             padding: "0 12px",
-            fontSize: 12,
+            fontSize: "var(--text-label-12)",
             fontWeight: 500,
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
