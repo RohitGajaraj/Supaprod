@@ -397,18 +397,10 @@ export function ChangesPanel({
 
   if (!changeset) {
     return (
-      <div
-        style={{
-          border: "1px dashed var(--hairline)",
-          borderRadius: 12,
-          padding: "48px 0",
-          textAlign: "center",
-          fontSize: 12.5,
-          color: "var(--text-subtle)",
-        }}
-      >
-        No changes staged yet. The session stages edits as it works.
-      </div>
+      <EmptyState
+        headline="No changes staged yet"
+        body="The session stages edits as it works."
+      />
     );
   }
 
@@ -1177,16 +1169,10 @@ export function ChangesPanel({
           );
         })}
         {changes.length === 0 ? (
-          <div
-            style={{
-              padding: "24px 18px",
-              textAlign: "center",
-              fontSize: 12,
-              color: "var(--text-subtle)",
-            }}
-          >
-            The changeset is empty.
-          </div>
+          <EmptyState
+            headline="The changeset is empty"
+            body="No files have been modified."
+          />
         ) : null}
       </div>
 

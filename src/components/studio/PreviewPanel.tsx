@@ -65,7 +65,10 @@ export function PreviewPanel({
 
   if (!changeset) {
     return (
-      <EmptyState message="No changes to preview yet. The session drafts changes as it works." />
+      <EmptyState
+        headline="No changes to preview yet"
+        body="The session drafts changes as it works."
+      />
     );
   }
 

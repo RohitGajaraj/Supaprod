@@ -64,18 +64,10 @@ export function CiPanel({
 
   if (!changeset?.pr_url) {
     return (
-      <div
-        style={{
-          border: "1px dashed var(--hairline)",
-          borderRadius: 12,
-          padding: "48px 0",
-          textAlign: "center",
-          fontSize: 12.5,
-          color: "var(--text-subtle)",
-        }}
-      >
-        No PR yet. The session opens one after the changeset commits.
-      </div>
+      <EmptyState
+        headline="No PR yet"
+        body="The session opens one after the changeset commits."
+      />
     );
   }
 
