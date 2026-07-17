@@ -458,7 +458,7 @@ function SessionSkeleton() {
       <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
       {/* Same responsive collapse as the loaded grid, so the skeleton never
           overflows at narrow widths while the real layout stacks. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SkeletonBlock height={180} />
           <SkeletonBlock height={88} />
@@ -798,7 +798,7 @@ function BuildSessionPage() {
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Real heading (quality register: MonoLabel spans left the page
                   with no navigable outline); the mono-caps look stays via style. */}

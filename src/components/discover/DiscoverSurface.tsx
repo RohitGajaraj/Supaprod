@@ -393,7 +393,7 @@ export function DiscoverSurface() {
             ) : (
               <>
                 <div
-                  className="grid grid-cols-1 items-start lg:grid-cols-2"
+                  className="grid grid-cols-1 items-start md:grid-cols-2"
                   style={{ gap: "24px" }}
                 >
                   <div className="min-w-0">
