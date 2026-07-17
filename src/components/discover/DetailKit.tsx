@@ -61,7 +61,6 @@ export function DetailHeader({ title, chips, traceRef, time }: DetailHeaderProps
         style={{
           margin: 0,
           paddingRight: "24px",
-          fontFamily: "var(--font-ui)",
           fontSize: "18px",
           fontWeight: 600,
           color: "var(--text-primary)",
