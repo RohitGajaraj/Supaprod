@@ -822,21 +822,21 @@ lockups — the rail's pixel "C" monogram in `AppShell` and the top-bar `AiPulse
 "C" mark — are logo usage, not brand moments, and do not consume a screen's budget.
 The audited in-canvas inventory:
 
-| Screen / surface        | The one Pixel element                                                              | Component                                            |
-| ----------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Today (populated)       | Hero lead phrase (`One call`, `12 calls`, `All clear.`) in ember/moss               | `src/components/obsidian/today/Hero.tsx`             |
-| Today (cold workspace)  | Cold-start headline "Give your agents something to read." (replaces the hero)       | `src/components/today/ColdStartOnramp.tsx`           |
-| Command palette (⌘K)    | No-results headline "Nothing by that name" (overlay surface; header stays Sans)     | `src/components/cadence/CommandPalette.tsx`          |
-| Discover (empty)        | Empty-state headline "Nothing sensed yet"                                           | `src/components/discover/DiscoverSurface.tsx`        |
-| Build mission detail    | Compounding-count numeral                                                           | `src/components/missions/MissionOrchestratorDetail.tsx` |
-| Build index             | Stat numeral                                                                        | `src/routes/_authenticated.build.index.tsx`          |
-| Brain                   | Stat-trio numerals (one trio, one moment)                                           | `src/components/knowledge/BrainStatTrio.tsx`         |
-| Engine Room metrics     | Gauntlet score numeral                                                              | `src/components/observe/GauntletMetricsPanel.tsx`    |
-| Login / auth            | Auth scaffold display line                                                          | `src/components/cadence/AuthScaffold.tsx`            |
-| Onboarding              | Welcome display line                                                                | `src/components/onboarding/ObsidianOnboarding.tsx`   |
-| 404 / error boundary    | The 404 numeral                                                                     | `src/routes/__root.tsx`                              |
-| Any empty screen        | `EmptyState` headline (default Pixel; hosts already carrying a Pixel element pass `pixel={false}`) | `src/components/cadence/Primitives.tsx` |
-| Any screen, while an agent runs | The `.ai-working-word` shimmer word (counts as that screen's moment while visible) | `src/styles.css` utility                     |
+| Screen / surface                | The one Pixel element                                                                              | Component                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Today (populated)               | Hero lead phrase (`One call`, `12 calls`, `All clear.`) in ember/moss                              | `src/components/obsidian/today/Hero.tsx`                |
+| Today (cold workspace)          | Cold-start headline "Give your agents something to read." (replaces the hero)                      | `src/components/today/ColdStartOnramp.tsx`              |
+| Command palette (⌘K)            | No-results headline "Nothing by that name" (overlay surface; header stays Sans)                    | `src/components/cadence/CommandPalette.tsx`             |
+| Discover (empty)                | Empty-state headline "Nothing sensed yet"                                                          | `src/components/discover/DiscoverSurface.tsx`           |
+| Build mission detail            | Compounding-count numeral                                                                          | `src/components/missions/MissionOrchestratorDetail.tsx` |
+| Build index                     | Stat numeral                                                                                       | `src/routes/_authenticated.build.index.tsx`             |
+| Brain                           | Stat-trio numerals (one trio, one moment)                                                          | `src/components/knowledge/BrainStatTrio.tsx`            |
+| Engine Room metrics             | Gauntlet score numeral                                                                             | `src/components/observe/GauntletMetricsPanel.tsx`       |
+| Login / auth                    | Auth scaffold display line                                                                         | `src/components/cadence/AuthScaffold.tsx`               |
+| Onboarding                      | Welcome display line                                                                               | `src/components/onboarding/ObsidianOnboarding.tsx`      |
+| 404 / error boundary            | The 404 numeral                                                                                    | `src/routes/__root.tsx`                                 |
+| Any empty screen                | `EmptyState` headline (default Pixel; hosts already carrying a Pixel element pass `pixel={false}`) | `src/components/cadence/Primitives.tsx`                 |
+| Any screen, while an agent runs | The `.ai-working-word` shimmer word (counts as that screen's moment while visible)                 | `src/styles.css` utility                                |
 
 Rules the inventory enforces: never body copy, never dense UI, never inside tables,
 menus, or popover rows; a surface adding a new Pixel element must first remove or opt

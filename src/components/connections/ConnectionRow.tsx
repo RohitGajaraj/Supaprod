@@ -70,7 +70,7 @@ function GhostAction({
       // prefers-reduced-motion.
       className="outline-none transition-colors [background-color:var(--raised)] enabled:hover:[background-color:var(--hover)] enabled:active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: 13,
         fontWeight: 500,
         padding: "7px 14px",

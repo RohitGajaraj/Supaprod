@@ -318,7 +318,10 @@ function xmlEscape(str: string): string {
  * between the agent's own prompt and the workspace brief. Empty or
  * failed loads return "" (non-fatal).
  */
-async function loadVoiceAnchorBlock(supabase: SupabaseClient, userId: string): Promise<string> {
+export async function loadVoiceAnchorBlock(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
   try {
     const { data } = await supabase
       .from("profiles")
@@ -530,7 +533,7 @@ export async function runAgentLoop(
   let houseRulesBlock = "";
   if (workspaceId) {
     try {
-      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId);
+      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId, agent.slug);
       houseRulesBlock = renderHouseRulesBlock(activeRules);
     } catch (e) {
       console.error("house rules load failed:", e);
@@ -1398,7 +1401,11 @@ export async function resumeAgentLoop(
     let houseRulesBlock = "";
     if (run.workspace_id) {
       try {
-        const activeRules = await getActiveHouseRulesForWorkspace(supabase, run.workspace_id);
+        const activeRules = await getActiveHouseRulesForWorkspace(
+          supabase,
+          run.workspace_id,
+          agent.slug,
+        );
         houseRulesBlock = renderHouseRulesBlock(activeRules);
       } catch (e) {
         console.error("house rules load failed (resume):", e);

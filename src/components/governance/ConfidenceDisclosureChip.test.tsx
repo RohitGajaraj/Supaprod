@@ -1,8 +1,29 @@
 import { describe, expect, test } from "bun:test";
-import type { ReactElement } from "react";
 import { ConfidenceDisclosureChip } from "./ConfidenceDisclosureChip";
 
+// Helper to convert children array to string for easier testing.
+function childrenToString(children: unknown): string {
+  if (Array.isArray(children)) {
+    return children.map((c) => (typeof c === "string" ? c : String(c))).join("");
+  }
+  return String(children);
+}
+
 describe("ConfidenceDisclosureChip", () => {
+  test("renders the tier label and percentage as visible children text", () => {
+    const high = ConfidenceDisclosureChip({ confidence: 0.85, tier: "high" });
+    expect(childrenToString(high.props.children)).toContain("85");
+    expect(childrenToString(high.props.children)).toContain("confident");
+
+    const medium = ConfidenceDisclosureChip({ confidence: 0.55, tier: "medium" });
+    expect(childrenToString(medium.props.children)).toContain("55");
+    expect(childrenToString(medium.props.children)).toContain("moderate");
+
+    const low = ConfidenceDisclosureChip({ confidence: 0.2, tier: "low" });
+    expect(childrenToString(low.props.children)).toContain("20");
+    expect(childrenToString(low.props.children)).toContain("unsure");
+  });
+
   test("renders as inline-flex span with gap and alignment", () => {
     const chip = ConfidenceDisclosureChip({
       confidence: 0.8,

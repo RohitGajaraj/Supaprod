@@ -1,0 +1,1961 @@
+<testsuites id="" name="" tests="62" failures="0" skipped="0" errors="0" time="697.399126">
+<testsuite name="01-auth.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="3" failures="0" skipped="0" time="16.912" errors="0">
+<testcase name="Authentication › login page renders correctly" classname="01-auth.spec.ts" time="1.851">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-auth-Authentication-login-page-renders-correctly-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication › login with demo credentials and verify redirect" classname="01-auth.spec.ts" time="6.456">
+<system-out>
+<![CDATA[Console errors detected: [
+  [32m"A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n"[39m +
+    [32m'\n'[39m +
+    [32m"- A server/client branch `if (typeof window !== 'undefined')`.\n"[39m +
+    [32m"- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n"[39m +
+    [32m"- Date formatting in a user's locale which doesn't match the server.\n"[39m +
+    [32m'- External changing data without sending a snapshot of it along with the HTML.\n'[39m +
+    [32m'- Invalid HTML tag nesting.\n'[39m +
+    [32m'\n'[39m +
+    [32m'It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n'[39m +
+    [32m'\n'[39m +
+    [32m'%s%s https://react.dev/link/hydration-mismatch \n'[39m +
+    [32m'\n'[39m +
+    [32m'  ...\n'[39m +
+    [32m'    <CatchBoundary getResetKey={function getResetKey} errorComponent={function RouteError} onCatch={function onCatch}>\n'[39m +
+    [32m'      <CatchBoundaryImpl getResetKey={function getResetKey} onCatch={function onCatch}>\n'[39m +
+    [32m'        <SafeFragment fallback={function fallback}>\n'[39m +
+    [32m'          <MatchInnerImpl matchId="//">\n'[39m +
+    [32m'            <Lazy>\n'[39m +
+    [32m'              <LandingPage>\n'[39m +
+    [32m'                <MachineViewContainer machineContent={"## Caden..."} title="Cadence" data-tsd-source="/src/route..." ...>\n'[39m +
+    [32m'                  <div className="bg-[#0a0a0..." data-obsidian={true} data-tsd-source="/src/route..." ref={function ref}>\n'[39m +
+    [32m'                    <style>\n'[39m +
+    [32m'                    <LandingBackdrop>\n'[39m +
+    [32m'                    <div className="relative z..." data-tsd-source="/src/route..." ref={function ref}>\n'[39m +
+    [32m'                      <LandingNav>\n'[39m +
+    [32m'                      <Hero>\n'[39m +
+    [32m'                      <TheGap>\n'[39m +
+    [32m'                      <LoopWalkthrough>\n'[39m +
+    [32m'                      <Receipts>\n'[39m +
+    [32m'                      <FieldStops>\n'[39m +
+    [32m'                      <TrustClose waitlistCount={null} data-tsd-source="/src/route..." ref={function ref}>\n'[39m +
+    [32m'                        <section className="relative o..." data-tsd-source="/src/compo..." ref={function ref}>\n'[39m +
+    [32m'                          <div>\n'[39m +
+    [32m'                          <div className="relative m..." data-tsd-source="/src/compo..." ref={function ref}>\n'[39m +
+    [32m'                            <p>\n'[39m +
+    [32m'                            <div>\n'[39m +
+    [32m'                            <p>\n'[39m +
+    [32m'                            <div id="join" className="scroll-mt-40" data-tsd-source="/src/compo..." ref={function ref}>\n'[39m +
+    [32m'                              <p>\n'[39m +
+    [32m'                              <h2>\n'[39m +
+    [32m'                              <p>\n'[39m +
+    [32m'                              <WaitlistForm waitlistCount={null} data-tsd-source="/src/compo..." ref={function ref}>\n'[39m +
+    [32m'                                <form className="max-w-md" onSubmit={function onSubmit} data-tsd-source="/src/compo..." ...>\n'[39m +
+    [32m'                                  <div className="flex flex-..." data-tsd-source="/src/compo..." ref={function ref}>\n'[39m +
+    [32m'                                    <input\n'[39m +
+    [32m'                                      type="email"\n'[39m +
+    [32m'                                      required={true}\n'[39m +
+    [32m'                                      value=""\n'[39m +
+    [32m'                                      onChange={function onChange}\n'[39m +
+    [32m'                                      placeholder="you@company.com"\n'[39m +
+    [32m'                                      aria-label="Work email"\n'[39m +
+    [32m'                                      className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 tex..."\n'[39m +
+    [32m'                                      data-tsd-source="/src/components/landing/WaitlistForm.tsx:107:9"\n'[39m +
+    [32m'                                      ref={function ref}\n'[39m +
+    [32m'-                                     style={{}}\n'[39m +
+    [32m'                                    >\n'[39m +
+    [32m'                                    ...\n'[39m +
+    [32m'                                  <input\n'[39m +
+    [32m'                                    type="text"\n'[39m +
+    [32m'                                    value=""\n'[39m +
+    [32m'                                    onChange={function onChange}\n'[39m +
+    [32m'                                    tabIndex={-1}\n'[39m +
+    [32m'                                    autoComplete="off"\n'[39m +
+    [32m'                                    aria-hidden="true"\n'[39m +
+    [32m'                                    className="absolute -left-[9999px] h-0 w-0 opacity-0"\n'[39m +
+    [32m'                                    placeholder="Website"\n'[39m +
+    [32m'                                    data-tsd-source="/src/components/landing/WaitlistForm.tsx:126:7"\n'[39m +
+    [32m'                                    ref={function ref}\n'[39m +
+    [32m'-                                   style={{}}\n'[39m +
+    [32m'                                  >\n'[39m +
+    [32m'                                  ...\n'[39m +
+    [32m'                      ...\n'[39m
+]
+
+[[ATTACHMENT|01-auth-Authentication-log-943a3-entials-and-verify-redirect-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication › authenticated state persists on navigation" classname="01-auth.spec.ts" time="8.605">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-auth-Authentication-aut-ddf77-tate-persists-on-navigation-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="02-surfaces-desktop.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="14" failures="0" skipped="0" time="128.92" errors="0">
+<testcase name="Surface Audit - Desktop 1280px › Today (/today) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="9.965">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-0c59d-oday-today---desktop-layout-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|02-surfaces-desktop-Surfac-0c59d-oday-today---desktop-layout-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /today: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Discovery &amp; Signals (/discover) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="8.513">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-47948-s-discover---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /discover: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Roadmap &amp; Planning (/plan) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="9.062">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-7fe51-nning-plan---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /plan: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Build/Studio (/build) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="12.947">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-7ee42-udio-build---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /build: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Brain/Knowledge (/brain) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="12.584">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-e9f64-edge-brain---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /brain: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Engine Room (/engine-room) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="8.886">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-9ee75-ngine-room---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /engine-room: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Settings (/settings) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="7.72">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-14e1b-s-settings---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /settings: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Guardrails (/guardrails) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="10.344">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-f3e91-guardrails---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /guardrails: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Agents (/agents) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="8.466">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-db31f-nts-agents---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /agents: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Evals (/evals) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="7.087">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-45192-vals-evals---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /evals: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Traces (/traces) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="8.325">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-5e18d-ces-traces---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /traces: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Drift (/drift) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="8.473">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-ecc71-rift-drift---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /drift: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Decide (/decide) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="9.675">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-2dc6d-ide-decide---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /decide: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Surface Audit - Desktop 1280px › Ship (/ship) - desktop layout" classname="02-surfaces-desktop.spec.ts" time="6.873">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-surfaces-desktop-Surfac-526a8--Ship-ship---desktop-layout-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Console errors on /ship: [
+  [32m'TypeError: Failed to fetch\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12117:22\n'[39m +
+    [32m'    at _handleRequest (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12398:18)\n'[39m +
+    [32m'    at _request (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:12385:21)\n'[39m +
+    [32m'    at http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17236:18\n'[39m +
+    [32m'    at SupabaseAuthClient._useSession (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17068:17)\n'[39m +
+    [32m'    at async SupabaseAuthClient._getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17228:11)\n'[39m +
+    [32m'    at async SupabaseAuthClient.getUser (http://localhost:8080/node_modules/.vite/deps/@supabase_supabase-js.js?v=12336890:17217:17)\n'[39m +
+    [32m'    at async Object.beforeLoad (http://localhost:8080/src/routes/login.tsx?t=1784282400033:28:21)\n'[39m +
+    [32m'    at async loadMatches (http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:1709:31)\n'[39m +
+    [32m'    at async http://localhost:8080/node_modules/.vite/deps/@tanstack_router-core.js?v=12336890:2916:7'[39m
+]
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="04-interactive-states.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="7" failures="0" skipped="0" time="77.534" errors="0">
+<testcase name="Interactive States - Today › button hover states on Today" classname="04-interactive-states.spec.ts" time="12.126">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|04-interactive-states-Inte-7c999-utton-hover-states-on-Today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|04-interactive-states-Inte-7c999-utton-hover-states-on-Today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Interactive States - Today › focus ring visibility on Today - keyboard navigation" classname="04-interactive-states.spec.ts" time="10.001">
+<system-out>
+<![CDATA[Focused element state: {
+  tag: [32m'A'[39m,
+  outline: [32m'oklch(0.65 0.18 50) solid 2px'[39m,
+  outlineColor: [32m'oklch(0.65 0.18 50)'[39m,
+  boxShadow: [32m'none'[39m
+}
+
+[[ATTACHMENT|04-interactive-states-Inte-e35cd-Today---keyboard-navigation-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Interactive States - Today › card hover states on Today" classname="04-interactive-states.spec.ts" time="9.701">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|04-interactive-states-Inte-f5574--card-hover-states-on-Today-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Interactive States - Build › build surface interactive states" classname="04-interactive-states.spec.ts" time="14.623">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|04-interactive-states-Inte-7afaf--surface-interactive-states-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|04-interactive-states-Inte-7afaf--surface-interactive-states-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Interactive States - Build › keyboard navigation through Build" classname="04-interactive-states.spec.ts" time="12.447">
+<system-out>
+<![CDATA[Tab 1: { tag: [32m'BUTTON'[39m, role: [1mnull[22m, text: [32m'CadenceExplore workspace · Pri'[39m }
+Tab 2: { tag: [32m'BUTTON'[39m, role: [1mnull[22m, text: [32m'Search⌘K'[39m }
+Tab 3: { tag: [32m'A'[39m, role: [1mnull[22m, text: [32m'0Today7'[39m }
+Tab 4: { tag: [32m'A'[39m, role: [1mnull[22m, text: [32m'1Discover'[39m }
+Tab 5: { tag: [32m'A'[39m, role: [1mnull[22m, text: [32m'2Decide'[39m }
+
+[[ATTACHMENT|04-interactive-states-Inte-ca2d8-rd-navigation-through-Build-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Interactive States - Discover › discover interactive states" classname="04-interactive-states.spec.ts" time="7.711">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|04-interactive-states-Inte-1eb9f-discover-interactive-states-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|04-interactive-states-Inte-1eb9f-discover-interactive-states-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Focus Ring Compliance › focus rings use glacier/blue (not ember)" classname="04-interactive-states.spec.ts" time="10.925">
+<system-out>
+<![CDATA[Focus ring styles: {
+  outline: [32m'oklch(0.65 0.18 50) solid 2px'[39m,
+  outlineColor: [32m'oklch(0.65 0.18 50)'[39m,
+  outlineWidth: [32m'2px'[39m,
+  boxShadow: [32m'none'[39m,
+  focusColor: [32m'oklch(65% .18 50)'[39m,
+  focusRing: [32m'2px solid oklch(65% .18 50)'[39m
+}
+
+[[ATTACHMENT|04-interactive-states-Focu-d734e-use-glacier-blue-not-ember--chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|04-interactive-states-Focu-d734e-use-glacier-blue-not-ember--chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-typography.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="6" failures="0" skipped="0" time="58.721" errors="0">
+<testcase name="Typography Verification › Geist fonts are loaded and active" classname="05-typography.spec.ts" time="11.127">
+<system-out>
+<![CDATA[Fonts loaded: [ [32m'Geist 100 900'[39m, [32m'Geist Mono 100 900'[39m, [32m'Geist Pixel Square 400'[39m ]
+Fonts not loaded: [
+  [32m'Geist Pixel Circle 400 (unloaded)'[39m,
+  [32m'Geist Pixel Grid 400 (unloaded)'[39m,
+  [32m'Geist Pixel Line 400 (unloaded)'[39m,
+  [32m'Geist Pixel Triangle 400 (unloaded)'[39m
+]
+
+[[ATTACHMENT|05-typography-Typography-V-8c97e-fonts-are-loaded-and-active-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|05-typography-Typography-V-8c97e-fonts-are-loaded-and-active-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Typography Verification › typography audit on Today surface" classname="05-typography.spec.ts" time="10.655">
+<system-out>
+<![CDATA[Typography audit (Today): {
+  "fonts": {
+    "--font-geist-sans": "NOT DEFINED",
+    "--font-geist-mono": "NOT DEFINED",
+    "--font-geist-pixel": "NOT DEFINED",
+    "loaded:Geist": "loaded",
+    "loaded:Geist Mono": "loaded",
+    "loaded:Geist Pixel Square": "loaded",
+    "loaded:Geist Pixel Circle": "unloaded",
+    "loaded:Geist Pixel Grid": "unloaded",
+    "loaded:Geist Pixel Line": "unloaded",
+    "loaded:Geist Pixel Triangle": "unloaded"
+  },
+  "headingWeights": [
+    "H1: weight=400, size=38px, family=\"Geist Pixel Square\"",
+    "H2: weight=430, size=11px, family=\"Geist Mono\"",
+    "H3: weight=500, size=14.5px, family=Geist",
+    "H2: weight=430, size=11px, family=\"Geist Mono\"",
+    "H2: weight=430, size=11px, family=\"Geist Mono\"",
+    "H3: weight=470, size=10.5px, family=\"Geist Mono\"",
+    "H3: weight=470, size=10.5px, family=\"Geist Mono\"",
+    "H3: weight=470, size=10.5px, family=\"Geist Mono\""
+  ],
+  "bodyLineHeight": [
+    "DIV: lineHeight=20.15px, fontSize=13px",
+    "DIV: lineHeight=20.15px, fontSize=13px",
+    "DIV: lineHeight=20.15px, fontSize=13px"
+  ],
+  "missingFonts": []
+}
+
+[[ATTACHMENT|05-typography-Typography-V-8be06-aphy-audit-on-Today-surface-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Typography Verification › typography audit on Brain surface" classname="05-typography.spec.ts" time="12.523">
+<system-out>
+<![CDATA[Typography audit (Brain): {
+  "fonts": {
+    "--font-geist-sans": "NOT DEFINED",
+    "--font-geist-mono": "NOT DEFINED",
+    "--font-geist-pixel": "NOT DEFINED",
+    "loaded:Geist": "loaded",
+    "loaded:Geist Mono": "loaded",
+    "loaded:Geist Pixel Square": "loaded",
+    "loaded:Geist Pixel Circle": "unloaded",
+    "loaded:Geist Pixel Grid": "unloaded",
+    "loaded:Geist Pixel Line": "unloaded",
+    "loaded:Geist Pixel Triangle": "unloaded"
+  },
+  "headingWeights": [
+    "H1: weight=400, size=29px, family=\"Geist Pixel Square\"",
+    "H2: weight=500, size=10.5px, family=\"Geist Mono\"",
+    "H2: weight=500, size=10.5px, family=\"Geist Mono\""
+  ],
+  "bodyLineHeight": [
+    "DIV: lineHeight=20.15px, fontSize=13px",
+    "DIV: lineHeight=20.15px, fontSize=13px",
+    "DIV: lineHeight=20.15px, fontSize=13px"
+  ],
+  "missingFonts": []
+}
+
+[[ATTACHMENT|05-typography-Typography-V-85e7d-aphy-audit-on-Brain-surface-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Typography Verification › Geist Pixel used for brand display moments" classname="05-typography.spec.ts" time="7.878">
+<system-out>
+<![CDATA[Geist Pixel usage: [
+  [32m'H1[]: "The engine, at a glance."'[39m,
+  [32m'SPAN[]: "glance."'[39m,
+  [32m'SPAN[]: "591"'[39m
+]
+
+[[ATTACHMENT|05-typography-Typography-V-6e635-d-for-brand-display-moments-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Typography Verification › heading weight compliance (600 expected)" classname="05-typography.spec.ts" time="8.901">
+<system-out>
+<![CDATA[Heading weights: [
+  { tag: [32m'H1'[39m, weight: [32m'400'[39m, size: [32m'38px'[39m },
+  { tag: [32m'H2'[39m, weight: [32m'430'[39m, size: [32m'11px'[39m },
+  { tag: [32m'H3'[39m, weight: [32m'500'[39m, size: [32m'14.5px'[39m },
+  { tag: [32m'H2'[39m, weight: [32m'430'[39m, size: [32m'11px'[39m },
+  { tag: [32m'H2'[39m, weight: [32m'430'[39m, size: [32m'11px'[39m },
+  { tag: [32m'H3'[39m, weight: [32m'470'[39m, size: [32m'10.5px'[39m },
+  { tag: [32m'H3'[39m, weight: [32m'470'[39m, size: [32m'10.5px'[39m },
+  { tag: [32m'H3'[39m, weight: [32m'470'[39m, size: [32m'10.5px'[39m }
+]
+
+[[ATTACHMENT|05-typography-Typography-V-9ee08-ht-compliance-600-expected--chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Heading H1 has low weight: 400
+Heading H2 has low weight: 430
+Heading H2 has low weight: 430
+Heading H2 has low weight: 430
+Heading H3 has low weight: 470
+Heading H3 has low weight: 470
+Heading H3 has low weight: 470
+]]>
+</system-err>
+</testcase>
+<testcase name="Typography Verification › Geist Mono used for technical content" classname="05-typography.spec.ts" time="7.637">
+<system-out>
+<![CDATA[Mono font usage: [
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m,
+  [32m'SPAN: "Geist Mono"'[39m
+]
+
+[[ATTACHMENT|05-typography-Typography-V-2f5f8--used-for-technical-content-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-icons.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="7" failures="0" skipped="0" time="98.462" errors="0">
+<testcase name="Icon Audit › icon audit on /today" classname="06-icons.spec.ts" time="12.434">
+<system-out>
+<![CDATA[Icon audit (/today): {
+  "totalIcons": 14,
+  "sizeCounts": {
+    "30x30": 1,
+    "15x15": 4,
+    "13x13": 1,
+    "18x18": 1,
+    "14x14": 1,
+    "326x326": 1,
+    "16x16": 1,
+    "10x10": 4
+  },
+  "sizeViolations": [
+    "30x30px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <BUTTON>",
+    "13x13px in <BUTTON>",
+    "15x15px in <SPAN>",
+    "18x18px in <SPAN>",
+    "326x326px in <SPAN>",
+    "10x10px in <SPAN>",
+    "10x10px in <SPAN>",
+    "10x10px in <SPAN>",
+    "10x10px in <SPAN>"
+  ],
+  "sample": [
+    {
+      "size": "30x30",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "13x13",
+      "strokeWidth": "1.9",
+      "color": "rgb(255, 107, 44)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.9",
+      "color": "rgb(92, 155, 240)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "18x18",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "326x326",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "16x16",
+      "strokeWidth": "1.5",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    }
+  ]
+}
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Icon size violations on /today: [
+  [32m'30x30px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <BUTTON>'[39m,
+  [32m'13x13px in <BUTTON>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'18x18px in <SPAN>'[39m,
+  [32m'326x326px in <SPAN>'[39m,
+  [32m'10x10px in <SPAN>'[39m,
+  [32m'10x10px in <SPAN>'[39m,
+  [32m'10x10px in <SPAN>'[39m,
+  [32m'10x10px in <SPAN>'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Icon Audit › icon audit on /engine-room" classname="06-icons.spec.ts" time="8.079">
+<system-out>
+<![CDATA[Icon audit (/engine-room): {
+  "totalIcons": 12,
+  "sizeCounts": {
+    "30x30": 1,
+    "15x15": 3,
+    "13x13": 1,
+    "14x14": 2,
+    "18x18": 1,
+    "12x12": 4
+  },
+  "sizeViolations": [
+    "30x30px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <BUTTON>",
+    "13x13px in <BUTTON>",
+    "18x18px in <SPAN>"
+  ],
+  "sample": [
+    {
+      "size": "30x30",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "13x13",
+      "strokeWidth": "1.9",
+      "color": "rgb(255, 107, 44)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(92, 155, 240)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "18x18",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    }
+  ]
+}
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-engine-room-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Icon size violations on /engine-room: [
+  [32m'30x30px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <BUTTON>'[39m,
+  [32m'13x13px in <BUTTON>'[39m,
+  [32m'18x18px in <SPAN>'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Icon Audit › icon audit on /agents" classname="06-icons.spec.ts" time="40.609">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-agents-chromium-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-agents-chromium-desktop/error-context.md]]
+Icon audit (/agents): {
+  "totalIcons": 11,
+  "sizeCounts": {
+    "30x30": 1,
+    "15x15": 3,
+    "13x13": 1,
+    "18x18": 1,
+    "14x14": 1,
+    "12x12": 4
+  },
+  "sizeViolations": [
+    "30x30px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <BUTTON>",
+    "13x13px in <BUTTON>",
+    "18x18px in <SPAN>"
+  ],
+  "sample": [
+    {
+      "size": "30x30",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "13x13",
+      "strokeWidth": "1.9",
+      "color": "rgb(255, 107, 44)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "18x18",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    }
+  ]
+}
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-agents-chromium-desktop-retry1/test-finished-1.png]]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-agents-chromium-desktop-retry1/test-finished-2.png]]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-agents-chromium-desktop-retry1/trace.zip]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Icon size violations on /agents: [
+  [32m'30x30px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <BUTTON>'[39m,
+  [32m'13x13px in <BUTTON>'[39m,
+  [32m'18x18px in <SPAN>'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Icon Audit › icon audit on /settings" classname="06-icons.spec.ts" time="6.83">
+<system-out>
+<![CDATA[Icon audit (/settings): {
+  "totalIcons": 11,
+  "sizeCounts": {
+    "30x30": 1,
+    "15x15": 4,
+    "13x13": 1,
+    "18x18": 1,
+    "14x14": 1,
+    "16x16": 3
+  },
+  "sizeViolations": [
+    "30x30px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <BUTTON>",
+    "13x13px in <BUTTON>",
+    "15x15px in <SPAN>",
+    "18x18px in <SPAN>"
+  ],
+  "sample": [
+    {
+      "size": "30x30",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(237, 237, 237)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "13x13",
+      "strokeWidth": "1.9",
+      "color": "rgb(255, 107, 44)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.9",
+      "color": "rgb(92, 155, 240)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "18x18",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "16x16",
+      "strokeWidth": "1.5",
+      "color": "rgb(143, 143, 143)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "16x16",
+      "strokeWidth": "1.5",
+      "color": "rgb(237, 237, 237)",
+      "parent": "BUTTON"
+    }
+  ]
+}
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-settings-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Icon size violations on /settings: [
+  [32m'30x30px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <BUTTON>'[39m,
+  [32m'13x13px in <BUTTON>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'18x18px in <SPAN>'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Icon Audit › icon audit on /guardrails" classname="06-icons.spec.ts" time="8.575">
+<system-out>
+<![CDATA[Icon audit (/guardrails): {
+  "totalIcons": 15,
+  "sizeCounts": {
+    "30x30": 1,
+    "15x15": 4,
+    "13x13": 1,
+    "18x18": 1,
+    "14x14": 1,
+    "12x12": 7
+  },
+  "sizeViolations": [
+    "30x30px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <SPAN>",
+    "15x15px in <BUTTON>",
+    "13x13px in <BUTTON>",
+    "15x15px in <SPAN>",
+    "18x18px in <SPAN>"
+  ],
+  "sample": [
+    {
+      "size": "30x30",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(143, 143, 143)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.75",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "13x13",
+      "strokeWidth": "1.9",
+      "color": "rgb(255, 107, 44)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "15x15",
+      "strokeWidth": "1.9",
+      "color": "rgb(92, 155, 240)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "18x18",
+      "strokeWidth": null,
+      "color": "rgb(160, 160, 160)",
+      "parent": "SPAN"
+    },
+    {
+      "size": "14x14",
+      "strokeWidth": "1.9",
+      "color": "rgb(160, 160, 160)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    },
+    {
+      "size": "12x12",
+      "strokeWidth": "2",
+      "color": "rgb(135, 135, 135)",
+      "parent": "BUTTON"
+    }
+  ]
+}
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-audit-on-guardrails-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Icon size violations on /guardrails: [
+  [32m'30x30px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'15x15px in <BUTTON>'[39m,
+  [32m'13x13px in <BUTTON>'[39m,
+  [32m'15x15px in <SPAN>'[39m,
+  [32m'18x18px in <SPAN>'[39m
+]
+]]>
+</system-err>
+</testcase>
+<testcase name="Icon Audit › icon color compliance - check for ember vs neutral usage" classname="06-icons.spec.ts" time="12.203">
+<system-out>
+<![CDATA[Colored icons: [
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(143, 143, 143)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(143, 143, 143)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(255, 107, 44)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(92, 155, 240)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  { color: [32m'rgb(160, 160, 160)'[39m, class: [32m'[object SVGAnimatedString]'[39m },
+  {
+    color: [32m'oklch(0.55 0.13 227)'[39m,
+    class: [32m'[object SVGAnimatedString]'[39m
+  },
+  {
+    color: [32m'oklch(0.55 0.13 227)'[39m,
+    class: [32m'[object SVGAnimatedString]'[39m
+  },
+  {
+    color: [32m'oklch(0.55 0.13 227)'[39m,
+    class: [32m'[object SVGAnimatedString]'[39m
+  },
+  {
+    color: [32m'oklch(0.55 0.12 196)'[39m,
+    class: [32m'[object SVGAnimatedString]'[39m
+  }
+]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-c-ddcf3--for-ember-vs-neutral-usage-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Icon Audit › icon alignment in buttons" classname="06-icons.spec.ts" time="9.732">
+<system-out>
+<![CDATA[Button icon alignment: [
+  { buttonClass: [32m'loom-press'[39m, iconSize: [32m'30x30'[39m, aligned: [33mfalse[39m },
+  { buttonClass: [32m'loom-press'[39m, iconSize: [32m'15x15'[39m, aligned: [33mtrue[39m },
+  { buttonClass: [32m'loom-press'[39m, iconSize: [32m'13x13'[39m, aligned: [33mtrue[39m },
+  { buttonClass: [32m'loom-press'[39m, iconSize: [32m'14x14'[39m, aligned: [33mtrue[39m },
+  { buttonClass: [32m'loom-press'[39m, iconSize: [32m'16x16'[39m, aligned: [33mtrue[39m }
+]
+
+[[ATTACHMENT|06-icons-Icon-Audit-icon-alignment-in-buttons-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[Misaligned icons in buttons: [ { buttonClass: [32m'loom-press'[39m, iconSize: [32m'30x30'[39m, aligned: [33mfalse[39m } ]
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="07-accessibility.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="13" failures="0" skipped="0" time="161.644" errors="0">
+<testcase name="Accessibility - Keyboard Navigation › keyboard navigation on /today" classname="07-accessibility.spec.ts" time="10.434">
+<system-out>
+<![CDATA[Focus path on /today: [
+  [32m'BUTTON[Workspace switcher]: "CadenceExplore workspace · Pri" (ring:true)'[39m,
+  [32m'BUTTON: "Search⌘K" (ring:true)'[39m,
+  [32m'A: "0Today7What needs you now." (ring:true)'[39m,
+  [32m'A: "1Discover" (ring:true)'[39m,
+  [32m'A: "2Decide" (ring:true)'[39m,
+  [32m'A: "3Plan" (ring:true)'[39m,
+  [32m'A: "4Design" (ring:true)'[39m,
+  [32m'A: "5Build" (ring:true)'[39m,
+  [32m'A: "6Ship" (ring:true)'[39m,
+  [32m'A: "7Learn" (ring:true)'[39m
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-67020-eyboard-navigation-on-today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-67020-eyboard-navigation-on-today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Keyboard Navigation › keyboard navigation on /build" classname="07-accessibility.spec.ts" time="11.886">
+<system-out>
+<![CDATA[Focus path on /build: [
+  [32m'BUTTON[Workspace switcher]: "CadenceExplore workspace · Pri" (ring:true)'[39m,
+  [32m'BUTTON: "Search⌘K" (ring:true)'[39m,
+  [32m'A: "0Today7" (ring:true)'[39m,
+  [32m'A: "1Discover" (ring:true)'[39m,
+  [32m'A: "2Decide" (ring:true)'[39m,
+  [32m'A: "3Plan" (ring:true)'[39m,
+  [32m'A: "4Design" (ring:true)'[39m,
+  [32m'A: "5BuildAgents build and open th" (ring:true)'[39m,
+  [32m'A: "6Ship" (ring:true)'[39m,
+  [32m'A: "7Learn" (ring:true)'[39m
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-179a7-eyboard-navigation-on-build-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Keyboard Navigation › keyboard navigation on /settings" classname="07-accessibility.spec.ts" time="5.977">
+<system-out>
+<![CDATA[Focus path on /settings: [
+  [32m'BUTTON[Workspace switcher]: "CadenceExplore workspace · Pri" (ring:true)'[39m,
+  [32m'BUTTON: "Search⌘K" (ring:true)'[39m,
+  [32m'A: "0Today7" (ring:true)'[39m,
+  [32m'A: "1Discover" (ring:true)'[39m,
+  [32m'A: "2Decide" (ring:true)'[39m,
+  [32m'A: "3Plan" (ring:true)'[39m,
+  [32m'A: "4Design" (ring:true)'[39m,
+  [32m'A: "5Build" (ring:true)'[39m,
+  [32m'A: "6Ship" (ring:true)'[39m,
+  [32m'A: "7Learn" (ring:true)'[39m
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-54b6b-oard-navigation-on-settings-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Keyboard Navigation › keyboard navigation on /agents" classname="07-accessibility.spec.ts" time="7.64">
+<system-out>
+<![CDATA[Focus path on /agents: [
+  [32m'BUTTON[Workspace switcher]: "CadenceExplore workspace · Pri" (ring:true)'[39m,
+  [32m'BUTTON: "Search⌘K" (ring:true)'[39m,
+  [32m'A: "0Today7" (ring:true)'[39m,
+  [32m'A: "1Discover" (ring:true)'[39m,
+  [32m'A: "2Decide" (ring:true)'[39m,
+  [32m'A: "3Plan" (ring:true)'[39m,
+  [32m'A: "4Design" (ring:true)'[39m,
+  [32m'A: "5Build" (ring:true)'[39m,
+  [32m'A: "6Ship" (ring:true)'[39m,
+  [32m'A: "7Learn" (ring:true)'[39m
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-290b4-yboard-navigation-on-agents-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Keyboard Navigation › Escape key closes modals/dropdowns" classname="07-accessibility.spec.ts" time="22.981">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-accessibility-Accessibi-68573-key-closes-modals-dropdowns-chromium-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-68573-key-closes-modals-dropdowns-chromium-desktop/error-context.md]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-68573-key-closes-modals-dropdowns-chromium-desktop-retry1/test-finished-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-68573-key-closes-modals-dropdowns-chromium-desktop-retry1/test-finished-2.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-68573-key-closes-modals-dropdowns-chromium-desktop-retry1/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › aria-labels audit on /today" classname="07-accessibility.spec.ts" time="11.253">
+<system-out>
+<![CDATA[ARIA audit (/today): {
+  "missing": [],
+  "hasLabel": [
+    "BUTTON: Workspace switcher",
+    "BUTTON: Search⌘K",
+    "A: 0Today7What needs yo",
+    "A: 1Discover",
+    "A: 2Decide",
+    "A: 3Plan",
+    "A: 4Design",
+    "A: 5Build",
+    "A: 6Ship",
+    "A: 7Learn"
+  ],
+  "totalChecked": 49
+}
+Semantic HTML (/today): {
+  "landmarks": {
+    "main": 1,
+    "nav": 6,
+    "header": 1,
+    "footer": 0,
+    "aside": 2
+  },
+  "headingHierarchy": [
+    "H1: \"7 calls need your judgment today.\"",
+    "H2: \"Needs your judgment\"",
+    "H3: \"Test - Bank-link drop-off at activation\"",
+    "H2: \"While you slept\"",
+    "H2: \"Your desk\"",
+    "H3: \"Focus block\"",
+    "H3: \"Tasks today\"",
+    "H3: \"Capture\""
+  ],
+  "headingViolations": []
+}
+
+[[ATTACHMENT|07-accessibility-Accessibi-4b8e8--aria-labels-audit-on-today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-4b8e8--aria-labels-audit-on-today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › aria-labels audit on /agents" classname="07-accessibility.spec.ts" time="39.939">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-accessibility-Accessibi-cd287-aria-labels-audit-on-agents-chromium-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-cd287-aria-labels-audit-on-agents-chromium-desktop/error-context.md]]
+ARIA audit (/agents): {
+  "missing": [],
+  "hasLabel": [
+    "BUTTON: Workspace switcher",
+    "BUTTON: Search⌘K",
+    "A: 0Today",
+    "A: 1Discover",
+    "A: 2Decide",
+    "A: 3Plan",
+    "A: 4Design",
+    "A: 5Build",
+    "A: 6Ship",
+    "A: 7Learn"
+  ],
+  "totalChecked": 46
+}
+Semantic HTML (/agents): {
+  "landmarks": {
+    "main": 1,
+    "nav": 7,
+    "header": 1,
+    "footer": 0,
+    "aside": 1
+  },
+  "headingHierarchy": [
+    "H2: \"What is it allowed to do?\""
+  ],
+  "headingViolations": []
+}
+
+[[ATTACHMENT|07-accessibility-Accessibi-cd287-aria-labels-audit-on-agents-chromium-desktop-retry1/test-finished-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-cd287-aria-labels-audit-on-agents-chromium-desktop-retry1/test-finished-2.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-cd287-aria-labels-audit-on-agents-chromium-desktop-retry1/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › aria-labels audit on /settings" classname="07-accessibility.spec.ts" time="7.42">
+<system-out>
+<![CDATA[ARIA audit (/settings): {
+  "missing": [
+    "INPUT.input",
+    "INPUT.input"
+  ],
+  "hasLabel": [
+    "BUTTON: Workspace switcher",
+    "BUTTON: Search⌘K",
+    "A: 0Today7",
+    "A: 1Discover",
+    "A: 2Decide",
+    "A: 3Plan",
+    "A: 4Design",
+    "A: 5Build",
+    "A: 6Ship",
+    "A: 7Learn"
+  ],
+  "totalChecked": 57
+}
+Semantic HTML (/settings): {
+  "landmarks": {
+    "main": 1,
+    "nav": 5,
+    "header": 2,
+    "footer": 0,
+    "aside": 1
+  },
+  "headingHierarchy": [
+    "H1: \"Settings\""
+  ],
+  "headingViolations": []
+}
+
+[[ATTACHMENT|07-accessibility-Accessibi-f8292-ia-labels-audit-on-settings-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[2 elements missing accessible names on /settings
+]]>
+</system-err>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › aria-labels audit on /engine-room" classname="07-accessibility.spec.ts" time="7.59">
+<system-out>
+<![CDATA[ARIA audit (/engine-room): {
+  "missing": [],
+  "hasLabel": [
+    "BUTTON: Workspace switcher",
+    "BUTTON: Search⌘K",
+    "A: 0Today7",
+    "A: 1Discover",
+    "A: 2Decide",
+    "A: 3Plan",
+    "A: 4Design",
+    "A: 5Build",
+    "A: 6Ship",
+    "A: 7Learn"
+  ],
+  "totalChecked": 41
+}
+Semantic HTML (/engine-room): {
+  "landmarks": {
+    "main": 1,
+    "nav": 7,
+    "header": 2,
+    "footer": 0,
+    "aside": 1
+  },
+  "headingHierarchy": [
+    "H1: \"The engine, at a glance.\""
+  ],
+  "headingViolations": []
+}
+
+[[ATTACHMENT|07-accessibility-Accessibi-2dee3-labels-audit-on-engine-room-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › aria-labels audit on /guardrails" classname="07-accessibility.spec.ts" time="8.183">
+<system-out>
+<![CDATA[ARIA audit (/guardrails): {
+  "missing": [],
+  "hasLabel": [
+    "BUTTON: Workspace switcher",
+    "BUTTON: Search⌘K",
+    "A: 0Today7",
+    "A: 1Discover",
+    "A: 2Decide",
+    "A: 3Plan",
+    "A: 4Design",
+    "A: 5Build",
+    "A: 6Ship",
+    "A: 7Learn"
+  ],
+  "totalChecked": 71
+}
+Semantic HTML (/guardrails): {
+  "landmarks": {
+    "main": 1,
+    "nav": 7,
+    "header": 1,
+    "footer": 0,
+    "aside": 1
+  },
+  "headingHierarchy": [
+    "H2: \"What is it allowed to do?\""
+  ],
+  "headingViolations": []
+}
+
+[[ATTACHMENT|07-accessibility-Accessibi-f713d--labels-audit-on-guardrails-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › color contrast sampling on Today" classname="07-accessibility.spec.ts" time="9.834">
+<system-out>
+<![CDATA[Color contrast samples: [
+  {
+    "tag": "BUTTON",
+    "color": "rgb(160, 160, 160)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "CadenceExplore workspace · Pri"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(160, 160, 160)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "CadenceExplore workspace · Pri"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "Cadence"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(143, 143, 143)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "Explore workspace · Prism"
+  },
+  {
+    "tag": "BUTTON",
+    "color": "rgb(143, 143, 143)",
+    "bg": "rgb(26, 26, 26)",
+    "text": "Search⌘K"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(143, 143, 143)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "Search"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(143, 143, 143)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "⌘K"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(255, 255, 255)",
+    "bg": "rgb(255, 107, 44)",
+    "text": "0"
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "Today7What needs you now."
+  },
+  {
+    "tag": "SPAN",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgba(0, 0, 0, 0)",
+    "text": "Today7"
+  }
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-88bbd--contrast-sampling-on-Today-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Semantic HTML &amp; ARIA › heading hierarchy is logical" classname="07-accessibility.spec.ts" time="8.571">
+<system-out>
+<![CDATA[Heading hierarchy: [
+  [32m'H1: "7 calls need your judgment today."'[39m,
+  [32m'H2: "Needs your judgment"'[39m,
+  [32m'H3: "Test - Bank-link drop-off at activation"'[39m,
+  [32m'H2: "While you slept"'[39m,
+  [32m'H2: "Your desk"'[39m,
+  [32m'H3: "Focus block"'[39m,
+  [32m'H3: "Tasks today"'[39m,
+  [32m'H3: "Capture"'[39m
+]
+
+[[ATTACHMENT|07-accessibility-Accessibi-8bc27-eading-hierarchy-is-logical-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Accessibility - Reduced Motion › reduced motion media query is respected" classname="07-accessibility.spec.ts" time="9.936">
+<system-out>
+<![CDATA[Reduced motion check: { prefersReduced: [33mtrue[39m, animatedElements: [] }
+
+[[ATTACHMENT|07-accessibility-Accessibi-c21d1-on-media-query-is-respected-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|07-accessibility-Accessibi-c21d1-on-media-query-is-respected-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="08-theme.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="6" failures="0" skipped="0" time="50.248" errors="0">
+<testcase name="Theme Verification › dark theme tokens resolve correctly on Today" classname="08-theme.spec.ts" time="8.887">
+<system-out>
+<![CDATA[Dark theme tokens: {
+  "theme": "dark",
+  "values": {
+    "--ds-background-100": "#0a0a0a",
+    "--ds-background-200": "#000",
+    "--ds-gray-100": "#1a1a1a",
+    "--ds-gray-200": "#1f1f1f",
+    "--ds-gray-900": "#a0a0a0",
+    "--ds-gray-1000": "#ededed",
+    "--ember": "#ff6b2c",
+    "--ds-focus-color": "oklch(65% .18 50)",
+    "--ds-focus-ring-outline": "2px solid oklch(65% .18 50)",
+    "--ds-red-700": "#f13242",
+    "--ds-green-700": "#00ab3e"
+  }
+}
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-7301c--resolve-correctly-on-Today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-7301c--resolve-correctly-on-Today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Theme Verification › light theme tokens resolve correctly" classname="08-theme.spec.ts" time="9.636">
+<system-out>
+<![CDATA[Theme switch: succeeded
+Light theme tokens: {
+  "theme": "dark",
+  "values": {
+    "--ds-background-100": "#fff",
+    "--ds-background-200": "#fafafa",
+    "--ds-gray-100": "#f2f2f2",
+    "--ds-gray-200": "#ebebeb",
+    "--ds-gray-900": "#4d4d4d",
+    "--ds-gray-1000": "#171717",
+    "--ember": "#ff8c52",
+    "--ds-focus-color": "oklch(65% .18 50)",
+    "--ds-focus-ring-outline": "2px solid oklch(65% .18 50)",
+    "--ds-red-700": "#fc0035",
+    "--ds-green-700": "#28a948"
+  }
+}
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-b7b65-me-tokens-resolve-correctly-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Theme Verification › no hardcoded color literals in inline styles" classname="08-theme.spec.ts" time="9.299">
+<system-out>
+<![CDATA[Hardcoded colors found: [
+  [32m'SPAN: style="top: -60%; right: -30%; width: 90%; height: 180%; border-radius: 99px; backgroun"'[39m
+]
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-cb0d7-r-literals-in-inline-styles-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[1 elements with hardcoded color values
+]]>
+</system-err>
+</testcase>
+<testcase name="Theme Verification › dark theme applied to Engine Room" classname="08-theme.spec.ts" time="7.786">
+<system-out>
+<![CDATA[Engine Room theme tokens: {
+  theme: [32m'dark'[39m,
+  values: {
+    [32m'--ds-background-100'[39m: [32m'#0a0a0a'[39m,
+    [32m'--ds-background-200'[39m: [32m'#000'[39m,
+    [32m'--ds-gray-100'[39m: [32m'#1a1a1a'[39m,
+    [32m'--ds-gray-200'[39m: [32m'#1f1f1f'[39m,
+    [32m'--ds-gray-900'[39m: [32m'#a0a0a0'[39m,
+    [32m'--ds-gray-1000'[39m: [32m'#ededed'[39m,
+    [32m'--ember'[39m: [32m'#ff6b2c'[39m,
+    [32m'--ds-focus-color'[39m: [32m'oklch(65% .18 50)'[39m,
+    [32m'--ds-focus-ring-outline'[39m: [32m'2px solid oklch(65% .18 50)'[39m,
+    [32m'--ds-red-700'[39m: [32m'#f13242'[39m,
+    [32m'--ds-green-700'[39m: [32m'#00ab3e'[39m
+  }
+}
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-e2fbc-heme-applied-to-Engine-Room-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Theme Verification › dark theme applied to Settings" classname="08-theme.spec.ts" time="5.884">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-theme-Theme-Verification-dark-theme-applied-to-Settings-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Theme Verification › background token resolves correctly (dark = #0a0a0a equivalent)" classname="08-theme.spec.ts" time="8.756">
+<system-out>
+<![CDATA[Background colors: { bg100: [32m'#0a0a0a'[39m, bodyBg: [32m'rgb(10, 10, 10)'[39m }
+
+[[ATTACHMENT|08-theme-Theme-Verificatio-0f732-tly-dark-0a0a0a-equivalent--chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="09-elevation-tokens.spec.ts" timestamp="2026-07-17T10:06:25.335Z" hostname="chromium-desktop" tests="6" failures="0" skipped="0" time="58.961" errors="0">
+<testcase name="Elevation &amp; Shadow Token Compliance › elevation tokens on /today" classname="09-elevation-tokens.spec.ts" time="10.99">
+<system-out>
+<![CDATA[Elevation audit (/today): {
+  "tokens": {
+    "--material-base": "",
+    "--material-small": "",
+    "--material-medium": "",
+    "--material-large": "",
+    "--ds-shadow-base": "",
+    "--ds-shadow-sm": "",
+    "--ds-shadow-md": "",
+    "--ds-shadow-lg": ""
+  },
+  "adHocCount": 6,
+  "sampleShadows": [
+    {
+      "tag": "BUTTON",
+      "class": "loom-press",
+      "shadow": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "relative",
+      "shadow": "color(srgb 1 0.419608 0.172549 / 0.45) 0px 0px 10px 0px",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "inline-flex",
+      "shadow": "oklab(0.999994 0.0000455678 0.0000200868 / 0.12) 0px 1px 0px 0px inset",
+      "usesVar": false
+    },
+    {
+      "tag": "SPAN",
+      "class": "shrink-0",
+      "shadow": "rgba(127, 191, 142, 0.6) 0px 0px 7px 0px",
+      "usesVar": false
+    },
+    {
+      "tag": "DIV",
+      "class": "glass-panel",
+      "shadow": "oklab(1 0 5.96046e-8 / 0.07) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.62) 0px 20px 44px -24px",
+      "usesVar": true
+    }
+  ]
+}
+Elevation tokens defined: 0/8
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-9e587-e-elevation-tokens-on-today-chromium-desktop/test-finished-1.png]]
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-9e587-e-elevation-tokens-on-today-chromium-desktop/test-finished-2.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Elevation &amp; Shadow Token Compliance › elevation tokens on /agents" classname="09-elevation-tokens.spec.ts" time="7.709">
+<system-out>
+<![CDATA[Elevation audit (/agents): {
+  "tokens": {
+    "--material-base": "",
+    "--material-small": "",
+    "--material-medium": "",
+    "--material-large": "",
+    "--ds-shadow-base": "",
+    "--ds-shadow-sm": "",
+    "--ds-shadow-md": "",
+    "--ds-shadow-lg": ""
+  },
+  "adHocCount": 22,
+  "sampleShadows": [
+    {
+      "tag": "BUTTON",
+      "class": "loom-press",
+      "shadow": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "relative",
+      "shadow": "color(srgb 1 0.419608 0.172549 / 0.45) 0px 0px 10px 0px",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "inline-flex",
+      "shadow": "oklab(0.999994 0.0000455678 0.0000200868 / 0.12) 0px 1px 0px 0px inset",
+      "usesVar": false
+    },
+    {
+      "tag": "SPAN",
+      "class": "shrink-0",
+      "shadow": "rgba(127, 191, 142, 0.6) 0px 0px 7px 0px",
+      "usesVar": false
+    },
+    {
+      "tag": "DIV",
+      "class": "",
+      "shadow": "rgba(255, 255, 255, 0.14) 0px 0px 0px 1px inset",
+      "usesVar": true
+    }
+  ]
+}
+Elevation tokens defined: 0/8
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-551fb--elevation-tokens-on-agents-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Elevation &amp; Shadow Token Compliance › elevation tokens on /settings" classname="09-elevation-tokens.spec.ts" time="8.47">
+<system-out>
+<![CDATA[Elevation audit (/settings): {
+  "tokens": {
+    "--material-base": "",
+    "--material-small": "",
+    "--material-medium": "",
+    "--material-large": "",
+    "--ds-shadow-base": "",
+    "--ds-shadow-sm": "",
+    "--ds-shadow-md": "",
+    "--ds-shadow-lg": ""
+  },
+  "adHocCount": 10,
+  "sampleShadows": [
+    {
+      "tag": "BUTTON",
+      "class": "loom-press",
+      "shadow": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "inline-flex",
+      "shadow": "oklab(0.999994 0.0000455678 0.0000200868 / 0.12) 0px 1px 0px 0px inset",
+      "usesVar": false
+    },
+    {
+      "tag": "SPAN",
+      "class": "shrink-0",
+      "shadow": "rgba(127, 191, 142, 0.6) 0px 0px 7px 0px",
+      "usesVar": false
+    },
+    {
+      "tag": "DIV",
+      "class": "bento",
+      "shadow": "oklch(0.95 0.015 85 / 0.04) 0px 1px 0px 0px inset",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "inline-flex",
+      "shadow": "oklab(0.999994 0.0000455678 0.0000200868 / 0.12) 0px 1px 0px 0px inset",
+      "usesVar": false
+    }
+  ]
+}
+Elevation tokens defined: 0/8
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-d4bf6-levation-tokens-on-settings-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Elevation &amp; Shadow Token Compliance › elevation tokens on /engine-room" classname="09-elevation-tokens.spec.ts" time="12.254">
+<system-out>
+<![CDATA[Elevation audit (/engine-room): {
+  "tokens": {
+    "--material-base": "",
+    "--material-small": "",
+    "--material-medium": "",
+    "--material-large": "",
+    "--ds-shadow-base": "",
+    "--ds-shadow-sm": "",
+    "--ds-shadow-md": "",
+    "--ds-shadow-lg": ""
+  },
+  "adHocCount": 2,
+  "sampleShadows": [
+    {
+      "tag": "BUTTON",
+      "class": "loom-press",
+      "shadow": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "relative",
+      "shadow": "color(srgb 1 0.419608 0.172549 / 0.45) 0px 0px 10px 0px",
+      "usesVar": true
+    },
+    {
+      "tag": "SPAN",
+      "class": "inline-flex",
+      "shadow": "oklab(0.999994 0.0000455678 0.0000200868 / 0.12) 0px 1px 0px 0px inset",
+      "usesVar": false
+    },
+    {
+      "tag": "SPAN",
+      "class": "shrink-0",
+      "shadow": "rgba(127, 191, 142, 0.6) 0px 0px 7px 0px",
+      "usesVar": false
+    },
+    {
+      "tag": "DIV",
+      "class": "flex",
+      "shadow": "rgba(255, 255, 255, 0.05) 0px 1px 0px 0px inset",
+      "usesVar": true
+    }
+  ]
+}
+Elevation tokens defined: 0/8
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-64141-ation-tokens-on-engine-room-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Elevation &amp; Shadow Token Compliance › glass panel material on sidebar rail" classname="09-elevation-tokens.spec.ts" time="9.774">
+<system-out>
+<![CDATA[Rail glass material: [1mnull[22m
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-9a990-el-material-on-sidebar-rail-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Elevation &amp; Shadow Token Compliance › TopBar glass material" classname="09-elevation-tokens.spec.ts" time="9.764">
+<system-out>
+<![CDATA[TopBar glass: {
+  backdropFilter: [32m'blur(14px) saturate(1.5)'[39m,
+  background: [32m'oklab(0.144787 0.00000661612 0.00000289828 / 0.68) none repeat scroll 0% 0% / auto padding-box borde'[39m,
+  position: [32m'sticky'[39m,
+  zIndex: [32m'30'[39m
+}
+
+[[ATTACHMENT|09-elevation-tokens-Elevat-ed571-iance-TopBar-glass-material-chromium-desktop/test-finished-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

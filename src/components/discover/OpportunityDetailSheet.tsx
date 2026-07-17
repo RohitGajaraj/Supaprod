@@ -29,6 +29,7 @@ import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import type { Designation } from "./ranking";
 import {
@@ -61,18 +62,25 @@ export interface OpportunityDetailRecord {
   updated_at: string;
   // RPT-47: the strategic top bet a human tied this opportunity to (nullable).
   linked_brief_item_id?: string | null;
+  // PC-29 layer 3 (2026-07-17): the agent that recorded the decision behind
+  // this bet's linked spec, if any (null until a spec exists and carries a
+  // decision with decided_by_agent_slug set).
+  decided_by_agent_slug?: string | null;
 }
 
 /** A label/value block: a quiet mono caps label over a readable body value. */
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "grid", gap: "5px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+      <MonoLabel
+        className="text-label-12-mono"
+        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+      >
         {label}
       </MonoLabel>
       <p
+        className="text-copy-14"
         style={{
-          fontSize: "var(--text-base)",
           lineHeight: 1.6,
           color: "var(--text-body)",
           margin: 0,
@@ -89,14 +97,13 @@ function Field({ label, value }: { label: string; value: string }) {
 function TimeLine({ iso }: { iso: string }) {
   return (
     <span
-      className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+      className="flex items-baseline text-copy-13"
+      style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
+        className="text-label-12-mono"
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -121,7 +128,6 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   const precedents = q.data?.precedents ?? [];
   const peers = q.data?.consideredAgainst ?? [];
   const emptyLine: React.CSSProperties = {
-    fontSize: "12px",
     color: "var(--text-subtle)",
     fontStyle: "italic",
     margin: 0,
@@ -133,7 +139,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     return (
       <DetailSection heading="Precedent">
         <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
-          <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+          <p className="text-label-12" style={{ color: "var(--madder)", margin: 0 }}>
             Could not read this bet's judgment. {(q.error as Error).message}
           </p>
           <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
@@ -148,26 +154,31 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     <>
       <DetailSection heading="Precedent">
         {q.isPending ? (
-          <p style={emptyLine}>Recalling past outcomes…</p>
+          <p style={emptyLine} className="text-label-12">
+            Recalling past outcomes…
+          </p>
         ) : precedents.length > 0 ? (
           <div style={{ display: "grid", gap: "8px" }}>
-            <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+            <p className="text-label-12" style={{ color: "var(--text-subtle)", margin: 0 }}>
               Last time we reasoned this way, here is what happened.
             </p>
             {precedents.map((p) => (
               <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
                   {p.verdict.toUpperCase()}
                   {p.title ? ` · ${p.title}` : ""}
                 </span>
-                <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                <span
+                  className="text-label-12"
+                  style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}
+                >
                   {p.summary}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p style={emptyLine}>
+          <p style={emptyLine} className="text-label-12">
             No recorded outcome matches this bet yet. As outcomes land, Memory recalls them here.
           </p>
         )}
@@ -175,21 +186,22 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
 
       <DetailSection heading="Considered against">
         {q.isPending ? (
-          <p style={emptyLine}>Reading the queue…</p>
+          <p style={emptyLine} className="text-label-12">
+            Reading the queue…
+          </p>
         ) : peers.length > 0 ? (
           <div style={{ display: "grid", gap: "6px" }}>
             {peers.map((a) => (
               <div
                 key={a.id}
-                className="flex items-baseline"
-                style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                className="flex items-baseline text-copy-13"
+                style={{ gap: "8px", color: "var(--text-body)" }}
               >
                 <span style={{ flex: 1, minWidth: 0 }}>{a.title}</span>
                 {a.ice != null ? (
                   <span
+                    className="text-label-12-mono"
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "10.5px",
                       letterSpacing: "0.06em",
                       color: "var(--text-subtle)",
                     }}
@@ -201,7 +213,9 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
             ))}
           </div>
         ) : (
-          <p style={emptyLine}>Nothing else is live in the queue right now.</p>
+          <p style={emptyLine} className="text-label-12">
+            Nothing else is live in the queue right now.
+          </p>
         )}
       </DetailSection>
     </>
@@ -239,30 +253,25 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
 
   return (
     <div style={{ display: "grid", gap: "7px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+      <MonoLabel
+        className="text-label-12-mono"
+        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+      >
         Strategic bet
       </MonoLabel>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             disabled={setLink.isPending}
-            className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-primary)] hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="text-copy-13"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
               alignSelf: "flex-start",
-              fontFamily: "var(--font-ui)",
-              fontSize: "12.5px",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-control)",
-              padding: "5px 11px",
-              cursor: "pointer",
             }}
           >
             {linkedBet ? linkedBet.title : "Not tied to a bet"}
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => setLink.mutate(null)}>
@@ -275,7 +284,10 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <p style={{ fontSize: "11px", color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}>
+      <p
+        className="text-label-12"
+        style={{ color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}
+      >
         Tie this to a top bet so its watched assumptions steer where it ranks. A challenged
         assumption sinks it.
       </p>
@@ -375,21 +387,16 @@ export function OpportunityDetailSheet({
                   <StatusPill status={opportunity.status} />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-muted)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         style={{
-                          fontFamily: "var(--font-ui)",
                           fontSize: "11.5px",
                           fontWeight: 500,
-                          border: "1px solid var(--hairline-strong)",
-                          borderRadius: "var(--radius-control)",
-                          padding: "3px 10px",
-                          cursor: "pointer",
                         }}
                       >
                         Move to
-                      </button>
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       {OPPORTUNITY_STATUSES.map((s) => (
@@ -414,9 +421,7 @@ export function OpportunityDetailSheet({
                   UPDATED {relTimeCaps(opportunity.updated_at)}
                 </span>
               }
-              traceRef={
-                <AuditTag kind="opportunity" id={opportunity.id} copyable />
-              }
+              traceRef={<AuditTag kind="opportunity" id={opportunity.id} copyable />}
             />
 
             <BriefLinkSection opportunity={opportunity} />
@@ -445,9 +450,8 @@ export function OpportunityDetailSheet({
                   <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
                     {rank != null ? (
                       <span
+                        className="text-label-13-mono"
                         style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "11px",
                           letterSpacing: "0.04em",
                           color: "var(--text-muted)",
                           fontVariantNumeric: "tabular-nums",
@@ -467,8 +471,8 @@ export function OpportunityDetailSheet({
                 ) : null}
                 {designationMeaning ? (
                   <p
+                    className="text-copy-13"
                     style={{
-                      fontSize: "12.5px",
                       lineHeight: 1.6,
                       color: "var(--text-body)",
                       margin: 0,
@@ -480,8 +484,8 @@ export function OpportunityDetailSheet({
                 {nextAction ? (
                   <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
                     <MonoLabel
+                      className="text-label-12-mono"
                       style={{
-                        fontSize: "10px",
                         letterSpacing: "0.1em",
                         color: "var(--text-subtle)",
                       }}
@@ -489,9 +493,8 @@ export function OpportunityDetailSheet({
                       Recommended next
                     </MonoLabel>
                     <span
+                      className="text-copy-13"
                       style={{
-                        fontFamily: "var(--font-ui)",
-                        fontSize: "13px",
                         fontWeight: 550,
                         color: "var(--text-primary)",
                       }}
@@ -502,8 +505,8 @@ export function OpportunityDetailSheet({
                 ) : null}
                 {rationale ? (
                   <p
+                    className="text-copy-13"
                     style={{
-                      fontSize: "12.5px",
                       lineHeight: 1.6,
                       color: "var(--text-subtle)",
                       margin: 0,
@@ -545,32 +548,28 @@ export function OpportunityDetailSheet({
               heading="Where it came from"
               action={
                 opportunity.theme_id ? (
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onViewLineage}
-                    className="loom-press flex items-center outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    style={{
-                      gap: "6px",
-                      fontSize: "12px",
-                      background: "transparent",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                    }}
+                    className="text-label-12"
                   >
                     <GitBranch className="h-3.5 w-3.5" />
                     View lineage
-                  </button>
+                  </Button>
                 ) : null
               }
             >
-              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+              <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
                 {opportunity.theme_id ? "Promoted from a Discover theme." : "Promoted directly."}
               </span>
             </DetailSection>
 
             {/* The bet itself: real fields, blanks skipped. */}
-            {opportunity.problem || opportunity.hypothesis || opportunity.target_user ? (
+            {opportunity.problem ||
+            opportunity.hypothesis ||
+            opportunity.target_user ||
+            opportunity.decided_by_agent_slug ? (
               <DetailSection heading="The bet">
                 <div style={{ display: "grid", gap: "14px" }}>
                   {opportunity.problem ? (
@@ -581,6 +580,17 @@ export function OpportunityDetailSheet({
                   ) : null}
                   {opportunity.target_user ? (
                     <Field label="Target user" value={opportunity.target_user} />
+                  ) : null}
+                  {/* PC-29 layer 3 (2026-07-17): the never-shown
+                      decided_by_agent_slug field, finally rendered here too -
+                      the queue row already surfaces it in its subtitle
+                      (OpportunityQueue.tsx), this keeps the detail sheet from
+                      silently dropping the same attribution. */}
+                  {opportunity.decided_by_agent_slug ? (
+                    <Field
+                      label="Decided by"
+                      value={agentDisplayName(opportunity.decided_by_agent_slug)}
+                    />
                   ) : null}
                 </div>
               </DetailSection>
@@ -604,8 +614,8 @@ export function OpportunityDetailSheet({
                 {opportunity.critic_review?.summary ? (
                   <>
                     <p
+                      className="text-copy-13"
                       style={{
-                        fontSize: "12.5px",
                         lineHeight: 1.6,
                         color: "var(--text-body)",
                         margin: 0,
@@ -617,8 +627,8 @@ export function OpportunityDetailSheet({
                   </>
                 ) : (
                   <p
+                    className="text-label-12"
                     style={{
-                      fontSize: "12px",
                       color: "var(--text-subtle)",
                       fontStyle: "italic",
                       margin: 0,
@@ -654,11 +664,13 @@ export function OpportunityDetailSheet({
             <DetailSection heading="Activity">
               <div style={{ display: "grid", gap: "10px" }}>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Promoted</span>
+                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
+                    Promoted
+                  </span>
                   <TimeLine iso={opportunity.created_at} />
                 </div>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
                     Last updated
                   </span>
                   <TimeLine iso={opportunity.updated_at} />
@@ -676,7 +688,7 @@ export function OpportunityDetailSheet({
               }}
             >
               <Button
-                variant="primary"
+                variant="accent"
                 size="sm"
                 onClick={onDraftSpec}
                 loading={draftPending}

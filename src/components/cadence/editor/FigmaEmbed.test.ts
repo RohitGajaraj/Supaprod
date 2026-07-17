@@ -121,6 +121,36 @@ describe("FigmaEmbed.config.parseHTML()", () => {
     // the node from HTML. The actual extraction happens in parseHTML rules.
     expect(parseRules[0]).toBeDefined();
   });
+
+  test("getAttrs callback extracts src from a child iframe", () => {
+    const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
+    const mockDom = {
+      querySelector: (selector: string) => ({
+        getAttribute: (attr: string) =>
+          attr === "src" ? "https://www.figma.com/embed?file-key=abc123" : null,
+      }),
+    } as any;
+
+    const attrs = getAttrs?.(mockDom);
+    expect(attrs?.src).toBe("https://www.figma.com/embed?file-key=abc123");
+  });
+
+  test("getAttrs callback falls back to empty src when the div has no child iframe", () => {
+    const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
+    const mockDom = { querySelector: () => null } as any;
+
+    const attrs = getAttrs?.(mockDom);
+    expect(attrs?.src).toBe("");
+  });
+});
+
+describe("FigmaEmbed node shape", () => {
+  test("is a block-level, draggable, selectable, atomic node", () => {
+    expect(FigmaEmbed.config.group).toBe("block");
+    expect(FigmaEmbed.config.draggable).toBe(true);
+    expect(FigmaEmbed.config.selectable).toBe(true);
+    expect(FigmaEmbed.config.atom).toBe(true);
+  });
 });
 
 describe("FigmaEmbed.config.addAttributes()", () => {
@@ -540,7 +570,10 @@ describe("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () 
     expect(html).toContain('data-figma-embed="true"');
     // Check for embed URL in iframe src (HTML entity encoding may apply)
     const embedUrl = toEmbedUrl(originalSrc);
-    expect(html.includes(`<iframe src="${embedUrl}"`) || html.includes(`<iframe src="${embedUrl.replace(/&/g, "&amp;")}"`)).toBe(true);
+    expect(
+      html.includes(`<iframe src="${embedUrl}"`) ||
+        html.includes(`<iframe src="${embedUrl.replace(/&/g, "&amp;")}"`),
+    ).toBe(true);
 
     // Parse HTML into a fresh editor
     const editor2 = createEditor();
@@ -581,8 +614,7 @@ describe("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () 
   });
 
   test("handles round-trip with query params and node-id fragments in figma URL", () => {
-    const complexUrl =
-      "https://www.figma.com/proto/abc123?node-id=1%3A2&scaling=min-zoom";
+    const complexUrl = "https://www.figma.com/proto/abc123?node-id=1%3A2&scaling=min-zoom";
     const editor1 = createEditor();
 
     editor1.chain().focus().setFigmaEmbed({ src: complexUrl }).run();

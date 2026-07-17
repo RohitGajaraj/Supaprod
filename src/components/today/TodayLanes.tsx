@@ -156,7 +156,6 @@ export function PushedInsights({
               className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
                 alignSelf: "flex-start",
-                fontFamily: "var(--font-ui)",
                 fontSize: 12,
                 fontWeight: 500,
                 border: "1px solid",

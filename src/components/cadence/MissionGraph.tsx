@@ -35,7 +35,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           ? "var(--ember)"
           : st === "failed"
             ? "var(--rose)"
-            : "var(--ink-faint)";
+            : "var(--ds-gray-700)";
   const sel = selStep == null ? null : steps[selStep];
   return (
     <div>
@@ -95,7 +95,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               y={hubY - 22}
               textAnchor="middle"
               style={{
-                fill: "var(--ink-subtle)",
+                fill: "var(--ds-gray-900)",
                 fontFamily: "'Geist Mono', monospace",
                 fontSize: 8.5,
                 letterSpacing: "0.1em",
@@ -132,7 +132,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   width={NW}
                   height={NH}
                   rx="10"
-                  fill={active ? "var(--surface-2)" : "var(--canvas)"}
+                  fill={active ? "var(--surface-2)" : "var(--ds-background-100)"}
                   stroke={active ? "var(--hairline-strong)" : "var(--hairline)"}
                   strokeWidth="1"
                 ></rect>
@@ -160,7 +160,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   x={x + 13}
                   y={nodeY + 40}
                   style={{
-                    fill: "var(--ink-subtle)",
+                    fill: "var(--ds-gray-900)",
                     fontFamily: "'Geist Mono', monospace",
                     fontSize: 8,
                   }}
@@ -191,13 +191,15 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             <span style={{ flex: 1 }}></span>
             <button
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
+              style={{ fontSize: 8.5, color: "var(--ds-gray-700)" }}
               onClick={() => onSelect(null)}
             >
               close
             </button>
           </div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 5 }}>{sel.goal}</div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-gray-800)", marginTop: 5 }}>
+            {sel.goal}
+          </div>
           {sel.note ? (
             <div style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
           ) : null}

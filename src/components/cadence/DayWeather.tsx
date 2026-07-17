@@ -18,10 +18,23 @@ type Unit = "celsius" | "fahrenheit";
 // Islands, Belize, Liberia, Palau, a few Caribbean nations, and Micronesia /
 // Marshall Islands. Everyone else gets Celsius.
 const FAHRENHEIT = new Set([
-  "US", "PR", "GU", "VI", "AS", "MP", // United States + territories
-  "BS", "KY", "BZ", "LR", "PW", // Bahamas, Cayman, Belize, Liberia, Palau
-  "AG", "VG", "MS", "KN", // Antigua & Barbuda, BVI, Montserrat, St Kitts & Nevis
-  "FM", "MH", // Micronesia, Marshall Islands
+  "US",
+  "PR",
+  "GU",
+  "VI",
+  "AS",
+  "MP", // United States + territories
+  "BS",
+  "KY",
+  "BZ",
+  "LR",
+  "PW", // Bahamas, Cayman, Belize, Liberia, Palau
+  "AG",
+  "VG",
+  "MS",
+  "KN", // Antigua & Barbuda, BVI, Montserrat, St Kitts & Nevis
+  "FM",
+  "MH", // Micronesia, Marshall Islands
 ]);
 
 // WMO weather-code -> { label, icon, tint }. Every state is COLORED: sun warm
@@ -96,7 +109,8 @@ export function DayWeather() {
           country_code?: string;
         };
         if (!cancelled && j?.success) {
-          const u: Unit = j.country_code && FAHRENHEIT.has(j.country_code) ? "fahrenheit" : "celsius";
+          const u: Unit =
+            j.country_code && FAHRENHEIT.has(j.country_code) ? "fahrenheit" : "celsius";
           unitRef.current = u;
           setUnit(u);
           if (j.city) setPlace(j.city);
@@ -159,13 +173,19 @@ export function DayWeather() {
           }}
         />
         <span style={{ ...mono, color: "var(--text-muted)" }}>{w.label}</span>
-        <span className="tabular-nums" style={{ ...mono, color: "var(--text-body)", fontWeight: 500 }}>
+        <span
+          className="tabular-nums"
+          style={{ ...mono, color: "var(--text-body)", fontWeight: 500 }}
+        >
           {weather.temp}°
         </span>
       </span>
       {place ? (
         <>
-          <span aria-hidden="true" style={{ width: 1, height: 12, background: "var(--hairline)" }} />
+          <span
+            aria-hidden="true"
+            style={{ width: 1, height: 12, background: "var(--hairline)" }}
+          />
           <span className="truncate" style={{ ...mono, maxWidth: 120, color: "var(--text-muted)" }}>
             {place}
           </span>

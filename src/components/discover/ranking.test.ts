@@ -296,16 +296,16 @@ describe("rankOpportunities", () => {
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Review the outcome");
   });
 
-  test("next action: REVISE verdict (not shipped) gets feedback-specific action", () => {
-    // Confirms that REVISE verdicts (fixable) now get a distinct action that suggests addressing feedback.
+  test("next action: REVISE verdict (not shipped) is told to address Critic feedback", () => {
+    // REVISE verdicts guide users to address the Critic's specific feedback, not generic drafting.
     const opps = [mk({ id: "revise", status: "backlog", critic_review: critic("revise") })];
-    expect(rankOpportunities(opps, noCorr)[0].nextAction).toMatch(/feedback|address/);
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Address Critic feedback");
   });
 
-  test("next action: KILL verdict (not shipped) gets rejection-specific action", () => {
-    // Confirms that KILL verdicts (not fixable) now get a distinct action that suggests understanding the rejection.
+  test("next action: KILL verdict (not shipped) is told to understand rejection", () => {
+    // KILL verdicts guide users to understand why the bet was rejected, not attempt a fix.
     const opps = [mk({ id: "killed", status: "dropped", critic_review: critic("kill") })];
-    expect(rankOpportunities(opps, noCorr)[0].nextAction).toMatch(/reject|understand|decision/);
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Understand why it was rejected");
   });
 
   test("next action: SHIP verdict (not shipped) gets execution-specific action", () => {
@@ -620,7 +620,7 @@ describe("designation precedence boundary: needs validation beats quick win", ()
  *
  * These tests validate the fix once implemented.
  */
-describe("nextActionFor verdict differentiation", () => {
+describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
   /**
    * Test that REVISE gets actionable feedback
    *
@@ -638,10 +638,12 @@ describe("nextActionFor verdict differentiation", () => {
     });
 
     const action = nextActionFor(opp);
+
+    // REVISE should NOT be generic "Draft the spec"
     expect(action).not.toBe("Draft the spec");
-    expect(action.toLowerCase()).toMatch(/feedback|address|refine/);
-    expect(action).toBeDefined();
-    expect(action).toBeTruthy();
+    // Should suggest addressing/improving
+    const suggestsAction = /revise|improve|address|refine|adjust/i.test(action);
+    expect(suggestsAction).toBe(true);
   });
 
   /**
@@ -659,11 +661,15 @@ describe("nextActionFor verdict differentiation", () => {
     });
 
     const action = nextActionFor(opp);
+
+    // KILL should NOT be "Draft the spec"
     expect(action).not.toBe("Draft the spec");
-    expect(action.toLowerCase()).toMatch(/reject|understand|decision/);
-    // KILL should not suggest fixing (unlike REVISE)
-    expect(action.toLowerCase()).not.toMatch(/address|fix|improve|refine/);
-    expect(action).toBeDefined();
+    // Should NOT suggest fixing (unlike REVISE)
+    const suggestsFixing = /revise|improve|address|refine/i.test(action);
+    expect(suggestsFixing).toBe(false);
+    // Should suggest understanding/accepting the rejection
+    const suggestsReject = /reject|dismiss|understand|accept/i.test(action);
+    expect(suggestsReject).toBe(true);
   });
 
   /**
@@ -673,27 +679,29 @@ describe("nextActionFor verdict differentiation", () => {
    * proceeding with building/implementation for endorsed bets,
    * distinct from PENDING (needs more validation) or REVISE (needs fixing).
    */
-  test("SHIP verdict returns action guiding user to begin execution", () => {
-    const opp = mk({
+  test("SHIP verdict returns action distinct from PENDING (already endorsed)", () => {
+    const oppShip = mk({
       id: "ship-opp",
       status: "backlog",
       critic_review: critic("ship"),
     });
 
-    const action = nextActionFor(opp);
-    expect(action).toBeDefined();
-    expect(action).toBeTruthy();
-    // Should suggest moving forward with building/spec/proceeding
-    expect(action.toLowerCase()).toMatch(/proceed|spec|build|draft/);
-    // Compare with PENDING to confirm they are different
-    const pendingAction = nextActionFor(
-      mk({
-        id: "pending-opp",
-        status: "backlog",
-        critic_review: null,
-      }),
-    );
-    expect(action).not.toBe(pendingAction);
+    const actionShip = nextActionFor(oppShip);
+
+    // Create PENDING for comparison
+    const oppPending = mk({
+      id: "pending-opp",
+      status: "backlog",
+      critic_review: null,
+    });
+    const actionPending = nextActionFor(oppPending);
+
+    // SHIP and PENDING must have different actions
+    expect(actionShip).not.toBe(actionPending);
+    // SHIP suggests drafting (already endorsed, next step is to draft the spec)
+    expect(actionShip).toBe("Draft the spec");
+    // PENDING suggests challenging with Critic
+    expect(actionPending).toBe("Challenge with the Critic first");
   });
 
   /**
@@ -704,25 +712,20 @@ describe("nextActionFor verdict differentiation", () => {
    * distinct from SHIP (endorsed to proceed) or PENDING (needs validation).
    */
   test("WATCH verdict returns action guiding user to monitor and validate", () => {
-    // WATCH verdict comes from status="next" or "later", not from critic_review verdict
+    // WATCH status (status="next") gives WATCH verdict
     const opp = mk({
       id: "watch-opp",
-      status: "next",
+      status: "next", // This makes verdictFor return "WATCH"
       critic_review: null,
     });
 
     const action = nextActionFor(opp);
+
+    // WATCH should NOT collapse to "Draft the spec"
     expect(action).not.toBe("Draft the spec");
-    expect(action.toLowerCase()).toMatch(/signal|gather|monitor/);
-    // Verify it's distinct from SHIP
-    const shipAction = nextActionFor(
-      mk({
-        id: "ship-opp",
-        status: "backlog",
-        critic_review: critic("ship"),
-      }),
-    );
-    expect(action).not.toBe(shipAction);
+    // Should suggest monitoring/gathering evidence
+    const suggestsMonitor = /monitor|watch|gather|evidence|validate|track/i.test(action);
+    expect(suggestsMonitor).toBe(true);
   });
 
   /**
@@ -753,18 +756,26 @@ describe("nextActionFor verdict differentiation", () => {
    * This should already work correctly.
    */
   test("shipped status returns 'Review the outcome' (overrides verdict)", () => {
-    const verdicts = ["ship", "revise", "kill", undefined] as const;
+    const oppShipped1 = mk({
+      id: "shipped-1",
+      status: "shipped",
+      critic_review: null,
+    });
+    const oppShipped2 = mk({
+      id: "shipped-2",
+      status: "shipped",
+      critic_review: critic("revise"),
+    });
+    const oppShipped3 = mk({
+      id: "shipped-3",
+      status: "shipped",
+      critic_review: critic("kill"),
+    });
 
-    for (const verdict of verdicts) {
-      const opp = mk({
-        id: `shipped-${verdict ?? "none"}`,
-        status: "shipped",
-        critic_review: verdict ? { verdict } : null,
-      });
-
-      const action = nextActionFor(opp);
-      expect(action).toBe("Review the outcome");
-    }
+    // All shipped opps should return "Review the outcome" regardless of verdict
+    expect(nextActionFor(oppShipped1)).toBe("Review the outcome");
+    expect(nextActionFor(oppShipped2)).toBe("Review the outcome");
+    expect(nextActionFor(oppShipped3)).toBe("Review the outcome");
   });
 
   /**
@@ -775,26 +786,47 @@ describe("nextActionFor verdict differentiation", () => {
    * This is a high-level integration test for the fix.
    */
   test("all five verdicts (SHIP/WATCH/REVISE/KILL/PENDING) return distinct actions", () => {
-    const opps = [
-      mk({ id: "ship", status: "backlog", critic_review: critic("ship") }),
-      mk({ id: "watch", status: "next", critic_review: null }), // WATCH comes from status="next"
-      mk({ id: "revise", status: "backlog", critic_review: critic("revise") }),
-      mk({ id: "kill", status: "backlog", critic_review: critic("kill") }),
-      mk({ id: "pending", status: "backlog", critic_review: null }),
-    ];
+    const oppShip = mk({
+      id: "ship",
+      status: "backlog",
+      critic_review: critic("ship"),
+    });
+    const oppWatch = mk({
+      id: "watch",
+      status: "next", // Gives WATCH verdict
+      critic_review: null,
+    });
+    const oppRevise = mk({
+      id: "revise",
+      status: "backlog",
+      critic_review: critic("revise"),
+    });
+    const oppKill = mk({
+      id: "kill",
+      status: "backlog",
+      critic_review: critic("kill"),
+    });
+    const oppPending = mk({
+      id: "pending",
+      status: "backlog",
+      critic_review: null,
+    });
 
-    const actions = opps.map(nextActionFor);
-    const uniqueActions = new Set(actions);
+    const actions = new Set([
+      nextActionFor(oppShip),
+      nextActionFor(oppWatch),
+      nextActionFor(oppRevise),
+      nextActionFor(oppKill),
+      nextActionFor(oppPending),
+    ]);
 
-    // All actions should be unique
-    expect(uniqueActions.size).toBe(5);
-
-    // Verify distinctness explicitly
-    expect(actions[0]).not.toBe(actions[1]); // SHIP ≠ WATCH
-    expect(actions[0]).not.toBe(actions[2]); // SHIP ≠ REVISE
-    expect(actions[0]).not.toBe(actions[3]); // SHIP ≠ KILL
-    expect(actions[0]).not.toBe(actions[4]); // SHIP ≠ PENDING
-    expect(actions[2]).not.toBe(actions[3]); // REVISE ≠ KILL
-    expect(actions[3]).not.toBe(actions[4]); // KILL ≠ PENDING
+    // All five verdicts should produce distinct actions
+    expect(actions.size).toBe(5);
+    // Verify the specific expected actions are in the set
+    expect(actions.has("Draft the spec")).toBe(true); // SHIP
+    expect(actions.has("Gather more evidence")).toBe(true); // WATCH
+    expect(actions.has("Address Critic feedback")).toBe(true); // REVISE
+    expect(actions.has("Understand why it was rejected")).toBe(true); // KILL
+    expect(actions.has("Challenge with the Critic first")).toBe(true); // PENDING
   });
 });

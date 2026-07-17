@@ -108,31 +108,31 @@ export function FieldStops() {
             history. Every call it records is a call a replacement starts without.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
-                June
-              </span>
-              <span className="text-[10px] font-mono text-zinc-600">ranked #4</span>
+            <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
+                  June
+                </span>
+                <span className="text-[10px] font-mono text-zinc-600">ranked #4</span>
+              </div>
+              <p className="text-sm text-white mb-2">Cut onboarding to three steps</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Arrives cold. Ranked on the evidence alone: 3 signals, no history to lean on yet.
+              </p>
             </div>
-            <p className="text-sm text-white mb-2">Cut onboarding to three steps</p>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              Arrives cold. Ranked on the evidence alone: 3 signals, no history to lean on yet.
-            </p>
-          </div>
-          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-                July
+            <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                  July
+                </span>
+                <span className="text-[10px] font-mono text-zinc-400">ranked #1</span>
+              </div>
+              <p className="text-sm text-white mb-3">Trim the workspace setup flow</p>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] text-zinc-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" aria-hidden />
+                Similar call, right 3 of 4 times
               </span>
-              <span className="text-[10px] font-mono text-zinc-400">ranked #1</span>
             </div>
-            <p className="text-sm text-white mb-3">Trim the workspace setup flow</p>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] text-zinc-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" aria-hidden />
-              Similar call, right 3 of 4 times
-            </span>
-          </div>
           </div>
         </div>
         <p className="text-sm text-zinc-600 mb-20 md:text-right">

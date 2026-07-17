@@ -125,7 +125,7 @@ export function EvalCalibrationPanel() {
     return (
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           color: "var(--text-subtle)",
           padding: "18px 0",

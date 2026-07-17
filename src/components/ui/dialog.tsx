@@ -33,8 +33,11 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    /** "compact" keeps 480px for short confirmation dialogs; default is 560px. */
+    size?: "default" | "compact";
+  }
+>(({ className, children, size = "default", ...props }, ref) => (
   // Known deviation from tempo-v5/research/modal.md: on mobile we keep the centered
   // card (full-width minus 2rem) instead of collapsing to a bottom sheet.
   <DialogPortal>
@@ -42,7 +45,8 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "material-modal fixed left-[50%] top-[50%] z-(--ds-z-modal) grid w-[calc(100%-2rem)] max-w-[480px] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
+        "material-modal fixed left-[50%] top-[50%] z-(--ds-z-modal) grid w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 p-6 duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.96] data-[state=open]:zoom-in-[0.96] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100",
+        size === "compact" ? "max-w-[480px]" : "max-w-[560px]",
         className,
       )}
       {...props}

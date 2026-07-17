@@ -135,6 +135,13 @@
   --spacing-section-gap: var(--section-gap);
   --spacing-control-h: var(--control-h);
   --spacing-row-h: var(--row-h);
+
+  /* Responsive page insets — replaces hardcoded "36px 32px 64px" patterns */
+  --page-inset-v: 36px;
+  --page-inset-h: 32px;
+
+  /* Bottom nav safe-area for iOS home indicator */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 :root {
@@ -180,7 +187,9 @@
   /* Brand roles */
   --primary-ink: oklch(0.215 0.018 50); /* cacao block (logo, toast) */
   --deep-green: oklch(0.3 0.018 75); /* approve — solid espresso, premium */
-  --action-blue: oklch(0.47 0.11 245); /* links + running state — clean rich blue (was indigo 265) */
+  --action-blue: oklch(
+    0.47 0.11 245
+  ); /* links + running state — clean rich blue (was indigo 265) */
   --focus-blue: oklch(0.55 0.12 245);
   --form-focus: var(--focus-blue);
   --coral: var(--ember); /* legacy token name → ember */
@@ -210,7 +219,9 @@
   --page-gutter: 24px; /* page/section horizontal margins */
   --card-pad: 16px; /* card content padding (was 18px) */
   --section-gap: 16px; /* gap between major sections (was 24px) */
-  --control-h: var(--ds-size-small); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
+  --control-h: var(
+    --ds-size-small
+  ); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
   --row-h: 38px; /* table/list row height (was 48px) */
   --bento-pad: 14px; /* bento grid cell padding (from aurora cards) */
 
@@ -265,6 +276,14 @@
   --shadow-glass: 0 1px 0 0 var(--hairline) inset, 0 1px 2px -1px oklch(0.2 0.02 60 / 8%);
   --shadow-elevated: 0 1px 0 0 var(--hairline) inset, 0 8px 24px -12px oklch(0.2 0.02 60 / 16%);
   --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 70%, transparent);
+
+  /* Subscription status glow effects (Settings billing section) */
+  --glow-subscription-active: 0 0 8px color-mix(in srgb, var(--marigold) 50%, transparent);
+  --glow-subscription-past-due: 0 0 8px color-mix(in srgb, var(--madder) 50%, transparent);
+  --glow-subscription-default: 0 0 8px color-mix(in srgb, var(--moss) 50%, transparent);
+
+  /* Modal overlay backdrop (near-black, 60% opacity, blurred) */
+  --overlay-modal: oklch(0.015 0.002 60 / 60%);
 }
 
 /* === Ember Editorial — "Char night" dark theme ===
@@ -368,6 +387,21 @@
   --shadow-elevated:
     0 1px 0 0 oklch(0.95 0.015 85 / 5%) inset, 0 24px 60px -20px oklch(0 0 0 / 70%);
   --shadow-focus: 0 0 0 2px color-mix(in oklab, var(--focus-blue) 65%, transparent);
+}
+
+/* Responsive breakpoints — fluid padding and spacing */
+@media (max-width: 768px) {
+  :root {
+    --page-inset-v: 24px;
+    --page-inset-h: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-inset-v: 16px;
+    --page-inset-h: 16px;
+  }
 }
 
 @layer base {
@@ -1290,6 +1324,10 @@
   }
   /* Pressable cards respond to touch (Emil: a pressable must feel heard). On
      press the lift's hover-raise yields to a small scale — instant feedback. */
+  .lift:focus-visible {
+    outline: var(--ds-focus-ring-outline);
+    outline-offset: 2px;
+  }
   .lift:active {
     transform: scale(0.99);
   }
@@ -1871,7 +1909,7 @@ html[data-motion="off"] .ai-working-word {
   --selection: color-mix(in srgb, var(--text-primary) 20%, transparent);
 
   /* === legacy Ember Editorial voice names, aliased to Tempo v5 (DESIGN-TEMPO.md §3) ===
-   * Kept as var names only — ~130 components still reference var(--font-ui) /
+   * Kept as var names only — ~130 components still reference var(--font-sans) /
    * var(--font-serif) / var(--font-pencil). Never reintroduce a literal font
    * string here; point every voice at the Tempo trio (--font-sans / --font-mono
    * / --font-pixel) or a var() alias to one of them. See the guardrail note above. */
@@ -2249,10 +2287,16 @@ html[data-motion="off"] .flow-pulse {
   --cta-grad-bottom: #f25e1f;
   --cta-ink: #160903;
 
-  /* §2 light and depth: one ambient light source from above */
+  /* §2 light and depth: one ambient light source from above.
+   * Three-tier elevation system (Tempo v5 enforcement 2026-07-17):
+   *   --shadow-ambient  : cards at rest, slight depth (no top-light)
+   *   --shadow-raised   : hover-lifted cards, floated elements, popovers
+   *   --shadow-elevated : modals, dropdowns, persistent overlays
+   * Use only these three — never inline rgba literals. */
   --top-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --top-light-hover: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --shadow-ambient: 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-raised: inset 0 1px 0 var(--ds-gray-alpha-200), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
   --shadow-overlay: 0 24px 64px -16px rgba(0, 0, 0, 0.65);
   --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --shadow-elevated: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
@@ -2282,9 +2326,19 @@ html[data-motion="off"] .flow-pulse {
 }
 
 /* Every pressable answers the finger: subtle press, fast (§5). Applied via
- * class on interactive chrome; components adopt progressively. */
+ * class on interactive chrome; components adopt progressively.
+ * Mobile touch target minimum 44px (WCAG 2.1 AAA, Apple HIG). */
 [data-obsidian] .loom-press {
   transition: transform var(--dur-press) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+@media (max-width: 768px) {
+  [data-obsidian] .loom-press {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 [data-obsidian] .loom-press:active {
   transform: scale(0.98);
@@ -2298,8 +2352,16 @@ html[data-motion="off"] .flow-pulse {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(58% 48% at 10% -2%, color-mix(in oklab, var(--ember) 7%, transparent) 0%, transparent 60%),
-    radial-gradient(52% 44% at 94% 4%, color-mix(in oklab, var(--action-blue) 6%, transparent) 0%, transparent 58%),
+    radial-gradient(
+      58% 48% at 10% -2%,
+      color-mix(in oklab, var(--ember) 7%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      52% 44% at 94% 4%,
+      color-mix(in oklab, var(--action-blue) 6%, transparent) 0%,
+      transparent 58%
+    ),
     radial-gradient(ellipse 120% 90% at 50% 20%, transparent 55%, rgba(0, 0, 0, 0.03) 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
 }
@@ -2487,7 +2549,8 @@ html[data-motion="off"] .flow-pulse {
  * light in grayscale; all aria-hidden decorative layers. */
 
 /* Glow field: one radial wash behind a surface's hero zone. Role-colored via
- * the --glow-field-color custom prop (default glacier, the machine's light). */
+ * the --glow-field-color custom prop (default neutral gray per accent restraint
+ * 2026-07-17; glacier is reserved for status indicators + links only). */
 [data-obsidian] .loom-glow-field {
   position: absolute;
   pointer-events: none;
@@ -2498,7 +2561,7 @@ html[data-motion="off"] .flow-pulse {
   left: -120px;
   background: radial-gradient(
     ellipse closest-side,
-    var(--glow-field-color, color-mix(in srgb, var(--glacier) 4%, transparent)),
+    var(--glow-field-color, color-mix(in srgb, var(--ds-gray-alpha-200) 60%, transparent)),
     transparent 70%
   );
 }
@@ -2872,6 +2935,19 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-ember-800: #d94e12;
   --ds-ember-900: #ff8f5e;
   --ds-ember-1000: #ffefe6;
+  /* Ember semi-transparent variants for backgrounds and subtle fills */
+  --ds-ember-bg-subtle: color-mix(in srgb, var(--ds-ember-600) 8%, transparent);
+  --ds-ember-bg-hover: color-mix(in srgb, var(--ds-ember-600) 12%, transparent);
+  /* Aurora glow effects (legacy, PC-10 Loop Health cards) — these are special decorative glows */
+  --aurora-glow-healthy-orb-a: rgba(232, 180, 76, 0.30);
+  --aurora-glow-healthy-orb-b: rgba(127, 191, 142, 0.38);
+  --aurora-glow-healthy: rgba(127, 191, 142, 0.10);
+  --aurora-glow-attention-orb-a: rgba(255, 138, 80, 0.34);
+  --aurora-glow-attention-orb-b: rgba(232, 180, 76, 0.30);
+  --aurora-glow-attention: rgba(255, 107, 44, 0.10);
+  --aurora-glow-failing-orb-a: rgba(224, 101, 87, 0.34);
+  --aurora-glow-failing-orb-b: rgba(255, 138, 80, 0.26);
+  --aurora-glow-failing: rgba(224, 101, 87, 0.10);
   /* Blue = the machine's color, RICH glacier (founder rulings 2026-07-11,
      refined same day: the reference #84b3ec anchor read chalky on black, and
      "not good" was a brief to redesign, not to flatten to gray). The scale
@@ -3004,10 +3080,14 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-z-tooltip: 99999;
   --ds-page-width: 1400px;
   --ds-page-width-with-margin: calc(var(--ds-page-width) + calc(2 * 24px));
-  --ds-focus-color: oklch(70.5% 0.19 41);
+  /* Focus ring color = ember brand accent (founder ruling DESIGN-TEMPO.md §2).
+     Uses ember hue (50), not blue (41). Overridden per [data-theme] for contrast.
+     Light (root + [data-theme="light"]): oklch(65% 0.18 50)
+     Dark ([data-theme="dark"]): oklch(60% 0.18 50) */
+  --ds-focus-color: oklch(65% 0.18 50); /* default (light); overridden by [data-theme] */
   --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
   /* keyboard focus as a plain outline (dialog/sheet close buttons need it) */
-  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color); /* overridden by [data-theme] */
   /* modal/sheet/drawer backdrops were invisible without these (theme-invariant) */
   --ds-overlay-backdrop-color: #000;
   --ds-overlay-backdrop-opacity: 0.8;
@@ -3266,9 +3346,19 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
   --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
-  --ds-focus-color: oklch(55% 0.19 41);
-  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
   --destructive: var(--ds-red-800);
+  /* Focus color for light theme: ember slightly lighter for focus visibility
+     on light backgrounds (same as root default). */
+  --ds-focus-color: oklch(65% 0.18 50);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+}
+
+/* Dark theme — focus color adjusted for dark-mode contrast (contract §1) */
+[data-theme="dark"],
+.dark-theme {
+  color-scheme: dark;
+  --ds-focus-color: oklch(60% 0.18 50);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
 }
 
 /* Obsidian-era var names → Tempo, so [data-obsidian] subtrees re-skin.
@@ -3368,169 +3458,169 @@ html[data-motion="off"] .ai-pulse-mark {
  * components layer they still beat base styles but yield to utilities,
  * which is the intended contract. */
 @layer components {
-.text-heading-72 {
-  font: 600 72px/72px var(--font-sans);
-  letter-spacing: -4.32px;
-}
-.text-heading-64 {
-  font: 600 64px/64px var(--font-sans);
-  letter-spacing: -3.84px;
-}
-.text-heading-56 {
-  font: 600 56px/56px var(--font-sans);
-  letter-spacing: -3.36px;
-}
-.text-heading-48 {
-  font: 600 48px/56px var(--font-sans);
-  letter-spacing: -2.88px;
-}
-.text-heading-40 {
-  font: 600 40px/48px var(--font-sans);
-  letter-spacing: -2.4px;
-}
-.text-heading-32 {
-  font: 600 32px/40px var(--font-sans);
-  letter-spacing: -1.28px;
-}
-.text-heading-24 {
-  font: 600 24px/32px var(--font-sans);
-  letter-spacing: -0.96px;
-}
-.text-heading-20 {
-  font: 600 20px/26px var(--font-sans);
-  letter-spacing: -0.4px;
-}
-.text-heading-16 {
-  font: 600 16px/24px var(--font-sans);
-  letter-spacing: -0.32px;
-}
-.text-heading-14 {
-  font: 600 14px/20px var(--font-sans);
-  letter-spacing: -0.28px;
-}
-.text-button-16 {
-  font: 500 16px/20px var(--font-sans);
-}
-.text-button-14 {
-  font: 500 14px/20px var(--font-sans);
-}
-.text-button-12 {
-  font: 500 12px/16px var(--font-sans);
-}
-.text-label-20 {
-  font: 400 20px/32px var(--font-sans);
-}
-.text-label-18 {
-  font: 400 18px/20px var(--font-sans);
-}
-.text-label-16 {
-  font: 400 16px/20px var(--font-sans);
-}
-.text-label-14 {
-  font: 400 14px/20px var(--font-sans);
-}
-.text-label-13 {
-  font: 400 13px/16px var(--font-sans);
-}
-.text-label-12 {
-  font: 400 12px/16px var(--font-sans);
-}
-.text-label-14-mono {
-  font: 400 14px/20px var(--font-mono);
-}
-.text-label-13-mono {
-  font: 400 13px/16px var(--font-mono);
-}
-.text-label-12-mono {
-  font: 400 12px/16px var(--font-mono);
-}
-.text-copy-24 {
-  font: 400 24px/36px var(--font-sans);
-}
-.text-copy-20 {
-  font: 400 20px/36px var(--font-sans);
-}
-.text-copy-18 {
-  font: 400 18px/28px var(--font-sans);
-}
-.text-copy-16 {
-  font: 400 16px/24px var(--font-sans);
-}
-.text-copy-14 {
-  font: 400 14px/20px var(--font-sans);
-}
-.text-copy-13 {
-  font: 400 13px/18px var(--font-sans);
-}
-.text-copy-13-mono {
-  font: 400 13px/18px var(--font-mono);
-}
-.text-label-14 strong,
-.text-label-13 strong,
-.text-label-12 strong,
-.text-copy-16 strong,
-.text-copy-14 strong,
-.text-copy-13 strong {
-  font-weight: 600;
-}
-.text-heading-72 strong,
-.text-heading-64 strong,
-.text-heading-56 strong,
-.text-heading-48 strong,
-.text-heading-40 strong,
-.text-heading-32 strong,
-.text-heading-24 strong,
-.text-heading-20 strong,
-.text-heading-16 strong,
-.text-heading-14 strong {
-  font-weight: inherit;
-  color: var(--ds-gray-900);
-}
-.text-tabular {
-  font-variant-numeric: tabular-nums;
-}
+  .text-heading-72 {
+    font: 600 72px/72px var(--font-sans);
+    letter-spacing: -4.32px;
+  }
+  .text-heading-64 {
+    font: 600 64px/64px var(--font-sans);
+    letter-spacing: -3.84px;
+  }
+  .text-heading-56 {
+    font: 600 56px/56px var(--font-sans);
+    letter-spacing: -3.36px;
+  }
+  .text-heading-48 {
+    font: 600 48px/56px var(--font-sans);
+    letter-spacing: -2.88px;
+  }
+  .text-heading-40 {
+    font: 600 40px/48px var(--font-sans);
+    letter-spacing: -2.4px;
+  }
+  .text-heading-32 {
+    font: 600 32px/40px var(--font-sans);
+    letter-spacing: -1.28px;
+  }
+  .text-heading-24 {
+    font: 600 24px/32px var(--font-sans);
+    letter-spacing: -0.96px;
+  }
+  .text-heading-20 {
+    font: 600 20px/26px var(--font-sans);
+    letter-spacing: -0.4px;
+  }
+  .text-heading-16 {
+    font: 600 16px/24px var(--font-sans);
+    letter-spacing: -0.32px;
+  }
+  .text-heading-14 {
+    font: 600 14px/20px var(--font-sans);
+    letter-spacing: -0.28px;
+  }
+  .text-button-16 {
+    font: 500 16px/20px var(--font-sans);
+  }
+  .text-button-14 {
+    font: 500 14px/20px var(--font-sans);
+  }
+  .text-button-12 {
+    font: 500 12px/16px var(--font-sans);
+  }
+  .text-label-20 {
+    font: 400 20px/32px var(--font-sans);
+  }
+  .text-label-18 {
+    font: 400 18px/20px var(--font-sans);
+  }
+  .text-label-16 {
+    font: 400 16px/20px var(--font-sans);
+  }
+  .text-label-14 {
+    font: 400 14px/20px var(--font-sans);
+  }
+  .text-label-13 {
+    font: 400 13px/16px var(--font-sans);
+  }
+  .text-label-12 {
+    font: 400 12px/16px var(--font-sans);
+  }
+  .text-label-14-mono {
+    font: 400 14px/20px var(--font-mono);
+  }
+  .text-label-13-mono {
+    font: 400 13px/16px var(--font-mono);
+  }
+  .text-label-12-mono {
+    font: 400 12px/16px var(--font-mono);
+  }
+  .text-copy-24 {
+    font: 400 24px/36px var(--font-sans);
+  }
+  .text-copy-20 {
+    font: 400 20px/36px var(--font-sans);
+  }
+  .text-copy-18 {
+    font: 400 18px/28px var(--font-sans);
+  }
+  .text-copy-16 {
+    font: 400 16px/24px var(--font-sans);
+  }
+  .text-copy-14 {
+    font: 400 14px/20px var(--font-sans);
+  }
+  .text-copy-13 {
+    font: 400 13px/18px var(--font-sans);
+  }
+  .text-copy-13-mono {
+    font: 400 13px/18px var(--font-mono);
+  }
+  .text-label-14 strong,
+  .text-label-13 strong,
+  .text-label-12 strong,
+  .text-copy-16 strong,
+  .text-copy-14 strong,
+  .text-copy-13 strong {
+    font-weight: 600;
+  }
+  .text-heading-72 strong,
+  .text-heading-64 strong,
+  .text-heading-56 strong,
+  .text-heading-48 strong,
+  .text-heading-40 strong,
+  .text-heading-32 strong,
+  .text-heading-24 strong,
+  .text-heading-20 strong,
+  .text-heading-16 strong,
+  .text-heading-14 strong {
+    font-weight: inherit;
+    color: var(--ds-gray-900);
+  }
+  .text-tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* --- Tempo material presets (tokens/materials.css) --- */
-.material-base {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border);
-}
-.material-small {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-small);
-}
-.material-medium {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-medium);
-}
-.material-large {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-large);
-}
-.material-tooltip {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-tooltip);
-}
-.material-menu {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-menu);
-}
-.material-modal {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-modal);
-}
-.material-fullscreen {
-  border-radius: var(--ds-radius-large);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-fullscreen);
-}
+  /* --- Tempo material presets (tokens/materials.css) --- */
+  .material-base {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border);
+  }
+  .material-small {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-small);
+  }
+  .material-medium {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-medium);
+  }
+  .material-large {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-large);
+  }
+  .material-tooltip {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-tooltip);
+  }
+  .material-menu {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-menu);
+  }
+  .material-modal {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-modal);
+  }
+  .material-fullscreen {
+    border-radius: var(--ds-radius-large);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-fullscreen);
+  }
 }
 
 /* The appended Obsidian/Loom rule blocks above (e.g. [data-obsidian] select,

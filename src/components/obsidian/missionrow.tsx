@@ -55,7 +55,7 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       <span
         className="min-w-0 flex-1 truncate"
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "13.5px",
           fontWeight: 600,
           color: "var(--text-primary)",

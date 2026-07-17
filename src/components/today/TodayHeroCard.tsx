@@ -2,6 +2,7 @@ import * as React from "react";
 import { ArrowRight } from "lucide-react";
 import { computeHero } from "@/components/obsidian/today/Hero";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { Button } from "@/components/obsidian";
 
 // TodayHeroCard — the daily-landing hero, rethought (founder addendum
 // 2026-07-13). A single card-based "command" band that grounds the user and
@@ -86,7 +87,7 @@ export function TodayHeroCard({
             weight so the day opens with them, not with chrome. */}
         <div
           style={{
-            fontSize: 15,
+            fontSize: 14,
             lineHeight: 1.2,
             color: "var(--text-muted)",
             marginBottom: 14,
@@ -147,27 +148,18 @@ export function TodayHeroCard({
         ) : null}
 
         {!allClear && onAnswer ? (
-          <button
-            type="button"
+          <Button
+            variant="accent"
+            size="sm"
             onClick={onAnswer}
-            className="loom-press inline-flex items-center outline-none transition-transform duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
             style={{
-              gap: 8,
               marginTop: 18,
-              padding: "10px 17px",
-              borderRadius: "var(--radius-control, 8px)",
-              background: "var(--ember)",
-              color: "#fff",
-              border: "none",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: "pointer",
               boxShadow: "0 6px 20px -8px color-mix(in oklab, var(--ember) 72%, transparent)",
             }}
           >
             Answer the first call
             <ArrowRight size={15} strokeWidth={2} />
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>

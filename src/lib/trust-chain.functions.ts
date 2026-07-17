@@ -24,15 +24,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 /** The nine canonical links, in pipeline order. */
 export type ChainLinkKey =
-  | "signal"
-  | "decision"
-  | "contract"
-  | "design"
-  | "build"
-  | "test"
-  | "merge"
-  | "deploy"
-  | "outcome";
+  "signal" | "decision" | "contract" | "design" | "build" | "test" | "merge" | "deploy" | "outcome";
 
 /**
  * - present: a real backing row exists.

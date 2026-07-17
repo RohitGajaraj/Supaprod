@@ -24,14 +24,14 @@
 
 The founder reviewed the current page and the first draft of this plan live. Each concern below is resolved at the root, not patched:
 
-| Founder concern | Root cause | v2 resolution |
-| --- | --- | --- |
-| The Cursor line is hooky but caps us at "deciding what to build"; we OWN more than the decision | The old line names only the decide step; the product runs the whole loop | New hero H1 extends the hook to the full claim: "the rest of the product" (§3 beat 1). The decide step is the wedge, the loop is the product; the headline now says the bigger thing |
-| The sub-line ("agents do the product work end to end, you make the calls, the ledger proves what worked") is not good; needs a different message | It is a compressed slogan trilogy, not a picture; it tells three abstractions in a row | Replaced with a concrete single-journey sentence: a signal travels to shipped code and comes back graded (§3 beat 1) |
-| The color combination is not good; the solar red reads badly | Diagnosed in §4.1b: two accents fighting (legacy violet + ember), ember used AMBIENTLY (glows, washes, shimmer, gradient morphs) at full saturation over near-black, which optically vibrates and reads alarm-neon. The accent is not the problem; its quantity and role are | The "ink and metal" palette (§4.1b): graphite/silver carries everything, ember demoted to a precise human-action signal (one CTA, one gate moment per viewport, never ambient), gold only in the mark core, zero glows/washes/gradient morphs. If ember still displeases after discipline, the accent change routes through the brand revisit, not an ad-hoc landing swap |
-| The two-box "AI feature vs AI operating system" section looks like AI-slop design | Side-by-side comparison cards are a 2026 template tell; the contrast is asserted, not experienced | The contrast becomes EXPERIENTIAL: a third walkthrough tab, "With a copilot," plays the same signal and dead-ends at "draft ready, waiting for you" with the remaining stations grayed out (§3 beat 3). Beat 2 becomes pure typographic narrative, zero boxes |
-| The moat section ("the brain that compounds / decision layer / outcome memory / compounding edge") messaging is not good | Abstract noun-labels in auto-cycling tabs; telling, not showing | Killed as labels. Compounding is now SHOWN with the real, shipped precedent-citation UI (PC-16): the same bet arriving months apart, the second time carrying "similar call, right 3 of 4 times" on the card (§3 beat 5) |
-| "Building used to be the hard part" section reads like an essay page, not a product page; needs flow, components, animation | Text-only sections with bullet points; length substituting for design | That section is cut. New hard rule (§4.4): no beat carries more than ~60 words of body copy, and every beat pairs its claim with a rendered component in the same viewport. The page shows first and captions second |
+| Founder concern                                                                                                                                  | Root cause                                                                                                                                                                                                                                                                   | v2 resolution                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The Cursor line is hooky but caps us at "deciding what to build"; we OWN more than the decision                                                  | The old line names only the decide step; the product runs the whole loop                                                                                                                                                                                                     | New hero H1 extends the hook to the full claim: "the rest of the product" (§3 beat 1). The decide step is the wedge, the loop is the product; the headline now says the bigger thing                                                                                                                                                                                      |
+| The sub-line ("agents do the product work end to end, you make the calls, the ledger proves what worked") is not good; needs a different message | It is a compressed slogan trilogy, not a picture; it tells three abstractions in a row                                                                                                                                                                                       | Replaced with a concrete single-journey sentence: a signal travels to shipped code and comes back graded (§3 beat 1)                                                                                                                                                                                                                                                      |
+| The color combination is not good; the solar red reads badly                                                                                     | Diagnosed in §4.1b: two accents fighting (legacy violet + ember), ember used AMBIENTLY (glows, washes, shimmer, gradient morphs) at full saturation over near-black, which optically vibrates and reads alarm-neon. The accent is not the problem; its quantity and role are | The "ink and metal" palette (§4.1b): graphite/silver carries everything, ember demoted to a precise human-action signal (one CTA, one gate moment per viewport, never ambient), gold only in the mark core, zero glows/washes/gradient morphs. If ember still displeases after discipline, the accent change routes through the brand revisit, not an ad-hoc landing swap |
+| The two-box "AI feature vs AI operating system" section looks like AI-slop design                                                                | Side-by-side comparison cards are a 2026 template tell; the contrast is asserted, not experienced                                                                                                                                                                            | The contrast becomes EXPERIENTIAL: a third walkthrough tab, "With a copilot," plays the same signal and dead-ends at "draft ready, waiting for you" with the remaining stations grayed out (§3 beat 3). Beat 2 becomes pure typographic narrative, zero boxes                                                                                                             |
+| The moat section ("the brain that compounds / decision layer / outcome memory / compounding edge") messaging is not good                         | Abstract noun-labels in auto-cycling tabs; telling, not showing                                                                                                                                                                                                              | Killed as labels. Compounding is now SHOWN with the real, shipped precedent-citation UI (PC-16): the same bet arriving months apart, the second time carrying "similar call, right 3 of 4 times" on the card (§3 beat 5)                                                                                                                                                  |
+| "Building used to be the hard part" section reads like an essay page, not a product page; needs flow, components, animation                      | Text-only sections with bullet points; length substituting for design                                                                                                                                                                                                        | That section is cut. New hard rule (§4.4): no beat carries more than ~60 words of body copy, and every beat pairs its claim with a rendered component in the same viewport. The page shows first and captions second                                                                                                                                                      |
 
 ---
 
@@ -49,13 +49,13 @@ The thesis underneath, from the one-pager and used as the page's emotional spine
 
 Never name them. Own the vocabulary they cannot use.
 
-| Them (verified from their live sites, Jul 2026) | The gap we exploit |
-| --- | --- |
+| Them (verified from their live sites, Jul 2026)                                                            | The gap we exploit                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Samepage Signals** — "Your second brain for Product Management." Push-not-pull signal feed. $4.85M seed. | Signals in, nothing out. It surfaces; the human still does the entire loop. No outcome memory, no audit trail, nothing adversarial. |
-| **BriefHQ** — "AI Ships. Brief Navigates." A Product Graph feeding context to Cursor/Claude Code via MCP. | It navigates agents it does not command. No gates, no governance, no outcome recorded back. The loop is open at both ends. |
-| **Productboard Spark / airfocus / ChatPRD** — insight agents, alignment platforms, doc copilots. | All stop at the artifact. Nobody grades the call against what shipped. |
+| **BriefHQ** — "AI Ships. Brief Navigates." A Product Graph feeding context to Cursor/Claude Code via MCP.  | It navigates agents it does not command. No gates, no governance, no outcome recorded back. The loop is open at both ends.          |
+| **Productboard Spark / airfocus / ChatPRD** — insight agents, alignment platforms, doc copilots.           | All stop at the artifact. Nobody grades the call against what shipped.                                                              |
 
-The saturated words to avoid because the field owns them: *signals, second brain, context, alignment, intelligence, navigate, copilot*. The words we own because nobody else can say them truthfully: **loop, receipts, outcomes, gate, ledger, governed execution**.
+The saturated words to avoid because the field owns them: _signals, second brain, context, alignment, intelligence, navigate, copilot_. The words we own because nobody else can say them truthfully: **loop, receipts, outcomes, gate, ledger, governed execution**.
 
 The differentiation section (§3, beat 5) draws this contrast structurally, unnamed: "second brains surface, context layers brief, copilots draft. Nobody closes the loop." Every reader who has seen those products knows exactly who we mean; nobody can accuse us of punching.
 
@@ -63,18 +63,18 @@ One market-context line is all the sizing the page carries (the thesis line "dec
 
 ### 1.3 The stakeholder matrix (every element earns its place by serving one of these)
 
-| Stakeholder | What they need in 60 seconds | Page elements that serve them |
-| --- | --- | --- |
-| **The accountable PM** (wedge ICP: senior/founding PM, product engineer running the whole loop) | "Does this take work off me without taking the call away from me?" | Hero one-liner; the loop walkthrough with the human gate visible; the teardown hook ("bring a bet"); plain pricing link |
-| **The engineer-skeptic** (checks every claim; decides whether the PM's enthusiasm survives) | "Is this real or a wrapper?" | The failure-and-recovery tab (we show it breaking); real artifact links (live decision record, live teardown, `/proof` ledger); the "built part of itself" PR receipt; machine view (`M` key), llms.txt, A2A card |
-| **The investor** (60-second diligence scan) | Team is real, product is live, numbers are honest, wedge is sharp | The identity line (memo-ready); live DB counters with a pull date; the honesty card (zero external users, stated, framed as "you're early"); dated shipping log from `/updates`; founder link in footer |
-| **The AI crawler** (GEO: what ChatGPT/Perplexity say when asked "best AI tools for product teams") | Checkable facts, dense and structured | SSR-rendered factual copy; schema.org markup; llms.txt alignment; the machine-readable page variant; claim-tagged numbers |
+| Stakeholder                                                                                        | What they need in 60 seconds                                       | Page elements that serve them                                                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The accountable PM** (wedge ICP: senior/founding PM, product engineer running the whole loop)    | "Does this take work off me without taking the call away from me?" | Hero one-liner; the loop walkthrough with the human gate visible; the teardown hook ("bring a bet"); plain pricing link                                                                                           |
+| **The engineer-skeptic** (checks every claim; decides whether the PM's enthusiasm survives)        | "Is this real or a wrapper?"                                       | The failure-and-recovery tab (we show it breaking); real artifact links (live decision record, live teardown, `/proof` ledger); the "built part of itself" PR receipt; machine view (`M` key), llms.txt, A2A card |
+| **The investor** (60-second diligence scan)                                                        | Team is real, product is live, numbers are honest, wedge is sharp  | The identity line (memo-ready); live DB counters with a pull date; the honesty card (zero external users, stated, framed as "you're early"); dated shipping log from `/updates`; founder link in footer           |
+| **The AI crawler** (GEO: what ChatGPT/Perplexity say when asked "best AI tools for product teams") | Checkable facts, dense and structured                              | SSR-rendered factual copy; schema.org markup; llms.txt alignment; the machine-readable page variant; claim-tagged numbers                                                                                         |
 
 ### 1.4 Conversion strategy: one primary ask, one escape hatch, one hook
 
 The current page splits its primary CTA (hero asks for a teardown, closer asks "Start free"). v2 fixes this to a single conversion spine:
 
-- **Primary CTA everywhere: "Join the beta"** — the waitlist, with the GTM plan's teardown hook: joining offers one optional field, *"the product bet you're least sure about"*; the first 100 get it red-teamed by the Critic personally; sharing your link moves you up the queue. This is the self-qualifying mechanic from the launch manual (idea #1), it feeds design-partner pipeline, and every submission is a discovery data point. It does not exist in code yet; the build spec is §7.1.
+- **Primary CTA everywhere: "Join the beta"** — the waitlist, with the GTM plan's teardown hook: joining offers one optional field, _"the product bet you're least sure about"_; the first 100 get it red-teamed by the Critic personally; sharing your link moves you up the queue. This is the self-qualifying mechanic from the launch manual (idea #1), it feeds design-partner pipeline, and every submission is a discovery data point. It does not exist in code yet; the build spec is §7.1.
 - **Secondary CTA: "Watch a real run"** — anchors to the walkthrough section, then offers `/demo` (live, read-only, real workspace, already shipped). Zero-friction proof path for skeptics and investors.
 - **The hook, placed inside the page (not the hero CTA): the public teardown.** `/p/teardown` already lets a stranger paste a bet and get a real Critic teardown with no signup. The walkthrough section ends with "Run one on your own roadmap" pointing at it. This is the single most differentiating interactive object we own (nothing in the field is adversarial), and it is already wired.
 
@@ -86,7 +86,7 @@ Why the waitlist beats "Start free" as the primary right now: signup is live but
 - **[WIRING]** never speaks in present tense anywhere on the page. "Cadence runs on Cadence" stays OFF the page until it demonstrably runs; the "built part of itself" PR is the provable version and links to the real merge.
 - Zero fabricated numbers. The mock ledger rows in the walkthrough are visually labeled as a replay; the proof section carries only real, dated, linked artifacts.
 - The honest zero: external users today are stated plainly and framed as the offer ("you're early"), consistent with the one-pager's "honest state" doctrine.
-- Banned vocabulary enforced in review: no em/en dashes, no *seamless / empower / supercharge / unlock / revolutionize / game-changing / AI-powered platform*, no "not just X but Y", no "AI PM tool" ever, cite artifacts never gurus, no adjective doing a number's job.
+- Banned vocabulary enforced in review: no em/en dashes, no _seamless / empower / supercharge / unlock / revolutionize / game-changing / AI-powered platform_, no "not just X but Y", no "AI PM tool" ever, cite artifacts never gurus, no adjective doing a number's job.
 
 ---
 
@@ -94,15 +94,15 @@ Why the waitlist beats "Start free" as the primary right now: signup is live but
 
 Current: 14 sections, 9-11 viewports. Target: **6 beats plus footer, roughly 5 viewports on a 1440x900 laptop.** The compression comes from the benchmark study's two strongest levers: the workflow-spine structure (the page's sections ARE the product's loop, so 5 sections do the work of 15) and interactivity replacing stacking (tabs absorb what would otherwise be 4 sections of scroll).
 
-| # | Beat | Job | Viewport budget | Fate of current sections |
-| --- | --- | --- | --- | --- |
-| 1 | **Hero** | Identity in 3 seconds + the product moving | 1.0 | HeroSection reworked; TerminalCard kept, upgraded |
-| 2 | **The gap** | Problem stated in three typographic lines, zero boxes | 0.4 | ManifestoStrip absorbed; ContrastSection's boxes killed (the contrast moves into beat 3 as the copilot tab) |
-| 3 | **The loop, running** | The crown-jewel walkthrough: full loop, the copilot dead-end, failure recovery | 1.2 | OrbitSection + StationsSection + AgentInActionSection merged into ONE tabbed section; ContrastSection's content becomes the `With a copilot` tab |
-| 4 | **Receipts** | Investor beat: live numbers, real artifacts, the honesty card | 0.9 | LedgerSection reworked: fake stats out, live data + real links in |
-| 5 | **Where the field stops** | Unnamed differentiation | 0.6 | New (replaces MoatSection's auto-cycling tabs + GuerrillaSection) |
-| 6 | **Trust + close** | Data-trust promises condensed + the one CTA | 0.8 | TrustSection condensed and relocated + CtaSection |
-| — | **Footer** | Credibility sitemap: Security, Proof, ARD, Updates, Privacy, Terms, founder | — | Kept, promoted (investor diligence surface) |
+| #   | Beat                      | Job                                                                            | Viewport budget | Fate of current sections                                                                                                                         |
+| --- | ------------------------- | ------------------------------------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Hero**                  | Identity in 3 seconds + the product moving                                     | 1.0             | HeroSection reworked; TerminalCard kept, upgraded                                                                                                |
+| 2   | **The gap**               | Problem stated in three typographic lines, zero boxes                          | 0.4             | ManifestoStrip absorbed; ContrastSection's boxes killed (the contrast moves into beat 3 as the copilot tab)                                      |
+| 3   | **The loop, running**     | The crown-jewel walkthrough: full loop, the copilot dead-end, failure recovery | 1.2             | OrbitSection + StationsSection + AgentInActionSection merged into ONE tabbed section; ContrastSection's content becomes the `With a copilot` tab |
+| 4   | **Receipts**              | Investor beat: live numbers, real artifacts, the honesty card                  | 0.9             | LedgerSection reworked: fake stats out, live data + real links in                                                                                |
+| 5   | **Where the field stops** | Unnamed differentiation                                                        | 0.6             | New (replaces MoatSection's auto-cycling tabs + GuerrillaSection)                                                                                |
+| 6   | **Trust + close**         | Data-trust promises condensed + the one CTA                                    | 0.8             | TrustSection condensed and relocated + CtaSection                                                                                                |
+| —   | **Footer**                | Credibility sitemap: Security, Proof, ARD, Updates, Privacy, Terms, founder    | —               | Kept, promoted (investor diligence surface)                                                                                                      |
 
 **Cut entirely:** StatsStrip (architecture facts dressed as traction), MultiProductStrip (surname citations, insider math), BrandMomentSection (a full viewport of decoration before the CTA; the brand moment moves INTO the hero mark treatment), GuerrillaSection (third telling of "compounds"), MoatSection's auto-cycling tab machinery (its one great quote survives in beat 5).
 
@@ -130,9 +130,9 @@ H1 alternates, same beyond-deciding scope (all rename-proof):
 
 > **A2:** What Cursor did for writing code, Cadence does for running the product.
 >
-> **B:** Engineers got agents that ship. This is the one that decides, ships, and answers for it. *(bolder, no borrowed brand)*
+> **B:** Engineers got agents that ship. This is the one that decides, ships, and answers for it. _(bolder, no borrowed brand)_
 >
-> **C:** The operating system for the product loop. *(category variant; coldest, most enterprise)*
+> **C:** The operating system for the product loop. _(category variant; coldest, most enterprise)_
 
 Sub-line alternates:
 
@@ -180,7 +180,7 @@ Structure: the six/seven stations render as a compact horizontal spine above the
 >
 > **Sub:** Every number below is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins.
 >
-> **Live counters (SSR, real, dated):** `missions run` · `decisions recorded` · `outcomes graded` · `AI calls through one governed chokepoint` *(rendered from the live DB at request time; the figures in the repo today are 133 / 72 / 49 / 2,162 and will differ on publish day, correctly)*
+> **Live counters (SSR, real, dated):** `missions run` · `decisions recorded` · `outcomes graded` · `AI calls through one governed chokepoint` _(rendered from the live DB at request time; the figures in the repo today are 133 / 72 / 49 / 2,162 and will differ on publish day, correctly)_
 >
 > **Artifact row (all real, all live):**
 > A decision, with its receipt → `/d/706dec…` · A public teardown → `/t/…` · The trust ledger → `/proof` · What shipped this week → `/updates`
@@ -204,7 +204,7 @@ The old moat section's abstract labels ("decision layer", "outcome memory", "com
 >
 > **The turn:** Cadence closes the loop and keeps the record. A record like that cannot be bought or backfilled. It exists only if the system was in the loop when the call was made.
 >
-> **The compounding moment (shown, not told):** two renderings of the same decision card, months apart. March: the bet arrives cold, ranked on evidence alone. July: the same class of bet arrives carrying its precedent chip, the real UI element: *"Similar call, right 3 of 4 times."* One caption: **It gets sharper with every call it records. That is the part nobody can copy.**
+> **The compounding moment (shown, not told):** two renderings of the same decision card, months apart. March: the bet arrives cold, ranked on evidence alone. July: the same class of bet arrives carrying its precedent chip, the real UI element: _"Similar call, right 3 of 4 times."_ One caption: **It gets sharper with every call it records. That is the part nobody can copy.**
 >
 > **Pull line:** Alignment is a screenshot. Outcomes are a ledger.
 
@@ -273,7 +273,7 @@ The current page's paradox is busy-but-flat: everything auto-cycles (stations 2.
 
 ### 4.4 Anti-slop guardrails (the review checklist)
 
-From the 2026 benchmark sweep, the tells that instantly read as AI-generated, all banned in v2: purple-to-blue gradients anywhere; glowing blob backgrounds; the "✨ Announcing" eyebrow pill; oversized italic serif heroes; *supercharge/empower/streamline* headlines; emoji-bullet feature grids; identical icon-tile card grids; fake or anonymous testimonials; badge walls and "trusted by" logos that are integrations rather than customers; placeholder-data dashboard mocks ("John Doe" rows); colored left-border accent strips; decorative glassmorphism; numbered 01/02/03 kickers on non-sequential sections; gradient text on numbers; bounce easing; length-as-substance.
+From the 2026 benchmark sweep, the tells that instantly read as AI-generated, all banned in v2: purple-to-blue gradients anywhere; glowing blob backgrounds; the "✨ Announcing" eyebrow pill; oversized italic serif heroes; _supercharge/empower/streamline_ headlines; emoji-bullet feature grids; identical icon-tile card grids; fake or anonymous testimonials; badge walls and "trusted by" logos that are integrations rather than customers; placeholder-data dashboard mocks ("John Doe" rows); colored left-border accent strips; decorative glassmorphism; numbered 01/02/03 kickers on non-sequential sections; gradient text on numbers; bounce easing; length-as-substance.
 
 Additions of our own: every claim within one viewport of its evidence (show/tell adjacency, the strongest pattern in the benchmark set); real data in every frame of every mock (the walkthrough replays use a real mission's trace, labeled as a replay); one ember object per viewport; the grayscale test on every beat.
 
@@ -374,15 +374,15 @@ The walkthrough replay components port with their rAF engines intact; only their
 
 ### 8.2 Phases (each independently shippable, review-gated)
 
-| Phase | Scope | Gate |
-| --- | --- | --- |
-| **P0 Foundations** | SSR flip + file split + Tempo token migration + perf fixes (CSS-var scroll effects) + kill violet | tsc, build, both themes render, Lighthouse ≥90 perf |
-| **P1 Hero + nav + footer** | New hero, mark glint, terminal replay upgrade, sparse nav, credibility footer | Founder copy approval; grayscale test |
-| **P2 The walkthrough** | Merge Orbit/Stations/AgentInAction into the tabbed beat 3; scroll-scrub mark; teardown link-out | Reduced-motion pass; reader-paced rule verified |
-| **P3 Receipts** | Live counters server fn, artifact row, honesty card; delete every fabricated stat | Every number traces live or doesn't render |
-| **P4 Differentiation + trust + close + waitlist** | Beats 5-6, waitlist table/fn/form, funnel events via facade | Events verified firing; anti-abuse tested |
-| **P5 SEO/GEO layer** | Retitle + meta trim, JSON-LD (Organization w/ disambiguation + SoftwareApplication), sitemap.xml + robots Sitemap line + AI-bot allows, machine-view rewrite + llms.txt one-liner sync, `/trust` meta fix | Rendered-HTML crawl check (curl as GPTBot, no JS); title under 60 chars |
-| **P6 QA + ship** | Tempo test on every beat, copy read-aloud pass, claims audit vs the PROVEN list, cross-browser, `bun test` green | Founder final approval, then publish via Lovable |
+| Phase                                             | Scope                                                                                                                                                                                                     | Gate                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **P0 Foundations**                                | SSR flip + file split + Tempo token migration + perf fixes (CSS-var scroll effects) + kill violet                                                                                                         | tsc, build, both themes render, Lighthouse ≥90 perf                     |
+| **P1 Hero + nav + footer**                        | New hero, mark glint, terminal replay upgrade, sparse nav, credibility footer                                                                                                                             | Founder copy approval; grayscale test                                   |
+| **P2 The walkthrough**                            | Merge Orbit/Stations/AgentInAction into the tabbed beat 3; scroll-scrub mark; teardown link-out                                                                                                           | Reduced-motion pass; reader-paced rule verified                         |
+| **P3 Receipts**                                   | Live counters server fn, artifact row, honesty card; delete every fabricated stat                                                                                                                         | Every number traces live or doesn't render                              |
+| **P4 Differentiation + trust + close + waitlist** | Beats 5-6, waitlist table/fn/form, funnel events via facade                                                                                                                                               | Events verified firing; anti-abuse tested                               |
+| **P5 SEO/GEO layer**                              | Retitle + meta trim, JSON-LD (Organization w/ disambiguation + SoftwareApplication), sitemap.xml + robots Sitemap line + AI-bot allows, machine-view rewrite + llms.txt one-liner sync, `/trust` meta fix | Rendered-HTML crawl check (curl as GPTBot, no JS); title under 60 chars |
+| **P6 QA + ship**                                  | Tempo test on every beat, copy read-aloud pass, claims audit vs the PROVEN list, cross-browser, `bun test` green                                                                                          | Founder final approval, then publish via Lovable                        |
 
 Estimated effort: P0-P2 one focused day, P3-P5 a second day, P6 a half day. The two founder clock-starters from the ground-truth doc (domain warm-up, OAuth verification submission) run in parallel and are not blocked by any of this.
 
@@ -408,4 +408,4 @@ Both themes from the same tokens; every color/type/radius traces to Tempo; serve
 
 ---
 
-*Research artifacts backing this plan (session scratchpad, 2026-07-14): the five structured research reports (landing audit, positioning canon, competitor intel, design benchmarks, brand assets). Canon sources: [`docs/pitch/one-pager.md`](../pitch/one-pager.md), [`docs/pitch/launch-assets.md`](../pitch/launch-assets.md), [`docs/strategy/v13-proof-campaign.md`](../strategy/v13-proof-campaign.md), [`DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md), [`docs/Growth Strategy/00-launch-operating-manual.md`](../Growth%20Strategy/00-launch-operating-manual.md).*
+_Research artifacts backing this plan (session scratchpad, 2026-07-14): the five structured research reports (landing audit, positioning canon, competitor intel, design benchmarks, brand assets). Canon sources: [`docs/pitch/one-pager.md`](../pitch/one-pager.md), [`docs/pitch/launch-assets.md`](../pitch/launch-assets.md), [`docs/strategy/v13-proof-campaign.md`](../strategy/v13-proof-campaign.md), [`DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md), [`docs/Growth Strategy/00-launch-operating-manual.md`](../Growth%20Strategy/00-launch-operating-manual.md)._

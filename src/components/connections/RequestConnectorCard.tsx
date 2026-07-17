@@ -91,7 +91,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
           color: "var(--ink-subtle)",
         }}
       >
-        <Plus size={16} strokeWidth={1.75} />
+        <Plus size={16} strokeWidth={1.5} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 500, fontSize: 13.5, color: "var(--ink)" }}>

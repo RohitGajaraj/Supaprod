@@ -13,12 +13,7 @@ export type ModelTier = "fast" | "balanced" | "reasoning" | "premium" | "code" |
  * own governed pipeline (rag/embed.server.ts) and must never be routed to a chat model.
  */
 export type Capability =
-  | "code"
-  | "vision"
-  | "reasoning"
-  | "image-gen"
-  | "fast-chat"
-  | "long-context";
+  "code" | "vision" | "reasoning" | "image-gen" | "fast-chat" | "long-context";
 
 /**
  * Built-in providers with a curated catalog entry. MODEL-AGNOSTIC: `Model.provider`

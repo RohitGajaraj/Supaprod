@@ -12,7 +12,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { TopBar } from "@/components/cadence/TopBar";
 import { PageHeader } from "@/components/cadence/PageHeader";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { SkeletonBar } from "@/components/discover/SkeletonBar";
 import { listPrds } from "@/lib/discovery.functions";
@@ -23,6 +26,11 @@ import {
   type PrototypeSummary,
 } from "@/lib/prototypes.functions";
 import { toast } from "@/lib/notify";
+
+/** PC-29 layer 2/4 (2026-07-17 repair pass): Design's one station agent -
+ * ux-architect, just reassigned here from Define. Single-candidate list kept
+ * for consistency with the other stations' STATION_AGENTS idiom. */
+const DESIGN_STATION_AGENTS = ["ux-architect"];
 
 function shareUrl(slug: string): string {
   return `${typeof window !== "undefined" ? window.location.origin : ""}/p/${slug}`;
@@ -211,7 +219,7 @@ function PrototypesPane() {
       ) : items.isError ? (
         // An error never wears the empty state's clothes: cause + one action.
         <div style={{ padding: "20px 16px" }}>
-          <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+          <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
             Could not load prototypes
           </MonoLabel>
           <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 0" }}>
@@ -236,7 +244,19 @@ function PrototypesPane() {
 }
 
 function DesignSurface() {
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
+  // PC-29 layer 2 (2026-07-17): shared cache with FleetView's "By Agent" tab
+  // and every other station header (same queryKey pattern). Scoped by
+  // workspaceId so switching workspaces doesn't show another workspace's
+  // agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
+    DESIGN_STATION_AGENTS.includes(a.slug),
+  );
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Design"]} />
@@ -245,7 +265,7 @@ function DesignSurface() {
           maxWidth: "var(--container-work, 1520px)",
           width: "100%",
           margin: "0 auto",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
         }}
       >
         <PageHeader
@@ -255,6 +275,19 @@ function DesignSurface() {
           subtitle="Import your brand once, then every mockup and prototype renders through it."
           usp="One brand kit flows into every generated build, so what agents ship already looks like you."
         />
+        {presenceAgent ? (
+          <div style={{ marginBottom: 14 }}>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="design"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
+          </div>
+        ) : null}
+        {/* PC-29 layer 4: the inline relay, live only while Design has a run
+          going (e.g. a prototype generation in progress). */}
+        <AgentRelay variant="station" station="design" workspaceId={activeWorkspaceId} />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <section>
@@ -278,7 +311,7 @@ export const Route = createFileRoute("/_authenticated/design")({
     console.error("[Design] route crashed:", error);
     return (
       <div style={{ padding: "64px 32px", textAlign: "center" }}>
-        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Design
         </MonoLabel>
         <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>

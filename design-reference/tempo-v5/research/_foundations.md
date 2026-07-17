@@ -86,49 +86,53 @@ So the parent element carries the size class (e.g. `text-copy-16`), and any inli
 **The class families, with each class's documented usage guidance:**
 
 **Headings** ("Used to introduce pages or sections."):
-| Class | Modifier | Usage |
-|---|---|---|
-| `text-heading-72` | — | Marketing heroes. |
-| `text-heading-64` | — | (size step, no separate usage note) |
-| `text-heading-56` | — | (size step, no separate usage note) |
-| `text-heading-48` | — | (size step, no separate usage note) |
-| `text-heading-40` | — | (size step, no separate usage note) |
-| `text-heading-32` | subtle | Marketing subheadings, paragraphs, and dashboard headings. |
-| `text-heading-24` | subtle | (size step) |
-| `text-heading-20` | subtle | (size step) |
-| `text-heading-16` | subtle | (size step) |
-| `text-heading-14` | — | (size step) |
+
+| Class             | Modifier | Usage                                                      |
+| ----------------- | -------- | ---------------------------------------------------------- |
+| `text-heading-72` | —        | Marketing heroes.                                          |
+| `text-heading-64` | —        | (size step, no separate usage note)                        |
+| `text-heading-56` | —        | (size step, no separate usage note)                        |
+| `text-heading-48` | —        | (size step, no separate usage note)                        |
+| `text-heading-40` | —        | (size step, no separate usage note)                        |
+| `text-heading-32` | subtle   | Marketing subheadings, paragraphs, and dashboard headings. |
+| `text-heading-24` | subtle   | (size step)                                                |
+| `text-heading-20` | subtle   | (size step)                                                |
+| `text-heading-16` | subtle   | (size step)                                                |
+| `text-heading-14` | —        | (size step)                                                |
 
 **Buttons** ("Only to be used within components that render buttons."):
-| Class | Usage |
-|---|---|
-| `text-button-16` | Largest button. |
-| `text-button-14` | Default button. |
+
+| Class            | Usage                                                         |
+| ---------------- | ------------------------------------------------------------- |
+| `text-button-16` | Largest button.                                               |
+| `text-button-14` | Default button.                                               |
 | `text-button-12` | Only used when a tiny button is placed inside an input field. |
 
 **Label** ("Designed for single-lines, and given ample line-height for highlighting & marrying up with icons."):
-| Class | Modifier / suffix | Usage |
-|---|---|---|
-| `text-label-20` | — | Marketing text. |
-| `text-label-18` | — | (size step) |
-| `text-label-16` | strong | Used in titles to help differentiate from regular (body) text. |
-| `text-label-14` | strong | Most common text style of all. Used in many menus. |
-| `text-label-14-mono` | — | Largest form of mono, to pair with larger (>14) text. |
-| `text-label-13` | "with Strong, and Tabular (123)" | Used as a secondary line next to other labels. Tabular is used when conveying numbers for consistent spacing. |
-| `text-label-13-mono` | — | Used to pair with Label 14, as the smaller mono size looks better in that pairing. |
-| `text-label-12` | "with Strong, AND CAPS" | Used for tertiary-level text in busy views, like Comments, Show More, and the capitals in Calendars. |
-| `text-label-12-mono` | — | (mono companion, no separate usage note) |
+
+| Class                | Modifier / suffix                | Usage                                                                                                         |
+| -------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `text-label-20`      | —                                | Marketing text.                                                                                               |
+| `text-label-18`      | —                                | (size step)                                                                                                   |
+| `text-label-16`      | strong                           | Used in titles to help differentiate from regular (body) text.                                                |
+| `text-label-14`      | strong                           | Most common text style of all. Used in many menus.                                                            |
+| `text-label-14-mono` | —                                | Largest form of mono, to pair with larger (>14) text.                                                         |
+| `text-label-13`      | "with Strong, and Tabular (123)" | Used as a secondary line next to other labels. Tabular is used when conveying numbers for consistent spacing. |
+| `text-label-13-mono` | —                                | Used to pair with Label 14, as the smaller mono size looks better in that pairing.                            |
+| `text-label-12`      | "with Strong, AND CAPS"          | Used for tertiary-level text in busy views, like Comments, Show More, and the capitals in Calendars.          |
+| `text-label-12-mono` | —                                | (mono companion, no separate usage note)                                                                      |
 
 **Copy** ("Designed for multiple lines of text, having a higher line height than Label."):
-| Class | Modifier | Usage |
-|---|---|---|
-| `text-copy-24` | strong | For hero areas on marketing pages. |
-| `text-copy-20` | strong | For hero areas on marketing pages. |
-| `text-copy-18` | strong | Mainly for marketing, big quotes. |
-| `text-copy-16` | strong | Used in simpler, larger views like Modals where text can breathe. |
-| `text-copy-14` | strong | Most commonly used text style. |
-| `text-copy-13` | — | For secondary text and views where space is a premium. |
-| `text-copy-13-mono` | — | Used for inline code mentions. |
+
+| Class               | Modifier | Usage                                                             |
+| ------------------- | -------- | ----------------------------------------------------------------- |
+| `text-copy-24`      | strong   | For hero areas on marketing pages.                                |
+| `text-copy-20`      | strong   | For hero areas on marketing pages.                                |
+| `text-copy-18`      | strong   | Mainly for marketing, big quotes.                                 |
+| `text-copy-16`      | strong   | Used in simpler, larger views like Modals where text can breathe. |
+| `text-copy-14`      | strong   | Most commonly used text style.                                    |
+| `text-copy-13`      | —        | For secondary text and views where space is a premium.            |
+| `text-copy-13-mono` | —        | Used for inline code mentions.                                    |
 
 (Cells marked "size step, no separate usage note" mean the page lists the class as part of the scale but only attaches prose usage guidance to specific steps — those specific quoted strings above are exact; the rest of each family is a straight numeric size progression at the same role.)
 

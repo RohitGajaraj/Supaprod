@@ -111,7 +111,7 @@ function AdminWorkspaces() {
               background: "var(--raised)",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-base)",
               color: "var(--text-primary)",
             }}
@@ -123,7 +123,7 @@ function AdminWorkspaces() {
               reading workspaces…
             </span>
           ) : searchError ? (
-            <MonoLabel tone="madder">search failed</MonoLabel>
+            <MonoLabel style={{ color: "var(--madder)" }}>search failed</MonoLabel>
           ) : (
             <MonoLabel>{rows.length} workspaces</MonoLabel>
           )}
@@ -163,7 +163,7 @@ function AdminWorkspaces() {
                     <td style={td()}>
                       <span
                         style={{
-                          fontFamily: "var(--font-ui)",
+                          fontFamily: "var(--font-sans)",
                           fontWeight: 500,
                           color: "var(--text-primary)",
                         }}
@@ -192,7 +192,7 @@ function AdminWorkspaces() {
                     </td>
                     <td style={td()}>
                       {w.deleted_at ? (
-                        <MonoLabel tone="madder">yes</MonoLabel>
+                        <MonoLabel style={{ color: "var(--madder)" }}>yes</MonoLabel>
                       ) : (
                         <MonoLabel>no</MonoLabel>
                       )}
@@ -211,7 +211,7 @@ function AdminWorkspaces() {
                       style={{
                         padding: "var(--space-4)",
                         textAlign: "center",
-                        fontFamily: "var(--font-ui)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: "var(--text-base)",
                         color: "var(--text-subtle)",
                       }}
@@ -393,7 +393,7 @@ function WorkspaceDrawer({
                   label="Deleted"
                   value={
                     d.workspace?.deleted_at ? (
-                      <MonoLabel tone="madder">{d.workspace.deleted_at.slice(0, 10)}</MonoLabel>
+                      <MonoLabel style={{ color: "var(--madder)" }}>{d.workspace.deleted_at.slice(0, 10)}</MonoLabel>
                     ) : (
                       <MonoLabel>no</MonoLabel>
                     )
@@ -421,7 +421,7 @@ function WorkspaceDrawer({
                       display: "flex",
                       gap: "var(--space-2)",
                       alignItems: "center",
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-sm)",
                       color: "var(--text-primary)",
                     }}
@@ -448,7 +448,7 @@ function WorkspaceDrawer({
                         background: "var(--raised)",
                         border: "1px solid var(--hairline)",
                         borderRadius: "var(--radius-control)",
-                        fontFamily: "var(--font-ui)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: "var(--text-sm)",
                         color: "var(--text-primary)",
                       }}
@@ -533,7 +533,7 @@ function WorkspaceDrawer({
                 </div>
                 <p
                   style={{
-                    fontFamily: "var(--font-ui)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "var(--text-sm)",
                     color: "var(--text-muted)",
                     marginBottom: "var(--space-2)",
@@ -570,7 +570,7 @@ function WorkspaceDrawer({
                   <li
                     key={row.id}
                     style={{
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-sm)",
                       color: "var(--text-body)",
                     }}
@@ -584,7 +584,7 @@ function WorkspaceDrawer({
                 {(d.audit ?? []).length === 0 ? (
                   <li
                     style={{
-                      fontFamily: "var(--font-ui)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: "var(--text-sm)",
                       color: "var(--text-subtle)",
                     }}
@@ -607,7 +607,7 @@ function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
       <MonoLabel style={{ minWidth: 64 }}>{label}</MonoLabel>
       <span
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           color: "var(--text-body)",
         }}
@@ -634,7 +634,7 @@ function td(): React.CSSProperties {
   return {
     padding: "var(--space-3)",
     verticalAlign: "middle",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-base)",
   };
 }

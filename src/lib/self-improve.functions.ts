@@ -24,6 +24,7 @@ import {
   type PlaybookSignal,
 } from "@/lib/self-improve";
 import { getEvalHealthImpl } from "@/lib/eval-health.functions";
+import { recordCapabilityChange } from "@/lib/capabilities.functions";
 import { summarizeGateSignals } from "@/lib/gate-signals";
 import { rankPlaybooksByOutcome, type PlaybookStation } from "@/lib/playbooks/registry";
 import { callModel } from "@/lib/ai/runtime.server";
@@ -509,6 +510,8 @@ export async function applyFixCore(
   const title = typeof prop?.title === "string" ? prop.title : "a quality flag";
 
   // 1. Create the house_rule (APPROVED = live now; reversible via supersession).
+  // An 'agent'-kind flag diagnosed ONE agent, so its fix is scoped to that
+  // agent's system prompt only (PC-30); eval/playbook flags stay workspace-wide.
   const { data: rule, error: ruleErr } = await db
     .from("house_rules")
     .insert({
@@ -516,6 +519,7 @@ export async function applyFixCore(
       rule_text: ruleText,
       rationale: `Cadence self-improvement: applied to fix "${title}".`,
       status: "approved",
+      agent_slug: data.kind === "agent" ? data.subjectRef : null,
     })
     .select("id")
     .single();
@@ -555,6 +559,27 @@ export async function applyFixCore(
     .eq("workspace_id", data.workspaceId)
     .eq("kind", data.kind)
     .eq("subject_ref", data.subjectRef);
+
+  // 4. PC-30 capability history (the RPT-50 learning inlet): an 'agent'-kind
+  // fix is a capability change for that one agent, so it writes the same
+  // receipted capability_changes + lineage machinery a human edit does --
+  // reusing recordCapabilityChange means Brain's Capability card picks this
+  // up with no separate read path.
+  if (data.kind === "agent") {
+    try {
+      await recordCapabilityChange(
+        db,
+        userId,
+        data.workspaceId,
+        data.subjectRef,
+        "self_tuned",
+        `Cadence self-improvement applied a fix for "${title}": ${ruleText.slice(0, 200)}${ruleText.length > 200 ? "…" : ""}`,
+        null,
+      );
+    } catch {
+      // Best-effort receipt: the applied rule and its own decision already stand.
+    }
+  }
 
   return { applied: true, house_rule_id: houseRuleId, rule_text: ruleText, cached: false };
 }

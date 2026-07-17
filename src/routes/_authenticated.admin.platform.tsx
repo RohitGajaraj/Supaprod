@@ -313,7 +313,7 @@ function BannerPanel() {
           <MonoLabel tone={BANNER_TONE[banner.level]}>{banner.level}</MonoLabel>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-sm)",
               color: "var(--text-body)",
             }}
@@ -466,7 +466,7 @@ function FlagsPanel() {
             display: "flex",
             alignItems: "center",
             gap: "var(--space-1)",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "var(--text-sm)",
             color: "var(--text-body)",
           }}
@@ -791,7 +791,7 @@ function sectionTitleStyle(): React.CSSProperties {
 
 function bodyTextStyle(): React.CSSProperties {
   return {
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
     lineHeight: "var(--leading-body)",
     color: "var(--text-muted)",
@@ -811,7 +811,7 @@ function input(width?: number): React.CSSProperties {
     borderRadius: "var(--radius-control)",
     background: "var(--raised)",
     color: "var(--text-primary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 12.5,
     width,
   };
@@ -833,7 +833,7 @@ function td(): React.CSSProperties {
   return {
     padding: "8px 10px",
     verticalAlign: "middle",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: "var(--text-sm)",
     color: "var(--text-body)",
   };

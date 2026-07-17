@@ -39,7 +39,7 @@ export function EngineRoomContainer({ children }: { children: React.ReactNode })
         width: "100%",
         maxWidth: "var(--container-work)",
         margin: "0 auto",
-        padding: "36px 32px 64px",
+        padding: "var(--page-inset-v) var(--page-inset-h) 64px",
         animation: "cadRise 260ms var(--ease) both",
         // Loom §2b: anchors + clips the glance's glow field (harmless for
         // RoomDetail, which renders no glow).
@@ -235,8 +235,7 @@ export function EngineRoomGlance() {
               with the to-date stats below instead. */}
           {throughput.totalRuns > 0 ? (
             <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
-              Cadence ran{" "}
-              <PixelStat value={throughput.totalRuns} tone="blue" size={18} glow />{" "}
+              Cadence ran <PixelStat value={throughput.totalRuns} tone="blue" size={18} glow />{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
           ) : null}

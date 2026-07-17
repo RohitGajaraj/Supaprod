@@ -105,7 +105,7 @@ export function ConnectionStrip() {
         {title}
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "12.5px",
             color: "var(--madder-bright)",
           }}
@@ -211,7 +211,7 @@ export function ConnectionStrip() {
         {title}
         <span
           style={{
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: "12.5px",
             color: "var(--text-subtle)",
           }}

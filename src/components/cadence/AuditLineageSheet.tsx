@@ -170,7 +170,13 @@ export function AuditLineageSheet() {
                         />
                       ) : null}
                     </div>
-                    <div style={{ paddingBottom: i < d.steps.length - 1 ? 16 : 0, minWidth: 0, flex: 1 }}>
+                    <div
+                      style={{
+                        paddingBottom: i < d.steps.length - 1 ? 16 : 0,
+                        minWidth: 0,
+                        flex: 1,
+                      }}
+                    >
                       <div
                         style={{
                           fontFamily: "var(--font-mono)",
@@ -181,7 +187,9 @@ export function AuditLineageSheet() {
                         }}
                       >
                         {s.label}
-                        {s.at ? <span style={{ color: "var(--text-faint)" }}> · {fmt(s.at)}</span> : null}
+                        {s.at ? (
+                          <span style={{ color: "var(--text-faint)" }}> · {fmt(s.at)}</span>
+                        ) : null}
                       </div>
                       <div
                         style={{

@@ -29,7 +29,7 @@ const BLOCK_STYLE: React.CSSProperties = {
 };
 
 const TITLE_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-ui)",
+  fontFamily: "var(--font-sans)",
   fontSize: 12.5,
   fontWeight: 600,
   color: "var(--text-primary)",
@@ -48,7 +48,7 @@ const FOOTER_META_STYLE: React.CSSProperties = {
 /** Body copy clamped to a fixed line budget: present, never a wall of prose. */
 function clampStyle(lines: number): React.CSSProperties {
   return {
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     fontSize: 12,
     lineHeight: 1.5,
     color: "var(--text-muted)",
@@ -188,7 +188,7 @@ export function StatusDigestBlock({ block }: { block: StatusBlock }) {
               />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-ui)", fontSize: 12, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
               >
                 {r.title}
               </span>
@@ -216,7 +216,7 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
       </span>
       <span
         className="min-w-0 truncate"
-        style={{ fontFamily: "var(--font-ui)", fontSize: 12, color: "var(--text-body)" }}
+        style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
       >
         {event.label}
       </span>

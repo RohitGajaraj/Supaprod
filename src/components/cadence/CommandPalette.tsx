@@ -11,6 +11,7 @@ import {
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
+import { EmptyState } from "@/components/cadence/EmptyState";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
 // parchment cmdk palette. Sections (JUMP · SETTINGS · ACT · ASK · CATALOG), a
@@ -208,7 +209,11 @@ export function CommandPalette() {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0"
-          style={{ zIndex: 80, backgroundColor: "rgba(4,4,5,0.6)", backdropFilter: "blur(3px)" }}
+          style={{
+            zIndex: 80,
+            backgroundColor: "var(--ds-overlay-backdrop-color)",
+            backdropFilter: "blur(3px)",
+          }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -242,7 +247,7 @@ export function CommandPalette() {
               aria-label="Search, act, or ask what it can do"
               className="flex-1 bg-transparent outline-none"
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 15,
                 color: "var(--text-primary)",
                 caretColor: "var(--ember)",
@@ -272,33 +277,10 @@ export function CommandPalette() {
             style={{ maxHeight: 420, overflowY: "auto", padding: 6 }}
           >
             {sectioned.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 16px" }}>
-                {/* The palette's one Pixel accent (DESIGN-TEMPO §3), matching
-                    the EmptyState primitive: headline only. Input, hints, and
-                    result rows are dense UI and stay Sans/Mono; the springy
-                    settle on open remains the surface's one motion touch. */}
-                <p
-                  style={{
-                    fontFamily: "var(--font-pixel)",
-                    fontWeight: 400,
-                    fontSize: 15,
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  Nothing by that name
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-ui)",
-                    fontSize: 12.5,
-                    color: "var(--text-muted)",
-                    margin: "6px 0 0",
-                  }}
-                >
-                  Try a verb, like challenge or connect.
-                </p>
-              </div>
+              <EmptyState
+                headline="Nothing by that name"
+                body="Try a verb, like challenge or connect."
+              />
             ) : (
               sectioned.map((group) => (
                 <div
@@ -375,7 +357,7 @@ export function CommandPalette() {
                         >
                           <span
                             style={{
-                              fontFamily: "var(--font-ui)",
+                              fontFamily: "var(--font-sans)",
                               fontSize: 13,
                               color: active ? "var(--text-primary)" : "var(--text-body)",
                             }}
@@ -386,7 +368,7 @@ export function CommandPalette() {
                             <span
                               className="truncate"
                               style={{
-                                fontFamily: "var(--font-ui)",
+                                fontFamily: "var(--font-sans)",
                                 fontSize: 11,
                                 lineHeight: 1.3,
                                 color: "var(--text-subtle)",
@@ -405,7 +387,7 @@ export function CommandPalette() {
                             }}
                             className="loom-press rounded-[var(--radius-control)] border border-[var(--hairline)] bg-transparent text-[var(--text-muted)] transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                             style={{
-                              fontFamily: "var(--font-ui)",
+                              fontFamily: "var(--font-sans)",
                               fontSize: 12,
                               padding: "3px 9px",
                             }}

@@ -48,7 +48,7 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
       <span
         className="min-w-0 flex-1 truncate"
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           fontWeight: 600,
           color: "var(--text-primary)",
@@ -85,7 +85,7 @@ export function EmptyRow({ message }: { message: string }) {
   return (
     <p
       style={{
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: "var(--text-base)",
         color: "var(--text-subtle)",
         padding: "18px 0",
@@ -103,7 +103,7 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
     <div style={{ padding: "18px 0" }}>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           color: "var(--madder-bright)",
           marginBottom: "10px",
@@ -141,8 +141,7 @@ export function PanelPending() {
         style={{
           width: 220,
           height: 3,
-          background:
-            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--glacier) 50%, transparent), transparent)",
+          background: "linear-gradient(90deg, transparent, var(--ds-gray-alpha-400), transparent)",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}
@@ -155,7 +154,7 @@ export function VerdictSentence({ children }: { children: React.ReactNode }) {
   return (
     <p
       style={{
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: "var(--text-base)",
         lineHeight: 1.5,
         color: "var(--text-body)",
@@ -242,12 +241,13 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         <div>
           <h2
             style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 450,
-              fontSize: "var(--text-h2)",
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 22,
               lineHeight: 1.25,
               color: "var(--text-primary)",
               margin: 0,
+              letterSpacing: "0.01em",
             }}
           >
             {ROOM_QUESTIONS[room]}
@@ -273,7 +273,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           {status?.glance?.action ? (
             <p
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: "var(--text-base)",
                 lineHeight: 1.5,
                 color: "var(--text-body)",
@@ -343,7 +343,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           so a click never lands on a bare table with no context. */}
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: "var(--text-base)",
           lineHeight: 1.5,
           color: "var(--text-muted)",

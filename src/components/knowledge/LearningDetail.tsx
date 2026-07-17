@@ -214,9 +214,7 @@ export function LearningDetail({ id }: { id: string }) {
               ) : null}
             </div>
           }
-          traceRef={
-            <AuditTag kind="learning" id={l.id} copyable />
-          }
+          traceRef={<AuditTag kind="learning" id={l.id} copyable />}
         />
 
         {/* Summary band: the compounding value first (calm neutral tint,
@@ -239,7 +237,7 @@ export function LearningDetail({ id }: { id: string }) {
           </MonoLabel>
           <span
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "13px",
               fontWeight: 550,
               color: "var(--text-primary)",

@@ -184,7 +184,8 @@ describe("ResearchActivity", () => {
         ? result.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (child: any) => child?.type === ShimmerText && child?.props?.children === "Reading sources...",
+        (child: any) =>
+          child?.type === ShimmerText && child?.props?.children === "Reading sources...",
       );
       expect(labelSpan).toBeDefined();
     });

@@ -67,7 +67,7 @@ const cardNumberStyle = {
 };
 
 const cardMeaningStyle = {
-  fontFamily: "var(--font-ui)",
+  fontFamily: "var(--font-sans)",
   fontSize: 12.5,
   lineHeight: 1.5,
   color: "var(--text-body)",
@@ -249,7 +249,7 @@ function AdminProof() {
     <div style={{ marginTop: 12 }}>
       <p
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 14,
           lineHeight: 1.5,
           color: "var(--text-body)",

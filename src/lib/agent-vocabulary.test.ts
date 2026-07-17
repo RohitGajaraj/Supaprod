@@ -155,7 +155,7 @@ describe("agent-vocabulary: catalog lookups and displays", () => {
         const result = resolveStationTotal(slug);
         expect(result).toBeDefined();
         expect(typeof result).toBe("string");
-        expect(["sense", "decide", "define", "build", "ship", "learn"]).toContain(result);
+        expect(["sense", "decide", "define", "design", "build", "ship", "learn"]).toContain(result);
       }
     });
   });
@@ -363,15 +363,9 @@ describe("agent-vocabulary: catalog lookups and displays", () => {
       expect(slugs.has("orchestrator")).toBe(false);
     });
 
-    it("works for all six stations", () => {
-      const stations: Array<"sense" | "decide" | "define" | "build" | "ship" | "learn"> = [
-        "sense",
-        "decide",
-        "define",
-        "build",
-        "ship",
-        "learn",
-      ];
+    it("works for all seven stations", () => {
+      const stations: Array<"sense" | "decide" | "define" | "design" | "build" | "ship" | "learn"> =
+        ["sense", "decide", "define", "design", "build", "ship", "learn"];
       for (const station of stations) {
         const entries = castByStation(station);
         expect(entries.length).toBeGreaterThan(0);

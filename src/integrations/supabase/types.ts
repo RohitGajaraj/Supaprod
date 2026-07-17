@@ -1849,6 +1849,39 @@ export type Database = {
         }
         Relationships: []
       }
+      capability_changes: {
+        Row: {
+          agent_slug: string
+          change_type: string
+          created_at: string
+          description: string
+          id: string
+          previous_value: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_slug: string
+          change_type: string
+          created_at?: string
+          description: string
+          id?: string
+          previous_value?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          agent_slug?: string
+          change_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          previous_value?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       changelog_entries: {
         Row: {
           body: string | null
@@ -3641,6 +3674,7 @@ export type Database = {
       }
       house_rules: {
         Row: {
+          agent_slug: string | null
           created_at: string
           decided_at: string | null
           decided_by: string | null
@@ -3654,6 +3688,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          agent_slug?: string | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
@@ -3667,6 +3702,7 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          agent_slug?: string | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
@@ -8895,6 +8931,17 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      get_pending_fanout_batches: {
+        Args: { batch_limit: number }
+        Returns: {
+          child_run_ids: string[]
+          created_at: string
+          id: string
+          target_title: string
+          user_id: string
+          workspace_id: string
+        }[]
+      }
       grant_subscription_credits: {
         Args: { _account_id: string; _credits: number }
         Returns: Json
@@ -9029,6 +9076,7 @@ export type Database = {
       match_rag_chunks: {
         Args: {
           for_product?: string
+          for_source_id?: string
           for_user: string
           match_count?: number
           query_embedding: string

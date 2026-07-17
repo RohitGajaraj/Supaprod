@@ -8,12 +8,12 @@ import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 
 const C = {
-  bg: "#0a0a0a",
-  border: "rgba(255,255,255,0.07)",
-  divider: "rgba(255,255,255,0.06)",
-  text: "#f4f4f5",
-  muted: "#a1a1aa",
-  faint: "#565c66",
+  bg: "var(--ds-gray-1000)",
+  border: "var(--ds-gray-400)",
+  divider: "var(--ds-gray-400)",
+  text: "var(--ds-gray-50)",
+  muted: "var(--ds-gray-500)",
+  faint: "var(--ds-gray-700)",
   ember: "#FF6B2C",
   emberBright: "#FF6B2C",
 };
@@ -43,116 +43,126 @@ export function LegalPageShell({
       }}
     >
       <LandingBackdrop />
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1 }}>
-      <header
+      <div
         style={{
-          padding: "16px 24px",
-          borderBottom: `1px solid ${C.divider}`,
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
         }}
       >
-        <div
+        <header
           style={{
-            maxWidth: 720,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            padding: "16px 24px",
+            borderBottom: `1px solid ${C.divider}`,
           }}
         >
-          <Link
-            to="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              textDecoration: "none",
-              color: C.text,
-            }}
-          >
-            <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
-              <CadenceMark size={20} />
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 550, letterSpacing: "-0.01em" }}>Cadence</span>
-          </Link>
-          <Link to="/" style={{ fontSize: 12.5, color: C.muted, textDecoration: "none" }}>
-            ← Back to home
-          </Link>
-        </div>
-      </header>
-
-      <main style={{ flex: 1, padding: "56px 24px" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <p
-            style={{
-              fontFamily: "Geist Mono, monospace",
-              fontSize: 10,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              color: C.emberBright,
-              margin: "0 0 10px",
-            }}
-          >
-            {eyebrow}
-          </p>
-          <h1
-            style={{
-              fontSize: "clamp(24px,3.6vw,34px)",
-              fontWeight: 400,
-              fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
-              letterSpacing: "0",
-              margin: "0 0 8px",
-            }}
-          >
-            {title}
-          </h1>
-          <p style={{ fontSize: 12.5, color: C.faint, margin: "0 0 40px" }}>
-            Last updated {updated}
-          </p>
           <div
             style={{
-              fontSize: 14.5,
-              lineHeight: 1.75,
-              color: C.muted,
+              maxWidth: 720,
+              margin: "0 auto",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            {children}
+            <Link
+              to="/"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                textDecoration: "none",
+                color: C.text,
+              }}
+            >
+              <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
+                <CadenceMark size={20} />
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 550, letterSpacing: "-0.01em" }}>
+                Cadence
+              </span>
+            </Link>
+            <Link to="/" style={{ fontSize: 12.5, color: C.muted, textDecoration: "none" }}>
+              ← Back to home
+            </Link>
           </div>
-        </div>
-      </main>
+        </header>
 
-      <footer
-        style={{
-          padding: "16px 24px",
-          borderTop: `1px solid ${C.divider}`,
-        }}
-      >
-        <div
+        <main style={{ flex: 1, padding: "56px 24px" }}>
+          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+            <p
+              style={{
+                fontFamily: "Geist Mono, monospace",
+                fontSize: 10,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: C.emberBright,
+                margin: "0 0 10px",
+              }}
+            >
+              {eyebrow}
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(24px,3.6vw,34px)",
+                fontWeight: 400,
+                fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+                letterSpacing: "0",
+                margin: "0 0 8px",
+              }}
+            >
+              {title}
+            </h1>
+            <p style={{ fontSize: 12.5, color: C.faint, margin: "0 0 40px" }}>
+              Last updated {updated}
+            </p>
+            <div
+              style={{
+                fontSize: 14.5,
+                lineHeight: 1.75,
+                color: C.muted,
+              }}
+            >
+              {children}
+            </div>
+          </div>
+        </main>
+
+        <footer
           style={{
-            maxWidth: 720,
-            margin: "0 auto",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 16,
+            padding: "16px 24px",
+            borderTop: `1px solid ${C.divider}`,
           }}
         >
-          {[
-            { href: "/security", label: "Security" },
-            { href: "/ard", label: "ARD" },
-            { href: "/updates", label: "Changelog" },
-            { href: "/proof", label: "Proof" },
-            { href: "/privacy", label: "Privacy" },
-            { href: "/terms", label: "Terms" },
-          ].map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              style={{ fontSize: 10.5, color: C.faint, textDecoration: "none" }}
-            >
-              {l.label}
-            </a>
-          ))}
-        </div>
-      </footer>
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "0 auto",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 16,
+            }}
+          >
+            {[
+              { href: "/security", label: "Security" },
+              { href: "/ard", label: "ARD" },
+              { href: "/updates", label: "Changelog" },
+              { href: "/proof", label: "Proof" },
+              { href: "/privacy", label: "Privacy" },
+              { href: "/terms", label: "Terms" },
+            ].map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                style={{ fontSize: 10.5, color: C.faint, textDecoration: "none" }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+        </footer>
       </div>
     </div>
   );

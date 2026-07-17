@@ -38,7 +38,6 @@ proven; we adopt and adapt, we do not invent.
    (the Vercel anatomy, extraction rules, and the waiting list of blocked patterns with
    unlock conditions). Never restyle a public page without them.
 
-
 ## Hard laws (enforce in every output)
 
 - **Dark-first.** `:root` is dark; light is `[data-theme='light']` from the same token

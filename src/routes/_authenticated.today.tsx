@@ -5,9 +5,8 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
-import { PixelStat } from "@/components/cadence/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -398,7 +397,7 @@ function DoorLink({
       className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 6,
-        fontFamily: "var(--font-ui)",
+        fontFamily: "var(--font-sans)",
         fontSize: 12.5,
         fontWeight: 500,
         color: "var(--text-muted)",
@@ -432,7 +431,6 @@ function DoorLink({
 function Dashboard() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const showToast = useToast();
   const { activeWorkspace } = useWorkspace();
   // PM Desk: the hero glow yields to the session edge glow while a block runs.
   const { isFlowMode } = useFlowMode();
@@ -515,9 +513,9 @@ function Dashboard() {
     mutationFn: () => mBrief(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard"] });
-      showToast("Brief refreshed.");
+      toast.success("Brief refreshed.");
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   const [localHour, setLocalHour] = useState<number | null>(null);
@@ -602,13 +600,13 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.decision === "approved"
           ? "Approved. The agent is unblocked."
           : "Sent back. Nothing runs without you.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // LATER — the honest defer verb on a tool gate: snoozed_until hides the row
@@ -634,9 +632,9 @@ function Dashboard() {
     },
     onError: (e: Error, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["needs-you"], ctx.prev);
-      showToast(e.message);
+      toast.success(e.message);
     },
-    onSuccess: () => showToast("Set aside. It returns in 24 hours."),
+    onSuccess: () => toast.success("Set aside. It returns in 24 hours."),
     onSettled: () => qc.invalidateQueries({ queryKey: ["needs-you"] }),
   });
 
@@ -650,9 +648,9 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
+      toast.success(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // SW-7 (mission 3.4): the design station's gate, decided from the same
@@ -666,11 +664,11 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.ok ? "Design approved. This spec can now dispatch to Build." : "Changes requested.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // WORTH BUILDING? (opportunity) — the Critic said revise/kill; the human's
@@ -683,11 +681,11 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(
+      toast.success(
         vars.ok ? "Kept. It moves to Now on the roadmap." : "Dropped. The Critic's concern stands.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // FS-02: a separate mutation — resolveAssumptionChallenge, not
@@ -699,13 +697,13 @@ function Dashboard() {
       for (const key of ["needs-you", "decisions", "today-lanes"])
         qc.invalidateQueries({ queryKey: [key] });
       answered();
-      showToast(
+      toast.success(
         vars.action === "confirm"
           ? "Reopened for review. The decision is back in your queue."
           : "Still holds. No change made.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   // SW-3 (mission 3.8b): adopt/dismiss a compounding-pass playbook proposal.
@@ -720,13 +718,13 @@ function Dashboard() {
       for (const key of ["needs-you", "playbook-proposals"])
         qc.invalidateQueries({ queryKey: [key] });
       answered();
-      showToast(
+      toast.success(
         vars.decision === "confirm"
           ? "Playbook adopted. It stays on the record with its source learnings."
           : "Proposal dismissed for good.",
       );
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
   const dismissProposal = (proposalId: string) => {
     void confirmDialog({
@@ -1133,7 +1131,7 @@ function Dashboard() {
           maxWidth: "var(--container-standard)",
           width: "100%",
           margin: "0 auto",
-          padding: "36px 32px 64px",
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
           animation: "cadRise 260ms var(--ease) both",
           position: "relative",
           overflow: "hidden",
@@ -1211,295 +1209,280 @@ function Dashboard() {
           style={{ gap: 24 }}
         >
           <div className="flex flex-col" style={{ gap: 26, minWidth: 0 }}>
-          <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <h2
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--ember-text)",
-                  margin: 0,
-                }}
-              >
-                Needs your judgment
-              </h2>
-              {needsYouLoaded ? (
-                <PixelStat
-                  value={callCount}
-                  tone={callCount > 0 ? "blue" : "moss"}
-                  size={12}
-                  glow={callCount > 0}
+            <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <h2
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "var(--ember-text)",
+                    margin: 0,
+                  }}
+                >
+                  Needs your judgment
+                </h2>
+                <div
+                  style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
                 />
-              ) : null}
-              <div
-                style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
-              />
-            </div>
-            {/* The pinned first teardown: the wedge's first artifact stays at
+              </div>
+              {/* The pinned first teardown: the wedge's first artifact stays at
                 the top of the judgment lane regardless of verdict (the old
                 revise/kill filter silently dropped clean 'ship' verdicts)
                 until the human answers it with Keep or Share. */}
-            {needsYouLoaded && ny?.firstTeardown ? (
-              <FirstTeardownCard
-                teardown={ny.firstTeardown}
-                onKeep={() => decideOpp.mutate({ id: ny.firstTeardown!.id, ok: true })}
-                deciding={decideOpp.isPending}
+              {needsYouLoaded && ny?.firstTeardown ? (
+                <FirstTeardownCard
+                  teardown={ny.firstTeardown}
+                  onKeep={() => decideOpp.mutate({ id: ny.firstTeardown!.id, ok: true })}
+                  deciding={decideOpp.isPending}
+                />
+              ) : null}
+              {readyFanoutBatches.length > 0 ? (
+                <div className="flex flex-col" style={{ gap: 10 }}>
+                  {readyFanoutBatches.map((batch) => (
+                    <CompositeReviewCard key={batch.id} batch={batch} />
+                  ))}
+                </div>
+              ) : null}
+              {needsYou.isError ? (
+                <div
+                  style={{
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "24px 26px",
+                    boxShadow: "var(--top-light)",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 19,
+                      fontWeight: 460,
+                      color: "var(--text-primary)",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    Your calls didn't load.
+                  </h3>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
+                    {needsYou.error instanceof Error
+                      ? needsYou.error.message
+                      : "The queue request failed."}
+                  </p>
+                  <Button variant="secondary" onClick={() => void needsYou.refetch()}>
+                    Try again
+                  </Button>
+                </div>
+              ) : !needsYouLoaded ? (
+                <div
+                  role="status"
+                  aria-label="Loading your calls"
+                  className="flex flex-col"
+                  style={{ gap: 10 }}
+                >
+                  <div
+                    style={{
+                      height: 12,
+                      width: 130,
+                      borderRadius: 4,
+                      background: "var(--surface-card-deep)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 190,
+                      borderRadius: "var(--radius-card)",
+                      background: "var(--surface-card-deep)",
+                      boxShadow: "var(--top-light)",
+                    }}
+                  />
+                </div>
+              ) : callCount === 0 && expiredTotal === 0 ? (
+                <div
+                  style={{
+                    background: "var(--card)",
+                    border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "28px 26px",
+                    boxShadow: "var(--top-light)",
+                  }}
+                >
+                  <ConstellationMotif />
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 21,
+                      fontWeight: 450,
+                      color: "var(--text-primary)",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    Your queue is{" "}
+                    <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
+                  </h3>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                    New calls surface here first. Cadence keeps sensing in the background.
+                  </p>
+                </div>
+              ) : (
+                <JudgmentLane
+                  calls={allCalls}
+                  insights={lanesData?.lane1.insights ?? []}
+                  onInsightOpen={() =>
+                    navigate({ to: "/brain", search: { tab: "insights" } as never })
+                  }
+                  onInsightAct={(ins) => {
+                    // SEAM-3 one-click: settle the push, then take the
+                    // user to the action's surface. Fail-soft: the
+                    // navigation happens regardless of the write.
+                    void mMarkInsight({ data: { id: ins.id, outcome: "acted" } })
+                      .catch(() => undefined)
+                      .finally(() => {
+                        void qc.invalidateQueries({ queryKey: ["today-lanes"] });
+                      });
+                    const kind = ins.action?.kind;
+                    if (kind === "rerank_bets") {
+                      navigate({ to: "/discover", search: { tab: "queue" } as never });
+                    } else if (kind === "open_decision") {
+                      navigate({ to: "/brain", search: { tab: "decisions" } as never });
+                    } else {
+                      navigate({ to: "/brain", search: { tab: "insights" } as never });
+                    }
+                  }}
+                  expired={{ total: expiredTotal, calls: expiredCalls }}
+                />
+              )}
+              {totalCalls > 0 && needsYouLoaded && (
+                <div>
+                  {/* Decorative: the "N answered · M open" line below carries the
+                    same numbers for AT, so the bar itself stays hidden. */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      height: 3,
+                      background: "var(--hairline)",
+                      borderRadius: 99,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${clearedPct}%`,
+                        background: "var(--ember)",
+                        transition: "width 280ms var(--ease)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 10.5,
+                      color: "var(--text-subtle)",
+                      marginTop: 6,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {/* LOOM W4 honesty: the old "N of M answered" denominator
+                        shifted as new calls arrived mid-session. State the two
+                        real numbers instead. */}
+                    {clearedSession} answered · {callCount} open
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* The loop pulse (2026-07-11): the LoopStrip rollup pills are
+              retired; what survives is one plain past-tense sentence above
+              the receipts strip. Renders nothing on a quiet day. */}
+            {lp && lp.total > 0 ? (
+              <p
+                style={{
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  color: "var(--text-muted)",
+                  margin: "0 0 -14px",
+                }}
+              >
+                {pulseSentence(lp)}
+              </p>
+            ) : null}
+            {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
+              one-line acts with real actor bylines, replacing the swarm
+              card grid. A failed lanes fetch names itself with a retry —
+              never a skeleton that loads forever (audit fix 2026-07-12). */}
+            {lanesData ? (
+              <ReceiptsStrip
+                lane={lanesData.lane2}
+                onOpenMission={(id) =>
+                  navigate({ to: "/build/$missionId", params: { missionId: id } })
+                }
+                onOpenActivity={() => navigate({ to: "/build" })}
               />
-            ) : null}
-            {readyFanoutBatches.length > 0 ? (
-              <div className="flex flex-col" style={{ gap: 10 }}>
-                {readyFanoutBatches.map((batch) => (
-                  <CompositeReviewCard key={batch.id} batch={batch} />
-                ))}
-              </div>
-            ) : null}
-            {needsYou.isError ? (
+            ) : lanes.isError ? (
               <div
                 style={{
                   background: "var(--card)",
                   border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-card)",
-                  padding: "24px 26px",
+                  padding: "16px 18px",
                   boxShadow: "var(--top-light)",
                 }}
               >
-                <h3
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 19,
-                    fontWeight: 460,
-                    color: "var(--text-primary)",
-                    margin: "0 0 6px",
-                  }}
-                >
-                  Your calls didn't load.
-                </h3>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
-                  {needsYou.error instanceof Error
-                    ? needsYou.error.message
-                    : "The queue request failed."}
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+                  The activity lanes didn't load.{" "}
+                  {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
                 </p>
-                <Button variant="secondary" onClick={() => void needsYou.refetch()}>
+                <Button variant="secondary" onClick={() => void lanes.refetch()}>
                   Try again
                 </Button>
               </div>
-            ) : !needsYouLoaded ? (
+            ) : (
               <div
                 role="status"
-                aria-label="Loading your calls"
-                className="flex flex-col"
-                style={{ gap: 10 }}
-              >
-                <div
-                  style={{
-                    height: 12,
-                    width: 130,
-                    borderRadius: 4,
-                    background: "var(--surface-card-deep)",
-                  }}
-                />
-                <div
-                  style={{
-                    height: 190,
-                    borderRadius: "var(--radius-card)",
-                    background: "var(--surface-card-deep)",
-                    boxShadow: "var(--top-light)",
-                  }}
-                />
-              </div>
-            ) : callCount === 0 && expiredTotal === 0 ? (
-              <div
+                aria-label="Loading the night's activity"
                 style={{
-                  background: "var(--card)",
-                  border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
+                  height: 140,
                   borderRadius: "var(--radius-card)",
-                  padding: "28px 26px",
+                  background: "var(--surface-card-deep)",
                   boxShadow: "var(--top-light)",
                 }}
-              >
-                <ConstellationMotif />
-                <h3
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: 21,
-                    fontWeight: 450,
-                    color: "var(--text-primary)",
-                    margin: "0 0 6px",
-                  }}
-                >
-                  Your queue is{" "}
-                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
-                </h3>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                  New calls surface here first. Cadence keeps sensing in the background.
-                </p>
-              </div>
-            ) : (
-              <JudgmentLane
-                calls={allCalls}
-                insights={lanesData?.lane1.insights ?? []}
-                onInsightOpen={() =>
-                  navigate({ to: "/brain", search: { tab: "insights" } as never })
-                }
-                onInsightAct={(ins) => {
-                  // SEAM-3 one-click: settle the push, then take the
-                  // user to the action's surface. Fail-soft: the
-                  // navigation happens regardless of the write.
-                  void mMarkInsight({ data: { id: ins.id, outcome: "acted" } })
-                    .catch(() => undefined)
-                    .finally(() => {
-                      void qc.invalidateQueries({ queryKey: ["today-lanes"] });
-                    });
-                  const kind = ins.action?.kind;
-                  if (kind === "rerank_bets") {
-                    navigate({ to: "/discover", search: { tab: "queue" } as never });
-                  } else if (kind === "open_decision") {
-                    navigate({ to: "/brain", search: { tab: "decisions" } as never });
-                  } else {
-                    navigate({ to: "/brain", search: { tab: "insights" } as never });
-                  }
-                }}
-                expired={{ total: expiredTotal, calls: expiredCalls }}
               />
             )}
-            {totalCalls > 0 && needsYouLoaded && (
-              <div>
-                {/* Decorative: the "N answered · M open" line below carries the
-                    same numbers for AT, so the bar itself stays hidden. */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    height: 3,
-                    background: "var(--hairline)",
-                    borderRadius: 99,
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${clearedPct}%`,
-                      background: "var(--ember)",
-                      transition: "width 280ms var(--ease)",
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    color: "var(--text-subtle)",
-                    marginTop: 6,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {/* LOOM W4 honesty: the old "N of M answered" denominator
-                        shifted as new calls arrived mid-session. State the two
-                        real numbers instead. */}
-                  <PixelStat value={clearedSession} tone="neutral" size={11} /> answered ·{" "}
-                  <PixelStat
-                    value={callCount}
-                    tone={callCount > 0 ? "blue" : "moss"}
-                    size={11}
-                    glow={callCount > 0}
-                  />{" "}
-                  open
-                </div>
-              </div>
-            )}
-          </section>
 
-          {/* The loop pulse (2026-07-11): the LoopStrip rollup pills are
-              retired; what survives is one plain past-tense sentence above
-              the receipts strip. Renders nothing on a quiet day. */}
-          {lp && lp.total > 0 ? (
-            <p
-              style={{
-                fontSize: 12.5,
-                lineHeight: 1.5,
-                color: "var(--text-muted)",
-                margin: "0 0 -14px",
-              }}
-            >
-              {pulseSentence(lp)}
-            </p>
-          ) : null}
-          {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
-              one-line acts with real actor bylines, replacing the swarm
-              card grid. A failed lanes fetch names itself with a retry —
-              never a skeleton that loads forever (audit fix 2026-07-12). */}
-          {lanesData ? (
-            <ReceiptsStrip
-              lane={lanesData.lane2}
-              onOpenMission={(id) =>
-                navigate({ to: "/build/$missionId", params: { missionId: id } })
-              }
-              onOpenActivity={() => navigate({ to: "/build" })}
-            />
-          ) : lanes.isError ? (
-            <div
-              style={{
-                background: "var(--card)",
-                border: "1px solid var(--hairline-strong)",
-                borderRadius: "var(--radius-card)",
-                padding: "16px 18px",
-                boxShadow: "var(--top-light)",
-              }}
-            >
-              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
-                The activity lanes didn't load.{" "}
-                {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
-              </p>
-              <Button variant="secondary" onClick={() => void lanes.refetch()}>
-                Try again
-              </Button>
-            </div>
-          ) : (
-            <div
-              role="status"
-              aria-label="Loading the night's activity"
-              style={{
-                height: 140,
-                borderRadius: "var(--radius-card)",
-                background: "var(--surface-card-deep)",
-                boxShadow: "var(--top-light)",
-              }}
-            />
-          )}
-
-          {/* PC-32 block 5: the doors row. Desk and Watch open in place;
+            {/* PC-32 block 5: the doors row. Desk and Watch open in place;
               Activity's full history lives on Build; Shipped is the record,
               so it lives in Brain. Nothing removed, everything one door away. */}
-          <nav
-            aria-label="More on Today"
-            className="flex flex-wrap items-baseline"
-            style={{ gap: 22, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}
-          >
-            <DoorLink
-              label="Desk"
-              hint="focus, tasks, capture, notes"
-              onClick={() => setDeskOpen(true)}
-            />
-            <DoorLink
-              label="Activity"
-              hint="the full agent history"
-              onClick={() => navigate({ to: "/build" })}
-            />
-            <DoorLink
-              label="Shipped"
-              count={lanesData?.lane4.shipped_count || undefined}
-              hint="outcomes and what they cost"
-              onClick={() => navigate({ to: "/brain", search: { tab: "learnings" } as never })}
-            />
-            <DoorLink
-              label="Watch"
-              count={lanesData?.lane3.count || undefined}
-              hint="open risks and challenged assumptions"
-              onClick={() => setWatchOpen(true)}
-            />
-          </nav>
+            <nav
+              aria-label="More on Today"
+              className="flex flex-wrap items-baseline"
+              style={{ gap: 22, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}
+            >
+              <DoorLink
+                label="Desk"
+                hint="focus, tasks, capture, notes"
+                onClick={() => setDeskOpen(true)}
+              />
+              <DoorLink
+                label="Activity"
+                hint="the full agent history"
+                onClick={() => navigate({ to: "/build" })}
+              />
+              <DoorLink
+                label="Shipped"
+                count={lanesData?.lane4.shipped_count || undefined}
+                hint="outcomes and what they cost"
+                onClick={() => navigate({ to: "/brain", search: { tab: "learnings" } as never })}
+              />
+              <DoorLink
+                label="Watch"
+                count={lanesData?.lane3.count || undefined}
+                hint="open risks and challenged assumptions"
+                onClick={() => setWatchOpen(true)}
+              />
+            </nav>
           </div>
           <aside className="hidden xl:block" aria-label="Your desk">
             <DeskRail compact />

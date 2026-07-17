@@ -196,8 +196,20 @@ export function navKeyHint(item: NavItemDef): string {
  * Settings is always visible — a real user must never need to know a URL.
  */
 export const FOOTER_NAV: readonly NavItemDef[] = [
-  { to: "/settings", label: "Settings", index: "", zone: "home", tagline: "Account, workspace, connections, keys, billing." },
-  { to: "/admin", label: "Admin console", index: "", zone: "home", tagline: "Platform administration." },
+  {
+    to: "/settings",
+    label: "Settings",
+    index: "",
+    zone: "home",
+    tagline: "Account, workspace, connections, keys, billing.",
+  },
+  {
+    to: "/admin",
+    label: "Admin console",
+    index: "",
+    zone: "home",
+    tagline: "Platform administration.",
+  },
 ];
 
 /**

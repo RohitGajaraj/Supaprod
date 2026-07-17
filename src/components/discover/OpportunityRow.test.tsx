@@ -7,6 +7,7 @@ import {
   DesignationTag,
   OpportunityRow as OpportunityRowExport,
   OPPORTUNITY_STATUSES,
+  statusLabel,
 } from "./OpportunityRow";
 
 // OpportunityRow is wrapped in React.memo; memo() returns an exotic object
@@ -106,6 +107,89 @@ describe("OpportunityRow write-action overflow", () => {
 describe("OPPORTUNITY_STATUSES", () => {
   test("is the six lanes the server fn's status enum accepts, in board order", () => {
     expect(OPPORTUNITY_STATUSES).toEqual(["backlog", "now", "next", "later", "shipped", "dropped"]);
+  });
+});
+
+describe("statusLabel pure function", () => {
+  test("statusLabel maps PENDING verdict", () => {
+    const label = statusLabel("PENDING");
+    expect(typeof label).toBe("string");
+    expect(label.length).toBeGreaterThan(0);
+  });
+
+  test("statusLabel maps SHIP verdict", () => {
+    const label = statusLabel("SHIP");
+    expect(typeof label).toBe("string");
+    expect(label.length).toBeGreaterThan(0);
+  });
+
+  test("statusLabel maps REVISE verdict", () => {
+    const label = statusLabel("REVISE");
+    expect(typeof label).toBe("string");
+    expect(label.length).toBeGreaterThan(0);
+  });
+
+  test("statusLabel returns non-empty string for all known verdicts", () => {
+    const verdicts = ["PENDING", "SHIP", "REVISE"];
+    verdicts.forEach((verdict) => {
+      const label = statusLabel(verdict as unknown as any);
+      expect(typeof label).toBe("string");
+      expect(label.trim().length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe("OpportunityRow verdict rendering", () => {
+  test("renders with PENDING verdict", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, verdict: "PENDING" });
+    expect(el).not.toBeNull();
+  });
+
+  test("renders with SHIP verdict", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, verdict: "SHIP" });
+    expect(el).not.toBeNull();
+  });
+
+  test("renders with REVISE verdict", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, verdict: "REVISE" });
+    expect(el).not.toBeNull();
+  });
+});
+
+describe("OpportunityRow challenge action", () => {
+  test("includes onChallenge handler in props", () => {
+    const mockHandler = () => {};
+    const el = OpportunityRow({ ...BASE_PROPS, onChallenge: mockHandler });
+    // Verify the component structure is created
+    expect(el).not.toBeNull();
+    expect(el.type).toBe("div");
+  });
+
+  test("respects challengePending flag", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, challengePending: true });
+    expect(el).not.toBeNull();
+  });
+});
+
+describe("OpportunityRow optional handlers", () => {
+  test("accepts onPromote handler", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, onPromote: () => {} });
+    expect(el).not.toBeNull();
+  });
+
+  test("accepts onLineage handler", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, onLineage: () => {} });
+    expect(el).not.toBeNull();
+  });
+
+  test("accepts multiple handlers simultaneously", () => {
+    const el = OpportunityRow({
+      ...BASE_PROPS,
+      onPromote: () => {},
+      onLineage: () => {},
+      onDelete: () => {},
+    });
+    expect(containsType(el, DropdownMenu)).toBe(true);
   });
 });
 

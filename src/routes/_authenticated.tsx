@@ -8,7 +8,7 @@ import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
-import { ToastProvider } from "@/components/obsidian/toast";
+
 import { AskProvider } from "@/lib/ask-context";
 import { AskPanel } from "@/components/obsidian/AskPanel";
 import { FocusDock } from "@/components/cadence/FocusDock";
@@ -54,7 +54,7 @@ const fallbackWrap: CSSProperties = {
   gap: 12,
   padding: 24,
   textAlign: "center",
-  background: "var(--bg, #0B0A09)",
+  background: "var(--canvas)",
 };
 
 function AuthedError({ error }: { error: Error }) {
@@ -87,7 +87,7 @@ function AuthedError({ error }: { error: Error }) {
           padding: "6px 14px",
           fontSize: 12.5,
           borderRadius: 8,
-          border: "1px solid var(--line, rgba(255,255,255,0.12))",
+          border: "1px solid var(--hairline)",
           background: "transparent",
           color: "var(--text-body, #C6C0B8)",
           cursor: "pointer",
@@ -149,28 +149,26 @@ function AuthedLayout() {
     <div data-obsidian>
       <WorkspaceProvider>
         <FlowModeProvider>
-          <ToastProvider>
-            <AskProvider>
-              {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
-              <BackendHealthBanner />
-              <BillingBanner />
-              <CommandPalette />
-              {!isOnboarding && <GotoShortcuts />}
-              {isOnboarding ? (
+          <AskProvider>
+            {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
+            <BackendHealthBanner />
+            <BillingBanner />
+            <CommandPalette />
+            {!isOnboarding && <GotoShortcuts />}
+            {isOnboarding ? (
+              <Outlet />
+            ) : (
+              <AppShell>
                 <Outlet />
-              ) : (
-                <AppShell>
-                  <Outlet />
-                </AppShell>
-              )}
-              {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
+              </AppShell>
+            )}
+            {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
                   rail destination - mounted once, floats over the whole shell. */}
-              {!isOnboarding && <AskPanel />}
-              {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
+            {!isOnboarding && <AskPanel />}
+            {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
                   page, the cross-surface countdown while a block runs (Option F). */}
-              {!isOnboarding && <FocusDock />}
-            </AskProvider>
-          </ToastProvider>
+            {!isOnboarding && <FocusDock />}
+          </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>
     </div>

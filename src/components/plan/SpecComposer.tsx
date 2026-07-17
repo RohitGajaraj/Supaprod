@@ -51,7 +51,7 @@ export function SpecComposer() {
       <span
         style={{
           display: "block",
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: 12.5,
           color: "var(--text-muted)",
         }}
@@ -78,7 +78,7 @@ export function SpecComposer() {
           }}
         />
         <Button
-          variant="primary"
+          variant="accent"
           disabled={draft.isPending || !intent.trim()}
           loading={draft.isPending}
           onClick={submit}

@@ -86,7 +86,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
     <div className="space-y-5">
       <header>
         <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Meeting</div>
-        <h2 className="mt-1 font-display text-2xl tracking-tight">{m.title}</h2>
+        <h2 className="mt-1 text-heading-24 tracking-tight">{m.title}</h2>
         <p className="text-xs text-muted-foreground mt-1">
           {m.stakeholder ?? "No stakeholder"} · {new Date(m.start_at).toLocaleString()}
         </p>
@@ -100,7 +100,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
 
       <section className="bento p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-sm">Transcript</h3>
+          <h3 className="text-heading-16 text-sm">Transcript</h3>
           <div className="flex gap-2">
             <button
               onClick={() => save.mutate()}
@@ -115,7 +115,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
                 extract.mutate(false);
               }}
               disabled={extract.isPending || !transcript.trim()}
-              className="btn-agentic rounded-lg px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 bg-ember text-background hover:opacity-90 disabled:opacity-60"
             >
               <Wand2 className="h-3 w-3" /> {extract.isPending ? "Extracting…" : "Extract"}
             </button>
@@ -138,7 +138,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
       ) : (
         <div className="space-y-4">
           <div className="bento p-4">
-            <h3 className="font-display text-sm mb-2">Summary</h3>
+            <h3 className="text-heading-16 text-sm mb-2">Summary</h3>
             <p className="text-sm leading-relaxed">
               {preview.summary || (
                 <span className="text-muted-foreground italic">No summary yet</span>
@@ -147,7 +147,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
           </div>
 
           <div className="bento p-4">
-            <h3 className="font-display text-sm mb-3 flex items-center gap-1.5">
+            <h3 className="text-heading-16 text-sm mb-3 flex items-center gap-1.5">
               <ListTodo className="h-3.5 w-3.5 text-cyan-300" /> Action items{" "}
               <span className="text-[11px] text-muted-foreground">
                 {preview.action_items.length}
@@ -172,7 +172,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
           </div>
 
           <div className="bento p-4">
-            <h3 className="font-display text-sm mb-3 flex items-center gap-1.5">
+            <h3 className="text-heading-16 text-sm mb-3 flex items-center gap-1.5">
               <GitBranch className="h-3.5 w-3.5 text-violet-300" /> Decisions{" "}
               <span className="text-[11px] text-muted-foreground">{preview.decisions.length}</span>
             </h3>
@@ -193,7 +193,7 @@ export function MeetingDetailBody({ id }: { id: string }) {
 
           {preview.open_questions.length > 0 && (
             <div className="bento p-4">
-              <h3 className="font-display text-sm mb-3 flex items-center gap-1.5">
+              <h3 className="text-heading-16 text-sm mb-3 flex items-center gap-1.5">
                 <HelpCircle className="h-3.5 w-3.5 text-amber-300" /> Open questions
               </h3>
               <ul className="space-y-1.5">

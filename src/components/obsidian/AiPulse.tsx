@@ -41,7 +41,7 @@ export function AiPulse({
       <span
         className={waiting ? "ai-pulse-text waiting" : "ai-pulse-text"}
         style={{
-          fontFamily: "var(--font-ui)",
+          fontFamily: "var(--font-sans)",
           fontSize: size,
           fontWeight: 500,
           letterSpacing: "0.01em",

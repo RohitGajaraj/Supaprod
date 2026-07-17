@@ -194,7 +194,12 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
             This eval suite doesn't exist in this workspace; it may have been deleted.
           </p>
-          <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={back}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 12 }}
+            onClick={back}
+          >
             Back · all eval suites
           </button>
         </div>
@@ -707,7 +712,11 @@ function CaseList({
             />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFormOpen(false)}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setFormOpen(false)}
+            >
               Dismiss
             </button>
             <button

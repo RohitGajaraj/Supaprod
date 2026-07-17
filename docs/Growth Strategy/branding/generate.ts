@@ -106,8 +106,12 @@ const files: Record<string, string> = {
   "cadence-mark-dark.svg": svg(markInner({ spiral: SILVER, glow: C.white })),
   "cadence-mark-light.svg": svg(markInner({ spiral: GRAPHITE, glow: null })),
   "cadence-mark-gradient.svg": svg(markInner({ spiral: GRAD, glow: C.ember })),
-  "cadence-mark-mono-white.svg": svg(markInner({ spiral: { kind: "solid", color: C.white }, mono: C.white })),
-  "cadence-mark-mono-black.svg": svg(markInner({ spiral: { kind: "solid", color: C.black }, mono: C.black })),
+  "cadence-mark-mono-white.svg": svg(
+    markInner({ spiral: { kind: "solid", color: C.white }, mono: C.white }),
+  ),
+  "cadence-mark-mono-black.svg": svg(
+    markInner({ spiral: { kind: "solid", color: C.black }, mono: C.black }),
+  ),
   "cadence-mark-animated.svg": svg(markInner({ spiral: SILVER, glow: C.white, animated: true })),
 };
 

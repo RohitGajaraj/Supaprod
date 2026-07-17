@@ -27,24 +27,24 @@ The three assets no competitor can copy this week, which every idea exploits:
 
 ## 3. The ranked board (16 ideas)
 
-| #   | Idea                                                                              | Reach | Cost    | Effort | Risk | P(hit) | EV rank |
-| --- | --------------------------------------------------------------------------------- | ----- | ------- | ------ | ---- | ------ | ------- |
-| 1   | **The Launch Ledger** — the launch runs as a live, public Cadence mission         | 4     | $0      | M      | low  | 55%    | **1**   |
-| 2   | **The Decision Autopsy engine** — public Critic teardowns + submit-your-bet hook  | 5     | $0      | M      | med  | 45%    | **2**   |
-| 3   | **"It built part of itself" receipts drop** — the opening shot                    | 4     | $0      | S      | low  | 50%    | **3**   |
-| 4   | **Founder week arc** — "agents ran my product org for a week", daily receipts     | 4     | $0      | S/day  | low  | 45%    | **4**   |
-| 5   | **Micro-influencer personal teardowns** — 10 PM voices get THEIR product red-teamed | 4   | $0      | M      | med  | 40%    | **5**   |
-| 6   | **The failure-path GIF** — wrong call, one-key revert, receipt lands              | 3     | $0      | S      | low  | 60%    | 6 (asset, feeds all) |
-| 7   | **Skin-in-the-game waitlist** — position jumps for submitting a real product bet  | 3     | $0      | M      | low  | 50%    | 7 (mechanic, feeds #2) |
-| 8   | **Worst-decision challenge** — community submits, Critic autopsies the top 10     | 4     | $0      | M      | med  | 35%    | 8       |
-| 9   | **"The ICE table that never learns"** — interactive static-score vs ledger page   | 3     | $0      | M      | low  | 35%    | 9       |
-| 10  | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave       | 3     | $0      | S      | low  | 35%    | 10      |
-| 11  | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3   | $0      | S      | low  | 30%    | 11      |
-| 12  | **The Receipts Page** — live dogfood counters (2,162 AI events, 133 missions...)  | 2     | $0      | S      | low  | 45%    | 12      |
-| 13  | **ARD open spec** — "ADR for product decisions", GitHub spec, Cadence as reference | 4    | $0      | M      | low  | 25% this week | 13 (compounds later) |
-| 14  | **X Spaces / LinkedIn Live** — "watch the ledger live" AMA, day 6-7               | 2     | $0      | S      | low  | 30%    | 14      |
-| 15  | **Decision-debt calculator** — 6-question free tool, share-your-score             | 3     | $0      | L      | low  | 25%    | 15 (build post-wave) |
-| 16  | **PM-course cohort seeding** — Reforge/Product School alumni workshop offers      | 2     | $0      | S      | low  | 30%    | 16 (slow burn, start now) |
+| #   | Idea                                                                                | Reach | Cost | Effort | Risk | P(hit)        | EV rank                   |
+| --- | ----------------------------------------------------------------------------------- | ----- | ---- | ------ | ---- | ------------- | ------------------------- |
+| 1   | **The Launch Ledger** — the launch runs as a live, public Cadence mission           | 4     | $0   | M      | low  | 55%           | **1**                     |
+| 2   | **The Decision Autopsy engine** — public Critic teardowns + submit-your-bet hook    | 5     | $0   | M      | med  | 45%           | **2**                     |
+| 3   | **"It built part of itself" receipts drop** — the opening shot                      | 4     | $0   | S      | low  | 50%           | **3**                     |
+| 4   | **Founder week arc** — "agents ran my product org for a week", daily receipts       | 4     | $0   | S/day  | low  | 45%           | **4**                     |
+| 5   | **Micro-influencer personal teardowns** — 10 PM voices get THEIR product red-teamed | 4     | $0   | M      | med  | 40%           | **5**                     |
+| 6   | **The failure-path GIF** — wrong call, one-key revert, receipt lands                | 3     | $0   | S      | low  | 60%           | 6 (asset, feeds all)      |
+| 7   | **Skin-in-the-game waitlist** — position jumps for submitting a real product bet    | 3     | $0   | M      | low  | 50%           | 7 (mechanic, feeds #2)    |
+| 8   | **Worst-decision challenge** — community submits, Critic autopsies the top 10       | 4     | $0   | M      | med  | 35%           | 8                         |
+| 9   | **"The ICE table that never learns"** — interactive static-score vs ledger page     | 3     | $0   | M      | low  | 35%           | 9                         |
+| 10  | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave         | 3     | $0   | S      | low  | 35%           | 10                        |
+| 11  | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3     | $0   | S      | low  | 30%           | 11                        |
+| 12  | **The Receipts Page** — live dogfood counters (2,162 AI events, 133 missions...)    | 2     | $0   | S      | low  | 45%           | 12                        |
+| 13  | **ARD open spec** — "ADR for product decisions", GitHub spec, Cadence as reference  | 4     | $0   | M      | low  | 25% this week | 13 (compounds later)      |
+| 14  | **X Spaces / LinkedIn Live** — "watch the ledger live" AMA, day 6-7                 | 2     | $0   | S      | low  | 30%           | 14                        |
+| 15  | **Decision-debt calculator** — 6-question free tool, share-your-score               | 3     | $0   | L      | low  | 25%           | 15 (build post-wave)      |
+| 16  | **PM-course cohort seeding** — Reforge/Product School alumni workshop offers        | 2     | $0   | S      | low  | 30%           | 16 (slow burn, start now) |
 
 Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply the top 5.
 
@@ -59,6 +59,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 **Why it can pop.** Nobody can copy it (it requires the product), it produces fresh content every day of the wave for free, and it converts the strongest skeptic objection ("show me it actually working") into the landing page itself. Every other post in the wave links back to it, so attention compounds instead of evaporating.
 
 **Execution.**
+
 1. Day 0-1: create the "Launch Cadence publicly" mission in the founder workspace. Seed it with the real launch decisions already made (channel ranking, copy picks, the 7-day plan itself).
 2. Day 1-2: build the public read-only page (reuse the Trust Ledger share-link surface, [PROVEN]; a public route with workspace-scoped read-only data). Waitlist CTA pinned top and bottom: "This is your product org in 90 days. Join the waitlist."
 3. Day 2: founder reviews every visible entry (nothing confidential, nothing about named third parties).
@@ -78,6 +79,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 **Why it can pop.** PM Twitter/LinkedIn runs on hindsight takes about famous product decisions; we bring an artifact instead of an opinion, and the artifact demonstrates the product. The submit-your-bet mechanic converts lurkers into discovery data and design-partner pipeline: everyone who submits a real bet has self-identified as feeling the pain.
 
 **Execution.**
+
 1. Day 0-1: pick 3 cases with rich PUBLIC paper trails (candidates: a well-documented pricing change, a public API deprecation walk-back, a publicly postmortemed rewrite). Rule: autopsy the DECISION, cite only public sources, never individuals, no recent layoffs or tragedies, tone = respectful engineering analysis, each ends with "what a ledger would have caught" and "what they got right."
 2. Day 1-2: run the Critic on each for real (the teardowns must be genuine product output, [PROVEN]); founder edits for taste and fairness; build the teardown share pages; wire the submit-a-bet form + waitlist position logic.
 3. Day 4: Autopsy #1 fires as an X thread + LinkedIn post + the share page. Day 5: #2. Day 6 or the listing week: #3, based on reception.
@@ -96,6 +98,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 **Why it can pop.** "The product built itself" is the single most screenshot-able true sentence we own, the engineer-envy frame travels in both the builder and PM communities, and it sets the tone for everything after: this account posts receipts, not demos.
 
 **Execution.**
+
 1. Day 0-1: pick the best real merged PR from the gated path; re-record the trace walkthrough cleanly (real data, no staging); cut to under 90 seconds; end frame = Launch Ledger URL + waitlist.
 2. Day 2: founder writes the thread in his own voice (8-10 posts: the problem, the receipt video, what's real today with live numbers, the honest limitations, the waitlist ask). No superlatives; the numbers do the talking.
 3. Day 3, morning US time: fires on X and LinkedIn simultaneously; seeded into 2-3 communities where self-posting is allowed (per channel playbook 01, respecting each community's rules); pinned to profile all week.
@@ -113,6 +116,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 **Why it can pop.** Build-in-public is saturated with "what I shipped"; nobody posts "what my agents decided while I slept, including the mistake." The honesty compounds: by day 4, replies start asking "can it do this for MY backlog," which is the design-partner funnel doing its own work.
 
 **Execution.**
+
 1. Each morning days 3-7: screenshot the real brief, pick ONE interesting decision + ONE imperfection, write 4-6 sentences in the founder's voice, link the Launch Ledger.
 2. Day 5: the mid-arc twist post, the best wrong call of the week and its revert receipt, paired with the failure-path GIF.
 3. Day 7: recap with the week's totals (missions, decisions, reverts, waitlist count if strong) + "25 design-partner seats, first sessions are with me" ask.
@@ -130,6 +134,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 **Why it can pop.** Ten genuine reactions from trusted PM voices beats any amount of self-posting, and each teardown doubles as a product demo in the recipient's own context. Worst case: 10 high-quality design-partner conversations with people who influence thousands of our exact ICP.
 
 **Execution.**
+
 1. Day 0-1: build the list of 10 (criteria above; no mega-accounts, they don't reply); founder approves.
 2. Day 1-2: run and edit 10 teardowns (batch through the product, founder QA for taste; ~30 min each after the first).
 3. Day 2-3: founder sends 10 personal DMs/emails: "I built an agent that red-teams product bets. I ran it on [their public bet]. Here's what it found, thought you'd want to see it either way. If it's wrong, tell me where." No ask to share. Optional PS: early access link.
@@ -158,13 +163,13 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 
 ## 6. The firing order (days 3-7 at a glance)
 
-| Day | Main fire                                        | Supporting                                      |
-| --- | ------------------------------------------------ | ----------------------------------------------- |
-| 3   | Receipts drop (Brief 3) + Launch Ledger live     | failure-path GIF first-reply; arc post 1        |
-| 4   | Decision Autopsy #1 (Brief 2)                    | arc post 2; meme 1; respond to every reply      |
-| 5   | Arc twist post (the wrong call) + Autopsy #2     | worst-decision challenge opens; meme 2          |
-| 6   | Influencer teardown reactions surface (Brief 5)  | ICE-table page OR hold for listing week; Spaces |
-| 7   | Week-in-receipts recap + design-partner ask      | challenge reminder; recap pinned                |
+| Day | Main fire                                       | Supporting                                      |
+| --- | ----------------------------------------------- | ----------------------------------------------- |
+| 3   | Receipts drop (Brief 3) + Launch Ledger live    | failure-path GIF first-reply; arc post 1        |
+| 4   | Decision Autopsy #1 (Brief 2)                   | arc post 2; meme 1; respond to every reply      |
+| 5   | Arc twist post (the wrong call) + Autopsy #2    | worst-decision challenge opens; meme 2          |
+| 6   | Influencer teardown reactions surface (Brief 5) | ICE-table page OR hold for listing week; Spaces |
+| 7   | Week-in-receipts recap + design-partner ask     | challenge reminder; recap pinned                |
 
 Every post carries exactly one CTA (waitlist or design-partner call, never both), and every asset links back to the Launch Ledger. If any single fire catches (2x expected numbers), the next day's plan bends toward it: feed the fire that's burning, don't light the next one on schedule.
 

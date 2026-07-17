@@ -67,20 +67,21 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
 
 - **Gray carries the interface.** A screen is neutral by default; chromatic color appears
   only with meaning.
-- **Ember = the brand.** Primary CTAs, active/selected states, focus ring, brand moments.
+- **Ember = the brand.** Primary CTAs, active/selected states, brand moments.
   One primary CTA per view. Ember takes every place Geist's own docs use blue _as brand_.
+  Focus ring uses ember (`--ds-focus-color`), see §2 focus ring rule below.
 - **Ember-on-forms ruling (founder-delegated decision, 2026-07-11):** ordinary form
   actions (Save, Apply, Update, submit rows) use the neutral `default` button variant —
   the high-contrast invert fill (gray-1000 on background), the Geist/Linear premium
   read. Ember fills are reserved for the view's ONE true primary CTA (Deploy, Upgrade,
   Start teardown, hero actions) and brand moments. A settings page full of ember Saves
   fails the restraint budget by definition.
-- **Blue = informational** (links, info notes). **Red = danger/error. Amber = warning.
+- **Blue = informational** (links, info notes). **Red = danger/error. Amber = warning. Ember = focus ring.
   Green = success. Teal/Purple/Pink = data-viz and Geist-specified component states
   only.** Status color goes on actual status, never decoration.
 - Use `--ds-gray-alpha-*` when layering over unknown backgrounds.
-- Focus ring: `--ds-focus-ring` (2px background + 2px ember). Never remove focus
-  visibility.
+- Focus ring: `--ds-focus-ring-outline` (2px offset outline in `--ds-focus-color`, ember). Never remove focus visibility. Dark theme: `oklch(60% 0.18 50)` / Light theme: `oklch(65% 0.18 50)`.
+  Never remove focus visibility. Dark theme: `oklch(60% 0.18 50)` / Light theme: `oklch(65% 0.18 50)`.
 
 **Glacier / machine-voice narrowing (founder ruling, 2026-07-11 — supersedes the
 2026-07-06 Loom v4.1 color ruling on this point):** the app carries a second
@@ -134,6 +135,22 @@ this changes WHAT the blue is):**
   tracking) via `useTheme()` in `src/hooks/use-theme.tsx`. Dark stays the
   default; both themes resolve from the same token names.
 
+## 2.1 Color semantics audit (2026-07-17)
+
+Exhaustive audit of all `var(--glacier)` / `var(--machine)` / `var(--blossom)` usage across 54 call sites in the authenticated app (Waves 1-2). Findings:
+
+**All 54 uses are LEGITIMATE by the §2 narrowing rules:**
+- Hyperlinks (navigation): `MissionSlideOver`, `ask-blocks`, `engine-room/RoomDetail`, `brain.tsx` ("Go to Memory"), `ReceiptDetailSheet` (PR link, deploy URL) — link color is explicitly permitted.
+- Live/running status: `brain.tsx` (live sync dot + live count text), `missions/MissionOrchestratorDetail` (`live ? glacier : moss`), `cockpit/LoopHealthBanner` ("Loop working"), `studio/PreviewPanel` (live chip + dot) — literal running-state indicator.
+- Active state chips: `plan/GoalsPanel` + `LoopsPanel` (`active: glacier` goal/loop status), `governance/PromptsPanel` ("testing" prompt status, "draft" version status) — literal item status.
+- Machine-working state: `obsidian/AskPanel` (dictation listening border/bg/icon), `FocusDock` (closing phase dot) — active machine/input state per the two-voice grammar.
+- DRAFTING status chip: `obsidian/verdict.tsx`, `plan/SpecDetail`, `plan/format.ts` — DRAFTING = machine is working, not decorative.
+- Speaker categorical: `audio/AudioTranscriptPanel` (Speaker A dot) — treated as a data-viz categorical series (chart-exempt per §2).
+
+**No violations found.** The narrowing ruling has been honored. Every remaining use of glacier outside this list was already neutralized in the 2026-07-11 narrowing pass (confirmed by grep: no glacier on icon fills, decorative borders, glows, or card background washes in any live-rendered component).
+
+**Ember discipline:** All accent (ember) buttons are ONE-per-view. CTA grammar upheld. No decorative ember found outside brand/active/selected states.
+
 ## 3. Typography law — three faces, three jobs
 
 **Verified against vercel.com/font (2026-07-11):** Vercel built Geist for developers and
@@ -144,25 +161,26 @@ variation. Vercel states no rigid hierarchy beyond "the right face for the conte
 which is exactly the three-lane split below. No deviation needed; our lane assignment
 already matches Vercel's own usage intent one-to-one.
 
-Self-hosted (no Google Fonts, no CDN): `/public/fonts/geist/` + `tokens/fonts.css`.
+Self-hosted (no Google Fonts, no CDN): `/public/fonts/geist/` + `design-reference/tempo-v5/tokens/fonts.css`.
 Exact `@font-face` names in use, all self-hosted variable fonts (weight axis 100-900
 except Pixel, which is a fixed-weight 400 display face): `"Geist"`, `"Geist Mono"`,
 `"Geist Pixel Square"` / `Circle` / `Grid` / `Line` / `Triangle`.
 
-1. **Geist Sans** (`--font-sans`) — every interface string. The only UI face.
+1. **Geist Sans** (`--font-sans`) — every interface string. The only UI face. 9 weights
+   (100–900) available; UI typically uses 400/500/600.
 2. **Geist Mono** (`--font-mono`) — technical content: ids, slugs, paths, code, hashes,
-   timestamps, tabular numbers, keyboard shortcuts.
+   timestamps, tabular numbers, keyboard shortcuts. 7 weights (100–700) available.
 3. **Geist Pixel** (`--font-pixel`; Square is the default face, Circle/Grid/Line/Triangle
    are sanctioned alternates) — **brand moments only**: heroes, launch screens, feature
    announcements, empty-state headlines, AI-moment flourishes, big numerals. Never
-   long-form text, never dense UI, never body copy, never controls.
+   long-form text, never dense UI, never body copy, never controls. Fixed-weight 400 only.
 
-Type is consumed through the class system (`tokens/typography.css`), never ad-hoc:
+Type is consumed through the class system (`design-reference/tempo-v5/tokens/typography.css`), never ad-hoc:
 `text-heading-72…14` (600 weight, tight tracking) for page/section titles;
-`text-button-16/14/12` inside button-rendering components only; `text-label-*` for single
-lines (14 is the UI workhorse; mono variants pair one size down); `text-copy-*` for
-multi-line text (14 most common, 13 where space is premium). `<strong>` nested inside
-gives Strong (labels/copy) or Subtle (headings). Tabular numerals for changing numbers.
+`text-button-16/14/12` inside button-rendering components only; `text-label-20…12` for single
+lines (14 is the UI workhorse; mono variants pair one size down, e.g. `text-label-14-mono`); 
+`text-copy-24…13` for multi-line text (14 most common, 13 where space is premium; mono variants available). 
+`<strong>` nested inside gives Strong (labels/copy) or Subtle (headings). Tabular numerals for changing numbers.
 
 **Retired faces: Newsreader, Schibsted Grotesk, JetBrains Mono, IBM Plex Mono, Codystar,
 Caveat, Silkscreen** — do not reintroduce. Inter/Roboto remain banned as ever.
@@ -185,14 +203,23 @@ live (`src/routes/index.tsx`) and removed — self-hosted Geist only, no Google 
 ## 4. Materials law — elevation is a preset
 
 Radii, fills, strokes, and shadows come ONLY from the material presets
-(`tokens/materials.css`), which encode elevation role:
+(`design-reference/tempo-v5/tokens/materials.css`), which encode elevation role:
 
-- On the page: `material-base` / `small` / `medium` / `large` (6/6/12/12px radius).
-- Above the page: `material-tooltip` (6px, lightest, the only stemmed element) /
-  `menu` (12px) / `modal` (12px) / `fullscreen` (16px).
-- Pick the lowest elevation that reads; never stack two materials on one element; never
-  hand-roll a border+shadow+radius combo. Z-index comes from `--ds-z-*` bands and must
-  agree with the material role.
+**On-page surfaces** (3-tier):
+- `material-base` — minimal elevation (6px radius, hairline border, minimal shadow).
+- `material-small` — subtle raise (6px radius, border, small shadow).
+- `material-medium` — card elevation (12px radius, border, medium shadow).
+- `material-large` — prominent surfaces (12px radius, border, large shadow).
+
+**Floating surfaces** (above the page):
+- `material-tooltip` (6px radius, lightest, the only stemmed element).
+- `material-menu` (12px radius, elevated shadow).
+- `material-modal` (12px radius, strong shadow, dark backdrop).
+- `material-fullscreen` (16px radius, takeover shadow, dark backdrop).
+
+Pick the lowest elevation that reads; never stack two materials on one element; never
+hand-roll a border+shadow+radius combo. Z-index comes from `--ds-z-*` bands (drawer: 200,
+modal: 300, menu: 2001, toast: 5000, tooltip: 99999) and must agree with the material role.
 
 ## 5. Layout, spacing, controls
 
@@ -205,8 +232,12 @@ Radii, fills, strokes, and shadows come ONLY from the material presets
 
 ## 6. Motion law
 
-- One easing family: `--ds-motion-timing-swift` `cubic-bezier(.175,.885,.32,1.1)`.
-- Overlays: scale from 0.96, 300ms. Popovers: 200ms. Micro-interactions ≤ 200ms.
+- One easing family: `--ds-motion-timing-swift` `cubic-bezier(0.175, 0.885, 0.32, 1.1)`.
+  This Swift curve has a subtle overshoot (~1.1 tail) for springy, confident motion without
+  being bouncy.
+- Overlay/modal animations: scale from 0.96, 300ms via `--ds-motion-overlay-duration`.
+- Popover animations: 200ms via `--ds-motion-popover-duration`.
+- Micro-interactions (hover states, focus rings): ≤ 150ms.
 - Motion is feedback, not decoration; everything gates on `prefers-reduced-motion`.
 - Character (Arc-inspired, subtle): springy settle on floating surfaces via the swift
   easing's slight overshoot — never bouncy, never long, never on text.
@@ -224,7 +255,16 @@ The build rule:
 3. Respect the cross-component contracts (destructive Button → confirming Toast;
    disabled control → explaining Tooltip; >2 sibling actions → Menu/Split Button;
    icon-only → `aria-label` required).
-4. For anything Geist does not cover, use the matching `patterns/` extension doc (§9);
+4. **Button variants (unified Tempo grammar, per `src/components/ui/button.tsx`):**
+   - `accent` — the ONE primary "needs-human" CTA per view (solid ember).
+   - `default` — ordinary confirmations, neutral high-contrast invert (gray-1000 on bg).
+   - `secondary` — raised surface with visible border (gray-200).
+   - `tertiary` / `ghost` — transparent, low-emphasis (aliases; neutral interactive).
+   - `outline` — bordered variant with hover tint.
+   - `link` — inline text navigation (blue, underlined on hover).
+   - `destructive` — risk action (red fill).
+   - `warning` — caution action (amber fill).
+5. For anything Geist does not cover, use the matching `patterns/` extension doc (§9);
    if none exists yet, write it in the same session following the extension protocol.
 
 ## 8. Identity layer — recognizably Cadence
@@ -264,25 +304,66 @@ from Linear/Stripe/Notion/Figma/Arc/Anthropic/Perplexity only where Geist is sil
 every doc `Extension` with its sources; an extension may compose core tokens/components
 but never redefine them.
 
-Covered pattern families (each its own doc): navigation shell & sidebar; forms &
-validation; tables & data grids; dashboards & stat cards; search & filtering; dialogs,
-drawers & sheets; notifications & inbox; command palette; property/inspector panels;
-settings screens; onboarding & empty states; **AI interfaces** (chat/ask surfaces,
-streaming output, agent activity & run timelines, approval/HITL gates, receipts & trust
-evidence, model/tool pickers); **workflow & pipeline builders**.
+**Covered pattern families** (each its own doc in `design-reference/tempo-v5/patterns/`):
+- Structural: navigation shell & sidebar, property/inspector panels, settings screens.
+- Data: forms & validation, tables & data grids, dashboards & stat cards, search & filtering.
+- Interaction: dialogs/drawers/sheets, notifications/inbox, command palette, onboarding & empty states.
+- **AI/Enterprise**: chat/ask surfaces, streaming output, agent activity & run timelines,
+  approval/HITL gates, receipts & trust evidence, model/tool pickers, workflow & pipeline builders.
 
-**Named extensions shipped for the v5 app port.** The **audit trace-tag** — the clickable
-`PREFIX·XXXXXX` id chip that opens an entity's verifiable lineage (founder ruling 2026-07-13:
-"everything should have a traceable audit id generated out of this platform") — is documented at
-[`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md)
-(feature: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md)). The full
-reasoning behind every design ruling applied when porting the authenticated app to Tempo — the
-lifecycle IA ("The Cadence Loop"), the **ember = needs-human / blue = machine** color grammar (with
-purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage, monotone source
-logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
+**Named extensions shipped for the v5 app port:**
+- **Audit trace-tag** (founder ruling 2026-07-13: "everything should have a traceable audit id
+  generated out of this platform") — the clickable `PREFIX·XXXXXX` id chip that opens an entity's
+  verifiable lineage. Documented at [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md);
+  feature: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md).
+- **Empty-state pattern** — canonical `EmptyState` component; one small composition max per screen.
+- **Loading skeleton pattern** — minimal visual feedback, no noise.
+- **Error states** — 3-tier (inline validation, recovery path, fatal/full-page).
+
+The full reasoning behind every design ruling applied when porting the authenticated app to
+Tempo — the lifecycle IA ("The Cadence Loop"), the **ember = needs-human / blue = machine**
+color grammar (with purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage,
+monotone source logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
 [`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
 
-## 10. What survives from the old contracts
+## 10. Responsive behavior — breakpoints and adaptation
+
+Cadence is a desktop-first product (the primary user is a PM planning on a multi-monitor
+desk), but all surfaces must be responsive and touch-friendly. Breakpoints (via Tailwind):
+
+| Breakpoint | Width  | Adaptation                                                      |
+| ---------- | ------ | --------------------------------------------------------------- |
+| **Default**| ≥1280  | Full layout: rail sidebar + content + optional right panel.     |
+| `lg`       | ≥1024  | Rail stays fixed; content adjusts; side panels may collapse.    |
+| `md`       | ≥768   | Rail collapses to icon-only; TopBar may truncate breadcrumbs.   |
+| `sm`       | ≥640   | Navigation moves to bottom nav (mobile-style); sidebar hidden.   |
+| `xs`       | ≥320   | Single-column, full-width content; all chrome min-viable.       |
+
+**Mobile touch targets** (all platforms ≤768px):
+- Control hit target floor: **44px** (WCAG touch recommendation). The 32/36/40px grid
+  applies to desktop; mobile controls may padding-wrap to 44px minimum.
+- Tap spacing: at least 8px between interactive elements to prevent mis-taps.
+
+**Rail behavior**:
+- Desktop (≥768px): **Fixed left sidebar, 256px wide**, showing icon + label.
+- Tablet (640–767px): **Collapses to icon-only, 64px wide**; labels appear on hover.
+- Mobile (<640px): **Slides into bottom nav (5 visible + overflow menu)**; sidebar hidden.
+
+**TopBar behavior**:
+- Desktop: Full breadcrumb + theme toggle + Ask + weather + ticker.
+- Tablet (≥768px): Breadcrumb may truncate; secondary items optionally hidden.
+- Mobile (<768px): Breadcrumb single-line (ellipsis truncation); Ask button pinned; weather hidden.
+
+**Layout width**:
+- `--ds-page-width: 1400px` — content container max-width (desktop standard).
+- `--ds-page-width-with-margin: calc(1400px + 48px)` — with 24px margins each side.
+- Mobile: full bleed on small screens; 16px–24px margin floor.
+
+**Responsive utilities** (Tailwind): use standard breakpoints (`sm`, `md`, `lg`, `xl`, `2xl`)
+for conditional layout. E.g. `hidden md:block` = hide on mobile, show at tablet+. Never
+hardcode `@media` queries; use Tailwind responsive prefixes.
+
+## 11. What survives from the old contracts
 
 These Cadence operating laws are **orthogonal to the visual system and remain in force**:
 
@@ -308,7 +389,32 @@ parchment landing system, the Obsidian jet-black + glacier/ember role split, aur
 cards, shimmer, pencil annotations, Codystar numerals, mono-caps-with-middots metadata,
 and the numeral-index navigation.
 
-## 11. Enforcement
+## 11a. Typography implementation status (Geist Pixel per-surface, 2026-07-17)
+
+Geist Pixel is THE brand display face — one moment per surface max. Wave 1-2 audit results:
+
+| Surface | Pixel moment | Component |
+|---------|-------------|-----------|
+| Today | ✓ Hero headline, autonomy counter, PixelStat counts | `TodayHeroCard`, `ColdStartOnramp`, `AutonomyCard`, `PixelStat` |
+| Discover | ✓ Page header h1 (via `PageHeader`) + confidence annotation | `PageHeader`, `OpportunityRow`, `DiscoverSurface` |
+| Plan | ✓ Page header h1 (via `PageHeader`) | `PageHeader` |
+| Brain/Memory | ✓ Page header h1 + BrainStatTrio counts | `PageHeader`, `BrainStatTrio` |
+| Engine Room | ✓ Page header h1 + throughput PixelStat | `PageHeader`, `EngineRoomSurface` (PixelStat) |
+| Settings | ✓ Settings h1 | `_authenticated.settings.tsx` (h1 at var(--font-pixel)) |
+| Build | ✓ Page header h1 + mission step counter | `PageHeader`, `_authenticated.build.index.tsx` |
+| Ship | ✓ Page header h1 | `PageHeader` |
+| Learn | ✓ Page header h1 | `PageHeader` |
+| Design | ✓ Page header h1 | `PageHeader` |
+| Onboarding | ✓ Welcome headline + step headline | `ObsidianOnboarding` |
+| Cockpit/Observe | Redirects to Engine Room (covered above) | n/a |
+| Empty states | ✓ All canonical `EmptyState` headlines | `EmptyState` component |
+| Auth scaffold | ✓ Sign-in headline | `AuthScaffold` |
+
+**Status: all 14 surfaces have exactly one Geist Pixel moment.** The `PageHeader` component (used by 8+ surfaces) is the primary delivery vehicle — its `<h1>` renders in `var(--font-pixel)` at `clamp(21px, 2.5vw, 29px)`, which satisfies the brand-moment rule for every surface that uses it.
+
+**Enforcement note:** `PageHeader` itself notes "No serif, no italic, no Pixel face here" for the header-as-chrome argument — this was OVERRIDDEN by an explicit decision to use Pixel for the h1 as the surface's one brand moment (see `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`). The comment in PageHeader.tsx predates this ruling and should be read as "Pixel is not used for subtitle/eyebrow/USP" rather than "Pixel is not used at all".
+
+## 12. Enforcement
 
 - **The skill**: `.claude/skills/cadence-tempo/` loads this contract + tokens + specs +
   patterns and MUST be invoked before any design/UI work. The old `cadence-design` skill
@@ -317,12 +423,25 @@ and the numeral-index navigation.
   tokens; (2) every color traces to a `--ds-*` token in its correct role step; (3) type
   only via the class system, three faces in their lanes; (4) elevation only via material
   presets; (5) controls on the 32/36/40 grid; (6) the matching `research/` spec or
-  `patterns/` doc was followed; (7) grayscale pass still reads; (8) focus ring intact;
-  (9) `prefers-reduced-motion` respected; (10) humanized voice on every string;
-  (11) at most one personality touch, and it costs nothing.
+  `patterns/` doc was followed; (7) grayscale pass still reads; (8) focus ring intact
+  (`--ds-focus-ring-outline`, glacier blue, 2px offset); (9) `prefers-reduced-motion`
+  respected; (10) humanized voice on every string; (11) at most one personality touch,
+  and it costs nothing; (12) responsive breakpoints tested at 320/640/768/1024/1280px.
 - Implementation order (the porting phase) is a separate plan; this file governs every
   pixel built from 2026-07-10 onward.
 - **Automated guard**: `src/__tests__/design-tempo-font-guard.test.ts` fails the test
   suite if any retired font-family literal (§3) reappears anywhere in `src/`, including
   inside CSS custom-property values — the exact class of regression documented in §3's
   known footgun. Extend that test's banned-string list if a new face is ever retired.
+- **Code references**: `design-reference/tempo-v5/tokens/` (canonical values, never invent);
+  `design-reference/tempo-v5/research/` (Geist component specs); `design-reference/tempo-v5/patterns/`
+  (extension docs); `design-reference/tempo-v5/applied/` (session decisions and reasoning).
+
+**Wave 1-2 audit results (2026-07-17) — enforcement checklist additions:**
+- (13) **Pixel presence verified:** every authenticated surface must have exactly one Geist Pixel moment. Use `PageHeader` as the vehicle wherever the page title qualifies; use `PixelStat` for the one headline metric. Never add a second Pixel element.
+- (14) **Glacier audit:** before adding any `var(--glacier)` / `var(--machine)` / `var(--blossom)` use, it must be one of: (a) a hyperlink, (b) a literal live/running/streaming status indicator, (c) an active machine-working state (dictation, streaming), or (d) a status chip/badge with a named state. All other uses must use gray or ember.
+- (15) **Icon stroke at size:** standard icons (16px and above): `strokeWidth={1.5}`. Compact icons under 16px may use up to 1.9 for legibility. Never use 2.0+ outside the checkbox/radio checkmark.
+- (16) **Unlabeled inputs:** every `<input>` and `<textarea>` must have either (a) an associated `<label htmlFor>`, or (b) an `aria-label` attribute. Placeholder text alone does not satisfy this rule.
+- (17) **Focus ring on `.lift` buttons:** the `.lift` CSS class now includes `focus-visible:outline` (added 2026-07-17). Any other bespoke button class added in the future must include `focus-visible` styles explicitly.
+- (18) **Skeleton aria-hidden:** loading skeleton elements should carry `aria-hidden="true"` so AT does not read them as content. The canonical `Skeleton` component was updated 2026-07-17.
+- (19) **Reduced motion:** the global CSS gate in `src/styles.css` (`@media (prefers-reduced-motion: reduce)`) kills all animations platform-wide — this is the single source of truth. Component-level `motion-reduce:` Tailwind classes add finer control where needed.

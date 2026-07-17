@@ -60,7 +60,7 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
           <span
             className="block"
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 600,
               color: "var(--text-primary)",
               fontSize: "12px",
@@ -71,7 +71,7 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
           <span
             className="mt-1 block"
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               color: "var(--text-body)",
               fontSize: "12px",
               lineHeight: 1.5,

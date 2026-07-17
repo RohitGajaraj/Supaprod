@@ -9,13 +9,7 @@
 // bansuri flute, and a bass-rich heartbeat. Generated via ElevenLabs sound
 // effects.
 export type SoundPreset =
-  | "ocean"
-  | "monsoon"
-  | "bansuri"
-  | "forest"
-  | "heartbeat"
-  | "fireplace"
-  | "off";
+  "ocean" | "monsoon" | "bansuri" | "forest" | "heartbeat" | "fireplace" | "off";
 
 // endsAt === null means an open-ended session (no timer). A finite endsAt is an
 // epoch-millis deadline.

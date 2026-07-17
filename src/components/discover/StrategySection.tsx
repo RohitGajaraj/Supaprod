@@ -190,7 +190,7 @@ export function StrategySection() {
           </div>
         ) : briefsQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
               Could not load briefs
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -217,23 +217,20 @@ export function StrategySection() {
               <BriefRow key={b.id} brief={b} isLast={i === shown.length - 1} />
             ))}
             {briefs.length > VISIBLE_BRIEFS ? (
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowAllBriefs((v) => !v)}
-                className="loom-press w-full border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  width: "100%",
                   fontSize: 12.5,
                   fontWeight: 500,
-                  background: "transparent",
-                  borderRadius: "var(--radius-control)",
-                  padding: "8px 14px",
                 }}
               >
                 {showAllBriefs
                   ? "Show fewer"
                   : `Show ${briefs.length - VISIBLE_BRIEFS} more briefs`}
-              </button>
+              </Button>
             ) : null}
           </div>
         )}
@@ -249,7 +246,7 @@ export function StrategySection() {
           </div>
         ) : entitiesQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
               Could not load the watch list
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -278,24 +275,21 @@ export function StrategySection() {
               ),
             )}
             {entities.length > VISIBLE_ENTITIES ? (
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowAllEntities((v) => !v)}
-                className="loom-press w-full border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  width: "100%",
                   fontSize: 12.5,
                   fontWeight: 500,
-                  background: "transparent",
-                  borderRadius: "var(--radius-control)",
-                  padding: "8px 14px",
                   marginTop: "12px",
                 }}
               >
                 {showAllEntities
                   ? "Show fewer"
                   : `Show ${entities.length - VISIBLE_ENTITIES} more entities`}
-              </button>
+              </Button>
             ) : null}
           </div>
         )}

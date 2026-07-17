@@ -91,10 +91,7 @@ export async function refundAbandonedRunCredits(
       .maybeSingle();
     if ((run as { credits_refunded?: boolean } | null)?.credits_refunded) return;
 
-    const { data: aiEvents } = await admin
-      .from("ai_events")
-      .select("id")
-      .eq("surface_ref", runId);
+    const { data: aiEvents } = await admin.from("ai_events").select("id").eq("surface_ref", runId);
     const eventIds = ((aiEvents ?? []) as { id: string }[]).map((e) => e.id);
     if (eventIds.length === 0) {
       await admin.from("agent_runs").update({ credits_refunded: true }).eq("id", runId);

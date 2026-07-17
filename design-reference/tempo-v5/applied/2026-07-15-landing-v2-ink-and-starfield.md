@@ -19,16 +19,16 @@ Implementation: [`src/components/landing/LandingBackdrop.tsx`](../../../src/comp
 
 ## 2. Canvas and ink (the color codes)
 
-| Role | Value |
-| --- | --- |
-| Page canvas | `#0a0a0a` |
-| Panel / frame / card base (opaque, so the backdrop never bleeds through) | `#0d0d0e` |
-| Soft raised surface | `#18181b` |
-| Primary text | `#f4f4f5` (zinc-100) |
-| Body text | `#a1a1aa` (zinc-400) |
-| Muted / kicker text | `#71717a` (zinc-500), `#52525b` (zinc-600) |
-| Trace muted | `#8f959e` · trace faint `#565c66` |
-| Hairlines | `rgba(255,255,255,0.07-0.10)` · dividers `0.05` |
+| Role                                                                     | Value                                           |
+| ------------------------------------------------------------------------ | ----------------------------------------------- |
+| Page canvas                                                              | `#0a0a0a`                                       |
+| Panel / frame / card base (opaque, so the backdrop never bleeds through) | `#0d0d0e`                                       |
+| Soft raised surface                                                      | `#18181b`                                       |
+| Primary text                                                             | `#f4f4f5` (zinc-100)                            |
+| Body text                                                                | `#a1a1aa` (zinc-400)                            |
+| Muted / kicker text                                                      | `#71717a` (zinc-500), `#52525b` (zinc-600)      |
+| Trace muted                                                              | `#8f959e` · trace faint `#565c66`               |
+| Hairlines                                                                | `rgba(255,255,255,0.07-0.10)` · dividers `0.05` |
 
 Tailwind family: **zinc** (neutral). The blue-tinted slate family (`#94a3b8`, `#f8fafc`, `#475569`) and the parchment family (`#f6f2ea`, `#1f1b16`, `#8a8377`) are RETIRED on public pages.
 
@@ -36,14 +36,14 @@ Tailwind family: **zinc** (neutral). The blue-tinted slate family (`#94a3b8`, `#
 
 Color is meaning, never decoration (Tempo law, held):
 
-| Color | Value | Job |
-| --- | --- | --- |
-| **Ember** | `#FF6B2C` (hover `#ff8344`, borders `rgba(255,107,44,0.4)`) | The human voice: primary CTA (one per viewport), your GATE rows, keyboard focus, and founder-sanctioned keyword highlights (hero verbs on hover, "Product", "second brain", capability-list hover) |
-| **Machine blue** | `#6cb0f5` | The agent voice: agent chips, working states, machine labels, and DATA NUMERALS (live counters, matching the in-app PixelStat ruling) |
-| **Memory gold** | `#E8B44C` | The memory voice ONLY: MEMORY/Brain trace rows, the trace legend's "memory" word, the mark's core bead. **GOLD BAN (founder, late 2026-07-15): gold never appears on text, headings, key words, or metrics anywhere on the platform** — it survives exclusively inside the workflow's memory grammar. Counters were gold earlier that day; the ban supersedes. |
-| Success green | `#4ac26b` | Pass states only (CI green, shipped, graded) |
-| Failure red | `#e5534b` | Failure states only |
-| Build amber | `#d9a13c` | Build/working states only |
+| Color            | Value                                                       | Job                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ember**        | `#FF6B2C` (hover `#ff8344`, borders `rgba(255,107,44,0.4)`) | The human voice: primary CTA (one per viewport), your GATE rows, keyboard focus, and founder-sanctioned keyword highlights (hero verbs on hover, "Product", "second brain", capability-list hover)                                                                                                                                                             |
+| **Machine blue** | `#6cb0f5`                                                   | The agent voice: agent chips, working states, machine labels, and DATA NUMERALS (live counters, matching the in-app PixelStat ruling)                                                                                                                                                                                                                          |
+| **Memory gold**  | `#E8B44C`                                                   | The memory voice ONLY: MEMORY/Brain trace rows, the trace legend's "memory" word, the mark's core bead. **GOLD BAN (founder, late 2026-07-15): gold never appears on text, headings, key words, or metrics anywhere on the platform** — it survives exclusively inside the workflow's memory grammar. Counters were gold earlier that day; the ban supersedes. |
+| Success green    | `#4ac26b`                                                   | Pass states only (CI green, shipped, graded)                                                                                                                                                                                                                                                                                                                   |
+| Failure red      | `#e5534b`                                                   | Failure states only                                                                                                                                                                                                                                                                                                                                            |
+| Build amber      | `#d9a13c`                                                   | Build/working states only                                                                                                                                                                                                                                                                                                                                      |
 
 The trace legend states it on screen: `agent runs it · you gate it · memory sharpens it`.
 
@@ -66,30 +66,30 @@ Focus states (rauno double-ring): links/buttons `box-shadow: 0 0 0 2px #0a0a0a, 
 
 ## 6. The interaction grammar (what moves, and why)
 
-| Element | Behavior | Source ruling |
-| --- | --- | --- |
-| Hero mark | Backlit "eclipse" (white radial, never colored), revolves once per 150s, white glint travels the stroke 28s, satellite orbits 45s, drifts a few px toward the pointer | Founder: slow revolve + glow; brand rule "logo never rotates" explicitly overridden by founder for this slow treatment |
-| Hero verbs ("builds it. ships it. grades it. gets sharper.") | Hover to ember | Founder |
-| The gap beat | Terminal prompt `>` + ONLY the word "Devs" types (120ms/char, layout-stable invisible-sizer overlay); no prompt on the product line on purpose | Founder: only the word, not the sentence |
-| Walkthrough trace | Sequential rows 900ms/step; station spine lights with the trace, active station in machine blue; named agent chips (Scout, Strategist, Brain, Architect, Designer, Builder, Critic, Sentry) vs `you`; the LEARN/MEMORY rows carry a small revolving mark (9s) | Founder: named agents, spine progression, mark at learn |
-| Trace timestamps | Must be believable: sources accumulate through the morning (08:02, 08:47), flag 09:13, production 09:31; failure recovery ~15 min. Times live ONLY in the timeline, never in subtext | Founder |
-| Product frames | Shared-clock rAF (10s fill / 2.2s hold / 0.6s dissolve, never rewinds), 3D tilt (max 3.5/4.5deg, perspective 900), opacity-toggled silver edge-light on hover (never animate box-shadow) | Plan + rauno |
-| Reveals | CSS `heroRise` 0.9s `cubic-bezier(0.23,1,0.3,1)` above the fold (JS-free, SSR paints complete); IntersectionObserver below | Panel review |
-| Reduced motion | Every animation resolves to its finished, visible frame | Law |
+| Element                                                      | Behavior                                                                                                                                                                                                                                                      | Source ruling                                                                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Hero mark                                                    | Backlit "eclipse" (white radial, never colored), revolves once per 150s, white glint travels the stroke 28s, satellite orbits 45s, drifts a few px toward the pointer                                                                                         | Founder: slow revolve + glow; brand rule "logo never rotates" explicitly overridden by founder for this slow treatment |
+| Hero verbs ("builds it. ships it. grades it. gets sharper.") | Hover to ember                                                                                                                                                                                                                                                | Founder                                                                                                                |
+| The gap beat                                                 | Terminal prompt `>` + ONLY the word "Devs" types (120ms/char, layout-stable invisible-sizer overlay); no prompt on the product line on purpose                                                                                                                | Founder: only the word, not the sentence                                                                               |
+| Walkthrough trace                                            | Sequential rows 900ms/step; station spine lights with the trace, active station in machine blue; named agent chips (Scout, Strategist, Brain, Architect, Designer, Builder, Critic, Sentry) vs `you`; the LEARN/MEMORY rows carry a small revolving mark (9s) | Founder: named agents, spine progression, mark at learn                                                                |
+| Trace timestamps                                             | Must be believable: sources accumulate through the morning (08:02, 08:47), flag 09:13, production 09:31; failure recovery ~15 min. Times live ONLY in the timeline, never in subtext                                                                          | Founder                                                                                                                |
+| Product frames                                               | Shared-clock rAF (10s fill / 2.2s hold / 0.6s dissolve, never rewinds), 3D tilt (max 3.5/4.5deg, perspective 900), opacity-toggled silver edge-light on hover (never animate box-shadow)                                                                      | Plan + rauno                                                                                                           |
+| Reveals                                                      | CSS `heroRise` 0.9s `cubic-bezier(0.23,1,0.3,1)` above the fold (JS-free, SSR paints complete); IntersectionObserver below                                                                                                                                    | Panel review                                                                                                           |
+| Reduced motion                                               | Every animation resolves to its finished, visible frame                                                                                                                                                                                                       | Law                                                                                                                    |
 
 ## 7. Page continuity (every linked page speaks the landing language)
 
 Mechanism: [`src/components/landing/inkTheme.ts`](../../../src/components/landing/inkTheme.ts) (`PUBLIC_INK_THEME`) maps the ink palette onto the older pages' CSS-variable vocabulary; spread it on a page root, then paint `LandingBackdrop` above the root's background but below content (`isolation: isolate` + a fixed `zIndex: -1` wrapper — no structural surgery).
 
-| Surface | Treatment |
-| --- | --- |
-| `/` | The landing itself |
-| `/pricing` | `PUBLIC_INK_THEME` + backdrop + ember eyebrow + Pixel H1 + real sign-in button |
-| `/security`, `/updates`, `/privacy`, `/terms` | Themed [`LegalPageShell`](../../../src/components/cadence/LegalPageShell.tsx) (ink tokens, backdrop, Pixel title); updates de-slated to zinc |
-| `/proof`, `/d/$slug`, `/t/$slug` | `PUBLIC_INK_THEME` + backdrop |
-| `/p/teardown` | Already obsidian-dark; gained the backdrop |
-| `/login`, `/signup` | [`AuthScaffold`](../../../src/components/cadence/AuthScaffold.tsx): seven-petal mark, watermark revolves 180s with a faint white glow, opacity 0.08 |
-| ALL surfaces | The old Primitives butterfly mark is RETIRED everywhere; [`CadenceMark.tsx`](../../../src/components/cadence/CadenceMark.tsx) carries var fallbacks so it renders outside the app shell |
+| Surface                                       | Treatment                                                                                                                                                                               |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                                           | The landing itself                                                                                                                                                                      |
+| `/pricing`                                    | `PUBLIC_INK_THEME` + backdrop + ember eyebrow + Pixel H1 + real sign-in button                                                                                                          |
+| `/security`, `/updates`, `/privacy`, `/terms` | Themed [`LegalPageShell`](../../../src/components/cadence/LegalPageShell.tsx) (ink tokens, backdrop, Pixel title); updates de-slated to zinc                                            |
+| `/proof`, `/d/$slug`, `/t/$slug`              | `PUBLIC_INK_THEME` + backdrop                                                                                                                                                           |
+| `/p/teardown`                                 | Already obsidian-dark; gained the backdrop                                                                                                                                              |
+| `/login`, `/signup`                           | [`AuthScaffold`](../../../src/components/cadence/AuthScaffold.tsx): seven-petal mark, watermark revolves 180s with a faint white glow, opacity 0.08                                     |
+| ALL surfaces                                  | The old Primitives butterfly mark is RETIRED everywhere; [`CadenceMark.tsx`](../../../src/components/cadence/CadenceMark.tsx) carries var fallbacks so it renders outside the app shell |
 
 ## 8. The reference canon (what we learned, what we used, what waits)
 
@@ -130,7 +130,6 @@ When the app adopts these patterns, port them THROUGH the Tempo contract, not ar
 
 `src/routes/index.tsx` (shell: SSR, loader, head, JSON-LD, focus/hover CSS, machine view) · `src/components/landing/`: `Hero` · `TheGap` · `LoopWalkthrough` · `Receipts` · `FieldStops` · `TrustClose` · `WaitlistForm` · `LandingNav` · `LandingFooter` · `LandingBackdrop` · `MarkGlint` · `inkTheme.ts` · `replay/Replay.tsx` (FlowList, MockDecisionCard, MockLiveRun, DeadRun, StationSpine, the three logs) · `src/lib/landing.functions.ts` (stats, waitlist, funnel events) · migration `supabase/migrations/20260715100000_landing_waitlist_and_events.sql`.
 
-
 ## 11. The founder's design taste, observed (2026-07-15, the full session)
 
 _Extracted from roughly twenty feedback rounds across the day. Any future agent should treat these as standing preferences unless the founder overrules them again — and should expect iteration: he refines by seeing, not by specifying upfront. Ship a faithful attempt fast, then expect two or three taste passes._
@@ -155,7 +154,7 @@ _Extracted from roughly twenty feedback rounds across the day. Any future agent 
 
 - Everything hoverable should react; a dead hover is a missed detail. Ember is his default hover accent for keywords and mono lists.
 - Animation must be SCOPED and legible: whole-sentence typing = "inconsistent with other sections"; one-word typing = right. The mark may revolve but "very slowly" (150-180s); a fast glint "steals attention."
-- Glow = white light, subtle; he flags both absence ("is it moving? I don't know") and excess ("attention is going on it"). Movement must be *felt*, not watched.
+- Glow = white light, subtle; he flags both absence ("is it moving? I don't know") and excess ("attention is going on it"). Movement must be _felt_, not watched.
 - He wants micro-interactions everywhere but consistency beats novelty: any new animated treatment must match the page's existing grammar.
 
 ### Copy and positioning taste
@@ -176,24 +175,24 @@ _Extracted from roughly twenty feedback rounds across the day. Any future agent 
 
 ## 12. Session chronology (what was tried, rejected, and why — 2026-07-15)
 
-| # | Attempt | Outcome | The lesson recorded |
-| --- | --- | --- | --- |
-| 1 | Hero: "What Cursor did for writing code..." (plan-recommended) | REJECTED (IP/bolting optics) | No borrowed brands anywhere on the site |
-| 2 | Hero: "The agent-native operating system..." | REJECTED ("operating system" vague) | The YC banned-words list governs the site too |
-| 3 | Hero: "Your AI product team." | REJECTED ("AI" generic) | Concrete nouns over category adjectives |
-| 4 | Hero: "A product team of agents, answerable to you." | MOVED to the close beat | Good line, wrong altitude: hero must lead with the USP |
-| 5 | Hero final: "Cadence tells you what to build. / then builds it. ships it. grades it. gets sharper." | KEPT (Pixel Square, verbs hover ember) | USP first; learning beat via "gets sharper" |
-| 6 | Hero mission-control terminal (typed trace) | REMOVED ("not serving the purpose") | The hero shows identity, not machinery |
-| 7 | Hero product frames (decision card + live run) | REMOVED same day | Vercel-style: showcases live below the fold |
-| 8 | Hero final composition: monumental three-zone | KEPT | See playbook 2.1 |
-| 9 | JourneyFilm (8-stage self-playing strip) | BUILT then REMOVED ("repetitive... the walkthrough does everything") | Enrich the trace instead of adding a sibling |
-| 10 | SignalsIn converging-lines infographic | BUILT, praised, then REMOVED ("only tells the sense part") | Partial-story artifacts lose to the full-story trace |
-| 11 | Sources/design/memory/mark INSIDE the trace + believable timestamps | KEPT | The founder's "same loop, same mechanism" rule |
-| 12 | Honest-zero card ("External users: zero") | REMOVED (investor optics; founder reversal of his own doctrine) | Omission allowed, fabrication never |
-| 13 | Gold "second brain" | REJECTED (color off-theme) -> white -> EMBER Pixel + hover glow | Emphasis color iterates; ember won |
-| 14 | Ember "Devs" while typing | REJECTED next round (typing is differentiation enough) | Don't stack two emphasis devices on one word |
-| 15 | Whole-line typing in the gap beat | REJECTED ("inconsistent with other sections") | Scope novel motion to the smallest meaningful unit |
-| 16 | Trust strip: 4 thin labels -> 8 linked cards -> 8 UNLINKED cards + one /security line | KEPT | Cards inform; one link routes; SEO unaffected (first-anchor rule) |
-| 17 | Waitlist nudge at floor 25 | RAISED to 2,000 (founder research instinct) | Social proof only once it reads as a crowd |
-| 18 | Parchment/slate public pages | ALL RETHEMED (PUBLIC_INK_THEME + backdrop) | Every linked page speaks the landing language |
-| 19 | 9-lens stakeholder panel + content strategist + rauno/YC/Vercel studies | RUN; must-fixes applied; two reviewer suggestions overridden on founder rulings | Reviews serve rulings, not the reverse |
+| #   | Attempt                                                                                             | Outcome                                                                         | The lesson recorded                                               |
+| --- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 1   | Hero: "What Cursor did for writing code..." (plan-recommended)                                      | REJECTED (IP/bolting optics)                                                    | No borrowed brands anywhere on the site                           |
+| 2   | Hero: "The agent-native operating system..."                                                        | REJECTED ("operating system" vague)                                             | The YC banned-words list governs the site too                     |
+| 3   | Hero: "Your AI product team."                                                                       | REJECTED ("AI" generic)                                                         | Concrete nouns over category adjectives                           |
+| 4   | Hero: "A product team of agents, answerable to you."                                                | MOVED to the close beat                                                         | Good line, wrong altitude: hero must lead with the USP            |
+| 5   | Hero final: "Cadence tells you what to build. / then builds it. ships it. grades it. gets sharper." | KEPT (Pixel Square, verbs hover ember)                                          | USP first; learning beat via "gets sharper"                       |
+| 6   | Hero mission-control terminal (typed trace)                                                         | REMOVED ("not serving the purpose")                                             | The hero shows identity, not machinery                            |
+| 7   | Hero product frames (decision card + live run)                                                      | REMOVED same day                                                                | Vercel-style: showcases live below the fold                       |
+| 8   | Hero final composition: monumental three-zone                                                       | KEPT                                                                            | See playbook 2.1                                                  |
+| 9   | JourneyFilm (8-stage self-playing strip)                                                            | BUILT then REMOVED ("repetitive... the walkthrough does everything")            | Enrich the trace instead of adding a sibling                      |
+| 10  | SignalsIn converging-lines infographic                                                              | BUILT, praised, then REMOVED ("only tells the sense part")                      | Partial-story artifacts lose to the full-story trace              |
+| 11  | Sources/design/memory/mark INSIDE the trace + believable timestamps                                 | KEPT                                                                            | The founder's "same loop, same mechanism" rule                    |
+| 12  | Honest-zero card ("External users: zero")                                                           | REMOVED (investor optics; founder reversal of his own doctrine)                 | Omission allowed, fabrication never                               |
+| 13  | Gold "second brain"                                                                                 | REJECTED (color off-theme) -> white -> EMBER Pixel + hover glow                 | Emphasis color iterates; ember won                                |
+| 14  | Ember "Devs" while typing                                                                           | REJECTED next round (typing is differentiation enough)                          | Don't stack two emphasis devices on one word                      |
+| 15  | Whole-line typing in the gap beat                                                                   | REJECTED ("inconsistent with other sections")                                   | Scope novel motion to the smallest meaningful unit                |
+| 16  | Trust strip: 4 thin labels -> 8 linked cards -> 8 UNLINKED cards + one /security line               | KEPT                                                                            | Cards inform; one link routes; SEO unaffected (first-anchor rule) |
+| 17  | Waitlist nudge at floor 25                                                                          | RAISED to 2,000 (founder research instinct)                                     | Social proof only once it reads as a crowd                        |
+| 18  | Parchment/slate public pages                                                                        | ALL RETHEMED (PUBLIC_INK_THEME + backdrop)                                      | Every linked page speaks the landing language                     |
+| 19  | 9-lens stakeholder panel + content strategist + rauno/YC/Vercel studies                             | RUN; must-fixes applied; two reviewer suggestions overridden on founder rulings | Reviews serve rulings, not the reverse                            |

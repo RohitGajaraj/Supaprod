@@ -7,7 +7,7 @@
 // ember CTA (§3). Answering advances naturally: the mutation invalidates the
 // queue and the next call takes the top slot.
 import * as React from "react";
-import { CallCard, type CallCardProps } from "@/components/obsidian/callcard";
+import { Button, CallCard, type CallCardProps } from "@/components/obsidian";
 import { FAMILY_LABEL, type CallFamily } from "./triage";
 
 export interface QueueCall {
@@ -37,7 +37,6 @@ export interface ExpiredCall {
 }
 
 const monoBtn: React.CSSProperties = {
-  fontFamily: "var(--font-ui)",
   fontSize: 12,
   fontWeight: 500,
   background: "transparent",
@@ -101,47 +100,45 @@ export function TriageQueue({
                 className={group.family === featuredFamily ? "loom-hairline-fade" : undefined}
               />
               {rest.length > 0 && !isOpen ? (
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
                   aria-expanded={false}
-                  className="loom-press w-full text-left outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   onClick={() => setExpanded((e) => ({ ...e, [group.family]: true }))}
                   style={{
+                    width: "100%",
+                    justifyContent: "flex-start",
                     fontFamily: "var(--font-mono)",
                     fontSize: 10.5,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    background: "transparent",
-                    border: "1px dashed var(--hairline-strong)",
-                    borderRadius: "var(--radius-card)",
-                    padding: "9px 14px",
+                    borderStyle: "dashed",
                   }}
                 >
                   {rest.length} more →
-                </button>
+                </Button>
               ) : null}
               {isOpen ? (
                 <>
                   {rest.map((call) => (
                     <CallCard key={call.id} {...call.props} compact />
                   ))}
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     aria-expanded={true}
-                    className="loom-press self-start outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     onClick={() => setExpanded((e) => ({ ...e, [group.family]: false }))}
                     style={{
+                      justifySelf: "flex-start",
                       fontFamily: "var(--font-mono)",
                       fontSize: 10.5,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
-                      background: "transparent",
-                      border: "none",
                       padding: "2px 0",
                     }}
                   >
                     Show fewer
-                  </button>
+                  </Button>
                 </>
               ) : null}
             </div>

@@ -66,5 +66,7 @@ export function PresenceChip({
   size = 20,
 }: PresenceChipProps) {
   const verb = presenceSuffix({ state, lastActedAt, nextRunAt, station });
-  return <AgentBadge slug={agentSlug} verb={verb} size={size} live={state === "working"} pixelName />;
+  return (
+    <AgentBadge slug={agentSlug} verb={verb} size={size} live={state === "working"} pixelName />
+  );
 }

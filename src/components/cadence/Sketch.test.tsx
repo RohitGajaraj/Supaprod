@@ -498,25 +498,19 @@ describe("SketchLine (React component)", () => {
   });
 
   test("renders baseline line when baseline is in range", () => {
-    const { container } = render(
-      <SketchLine data={[10, 20, 30]} baseline={20} />,
-    );
+    const { container } = render(<SketchLine data={[10, 20, 30]} baseline={20} />);
     const lines = container.querySelectorAll("line");
     expect(lines.length).toBeGreaterThan(0);
   });
 
   test("does not render baseline line when baseline is out of range", () => {
-    const { container } = render(
-      <SketchLine data={[10, 20, 30]} baseline={100} />,
-    );
+    const { container } = render(<SketchLine data={[10, 20, 30]} baseline={100} />);
     const lines = container.querySelectorAll("line");
     expect(lines.length).toBe(0);
   });
 
   test("applies sketch-draw animation class when animate=true", () => {
-    const { container } = render(
-      <SketchLine data={[10, 20, 15]} animate={true} />,
-    );
+    const { container } = render(<SketchLine data={[10, 20, 15]} animate={true} />);
     const animatedPaths = container.querySelectorAll(".sketch-draw");
     expect(animatedPaths.length).toBeGreaterThan(0);
   });
@@ -530,38 +524,28 @@ describe("SketchLine (React component)", () => {
 
 describe("SketchBar (React component)", () => {
   test("renders SVG with correct viewBox", () => {
-    const { container } = render(
-      <SketchBar pct={50} seed={1} trackH={100} />,
-    );
+    const { container } = render(<SketchBar pct={50} seed={1} trackH={100} />);
     const svg = container.querySelector("svg");
     expect(svg?.getAttribute("viewBox")).toContain("0 0 60");
   });
 
   test("scales height based on trackH prop", () => {
-    const { container: container100 } = render(
-      <SketchBar pct={50} seed={1} trackH={100} />,
-    );
+    const { container: container100 } = render(<SketchBar pct={50} seed={1} trackH={100} />);
     const svg100 = container100.querySelector("svg");
-    const { container: container200 } = render(
-      <SketchBar pct={50} seed={1} trackH={200} />,
-    );
+    const { container: container200 } = render(<SketchBar pct={50} seed={1} trackH={200} />);
     const svg200 = container200.querySelector("svg");
     expect(svg100?.getAttribute("height")).toBe("100");
     expect(svg200?.getAttribute("height")).toBe("200");
   });
 
   test("renders outline and hatch paths", () => {
-    const { container } = render(
-      <SketchBar pct={75} seed={1} trackH={100} />,
-    );
+    const { container } = render(<SketchBar pct={75} seed={1} trackH={100} />);
     const paths = container.querySelectorAll("path");
     expect(paths.length).toBeGreaterThanOrEqual(2);
   });
 
   test("applies custom color to strokes", () => {
-    const { container } = render(
-      <SketchBar pct={50} seed={1} color="blue" />,
-    );
+    const { container } = render(<SketchBar pct={50} seed={1} color="blue" />);
     const paths = container.querySelectorAll("path");
     paths.forEach((path) => {
       const stroke = path.getAttribute("stroke");
@@ -570,21 +554,15 @@ describe("SketchBar (React component)", () => {
   });
 
   test("marks SVG as aria-hidden (decorative)", () => {
-    const { container } = render(
-      <SketchBar pct={50} seed={1} trackH={100} />,
-    );
+    const { container } = render(<SketchBar pct={50} seed={1} trackH={100} />);
     const svg = container.querySelector("svg");
     expect(svg?.getAttribute("aria-hidden")).toBe("true");
   });
 
   test("uses different seeds to produce different jitter", () => {
-    const { container: container1 } = render(
-      <SketchBar pct={50} seed={1} trackH={100} />,
-    );
+    const { container: container1 } = render(<SketchBar pct={50} seed={1} trackH={100} />);
     const outline1 = container1.querySelectorAll("path")[0]?.getAttribute("d");
-    const { container: container2 } = render(
-      <SketchBar pct={50} seed={2} trackH={100} />,
-    );
+    const { container: container2 } = render(<SketchBar pct={50} seed={2} trackH={100} />);
     const outline2 = container2.querySelectorAll("path")[0]?.getAttribute("d");
     expect(outline1).not.toBe(outline2);
   });
@@ -617,15 +595,11 @@ describe("SketchBarChart (React component)", () => {
   });
 
   test("does not render insight text when showInsight=false", () => {
-    const { container } = render(
-      <SketchBarChart data={sampleData} showInsight={false} />,
-    );
+    const { container } = render(<SketchBarChart data={sampleData} showInsight={false} />);
     // Should not contain the auto-derived insight text
-    const insightDiv = container.querySelector(
-      '[style*="font-family: var(--font-pencil)"]',
-    );
+    const insightDiv = container.querySelector('[style*="font-family: var(--font-pencil)"]');
     if (insightDiv) {
-      expect((insightDiv.textContent?.length || 0)).toBeLessThan(10);
+      expect(insightDiv.textContent?.length || 0).toBeLessThan(10);
     }
   });
 
@@ -683,25 +657,15 @@ describe("SketchBarChart (React component)", () => {
 
   test("applies baseline line when provided", () => {
     const { container } = render(
-      <SketchBarChart
-        data={sampleData}
-        baseline={65}
-        baselineLabel="Target"
-      />,
+      <SketchBarChart data={sampleData} baseline={65} baselineLabel="Target" />,
     );
-    const baselineDiv = container.querySelector(
-      '[aria-hidden="true"][style*="border"]',
-    );
+    const baselineDiv = container.querySelector('[aria-hidden="true"][style*="border"]');
     expect(baselineDiv).toBeDefined();
   });
 
   test("uses custom formatValue for display", () => {
     const { container } = render(
-      <SketchBarChart
-        data={sampleData}
-        formatValue={(v) => `$${v}`}
-        ariaLabel="Revenue"
-      />,
+      <SketchBarChart data={sampleData} formatValue={(v) => `$${v}`} ariaLabel="Revenue" />,
     );
     // Custom formatter should be used in aria-labels
     const buttons = container.querySelectorAll("button");
@@ -712,22 +676,14 @@ describe("SketchBarChart (React component)", () => {
   test("uses custom insight over auto-derived", () => {
     const customInsight = "Custom trend analysis";
     const { container } = render(
-      <SketchBarChart
-        data={sampleData}
-        insight={customInsight}
-        showInsight={true}
-      />,
+      <SketchBarChart data={sampleData} insight={customInsight} showInsight={true} />,
     );
     expect(container.textContent).toContain(customInsight);
   });
 
   test("includes insight in aria-label for accessibility", () => {
     const { container } = render(
-      <SketchBarChart
-        data={sampleData}
-        ariaLabel="Sales"
-        showInsight={true}
-      />,
+      <SketchBarChart data={sampleData} ariaLabel="Sales" showInsight={true} />,
     );
     const group = container.querySelector("[role='group']");
     const ariaLabel = group?.getAttribute("aria-label") || "";

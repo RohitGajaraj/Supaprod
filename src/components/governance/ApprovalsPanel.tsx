@@ -417,11 +417,21 @@ function ApprovalCard({
           </span>
         ) : (
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <button type="button" className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
+            <button
+              type="button"
+              className="btn btn-approve btn-sm"
+              disabled={busy}
+              onClick={onApprove}
+            >
               <Check size={11} />
               Approve · runs {a.tool_name}
             </button>
-            <button type="button" className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
+            <button
+              type="button"
+              className="btn btn-reject btn-sm"
+              disabled={busy}
+              onClick={onReject}
+            >
               <X size={11} />
               Reject · nothing runs
             </button>
@@ -436,7 +446,12 @@ function ApprovalCard({
                 <ExternalLink size={11} />
               </Link>
             ) : null}
-            <button type="button" className="btn btn-ghost btn-sm" disabled={extending} onClick={onExtend}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={extending}
+              onClick={onExtend}
+            >
               Extend · 24h more
             </button>
           </div>

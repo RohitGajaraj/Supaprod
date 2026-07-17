@@ -621,7 +621,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
               </MonoLabel>
               <span
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "13px",
                   fontWeight: 550,
                   color: "var(--text-primary)",
@@ -653,12 +653,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             className="flex flex-wrap items-center"
             style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
           >
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={deciding}
-              onClick={() => act(detail.onOk)}
-            >
+            <Button variant="accent" size="sm" disabled={deciding} onClick={() => act(detail.onOk)}>
               {detail.okLabel}
             </Button>
             <Button

@@ -55,7 +55,7 @@ export function AutonomyCard() {
         <div
           role="status"
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--ink-faint)" }}
+          style={{ fontSize: 9, color: "var(--ds-gray-700)" }}
         >
           loading…
         </div>
@@ -69,7 +69,7 @@ export function AutonomyCard() {
           <button
             type="button"
             onClick={() => void q.refetch()}
-            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+            className="mono-label transition-colors [color:var(--ds-gray-700)] hover:[color:var(--ds-gray-800)]"
             style={{ fontSize: 9.5, background: "transparent", border: "none", cursor: "pointer" }}
           >
             Retry
@@ -79,14 +79,14 @@ export function AutonomyCard() {
         <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ minWidth: 92 }}>
             <div
-              className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--ink)" }}
+              className="text-heading-24 tabular-nums font-pixel"
+              style={{ color: "var(--ds-gray-1000)" }}
             >
               {pctText}
             </div>
             <div
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 2 }}
+              style={{ fontSize: 8.5, color: "var(--ds-gray-700)", marginTop: 2 }}
             >
               ran unattended
             </div>
@@ -107,7 +107,7 @@ export function AutonomyCard() {
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: 11.5, color: "var(--ds-gray-900)", lineHeight: 1.45 }}>
           Not enough data yet. No side-effecting work ran in the last 14 days. As the loop takes on
           reversible work, the share it carries unattended shows here, rising from observing to
           proving to trusted.
@@ -156,10 +156,10 @@ function StageStrip({ currentIndex }: { currentIndex: number }) {
                 style={{
                   fontSize: 8.5,
                   color: current
-                    ? "var(--ink)"
+                    ? "var(--ds-gray-1000)"
                     : reached
-                      ? "var(--ink-subtle)"
-                      : "var(--ink-faint)",
+                      ? "var(--ds-gray-900)"
+                      : "var(--ds-gray-700)",
                 }}
               >
                 {s}
@@ -186,7 +186,7 @@ function TrendHint({ trend }: { trend: Trend }) {
   const map = {
     up: { Icon: ArrowUpRight, color: "var(--emerald, var(--ember))", label: "rising" },
     down: { Icon: ArrowDownRight, color: "var(--rose)", label: "falling" },
-    flat: { Icon: Minus, color: "var(--ink-faint)", label: "flat" },
+    flat: { Icon: Minus, color: "var(--ds-gray-700)", label: "flat" },
   } as const;
   const { Icon, color, label } = map[trend];
   return (

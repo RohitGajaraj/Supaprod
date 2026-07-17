@@ -17,6 +17,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProofRouteImport } from './routes/proof'
+import { Route as ProductRouteImport } from './routes/product'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -45,7 +46,6 @@ import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.s
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated.roadmap'
 import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
-import { Route as AuthenticatedProductRouteImport } from './routes/_authenticated.product'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
@@ -210,6 +210,11 @@ const ProofRoute = ProofRouteImport.update({
   path: '/proof',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductRoute = ProductRouteImport.update({
+  id: '/product',
+  path: '/product',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -349,11 +354,6 @@ const AuthenticatedRoadmapRoute = AuthenticatedRoadmapRouteImport.update({
 const AuthenticatedPromptsRoute = AuthenticatedPromptsRouteImport.update({
   id: '/prompts',
   path: '/prompts',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedProductRoute = AuthenticatedProductRouteImport.update({
-  id: '/product',
-  path: '/product',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
@@ -1048,6 +1048,7 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/product': typeof ProductRoute
   '/proof': typeof ProofRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
@@ -1094,7 +1095,6 @@ export interface FileRoutesByFullPath {
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
   '/prds': typeof AuthenticatedPrdsRouteWithChildren
-  '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -1209,6 +1209,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/product': typeof ProductRoute
   '/proof': typeof ProofRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
@@ -1253,7 +1254,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
-  '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -1370,6 +1370,7 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/product': typeof ProductRoute
   '/proof': typeof ProofRoute
   '/reset-password': typeof ResetPasswordRoute
   '/security': typeof SecurityRoute
@@ -1416,7 +1417,6 @@ export interface FileRoutesById {
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
   '/_authenticated/prds': typeof AuthenticatedPrdsRouteWithChildren
-  '/_authenticated/product': typeof AuthenticatedProductRoute
   '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -1533,6 +1533,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/product'
     | '/proof'
     | '/reset-password'
     | '/security'
@@ -1579,7 +1580,6 @@ export interface FileRouteTypes {
     | '/opportunities'
     | '/outcome'
     | '/prds'
-    | '/product'
     | '/prompts'
     | '/roadmap'
     | '/settings'
@@ -1694,6 +1694,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/product'
     | '/proof'
     | '/reset-password'
     | '/security'
@@ -1738,7 +1739,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
-    | '/product'
     | '/prompts'
     | '/roadmap'
     | '/settings'
@@ -1854,6 +1854,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/pricing'
     | '/privacy'
+    | '/product'
     | '/proof'
     | '/reset-password'
     | '/security'
@@ -1900,7 +1901,6 @@ export interface FileRouteTypes {
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
     | '/_authenticated/prds'
-    | '/_authenticated/product'
     | '/_authenticated/prompts'
     | '/_authenticated/roadmap'
     | '/_authenticated/settings'
@@ -2017,6 +2017,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProductRoute: typeof ProductRoute
   ProofRoute: typeof ProofRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SecurityRoute: typeof SecurityRoute
@@ -2158,6 +2159,13 @@ declare module '@tanstack/react-router' {
       path: '/proof'
       fullPath: '/proof'
       preLoaderRoute: typeof ProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product': {
+      id: '/product'
+      path: '/product'
+      fullPath: '/product'
+      preLoaderRoute: typeof ProductRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -2354,13 +2362,6 @@ declare module '@tanstack/react-router' {
       path: '/prompts'
       fullPath: '/prompts'
       preLoaderRoute: typeof AuthenticatedPromptsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/product': {
-      id: '/_authenticated/product'
-      path: '/product'
-      fullPath: '/product'
-      preLoaderRoute: typeof AuthenticatedProductRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/prds': {
@@ -3326,7 +3327,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
   AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRouteWithChildren
-  AuthenticatedProductRoute: typeof AuthenticatedProductRoute
   AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -3385,7 +3385,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
   AuthenticatedPrdsRoute: AuthenticatedPrdsRouteWithChildren,
-  AuthenticatedProductRoute: AuthenticatedProductRoute,
   AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
@@ -3421,6 +3420,7 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ProductRoute: ProductRoute,
   ProofRoute: ProofRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SecurityRoute: SecurityRoute,

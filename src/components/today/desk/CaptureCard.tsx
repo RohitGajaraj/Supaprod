@@ -7,7 +7,7 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/obsidian";
-import { useToast } from "@/components/obsidian/toast";
+import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { createSignal } from "@/lib/discovery.functions";
 import { SIGNAL_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
@@ -21,7 +21,6 @@ const mono: React.CSSProperties = {
 
 export function CaptureCard() {
   const qc = useQueryClient();
-  const showToast = useToast();
   const { activeProductId } = useWorkspace();
   const fCreate = useServerFn(createSignal);
 
@@ -39,12 +38,12 @@ export function CaptureCard() {
     mutationFn: () =>
       fCreate({ data: { content: content.trim(), source: "manual", project_id: activeProductId } }),
     onSuccess: () => {
-      showToast("Captured. It lands in Discover as a signal.");
+      toast.success("Captured. It lands in Discover as a signal.");
       setContent("");
       void qc.invalidateQueries({ queryKey: ["signals"] });
       void qc.invalidateQueries({ queryKey: ["themes"] });
     },
-    onError: (e: Error) => showToast(e.message),
+    onError: (e: Error) => toast.success(e.message),
   });
 
   return (
@@ -74,6 +73,7 @@ export function CaptureCard() {
           onKeyDown={(e) => {
             if (e.key === "Escape") setContent("");
           }}
+          aria-label="Signal content, source optional"
           placeholder="What did you hear, and from where?"
           style={{
             flex: 1,

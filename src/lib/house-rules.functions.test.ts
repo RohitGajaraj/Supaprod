@@ -1,5 +1,10 @@
 import { describe, it, expect } from "bun:test";
-import { renderHouseRulesBlock, filterActiveRules, type HouseRule } from "./house-rules.functions";
+import {
+  renderHouseRulesBlock,
+  filterActiveRules,
+  filterRulesForAgent,
+  type HouseRule,
+} from "./house-rules.functions";
 
 function rule(id: string, overrides: Partial<HouseRule> = {}): HouseRule {
   return {
@@ -12,6 +17,7 @@ function rule(id: string, overrides: Partial<HouseRule> = {}): HouseRule {
     decided_by: null,
     decided_at: null,
     created_at: "2026-07-01T00:00:00.000Z",
+    agent_slug: null,
     ...overrides,
   };
 }
@@ -56,5 +62,37 @@ describe("filterActiveRules", () => {
     const rules = [rule("a"), rule("b")];
     const active = filterActiveRules(rules, [{ parent_id: "x", child_id: "y" }]);
     expect(active).toEqual(rules);
+  });
+});
+
+describe("filterRulesForAgent", () => {
+  it("returns every rule unchanged when no agentSlug is passed (unscoped callers)", () => {
+    const rules = [rule("a"), rule("b", { agent_slug: "engineer" })];
+    expect(filterRulesForAgent(rules, undefined)).toEqual(rules);
+    expect(filterRulesForAgent(rules, null)).toEqual(rules);
+  });
+
+  it("keeps workspace-wide rules (agent_slug null) for every agent", () => {
+    const rules = [rule("a", { agent_slug: null })];
+    expect(filterRulesForAgent(rules, "engineer").map((r) => r.id)).toEqual(["a"]);
+  });
+
+  it("keeps a rule scoped to the requested agent", () => {
+    const rules = [rule("a", { agent_slug: "engineer" })];
+    expect(filterRulesForAgent(rules, "engineer").map((r) => r.id)).toEqual(["a"]);
+  });
+
+  it("excludes a rule scoped to a DIFFERENT agent (no leak)", () => {
+    const rules = [rule("a", { agent_slug: "release" })];
+    expect(filterRulesForAgent(rules, "engineer")).toEqual([]);
+  });
+
+  it("mixes workspace-wide and per-agent rules correctly", () => {
+    const rules = [
+      rule("global", { agent_slug: null }),
+      rule("mine", { agent_slug: "engineer" }),
+      rule("theirs", { agent_slug: "release" }),
+    ];
+    expect(filterRulesForAgent(rules, "engineer").map((r) => r.id)).toEqual(["global", "mine"]);
   });
 });

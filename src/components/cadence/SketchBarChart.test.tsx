@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { barInsight } from "./Sketch";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { barInsight, SketchBarChart } from "./Sketch";
 import type { SketchBarDatum } from "./Sketch";
 
 /**

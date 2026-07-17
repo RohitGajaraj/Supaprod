@@ -144,7 +144,7 @@ export function LoopsPanel({
         <span
           style={{
             display: "block",
-            fontFamily: "var(--font-ui)",
+            fontFamily: "var(--font-sans)",
             fontSize: 12.5,
             color: "var(--text-muted)",
           }}
@@ -257,7 +257,7 @@ export function LoopsPanel({
               onClick={() => setShowAll((v) => !v)}
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
-                fontFamily: "var(--font-ui)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 12.5,
                 fontWeight: 500,
                 color: "var(--text-muted)",

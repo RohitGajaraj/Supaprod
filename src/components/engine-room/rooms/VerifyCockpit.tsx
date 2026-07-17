@@ -236,7 +236,7 @@ function PendingApprovals({
               <div
                 className="truncate"
                 style={{
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "var(--text-base)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
@@ -386,7 +386,7 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
           <div
             className="truncate"
             style={{
-              fontFamily: "var(--font-ui)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-base)",
               fontWeight: 600,
               color: "var(--text-primary)",
