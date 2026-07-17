@@ -45,7 +45,7 @@ export function ExecutedCard() {
       </MonoLabel>
       <p
         style={{
-          fontSize: 11.5,
+          fontSize: "var(--text-label-12)",
           color: "var(--ds-gray-900)",
           lineHeight: 1.45,
           margin: "2px 0 10px",

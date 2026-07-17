@@ -52,7 +52,7 @@ export function SpecComposer() {
         style={{
           display: "block",
           fontFamily: "var(--font-sans)",
-          fontSize: 12.5,
+          fontSize: "var(--text-label-13)",
           color: "var(--text-muted)",
         }}
       >

@@ -415,7 +415,7 @@ export function DiscoverSurface() {
                   >
                     Market watch
                   </h2>
-                  <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+                  <p style={{ margin: "3px 0 16px", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
                     Competitors and platforms you track. Cadence writes you a brief the first Monday
                     after one of them actually moves.
                   </p>

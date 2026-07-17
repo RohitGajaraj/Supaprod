@@ -145,7 +145,7 @@ export function LoopsPanel({
           style={{
             display: "block",
             fontFamily: "var(--font-sans)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -185,7 +185,7 @@ export function LoopsPanel({
             Start the mission
           </Button>
         </div>
-        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
+        <p style={{ margin: "8px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
           {LOOP_KINDS[kind].description}
           {activeKinds.has(kind)
             ? " Already running below; a second copy runs on its own cadence."
@@ -258,7 +258,7 @@ export function LoopsPanel({
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
                 color: "var(--text-muted)",
                 background: "transparent",
@@ -317,7 +317,7 @@ function LoopCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
+            fontSize: "var(--text-label-12)",
             color: STATUS_TONE[loop.status] ?? "var(--text-subtle)",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
@@ -326,12 +326,12 @@ function LoopCard({
           {loop.status}
         </span>
         <span
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)" }}
+          style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
         >
           {CADENCE_LABEL[loop.cadence] ?? loop.cadence}
         </span>
       </div>
-      <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
+      <p style={{ margin: "6px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
         {loop.run_count === 0
           ? "No runs yet."
           : `${loop.run_count} run${loop.run_count === 1 ? "" : "s"}, ${fmtCost(loop.total_cost_usd)} total.`}
@@ -353,7 +353,7 @@ function LoopCard({
             <li
               key={r.id}
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 display: "flex",
                 gap: 8,
@@ -387,7 +387,7 @@ function LoopCard({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color: "var(--text-subtle)",
                   flexShrink: 0,
                 }}

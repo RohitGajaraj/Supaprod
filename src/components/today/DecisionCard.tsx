@@ -150,7 +150,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             </div>
             <div
               style={{
-                fontSize: 13.5,
+                fontSize: "var(--text-label-14)",
                 color: "var(--ds-gray-1000)",
                 fontWeight: 600,
                 marginTop: 2,
@@ -263,7 +263,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               style={{
                 width: "100%",
                 resize: "vertical",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 padding: "6px 8px",
                 borderRadius: 6,
                 border: "1px solid var(--hairline)",
@@ -346,7 +346,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
           <div
-            style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}
+            style={{ fontSize: "var(--text-label-14)", color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}
           >
             {question}
           </div>

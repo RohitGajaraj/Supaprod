@@ -70,7 +70,7 @@ export function TriageQueue({
               <h2
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   fontWeight: 400,
                   letterSpacing: "0.12em",
                   color: "var(--text-subtle)",
@@ -83,7 +83,7 @@ export function TriageQueue({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10.5,
+                  fontSize: "var(--text-label-12)",
                   color:
                     group.family === featuredFamily ? "var(--ember-text)" : "var(--text-subtle)",
                 }}
@@ -109,7 +109,7 @@ export function TriageQueue({
                     width: "100%",
                     justifyContent: "flex-start",
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
                     borderStyle: "dashed",
@@ -131,7 +131,7 @@ export function TriageQueue({
                     style={{
                       justifySelf: "flex-start",
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10.5,
+                      fontSize: "var(--text-label-12)",
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
                       padding: "2px 0",
@@ -160,7 +160,7 @@ export function TriageQueue({
               onClick={() => setExpiredOpen(true)}
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
+                fontSize: "var(--text-label-12)",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 background: "transparent",
@@ -185,7 +185,7 @@ export function TriageQueue({
                 <h2
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     fontWeight: 400,
                     letterSpacing: "0.12em",
                     color: "var(--text-subtle)",
@@ -215,7 +215,7 @@ export function TriageQueue({
                     <div
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 10.5,
+                        fontSize: "var(--text-label-12)",
                         letterSpacing: "0.08em",
                         color: "var(--text-subtle)",
                         textTransform: "uppercase",
@@ -249,7 +249,7 @@ export function TriageQueue({
                 <div
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
+                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.08em",
                     color: "var(--text-subtle)",
                     textTransform: "uppercase",

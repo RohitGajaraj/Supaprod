@@ -148,7 +148,7 @@ export function GoalsPanel({
           style={{
             display: "block",
             fontFamily: "var(--font-sans)",
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -249,7 +249,7 @@ export function GoalsPanel({
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
                 color: "var(--text-muted)",
                 background: "transparent",
@@ -298,7 +298,7 @@ function GoalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
+            fontSize: "var(--text-label-12)",
             color: STATUS_TONE[goal.status] ?? "var(--text-subtle)",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
@@ -307,7 +307,7 @@ function GoalCard({
           {goal.status}
         </span>
       </div>
-      <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
+      <p style={{ margin: "6px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
         {goal.opportunity_count === 0
           ? "No proposals yet."
           : `${goal.opportunity_count} opportunit${goal.opportunity_count === 1 ? "y" : "ies"} proposed into Decide.`}
@@ -325,7 +325,7 @@ function GoalCard({
           }}
         >
           {goal.recent_opportunities.map((o) => (
-            <li key={o.id} style={{ fontSize: 12.5 }}>
+            <li key={o.id} style={{ fontSize: "var(--text-label-13)" }}>
               <Link
                 to="/discover"
                 search={{ tab: "queue" } as never}

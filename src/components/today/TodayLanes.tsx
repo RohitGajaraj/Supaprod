@@ -26,7 +26,7 @@ function fmtUsd(n: number): string {
 
 const monoLabel: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
+  fontSize: "var(--text-label-12)",
   letterSpacing: "0.12em",
   textTransform: "uppercase",
 };
@@ -60,9 +60,9 @@ function LaneSection({
           {title}
         </h2>
         {typeof count === "number" ? (
-          <span style={{ ...monoLabel, fontSize: 10.5, color: "var(--text-faint)" }}>{count}</span>
+          <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{count}</span>
         ) : null}
-        {hint ? <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>{hint}</span> : null}
+        {hint ? <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{hint}</span> : null}
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
       </div>
       {children}
@@ -73,7 +73,7 @@ function LaneSection({
 function LaneEmpty({ text }: { text: string }) {
   return (
     <p
-      style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
+      style={{ fontSize: "var(--text-label-13)", color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
     >
       {text}
     </p>
@@ -128,14 +128,14 @@ export function PushedInsights({
               <span style={{ ...monoLabel, color: "var(--ember-text)" }}>
                 {INSIGHT_LABEL[ins.kind] ?? "Insight"}
               </span>
-              <span style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}>
+              <span style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}>
                 {ins.headline}
               </span>
             </div>
             {ins.detail ? (
               <p
                 style={{
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   color: "var(--text-body)",
                   margin: "0 0 10px",
                   lineHeight: 1.5,
@@ -231,7 +231,7 @@ export function SwarmActivityLane({
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <span
                     className="min-w-0 flex-1 truncate"
-                    style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+                    style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
                   >
                     {stripAutoPrefix(g.title)}
                   </span>
@@ -248,7 +248,7 @@ export function SwarmActivityLane({
                 {g.goal ? (
                   <div
                     style={{
-                      fontSize: 11.5,
+                      fontSize: "var(--text-label-12)",
                       color: "var(--text-faint)",
                       marginTop: 2,
                       display: "-webkit-box",
@@ -317,7 +317,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
             </span>
             <span
               className="min-w-0 flex-1 truncate"
-              style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+              style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
             >
               {it.title}
             </span>
@@ -330,7 +330,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
           {it.description ? (
             <p
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 margin: "0 0 4px",
                 lineHeight: 1.5,
@@ -403,7 +403,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+                  style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
                 >
                   {it.title}
                 </span>
@@ -419,7 +419,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
               {it.metric_label && it.metric_value != null ? (
                 <div
                   style={{
-                    fontSize: 11.5,
+                    fontSize: "var(--text-label-12)",
                     color: "var(--text-faint)",
                     marginTop: 3,
                     paddingLeft: 17,

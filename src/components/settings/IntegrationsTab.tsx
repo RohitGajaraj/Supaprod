@@ -173,7 +173,10 @@ export function IntegrationsTab() {
         <MonoLabel icon={Plug} style={{ marginBottom: 4 }}>
           Agent access
         </MonoLabel>
-        <p className="text-copy-14" style={{ color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
+        <p
+          className="text-copy-14"
+          style={{ color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}
+        >
           Let an external AI agent use Cadence as a tool. A token grants read access to this
           workspace's signals, opportunities, and specs, plus the ability to append a decision
           (which still waits for your approval). Every call is rate-limited and audited.
@@ -386,9 +389,7 @@ export function IntegrationsTab() {
 
         <div style={{ marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span className="mono-label" >
-              Example
-            </span>
+            <span className="mono-label">Example</span>
             <CopyButton text={curl} label="Copy curl" />
           </div>
           <pre
@@ -410,9 +411,7 @@ export function IntegrationsTab() {
         </div>
 
         <div>
-          <span className="mono-label" >
-            Methods
-          </span>
+          <span className="mono-label">Methods</span>
           <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
             {MCP_METHODS.map((m) => (
               <div key={m.name} className="text-copy-12" style={{ display: "flex", gap: 10 }}>

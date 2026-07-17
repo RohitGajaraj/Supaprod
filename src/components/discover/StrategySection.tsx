@@ -223,7 +223,7 @@ export function StrategySection() {
                 onClick={() => setShowAllBriefs((v) => !v)}
                 style={{
                   width: "100%",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   fontWeight: 500,
                 }}
               >
@@ -281,7 +281,7 @@ export function StrategySection() {
                 onClick={() => setShowAllEntities((v) => !v)}
                 style={{
                   width: "100%",
-                  fontSize: 12.5,
+                  fontSize: "var(--text-label-13)",
                   fontWeight: 500,
                   marginTop: "12px",
                 }}

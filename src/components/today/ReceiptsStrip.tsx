@@ -87,7 +87,7 @@ export function ReceiptsStrip({
       {rows.length === 0 ? (
         <p
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--text-label-13)",
             color: "var(--text-faint)",
             margin: "2px 0 0",
             fontStyle: "italic",
@@ -136,7 +136,7 @@ export function ReceiptsStrip({
                 )}
                 <span
                   style={{
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                     fontWeight: 550,
                     color: "var(--text-body)",
                     flexShrink: 0,
@@ -146,7 +146,7 @@ export function ReceiptsStrip({
                 </span>
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: 12.5, color: "var(--text-muted)" }}
+                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)" }}
                 >
                   {actLine(g)}
                 </span>

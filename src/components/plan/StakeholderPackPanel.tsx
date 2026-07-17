@@ -327,7 +327,7 @@ export function StakeholderPackPanel({
               >
                 Sources
               </div>
-              <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "var(--text-body)" }}>
+              <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
                 {rendered.pack.citations.map((c, i) => (
                   <li key={`${c.kind}-${c.id}-${i}`}>{c.label}</li>
                 ))}

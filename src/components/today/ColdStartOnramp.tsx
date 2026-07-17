@@ -122,7 +122,7 @@ export function ColdStartOnramp() {
                 </div>
                 <p
                   style={{
-                    fontSize: 12.5,
+                    fontSize: "var(--text-label-13)",
                     color: "var(--ds-gray-900)",
                     marginTop: 2,
                     marginBottom: 0,

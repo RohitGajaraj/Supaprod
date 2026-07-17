@@ -63,7 +63,7 @@ export function AutonomyCard() {
         // An error never wears the empty state's clothes (audit fix
         // 2026-07-12): name the cause, offer the one action.
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11.5, color: "var(--rose)" }}>
+          <span style={{ fontSize: "var(--text-label-12)", color: "var(--rose)" }}>
             The autonomy ratio didn't load.
           </span>
           <button
@@ -95,7 +95,7 @@ export function AutonomyCard() {
             <StageStrip currentIndex={idx} />
             <p
               style={{
-                fontSize: 11.5,
+                fontSize: "var(--text-label-12)",
                 color: "var(--ink-subtle)",
                 lineHeight: 1.45,
                 marginTop: 10,
@@ -107,7 +107,7 @@ export function AutonomyCard() {
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ds-gray-900)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: "var(--text-label-12)", color: "var(--ds-gray-900)", lineHeight: 1.45 }}>
           Not enough data yet. No side-effecting work ran in the last 14 days. As the loop takes on
           reversible work, the share it carries unattended shows here, rising from observing to
           proving to trusted.

@@ -29,7 +29,7 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
         border: "1px solid var(--hairline)",
         background: "var(--surface-2)",
         color: "var(--ds-gray-800)",
-        fontSize: 12.5,
+        fontSize: "var(--text-label-13)",
         textDecoration: "none",
       }}
     >

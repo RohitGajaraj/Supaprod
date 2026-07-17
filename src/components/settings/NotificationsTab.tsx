@@ -173,8 +173,13 @@ export function NotificationsTab() {
                   }
                 >
                   <td style={{ padding: "14px 12px" }}>
-                    <div className="text-label-14" style={{ fontWeight: 550 }}>{r.label}</div>
-                    <div className="text-label-13" style={{ color: "var(--ink-muted)", marginTop: 2 }}>
+                    <div className="text-label-14" style={{ fontWeight: 550 }}>
+                      {r.label}
+                    </div>
+                    <div
+                      className="text-label-13"
+                      style={{ color: "var(--ink-muted)", marginTop: 2 }}
+                    >
                       {r.desc}
                     </div>
                   </td>
@@ -203,7 +208,9 @@ export function NotificationsTab() {
             <option value="daily">Daily summary</option>
             <option value="weekly">Weekly summary</option>
           </select>
-          <div style={{ marginTop: 6, fontSize: "var(--text-label-12)", color: "var(--ink-muted)" }}>
+          <div
+            style={{ marginTop: 6, fontSize: "var(--text-label-12)", color: "var(--ink-muted)" }}
+          >
             How often email digests are aggregated and sent to you.
           </div>
         </label>
@@ -240,7 +247,9 @@ export function NotificationsTab() {
         </p>
         {stakeholderUpdate ? (
           <label style={{ display: "block", maxWidth: 320 }}>
-            <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>Written for</div>
+            <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>
+              Written for
+            </div>
             <select
               className="input"
               value={stakeholderAudience}
@@ -257,7 +266,13 @@ export function NotificationsTab() {
 
       <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 4 }}>Interaction feedback</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-muted)", margin: "0 0 14px" }}>
+        <p
+          style={{
+            fontSize: "var(--text-label-12)",
+            color: "var(--ink-muted)",
+            margin: "0 0 14px",
+          }}
+        >
           Sound and touch feedback on actions. Applies instantly on this device. Sound is
           synthesized and subtle; haptics only fire on devices that support it.
         </p>

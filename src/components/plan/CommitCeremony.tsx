@@ -111,7 +111,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             )}
           </div>
 
-          <p style={{ marginTop: 12, fontSize: 11.5, color: "var(--text-subtle)" }}>
+          <p style={{ marginTop: 12, fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
             {hasBoth
               ? "Now is the one thing the team builds next · everything else waits."
               : "A bet in Now needs a promise and a number · that is the whole point."}
