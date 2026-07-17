@@ -123,7 +123,7 @@ function CheckoutReturn() {
       ) : null}
       {!session_id ? (
         <Link to="/" className="btn btn-ghost" style={{ justifyContent: "center" }}>
-          Back to Cadence
+          Back to Supaprod
         </Link>
       ) : null}
     </div>

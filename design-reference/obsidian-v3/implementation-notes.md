@@ -1,4 +1,4 @@
-# Implementation notes · Cadence App (Obsidian v3)
+# Implementation notes · Supaprod App (Obsidian v3)
 
 ## State model (from the prototype)
 

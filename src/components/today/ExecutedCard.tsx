@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Zap } from "lucide-react";
 import { getRecentExecutedUnattended } from "@/lib/today.functions";
 import { toolConsequence, REVERSIBILITY_LABEL, type Reversibility } from "@/lib/tool-consequences";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 
 // Token-traced, no hex fallbacks (accent restraint 2026-07-11) and the same
 // map as DecisionCard: the safe case stays gray, elevated risk wears the

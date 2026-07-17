@@ -14,20 +14,20 @@
 
 ## The posture (non-negotiable, plan §6)
 
-**HyperAgent/Airtable ships ProductCentral — a direct category competitor to Cadence.** The credit is disposable GTM/research compute, never product infrastructure, never a maintained two-way integration, and **zero product data ever resident there.** This isn't a caution to keep in mind while building — it's a hard boundary the rig's own configuration must enforce structurally (no persistent sync jobs, no OAuth grants into Cadence's own DB, no workspace decision data, ranking data, or user PII ever passed into a HyperAgent prompt or table).
+**HyperAgent/Airtable ships ProductCentral — a direct category competitor to Supaprod.** The credit is disposable GTM/research compute, never product infrastructure, never a maintained two-way integration, and **zero product data ever resident there.** This isn't a caution to keep in mind while building — it's a hard boundary the rig's own configuration must enforce structurally (no persistent sync jobs, no OAuth grants into Supaprod's own DB, no workspace decision data, ranking data, or user PII ever passed into a HyperAgent prompt or table).
 
 ## The three engines (in spend priority order)
 
 ### 1. GTM ops engine (spend first — feeds PC-13 + PC-14 directly)
 
-**What it does:** prospect/community research to widen and verify the PC-13 design-partner list beyond the 25 already hand-picked from the r/ProductManagement thread (see [`design-partner-kit.md`](./design-partner-kit.md)); launch-day monitoring across HN/PH/Reddit for the PC-14 listing (mentions, sentiment, questions the founder should answer live); outreach-cadence tracking (who was contacted, when, reply status — a lightweight CRM view over the same 25 targets, never a system of record — Cadence's own ledger stays the system of record for everything that matters).
+**What it does:** prospect/community research to widen and verify the PC-13 design-partner list beyond the 25 already hand-picked from the r/ProductManagement thread (see [`design-partner-kit.md`](./design-partner-kit.md)); launch-day monitoring across HN/PH/Reddit for the PC-14 listing (mentions, sentiment, questions the founder should answer live); outreach-cadence tracking (who was contacted, when, reply status — a lightweight CRM view over the same 25 targets, never a system of record — Supaprod's own ledger stays the system of record for everything that matters).
 
 **Budget:** ~$50-100/week, ongoing through the Launch Month.
 
 **First-week task list (ready to run the day access exists):**
 
 1. Cross-check the 25 design-partner handles in [`design-partner-kit.md`](./design-partner-kit.md) for recent activity (still active accounts, still posting) — a cheap freshness check before the founder spends a message on a dead account.
-2. Set up HN/PH/Reddit keyword monitors for "Cadence" + the exact Show HN title (once fixed, see [`launch-assets.md`](./launch-assets.md)) so the founder sees every mention the moment PC-14 goes live, not hours later.
+2. Set up HN/PH/Reddit keyword monitors for "Supaprod" + the exact Show HN title (once fixed, see [`launch-assets.md`](./launch-assets.md)) so the founder sees every mention the moment PC-14 goes live, not hours later.
 3. Build the outreach-cadence tracker: one row per target, contacted-date/reply-status columns only — read-only reference for the founder, not a place any product data lives.
 
 ### 2. Research rig (feeds positioning + YC evidence)
@@ -44,9 +44,9 @@ Not scoped for the Launch Month. Revisit at G-SCALE per the plan's gates-not-dat
 
 ## What never happens here (hard boundary, restated)
 
-- No core orchestration logic, no decision data, no ranking data, no workspace records — nothing ProductCentral (or any Airtable product) could learn from by virtue of sharing infrastructure with Cadence.
-- No persistent two-way sync between HyperAgent and Cadence's Supabase instance.
-- No OAuth grant from HyperAgent into any Cadence-owned account or data source.
+- No core orchestration logic, no decision data, no ranking data, no workspace records — nothing ProductCentral (or any Airtable product) could learn from by virtue of sharing infrastructure with Supaprod.
+- No persistent two-way sync between HyperAgent and Supaprod's Supabase instance.
+- No OAuth grant from HyperAgent into any Supaprod-owned account or data source.
 - If a task can't be described honestly as "disposable research/GTM compute," it doesn't run here — full stop, not a judgment call per-task.
 
 ## Acceptance tracking (PC-26)

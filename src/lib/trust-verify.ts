@@ -26,7 +26,7 @@
 import type { TrustReceipt } from "@/lib/trust-ledger.functions";
 
 export const SEAL_ALGO = "SHA-256-chain/v1";
-const GENESIS = "cadence-trust-ledger/v1";
+const GENESIS = "supaprod-trust-ledger/v1";
 
 /**
  * The integrity-relevant, canonical form of a receipt — an explicit, ordered tuple

@@ -10,12 +10,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicTeardown, type PublicTeardown } from "@/lib/opportunities-share.functions";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
-import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://cadence-flow-beta.lovable.app/og-cadence.png";
+const OG_IMAGE = "https://supaprod.lovable.app/og-supaprod.png";
 
 const VERDICT: Record<
   PublicTeardown["verdict"],
@@ -46,11 +46,11 @@ export const Route = createFileRoute("/t/$slug")({
   head: ({ loaderData }) => {
     const t = loaderData?.teardown;
     const verdict = t ? VERDICT[t.verdict].label : null;
-    const title = t ? `${stripAutoPrefix(t.title)} · Cadence` : "Teardown · Cadence";
+    const title = t ? `${stripAutoPrefix(t.title)} · Supaprod` : "Teardown · Supaprod";
     const desc = (
       t
-        ? `Critic verdict: ${verdict}. ${t.summary || "An evidence-backed teardown, shared from Cadence."}`
-        : "A Critic teardown, shared from Cadence."
+        ? `Critic verdict: ${verdict}. ${t.summary || "An evidence-backed teardown, shared from Supaprod."}`
+        : "A Critic teardown, shared from Supaprod."
     ).slice(0, 180);
     return {
       meta: [
@@ -113,9 +113,9 @@ function Shell({ children }: { children: React.ReactNode }) {
             color: "inherit",
           }}
         >
-          <CadenceMark />
+          <SupaprodMark />
           <span className="font-display" style={{ fontSize: 14 }}>
-            Cadence
+            Supaprod
           </span>
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
@@ -139,7 +139,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Cadence
+          Made with Supaprod
         </span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Tear down your own idea →
@@ -275,8 +275,8 @@ function PublicTeardownPage() {
           lineHeight: 1.5,
         }}
       >
-        A read-only snapshot of one Critic teardown. Cadence is the PM chief of staff that red-teams
-        your calls, runs the reversible work, and remembers every outcome.
+        A read-only snapshot of one Critic teardown. Supaprod is the PM chief of staff that
+        red-teams your calls, runs the reversible work, and remembers every outcome.
       </p>
 
       <PreSignupCTA sourceType="teardown" />

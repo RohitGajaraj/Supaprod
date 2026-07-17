@@ -3,11 +3,11 @@
 // actual stack (Supabase Postgres + RLS, connector OAuth scopes, BYO keys)
 // rather than generic legal filler.
 import { createFileRoute } from "@tanstack/react-router";
-import { LegalPageShell, LegalSection } from "@/components/cadence/LegalPageShell";
+import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
-const TITLE = "Privacy policy · Cadence";
+const TITLE = "Privacy policy · Supaprod";
 const DESC =
-  "What Cadence reads, what it never touches, how to revoke access, and where your data lives.";
+  "What Supaprod reads, what it never touches, how to revoke access, and where your data lives.";
 
 export const Route = createFileRoute("/privacy")({
   ssr: true,
@@ -35,7 +35,7 @@ function PrivacyPage() {
       <LegalSection title="What we collect">
         <p>
           Account details you give us at signup (name, email, workspace name). Content you create in
-          Cadence: decisions, specs, opportunities, and their outcomes. Content from any source you
+          Supaprod: decisions, specs, opportunities, and their outcomes. Content from any source you
           explicitly connect (GitHub, Slack, Linear, and similar), scoped to the permissions you
           grant at connect time and shown to you before you grant them. Usage data (page views,
           feature interactions) so we can tell what is working.
@@ -44,7 +44,7 @@ function PrivacyPage() {
 
       <LegalSection title="What we never touch">
         <p>
-          Cadence never merges code, ships a release, or takes an irreversible action without your
+          Supaprod never merges code, ships a release, or takes an irreversible action without your
           explicit approval. The merge gate is always human-reviewed. We do not read sources you
           have not connected, and we do not expand a connection's scope without asking again.
         </p>
@@ -53,7 +53,7 @@ function PrivacyPage() {
       <LegalSection title="No training on your data">
         <p>
           Your decisions, specs, code, and outcomes are not used to train a shared or public AI
-          model. When Cadence calls an underlying model provider to do its work, your data is sent
+          model. When Supaprod calls an underlying model provider to do its work, your data is sent
           for that request only, under that provider's standard API terms, not their consumer
           product terms.
         </p>
@@ -63,7 +63,7 @@ function PrivacyPage() {
         <p>
           In your workspace's own Postgres database (hosted on Supabase), isolated from other
           workspaces by row-level security. You can export your data in open formats at any time
-          from Settings. The third parties that process data on Cadence's behalf, and what each one
+          from Settings. The third parties that process data on Supaprod's behalf, and what each one
           receives, are listed publicly on{" "}
           <a href="/subprocessors" style={{ color: "#ff9542" }}>
             the sub-processor disclosure
@@ -74,7 +74,7 @@ function PrivacyPage() {
 
       <LegalSection title="Bring your own AI keys">
         <p>
-          If you prefer, you can run Cadence against your own model provider key instead of ours.
+          If you prefer, you can run Supaprod against your own model provider key instead of ours.
           Nothing about your data handling changes either way. This is a routing choice, not a trust
           boundary.
         </p>
@@ -89,7 +89,7 @@ function PrivacyPage() {
 
       <LegalSection title="Who can see your data">
         <p>
-          Members of your workspace, per the role you grant them. We do not sell your data. Cadence
+          Members of your workspace, per the role you grant them. We do not sell your data. Supaprod
           staff access production data only to operate the service (debugging, support you have
           requested) and that access is logged.
         </p>
@@ -108,9 +108,9 @@ function PrivacyPage() {
 
       <LegalSection title="Changes to this policy">
         <p>
-          Cadence is in beta and this policy will get more detailed as we add capabilities (billing,
-          more connectors). We will date every revision here; material changes get a notice inside
-          the product, not a silent edit.
+          Supaprod is in beta and this policy will get more detailed as we add capabilities
+          (billing, more connectors). We will date every revision here; material changes get a
+          notice inside the product, not a silent edit.
         </p>
       </LegalSection>
     </LegalPageShell>

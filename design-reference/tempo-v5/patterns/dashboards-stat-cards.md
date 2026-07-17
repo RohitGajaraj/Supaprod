@@ -278,7 +278,7 @@ onClick>`) so it has native link semantics, is reachable by "jump to links," and
   plain `text-gray-900` rather than raw `var(--ds-gray-900)`) — e.g. `color: "var(--ds-teal-700)"`
   for slot 1. Because the token itself already resolves per `[data-theme]`, no separate
   light/dark entry in `ChartConfig`'s `theme` object is needed.
-- **Composition with existing Cadence code**: follow the two-file lockstep convention — a
+- **Composition with existing Supaprod code**: follow the two-file lockstep convention — a
   dashboard route (e.g. `src/routes/_authenticated.analytics.tsx`) pulls its stat/chart data
   through a matching `src/lib/<domain>.functions.ts` server function via `useQuery`, keyed so a
   filter-row change invalidates every stat tile and chart card in one re-render (the shared

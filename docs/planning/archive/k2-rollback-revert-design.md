@@ -10,14 +10,14 @@
 
 ## 1. Problem
 
-Cadence's Build engine (F-STUDIO) ships real code: a mission stages a multi-file changeset, commits it to a `studio/*` branch via the GitHub Git Data API, opens a PR, passes the J2 CI gate, and squash-merges to the default branch. **There is no way to undo a shipped change.** K2 is the "undo the ship" path: from the Build UI, roll back a merged release in one action, with a documented rollback record, and stop an in-flight change before it lands.
+Supaprod's Build engine (F-STUDIO) ships real code: a mission stages a multi-file changeset, commits it to a `studio/*` branch via the GitHub Git Data API, opens a PR, passes the J2 CI gate, and squash-merges to the default branch. **There is no way to undo a shipped change.** K2 is the "undo the ship" path: from the Build UI, roll back a merged release in one action, with a documented rollback record, and stop an in-flight change before it lands.
 
 ## 2. Constraints discovered by recon (these define what K2 can honestly be)
 
 1. **Revision content is not stored.** `studio_changeset_revisions` holds only `revision_no, commit_sha, commit_url, message, files[{path,op}]` - no file content, no per-revision `base_sha`. The durable record of what a revision actually contained is **the commit object on GitHub**. (This is exactly why I1b deferred "revert-to-revision … needs per-revision content or git ops.")
 2. **All git mutation is the GitHub Git Data API - no local checkout.** Branch `studio/<mission8>-<changeset12>`; commit = blobs → tree → commit → ref; merge = `PUT /pulls/{n}/merge` (squash) after the J2 CI re-read in `src/lib/ai/studio-ci.ts`.
 3. **No feature-flag system exists.** The only runtime kill is FND-0.6 (`kill_switches`, gating _AI calls_ at the chokepoint) plus per-agent/tool `enabled` booleans. Nothing toggles a shipped feature inside the user's deployed product.
-4. **Deploy is external** (K1-deploy deferred under the founder honesty ruling). Cadence ships code _to the repo_; the user's own CD redeploys it. K2 therefore operates on **git/PR-level artifacts**, never on a production deploy it does not own.
+4. **Deploy is external** (K1-deploy deferred under the founder honesty ruling). Supaprod ships code _to the repo_; the user's own CD redeploys it. K2 therefore operates on **git/PR-level artifacts**, never on a production deploy it does not own.
 
 ## 3. Scope
 
@@ -25,7 +25,7 @@ Cadence's Build engine (F-STUDIO) ships real code: a mission stages a multi-file
 
 - **R1 · Roll back a merged release.** One action in `ChangesPanel` turns a merged changeset into a **revert changeset** that restores the touched paths to their pre-merge state, then flows through the _existing_ commit → PR → J2-gated merge rails. The operator gets a real revert PR; CI + human review gate the re-merge.
 - **R2 · Documented rollback record.** A `studio_rollbacks` row links the original changeset → revert changeset/PR + reason + status, plus a humanized rollback note (mirrors K1 `generateReleaseNotes`). This is the "documented rollback per release."
-- **R3 · Kill an in-flight change.** For a not-yet-merged changeset (`staged | committed | pr_open`): close the PR if open, release `builder_file_claims`, set `status='abandoned'`. Cadence fully owns pre-merge state, so this is honest and immediate.
+- **R3 · Kill an in-flight change.** For a not-yet-merged changeset (`staged | committed | pr_open`): close the PR if open, release `builder_file_claims`, set `status='abandoned'`. Supaprod fully owns pre-merge state, so this is honest and immediate.
 
 **Explicitly out of scope (documented as deferred in `studio.md`, K1-deploy-style):**
 

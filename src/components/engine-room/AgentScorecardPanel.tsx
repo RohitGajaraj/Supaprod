@@ -17,7 +17,7 @@ import {
   type ToolRecord,
 } from "@/lib/agent-scorecard";
 import { formatOutcomeRecord, formatTrackRecord } from "@/lib/agent-track-record";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { AgentMark } from "@/components/agents/AgentMark";
 import { AGENT_STATIONS, agentDisplayName, agentMark, agentStation } from "@/lib/agent-vocabulary";
 

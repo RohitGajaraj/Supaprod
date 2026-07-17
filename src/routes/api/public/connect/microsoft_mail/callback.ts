@@ -173,11 +173,11 @@ export const Route = createFileRoute("/api/public/connect/microsoft_mail/callbac
 
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Outlook Mail Connected - Cadence</title>
+<title>Outlook Mail Connected - Supaprod</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">Outlook Mail connected</h2>
-<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Cadence.</p>
+<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Supaprod.</p>
 <a href="${url.origin}/settings?section=connections" style="color:#f97316;font-size:.875rem">Or click here to return</a></div>
 <script>try{window.close()}catch(e){}</script>
 </body></html>`,

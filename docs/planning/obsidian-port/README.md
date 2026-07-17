@@ -13,7 +13,7 @@
 
 ## 1. Why we are doing this (the theme, the goal, the north star)
 
-Cadence's app surfaces are being ported, surface by surface, from the parchment **"Ember Editorial"** system (kept ONLY for the public landing page) to **v3 "Obsidian"**, adopted as doctrine by founder ruling 2026-07-02.
+Supaprod's app surfaces are being ported, surface by surface, from the parchment **"Ember Editorial"** system (kept ONLY for the public landing page) to **v3 "Obsidian"**, adopted as doctrine by founder ruling 2026-07-02.
 
 **The design idea (the thing every screen must feel like):** _a calm instrument. A jet-black cockpit where the machine's work glows softly in glacier blue, and the only thing that ever asks for attention, in ember orange, is a decision that genuinely needs a human._ Warm asks, cool works. This is the felt expression of the v11 guiding star (the decision-and-outcome layer, trust at the point of decision) and the engine-room doctrine (calm front, deep engine behind one door). The visual restraint IS the product thesis: a PM tool that reduces the babysitting tax must itself never nag.
 

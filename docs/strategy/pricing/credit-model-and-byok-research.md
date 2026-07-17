@@ -1,7 +1,7 @@
 # Credit model, BYOK, and ambient-spend billing — competitor teardown + recommendation
 
 > _Created: 2026-07-12 (founder session — the self-improvement spend model opened a broader monetization question; founder asked for a comprehensive, durable research record)._
-> _Author: automated competitor teardown (8 platforms, primary-source-grounded) + a survey of every Cadence AI surface, synthesized into a decision-ready recommendation._
+> _Author: automated competitor teardown (8 platforms, primary-source-grounded) + a survey of every Supaprod AI surface, synthesized into a decision-ready recommendation._
 
 > **Status: RESEARCH + RECOMMENDATION (not yet ratified).** This doc holds the evidence and a recommended credit model. It does NOT override the canonical [`pricing-strategy.md`](./pricing-strategy.md) until the founder ratifies the calls in §6. Where this research CONFIRMS the existing canon it says so; where it PROPOSES A REVISION (notably enterprise per-seat → committed credits) it flags it as an open founder decision, never a silent change.
 
@@ -11,12 +11,12 @@
 
 ## 0. Why this exists
 
-The self-improvement engine (RPT-50) raised a concrete billing question: when Cadence tunes itself, who pays? That opened a broader one — the whole credit model, BYOK stance, enterprise pricing, and how to bill work that runs **without a click** (post-trial Auto, ambient foresight). The founder set the direction (one unified platform-credit line; Cadence absorbs platform self-improvement; no BYOK sprawl; enterprise volume not seat sprawl; explicit disclosure) and asked for the market evidence behind it before we build. This is that evidence plus a recommendation.
+The self-improvement engine (RPT-50) raised a concrete billing question: when Supaprod tunes itself, who pays? That opened a broader one — the whole credit model, BYOK stance, enterprise pricing, and how to bill work that runs **without a click** (post-trial Auto, ambient foresight). The founder set the direction (one unified platform-credit line; Supaprod absorbs platform self-improvement; no BYOK sprawl; enterprise volume not seat sprawl; explicit disclosure) and asked for the market evidence behind it before we build. This is that evidence plus a recommendation.
 
 **Committed direction going in (founder, 2026-07-12), which the research tests rather than relitigates:**
 
 - ONE unified platform-credit line. Avoid a second "bring-your-own-credits" wallet — it confuses users and muddies monetization.
-- Cadence **absorbs** the cost of self-improving the platform. Customer-facing self-improvement is free on Scheduled + a 30-day Auto trial; post-trial Auto draws platform credits.
+- Supaprod **absorbs** the cost of self-improving the platform. Customer-facing self-improvement is free on Scheduled + a 30-day Auto trial; post-trial Auto draws platform credits.
 - Enterprise gets a compliance **off-switch** in the admin console.
 - Everything explicit — no silent flip to billing, ever.
 
@@ -24,13 +24,13 @@ The self-improvement engine (RPT-50) raised a concrete billing question: when Ca
 
 ## 1. The recommendation in one screen
 
-**One-line model:** One unified platform-credit line is the billing spine. A credit is drawn **only when an AI call produces the customer's takeaway work**; Cadence eats verification, self-diagnosis, and plumbing. BYOK survives as **model choice**, never as a parallel billing rail. Enterprise is priced on **committed credits with unlimited seats**. The single real risk is **spend that happens without a click**.
+**One-line model:** One unified platform-credit line is the billing spine. A credit is drawn **only when an AI call produces the customer's takeaway work**; Supaprod eats verification, self-diagnosis, and plumbing. BYOK survives as **model choice**, never as a parallel billing rail. Enterprise is priced on **committed credits with unlimited seats**. The single real risk is **spend that happens without a click**.
 
 | #   | Decision                | Verdict                                                                                                                                                                                               |
 | --- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Unified credits vs BYOK | **Confirm unified credits as the sole billing spine.** Keep BYOK only as model-choice, decoupled from billing, restricted to the commodity-inference layer. Reject bring-your-own-_credits_ entirely. |
 | 2   | Enterprise pricing      | **Committed/volume credits + unlimited seats + custom contract. Not per-seat.** (This _revises_ the current canon — see §6.)                                                                          |
-| 3   | Free-vs-charged line    | **Confirm the surface map (§4).** Charge when tokens create the customer's takeaway; free when tokens grade / verify / self-diagnose Cadence, or run plumbing.                                        |
+| 3   | Free-vs-charged line    | **Confirm the surface map (§4).** Charge when tokens create the customer's takeaway; free when tokens grade / verify / self-diagnose Supaprod, or run plumbing.                                        |
 | 4   | Auto-learning controls  | **Three distinct controls, correctly placed** (see §5): the _compliance off-switch_ is enterprise-admin-only; the _spend dial_ is universal; the _free learning baseline_ is always-on.               |
 | 5   | Post-trial Auto billing | **Outcome-gated, cheap-routed, included-allowance-first, downgrade-to-free (not dead-stop), transparent ledger** — all inside the one credit line.                                                    |
 
@@ -50,12 +50,12 @@ The market splits cleanly, and the split validates the call:
 
 **Where BYOK-as-model-choice should survive (decoupled from billing):**
 
-1. On the **charged commodity surfaces** (chat, copilot, PRD, discovery) — a user may point a frontier-model call at their own provider key; those raw-inference tokens bill to their provider, not to Cadence credits. Kills the cost objection, wins solo/cost-sensitive PMs.
+1. On the **charged commodity surfaces** (chat, copilot, PRD, discovery) — a user may point a frontier-model call at their own provider key; those raw-inference tokens bill to their provider, not to Supaprod credits. Kills the cost objection, wins solo/cost-sensitive PMs.
 2. For the AI **inside anything the customer BUILDS** (Build/studio-generated app runtime) — route to the user's key, provider-billed, on every tier. This is Replit's exact split: BYOK for _your app_, never for the _platform's own agent_.
 
-**Where BYOK must NOT reach:** Cadence's proprietary decision/agentic orchestration and the judge/Critic/eval/self-improve layers. Those are the moat and are free anyway; letting a key run them off-platform would hollow out the differentiator.
+**Where BYOK must NOT reach:** Supaprod's proprietary decision/agentic orchestration and the judge/Critic/eval/self-improve layers. Those are the moat and are free anyway; letting a key run them off-platform would hollow out the differentiator.
 
-**Margin-protection judgment call:** even on BYOK calls, keep a **thin platform credit** for Cadence's own orchestration/decision scaffolding around that call (the Cursor Token Rate move). BYOK decouples _who pays for the raw tokens_, not _Cadence works for free_. Otherwise heavy/enterprise users route their most expensive calls off-meter precisely where our value-add is highest.
+**Margin-protection judgment call:** even on BYOK calls, keep a **thin platform credit** for Supaprod's own orchestration/decision scaffolding around that call (the Cursor Token Rate move). BYOK decouples _who pays for the raw tokens_, not _Supaprod works for free_. Otherwise heavy/enterprise users route their most expensive calls off-meter precisely where our value-add is highest.
 
 ---
 
@@ -70,7 +70,7 @@ The agent/builder-platform peers converge here; only the IDE-assistants stay per
 - **Devin Enterprise:** committed ACUs at an order-form rate, seats effectively unlimited ("you're buying working time, not access licenses").
 - **Cursor / Copilot stay per-seat** because their unit of value _is_ a developer in an editor. Copilot: $19/$39 per seat with a shared credit pool.
 
-Cadence's unit of value is agent **work and deliverables**, and the product ethos is "invite the whole PM+eng+design org to collaborate." Per-seat taxes exactly the collaboration we want to encourage and adds seat-count friction on every expansion. Committed credits match the enterprise buyer's mental model (budget a spend envelope, not a license count) and make land-and-expand frictionless.
+Supaprod's unit of value is agent **work and deliverables**, and the product ethos is "invite the whole PM+eng+design org to collaborate." Per-seat taxes exactly the collaboration we want to encourage and adds seat-count friction on every expansion. Committed credits match the enterprise buyer's mental model (budget a spend envelope, not a license count) and make land-and-expand frictionless.
 
 **Concrete recommendation:** annual credit commitment with a tiered per-credit rate that declines with commitment size; unlimited members; **org-pooled** usage (kills stranded per-user capacity); invoice/PO billing; and the governance layer — SSO/SCIM/audit **plus the compliance off-switch** — as the tier gate. Reserve BYOK _restrictions_ + governance for this tier (Windsurf's asymmetry: BYOK freely to individuals, withheld/governed at enterprise where margin and control live).
 
@@ -80,11 +80,11 @@ Cadence's unit of value is agent **work and deliverables**, and the product etho
 
 ---
 
-## 4. Decision 3 — The free-vs-charged line (Cadence surface map)
+## 4. Decision 3 — The free-vs-charged line (Supaprod surface map)
 
-**Verdict: confirm this line. It is Cadence's strongest structural asset.**
+**Verdict: confirm this line. It is Supaprod's strongest structural asset.**
 
-**The principle:** _You pay for output you keep; Cadence pays to keep that output honest, and eats the plumbing underneath._ A credit is deducted only when an AI call PRODUCES the customer's own work product. Cadence bears the cost when a call exists to GRADE, VERIFY, SCREEN, or SELF-DIAGNOSE its own output — because that is Cadence maintaining its own trustworthiness, not the customer's work — and when the call is trivial infrastructure. Charging users to verify quality would suppress the very trust mechanism (evals + Critic + self-improvement) that is the moat, so Cadence must eat it.
+**The principle:** _You pay for output you keep; Supaprod pays to keep that output honest, and eats the plumbing underneath._ A credit is deducted only when an AI call PRODUCES the customer's own work product. Supaprod bears the cost when a call exists to GRADE, VERIFY, SCREEN, or SELF-DIAGNOSE its own output — because that is Supaprod maintaining its own trustworthiness, not the customer's work — and when the call is trivial infrastructure. Charging users to verify quality would suppress the very trust mechanism (evals + Critic + self-improvement) that is the moat, so Supaprod must eat it.
 
 | Surface                 | What it is                                                                                                                                                                 | Recommendation                                                                                                                                        |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -97,10 +97,10 @@ Cadence's unit of value is agent **work and deliverables**, and the product etho
 | `brief`                 | Daily brief + meeting summaries (already cost-routed)                                                                                                                      | **CHARGE (small)** — a deliverable, but cheap-routed                                                                                                  |
 | `sense`                 | Proactive/ambient foresight, fired by crons not clicks                                                                                                                     | **CHARGE but GOVERNED** — real value, but spends without a click → same Auto/Scheduled/Off + hard-cap + cheap-flash governance as the spend dial (§5) |
 | `decision`              | Decision-record rationale revision (reserved; no live call site yet)                                                                                                       | **CHARGE** — the moat deliverable, when it goes live                                                                                                  |
-| `eval`                  | The eval-runner's subject call (model-under-test)                                                                                                                          | **FREE** — QA on Cadence's own output                                                                                                                 |
+| `eval`                  | The eval-runner's subject call (model-under-test)                                                                                                                          | **FREE** — QA on Supaprod's own output                                                                                                                 |
 | `judge`                 | LLM-as-judge/scoring: eval grading, public Critic teardown, verify-green, contradiction-auditor, retro/house-rules, prompt-opt, outcome scoring, self-improve explanations | **FREE** — verification/self-diagnosis; the public Critic teardown is the acquisition wedge, especially want it free                                  |
-| self-improvement engine | Cadence-on-Cadence quality fixing (runs on `judge`, cheap flash, grounded)                                                                                                 | **FREE** — the customer never pays for Cadence improving itself                                                                                       |
-| guardrails (in/out)     | Deterministic rule eval, inline in the chokepoint                                                                                                                          | **FREE** — no marginal AI spend; safety is Cadence's duty                                                                                             |
+| self-improvement engine | Supaprod-on-Supaprod quality fixing (runs on `judge`, cheap flash, grounded)                                                                                                 | **FREE** — the customer never pays for Supaprod improving itself                                                                                       |
+| guardrails (in/out)     | Deterministic rule eval, inline in the chokepoint                                                                                                                          | **FREE** — no marginal AI spend; safety is Supaprod's duty                                                                                             |
 | injection screening     | Deterministic quarantine of untrusted text                                                                                                                                 | **FREE** — platform safety control, no AI cost                                                                                                        |
 | `embed`                 | RAG embeddings, high-volume, sub-cent                                                                                                                                      | **FREE** — metering sub-cent calls is pure friction                                                                                                   |
 | `scheduler`             | Internal scheduling (reserved; no live call site yet)                                                                                                                      | **FREE** — orchestration plumbing                                                                                                                     |
@@ -116,7 +116,7 @@ The founder was at risk of bundling three different things under "off-switch." T
 
 1. **The free learning baseline (Scheduled).** Always on, free, no consumer off-switch — because it draws no credits and compounding it is the moat. Turning this off only starves the user's own engine, so we don't offer that to consumers. _(This is the founder's "no Off" call, and it stands — it applies to the FREE baseline.)_
 2. **The spend dial (universal, every tier).** Control — Auto / Scheduled / Off + a user-set cap — over anything that draws **credits without a click**: post-trial Auto, and `sense`. This is a **budget** control, not a compliance one, and **every tier must have it**, or Auto silently draws a solo user's credits (the Bolt resentment trap). Default: _stop at budget, never silently overspend._
-3. **The compliance off-switch (enterprise-admin-only).** Disabling Cadence's autonomous learning _entirely_ for governance/data-residency reasons. Correctly enterprise-admin-only — matches how Windsurf/Cursor withhold governance controls from individuals and reserve them for the tier where governance and margin live. No non-enterprise tier needs this.
+3. **The compliance off-switch (enterprise-admin-only).** Disabling Supaprod's autonomous learning _entirely_ for governance/data-residency reasons. Correctly enterprise-admin-only — matches how Windsurf/Cursor withhold governance controls from individuals and reserve them for the tier where governance and margin live. No non-enterprise tier needs this.
 
 **Net:** one control is always-on-and-free (baseline), one is universal (spend dial), one is enterprise-only (compliance). Keeping them distinct is the difference between a trust feature and a governance feature. **Do not gate the spend dial behind enterprise.**
 
@@ -124,7 +124,7 @@ The founder was at risk of bundling three different things under "off-switch." T
 
 ## 6. Decision 5 — How post-trial Auto bills against platform credits
 
-Reconcile first: the surface map's "self-improvement engine = FREE" is **Cadence-on-Cadence** (Cadence fixing its own quality flags — always free). **Post-trial Auto** is the _customer-facing_ autonomous cadence that continuously improves the customer's own workspace/agents/outputs — that produces customer value, so it bills. Two different engines.
+Reconcile first: the surface map's "self-improvement engine = FREE" is **Supaprod-on-Supaprod** (Supaprod fixing its own quality flags — always free). **Post-trial Auto** is the _customer-facing_ autonomous cadence that continuously improves the customer's own workspace/agents/outputs — that produces customer value, so it bills. Two different engines.
 
 **Recommended mechanics — all inside the one unified credit line, no separate rail:**
 
@@ -175,12 +175,12 @@ The canonical [`pricing-strategy.md`](./pricing-strategy.md) already settled sev
 
 - Credits price **closed loops / outcomes, never tokens or seats** — the surface map and every disciplined incumbent agree.
 - Account-level **pooled** credits (not per-seat) — matches Copilot/Cursor org-pooling and the "unlimited members" norm.
-- Cadence **absorbs** platform self-maintenance / model upgrades into the managed tier — every disciplined incumbent does this; the surface map's "free the verification layer" is the sharpened version.
-- Never charge for **viewing or manual edits** — Lovable's explicit line; extend it to Cadence.
+- Supaprod **absorbs** platform self-maintenance / model upgrades into the managed tier — every disciplined incumbent does this; the surface map's "free the verification layer" is the sharpened version.
+- Never charge for **viewing or manual edits** — Lovable's explicit line; extend it to Supaprod.
 
 **PROPOSES A REVISION (founder decision required):**
 
-- **Enterprise pricing.** Canon §0 decision 4 = "platform fee + per-seat + API usage rates." Research recommends **committed/volume credits + unlimited seats** (per-seat only as a procurement fallback). The agent/builder peers (Replit, Lovable, Devin) all dropped per-seat for exactly Cadence's "value = agent work, invite the whole org" reason. **→ Founder call: keep per-seat, or move enterprise to committed-credit + unlimited seats?**
+- **Enterprise pricing.** Canon §0 decision 4 = "platform fee + per-seat + API usage rates." Research recommends **committed/volume credits + unlimited seats** (per-seat only as a procurement fallback). The agent/builder peers (Replit, Lovable, Devin) all dropped per-seat for exactly Supaprod's "value = agent work, invite the whole org" reason. **→ Founder call: keep per-seat, or move enterprise to committed-credit + unlimited seats?**
 
 **ADDS (new, not previously specified):**
 
@@ -208,7 +208,7 @@ Once ratified, record each in `pricing-strategy.md` + `session-decisions.md`, an
 The current build (Auto/Scheduled/Off, cost absorption, visibility surface, Step B) updates to match:
 
 - **Modes:** Scheduled (default, always free) + Auto. Auto is the credit-drawing, universal **spend dial** (§5.2), not a cost tier — with a hard cap and **downgrade-to-Scheduled** on cap/balance (§6.5), never a dead stop.
-- **Cost routing:** Scheduled + in-trial Auto + all internal/Step B run on Cadence's key (free to the customer, including BYOK customers), cheap-flash. Only post-trial Auto draws credits, outcome-gated.
+- **Cost routing:** Scheduled + in-trial Auto + all internal/Step B run on Supaprod's key (free to the customer, including BYOK customers), cheap-flash. Only post-trial Auto draws credits, outcome-gated.
 - **Compliance off-switch:** enterprise-admin-only, in the admin console (§5.3) — not a consumer control.
-- **Visibility surface:** the reversible "how Cadence tuned itself" timeline doubles as the **transparent ledger** (§6.6) — what each tick produced and cost.
+- **Visibility surface:** the reversible "how Supaprod tuned itself" timeline doubles as the **transparent ledger** (§6.6) — what each tick produced and cost.
 - **`sense` shares the harness:** the same governance the self-improve spend dial uses.

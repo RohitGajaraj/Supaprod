@@ -8,13 +8,13 @@
 
 ## In one line
 
-Cadence's memory becomes a **living decision graph**: a typed, time-aware, auto-built map of every signal, decision, assumption, and outcome, connected the way a senior PM's mind connects them, that you can _see_ (an Obsidian-style graph that speaks everything) and that quietly makes you smarter at every step, often before you ask.
+Supaprod's memory becomes a **living decision graph**: a typed, time-aware, auto-built map of every signal, decision, assumption, and outcome, connected the way a senior PM's mind connects them, that you can _see_ (an Obsidian-style graph that speaks everything) and that quietly makes you smarter at every step, often before you ask.
 
 ---
 
 ## The problem today
 
-Cadence already remembers, but it remembers _flatly_. Memory is stored as embeddings and retrieved by similarity (vector recall over chunks). That has three structural limits, and they are exactly the limits that matter for product decisions:
+Supaprod already remembers, but it remembers _flatly_. Memory is stored as embeddings and retrieved by similarity (vector recall over chunks). That has three structural limits, and they are exactly the limits that matter for product decisions:
 
 1. **It returns what is similar, not what is current.** If you changed your mind last month, a flat store still surfaces the old belief.
 2. **It cannot walk a chain.** "This signal led to this assumption led to this decision led to this outcome" is invisible to a pile of vectors.

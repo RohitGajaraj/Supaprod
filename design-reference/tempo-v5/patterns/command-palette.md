@@ -1,7 +1,7 @@
 # Command palette
 
 > Give people one fast, keyboard-first surface that finds anything and runs anything in
-> Cadence, without their hands leaving the keyboard or their place on the page getting lost.
+> Supaprod, without their hands leaving the keyboard or their place on the page getting lost.
 > Extension — base: Geist `CommandMenu`, `CommandMenuInput`, `CommandMenuList`,
 > `CommandMenuGroup`, `CommandMenuItem`, `CommandMenuDivider`, `CommandMenuPage`, `Kbd`,
 > `Button`, `EmptyState`, the materials/typography/color tokens · inspiration: Linear's
@@ -101,7 +101,7 @@ Named parts:
 
 - **Root palette (global)** — the one true instance, mounted once in the authenticated
   shell and opened from anywhere via `Cmd+K` / `Ctrl+K`. Its root page holds Recent,
-  Create, Go to, then query-scoped entity result groups. This is the palette Cadence
+  Create, Go to, then query-scoped entity result groups. This is the palette Supaprod
   ships by default; every other variant below reuses the same component, never a
   parallel implementation.
 - **Nested page (sub-palette)** — pushed onto the same overlay when a row's job is to
@@ -386,7 +386,7 @@ query-scoped group too, if it scores high enough):
   two competing files for one overlay.
 - **Component file placement** — `src/components/ui/command.tsx` (existing `cmdk`
   primitives, ported to tokens), `src/components/ui/kbd.tsx` (new, shared), and
-  `src/components/ui/command-palette.tsx` (new, the Cadence-specific composed instance:
+  `src/components/ui/command-palette.tsx` (new, the Supaprod-specific composed instance:
   page stack, recents, static Create/Go to rows, the global `Cmd+K`/`Ctrl+K` listener),
   mounted once in the authenticated app shell, never re-mounted per route.
 - **Recents source** — a small capped list (roughly the last 5 to 8 visited or created

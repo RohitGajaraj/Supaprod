@@ -6,7 +6,7 @@
 
 ## What this is
 
-Cadence's role in Build is to **conduct the builders**, not to write code itself. This feature makes that concrete: given an approved PRD with a generated task graph, Cadence dispatches each task to Linear as a governed issue — in dependency order, idempotently, tracked in `sync_mappings`.
+Supaprod's role in Build is to **conduct the builders**, not to write code itself. This feature makes that concrete: given an approved PRD with a generated task graph, Supaprod dispatches each task to Linear as a governed issue — in dependency order, idempotently, tracked in `sync_mappings`.
 
 ## Flow
 

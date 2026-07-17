@@ -287,7 +287,7 @@ function fmtTokens(n: number): string {
 }
 
 /**
- * The AI message UI contract — ported 1:1 from design-reference/cadence/
+ * The AI message UI contract — ported 1:1 from design-reference/supaprod/
  * chat.jsx AiContract: judge pill · model · latency · tokens · cost ·
  * feedback · view-trace · replay-with. Production additions slot in without
  * changing the contract: sources row above (the citation infra), web/db

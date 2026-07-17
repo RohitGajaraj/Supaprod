@@ -2,7 +2,7 @@ import * as React from "react";
 
 // OBS-15 - the precise machine-data chart grammar. Obsidian reverses the
 // parchment "hand-sketched data marks" law (founder directive 2026-06-12,
-// src/components/cadence/Sketch.tsx): the machine draws exact vectors, and
+// src/components/supaprod/Sketch.tsx): the machine draws exact vectors, and
 // only a PM's own annotation is rough graphite (see pencil-mark.tsx). No
 // jitter, no wobble, anywhere in this file.
 

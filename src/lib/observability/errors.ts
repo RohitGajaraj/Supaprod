@@ -159,7 +159,7 @@ async function sendSentryEnvelope(err: unknown, ctx: ErrorContext = {}): Promise
       method: "POST",
       headers: {
         "content-type": "application/x-sentry-envelope",
-        "x-sentry-auth": `Sentry sentry_version=7, sentry_key=${publicKey}, sentry_client=cadence-observability-facade/1.0`,
+        "x-sentry-auth": `Sentry sentry_version=7, sentry_key=${publicKey}, sentry_client=supaprod-observability-facade/1.0`,
       },
       body: envelope,
     });

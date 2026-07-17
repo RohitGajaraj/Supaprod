@@ -1,4 +1,4 @@
-// Guardrails tab — ported 1:1 from design-reference/cadence/loop.jsx
+// Guardrails tab — ported 1:1 from design-reference/supaprod/loop.jsx
 // (GovernScreen tab "Guardrails"): the bento table — Guardrail 160px /
 // Rule 1fr / Last fired 210px, name at weight 550, rule text-body, fired
 // mono (marigold when fired, text-faint "never"). Production functionality
@@ -23,7 +23,7 @@ import {
   seedBuiltInGuardrails,
   testGuardrailRule,
 } from "@/lib/guardrails.functions";
-import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
 import { relTimeCaps } from "@/components/discover/format";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";

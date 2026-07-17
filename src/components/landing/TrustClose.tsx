@@ -8,7 +8,7 @@ import {
   ScrollText,
   Undo2,
 } from "lucide-react";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { WaitlistForm } from "./WaitlistForm";
 
 /**
@@ -73,7 +73,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         className="absolute -right-40 -bottom-44 opacity-[0.05] pointer-events-none hidden md:block"
         aria-hidden
       >
-        <CadenceMark size={560} mono glow={false} />
+        <SupaprodMark size={560} mono glow={false} />
       </div>
 
       <div className="relative max-w-5xl mx-auto">

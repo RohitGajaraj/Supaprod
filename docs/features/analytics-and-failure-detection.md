@@ -6,7 +6,7 @@
 
 ## What it does (one paragraph)
 
-Cadence ships a two-layered observability stack. The **commodity layer** is bought: PostHog EU for product usage + session replay + feature flags, Sentry EU for server / route / Worker errors, Better Stack for uptime probes + on-call escalation + a public status page. The **moat layer** is built on Supabase: a `job_runs` table for cron health, a `failure_kind` taxonomy on `agent_runs`, and four SQL views that drive in-app surfaces (`/admin/ai-costs`, `/admin/incidents`, `/admin/observability`). Every vendor call is wrapped behind one façade in `src/lib/observability/` so the buy is reversible. The whole capability is **dormant by design** until an admin flips `admin_set_observability_enabled(true)`, mirroring the credit-engine pattern.
+Supaprod ships a two-layered observability stack. The **commodity layer** is bought: PostHog EU for product usage + session replay + feature flags, Sentry EU for server / route / Worker errors, Better Stack for uptime probes + on-call escalation + a public status page. The **moat layer** is built on Supabase: a `job_runs` table for cron health, a `failure_kind` taxonomy on `agent_runs`, and four SQL views that drive in-app surfaces (`/admin/ai-costs`, `/admin/incidents`, `/admin/observability`). Every vendor call is wrapped behind one façade in `src/lib/observability/` so the buy is reversible. The whole capability is **dormant by design** until an admin flips `admin_set_observability_enabled(true)`, mirroring the credit-engine pattern.
 
 ## Why it exists (one paragraph)
 
@@ -19,7 +19,7 @@ When live (post-AFD-12):
 - **Admin → AI costs** → `/admin/ai-costs` — cost-per-mission, p95 latency, budget burn.
 - **Admin → Incidents** (existing `IncidentsPanel`, extended) — last 24h Sentry top error_kinds, cron heartbeat status, recent `job_runs` errors.
 - **Admin → Observability** → `/admin/observability` — kill-switch, sample-rate sliders, vendor reachability ping.
-- **Public** → `status.cadence.app` (renameable later; hosted by Better Stack) — uptime + incident timeline.
+- **Public** → `status.supaprod.app` (renameable later; hosted by Better Stack) — uptime + incident timeline.
 
 Pre-AFD-12, none of these exist; only the doctrine + plan do.
 

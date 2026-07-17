@@ -1,4 +1,4 @@
-# Component inventory · Cadence App (Obsidian v3)
+# Component inventory · Supaprod App (Obsidian v3)
 
 All values below are exact. Tokens in parentheses refer to `tokens/colors.css`
 etc. Reference render: `design-reference/cadence-app.html`.
@@ -9,7 +9,7 @@ etc. Reference render: `design-reference/cadence-app.html`.
 
 - 236px fixed, `--rail` #0D0D0F, 1px right hairline (7% white).
 - Header: Butterfly mark 24px (wing-flutter animation `cadFlutter` 3.4s,
-  ember drop-shadow) + "Cadence" 13.5px/700 + workspace name 10.5px subtle.
+  ember drop-shadow) + "Supaprod" 13.5px/700 + workspace name 10.5px subtle.
 - Search affordance: card surface, radius 8, "Search … ⌘K" (mono 9.5px).
 - Nav: five items, each = mono index (01-05, 9.5px) + label (13px) + optional
   badge. Active: bg #1A1A1E, text primary, weight 600, index turns ember.

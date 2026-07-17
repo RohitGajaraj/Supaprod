@@ -1,5 +1,5 @@
 // SEAM-3 (mission 3.9): the insight-push detection pass. Piggybacks the
-// derive-tick cadence (see src/routes/api/public/hooks/derive-tick.ts): per
+// derive-tick supaprod (see src/routes/api/public/hooks/derive-tick.ts): per
 // workspace it reads the real decision/lineage/queue/learning/calibration
 // state, classifies the three highest-signal Brain events into push candidates
 // via the pure module, applies the 3-per-day hard throttle, and persists the

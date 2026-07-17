@@ -15,9 +15,9 @@ Partners read hundreds per day at 60–90 seconds each. They are pattern-matchin
 
 ## 2. The positioning for THIS application (the ladder — lead with line 1)
 
-1. **The hook:** _"What Cursor did for writing code, Cadence does for deciding what to build."_
+1. **The hook:** _"What Cursor did for writing code, Supaprod does for deciding what to build."_
 2. **The category:** an AI product team — agents that discover, decide, build, and ship — governed by one human who gets the receipts.
-3. **The secret (the earned insight):** everyone is selling capability; capability commoditizes at open-source speed. The collapsed resource is trust — so we built the accountability layer: every agent act has a receipt, every decision an outcome record, and the system publishes its own hit-rate. **Agents do the work. You answer for it. Cadence is how you answer.**
+3. **The secret (the earned insight):** everyone is selling capability; capability commoditizes at open-source speed. The collapsed resource is trust — so we built the accountability layer: every agent act has a receipt, every decision an outcome record, and the system publishes its own hit-rate. **Agents do the work. You answer for it. Supaprod is how you answer.**
 4. **The tailwind (their words, not ours):** YC's own Summer-2026 RFS asks for a "Company Brain" and "AI Operating System for Companies" — this application answers their request with a working system. Coinbase already runs "one-person teams managing fleets of agents"; we're the instrument that role needs.
 5. **The proof:** built solo by running the product's own method — parallel agent lanes, every change receipted; the completeness register survived an independent code audit; [traction numbers slot here at application time].
 
@@ -25,7 +25,7 @@ Partners read hundreds per day at 60–90 seconds each. They are pattern-matchin
 
 ## 3. The application, field by field (patterns + anti-patterns)
 
-- **"What does your company do?" (50 words):** the hook + one concrete beat. Pattern: plain words, zero adjectives. Anti-pattern: "revolutionizing product management with agentic AI." Draft: _"Cadence runs product work end to end with AI agents — it reads your customer signals, ranks what's worth building, red-teams the bet, writes the spec, builds to a pull request, and records whether the call was right. One PM governs it all and gets receipts for everything."_
+- **"What does your company do?" (50 words):** the hook + one concrete beat. Pattern: plain words, zero adjectives. Anti-pattern: "revolutionizing product management with agentic AI." Draft: _"Supaprod runs product work end to end with AI agents — it reads your customer signals, ranks what's worth building, red-teams the bet, writes the spec, builds to a pull request, and records whether the call was right. One PM governs it all and gets receipts for everything."_
 - **"Why did you pick this idea? What's your insight?"** — the accountability secret (§2.3) + the lived version: you built with agent fleets and hit the wall yourself — the more agents did, the more you had to answer for with nothing to answer FROM. That's the earned insight; tell it as the story it is.
 - **"Who are your competitors / what do you understand that others don't?"** — don't list logos first; state the structural gap: every prioritization tool scores with a static formula and forgets; every agent platform sells capability without receipts. Nobody connects decisions → outcomes → learned ranking (measured empty in our 2026 sweep — cite the survey, artifacts not gurus). Then the absorb pattern (Cycle→Atlassian, Kraftful→Amplitude) as evidence the incumbents buy features, not the layer.
 - **"How do or will you make money?"** — credits price **closed decision loops** (the value event), 4-tier ladder, teardown free as the wedge. One sentence on why not seats: we grow as agents do more, not as headcount does.
@@ -54,7 +54,7 @@ Partners interrupt fast and probe the weakest joint. Rehearse one-breath answers
 
 The existing bank stands in [`../one-pager.md`](../one-pager.md). New candidates, ranked by how instantly a stranger gets them:
 
-1. **"What Cursor did for writing code, Cadence does for deciding what to build."** (the transfer everyone in 2026 already believes)
+1. **"What Cursor did for writing code, Supaprod does for deciding what to build."** (the transfer everyone in 2026 already believes)
 2. **"Cursor for product managers — except it also proves which decisions were right."** (the familiar frame + the twist that is the moat)
 3. **"Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."** (the injustice frame — very Show-HN)
 4. **"An AI product team you can actually hold accountable."** (shortest full-truth line)

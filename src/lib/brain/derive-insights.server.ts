@@ -47,7 +47,7 @@ type ThemeRow = {
   status: string | null;
 };
 
-const DERIVE_SYSTEM = `You are the Cadence intelligence analyst. Given emerging product theme data, write a single insight.
+const DERIVE_SYSTEM = `You are the Supaprod intelligence analyst. Given emerging product theme data, write a single insight.
 Rules:
 - Signal-first: lead with what matters, not the reasoning.
 - Short: headline max 18 words, one sentence. detail max 2 sentences.

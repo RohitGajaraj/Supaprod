@@ -6,7 +6,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Target, Download, Archive, ArchiveRestore, Trash2 } from "lucide-react";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
@@ -118,7 +118,7 @@ export function ProductsTab() {
   async function runExport(p: PortfolioProduct) {
     try {
       const data = await fExport({ data: { id: p.id } });
-      downloadJson(`${fileSlug(p.name)}-cadence-export.json`, data);
+      downloadJson(`${fileSlug(p.name)}-supaprod-export.json`, data);
       toast.success(`Exported "${p.name}".`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't export.");
@@ -171,7 +171,7 @@ export function ProductsTab() {
     if (!ok) return;
     try {
       const data = await fExport({ data: { id: p.id } });
-      downloadJson(`${fileSlug(p.name)}-cadence-export.json`, data);
+      downloadJson(`${fileSlug(p.name)}-supaprod-export.json`, data);
       await fDelete({ data: { id: p.id } });
       if (activeProductId === p.id) setActiveProductId(null);
       refresh();

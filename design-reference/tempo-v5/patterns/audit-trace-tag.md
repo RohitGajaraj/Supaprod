@@ -11,7 +11,7 @@
 > and the AI-interfaces receipts/trust-evidence family ([`ai-interfaces.md`](./ai-interfaces.md)) ·
 > inspiration: Linear's issue-id chips and Stripe's object-id copy affordance (principles only,
 > re-derived below). · Founder ruling 2026-07-13: "everything should have a traceable audit id
-> generated out of this platform." Component: `src/components/cadence/AuditTag.tsx`. Feature:
+> generated out of this platform." Component: `src/components/supaprod/AuditTag.tsx`. Feature:
 > [`docs/features/audit-id-lineage.md`](../../../docs/features/audit-id-lineage.md).
 
 ## Anatomy — the parts, named
@@ -64,7 +64,7 @@ There is exactly one component (`AuditTag`); `copyable` is a boolean prop. Do no
 
 ## Interaction model
 
-- **Click / Enter / Space on the label** → `openLineage(tag)` (dispatches the `cadence:open-lineage`
+- **Click / Enter / Space on the label** → `openLineage(tag)` (dispatches the `supaprod:open-lineage`
   event; the global [`AuditLineageSheet`](../../../docs/features/audit-id-lineage.md) fetches and
   opens). Both handlers call `stopPropagation` so a tag living inside a clickable row `<button>`
   traces the entity instead of triggering the row.

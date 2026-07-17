@@ -1,8 +1,8 @@
-# Procurement inventory — what Cadence buys, why, what it costs
+# Procurement inventory — what Supaprod buys, why, what it costs
 
 > _Created: 2026-06-25 · Owner: founder (spend decisions) + any session that adds a paid dependency._
 
-> **The single shopping list.** Every paid / metered / vendor dependency Cadence may buy, with **what it's for, why, the cost, the vendor options, and a recommendation** — so spend decisions can be picked up cold close to demo day or go-live. This is the concrete cost companion to the **doctrine** in [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (which decides _whether_ a capability is BUILT / BOUGHT / INTEGRATED) and the founder-pickup list in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4.
+> **The single shopping list.** Every paid / metered / vendor dependency Supaprod may buy, with **what it's for, why, the cost, the vendor options, and a recommendation** — so spend decisions can be picked up cold close to demo day or go-live. This is the concrete cost companion to the **doctrine** in [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (which decides _whether_ a capability is BUILT / BOUGHT / INTEGRATED) and the founder-pickup list in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4.
 
 > [!IMPORTANT]
 >
@@ -16,7 +16,7 @@
 
 ## The headline: the demo runs at ~$0
 
-Cadence is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudflare Workers + Supabase**, and most commodity inputs sit on **free tiers** at demo scale. **Nothing must be bought to demo.** The only genuinely optional demo polish is a custom domain (~$10) + Lovable Pro ($25/mo, which is what unlocks a custom domain). Everything else is deferred to real usage / revenue.
+Supaprod is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudflare Workers + Supabase**, and most commodity inputs sit on **free tiers** at demo scale. **Nothing must be bought to demo.** The only genuinely optional demo polish is a custom domain (~$10) + Lovable Pro ($25/mo, which is what unlocks a custom domain). Everything else is deferred to real usage / revenue.
 
 ### Demo-day shopping list (buy before the demo)
 
@@ -124,7 +124,7 @@ Cadence is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudfla
 
 ### 12. Uptime + on-call + status page — Better Stack · INTEGRATE (AFD initiative, founder-gated)
 
-- **What & why:** one vendor that covers uptime probes (HTTP / heartbeat), on-call rotation (phone / SMS / Slack), and a public status page. Replaces the PagerDuty + Statuspage + UptimeRobot tri-vendor stack. Spec'd by **AFD-08 + AFD-13**. EU-resident. Status-page domain `status.cadence.app` for now, renameable later via DNS.
+- **What & why:** one vendor that covers uptime probes (HTTP / heartbeat), on-call rotation (phone / SMS / Slack), and a public status page. Replaces the PagerDuty + Statuspage + UptimeRobot tri-vendor stack. Spec'd by **AFD-08 + AFD-13**. EU-resident. Status-page domain `status.supaprod.app` for now, renameable later via DNS.
 - **Recommendation: Better Stack Free** — 10 monitors + 3-min checks + 1 status page + unlimited team. Team plan $25/mo for upgrades.
 - **Cost:** **$0** at our scale. _Confidence: high._
 - **When to buy:** at AFD activation. Sev-1 phone-call escalation is included on free.
@@ -132,7 +132,7 @@ Cadence is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudfla
 
 ### 13. Managed end-to-end runtime hosting (BYO-P5): Cloudflare Workers for Platforms + a dedicated Supabase project · **PROPOSED, not yet purchased**
 
-- **What & why:** the "Cadence hosts your app, no external accounts needed" tier (BYO-P5). Compute/edge hosting for AI-generated user apps via Cloudflare Workers for Platforms (same vendor as today's own deploy target), plus one pooled, Cadence-owned Supabase project (distinct from Cadence's own product/billing database) for DB + auth. Full plan: [`../planning/byo-p5-managed-runtime-plan.md`](../planning/byo-p5-managed-runtime-plan.md).
+- **What & why:** the "Supaprod hosts your app, no external accounts needed" tier (BYO-P5). Compute/edge hosting for AI-generated user apps via Cloudflare Workers for Platforms (same vendor as today's own deploy target), plus one pooled, Supaprod-owned Supabase project (distinct from Supaprod's own product/billing database) for DB + auth. Full plan: [`../planning/byo-p5-managed-runtime-plan.md`](../planning/byo-p5-managed-runtime-plan.md).
 - **Cost:** ~~$30/mo Cloudflare ($5 Workers Paid + $25 Workers for Platforms add-on) + ~$25/mo Supabase Pro floor = \*\*~~$55/mo floor\*\*, before any hosted-app revenue exists. Scales to roughly $0.55-0.70/app/mo at 100 hosted apps, ~$0.06-0.11/app/mo at 1,000 (pooled model; see the plan's cost table for what's excluded (custom domains, egress, idle tenants)). _Confidence: medium (estimated from public pricing pages, not a vendor quote)._
 - **When to buy:** not yet. Founder-gated on reviewing the plan and, first, opening a directly-owned Cloudflare account and a directly-owned Supabase account (today's hosting is Lovable-managed, so this spend cannot be purchased against the existing account). Sequenced last in the BYO lane, behind the Decision Brain.
 - _Source: developers.cloudflare.com/cloudflare-for-platforms/workers-for-platforms, supabase.com/pricing (researched 2026-07-01, see the plan doc for full citations)._

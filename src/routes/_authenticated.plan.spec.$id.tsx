@@ -17,8 +17,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/cadence/TopBar";
-import { LoopThread } from "@/components/cadence/LoopThread";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { LoopThread } from "@/components/supaprod/LoopThread";
 import { MonoLabel } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -133,7 +133,7 @@ export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
     };
   },
   component: SpecEditorPage,
-  head: () => ({ meta: [{ title: "Spec · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Spec · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
       <div style={{ ...CARD, padding: 24, maxWidth: 560, boxShadow: "var(--shadow-elevated)" }}>

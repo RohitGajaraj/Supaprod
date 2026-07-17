@@ -17,7 +17,7 @@ Claude Code hooks run a command (or `http` / `mcp_tool` / `prompt` / `agent` han
 
 Control flow: a `PreToolUse` hook runs _before_ the tool and can **block** it (exit code 2); `PostToolUse` runs after and cannot undo. Matchers narrow by tool name (`Bash`, `Edit|Write`, `mcp__.*`) and an `if` permission rule can narrow further (e.g. `Bash(git *)`). Stdout JSON is parsed on exit 0. Official docs: https://code.claude.com/docs/en/hooks.
 
-## How Cadence uses hooks
+## How Supaprod uses hooks
 
 **1. Enforce commit discipline (not initiate it).** Auto-committing on `Stop` produces noisy, meaningless commits — hooks fire on machine events, not on the judgment that a logical unit of work is done. So we do **not** auto-commit. Instead, a `PreToolUse` hook on `Bash(git commit *)` enforces [`commits.md`](./commits.md): block `--no-verify`/`--no-gpg-sign`, require use of a commit skill (gstack-ship, commit-commands:commit, or similar — check available skills), refuse force-push to `main`. Policy decides _whether/what_ to commit; the hook guarantees the invariants hold.
 
@@ -33,8 +33,8 @@ Hook definitions live in `.claude/settings.json` (shared, committed). Keep them 
 
 This matters — they are not the same:
 
-1. **Dev-time hooks (this file):** Claude Code lifecycle hooks in `.claude/settings.json`. Event-triggered (a tool call, a turn ending, a session starting) — _not_ a cron scheduler. They enforce invariants and automate developer-workflow steps while building Cadence.
-2. **Product runtime automation (different layer):** Cadence's _own_ scheduled/event automation that runs the product — `pg_cron` → `/api/public/hooks/*` endpoints, plus the orchestration automation engine (triggers → missions). That lives in [`architecture/orchestration.md`](../../architecture/orchestration.md) and [`architecture/runtime.md`](../../architecture/runtime.md), not here. If you mean "run an agent on a schedule for a user," that is the product layer, not Claude Code hooks.
+1. **Dev-time hooks (this file):** Claude Code lifecycle hooks in `.claude/settings.json`. Event-triggered (a tool call, a turn ending, a session starting) — _not_ a cron scheduler. They enforce invariants and automate developer-workflow steps while building Supaprod.
+2. **Product runtime automation (different layer):** Supaprod's _own_ scheduled/event automation that runs the product — `pg_cron` → `/api/public/hooks/*` endpoints, plus the orchestration automation engine (triggers → missions). That lives in [`architecture/orchestration.md`](../../architecture/orchestration.md) and [`architecture/runtime.md`](../../architecture/runtime.md), not here. If you mean "run an agent on a schedule for a user," that is the product layer, not Claude Code hooks.
 
 ## Hooks this repo configures (actionable spec)
 

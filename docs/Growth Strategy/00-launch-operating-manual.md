@@ -30,9 +30,9 @@ If we're below Floor on day 4, the decision framework in §6 forces a pivot, not
 
 **The wedge audience:** senior/founding PMs and heads of product at seed-to-Series-B companies, plus the rising product engineer / solo founder who runs the whole loop alone (v13 §3, §6). They are reachable this week through LinkedIn, X, PM communities, and each other.
 
-**The story we tell (the only story):** engineers got agents; product people got chatbots. Cadence is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked. The emotional hook is _engineer envy_; the trust hook is _receipts, including for our mistakes_.
+**The story we tell (the only story):** engineers got agents; product people got chatbots. Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked. The emotional hook is _engineer envy_; the trust hook is _receipts, including for our mistakes_.
 
-**The single viral thesis:** Cadence's shareable objects are its _receipts_ — Critic teardowns, the Trust Ledger, the "Cadence built part of itself" PR. Every campaign this week ships a receipt, not an adjective. (Full mechanics: [`05`](./05-viral-and-guerrilla-playbook.md).)
+**The single viral thesis:** Supaprod's shareable objects are its _receipts_ — Critic teardowns, the Trust Ledger, the "Supaprod built part of itself" PR. Every campaign this week ships a receipt, not an adjective. (Full mechanics: [`05`](./05-viral-and-guerrilla-playbook.md).)
 
 **The sequencing rule (binding):** the Show HN and Product Hunt cards are played ONCE. They fire in week 2–3, after the no-signup demo (PC-04) is live and 2–3 real beta stories exist — the drafted posts in [`launch-assets.md`](../pitch/launch-assets.md) say so themselves. This week's wave builds the waitlist, the beta pipeline, and the audience those listings will land on. Burning HN with no demo link and zero users would spend our best card on our weakest day. (Fast-track escape hatch: §6.)
 
@@ -93,7 +93,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 **Theme: the claim no competitor can copy-paste.**
 
-- **The centerpiece:** the "Cadence built part of itself" receipts post — a real PR merged through the product's own gated path, shown as the actual trace: signal → decision → spec → PR → human gate → merge → outcome recorded [PROVEN]. Screenshots of the ledger, link to the commit. Engineers will check; that's the point.
+- **The centerpiece:** the "Supaprod built part of itself" receipts post — a real PR merged through the product's own gated path, shown as the actual trace: signal → decision → spec → PR → human gate → merge → outcome recorded [PROVEN]. Screenshots of the ledger, link to the commit. Engineers will check; that's the point.
 - **Founder (2–3h):** post + replies; first community value-posts in the builder-friendly venues only (r/SideProject, r/microsaas, the r/AI_Agents weekly thread, Indie Hackers, the Lovable Discord showcase — verified rules per venue in [`01`](./01-channel-playbooks.md); the strict PM subs wait for aged accounts and the Friday Show-and-Tell format); 10 newsletter/podcast pitches go out.
 - **Agent lanes:** DM wave 2 prep (next 25, warmed by two days of content); teardown queue triage (waitlist bet submissions → the best 10 get scheduled).
 - **Decision checkpoint (end of day):** trajectory vs Floor tier. Below pace → §6 pivot rules engage.
@@ -117,7 +117,7 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 ### Day 7 (Sat Jul 19) — Review, learn, lock week 2
 
-**Theme: the week's own outcome gets recorded — in Cadence.**
+**Theme: the week's own outcome gets recorded — in Supaprod.**
 
 - **Founder (2h):** the weekly review (agenda in [`04`](./04-growth-engine-metrics-and-experiments.md)): tier hit? which channel drove qualified signups per hour spent? kill/scale each experiment; approve the week-2 plan (beta wave → 2–3 usage stories → Show HN + Product Hunt the same week, per v13).
 - **The meta-post:** publish the week's own Launch Ledger — "we launched a launch through our own product; here's what worked, what didn't, what we recorded." The transparency arc continues and becomes the on-ramp to the listing week.
@@ -171,7 +171,7 @@ Timing: post 8–10am ET; founder in replies for 2h after every post (the algori
 
 ## 6. Decision framework
 
-1. **The ranking question for any new idea mid-week (v13):** does this put Cadence in front of real product people and make them love it? No → drop it, log it.
+1. **The ranking question for any new idea mid-week (v13):** does this put Supaprod in front of real product people and make them love it? No → drop it, log it.
 2. **48-hour kill rule:** every experiment ships with a success metric; below 50% of target after 48h → kill or mutate. No zombie campaigns.
 3. **Below Floor pace at Day 4:** stop broadening; go narrower and heavier on the single channel with the best qualified-signup-per-founder-hour, and double DM volume (it's the highest-floor channel we have).
 4. **HN/PH fast-track (only if the founder insists on listing inside 7 days):** all three or it doesn't fire — (a) PC-04 no-signup demo live, (b) ≥3 external users with a nameable moment, (c) failure GIF ready. Missing any → the listing waits for week 2–3. A spent HN card does not come back.
@@ -199,7 +199,7 @@ Timing: post 8–10am ET; founder in replies for 2h after every post (the algori
 - **Daily (founder, 30 min, morning):** yesterday's numbers vs tier pace · today's posts to approve · DM replies to send · one decision the agents queued.
 - **Daily (agent lanes):** monitor + capture + draft tomorrow + update the metrics pack. The HyperAgent rig runs prospect research and launch monitoring at arm's length (plan §6 posture — never product data).
 - **Weekly (Sat, 30 min):** the review ritual in [`04`](./04-growth-engine-metrics-and-experiments.md) + the evidence ritual in [`06`](./06-yc-and-fundraising-evidence.md).
-- **Everything dogfooded:** the launch runs as missions in the founder's Cadence workspace; interviews become signals; week outcomes get recorded. The launch itself is the best demo we will ever have.
+- **Everything dogfooded:** the launch runs as missions in the founder's Supaprod workspace; interviews become signals; week outcomes get recorded. The launch itself is the best demo we will ever have.
 
 ---
 

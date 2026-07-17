@@ -1,5 +1,5 @@
 /**
- * BYO-P5 P5b: the "Cadence-hosted" proof-of-concept deploy.
+ * BYO-P5 P5b: the "Supaprod-hosted" proof-of-concept deploy.
  *
  * Plan (`docs/planning/byo-p5-managed-runtime-plan.md`, Section 5, P5b row):
  * "the smallest viable technical slice: a founder-only toggle on a Product
@@ -34,12 +34,12 @@ export function minimalShellHtml(projectName: string): string {
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>${safeName} — hosted by Cadence</title>
+<title>${safeName} — hosted by Supaprod</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body style="font-family: system-ui, sans-serif; padding: 64px 24px; text-align: center; color: #1a1a1a;">
 <h1 style="font-size: 28px; margin-bottom: 8px;">${safeName}</h1>
-<p style="color: #666; margin: 0;">Hosted by Cadence · BYO-P5 proof of concept.</p>
+<p style="color: #666; margin: 0;">Hosted by Supaprod · BYO-P5 proof of concept.</p>
 </body>
 </html>`;
 }

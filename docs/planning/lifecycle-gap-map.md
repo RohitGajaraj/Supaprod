@@ -14,7 +14,7 @@ Owner lane: a NEW initiative (Build-to-Ship lifecycle), separate from the agent-
 
 1. **Build-to-merge is captured with high fidelity.** The Engineer (`builder`) + Review (`qa`) agents stage a multi-file changeset, commit to a `studio/*` branch, open a PR, read CI, self-correct, and merge behind a CI-green gate and operator approval. All of it persists.
 2. **Deploy is a complete blind spot.** After merge the product goes dark. There is NO in-product notion of a deployment, an environment (preview / staging / production), a preview URL, a post-deploy health check, or a deploy-level rollback. Grep across the repo confirms "none found." Your "redeploy for testing" and "much beyond git" instinct is correct: we capture nothing there.
-3. **The human review thread is not captured.** The merge gate is CI status + a Cadence-native operator approval. GitHub PR review comments, requested-changes, and approvals are never read or stored (the GitHub connector cannot even read reviews).
+3. **The human review thread is not captured.** The merge gate is CI status + a Supaprod-native operator approval. GitHub PR review comments, requested-changes, and approvals are never read or stored (the GitHub connector cannot even read reviews).
 4. **Ship is draft-only.** The Announce (`release`) agent generates release notes and stores them, but there is no publish path: no changelog page, no release email, no social/PR distribution. The tool names exist (`publish_changelog`, `send_email`, `post_announcement`) with no implementation behind them.
 5. **Ship -> Learn is genuinely strong** (do not rebuild it): a shipped PRD records an outcome (validated/missed/mixed + metric), which writes a learning, re-scores the opportunity's ICE, and persists to agent memory. BUT it keys off a **PRD's GitHub issue closing**, which is **disjoint** from the Build-merge / release-notes path. Those two "shipped" notions are not joined. That seam is itself a gap.
 
@@ -55,11 +55,11 @@ Flow + tools: `src/lib/studio.functions.ts`, `src/lib/ai/tools/registry.server.t
 | CI verdict (success/failure/pending/neutral)                           | Read live, NOT persisted      | in-memory at merge time only                               | `src/lib/ai/studio-ci.ts` (`mergeReadinessFromCi`)                     |
 | Hard merge gate (block on red/pending CI)                              | Yes                           | `studioPrMerge` re-fetches CI live                         | `registry.server.ts` ~1620-1710                                        |
 | Inspector summary (file count, test presence, ci_ran/passed)           | Yes (warn-only, never blocks) | `summarizeInspection` -> CiPanel card                      | `src/lib/ai/studio-inspection.ts`, `src/components/studio/CiPanel.tsx` |
-| Operator approval (Cadence-native)                                     | Yes                           | `agent_approvals` (status, decided_by/at, decision_reason) | `migrations/20260602205139_*.sql`                                      |
+| Operator approval (Supaprod-native)                                     | Yes                           | `agent_approvals` (status, decided_by/at, decision_reason) | `migrations/20260602205139_*.sql`                                      |
 | Eval-regression gate                                                   | NO (does not exist)           | grep for eval/regression/P4 in build path: none            | -                                                                      |
 | **Human PR review (comments, approvals, requested-changes, reviewer)** | **NO**                        | not read, not stored; connector has no reviews API         | `src/lib/connectors/providers/github.server.ts`                        |
 
-Note: the merge gate is **CI-green + Cadence approval**, NOT GitHub-review-gated. J1 "test discipline" is a prompt instruction, not a hard gate; the CI result is the only correctness signal.
+Note: the merge gate is **CI-green + Supaprod approval**, NOT GitHub-review-gated. J1 "test discipline" is a prompt instruction, not a hard gate; the CI result is the only correctness signal.
 
 ### Stage 3 - Deploy : NOT CAPTURED (the big hole)
 

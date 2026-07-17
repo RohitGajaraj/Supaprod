@@ -29,7 +29,7 @@ The three assets no competitor can copy this week, which every idea exploits:
 
 | #   | Idea                                                                                | Reach | Cost | Effort | Risk | P(hit)        | EV rank                   |
 | --- | ----------------------------------------------------------------------------------- | ----- | ---- | ------ | ---- | ------------- | ------------------------- |
-| 1   | **The Launch Ledger** — the launch runs as a live, public Cadence mission           | 4     | $0   | M      | low  | 55%           | **1**                     |
+| 1   | **The Launch Ledger** — the launch runs as a live, public Supaprod mission           | 4     | $0   | M      | low  | 55%           | **1**                     |
 | 2   | **The Decision Autopsy engine** — public Critic teardowns + submit-your-bet hook    | 5     | $0   | M      | med  | 45%           | **2**                     |
 | 3   | **"It built part of itself" receipts drop** — the opening shot                      | 4     | $0   | S      | low  | 50%           | **3**                     |
 | 4   | **Founder week arc** — "agents ran my product org for a week", daily receipts       | 4     | $0   | S/day  | low  | 45%           | **4**                     |
@@ -41,7 +41,7 @@ The three assets no competitor can copy this week, which every idea exploits:
 | 10  | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave         | 3     | $0   | S      | low  | 35%           | 10                        |
 | 11  | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3     | $0   | S      | low  | 30%           | 11                        |
 | 12  | **The Receipts Page** — live dogfood counters (2,162 AI events, 133 missions...)    | 2     | $0   | S      | low  | 45%           | 12                        |
-| 13  | **ARD open spec** — "ADR for product decisions", GitHub spec, Cadence as reference  | 4     | $0   | M      | low  | 25% this week | 13 (compounds later)      |
+| 13  | **ARD open spec** — "ADR for product decisions", GitHub spec, Supaprod as reference  | 4     | $0   | M      | low  | 25% this week | 13 (compounds later)      |
 | 14  | **X Spaces / LinkedIn Live** — "watch the ledger live" AMA, day 6-7                 | 2     | $0   | S      | low  | 30%           | 14                        |
 | 15  | **Decision-debt calculator** — 6-question free tool, share-your-score               | 3     | $0   | L      | low  | 25%           | 15 (build post-wave)      |
 | 16  | **PM-course cohort seeding** — Reforge/Product School alumni workshop offers        | 2     | $0   | S      | low  | 30%           | 16 (slow burn, start now) |
@@ -54,13 +54,13 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 
 ### Brief 1 — The Launch Ledger (the spine stunt)
 
-**The idea.** The launch itself runs as a Cadence mission on a public page. Every launch decision (which channel, which copy variant, what we killed, what flopped) is recorded as a real decision with evidence, and outcomes land against them during the week. Visitors watch a product org run by agents, live, on the most credible subject possible: our own launch. The meta is the message: we don't describe the product, we let people watch it work.
+**The idea.** The launch itself runs as a Supaprod mission on a public page. Every launch decision (which channel, which copy variant, what we killed, what flopped) is recorded as a real decision with evidence, and outcomes land against them during the week. Visitors watch a product org run by agents, live, on the most credible subject possible: our own launch. The meta is the message: we don't describe the product, we let people watch it work.
 
 **Why it can pop.** Nobody can copy it (it requires the product), it produces fresh content every day of the wave for free, and it converts the strongest skeptic objection ("show me it actually working") into the landing page itself. Every other post in the wave links back to it, so attention compounds instead of evaporating.
 
 **Execution.**
 
-1. Day 0-1: create the "Launch Cadence publicly" mission in the founder workspace. Seed it with the real launch decisions already made (channel ranking, copy picks, the 7-day plan itself).
+1. Day 0-1: create the "Launch Supaprod publicly" mission in the founder workspace. Seed it with the real launch decisions already made (channel ranking, copy picks, the 7-day plan itself).
 2. Day 1-2: build the public read-only page (reuse the Trust Ledger share-link surface, [PROVEN]; a public route with workspace-scoped read-only data). Waitlist CTA pinned top and bottom: "This is your product org in 90 days. Join the waitlist."
 3. Day 2: founder reviews every visible entry (nothing confidential, nothing about named third parties).
 4. Day 3: goes live with the receipts drop (Brief 3 links here).
@@ -93,7 +93,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 
 ### Brief 3 — "It built part of itself" receipts drop (the opening shot, day 3)
 
-**The idea.** A 60-90 second screen recording plus an X thread and LinkedIn post: the actual trace of Cadence taking a spec through its own gated path to a merged PR. Not a claim, a receipt: the mission trace, the approval gate, the CI check, the merge, on screen, uncut. Caption frame: "Engineers got agents. Product teams got chatbots that draft and wait. So we built the other thing. Here it is shipping part of itself." [PROVEN]
+**The idea.** A 60-90 second screen recording plus an X thread and LinkedIn post: the actual trace of Supaprod taking a spec through its own gated path to a merged PR. Not a claim, a receipt: the mission trace, the approval gate, the CI check, the merge, on screen, uncut. Caption frame: "Engineers got agents. Product teams got chatbots that draft and wait. So we built the other thing. Here it is shipping part of itself." [PROVEN]
 
 **Why it can pop.** "The product built itself" is the single most screenshot-able true sentence we own, the engineer-envy frame travels in both the builder and PM communities, and it sets the tone for everything after: this account posts receipts, not demos.
 
@@ -157,7 +157,7 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 - **Meme pack (drips days 3-7):** 6-8 formats on the agent-envy gap ("2026 engineers: my agents shipped overnight. 2026 PMs: my chatbot drafted a doc and is waiting"). Founder-voice, self-aware, never punching at people. One per day max; memes season the wave, they are not the wave.
 - **AI-announcement hijack kit (armed, fires on trigger):** pre-approved response templates for the next big model/agent launch: "The labs keep shipping the hands. The seat above the fleet, the one that decides, approves, and learns from outcomes, is still empty. That's the one we built." Fires within 2 hours of a major announcement or not at all.
 - **Receipts Page (day 2, part of the homepage):** live counters from the founder workspace: AI events, missions, decisions, learnings, reverts. Caption: "We ran it on ourselves for 13 months before showing you."
-- **ARD open spec (start now, land in listing week):** "ADRs gave engineers decision records. Product decisions still live in Slack archaeology." Publish the Architecture-of-Decision-Records spec for product (schema + examples) on GitHub; Cadence is the reference implementation. Compounds into the HN conversation.
+- **ARD open spec (start now, land in listing week):** "ADRs gave engineers decision records. Product decisions still live in Slack archaeology." Publish the Architecture-of-Decision-Records spec for product (schema + examples) on GitHub; Supaprod is the reference implementation. Compounds into the HN conversation.
 - **X Spaces / LinkedIn Live (day 6-7):** 30 minutes, "watch the ledger live": walk the Launch Ledger, take one audience-submitted bet, run the Critic on it live. Co-host = the friendliest voice from Brief 5 if one emerged.
 - **PM-course cohort seeding (send day 2, slow burn):** offer Reforge/Product School/Exponent alumni communities a free live "decision autopsy workshop" (value-first; product appears as the tool used, not the pitch).
 

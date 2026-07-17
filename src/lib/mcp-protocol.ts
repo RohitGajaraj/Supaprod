@@ -23,7 +23,7 @@
 // blocked standards-compliant MCP clients (e.g. Claude Desktop) from connecting.
 // Spec: https://modelcontextprotocol.io/specification
 
-export const MCP_SERVER_NAME = "cadence";
+export const MCP_SERVER_NAME = "supaprod";
 export const MCP_SERVER_VERSION = "1.0.0";
 
 // MCP spec revisions this server understands; index 0 is the latest/preferred.
@@ -261,7 +261,7 @@ export function canCallWriteTool(
 ): WriteAuthz {
   if (!isWriteTool(toolName)) return { allowed: true };
   if (!writeEnabled) {
-    return { allowed: false, reason: "Outward write is disabled for this Cadence server" };
+    return { allowed: false, reason: "Outward write is disabled for this Supaprod server" };
   }
   const required = WRITE_SCOPE_BY_TOOL[toolName];
   if (!scopes.includes(required)) {
@@ -409,7 +409,7 @@ export function buildInitializeResult(protocolVersion: string) {
     },
     serverInfo: { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
     instructions:
-      "Cadence exposes read access to product signals, opportunities, decisions, specs, and the roadmap, plus a versioned decision-lessons skill pack. Call tools/list to enumerate, then tools/call to invoke.",
+      "Supaprod exposes read access to product signals, opportunities, decisions, specs, and the roadmap, plus a versioned decision-lessons skill pack. Call tools/list to enumerate, then tools/call to invoke.",
   };
 }
 

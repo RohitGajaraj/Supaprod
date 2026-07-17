@@ -4,7 +4,7 @@
 
 > _Created 2026-06-30. Status: Phase 0 shipped (the `writeSignals` keystone). Phases 1-3 planned; the detailed phased plan is under refinement in Ultraplan and teleports back here when approved._
 
-The outside-in, always-on signal engine, the product's core USP. Cadence should continuously watch the market, competitors, tech shifts, and customer voice (not wait for a PM to search), then surface the one thing to focus on and build next. This doc is the canonical home for that subsystem.
+The outside-in, always-on signal engine, the product's core USP. Supaprod should continuously watch the market, competitors, tech shifts, and customer voice (not wait for a PM to search), then surface the one thing to focus on and build next. This doc is the canonical home for that subsystem.
 
 ## Why this exists
 
@@ -14,7 +14,7 @@ A three-agent reality audit (2026-06-29) found the signal **pipeline** is mature
 - The Scout (`researcher-tick.ts`, shipped as `SEN-04`) **re-summarizes** competitor search results but does **not diff**, so it cannot say "what changed."
 - No live customer-voice connectors (support, chat, CRM, churn, feedback portals).
 - Nothing ranks signals by novelty-vs-memory into a proactive "build this next."
-- Cadence only _exposes_ MCP; it has no MCP **client** to consume external MCP servers as inbound data.
+- Supaprod only _exposes_ MCP; it has no MCP **client** to consume external MCP servers as inbound data.
 
 ## SW-5: GitHub connector to the credential boundary (2026-07-07, mission 3.1)
 

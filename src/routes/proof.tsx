@@ -11,11 +11,11 @@ import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicCalibration } from "@/lib/proof-share.functions";
 import { listPublicDecisions } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://cadence-flow-beta.lovable.app/og-cadence.png";
+const OG_IMAGE = "https://supaprod.lovable.app/og-supaprod.png";
 
 export const Route = createFileRoute("/proof")({
   ssr: true,
@@ -28,11 +28,11 @@ export const Route = createFileRoute("/proof")({
   },
   head: () => ({
     meta: [
-      { title: "The Ledger · Cadence" },
+      { title: "The Ledger · Supaprod" },
       {
         name: "description",
         content:
-          "Cadence's own calibration score and public decision receipts — published, including the misses.",
+          "Supaprod's own calibration score and public decision receipts — published, including the misses.",
       },
       { property: "og:title", content: "The Ledger" },
       {
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/proof")({
       { property: "og:type", content: "website" },
       { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "The Ledger · Cadence" },
+      { name: "twitter:title", content: "The Ledger · Supaprod" },
       { name: "twitter:image", content: OG_IMAGE },
     ],
   }),
@@ -86,9 +86,9 @@ function Shell({ children }: { children: React.ReactNode }) {
             color: "inherit",
           }}
         >
-          <CadenceMark />
+          <SupaprodMark />
           <span className="font-display" style={{ fontSize: 14 }}>
-            Cadence
+            Supaprod
           </span>
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
@@ -112,7 +112,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Cadence
+          Made with Supaprod
         </span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Make your own calls →
@@ -150,7 +150,7 @@ function CalibrationHero({
             className="font-display"
             style={{ fontSize: 28, lineHeight: 1.25, margin: "0 0 8px" }}
           >
-            Cadence called {hits} of the last {total} calls right.
+            Supaprod called {hits} of the last {total} calls right.
           </h1>
           <p
             style={{
@@ -228,7 +228,7 @@ function ProofPage() {
           <p
             style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0, lineHeight: 1.6 }}
           >
-            No public decisions yet. Every one of these is a real call from Cadence's own build,
+            No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner, receipt and all, never seeded or staged — that is why this section
             is honestly empty until one exists.
           </p>

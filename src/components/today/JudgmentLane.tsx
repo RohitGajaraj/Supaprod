@@ -9,7 +9,7 @@ import { CallCard } from "@/components/obsidian/callcard";
 import type { QueueCall, ExpiredCall } from "./TriageQueue";
 import type { PushedInsight } from "@/lib/today-lanes.functions";
 import { AgentBadge } from "@/components/agents/AgentMark";
-import { PixelStat } from "@/components/cadence/PixelStat";
+import { PixelStat } from "@/components/supaprod/PixelStat";
 
 const VISIBLE_SLOTS = 3;
 

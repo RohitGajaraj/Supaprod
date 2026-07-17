@@ -48,7 +48,7 @@
 ### The white space (confirmed empty, both axes)
 
 1. **Decisions → outcomes → learned ranking:** every prioritization tool found runs a static formula scored once. Nobody reinforces ranking from recorded decision outcomes.
-2. **PM decision → autonomous build under one outcome record:** build is autonomous and cheap everywhere, but a human or pre-written issue still supplies "what to build"; nobody sits above both a multi-source signal Brain and a dispatched build layer. Cadence sits there alone.
+2. **PM decision → autonomous build under one outcome record:** build is autonomous and cheap everywhere, but a human or pre-written issue still supplies "what to build"; nobody sits above both a multi-source signal Brain and a dispatched build layer. Supaprod sits there alone.
 
 ### Ranked threats
 
@@ -72,7 +72,7 @@ Build is commoditizing faster than 2025 models expected (Devin $37M→$492M in 1
 
 **Others:** Kimi K2.6 (300-subagent swarms, 4,000 steps) + OK Computer; Groq speed-as-product (sub-100ms TTFT); Grok Build (8 parallel subagents); Meta agent-as-messaging-thread. **Hermes = Nous Research's open-source self-improving agent** — after finishing a task it **writes itself a reusable skill**; 140K+ GitHub stars, 224B daily tokens on OpenRouter; overtook OpenClaw as most-used open agent. [hermes-agent.org](https://hermes-agent.org/about/) · Manus (defined-goal autonomy), Genspark ($250M ARR in 12 months), Devin (confidence-scored PRs: green ≈ 2x merge rate), Lindy/Gumloop (credit-metered), 11x (flat-fee digital workers ~$5k/mo), Sierra (pure outcome pricing, ~$1–2.50/resolution, $150K+ contracts). [sierra.ai](https://sierra.ai/blog/outcome-based-pricing-for-ai-agents)
 
-**The 10 patterns a product-lifecycle agentic OS must have natively:** goal-until-verified loops · scheduled agents without a laptop · @-mention delegation where work happens · graduated earned autonomy · confidence-gated execution · one-key rewind independent of VCS · live shareable artifacts as the trust primitive · outcome pricing for crisp deliverables · proactive narrated digest over passive inbox · parallel fan-out to a single review point. (Cadence status per pattern: v13 §4.)
+**The 10 patterns a product-lifecycle agentic OS must have natively:** goal-until-verified loops · scheduled agents without a laptop · @-mention delegation where work happens · graduated earned autonomy · confidence-gated execution · one-key rewind independent of VCS · live shareable artifacts as the trust primitive · outcome pricing for crisp deliverables · proactive narrated digest over passive inbox · parallel fan-out to a single review point. (Supaprod status per pattern: v13 §4.)
 
 ---
 
@@ -90,7 +90,7 @@ Build is commoditizing faster than 2025 models expected (Devin $37M→$492M in 1
 
 **Distribution:** Linear's manifesto-led PLG (3 years pre-first-marketer); Notion's template-marketplace SEO flywheel; PLG now ~58% of B2B SaaS GTM; community-led growth the third pillar; the Lenny ecosystem (~19K paid subs, 30K-member Slack) is the ownable PM audience surface; micro-creators deliver ~40% better cost-per-engagement.
 
-**Surviving the frontier-lab scenario (precedents):** Jasper died to ChatGPT (thin wrapper); **Cursor thrived beside Copilot ($4B ARR by May 2026); Perplexity sustains a niche beside Google**. Survival properties [Menlo, Stanford Law]: workflow depth (10+ step multi-source) · compounding proprietary data ("decision quality that compounds" — Abridge's 1.5M encounters, EvenUp's corpus) · the clone test (could a lab rebuild you and win, absent your accumulated history?) · trust/compliance friction · headcount-budget targeting · application-layer speed. Applied to Cadence: the moat is accumulated mission/decision/outcome history tied to one team's product — the same compounding-data logic, aimed at PM decision quality.
+**Surviving the frontier-lab scenario (precedents):** Jasper died to ChatGPT (thin wrapper); **Cursor thrived beside Copilot ($4B ARR by May 2026); Perplexity sustains a niche beside Google**. Survival properties [Menlo, Stanford Law]: workflow depth (10+ step multi-source) · compounding proprietary data ("decision quality that compounds" — Abridge's 1.5M encounters, EvenUp's corpus) · the clone test (could a lab rebuild you and win, absent your accumulated history?) · trust/compliance friction · headcount-budget targeting · application-layer speed. Applied to Supaprod: the moat is accumulated mission/decision/outcome history tied to one team's product — the same compounding-data logic, aimed at PM decision quality.
 
 ---
 
@@ -100,10 +100,10 @@ Build is commoditizing faster than 2025 models expected (Devin $37M→$492M in 1
 
 **Credit mechanics:** classic Airtable AI credits are cheap/metered ($20/mo = 10,000); HyperAgent tasks bill in dollars — documented runs $6.41 (8-min research), $14.20 (25-min package), ~$35 (full startup workflow). **The $20k is the Founding 500 grant** ($10M program, closed 2026-05-31); one unverified source claims a $200 payment unlocks it; **no public expiry terms — verify on the account and treat as time-bound**. Napkin: $20k ≈ 600–3,000 full agent runs. [sidsaladi.substack.com (Hyperagent 101)](https://sidsaladi.substack.com/p/hyperagent-101-the-complete-guide) · [startupfortune.com](https://startupfortune.com/howie-liu-is-turning-hyperagent-credits-into-a-seed-stage-weapon/)
 
-**Extensibility:** headless trigger via webhook/schedule (Cadence's backend could kick runs); first-party integrations (Slack, Gmail, GitHub, Notion, Dropbox, Outlook, Databricks, Snowflake) + BYO MCP server + custom Skills with stored keys; result retrieval via write-back integrations (no documented REST pull). Airtable's own Web API + official MCP server exist separately (webhooks on the Web API; MCP poll-only). [support.airtable.com MCP docs](https://support.airtable.com/docs/using-the-airtable-mcp-server)
+**Extensibility:** headless trigger via webhook/schedule (Supaprod's backend could kick runs); first-party integrations (Slack, Gmail, GitHub, Notion, Dropbox, Outlook, Databricks, Snowflake) + BYO MCP server + custom Skills with stored keys; result retrieval via write-back integrations (no documented REST pull). Airtable's own Web API + official MCP server exist separately (webhooks on the Web API; MCP poll-only). [support.airtable.com MCP docs](https://support.airtable.com/docs/using-the-airtable-mcp-server)
 
 **Sentiment:** 4.8/5 detailed review (credit transparency, obstacle-handling, compounding Skills); complaints: research tasks get expensive, some runs unstoppable mid-execution, verbose output, no mobile, real integration setup effort. [aitoolssme.com](https://www.aitoolssme.com/review/hyperagent)
 
-**Competitor or channel?** **Both, tilted competitor:** ProductCentral is a named PM hub marketed against "fragmented, narrow" point solutions (citing PMs spending "66% of time on admin") — a direct hit on Cadence's category. Airtable remains a legitimate BYO data source under the connect doctrine. [airtable.com/solutions/product](https://www.airtable.com/solutions/product)
+**Competitor or channel?** **Both, tilted competitor:** ProductCentral is a named PM hub marketed against "fragmented, narrow" point solutions (citing PMs spending "66% of time on admin") — a direct hit on Supaprod's category. Airtable remains a legitimate BYO data source under the connect doctrine. [airtable.com/solutions/product](https://www.airtable.com/solutions/product)
 
 **The ruling (v13 §9):** spend as **disposable GTM/research compute at arm's length** — (1) GTM ops engine first (prospect/community research, launch monitoring, outreach cadence; ~$50–100/wk), (2) review-mining/research rig ($10–25/run), (3) raise/ops pipeline; **never** core orchestration, product data residency, or a maintained two-way integration; the Airtable-marketplace template idea is deprioritized (fragile distribution inside a rival's marketplace).

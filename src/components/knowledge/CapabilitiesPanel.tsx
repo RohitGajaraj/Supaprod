@@ -109,7 +109,7 @@ const CHANGE_TYPE_LABEL: Record<string, string> = {
   instructions: "Instructions edited",
   skill_enabled: "Skill enabled",
   skill_disabled: "Skill disabled",
-  self_tuned: "Self-tuned by Cadence",
+  self_tuned: "Self-tuned by Supaprod",
 };
 
 function CapabilityCard({
@@ -398,7 +398,7 @@ function CapabilityCard({
                       {change.description}
                     </div>
                     <div style={{ color: "var(--text-muted)", marginTop: "4px" }}>
-                      {change.changedBy ? `by ${change.changedBy}` : "by Cadence"} ·{" "}
+                      {change.changedBy ? `by ${change.changedBy}` : "by Supaprod"} ·{" "}
                       {change.changedAt}
                     </div>
                   </div>

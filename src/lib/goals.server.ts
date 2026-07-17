@@ -42,7 +42,7 @@ export type GoalPassResult =
  *  before any model call. */
 export const GOAL_PROPOSAL_COOLDOWN_MS = 24 * 3600_000;
 
-export const GOAL_PROPOSER_SYSTEM = `You are the Cadence goal planner. The user has a standing goal (an outcome they want, not a task list). Given the goal and a snapshot of recent workspace state, decide whether there is ONE genuinely new opportunity worth proposing that advances this goal.
+export const GOAL_PROPOSER_SYSTEM = `You are the Supaprod goal planner. The user has a standing goal (an outcome they want, not a task list). Given the goal and a snapshot of recent workspace state, decide whether there is ONE genuinely new opportunity worth proposing that advances this goal.
 Rules:
 - Ground the proposal ONLY in the goal and the workspace snapshot. Never invent signals, metrics, or user data that are not shown.
 - Skip when nothing new is warranted: the snapshot shows no relevant movement, or every promising angle is already covered by an existing opportunity listed below. Skipping is the correct answer most of the time.

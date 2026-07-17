@@ -11,7 +11,7 @@ import { runLoopPass, type LoopRow } from "@/lib/loops.server";
  * active loops whose next_run_at has arrived, oldest-due-first, and run one
  * pass each. A pass wraps an existing platform pass (strategy brief,
  * re-cluster, outcome review), writes a loop_runs receipt with its cost, and
- * always advances next_run_at so a broken loop retries on its cadence
+ * always advances next_run_at so a broken loop retries on its supaprod
  * instead of hot-looping.
  *
  * Bounded: 5 loops per tick. Tolerates the pre-migration window (missing
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/public/hooks/loop-tick")({
           const { data: loops, error } = await supabaseAdmin
             .from("loops" as never)
             .select(
-              "id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at",
+              "id, user_id, workspace_id, kind, title, supaprod, status, last_run_at, next_run_at",
             )
             .eq("status", "active")
             .lte("next_run_at", nowIso)

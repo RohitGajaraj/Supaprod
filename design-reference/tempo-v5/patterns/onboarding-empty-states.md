@@ -333,7 +333,7 @@ first unstarted row of that same checklist.
   `src/components/ui/` before adding any of these — reuse if already present from another
   pattern's build-out.
 
-**Composition with existing Cadence code**
+**Composition with existing Supaprod code**
 
 - Placement follows the surface-placement rubric in
   `docs/conventions/home-and-today-ia.md`: the Onboarding checklist lives on Today only
@@ -367,7 +367,7 @@ function FirstRunSequence() {
   return (
     <WelcomeSequence step={step} stepCount={steps.length} onSkip={skipOnboarding}>
       <WelcomeSequenceStep
-        headline="Welcome to Cadence"
+        headline="Welcome to Supaprod"
         pixelHeadline
         description="Set up your workspace in about three minutes."
       >
@@ -376,7 +376,7 @@ function FirstRunSequence() {
 
       <WelcomeSequenceStep
         headline="Connect your first data source"
-        description="Cadence reads from your repository to keep everything grounded in real work."
+        description="Supaprod reads from your repository to keep everything grounded in real work."
       >
         <ConnectSourcePicker onConnected={() => setStep(2)} />
       </WelcomeSequenceStep>
@@ -407,7 +407,7 @@ function DiscoverEmptyState() {
     <EmptyState
       icon={<EmptyStateIcon icon={<IconDatabase size={32} />} />}
       title="Nothing to discover yet"
-      description="Connect a repository so Cadence can start surfacing real signal here."
+      description="Connect a repository so Supaprod can start surfacing real signal here."
       timeEstimate="Takes about 2 minutes"
     >
       <Button onClick={openConnectSourceDialog}>Connect a data source</Button>

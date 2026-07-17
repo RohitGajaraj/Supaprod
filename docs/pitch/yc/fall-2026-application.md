@@ -64,7 +64,7 @@ missions where a mistake is unrecoverable. The systems I worked on flew.
 ### 3c. "Tell us about things you've built before. Include URLs if possible." — WAS UNANSWERED. Must fill.
 
 ```
-- Cadence itself is the third build of this idea. The first version was a side
+- Supaprod itself is the third build of this idea. The first version was a side
   project I hacked together on Lovable to run my own work:
   https://github.com/RohitGajaraj/Project-Cadence-v2. It kept growing until I
   rebuilt it properly as what you see today.
@@ -101,7 +101,7 @@ Every change goes through typecheck, build, and a review pass before merge.
 Seven weeks in this codebase that has produced about [3,400] commits and [320]
 database migrations, and when I had an outside AI code auditor review the
 codebase and my build register, the register held up. No non-founder has
-touched it. Building this way is also the whole point of Cadence: one person
+touched it. Building this way is also the whole point of Supaprod: one person
 directing a fleet of agents, with receipts for everything they did.
 ```
 
@@ -121,7 +121,7 @@ _[Update the commit/migration counts on submit day: `git rev-list --count HEAD` 
 
 ### 7a. Company name
 
-`Cadence` — **KEEP.**
+`Supaprod` — **CHANGE** (rename executed 2026-07-17; was `Cadence`).
 
 ### 7b. "Describe what your company does in 50 characters or less."
 
@@ -161,7 +161,7 @@ _[Before submit: log in with these exact credentials yourself, re-seed the demo 
 **New (~185 words — the anchor opens it, the real scope closes it):**
 
 ```
-Cadence is where a product org runs when AI agents do the work. The shortest
+Supaprod is where a product org runs when AI agents do the work. The shortest
 way to say it: Cursor for product managers, but it's one system for the whole
 lifecycle, not a copilot bolted onto one step. You connect the tools where
 your product signals live and the agents take it from there: they read the
@@ -170,7 +170,7 @@ you commit, write the spec with the evidence attached, plan the work, and
 hand builds to coding agents. You approve the calls that matter.
 
 The part that makes it a company: every agent action leaves a receipt, and
-every decision gets checked later against what actually happened. Cadence
+every decision gets checked later against what actually happened. Supaprod
 answers "why did we decide this" in seconds, learns which calls were right,
 and gets smarter about your product with every outcome it records. Agents
 earn autonomy from their track record, the way a new hire earns trust, and
@@ -178,7 +178,7 @@ anything they produce rolls back with one key.
 
 AI made building cheap. What a company runs on now is decisions and whether
 they were right. That's the layer I own. Agents do the work. You answer for
-it. Cadence is how you answer.
+it. Supaprod is how you answer.
 ```
 
 ### 7g. "Where do you live now, and where would the company be based after YC?" + location explanation
@@ -222,12 +222,12 @@ _(Note the register: zero users is stated once, in 8e, where the form asks — n
 ```
 Forty-five days on this build at roughly sixteen hours a day, seven days a week;
 the repo shows about [3,400] commits over that stretch. Before that, about a
-month of nights and weekends on the prototype that became Cadence. I'm going
-full-time on Cadence regardless of anything. That decision is made. The batch
+month of nights and weekends on the prototype that became Supaprod. I'm going
+full-time on Supaprod regardless of anything. That decision is made. The batch
 changes where I sit, not whether I'm in.
 ```
 
-_[CONFIRM before submit: your one-line answer about your current role at Intellect, for the interview. It must match your LinkedIn ("Jun 2023 – Present"). Suggested honest line if asked: "I'm serving out my transition at [status]; Cadence gets 16 hours a day and my resignation is planned for [date] / already submitted." Decide the true version and rehearse it — do not improvise this one.]_
+_[CONFIRM before submit: your one-line answer about your current role at Intellect, for the interview. It must match your LinkedIn ("Jun 2023 – Present"). Suggested honest line if asked: "I'm serving out my transition at [status]; Supaprod gets 16 hours a day and my resignation is planned for [date] / already submitted." Decide the true version and rehearse it — do not improvise this one.]_
 
 ### 8c. "What tech stack are you using… Include AI models and AI coding tools you use."
 
@@ -258,7 +258,7 @@ Variant A (beta users exist):
 ```
 Yes, since [date]: [N] beta users from [M] discovery calls. Too early for
 patterns; the first thing they reach for is asking "why did we decide X" and
-getting the receipt back. I use it daily myself to run Cadence's own roadmap.
+getting the receipt back. I use it daily myself to run Supaprod's own roadmap.
 ```
 
 Variant B (not yet):
@@ -266,7 +266,7 @@ Variant B (not yet):
 ```
 The first beta users are getting access now, from the [N] discovery
 conversations I've run with PMs and founders this month. Until they're in,
-the daily user is me: Cadence runs its own roadmap, and its agents built
+the daily user is me: Supaprod runs its own roadmap, and its agents built
 most of it.
 ```
 
@@ -304,7 +304,7 @@ pitch.
 
 ### 8i. Incubator / accelerator
 
-**Previous:** "No. Cadence has not been part of any program. This would be the first." — **KEEP.**
+**Previous:** "No. Cadence has not been part of any program. This would be the first." — **KEEP the substance, update the name:** "No. Supaprod has not been part of any program. This would be the first."
 
 ## 9. Idea
 
@@ -319,7 +319,7 @@ product roles at Infineon and Bosch, and most recently the AI platform that
 those jobs the real work was being the glue across a dozen tools and a dozen
 stakeholders, and re-answering "why did we decide this" from memory.
 
-Cadence started as a dashboard I built for myself to stop drowning in that. It
+Supaprod started as a dashboard I built for myself to stop drowning in that. It
 kept growing. Then I noticed YC kept describing the same gap from the outside:
 an RFS essay asked for a "Cursor for product managers," and the current RFS
 asks for a "Company Brain" and an "AI operating system for companies." That
@@ -354,7 +354,7 @@ under one roof, and it can't be copied quickly, because it only accumulates
 with time.
 
 I also deliberately don't build the code generator. Cursor and Devin are in a
-capital knife fight there, and the models keep absorbing that layer. Cadence
+capital knife fight there, and the models keep absorbing that layer. Supaprod
 decides what's worth building, dispatches to whichever generator wins, and
 keeps the receipts. And if a frontier lab ships a "PM agent," it ships
 capability; the accountability layer across your tools is the part they
@@ -379,7 +379,7 @@ Linear, Notion, a spec tool, a coding agent, and status meetings.
 How big: every company that builds software is becoming a product org run
 this way: the product-staff seat. One PM directing 20 agents across a 4–6 person
 pod (Mosseri, 2026). The math: 1.2 humans + 20 agents = 10-human output (Lemkin,
-2026). Cadence is the console for the product-staff seat — the operating system
+2026). Supaprod is the console for the product-staff seat — the operating system
 that org runs on, and the system of record for its decisions. Systems of record
 are the biggest outcomes in software. Pricing gets its first real test in beta
 this month.
@@ -387,7 +387,7 @@ this month.
 
 ### 9d. "If you had any other ideas you considered applying with, please list them."
 
-**Previous:** "This is the one. The closest was the earlier dashboard version that became Cadence. I am building what I kept wishing existed." — **KEEP.**
+**Previous:** "This is the one. The closest was the earlier dashboard version that became Cadence. I am building what I kept wishing existed." — **KEEP the substance, update the name:** "This is the one. The closest was the earlier dashboard version that became Supaprod. I am building what I kept wishing existed."
 
 ## 10. Equity
 

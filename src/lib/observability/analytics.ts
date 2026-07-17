@@ -45,7 +45,7 @@ export async function track(
     distinct_id: distinctId,
     properties: {
       ...scrubPII(props as Record<string, unknown>),
-      $lib: "cadence-observability-facade",
+      $lib: "supaprod-observability-facade",
     },
     timestamp: new Date().toISOString(),
   };

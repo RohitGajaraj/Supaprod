@@ -39,7 +39,7 @@ export interface ThemeDetailProps {
    * members.length, since the in-window signal read is capped. */
   frequency: number;
   members: ThemeMember[];
-  /** The theme's own `created_at` (when Cadence clustered it), shown as the
+  /** The theme's own `created_at` (when Supaprod clustered it), shown as the
    * quiet "clustered ..." caption beside the copyable trace ref. Themes carry
    * no `updated_at`, so this is the honest freshness stamp; omit and it is
    * skipped rather than fabricated. */

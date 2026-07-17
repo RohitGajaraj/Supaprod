@@ -13,7 +13,7 @@ import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { SectionAlternate } from "@/components/landing/SectionAlternate";
 import { FramedVisual } from "@/components/landing/FramedVisual";
 
-const TITLE = "How Cadence Builds Your Product · Cadence";
+const TITLE = "How Supaprod Builds Your Product · Supaprod";
 const DESC =
   "Discover signals, decide what matters, define specs, build with agents, ship to production, then learn from outcomes. All in one loop, all receipts.";
 

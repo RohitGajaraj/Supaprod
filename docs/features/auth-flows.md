@@ -6,9 +6,9 @@
 
 ## Design & theme (auth_surfaces pass, 2026-07-07)
 
-The auth family is the first and last thing a user sees, so it reads as one confident, on-brand, calm dark Cadence surface, consistent with the app.
+The auth family is the first and last thing a user sees, so it reads as one confident, on-brand, calm dark Supaprod surface, consistent with the app.
 
-- **One shared shell.** `/login`, `/signup`, `/forgot-password`, `/reset-password` render through **`AuthScaffold`** (`src/components/cadence/AuthScaffold.tsx`): brand mark, title, tagline, optional value line, a premium dark card, and shared field-label/error styles. `/join/$token` uses its own centered-card layout but the same tokens.
+- **One shared shell.** `/login`, `/signup`, `/forgot-password`, `/reset-password` render through **`AuthScaffold`** (`src/components/supaprod/AuthScaffold.tsx`): brand mark, title, tagline, optional value line, a premium dark card, and shared field-label/error styles. `/join/$token` uses its own centered-card layout but the same tokens.
 - **Dark, consistent with the app.** These routes live OUTSIDE `/_authenticated`, so they do not inherit the app's Obsidian scope. `useObsidianAuthSurface()` mounts `data-obsidian` on `<html>` while an auth page is shown (mirrors `_authenticated.tsx`) so the page and its toast portals are dark, then restores the parchment landing on unmount.
 - **Semantic tokens only.** Surface `var(--canvas)`, card `var(--card)` + `var(--hairline)` + `var(--shadow-elevated)`, text `var(--text-primary)/--text-muted/--text-subtle`. Error copy uses **`--madder`** (the alert role; `--rose` is a data color under Obsidian). Ember is reserved for the single primary submit CTA on each page (Google is `.btn-ghost`).
 
@@ -107,7 +107,7 @@ Below the password field, a "Forgot password?" link routes to `/forgot-password`
 
 ## Logout
 
-The logout affordance lives in the AppShell account-chip menu (bottom of the rail, `src/components/cadence/AppShell.tsx` → "Sign out"). It calls the real `supabase.auth.signOut()`, shows a "Signed out." toast, and hard-navigates to `/login`, which fires `SIGNED_OUT` (the root listener clears the query cache).
+The logout affordance lives in the AppShell account-chip menu (bottom of the rail, `src/components/supaprod/AppShell.tsx` → "Sign out"). It calls the real `supabase.auth.signOut()`, shows a "Signed out." toast, and hard-navigates to `/login`, which fires `SIGNED_OUT` (the root listener clears the query cache).
 
 ## Error & not-found boundaries
 

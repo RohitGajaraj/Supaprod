@@ -5,7 +5,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Sign-in on the shared dark auth scaffold (auth_surfaces pass). The REAL auth
 // flow is unchanged (Supabase password + Lovable Google OAuth); this pass is
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/login")({
     }
   },
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Sign in · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Sign in · Supaprod" }] }),
 });
 
 function LoginPage() {

@@ -5,7 +5,7 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/signup")({
     window.location.replace(dest);
   },
   component: SignupPage,
-  head: () => ({ meta: [{ title: "Sign up · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Sign up · Supaprod" }] }),
 });
 
 function SignupPage() {
@@ -194,7 +194,7 @@ function SignupPage() {
               maxWidth: 290,
             }}
           >
-            Free to start, no card required. Cadence pressure-tests your calls and remembers every
+            Free to start, no card required. Supaprod pressure-tests your calls and remembers every
             outcome.
           </p>
           {planPickLine ? (

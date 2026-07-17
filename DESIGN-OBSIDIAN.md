@@ -3,7 +3,7 @@ version: 3.0 "Obsidian" (design-system lineage: v1 tokens, v2 Ember Editorial pa
 created: 2026-07-02
 updated: 2026-07-02 (repo amendments, see the Amendments section at the end;
   each clarification is sourced from this package's own tokens and prototype)
-name: cadence-obsidian
+name: supaprod-obsidian
 status: RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
   (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces. Kept as
   history only; never build new surfaces from this file.
@@ -17,7 +17,7 @@ specimen: design-reference/obsidian-v3/design-reference/obsidian-specimen.html
   point is the cadence-design skill)
 ---
 
-# Cadence Design v3 · "Obsidian" · Source of truth
+# Supaprod Design v3 · "Obsidian" · Source of truth
 
 Every agent (Claude Code, Lovable, Gemini, or human) building or redesigning
 ANY feature reads this file first. The strategy document (HTML specimen) shows

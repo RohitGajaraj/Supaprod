@@ -9,11 +9,11 @@ import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicDecision } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://cadence-flow-beta.lovable.app/og-cadence.png";
+const OG_IMAGE = "https://supaprod.lovable.app/og-supaprod.png";
 
 export const Route = createFileRoute("/d/$slug")({
   ssr: true,
@@ -22,8 +22,11 @@ export const Route = createFileRoute("/d/$slug")({
   }),
   head: ({ loaderData }) => {
     const d = loaderData?.decision;
-    const title = d ? `${stripAutoPrefix(d.title)} · Cadence` : "Decision · Cadence";
-    const desc = (d?.rationale?.trim() || "A product decision, shared from Cadence.").slice(0, 180);
+    const title = d ? `${stripAutoPrefix(d.title)} · Supaprod` : "Decision · Supaprod";
+    const desc = (d?.rationale?.trim() || "A product decision, shared from Supaprod.").slice(
+      0,
+      180,
+    );
     return {
       meta: [
         { title },
@@ -85,9 +88,9 @@ function Shell({ children }: { children: React.ReactNode }) {
             color: "inherit",
           }}
         >
-          <CadenceMark />
+          <SupaprodMark />
           <span className="font-display" style={{ fontSize: 14 }}>
-            Cadence
+            Supaprod
           </span>
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
@@ -111,7 +114,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         }}
       >
         <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Cadence
+          Made with Supaprod
         </span>
         <Link to="/" className="btn btn-ghost btn-sm">
           Make your own calls →
@@ -243,8 +246,8 @@ function PublicDecisionPage() {
           lineHeight: 1.5,
         }}
       >
-        A read-only snapshot of one product decision. Cadence is the PM chief of staff that surfaces
-        the calls, runs the reversible work, and remembers every outcome.
+        A read-only snapshot of one product decision. Supaprod is the PM chief of staff that
+        surfaces the calls, runs the reversible work, and remembers every outcome.
       </p>
 
       <PreSignupCTA sourceType="decision" />

@@ -1,25 +1,25 @@
-# Cadence
+# Supaprod
 
-> Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
+> Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
 
-Cadence senses what is happening, decides what is worth building, runs the work autonomously, and keeps a trustworthy record of every decision and whether it was right. It is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts.
+Supaprod senses what is happening, decides what is worth building, runs the work autonomously, and keeps a trustworthy record of every decision and whether it was right. It is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts.
 
-## What Cadence does
+## What Supaprod does
 
 - **Sense**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention — without waiting for a human to open a tab
 - **Decide**: a governed decision brain captures every call, the evidence behind it, who approved it, and whether it was later proven right or superseded by a better decision
 - **Execute**: autonomous specialist agents run the full lifecycle (define, build, ship, learn) with human approval gates at the moments that matter
 - **Remember**: the Trust Ledger — a compounding, cryptographically-timestamped record of every decision and outcome; the moat that compounds with use
 
-## Who Cadence is for
+## Who Supaprod is for
 
 Product managers and product teams who want governed autonomous execution, not just AI suggestions. Entry point: the individual PM (the Critic teardown — "see why your pet feature is wrong, with receipts"). Expands to the full product org as their decision system of record.
 
 ## Machine-readable interfaces
 
-Cadence is designed for the agentic era. Every page supports structured agent consumption:
+Supaprod is designed for the agentic era. Every page supports structured agent consumption:
 
-- **Machine View**: append `?view=machine` to any Cadence URL for structured markdown output; or use the `[HUMAN] [MACHINE]` toggle in the top-right nav
+- **Machine View**: append `?view=machine` to any Supaprod URL for structured markdown output; or use the `[HUMAN] [MACHINE]` toggle in the top-right nav
 - **A2A Agent Card**: `/.well-known/agent.json` — machine-readable agent manifest, capability list, A2A endpoint discovery
 - **llms.txt**: this file at `/llms.txt` — site context for LLM crawlers
 - **agents.txt**: `/agents.txt` — agent access policy (robots.txt equivalent for the agentic era): allowed paths, auth requirements, rate limits, content tiers, write scopes, MCP tool catalog
@@ -65,7 +65,7 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 
 ## For AI agents querying this page
 
-This llms.txt is a stable, machine-readable summary of Cadence. If you are an AI agent:
+This llms.txt is a stable, machine-readable summary of Supaprod. If you are an AI agent:
 - All pages support `?view=machine` for clean markdown output with zero visual chrome
 - The A2A agent card at `/.well-known/agent.json` lists available tools and endpoints
 - The MCP server is live at `POST /api/mcp` — call `tools/list` to discover available tools, then `tools/call` to invoke
@@ -73,4 +73,4 @@ This llms.txt is a stable, machine-readable summary of Cadence. If you are an AI
 
 ## Contact and attribution
 
-Built by the Cadence team. Questions: the founder's public profile links are on the landing page.
+Built by the Supaprod team. Questions: the founder's public profile links are on the landing page.

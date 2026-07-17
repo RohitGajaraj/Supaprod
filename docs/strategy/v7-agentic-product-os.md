@@ -1,4 +1,4 @@
-# v7: Cadence as the Agentic Product OS (the post-Phase-3 reset: positioning + build canon)
+# v7: Supaprod as the Agentic Product OS (the post-Phase-3 reset: positioning + build canon)
 
 > _Created: 2026-06-14 · Last updated: 2026-06-19_
 
@@ -12,7 +12,7 @@
 
 ## 1. The one-liner & who it's for
 
-**Cadence is the Decision & Memory system-of-record for product teams: a PM Chief of Staff that runs an _ambient, governed_ product loop (sense → decide → define → build → ship → learn) and compounds what works into memory the team can trust.** It runs the reversible work and brings you the calls only you should make.
+**Supaprod is the Decision & Memory system-of-record for product teams: a PM Chief of Staff that runs an _ambient, governed_ product loop (sense → decide → define → build → ship → learn) and compounds what works into memory the team can trust.** It runs the reversible work and brings you the calls only you should make.
 
 **Not** "an AI that replaces the PM." The sellable outcome is _fewer bad calls, faster shipped decisions, and institutional memory that compounds._
 
@@ -54,7 +54,7 @@
 
 **The wedge: the PM firefighting/OpEx tax.** PMs spend ~45% of time on reactive work; orgs run ~101 apps and lose ~1 hr/day to tool-switching. The sharpest entry is _amplified judgment_ (sense → route → propose → 1-click approve → trigger downstream), not day-one autonomy.
 
-**Adoption is bifurcated, and that gap is the opportunity.** The honest _baseline_ is the failure data from independent analysts: **Gartner: 40% of agentic projects cancelled by 2027**; MIT: 95% of GenAI pilots don't scale; S&P: 42% of firms scrapped ≥1 AI initiative in 2025 (up from 17%); McKinsey: only 21% have mature agent governance. The optimistic counter-numbers (GCP: 52% have agents in production, 88% positive ROI) are **vendor-published, self-selected surveys, a ceiling, not a base rate; weighted accordingly.** **The winners are separated from the 40% by exactly our surface: grounding, governance, HITL, reliability, demonstrable ROI.** Position Cadence as "the system-of-record that keeps a PM team out of the 40%", lead with the threat, not the hype.
+**Adoption is bifurcated, and that gap is the opportunity.** The honest _baseline_ is the failure data from independent analysts: **Gartner: 40% of agentic projects cancelled by 2027**; MIT: 95% of GenAI pilots don't scale; S&P: 42% of firms scrapped ≥1 AI initiative in 2025 (up from 17%); McKinsey: only 21% have mature agent governance. The optimistic counter-numbers (GCP: 52% have agents in production, 88% positive ROI) are **vendor-published, self-selected surveys, a ceiling, not a base rate; weighted accordingly.** **The winners are separated from the 40% by exactly our surface: grounding, governance, HITL, reliability, demonstrable ROI.** Position Supaprod as "the system-of-record that keeps a PM team out of the 40%", lead with the threat, not the hype.
 
 **Trajectory (2-yr / 5-yr).** Now→2yr: co-pilots → ambient, governed, vertical agents; **memory becomes the differentiator**; orchestration standardizes (MCP/A2A); foundation models ~plateau (~18 mo) opening room for ROI-focused verticals; pricing migrates to usage/outcome; HITL + audit become table stakes (EU AI Act). 3 to 5yr: longer-horizon agents, "services-as-software"/labor displacement, the "100-person billion-dollar company," software factories eroding off-the-shelf SaaS. **Existential risk crystallizes** as labs push native orchestration/memory, defensible only as a _vertical, opinionated system-of-record_ with proprietary outcome data.
 
@@ -111,7 +111,7 @@
 
 ## 11. Investor narrative
 
-- **Frame (honest TAM: augmentation, not replacement):** Cadence sells _labor efficiency_ (PMs ship faster, better-evidenced decisions), not headcount replacement (it's ambient + HITL). The credible TAM is **PM tooling (~$6 to 8B today → ~$13 to 23B by 2034) + an OpEx-replacement uplift** (a slice of PM salary budgets at 50 to 400-person SaaS willing to shift to a decision platform ≈ low-single-digit $B addressable), not a hand-wavy "10 to 100×." "Agentic" still raises ~40% above "GenAI tool," and our wiring-honesty de-risks the agent-washing litigation now hitting the category. (The skeptical VC _will_ ask "if you save 40% of a PM's time, won't they hire fewer PMs?", answer: we sell _more output per PM_, not fewer PMs.)
+- **Frame (honest TAM: augmentation, not replacement):** Supaprod sells _labor efficiency_ (PMs ship faster, better-evidenced decisions), not headcount replacement (it's ambient + HITL). The credible TAM is **PM tooling (~$6 to 8B today → ~$13 to 23B by 2034) + an OpEx-replacement uplift** (a slice of PM salary budgets at 50 to 400-person SaaS willing to shift to a decision platform ≈ low-single-digit $B addressable), not a hand-wavy "10 to 100×." "Agentic" still raises ~40% above "GenAI tool," and our wiring-honesty de-risks the agent-washing litigation now hitting the category. (The skeptical VC _will_ ask "if you save 40% of a PM's time, won't they hire fewer PMs?", answer: we sell _more output per PM_, not fewer PMs.)
 - **Metrics they want:** NDR **>115 to 120%** (memory compounding → expansion), **<10-min** time-to-value, **autonomy ratio trending up**, gross margin despite inference cost, and **evidence the moat compounds** (HITL corrections stored as learning signals, which we already persist).
 - **Pitch spine:** underhyped category → unit-of-cognition for the PM function → budget-replacement TAM → data/specialization moat (the memory we already capture) → solved last-mile (grounding, confidence, integrations, explainability) → value-aligned pricing → force-multiplier outcome.
 - **Comps:** Sierra (~$150M ARR, outcome-priced), Intercom Fin (~$100M ARR, per-resolution); agentic seed/Series at premium valuations.
@@ -135,12 +135,12 @@
 5. **External reports are inputs, not the basis**, decisions take a holistic, independently-researched lens (founder steer). (§Evidence base)
 6. **Naming:** Cadence; unfinalized.
 7. **Gate on the proof gauntlet, not dates:** ≥10 PMs paying ≥$150/mo · the loop closes once on a partner's real data · autonomy ticks up on a real account.
-8. **Humanized output, zero AI fingerprints (standing rule, two levels):** no em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users (PRDs, drafts, chat). The runtime sanitizer at the AI chokepoint is the hard gate. The product should read as distinctly Cadence, not one in a thousand AI apps. Convention: [`../conventions/humanized-output.md`](../conventions/humanized-output.md). (2026-06-14)
+8. **Humanized output, zero AI fingerprints (standing rule, two levels):** no em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users (PRDs, drafts, chat). The runtime sanitizer at the AI chokepoint is the hard gate. The product should read as distinctly Supaprod, not one in a thousand AI apps. Convention: [`../conventions/humanized-output.md`](../conventions/humanized-output.md). (2026-06-14)
 
 ## 14. Risks & open questions
 
 - **Foundation-lab absorption** → defense: PM-domain depth + governance + proprietary outcome data; ship value fast.
-- **Fast-follower / distribution disadvantage (the window may be 6 to 12 mo, not 18 to 24).** Atlassian (Rovo, ~90% enterprise reach, already acquired Cycle) or Productboard could bundle the loop as a feature with distribution we lack. Pre-empt: pull the MCP/API interface forward (don't wait for M-D), secure 2 to 3 marquee reference partners, and keep a **B2B2B fallback** (embed Cadence's memory/decision layer inside Jira/Linear via MCP) if the standalone window closes.
+- **Fast-follower / distribution disadvantage (the window may be 6 to 12 mo, not 18 to 24).** Atlassian (Rovo, ~90% enterprise reach, already acquired Cycle) or Productboard could bundle the loop as a feature with distribution we lack. Pre-empt: pull the MCP/API interface forward (don't wait for M-D), secure 2 to 3 marquee reference partners, and keep a **B2B2B fallback** (embed Supaprod's memory/decision layer inside Jira/Linear via MCP) if the standalone window closes.
 - **Migration-sync dependency** (Lovable) is a recurring live-blocker pattern → an _owned_ apply/verify step (§12 M-0); KI-13 is urgent.
 - **Inference margin** at 5 to 30× token load → BYOK/routing/cache + a real unit-economics model (§9).
 - **Cold-start for the moat** (memory needs real usage to compound) → the design-partner gauntlet on real data is the unlock; defend with the scale-independent _outcome-accuracy-lift-per-PM_ metric (§6), not user count alone.

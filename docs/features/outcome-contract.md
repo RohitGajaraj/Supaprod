@@ -4,7 +4,7 @@
 
 The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside the existing markdown narrative (`body_md`). It is the first piece of the v12 Program CONVENTIONS build: the artifact formerly known as the PRD, split into a human view (unchanged) and a machine view an agent can consume directly instead of re-parsing prose.
 
-**Why this exists:** the self-audit in [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7.1 names the gap directly — Cadence's decision layer is typed and bi-temporal, yet `prds.body_md` is a TEXT blob. The moat doctrine stopped at the requirements boundary. This closes that: `contract` is queryable, diffable, and individually supersedable, the same standing/superseded idiom FS-02's `assumptions.status` already uses.
+**Why this exists:** the self-audit in [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7.1 names the gap directly — Supaprod's decision layer is typed and bi-temporal, yet `prds.body_md` is a TEXT blob. The moat doctrine stopped at the requirements boundary. This closes that: `contract` is queryable, diffable, and individually supersedable, the same standing/superseded idiom FS-02's `assumptions.status` already uses.
 
 ## What ships
 
@@ -60,7 +60,7 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 
 - **`compileContractOracles`** (`src/lib/discovery.functions.ts`) — classifies every uncompiled `success_metrics` clause on a spec's contract into one of four real oracles, reusing existing engines rather than inventing new ones:
   - **`eval`** — a qualitative/behavioral claim an LLM judge can grade. Creates (or reuses) one `eval_suites` row per PRD (new `prd_id` column) and one `eval_cases` row per clause (`rubric` = the clause text itself), so it shows up in the existing Eval Harness (`/evals`) like any other suite.
-  - **`ci`** — inherently covered by the standard CI gate (type-check, lint, automated tests). No new artifact: Cadence cannot mint a GitHub check per clause, so this is an inline label on the clause (`oracle_ref` = a fixed sentence). Classified narrowly — only claims that are actually about code/build health, not product behavior.
+  - **`ci`** — inherently covered by the standard CI gate (type-check, lint, automated tests). No new artifact: Supaprod cannot mint a GitHub check per clause, so this is an inline label on the clause (`oracle_ref` = a fixed sentence). Classified narrowly — only claims that are actually about code/build health, not product behavior.
   - **`uat`** — needs a human to manually verify. Inline too: the clause gets a real checkbox (`uat_checked`/`uat_checked_at`), rendered in the Contract tab next to the clause text.
   - **`unverifiable`** — not falsifiable as written. Auto-files as a **watched assumption** (FS-02): the existing `assumptions` table gained a nullable `prd_id` (alongside the existing `decision_id`, both optional but at least one required via a CHECK constraint), so the existing `assumption-watch` cron picks up spec-sourced assumptions with zero changes to the watcher itself — it only ever reads `id`/`statement`/`workspace_id`/`status`, never `decision_id` directly.
   - Idempotent per clause: only unclassified (`oracle_kind === null`) standing clauses are ever touched, so re-running after adding new metrics only compiles what's new. Classification-response parsing is pure and unit-tested (`deriveOracleClassifications`, 6 tests, same pattern as FS-02's `deriveWatchVerdict`).
@@ -82,7 +82,7 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 
 ## CNV-03: the ARD, publishing the Outcome Contract as a standard (v12 sec 7.4)
 
-**Why this exists:** v12 sec 7.4, stated directly — "a standard needs consumers; the first consumers are the coding agents Cadence dispatches to." Every prior CNV step built and refined the Outcome Contract _inside_ Cadence. Nothing outside Cadence could read it in a stable, versioned shape. CNV-03 closes that: the same contract, published.
+**Why this exists:** v12 sec 7.4, stated directly — "a standard needs consumers; the first consumers are the coding agents Supaprod dispatches to." Every prior CNV step built and refined the Outcome Contract _inside_ Supaprod. Nothing outside Supaprod could read it in a stable, versioned shape. CNV-03 closes that: the same contract, published.
 
 ### What ships
 
@@ -90,7 +90,7 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 - **`src/lib/ard-schema.ts`** (pure, no DB) — `ARD_SCHEMA_VERSION` ("0.1"), `buildArdJsonSchema(origin)` (the formal JSON Schema, draft 2020-12, mirroring `OutcomeContractSchema` field-for-field), `buildArdDocument(origin, specId, specTitle, contract)` (the export envelope: `{ ard_version, schema_url, spec_id, spec_title, exported_at, contract }`), and `parseArdDocument(json)` (the import gate — validates via the same `OutcomeContractSchema.safeParse` the draft/apply flow already enforces, so an imported contract can never be less strict than an agent-drafted one; accepts either a full envelope or a bare contract object).
 - **Public schema endpoint**: `GET /api/public/ard/schema` (`src/routes/api/public/ard.schema.ts`) — unauthenticated, cached, CORS-open, same pattern as the A2A agent card route.
 - **Public spec page**: `/ard` (`src/routes/ard.tsx`) — what the ARD is, why, the schema link, and how to fetch/export/import one, with a worked example. Parchment tokens (public page, not the authenticated Obsidian app).
-- **MCP tool `get_ard`** (`src/lib/mcp-protocol.ts` catalog, `src/lib/mcp.functions.ts`'s `getArdDocument`, wired in `src/routes/api/mcp.ts`) — given a `prd_id`, returns the spec's contract wrapped as an ARD document. This is the dispatch-time read path: `get_prd` predates CNV-01 and never exposed `contract`; `get_ard` is the one MCP call that hands a dispatched agent the identical acceptance contract Cadence checks a build against.
+- **MCP tool `get_ard`** (`src/lib/mcp-protocol.ts` catalog, `src/lib/mcp.functions.ts`'s `getArdDocument`, wired in `src/routes/api/mcp.ts`) — given a `prd_id`, returns the spec's contract wrapped as an ARD document. This is the dispatch-time read path: `get_prd` predates CNV-01 and never exposed `contract`; `get_ard` is the one MCP call that hands a dispatched agent the identical acceptance contract Supaprod checks a build against.
 - **UI**: `OutcomeContractPanel.tsx` gained **Export ARD** (downloads the current contract as a portable `.ard.json` file, client-side, no server round trip beyond the data already loaded) and **Import ARD JSON** (paste a document, validated by `parseArdDocument`, applied through the exact same `savePrd` mutation as "Apply contract" — the empty-state card offers it as an alternative to drafting from scratch).
 - **Discovery surfaces updated**: `llms.txt`, `agents.txt`, and the A2A agent card's `read_tools` list all now mention `get_ard` and the `/ard` / `/api/public/ard/schema` URLs, so an agent that only ever reads `llms.txt` still finds the standard.
 

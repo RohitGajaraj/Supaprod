@@ -24,12 +24,12 @@ import {
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { useTheme } from "@/hooks/use-theme";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
-import { EmptyState } from "@/components/cadence/EmptyState";
+import { EmptyState } from "@/components/supaprod/EmptyState";
 
 // Monaco stays out of the main bundle — it only loads when a file is opened.
 const DiffEditor = lazy(() =>
@@ -209,7 +209,7 @@ export function ChangesPanel({
   });
 
   // SEAM-2 SHIP: merge is not the end; a live URL is. A merged changeset on a
-  // Cadence-managed repo gets an automatic preview deploy (ci-poll-tick); the
+  // Supaprod-managed repo gets an automatic preview deploy (ci-poll-tick); the
   // one human promote click moves production and is recorded as an approval.
   const fDeployments = useServerFn(listDeployments);
   const deploymentsQ = useQuery({
@@ -398,10 +398,7 @@ export function ChangesPanel({
 
   if (!changeset) {
     return (
-      <EmptyState
-        headline="No changes staged yet"
-        body="The session stages edits as it works."
-      />
+      <EmptyState headline="No changes staged yet" body="The session stages edits as it works." />
     );
   }
 
@@ -515,7 +512,7 @@ export function ChangesPanel({
             </a>
           ) : (
             <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
-              Preview deploys automatically after merge on Cadence-managed repos, within about two
+              Preview deploys automatically after merge on Supaprod-managed repos, within about two
               minutes.
             </span>
           )}
@@ -992,7 +989,11 @@ export function ChangesPanel({
               style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
               <label
-                style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--text-body)" }}
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 12.5,
+                  color: "var(--text-body)",
+                }}
               >
                 Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
               </label>
@@ -1170,10 +1171,7 @@ export function ChangesPanel({
           );
         })}
         {changes.length === 0 ? (
-          <EmptyState
-            headline="The changeset is empty"
-            body="No files have been modified."
-          />
+          <EmptyState headline="The changeset is empty" body="No files have been modified." />
         ) : null}
       </div>
 

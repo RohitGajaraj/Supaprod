@@ -19,7 +19,7 @@
 - (2025-06-10) "The ability for one person to get much more done in 2030 than they could in 2020 will be a striking change."
 - (2025-06-10) On the human side: "we are hard-wired to care about other people and what they think and do."
 
-**Read for Cadence:** the lab CEO's own calendar says execution agents arrived in 2025 and one-person leverage is the 2030 headline — the leverage layer (deciding what the agents do, remembering what worked) is exactly the part his timeline never names a product for.
+**Read for Supaprod:** the lab CEO's own calendar says execution agents arrived in 2025 and one-person leverage is the 2030 headline — the leverage layer (deciding what the agents do, remembering what worked) is exactly the part his timeline never names a product for.
 
 ---
 
@@ -33,7 +33,7 @@
 - The human-control contract, per the launch post: "ChatGPT requests permission before taking actions of consequence, and you can easily interrupt, take over the browser, or stop tasks at any point."
 - What it obsoletes: Operator and standalone deep research (merged into one agent). What it leaves open: nothing in the launch learns from whether the slide deck was any good — every task starts from zero.
 
-**Read for Cadence:** the July-2025 consumer bar for "agent" is already multi-hour, multi-tool, artifact-producing work with consequence-gated permissions — Cadence's differentiation cannot be "it executes"; it is that execution lands in a decision-and-outcome record.
+**Read for Supaprod:** the July-2025 consumer bar for "agent" is already multi-hour, multi-tool, artifact-producing work with consequence-gated permissions — Supaprod's differentiation cannot be "it executes"; it is that execution lands in a decision-and-outcome record.
 
 ---
 
@@ -49,7 +49,7 @@
 - Altman's close: "Software used to take months or years to build. You saw today. It takes minutes now. And to build with AI you don't need a huge team. You don't need a bunch of infrastructure. **You just need a good idea.**"
 - Trust as the named blocker in the AgentKit demo: "One of the most important things when building agents is trust, and guardrails help you have that confidence."
 
-**Read for Cadence:** OpenAI's own keynote concedes the two seams Cadence lives in — most agents never reach production (trust), and when software takes minutes, the scarce input is "a good idea" (deciding what to build); neither AgentKit nor Codex records whether the idea was right.
+**Read for Supaprod:** OpenAI's own keynote concedes the two seams Supaprod lives in — most agents never reach production (trust), and when software takes minutes, the scarce input is "a good idea" (deciding what to build); neither AgentKit nor Codex records whether the idea was right.
 
 ---
 
@@ -63,7 +63,7 @@
 - Named launch customers: HP, Oracle, State Farm, Uber. Pricing: undisclosed — "OpenAI declined to comment on pricing." Availability: limited, GA "in the coming months."
 - What it leaves open: the feedback loop described is per-agent performance tuning; nothing published describes learning across an org's _decisions_ (which bets were right), only across agent _behavior_ (did the task complete).
 
-**Read for Cadence:** the largest lab now sells "manage agents like employees" — validating the fleet-governance layer — but its memory is task-level, not decision-level; "which of our product bets worked" remains unowned, and Frontier's undisclosed pricing shows even OpenAI hasn't solved packaging for this layer.
+**Read for Supaprod:** the largest lab now sells "manage agents like employees" — validating the fleet-governance layer — but its memory is task-level, not decision-level; "which of our product bets worked" remains unowned, and Frontier's undisclosed pricing shows even OpenAI hasn't solved packaging for this layer.
 
 ---
 
@@ -78,7 +78,7 @@
 - Pricing shape: "ChatGPT Work follows the same usage structure as Codex" — metered usage, no per-task price published.
 - Also this cycle: government pre-review gating a frontier launch (2026-06-26) — the second such event in a month (see item 8).
 
-**Read for Cadence:** as of this week, finished-artifact agentic work is a default feature of a $0 consumer plan — Cadence's PRD/build execution is officially commodity; the sellable object is the decision above the artifact and the record of what shipped and what it did.
+**Read for Supaprod:** as of this week, finished-artifact agentic work is a default feature of a $0 consumer plan — Supaprod's PRD/build execution is officially commodity; the sellable object is the decision above the artifact and the record of what shipped and what it did.
 
 ---
 
@@ -92,7 +92,7 @@
 - On verification: "Agents that can check and improve their own output are fundamentally more reliable — they catch mistakes before they compound, self-correct when they drift, and get better as they iterate." And: "The best form of feedback is providing clearly defined rules for an output, then explaining which rules failed and why." LLM-as-judge is called out as "generally not a very robust method."
 - Product furniture that shipped the same day: checkpoints ("roll back instantly to a previous state"), a context-editing feature and a memory tool so "agents run even longer."
 
-**Read for Cadence:** Anthropic's own doctrine says agent reliability = a verify step against explicit success rules — which is precisely what a decision layer can supply fleet-wide (the Outcome Contract), and what no per-task agent retains across tasks.
+**Read for Supaprod:** Anthropic's own doctrine says agent reliability = a verify step against explicit success rules — which is precisely what a decision layer can supply fleet-wide (the Outcome Contract), and what no per-task agent retains across tasks.
 
 ---
 
@@ -104,7 +104,7 @@
 - MCP's first-year scorecard: OpenAI adopted MCP across its Agents SDK, Responses API, and ChatGPT desktop in March 2025; by late 2025, 10,000+ active public MCP servers and adoption by ChatGPT, Cursor, Gemini, Microsoft Copilot, VS Code.
 - The strategic read: within ~13 months, the _connector_ layer (MCP) and the _procedure/context_ layer (Skills, AGENTS.md) both became vendor-neutral open standards owned by a foundation.
 
-**Read for Cadence:** connectors and skills are now free commons — no moat can live there; what is NOT standardized anywhere is the decision-and-outcome record that flows through them, which is exactly the layer Cadence claims (and BYO-standard compliance — MCP in, Skills-format context — is cheap credibility at launch).
+**Read for Supaprod:** connectors and skills are now free commons — no moat can live there; what is NOT standardized anywhere is the decision-and-outcome record that flows through them, which is exactly the layer Supaprod claims (and BYO-standard compliance — MCP in, Skills-format context — is cheap credibility at launch).
 
 ---
 
@@ -119,7 +119,7 @@
 - Mythos-class definition: "a tier of Claude models that sit above our Opus class in capability"; Mythos 5 deploys through Project Glasswing "in collaboration with the US government." Fable 5 pricing: $10/M input, $50/M output tokens.
 - The governance shock: a reported jailbreak triggered a Commerce-Department takedown order on 2026-06-12 — three days after launch — with restoration on 2026-07-01. Frontier capability is now visibly subject to overnight regulatory removal.
 
-**Read for Cadence:** "improves its outputs using its own notes" is the model-level version of context-learning (Masad's doctrine, sibling doc §14) — but the notes die with the session/model; a BYOK product that owns the durable outcome ledger both survives model swaps AND survives a Fable-style overnight takedown, which is now a demonstrated, dated risk.
+**Read for Supaprod:** "improves its outputs using its own notes" is the model-level version of context-learning (Masad's doctrine, sibling doc §14) — but the notes die with the session/model; a BYOK product that owns the durable outcome ledger both survives model swaps AND survives a Fable-style overnight takedown, which is now a demonstrated, dated risk.
 
 ---
 
@@ -135,7 +135,7 @@
 - (2025-05-01) The after-code artifact: "a representation of the logic of your software that does look more like English … you can edit that at a high level and it won't be the impenetrable millions of lines of code."
 - Launch facts (2025-10-29, Cursor 2.0): first proprietary model (Composer, ~4x faster claim), up to 8 parallel agents on git worktrees/remote machines, native browser tool so agents "test their work and iterate," sandboxed terminals. The interface pivoted from file-editor to agent-manager.
 
-**Read for Cadence:** the fastest-growing execution vendor defines the future job as Cadence's exact surface — English-level logic/spec editing plus taste ("the right idea for what should be built") — and his own product roadmap (2.0 agent-manager) shows execution vendors climbing toward it, without an outcome record.
+**Read for Supaprod:** the fastest-growing execution vendor defines the future job as Supaprod's exact surface — English-level logic/spec editing plus taste ("the right idea for what should be built") — and his own product roadmap (2.0 agent-manager) shows execution vendors climbing toward it, without an outcome record.
 
 ---
 
@@ -151,7 +151,7 @@
 - (2025-10-17, Dwarkesh) The unsolved layer, named: "**They don't have continual learning. You can't just tell them something and they'll remember it.** They're cognitively lacking." And on timelines: "The problems are tractable, they're surmountable, but they're still difficult. If I just average it out, it just feels like a decade to me."
 - (2025-10-17, Dwarkesh) On why outcome signal is precious: "You're sucking supervision through a straw … all this work that could be a minute of rollout, and you're sucking the bits of supervision of the final reward signal through a straw."
 
-**Read for Cadence:** the field's most-cited independent voice says the missing capability is continual memory, the human's job is verification, and the winning product shape is a partial-autonomy suit with a slider — Cadence's outcome ledger + HITL trust arcs are that thesis productized, and "decade of agents" means the window stays open.
+**Read for Supaprod:** the field's most-cited independent voice says the missing capability is continual memory, the human's job is verification, and the winning product shape is a partial-autonomy suit with a slider — Supaprod's outcome ledger + HITL trust arcs are that thesis productized, and "decade of agents" means the window stays open.
 
 ---
 
@@ -164,7 +164,7 @@
 - (2025-11-18, Ignite) Agent 365 launch: a "control plane" that "treats AI agents as digital employees" — a complete registry of every agent in the org "including 'shadow agents' that employees created on their own," risk-based access controls "just like employees," integrated with Defender/Entra/Purview. Early access via the Microsoft Frontier program; GA expected 2026.
 - Launch fact for scale: Ignite 2025's frame was the "Frontier Firm" — agents as first-class org members with identity (Entra Agent ID), monitoring, and impact measurement.
 
-**Read for Cadence:** the largest software company's CEO predicts app logic migrates to the agent tier (the tier Cadence occupies), and its 2025 answer is agent HR — identity, registry, permissions — with decision quality and outcome memory conspicuously absent from the control plane.
+**Read for Supaprod:** the largest software company's CEO predicts app logic migrates to the agent tier (the tier Supaprod occupies), and its 2025 answer is agent HR — identity, registry, permissions — with decision quality and outcome memory conspicuously absent from the control plane.
 
 ---
 
@@ -178,7 +178,7 @@
 - (2026-05-26, Axios) "You can imagine the agentic era in this next year is a little bit like a practice run" — the next agent wave as "a societal stress test for far more powerful systems still to come."
 - (2026-05-26, Axios) "We can see agents really happening now and imagine what they will be in another year, and how useful they'll be." And: "what we're seeing is soft self-improvement, in the sense of these coding agents are making engineers much more productive."
 
-**Read for Cadence:** DeepMind's chief calls this year a practice run and names invention/judgment as the unsolved mechanism — corroborating (with Karpathy) that the deliberate, human-governed decision layer is not a transitional UX but the durable seat while capability keeps rising underneath it.
+**Read for Supaprod:** DeepMind's chief calls this year a practice run and names invention/judgment as the unsolved mechanism — corroborating (with Karpathy) that the deliberate, human-governed decision layer is not a transitional UX but the durable seat while capability keeps rising underneath it.
 
 ---
 
@@ -194,7 +194,7 @@
 - (2025-05-18) The org-shape fact: ChatPRD runs on "one full-time, one part-time engineer … a part-time growth person … and a friend doing fractional enterprise sales" — a ~3.5-person company claiming 100K+ PM users (Brief 1).
 - Her ChatPRD improvement loop is manual outcome capture: thumbs up/down ratings + A/B tests on models and prompts — "the way we tune and improve the core experience."
 
-**Read for Cadence:** the loudest AI-PM operator runs Cadence's loop by hand across three disconnected tools (signal → PRD → autonomous PR → human approval) with no shared memory between them — her demo is the market's proof-of-demand, and its missing connective tissue (one outcome record across the loop) is the product.
+**Read for Supaprod:** the loudest AI-PM operator runs Supaprod's loop by hand across three disconnected tools (signal → PRD → autonomous PR → human approval) with no shared memory between them — her demo is the market's proof-of-demand, and its missing connective tissue (one outcome record across the loop) is the product.
 
 ---
 
@@ -211,7 +211,7 @@
 - (Goyal, 2026-06-15) The thesis quote: "Machine learning shifts the task of programming from being about the how to being about the what … **Evals are actually the modern version of a PRD** … you encode those user stories in a way that can be quantified … you let a model figure out the how and you are really focused on the what."
 - (Goyal, 2026-06-15) Taste, operationalized: Braintrust encodes its CEO's design taste ("David") as an eval — "I run a ton of evals to quantitatively improve things … and then I go to David and ask him for a vibe check … once every few days." Host Claire Vo names the fear ("turning my own taste into a system … I'm functionally building my own replacement"); Goyal's counter: "We're able to have David's palette applied to more things. The quality bar we're able to hit is higher."
 
-**Read for Cadence:** working operators in 2026 already run emoji-triggered fleets, hand-written trust floors, persona review boards, and taste-as-evals — every one is a hand-rolled instance of a Cadence primitive (dispatch, HITL floor, review agents, outcome contract), which is the same "the demand is proven, the product is missing" pattern as the sibling doc's §12.2.
+**Read for Supaprod:** working operators in 2026 already run emoji-triggered fleets, hand-written trust floors, persona review boards, and taste-as-evals — every one is a hand-rolled instance of a Supaprod primitive (dispatch, HITL floor, review agents, outcome contract), which is the same "the demand is proven, the product is missing" pattern as the sibling doc's §12.2.
 
 ---
 
@@ -226,7 +226,7 @@
 - (a16z, 2025) The pricing-metric shift: in the AI era "value shifts to the _work_ the software performs on your behalf … the old value metric of 'users' is being replaced by '**output**'."
 - (Tan, 2025-03-06, X) "For 25% of the Winter 2025 batch, 95% of lines of code are LLM generated. That's not a typo." On Lightcone: "The humans have to do the debugging, still … 'What is the code actually doing?'" And: "This isn't a fad … This is the dominant way to code, and if you are not doing it, you may just be left behind."
 
-**Read for Cadence:** the pricing consensus (seats → output → outcomes, hybrid floors) and the YC-batch facts both price _execution_; nobody yet prices _decision quality_ — Cadence can charge a floor for the OS and meter the crisp countable object it uniquely produces: a closed decision loop with a recorded outcome.
+**Read for Supaprod:** the pricing consensus (seats → output → outcomes, hybrid floors) and the YC-batch facts both price _execution_; nobody yet prices _decision quality_ — Supaprod can charge a floor for the OS and meter the crisp countable object it uniquely produces: a closed decision loop with a recorded outcome.
 
 ---
 
@@ -234,7 +234,7 @@
 
 1. **End-to-end execution is now table stakes at every altitude.** Consumer (ChatGPT agent, 2025-07-17), engineering (Codex 7-hour runs, 2025-10-06; Sonnet 4.5's 30-hour focus, 2025-09-29), org-scale (Stripe's 1,300 no-human PRs/week, 2026-03-25), and knowledge work (ChatGPT Work "artifacts out" on the free plan, 2026-07-09). Build capacity is no longer the constraint anywhere in the stack.
 2. **Every voice locates the surviving human at the same two points: deciding what to build, and verifying what was built.** Karpathy's generation-vs-verification loop (2025-06-16), Truell's taste = "the right idea for what should be built" (2025-05-01), Altman's "you just need a good idea" (2025-10-06), Vo's enforced PR approvals (2025-05-18), Tan's "humans have to do the debugging" (2025-03).
-3. **Continual learning is the admitted unsolved layer — on a decade clock.** Karpathy: "You can't just tell them something and they'll remember it … feels like a decade to me" (2025-10-17). Hassabis: invention's "mechanism" unknown (2025-07-23). Fable 5's in-task "own notes" (2026-06-09) die at session end. The layer Cadence owns is officially open, and staying open.
+3. **Continual learning is the admitted unsolved layer — on a decade clock.** Karpathy: "You can't just tell them something and they'll remember it … feels like a decade to me" (2025-10-17). Hassabis: invention's "mechanism" unknown (2025-07-23). Fable 5's in-task "own notes" (2026-06-09) die at session end. The layer Supaprod owns is officially open, and staying open.
 4. **Production trust is the second admitted gap.** Altman on stage: "very few [agents] actually make it into production" (2025-10-06); AgentKit's headline feature was guardrails; ChatGPT agent's was consequence-gated permissions (2025-07-17). Trust surface = adoption surface.
 5. **Agents-as-employees is now the enterprise consensus UX — but its memory is task-level, not decision-level.** OpenAI Frontier's onboarding + review loops (2026-02-05), Microsoft Agent 365's registry of "digital employees" incl. shadow agents (2025-11-18), Anthropic Cowork's "virtual teammate" (2026-01-12). None records whether the _bets_ the fleet executed were right.
 6. **Pricing is migrating seats → usage → outcomes, with hybrid floors winning.** Taylor's resolved-case pricing and "tokens are not correlated with value" (2026-03-10); a16z's "users → output" (2025); ChatGPT Work metered like Codex (2026-07-09). Outcome pricing works exactly where the outcome is crisply countable.
@@ -245,19 +245,19 @@
 
 ---
 
-## Product moves for Cadence (ranked)
+## Product moves for Supaprod (ranked)
 
 > Per the founder's course correction (2026-07-10): concrete, named changes to the offering, each traceable to a mined quote/launch fact, proposed as **deltas** against the existing canon (decision layer with outcome memory; HITL approval modes; BYOK runtime; BuildDriver seam; v12 Outcome Contract / trust arcs; v13 campaign). Consumers: the v13 build front, the demo script, pricing (G10), and the YC application.
 
 1. **Ship the Outcome Contract as "the eval attached to every decision" — and let it move the ranking.** _(Feature sharpening, highest leverage.)_ Generate a machine-checkable success rule-set alongside every PRD/decision, verify against it on outcome day, and feed the result into the ranking (the RF-01 loop). This is Goyal's "evals are the new PRD … encode user stories in a way that can be quantified" (2026-06-15) plus Anthropic's own reliability doctrine — "clearly defined rules for an output, then explaining which rules failed and why" (2025-09-29). Delta: v12 names the Outcome Contract; the move is generating it _with_ the artifact, automatically, and demoing a failed rule re-ranking the queue.
-2. **Make the per-agent autonomy slider a visible, user-movable control with an earned ramp.** _(Feature tweak + demo beat.)_ Karpathy's exact prescription: "there should be an autonomy slider in your product … make your product more autonomous over time" (2025-06-16); Englert shows the floor users actually set: "only write them as drafts … I don't trust that yet" (2026-04-13). Delta: Cadence has approval modes (auto/confirm/review) per tool — surface them as one slider per agent with a track-record card ("47 approved runs, 0 reverts — relax to auto?"), user-relaxed, never vendor-relaxed. Rehearse it in the demo's failure moment (sibling doc §9.5).
-3. **Build the "verification cockpit": one screen where every agent output lands as a visual, receipts-attached diff.** _(New feature candidate.)_ Karpathy: "they do the generation, we do the verification. It is in our interest to make this loop go as fast as possible … I'm still the bottleneck" (2025-06-16); Truell's users win by "specify a little bit, review, specify a little bit" (2025-05-01). Delta: Cadence surfaces receipts per decision; the move is a single cross-agent review inbox optimized for seconds-to-verdict (GUI diffs, not text walls) — the human-minimum job, given its own front-door surface.
-4. **Emoji/@-mention dispatch from Slack: a signal becomes a mission without opening Cadence.** _(Feature candidate, extends v13 pattern 3.)_ Stripe's shipped state: "I can click an emoji and then the work begins — and often the work finishes too," 1,300 PRs/week (Kaliski, 2026-03-25); Codex shipped Slack integration at DevDay (2025-10-06). Delta: Cadence ingests Slack as signal; the move is the reverse edge — react/mention → mission created, dispatched, and reported back in-thread, with the outcome record linked.
-5. **Price as: workspace floor + metered "closed loops," never per-seat-only.** _(Pricing/packaging move for G10.)_ Taylor: "tokens are not correlated with value … what business outcome is this agent designed to produce and did it produce it effectively?" (2026-03-10); a16z: "'users' is being replaced by 'output'" (2025); ChatGPT Work ships usage-metered (2026-07-09). Cadence's crisply countable unit is a **closed decision loop** (decision → dispatched build → merged/shipped → outcome recorded). Delta: adopt hybrid pricing with the meter on closed loops (and escalated-to-human loops free, mirroring Sierra's "escalation is free" trust signal), keeping seats only as the floor.
-6. **Ship the "agent roster with performance reviews" in the Engine Room.** _(Feature candidate, positioning-grade.)_ OpenAI Frontier onboards agents and reviews them "the same way a review might help an employee" (2026-02-05); Agent 365 registers "digital employees" incl. shadow agents (2025-11-18). Delta: Cadence's agents get identity + scope + outcome-linked track record (approve rate, revert rate, outcome hit rate) on one roster card — the enterprise-consensus UX, but graded on decision outcomes, which neither Microsoft nor OpenAI records. Demo line: "the agent org chart, with receipts."
-7. **Productize the nightly retro agent: traces → reviewable playbook/ranking-policy PRs.** _(New-phase candidate, v12 G15 sharpening.)_ Fable 5 "improves its outputs using its own notes" (2026-06-09) — in-session only; Masad's nightly trace-reading agent (sibling §14) is the shipped precedent; Englert hand-feeds past results back ("if you don't tell AI what success is…", 2026-04-13). Delta: a scheduled Cadence agent that reads the week's mission traces + outcomes and opens _reviewable_ changes to workspace context/policy — the self-improvement loop as an auditable artifact, not silent drift.
+2. **Make the per-agent autonomy slider a visible, user-movable control with an earned ramp.** _(Feature tweak + demo beat.)_ Karpathy's exact prescription: "there should be an autonomy slider in your product … make your product more autonomous over time" (2025-06-16); Englert shows the floor users actually set: "only write them as drafts … I don't trust that yet" (2026-04-13). Delta: Supaprod has approval modes (auto/confirm/review) per tool — surface them as one slider per agent with a track-record card ("47 approved runs, 0 reverts — relax to auto?"), user-relaxed, never vendor-relaxed. Rehearse it in the demo's failure moment (sibling doc §9.5).
+3. **Build the "verification cockpit": one screen where every agent output lands as a visual, receipts-attached diff.** _(New feature candidate.)_ Karpathy: "they do the generation, we do the verification. It is in our interest to make this loop go as fast as possible … I'm still the bottleneck" (2025-06-16); Truell's users win by "specify a little bit, review, specify a little bit" (2025-05-01). Delta: Supaprod surfaces receipts per decision; the move is a single cross-agent review inbox optimized for seconds-to-verdict (GUI diffs, not text walls) — the human-minimum job, given its own front-door surface.
+4. **Emoji/@-mention dispatch from Slack: a signal becomes a mission without opening Supaprod.** _(Feature candidate, extends v13 pattern 3.)_ Stripe's shipped state: "I can click an emoji and then the work begins — and often the work finishes too," 1,300 PRs/week (Kaliski, 2026-03-25); Codex shipped Slack integration at DevDay (2025-10-06). Delta: Supaprod ingests Slack as signal; the move is the reverse edge — react/mention → mission created, dispatched, and reported back in-thread, with the outcome record linked.
+5. **Price as: workspace floor + metered "closed loops," never per-seat-only.** _(Pricing/packaging move for G10.)_ Taylor: "tokens are not correlated with value … what business outcome is this agent designed to produce and did it produce it effectively?" (2026-03-10); a16z: "'users' is being replaced by 'output'" (2025); ChatGPT Work ships usage-metered (2026-07-09). Supaprod's crisply countable unit is a **closed decision loop** (decision → dispatched build → merged/shipped → outcome recorded). Delta: adopt hybrid pricing with the meter on closed loops (and escalated-to-human loops free, mirroring Sierra's "escalation is free" trust signal), keeping seats only as the floor.
+6. **Ship the "agent roster with performance reviews" in the Engine Room.** _(Feature candidate, positioning-grade.)_ OpenAI Frontier onboards agents and reviews them "the same way a review might help an employee" (2026-02-05); Agent 365 registers "digital employees" incl. shadow agents (2025-11-18). Delta: Supaprod's agents get identity + scope + outcome-linked track record (approve rate, revert rate, outcome hit rate) on one roster card — the enterprise-consensus UX, but graded on decision outcomes, which neither Microsoft nor OpenAI records. Demo line: "the agent org chart, with receipts."
+7. **Productize the nightly retro agent: traces → reviewable playbook/ranking-policy PRs.** _(New-phase candidate, v12 G15 sharpening.)_ Fable 5 "improves its outputs using its own notes" (2026-06-09) — in-session only; Masad's nightly trace-reading agent (sibling §14) is the shipped precedent; Englert hand-feeds past results back ("if you don't tell AI what success is…", 2026-04-13). Delta: a scheduled Supaprod agent that reads the week's mission traces + outcomes and opens _reviewable_ changes to workspace context/policy — the self-improvement loop as an auditable artifact, not silent drift.
 8. **Bundle a persona review board on every PRD/decision before the human gate.** _(Cheap feature tweak, high demo value.)_ Englert builds it by hand: "put your boss in there, your engineering partner, and your customer … every PRD, review from these three points of view" (2026-04-13); Devin's confidence-scored PRs (Brief 2) are the adjacent shipped pattern. Delta: three built-in critic agents (exec / engineering / customer-of-record) whose objections attach to the artifact as part of its receipt trail — directly answers the sibling doc's §9.1 accountability seam.
-9. **Positioning line for launch: "The labs shipped the hands. Cadence is the memory that decides."** _(Messaging move.)_ Grounded in the two admissions: Karpathy — "they don't have continual learning … you can't just tell them something and they'll remember it" (2025-10-17) — and Altman on stage — "very few [agents] actually make it into production" (2025-10-06). Copy variants for the YC app/demo: "Agents forget every win and repeat every mistake. Cadence doesn't." The claim is defensible because both sentences are quoted, dated, and from the people shipping the agents.
+9. **Positioning line for launch: "The labs shipped the hands. Supaprod is the memory that decides."** _(Messaging move.)_ Grounded in the two admissions: Karpathy — "they don't have continual learning … you can't just tell them something and they'll remember it" (2025-10-17) — and Altman on stage — "very few [agents] actually make it into production" (2025-10-06). Copy variants for the YC app/demo: "Agents forget every win and repeat every mistake. Supaprod doesn't." The claim is defensible because both sentences are quoted, dated, and from the people shipping the agents.
 10. **Declare agent-vendor neutrality as a named capability: any fleet, one outcome record.** _(Packaging/positioning move on the BuildDriver seam.)_ Nadella: business apps "all collapse … in the agent era" (2024-12-12); OpenAI Frontier is explicitly "an open platform … manage agents built outside of OpenAI too" (2026-02-05); MCP/Skills are now foundation-owned commons (2025-12-09/18). Delta: BD-1..6 already plans BYO build agents — the move is marketing it at launch as deprecation insurance ("your agents will change; your decision history shouldn't"), with MCP-in and Skills-format context compliance stated on the connect surface.
 
 ---

@@ -13,13 +13,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 
 import appCss from "../styles.css?url";
 
 // Root boundaries. These render OUTSIDE the _authenticated tree, so they carry
 // their own `data-obsidian` scope to read as the same calm dark, on-brand
-// Cadence surface as the app (never a raw stack or a blank screen). A user
+// Supaprod surface as the app (never a raw stack or a blank screen). A user
 // always sees the brand mark and a clear way back.
 function BoundaryShell({ children }: { children: React.ReactNode }) {
   return (
@@ -37,7 +37,7 @@ function BoundaryShell({ children }: { children: React.ReactNode }) {
     >
       <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
-          <CadenceMark size={44} />
+          <SupaprodMark size={44} />
         </div>
         {children}
       </div>
@@ -122,35 +122,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cadence" },
+      { title: "Supaprod" },
       {
         name: "description",
         content: "The decision and outcome operating system for product teams.",
       },
-      { name: "author", content: "Cadence" },
-      { property: "og:title", content: "Cadence" },
+      { name: "author", content: "Supaprod" },
+      { property: "og:title", content: "Supaprod" },
       {
         property: "og:description",
         content: "The decision and outcome operating system for product teams.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Cadence" },
+      { name: "twitter:title", content: "Supaprod" },
       {
         name: "twitter:description",
         content: "The decision and outcome operating system for product teams.",
       },
-      // Branded social image (public/og-cadence.png). Absolute URL required by
+      // Branded social image (public/og-supaprod.png). Absolute URL required by
       // crawlers; swap the host when the custom domain lands (founder note).
-      { property: "og:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
-      { name: "twitter:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
+      { property: "og:image", content: "https://supaprod.lovable.app/og-supaprod.png" },
+      { name: "twitter:image", content: "https://supaprod.lovable.app/og-supaprod.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      // Branded favicon — the Cadence mark (seven-petal spiral + ember/gold
+      // Branded favicon — the Supaprod mark (seven-petal spiral + ember/gold
       // core), transparent with NO box, theme-aware: the SVG switches black
       // (light tabs) / silver (dark tabs) via prefers-color-scheme so it is
       // always visible. The transparent PNG + .ico are legacy fallbacks; the
@@ -160,7 +160,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       // Agent discovery breadcrumbs: an agent that fetches any page cold (no
-      // prior knowledge of Cadence's specific llms.txt/agents.txt convention)
+      // prior knowledge of Supaprod's specific llms.txt/agents.txt convention)
       // finds the machine-readable interfaces from the HTML <head> itself,
       // without needing to guess well-known paths. See docs/features/agent-native-layer.md.
       { rel: "llms.txt", href: "/llms.txt" },
@@ -216,7 +216,7 @@ function ThemeBootstrapScript() {
     <script
       suppressHydrationWarning
       dangerouslySetInnerHTML={{
-        __html: `(function(){try{var t=localStorage.getItem('cadence.theme');var d=document.documentElement;if(t==='light'){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
+        __html: `(function(){try{var t=localStorage.getItem('supaprod.theme');var d=document.documentElement;if(t==='light'){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
       }}
     />
   );

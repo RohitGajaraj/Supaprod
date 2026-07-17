@@ -1,7 +1,7 @@
 /**
  * Design Memory Interchange: schema definition and round-trip parsers for design.md.
  *
- * Enables export of Memory/Brain data to design.md format (Cadence doc convention)
+ * Enables export of Memory/Brain data to design.md format (Supaprod doc convention)
  * and import of external design.md files into the memory graph.
  *
  * Schema: sections for principles, components, patterns, tokens, interactions,
@@ -77,7 +77,7 @@ export interface AuditEntry {
 
 /**
  * Parse a design.md document and extract structured memory.
- * Handles the Cadence design.md convention (markdown with YAML frontmatter).
+ * Handles the Supaprod design.md convention (markdown with YAML frontmatter).
  */
 export function parseDesignMd(markdown: string): DesignMemoryDocument {
   const doc: DesignMemoryDocument = {
@@ -179,7 +179,7 @@ export function parseDesignMd(markdown: string): DesignMemoryDocument {
 
 /**
  * Render a DesignMemoryDocument back to design.md format.
- * Produces the canonical Cadence design.md structure.
+ * Produces the canonical Supaprod design.md structure.
  */
 export function renderDesignMd(doc: DesignMemoryDocument): string {
   const lines: string[] = [];
@@ -302,7 +302,7 @@ export const exportDesignMemory = createServerFn({ method: "POST" })
           category: "color",
           name: "accent-primary",
           value: "#FF6B2C",
-          description: "Cadence ember brand",
+          description: "Supaprod ember brand",
         },
       ],
       interactions: [],

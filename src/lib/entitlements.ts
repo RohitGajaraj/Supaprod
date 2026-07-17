@@ -261,7 +261,7 @@ export function assertConnectorCapability(tier: PlanTier, capability: ConnectorC
   }
   if (capability === "outflow" && e.connectorTier === "read") {
     throw new Error(
-      "Write-back connectors (creating issues, updating tickets, writing to Notion) require the Business plan. Upgrade to push Cadence decisions back to where your team works.",
+      "Write-back connectors (creating issues, updating tickets, writing to Notion) require the Business plan. Upgrade to push Supaprod decisions back to where your team works.",
     );
   }
 }
@@ -394,7 +394,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         price: "$0",
         tagline:
           "The full product loop, free. Memory rolls 30 days. Upgrade when your work outgrows it.",
-        forWhom: "Get started with Cadence. No card, no commitment.",
+        forWhom: "Get started with Supaprod. No card, no commitment.",
         hasCreditDropdown: false,
         hasBillingToggle: false,
         highlights: [

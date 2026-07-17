@@ -1,5 +1,5 @@
 /**
- * One chokepoint for every AI call in Cadence.
+ * One chokepoint for every AI call in Supaprod.
  * - Loads + applies guardrails (input + output)
  * - Routes to Lovable AI Gateway or BYO provider
  * - Captures tokens/cost/latency/status
@@ -458,7 +458,7 @@ async function byokAllowedForCall(
  *
  * G-PRICE PR-C1: `surface` gates the vault-key branch (step 2) — a moat surface
  * (judge/eval/decision) never resolves to an enterprise's BYOK vault key, so it always
- * stays on Cadence's own managed models (pricing-architecture §5's "approved-model
+ * stays on Supaprod's own managed models (pricing-architecture §5's "approved-model
  * lists" default). The byoOverride test path and the platform's own key are unaffected.
  */
 async function resolveCallKey(
@@ -1238,7 +1238,7 @@ async function debitAccountCredits(
 /**
  * G-PRICE PR-C2: accrue the thin BYOK platform fee for one enterprise BYOK call. The
  * customer's own key already paid the raw model tokens (pricing-architecture §4) - this
- * writes ONE byok_fee_accrual row of Cadence's orchestration-margin cut on that rated
+ * writes ONE byok_fee_accrual row of Supaprod's orchestration-margin cut on that rated
  * spend, read back later as a single contract-invoice line, never a live meter. Runs
  * independently of credits_enabled() (a contract-billing concern, not the consumer
  * credit engine) but is itself always a no-op unless the call actually resolved a BYOK
@@ -1791,7 +1791,7 @@ export async function callModel(
       await recordMissionUsage(supabase, opts.runId ?? null, totalTok, est);
       // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
       await debitAccountCredits(supabase, userId, opts, est, eventId, modelUsed);
-      // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin platform
+      // G-PRICE PR-C2: an enterprise BYOK call still accrues Supaprod's thin platform
       // fee on the rated spend, independent of the consumer credit meter above.
       if ((via as string) === "byo") await accrueByokFee(supabase, userId, opts, est, eventId);
     }
@@ -2419,7 +2419,7 @@ export async function callModelStream(
             await recordMissionUsage(supabase, opts.runId ?? null, inTok + outTok, estCost);
             // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
             await debitAccountCredits(supabase, userId, opts, estCost, eventId, modelUsed);
-            // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin
+            // G-PRICE PR-C2: an enterprise BYOK call still accrues Supaprod's thin
             // platform fee on the rated spend, independent of the credit meter above.
             if (via === "byo") await accrueByokFee(supabase, userId, opts, estCost, eventId);
           }

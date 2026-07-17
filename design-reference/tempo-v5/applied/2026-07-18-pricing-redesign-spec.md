@@ -1,6 +1,6 @@
 # Pricing Page Redesign Specification
 
-> _Created: 2026-07-18 · Status: **IMPLEMENTATION SPEC**. This document specifies the exact changes to `/pricing` to match the Vercel ultra-premium standard and Cadence's ink-and-starfield theme. Every measurement, color, spacing, and interactive behavior is prescriptive. Implementation checklist at section 10._
+> _Created: 2026-07-18 · Status: **IMPLEMENTATION SPEC**. This document specifies the exact changes to `/pricing` to match the Vercel ultra-premium standard and Supaprod's ink-and-starfield theme. Every measurement, color, spacing, and interactive behavior is prescriptive. Implementation checklist at section 10._
 
 ---
 
@@ -362,7 +362,7 @@ A: One workspace, live missions, decision records (limited to 5)...
 Q: Do you offer annual discounts?
 A: Yes, 20% off when you select "Bill annually"...
 
-Q: Can I use Cadence with BYOK (bring your own key)?
+Q: Can I use Supaprod with BYOK (bring your own key)?
 A: Enterprise plans include BYOK for Claude, Anthropic...
 
 Q: What if I need more team members?

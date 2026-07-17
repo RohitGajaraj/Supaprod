@@ -16,7 +16,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { listLearnings } from "@/lib/outcome.functions";
 import { Button, MonoLabel, VerdictChip, type VerdictTone } from "@/components/obsidian";
 import {

@@ -1,11 +1,11 @@
 import { GitBranch } from "lucide-react";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
-import { PulsePrompt } from "@/components/cadence/PulsePrompt";
+import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
 import {
   DropdownMenu,

@@ -65,7 +65,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "connections",
     label: "Connections",
-    desc: "Connect your tools as sources, and let external agents use Cadence.",
+    desc: "Connect your tools as sources, and let external agents use Supaprod.",
     sections: [
       { id: "connections", label: "Sources" },
       { id: "interop", label: "Agent access" },

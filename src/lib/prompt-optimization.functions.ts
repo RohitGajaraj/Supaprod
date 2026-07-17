@@ -362,7 +362,7 @@ export async function proposePromptOptimization(
   }
   const flagNote =
     screened.verdict.decision === "flag"
-      ? "[Cadence flagged this draft for review: possible prompt-injection language in the revised prompt] "
+      ? "[Supaprod flagged this draft for review: possible prompt-injection language in the revised prompt] "
       : "";
 
   const { data: maxRow } = await db

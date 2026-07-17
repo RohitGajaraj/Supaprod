@@ -1,7 +1,7 @@
 /**
  * J2: shared CI verdict + merge-readiness logic for the Studio engine.
  *
- * Tests run in the connected repo's GitHub Actions CI (there is no Cadence
+ * Tests run in the connected repo's GitHub Actions CI (there is no Supaprod
  * execution sandbox). `github.ci.read` reads the check-runs + statuses; this
  * module derives the single overall verdict and decides whether a Studio PR may
  * merge. Both `github.ci.read` and the `studio.pr.merge` gate import these so

@@ -1,17 +1,17 @@
 ---
 version: 2.0
-name: cadence-ember-editorial
-product: "Project Cadence — agentic product-operations platform"
+name: supaprod-ember-editorial
+product: "Supaprod — agentic product-operations platform"
 description: >
-  THE SOURCE OF TRUTH for all Cadence design work, in any tool (Claude Code,
+  THE SOURCE OF TRUTH for all Supaprod design work, in any tool (Claude Code,
   Lovable, Cursor, design agents). Supersedes uploads/DESIGN-claude.md, which
-  was an ANALYSIS of Claude.com used only as a craft reference — Cadence is
+  was an ANALYSIS of Claude.com used only as a craft reference — Supaprod is
   deliberately differentiated from it. Warm parchment canvas, espresso/cacao
   ink, burnished ember copper accent, Newsreader serif display, the bilateral
   Butterfly mark. Read "How to plan and build" before writing any UI code.
 
 colors:
-  # oklch values are CANONICAL (see cadence/tokens.css). Hex ≈ fallbacks only.
+  # oklch values are CANONICAL (see supaprod/tokens.css). Hex ≈ fallbacks only.
   ember: "oklch(0.60 0.155 50)" # ≈ #c2622e — NEEDS-HUMAN ONLY
   ember-active: "oklch(0.52 0.145 48)" # ≈ #a64f24
   ember-soft: "oklch(0.78 0.08 55)" # ≈ #ddab88
@@ -49,9 +49,9 @@ motion:
   durations: "140ms / 180ms / 260ms"
 ---
 
-# Cadence Design — "Ember Editorial" · Source of Truth
+# Supaprod Design — "Ember Editorial" · Source of Truth
 
-Cadence is a platform where a swarm of specialist agents (Scout, Scribe,
+Supaprod is a platform where a swarm of specialist agents (Scout, Scribe,
 Builder, Marketer, Historian…) runs the product loop — signals → opportunities
 → specs → missions → outcomes — and the human governs through gates. The design
 must read as a calm warm editorial publication on the human side AND make
@@ -59,10 +59,10 @@ autonomous machine work legible and trustworthy on the agent side.
 
 **Canonical implementations live in this repo:**
 
-- `cadence/tokens.css` — every token, theme, and utility class. NEVER invent
+- `supaprod/tokens.css` — every token, theme, and utility class. NEVER invent
   colors or restate values; import or copy this file.
 - `styles.css` (root) — the one-line import entry (fonts + tokens).
-- `design-reference/Cadence Prototype.html` + `design-reference/cadence/*.jsx`
+- `design-reference/Supaprod Prototype.html` + `design-reference/supaprod/*.jsx`
   — the living UI kit; every screen, component, and interaction pattern. This
   is the DESIGN OF RECORD: when building a screen that exists here, PORT it —
   match layout, positioning, hierarchy, and copy. Do not reinvent. When unsure
@@ -77,7 +77,7 @@ autonomous machine work legible and trustworthy on the agent side.
 
 Nothing may be mistakable for Anthropic/Claude at a glance:
 
-- **No radial flower/asterisk marks.** The Cadence Butterfly is bilateral.
+- **No radial flower/asterisk marks.** The Supaprod Butterfly is bilateral.
 - **No coral-on-cream lookalikes.** Our accent is burnished ember copper
   (hue 50) on parchment (hue 85) — warmer canvas, deeper accent, different pair.
 - **No Claude-adjacent type.** Newsreader + Schibsted Grotesk + JetBrains Mono.
@@ -121,7 +121,7 @@ Accent variants: `data-accent="rust" | "marigold"` on `<html>`.
    "Approve · opens the PR" / "Reject · nothing ships" / "Reject · stays
    drafted". House separator is the middot `·`.
 2. **Auto-titles are objectives:** 2–3 words (4 max), stopwords stripped, first
-   word capitalized. Reuse `extractTitle()` from `cadence/chat.jsx` anywhere a
+   word capitalized. Reuse `extractTitle()` from `supaprod/chat.jsx` anywhere a
    title is generated (chat threads, missions, specs, docs).
 3. Calm and declarative; no exclamation marks, no hype, no emoji. Sentence case
    everywhere except mono caps.
@@ -152,7 +152,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 | Cooking banner       | Mission ticker on every screen; ember sweep; names what's running                                                                                                                                                     |
 | Construction pill    | TEMPORARY fixed top-center mono pill ("Agents are building in the back — we'll serve you soon"). Remove at GA                                                                                                         |
 | Footer stamp         | "Last build · date time" from `document.lastModified`                                                                                                                                                                 |
-| Govern observability | Drill-down, never static: list rows (eval suites, agents, traces, drift surfaces) open detail screens with sub-tabs (runs / cases / config) and time-range tabs. `cadence/govern-detail.jsx` is the pattern reference |
+| Govern observability | Drill-down, never static: list rows (eval suites, agents, traces, drift surfaces) open detail screens with sub-tabs (runs / cases / config) and time-range tabs. `supaprod/govern-detail.jsx` is the pattern reference |
 | Chat authorship      | User = ember-ringed initials chip (right); AI = Butterfly. Legible at a glance                                                                                                                                        |
 | Status placement     | Running status at sidebar bottom (above Trust). Topbar = breadcrumbs + date + weather only                                                                                                                            |
 | Calendar             | Contribution-style pixel month, ‹ › nav + Today, weekends de-emphasized (pref in Settings → Profile), quick-add syncs back                                                                                            |
@@ -160,7 +160,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 ## How to plan and build (instructions for any AI builder)
 
-1. **Read before designing:** this file, then `cadence/tokens.css`, then the
+1. **Read before designing:** this file, then `supaprod/tokens.css`, then the
    relevant screen in `design-reference/` (prototype HTML + screen jsx). The
    prototype is the visual contract — PORT its screens, don't reinterpret them.
    Only design from scratch when a surface has no reference screen, and then

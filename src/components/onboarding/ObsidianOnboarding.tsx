@@ -323,12 +323,12 @@ function ProductStep({
           What are you building?
         </h1>
         <p className="text-copy-13" style={{ ...helpStyle, marginTop: 10 }}>
-          A product name, feature, or bet. Cadence will challenge your thinking and show its work.
+          A product name, feature, or bet. Supaprod will challenge your thinking and show its work.
         </p>
         {needsName ? (
           <>
             <p className="text-copy-13" style={helpStyle}>
-              First, your name, so Cadence signs every decision with you.
+              First, your name, so Supaprod signs every decision with you.
             </p>
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <input
@@ -416,14 +416,14 @@ export function ObsidianOnboarding() {
   // PC-02: phase state persists for tab refresh resilience
   const [phase, setPhase] = useState<Phase>(() => {
     if (typeof window === "undefined") return "arrival";
-    const saved = window.sessionStorage.getItem("cadence.onboarding.phase");
+    const saved = window.sessionStorage.getItem("supaprod.onboarding.phase");
     return saved === "product" || saved === "data" || saved === "critic" || saved === "results"
       ? (saved as Phase)
       : "arrival";
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.sessionStorage.setItem("cadence.onboarding.phase", phase);
+    window.sessionStorage.setItem("supaprod.onboarding.phase", phase);
   }, [phase]);
 
   // PC-02: stopwatch timer for the "10-minute wedge" promise
@@ -432,11 +432,11 @@ export function ObsidianOnboarding() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = window.sessionStorage.getItem("cadence.onboarding.startTime");
+    const saved = window.sessionStorage.getItem("supaprod.onboarding.startTime");
     if (!saved) {
       startTimeRef.current = Date.now();
       window.sessionStorage.setItem(
-        "cadence.onboarding.startTime",
+        "supaprod.onboarding.startTime",
         startTimeRef.current.toString(),
       );
     } else {
@@ -681,7 +681,7 @@ export function ObsidianOnboarding() {
     onError: (e) => {
       toast.error("Could not complete onboarding. Redirecting...");
       console.error("onboarding error:", e);
-      window.sessionStorage.removeItem("cadence.onboarding.phase");
+      window.sessionStorage.removeItem("supaprod.onboarding.phase");
       navigate({ to: "/today" });
     },
   });
@@ -785,7 +785,7 @@ export function ObsidianOnboarding() {
             className="text-copy-13"
             style={{ color: "var(--ds-gray-900)", marginTop: 12, maxWidth: 380 }}
           >
-            In the next 10 minutes: name your product, give Cadence one data point, and see what it
+            In the next 10 minutes: name your product, give Supaprod one data point, and see what it
             thinks. Receipts included.
           </p>
           <div style={{ marginTop: 24 }}>
@@ -822,7 +822,7 @@ export function ObsidianOnboarding() {
     const seedLive = !!seedEnabledQ.data?.enabled;
     return (
       <Screen>
-        <Frame eyebrow="STEP 2 OF 3" heading="What should Cadence read?" showTimer={elapsed}>
+        <Frame eyebrow="STEP 2 OF 3" heading="What should Supaprod read?" showTimer={elapsed}>
           {!showPaste ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {/* While the availability reads are in flight, say so - without
@@ -933,7 +933,7 @@ export function ObsidianOnboarding() {
                         marginTop: 3,
                       }}
                     >
-                      Paste a PRD, product notes, or your bet · Cadence will analyze it directly.
+                      Paste a PRD, product notes, or your bet · Supaprod will analyze it directly.
                     </span>
                   </span>
                 </ChoiceCard>
@@ -1078,7 +1078,7 @@ export function ObsidianOnboarding() {
                 marginBottom: 0,
               }}
             >
-              Cadence will show its work with receipts.
+              Supaprod will show its work with receipts.
             </p>
           )}
           <div style={{ marginTop: 16 }}>
@@ -1129,9 +1129,9 @@ export function ObsidianOnboarding() {
 
     function leave() {
       if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem("cadence.onboarding.phase");
-        window.sessionStorage.removeItem("cadence.onboarding.startTime");
-        window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+        window.sessionStorage.removeItem("supaprod.onboarding.phase");
+        window.sessionStorage.removeItem("supaprod.onboarding.startTime");
+        window.sessionStorage.setItem("supaprod.onboarding.justLanded", "1");
       }
       navigate({ to: "/today" });
     }
@@ -1142,7 +1142,7 @@ export function ObsidianOnboarding() {
           heading={
             criticFailed || !criticReview
               ? "The Critic couldn't finish this run."
-              : "Here's what Cadence found."
+              : "Here's what Supaprod found."
           }
           showTimer={elapsed}
         >

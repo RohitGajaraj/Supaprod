@@ -34,8 +34,8 @@ export interface DelegateRequest {
   baseBranch: string;
   /** Structured context forwarded verbatim (treated as opaque by the seam). */
   context?: Record<string, unknown>;
-  /** The originating Cadence run id, so a future callback can resume the run. */
-  cadenceRunId?: string | null;
+  /** The originating Supaprod run id, so a future callback can resume the run. */
+  supaprodRunId?: string | null;
 }
 
 /** An external backend's verdict on a delegation attempt. */

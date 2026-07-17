@@ -1,6 +1,6 @@
 # Build vs Buy vs Integrate (BBI) - the decision canon
 
-> _Created: 2026-06-20._ The standing decision framework for whether any Cadence capability is **BUILT** (our moat), **BOUGHT** (a commodity API), or **INTEGRATED** (a provider wrapped behind our own swappable abstraction), plus the worked build-vs-buy decision for the memory / Decision-Brain stack. Founder-directed 2026-06-20: surface this question at a higher level on every new build. Canon it touches: [`moat.md`](./moat.md), [`../features/decision-brain.md`](../features/decision-brain.md), the model-agnostic/BYOK mandate in [`../../Ai_Cofounder.md`](../../Ai_Cofounder.md), and the operating rule in [`../../AGENTS.md`](../../AGENTS.md).
+> _Created: 2026-06-20._ The standing decision framework for whether any Supaprod capability is **BUILT** (our moat), **BOUGHT** (a commodity API), or **INTEGRATED** (a provider wrapped behind our own swappable abstraction), plus the worked build-vs-buy decision for the memory / Decision-Brain stack. Founder-directed 2026-06-20: surface this question at a higher level on every new build. Canon it touches: [`moat.md`](./moat.md), [`../features/decision-brain.md`](../features/decision-brain.md), the model-agnostic/BYOK mandate in [`../../Ai_Cofounder.md`](../../Ai_Cofounder.md), and the operating rule in [`../../AGENTS.md`](../../AGENTS.md).
 
 ---
 
@@ -14,7 +14,7 @@ The answer is not "build everything" or "buy everything." It is a **split**: bui
 
 ## The headline
 
-**Build the moat, buy the commodity, integrate behind a seam.** The Decision Brain runs **free and autonomous** on Supabase/pgvector by default; commodity inputs (embeddings, rerank) are bought through the existing model chokepoint; memory engines (Mem0/Zep/Cognee) are opt-in BYOK adapters behind one abstraction that **always falls back to native**. Storage is not the moat. The typed **decision ontology**, the human-gated **outcome label**, **outcome-labeled supersession**, and the **adversarial Critic** are the moat, and they are Cadence-specific and unpurchasable.
+**Build the moat, buy the commodity, integrate behind a seam.** The Decision Brain runs **free and autonomous** on Supabase/pgvector by default; commodity inputs (embeddings, rerank) are bought through the existing model chokepoint; memory engines (Mem0/Zep/Cognee) are opt-in BYOK adapters behind one abstraction that **always falls back to native**. Storage is not the moat. The typed **decision ontology**, the human-gated **outcome label**, **outcome-labeled supersession**, and the **adversarial Critic** are the moat, and they are Supaprod-specific and unpurchasable.
 
 ---
 
@@ -27,8 +27,8 @@ The answer is not "build everything" or "buy everything." It is a **split**: bui
 | **Vector store**                               | **BUILD / in-house**           | pgvector is free on every Supabase tier, RLS-native, provider-neutral, one tenancy + residency + backup boundary.                                                                                       | Stay on pgvector (+ pgvectorscale/DiskANN for headroom). Do NOT adopt Pinecone/Weaviate for v1-v4; a PM-decision corpus is thousands of rows per tenant, not billions.                                                                                                                                                                                                          |
 | **Graph storage**                              | **BUILD-in-Postgres**          | "Storage is not the moat" but it is residency-critical and autonomy-critical; an external graph DB fractures RLS, account-pooling, residency, export-anytime, and one backup boundary.                  | Typed bi-temporal node/edge tables + `valid_at`/`invalid_at` + recursive CTEs in Postgres. DBR-1 v1 read-surface already ships at `/knowledge?tab=graph`. Crossover (only if forced): Apache AGE / SQL-PGQ (graph IN Postgres) BEFORE any external Neo4j.                                                                                                                       |
 | **Memory-extraction / orchestration pipeline** | **INTEGRATE** (native default) | The generic substrate is borrowable, not buyable as the moat; every credible engine is OSS + BYOK + high-switching-cost, so it belongs behind a swappable seam with a native default, never a hard BUY. | BUILD the native extract -> embed -> reconcile in Postgres, borrowing the patterns the canon already names (Graphiti's per-edge invalidation prompt; Cognee's ontology-resolver + Temporal-Cognify; Mem0's auto-extraction). Mem0/Zep/Cognee = opt-in BYOK adapters, **deferred** until a workspace actually wants one.                                                         |
-| **Typed decision ontology**                    | **BUILD**                      | THE moat, Cadence-specific. No provider supplies the PM decision schema (Signal -> Assumption -> Decision -> Outcome).                                                                                  | Own it end to end; never wrap a provider's generic entity layer.                                                                                                                                                                                                                                                                                                                |
-| **Outcome-labeled supersession**               | **BUILD**                      | The outcome LABEL (validated/missed, weeks after ship via the human-gated `recordOutcome` loop) is a judgment no provider can infer at ingest time.                                                     | Invalidate, never delete - preserve the superseded trail. Copy Graphiti's `valid_at`/`invalid_at` + invalidation-prompt design; the label stays human-gated and Cadence-owned.                                                                                                                                                                                                  |
+| **Typed decision ontology**                    | **BUILD**                      | THE moat, Supaprod-specific. No provider supplies the PM decision schema (Signal -> Assumption -> Decision -> Outcome).                                                                                  | Own it end to end; never wrap a provider's generic entity layer.                                                                                                                                                                                                                                                                                                                |
+| **Outcome-labeled supersession**               | **BUILD**                      | The outcome LABEL (validated/missed, weeks after ship via the human-gated `recordOutcome` loop) is a judgment no provider can infer at ingest time.                                                     | Invalidate, never delete - preserve the superseded trail. Copy Graphiti's `valid_at`/`invalid_at` + invalidation-prompt design; the label stays human-gated and Supaprod-owned.                                                                                                                                                                                                  |
 | **The adversarial Critic**                     | **BUILD**                      | Walks outcome-labeled precedent to challenge a new decision; the felt product and pure moat, on our own agent loop.                                                                                     | Own it (`loop.server.ts` + `decision-precedent.server.ts`). Letta (an agent runtime) is redundant on what we have and absent on what we need - do not adopt.                                                                                                                                                                                                                    |
 
 ---
@@ -60,8 +60,8 @@ interface MemoryProvider {
 }
 ```
 
-- **Native default** (`id:'native'`, always available, zero external paid deps): pgvector recall + the relational bi-temporal graph + Cadence's own extract/reconcile. This is the structural autonomy floor and the fallback target for every other provider; it is never removed.
-- **BYOK adapters** (opt-in, per-workspace, cost-metered): Mem0/Zep/Cognee implement the same interface, selected only when a workspace binds the provider AND supplies its own key. Adapter contract gates: must map onto invalidate-don't-delete, must not call a model out-of-band (everything routes through the chokepoint), must keep the outcome label + ontology Cadence-owned.
+- **Native default** (`id:'native'`, always available, zero external paid deps): pgvector recall + the relational bi-temporal graph + Supaprod's own extract/reconcile. This is the structural autonomy floor and the fallback target for every other provider; it is never removed.
+- **BYOK adapters** (opt-in, per-workspace, cost-metered): Mem0/Zep/Cognee implement the same interface, selected only when a workspace binds the provider AND supplies its own key. Adapter contract gates: must map onto invalidate-don't-delete, must not call a model out-of-band (everything routes through the chokepoint), must keep the outcome label + ontology Supaprod-owned.
 - **Graceful fallback (load-bearing):** the seam wraps every adapter call; on `health()=='down'`, timeout, error, missing key, or a tripped cost cap, it transparently falls back to native and logs a degraded-mode trace. The product never hard-fails on a provider outage and never requires an external paid dep to run.
 
 > **Build order (the critique's adjustment, folded in - do NOT pre-build the seam):** the full adapter seam is **premature** at ~42% completion (YAGNI / minimum-code). Build now: (1) the `embedding` + `rerank` CallSurfaces (thin BUY glue through the existing chokepoint), and (2) the **native** supersession engine in Postgres (the moat). Add the `MemoryProvider` interface + the first external adapter only when a workspace actually demands Mem0/Zep. The interface above is the target shape so the native engine is written behind a thin internal boundary, not the full multi-adapter machinery on day one.
@@ -125,7 +125,7 @@ interface MemoryProvider {
 
 **Applies forward AND retroactively.** Governs every new capability before build, AND is the lens to re-audit everything already shipped or in the pipeline. A violation already built (a direct provider call bypassing the chokepoint, an external dep with no native fallback, a wrapped commodity masquerading as moat, a redundant second provider) is a finding to correct, not grandfather. Re-run the gate over the register on every doctrine shift.
 
-**The moat boundary (sharpened by the adversarial pass).** Build the JUDGMENT, borrow the PLUMBING. The bi-temporal storage mechanics (`valid_at`/`invalid_at`, recursive-CTE traversal, invalidate-don't-delete machinery) are a solved, copyable Postgres pattern - borrow Graphiti's per-edge invalidation-prompt design or Apache AGE; do not artisanally re-derive them. The unpurchasable moat is: the **outcome LABEL** (the human-gated validated/missed verdict weeks after ship); the **typed normalization of raw heterogeneous signal INTO the decision ontology** (Signal -> Assumption -> Decision - the part a competitor cannot backfill); and the **precedent-salience ranking the Critic uses** (outcome-weighted, Cadence-owned - a commodity reranker may order recall, but the "which prior decision most challenges this one" score is ours).
+**The moat boundary (sharpened by the adversarial pass).** Build the JUDGMENT, borrow the PLUMBING. The bi-temporal storage mechanics (`valid_at`/`invalid_at`, recursive-CTE traversal, invalidate-don't-delete machinery) are a solved, copyable Postgres pattern - borrow Graphiti's per-edge invalidation-prompt design or Apache AGE; do not artisanally re-derive them. The unpurchasable moat is: the **outcome LABEL** (the human-gated validated/missed verdict weeks after ship); the **typed normalization of raw heterogeneous signal INTO the decision ontology** (Signal -> Assumption -> Decision - the part a competitor cannot backfill); and the **precedent-salience ranking the Critic uses** (outcome-weighted, Supaprod-owned - a commodity reranker may order recall, but the "which prior decision most challenges this one" score is ours).
 
 ## Register categorization (the whole build bible, bucketed + verdict'd)
 
@@ -191,11 +191,11 @@ The ENTIRE external surface, with my recommended player + cost. **Total recurrin
 
 ---
 
-### What each term means for Cadence
+### What each term means for Supaprod
 
-**Embeddings** convert text into a dense numerical vector (1536 numbers in our case). Every time Cadence stores a memory, indexes a signal, or does a semantic search — that is an embedding call. The result is stored in `vector(1536)` Supabase columns and queried via pgvector. Embeddings do NOT generate text; they are a fast, cheap, deterministic index operation. Our current provider: OpenAI `text-embedding-3-small` at $0.02/1M tokens.
+**Embeddings** convert text into a dense numerical vector (1536 numbers in our case). Every time Supaprod stores a memory, indexes a signal, or does a semantic search — that is an embedding call. The result is stored in `vector(1536)` Supabase columns and queried via pgvector. Embeddings do NOT generate text; they are a fast, cheap, deterministic index operation. Our current provider: OpenAI `text-embedding-3-small` at $0.02/1M tokens.
 
-**Completions** are when an AI model reads input text and generates output text. In Cadence, every completion is one "thinking step." This powers:
+**Completions** are when an AI model reads input text and generates output text. In Supaprod, every completion is one "thinking step." This powers:
 
 - **The agent planning loop** (`loop.server.ts`): when a user triggers an agent, it reasons step-by-step — up to 6 steps, each step reading context + tool results and deciding the next action. Each step is one completion call. This is the primary cost driver.
 - **Chat / Ask** (`api/chat.ts`): every streaming AI response the user sees.
@@ -210,7 +210,7 @@ Embeddings are cheap (sub-cent per session). Completions on GPT-4o can cost $0.0
 
 The current `vector(1536)` column definition was **not a principled decision**. OpenAI text-embedding-3-small outputs 1536 dimensions by default, and the schema was written to match. There is nothing special about 1536. It is an artifact of the default provider choice.
 
-**The real constraint is not dimensions — it is token input limits.** This is the factor that matters most for Cadence's specific use case. If a model truncates a 5,000-word PRD at the 2,048-token mark, you are embedding only the first third of the document. The embedding vector misrepresents the whole document. The Critic then retrieves "relevant" precedents based on a fragment. The MTEB benchmark score (measured on short passages) does not capture this failure mode.
+**The real constraint is not dimensions — it is token input limits.** This is the factor that matters most for Supaprod's specific use case. If a model truncates a 5,000-word PRD at the 2,048-token mark, you are embedding only the first third of the document. The embedding vector misrepresents the whole document. The Critic then retrieves "relevant" precedents based on a fragment. The MTEB benchmark score (measured on short passages) does not capture this failure mode.
 
 **Input token limits by provider (web-grounded, 2026):**
 
@@ -223,7 +223,7 @@ The current `vector(1536)` column definition was **not a principled decision**. 
 | Nomic embed-text-v1.5                   | 8,192       | Same as OpenAI                          |
 | **Google gemini-embedding-001**         | **2,048**   | **Silent truncation — no error raised** |
 
-**Critical implication:** A Cadence PRD document at 4,000 words is approximately 5,300 tokens. At OpenAI's 8,191-token limit, most PRDs fit but large ones get cut. At Google Gemini's 2,048-token limit, virtually every full PRD gets silently truncated to roughly its introduction and first section. The MTEB score of 67.71 that made Gemini look attractive is measured on benchmark passages — not on full product documents. For Cadence's actual workload, Gemini's token limit makes it a poor fit despite its headline retrieval score.
+**Critical implication:** A Supaprod PRD document at 4,000 words is approximately 5,300 tokens. At OpenAI's 8,191-token limit, most PRDs fit but large ones get cut. At Google Gemini's 2,048-token limit, virtually every full PRD gets silently truncated to roughly its introduction and first section. The MTEB score of 67.71 that made Gemini look attractive is measured on benchmark passages — not on full product documents. For Supaprod's actual workload, Gemini's token limit makes it a poor fit despite its headline retrieval score.
 
 **Changing dimensions requires a migration, but NOW is the cheapest time.** At demo scale with essentially zero production data, the migration consists of:
 
@@ -266,9 +266,9 @@ This makes provider switching for embeddings a non-trivial migration, not a conf
 
 ### Embedding provider comparison (2026, full analysis — corrected)
 
-> **Correction from earlier analysis:** Google gemini-embedding-001 was previously recommended based on its MTEB score (67.71, highest of any API model). This was wrong for Cadence's use case. Its input token limit is **2,048 tokens**, and it truncates silently. A full PRD or decision narrative at 4,000–10,000 words exceeds this limit and gets silently cut to its first ~1,500 words. The MTEB score is measured on short benchmark passages; it does not reflect long-document retrieval quality. Google Gemini is disqualified for this use case at this limit.
+> **Correction from earlier analysis:** Google gemini-embedding-001 was previously recommended based on its MTEB score (67.71, highest of any API model). This was wrong for Supaprod's use case. Its input token limit is **2,048 tokens**, and it truncates silently. A full PRD or decision narrative at 4,000–10,000 words exceeds this limit and gets silently cut to its first ~1,500 words. The MTEB score is measured on short benchmark passages; it does not reflect long-document retrieval quality. Google Gemini is disqualified for this use case at this limit.
 
-| Provider              | Model              | Cost/1M               | MTEB retrieval    | Input token limit                  | Dims      | Fit for Cadence                                                                                                                                                                    |
+| Provider              | Model              | Cost/1M               | MTEB retrieval    | Input token limit                  | Dims      | Fit for Supaprod                                                                                                                                                                    |
 | --------------------- | ------------------ | --------------------- | ----------------- | ---------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ~~**Voyage AI**~~     | ~~voyage-3~~       | ~~$0.06 (200M free)~~ | ~~Strong (~65+)~~ | ~~32,000~~                         | ~~1,024~~ | **DISQUALIFIED** — no 1536 dims support (fixed 1024 only); MongoDB acquisition = roadmap risk; US-only servers = GDPR risk; non-OpenAI-compatible SDK. See research trail section. |
 | **Cohere**            | embed-v4           | $0.12                 | 65.2 (MTEB)       | **128,000**                        | **1,536** | **RECOMMENDED** — 1536 dims native (zero migration!), 128K token limit, OpenAI-compatible API, EU servers, independent company                                                     |
@@ -365,20 +365,20 @@ AWS Activate for startups offers up to $5,000 in AWS credits (including Bedrock)
 - **Embeddings:** `Qwen3-Embedding-8B` (Apache 2.0, MTEB 70.6 — beats ALL API models including Google) requires ~16GB VRAM. `BGE-M3` (MIT, MTEB ~63, 512MB, runs on CPU) is the operational floor.
 - **Completions:** `Llama 4 Maverick` (Apache 2.0) runs on a single A100; matches GPT-4o-mini quality.
 
-The BYOK architecture Cadence has already built makes self-hosting a configuration change, not a product change. When the time comes, the chokepoint (`resolveEmbedRoute`, `runtime.server.ts`) gets a new provider type — the product features don't change.
+The BYOK architecture Supaprod has already built makes self-hosting a configuration change, not a product change. When the time comes, the chokepoint (`resolveEmbedRoute`, `runtime.server.ts`) gets a new provider type — the product features don't change.
 
 ---
 
 ### Where BYOK lives: the architecture explained
 
-This is a critical distinction: **the AI provider does NOT give you memory recall, decision indexing, reflections, or any other Cadence feature. The provider is a dumb API that takes text and returns vectors or completions. All features are Cadence-built.**
+This is a critical distinction: **the AI provider does NOT give you memory recall, decision indexing, reflections, or any other Supaprod feature. The provider is a dumb API that takes text and returns vectors or completions. All features are Supaprod-built.**
 
 Here is the exact layering:
 
 ```
 USER PROVIDES A KEY (optional)
          ↓
-[Cadence BYO Vault]  ← encrypts + stores the key (AES-256-GCM)
+[Supaprod BYO Vault]  ← encrypts + stores the key (AES-256-GCM)
 src/lib/byokeys-vault.server.ts
          ↓
 [Embedding chokepoint]          [Completion chokepoint]
@@ -392,7 +392,7 @@ src/lib/rag/embed.server.ts     src/lib/ai/runtime.server.ts
    (OpenAI / Google /               (OpenAI / Fireworks /
     Fireworks / etc.)                 Anthropic / etc.)
          ↓                                  ↓
-[Cadence features — ALL built by us]
+[Supaprod features — ALL built by us]
 - Memory recall (memory.server.ts)
 - Outcome memory (rememberOutcome)
 - Decision indexing (outcome-memory.ts)
@@ -405,7 +405,7 @@ src/lib/rag/embed.server.ts     src/lib/ai/runtime.server.ts
 
 **What the provider supplies:** raw model inference only. Text in → vector out (embeddings) or text in → text out (completions).
 
-**What Cadence supplies:** everything else. The memory schema, the decision ontology, the supersession engine, the BYOK vault, the cost tracking, the guardrails, the agent loop, the Critic, the governance layer. None of that changes when you swap providers.
+**What Supaprod supplies:** everything else. The memory schema, the decision ontology, the supersession engine, the BYOK vault, the cost tracking, the guardrails, the agent loop, the Critic, the governance layer. None of that changes when you swap providers.
 
 **Switching a provider** = change one URL + one API key in the chokepoint. All features continue working.
 
@@ -441,7 +441,7 @@ src/lib/rag/embed.server.ts     src/lib/ai/runtime.server.ts
 
 ### Why not a single all-in-one provider
 
-No provider is cleanly all-in-one for Cadence's constraints:
+No provider is cleanly all-in-one for Supaprod's constraints:
 
 - **Fireworks** (embed + completions): embed model is 768 dims, 8K token limit — better cost but same context problem as current OpenAI; completions are the best choice.
 - **Google** (embed + completions): embed silently truncates at 2,048 tokens — disqualified for embeddings; completions (Flash-Lite) are genuinely good.
@@ -454,9 +454,9 @@ No provider is cleanly all-in-one for Cadence's constraints:
 
 ### Data privacy, compliance, server locations, and operational risks (2026-06-26)
 
-> **Why this matters for Cadence.** Embedding calls send the actual content of user workspace data — PRDs, decision narratives, signals, support conversations — to the provider's servers. This is real customer data, not metadata. Every provider Cadence uses for AI inference is a **data subprocessor** under GDPR Article 28. This section documents the compliance posture of every provider in the stack so the privacy/legal review is not re-derived from scratch.
+> **Why this matters for Supaprod.** Embedding calls send the actual content of user workspace data — PRDs, decision narratives, signals, support conversations — to the provider's servers. This is real customer data, not metadata. Every provider Supaprod uses for AI inference is a **data subprocessor** under GDPR Article 28. This section documents the compliance posture of every provider in the stack so the privacy/legal review is not re-derived from scratch.
 
-#### What data leaves Cadence's servers on each inference call
+#### What data leaves Supaprod's servers on each inference call
 
 | Call type                           | Data sent to provider                                       | Privacy sensitivity                         |
 | ----------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
@@ -465,7 +465,7 @@ No provider is cleanly all-in-one for Cadence's constraints:
 | Completion (agent loop / Critic)    | System prompt + user context + tool results                 | High — decision content + workspace history |
 | Rerank                              | Query text + candidate document excerpts                    | High — same as above                        |
 
-This data classification means the provider's data residency, retention, and GDPR posture directly affect Cadence's own privacy obligations to its customers.
+This data classification means the provider's data residency, retention, and GDPR posture directly affect Supaprod's own privacy obligations to its customers.
 
 #### Per-provider compliance matrix
 
@@ -524,13 +524,13 @@ This data classification means the provider's data residency, retention, and GDP
 | **Fireworks AI**              | Established, open models mean worst-case is just switching the API endpoint                        | Low risk; Apache 2.0 Llama 4 = no lock-in                                   |
 | **OpenAI**                    | Industry standard; any degradation is widely visible immediately                                   | Very low risk                                                               |
 
-#### What Cadence must do before launching to EU customers
+#### What Supaprod must do before launching to EU customers
 
-1. **Verify subprocessor list**: add Cohere, Fireworks AI, and OpenAI (or whichever providers are live) to Cadence's privacy policy subprocessor list
+1. **Verify subprocessor list**: add Cohere, Fireworks AI, and OpenAI (or whichever providers are live) to Supaprod's privacy policy subprocessor list
 2. **Cohere**: route EU workspace embeddings to `eu-west-1` endpoint (set `api-region: eu` header or use the EU base URL) — this is a single config param
 3. **Fireworks AI**: obtain a DPA and confirm SCCs before enabling for EU workspaces, OR self-host Llama 4 Maverick as the EU completion default
 4. **Enable ZDR headers on OpenAI** (if still in the fallback chain): add `OpenAI-ZeroRetention: true` header in `runtime.server.ts` for any calls involving sensitive content
-5. **Document in Cadence's own DPA**: "We use Cohere (EU) for embedding and reranking, and Fireworks AI (US) or self-hosted Llama 4 for completions"
+5. **Document in Supaprod's own DPA**: "We use Cohere (EU) for embedding and reranking, and Fireworks AI (US) or self-hosted Llama 4 for completions"
 
 #### Rate limits and operational resilience
 
@@ -566,7 +566,7 @@ This data classification means the provider's data residency, retention, and GDP
 
 First pass recommended **Google gemini-embedding-001** based on its MTEB score (67.71, highest of any API model). This was incorrect. The MTEB benchmark is measured on short passages. The 2,048-token input limit was not checked, and it was not disclosed in marketing materials.
 
-**What was missed:** For Cadence's workload (full PRDs at 4,000–15,000 words, decision narratives, large context windows), Google Gemini truncates silently at ~1,500 words of input. The embedding vector represents only the first third of the document. The Critic then retrieves "relevant" precedents based on a fragment. The MTEB score is meaningless in this context.
+**What was missed:** For Supaprod's workload (full PRDs at 4,000–15,000 words, decision narratives, large context windows), Google Gemini truncates silently at ~1,500 words of input. The embedding vector represents only the first third of the document. The Critic then retrieves "relevant" precedents based on a fragment. The MTEB score is meaningless in this context.
 
 ### Round 2 — correction (PARTIAL)
 
@@ -586,7 +586,7 @@ Background research agent verified all providers. Key findings:
 - **Non-OpenAI-compatible SDK**: The standard Voyage API uses the `voyageai.Client` Python SDK, not the OpenAI format. Only the Batch API is explicitly OpenAI-compatible. This means switching to Voyage is not a drop-in change.
 
 **ZeroEntropy zerank-2 — non-commercial license (CRITICAL FIX):**
-The existing BBI doc listed zerank-2 as a `$0.025/1M` commercial API. This is wrong. zerank-2 is released under a **non-commercial license** on HuggingFace. Using it in a commercial product (Cadence is commercial) requires a separate license agreement with ZeroEntropy. Contact ZeroEntropy before any production use. The **safe floor** is `zerank-1-small` which is Apache-2.0. The **correct commercial pick** for the managed API is **Cohere Rerank 4** (same vendor as embeddings, best on business/finance documents at +400 ELO over Rerank v3.5 on that category, ~$0.001-0.002/search).
+The existing BBI doc listed zerank-2 as a `$0.025/1M` commercial API. This is wrong. zerank-2 is released under a **non-commercial license** on HuggingFace. Using it in a commercial product (Supaprod is commercial) requires a separate license agreement with ZeroEntropy. Contact ZeroEntropy before any production use. The **safe floor** is `zerank-1-small` which is Apache-2.0. The **correct commercial pick** for the managed API is **Cohere Rerank 4** (same vendor as embeddings, best on business/finance documents at +400 ELO over Rerank v3.5 on that category, ~$0.001-0.002/search).
 
 **Cohere embed-v4 — confirmed:**
 
@@ -612,11 +612,11 @@ Yes — four serious ones beyond the token limit:
 3. **US-only servers**: No native EU endpoint. GDPR compliance requires VPC deployment workaround.
 4. **Non-OpenAI-compatible SDK**: Standard embedding API requires Voyage's own client. Switching cost is higher than for OpenAI-drop-in providers.
 
-Combined verdict: Voyage is disqualified for Cadence's use case. The 200M free tokens are attractive but do not outweigh these four constraints.
+Combined verdict: Voyage is disqualified for Supaprod's use case. The 200M free tokens are attractive but do not outweigh these four constraints.
 
 ### Q: What are alternative embedding providers?
 
-Ranked for Cadence's specific constraints (long-document RAG, 1536 dims preferred, managed API):
+Ranked for Supaprod's specific constraints (long-document RAG, 1536 dims preferred, managed API):
 
 | Rank          | Provider          | Model            | Dims | Token limit | Why                                                                                  |
 | ------------- | ----------------- | ---------------- | ---- | ----------- | ------------------------------------------------------------------------------------ |
@@ -652,11 +652,11 @@ Future migrations: only if you switch providers again. With Cohere as a stable, 
 
 ## Lovable exit: full analysis (2026-06-26)
 
-> This section covers what Lovable actually manages for Cadence, what exiting involves, the realistic effort, and the right timing.
+> This section covers what Lovable actually manages for Supaprod, what exiting involves, the realistic effort, and the right timing.
 
 ### What Lovable manages right now
 
-Lovable is not just a code editor. For Cadence, it currently manages:
+Lovable is not just a code editor. For Supaprod, it currently manages:
 
 | What                            | What Lovable does                                                                            | Self-manage equivalent                                                                            |
 | ------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -672,7 +672,7 @@ Lovable is not just a code editor. For Cadence, it currently manages:
 
 **Critical finding**: When using Lovable Cloud, the Supabase database is owned by Lovable — not visible in your personal Supabase dashboard. Lovable's own documentation confirms: "If your project is already connected to Lovable Cloud, there is currently no way to disconnect it and switch to an external Supabase project." There is no automated ejection tool.
 
-**How to verify which type you have**: Log into supabase.com. If the Cadence project appears under your account, it's self-provisioned (you own it — the exit is simpler). If it does NOT appear, it's Lovable Cloud.
+**How to verify which type you have**: Log into supabase.com. If the Supaprod project appears under your account, it's self-provisioned (you own it — the exit is simpler). If it does NOT appear, it's Lovable Cloud.
 
 ### Tech stack portability assessment
 
@@ -721,7 +721,7 @@ Lovable is not just a code editor. For Cadence, it currently manages:
 | Lovable AI editor                | Must use Claude Code exclusively (already the primary tool).                                             |
 | Auto-deploy on push              | Must maintain GitHub Actions yourself (one-time setup, ~1 day).                                          |
 | Managed infrastructure           | Database backup, monitoring, scaling = your responsibility. Supabase's own tooling handles most of this. |
-| Lovable's project-level features | Knowledge base, project analytics, Lovable-specific connectors — unused by Cadence, not a real loss.     |
+| Lovable's project-level features | Knowledge base, project analytics, Lovable-specific connectors — unused by Supaprod, not a real loss.     |
 
 ### The right timing: when to exit Lovable
 

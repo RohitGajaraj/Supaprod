@@ -1,6 +1,6 @@
-# Cadence Brand Kit
+# Supaprod Brand Kit
 
-> _Created 2026-07-14. The base brand kit for Cadence: the mark, its variations,
+> _Created 2026-07-14. The base brand kit for Supaprod: the mark, its variations,
 > the palette, type, and ready-to-upload assets (SVG + PNG + favicon + social).
 > Ship-ready; enhance over time. Every asset is generated from the SAME
 > parametric mark the product renders (`src/components/cadence/CadenceMark.tsx`),
@@ -8,7 +8,7 @@
 
 ## The mark
 
-Cadence's mark is a **seven-petal spiral** (an epitrochoid) revolving around a
+Supaprod's mark is a **seven-petal spiral** (an epitrochoid) revolving around a
 **glowing core**. The meaning is the product:
 
 - **Seven petals = the seven loop stages** — 01 Discover, 02 Decide, 03 Plan,
@@ -29,14 +29,14 @@ with **R = 7, r = 1, d = 3** (K = 6 → seven petals).
 
 | Variation                                                      | File(s)                                                                                               | Use it for                                                                                        |
 | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/cadence-mark-dark.svg`, `png/cadence-mark-dark-*.png`                                           | The default mark on dark surfaces (the app is dark-first).                                        |
-| **On light** (graphite/black spiral + ember/gold core)         | `logo/cadence-mark-light.svg`, `png/cadence-mark-light-*.png`                                         | The mark on white/light surfaces.                                                                 |
-| **Gradient / hero** (ember→blue spiral + ember/gold core)      | `logo/cadence-mark-gradient.svg`, `png/cadence-mark-gradient-*.png`                                   | Marketing, hero moments, the app icon, favicon — the full-color expression.                       |
-| **Mono white / black** (single color)                          | `logo/cadence-mark-mono-*.svg`, `png/cadence-mark-mono-*-*.png`                                       | Photographic backgrounds, print, one-color contexts, embossing.                                   |
-| **Lockup** (mark + "Cadence" wordmark)                         | `logo/cadence-lockup-{dark,light}.svg`, `png/cadence-lockup-*-*.png`                                  | Headers, docs, decks, email signatures.                                                           |
-| **App icon** (mark on a rounded square)                        | `logo/cadence-appicon-{dark,light}.svg`, `icons/appicon-*-*.png`                                      | App stores, PWA, desktop/dock icons.                                                              |
-| **Favicon**                                                    | `logo/cadence-favicon.svg`, `icons/favicon.ico`, `icons/favicon-{16,32,48}.png`                       | Browser tab / bookmarks.                                                                          |
-| **Animated** (loader)                                          | `logo/cadence-mark-animated.svg` (SMIL), `logo/cadence-mark-animated.html` (tweakable, particle flow) | Loading / "AI is working" states; the HTML is the reference "gif" you can open, tweak, or record. |
+| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/supaprod-mark-dark.svg`, `png/cadence-mark-dark-*.png` (png exports pending re-rasterization)   | The default mark on dark surfaces (the app is dark-first).                                        |
+| **On light** (graphite/black spiral + ember/gold core)         | `logo/supaprod-mark-light.svg`, `png/cadence-mark-light-*.png` (png exports pending re-rasterization) | The mark on white/light surfaces.                                                                 |
+| **Gradient / hero** (ember→blue spiral + ember/gold core)      | `logo/supaprod-mark-gradient.svg`, `png/cadence-mark-gradient-*.png` (png exports pending re-rasterization) | Marketing, hero moments, the app icon, favicon — the full-color expression.                 |
+| **Mono white / black** (single color)                          | `logo/supaprod-mark-mono-*.svg`, `png/cadence-mark-mono-*-*.png` (png exports pending re-rasterization) | Photographic backgrounds, print, one-color contexts, embossing.                             |
+| **Lockup** (mark + "Supaprod" wordmark)                        | `logo/supaprod-lockup-{dark,light}.svg`, `png/cadence-lockup-*-*.png` (png exports pending re-rasterization) | Headers, docs, decks, email signatures.                                                |
+| **App icon** (mark on a rounded square)                        | `logo/supaprod-appicon-{dark,light}.svg`, `icons/appicon-*-*.png`                                      | App stores, PWA, desktop/dock icons.                                                              |
+| **Favicon**                                                    | `logo/supaprod-favicon.svg`, `icons/favicon.ico`, `icons/favicon-{16,32,48}.png`                       | Browser tab / bookmarks.                                                                          |
+| **Animated** (loader)                                          | `logo/supaprod-mark-animated.svg` (SMIL), `logo/supaprod-mark-animated.html` (tweakable, particle flow) | Loading / "AI is working" states; the HTML is the reference "gif" you can open, tweak, or record. |
 
 ## File inventory
 
@@ -45,14 +45,17 @@ branding/
 ├─ README.md                    ← this file (the brand guidelines)
 ├─ generate.ts                  ← regenerates every SVG from the mark curve (bun)
 ├─ logo/                        ← source vectors (scalable, upload-ready)
-│  ├─ cadence-mark-dark.svg / -light.svg / -gradient.svg
-│  ├─ cadence-mark-mono-white.svg / -mono-black.svg
-│  ├─ cadence-mark-animated.svg      (SMIL, self-animating)
-│  ├─ cadence-mark-animated.html     (standalone tweakable reference)
-│  ├─ cadence-lockup-dark.svg / -light.svg
-│  ├─ cadence-appicon-dark.svg / -light.svg
-│  └─ cadence-favicon.svg
-├─ png/                         ← raster marks + lockups (transparent)
+│  ├─ supaprod-mark-dark.svg / -light.svg / -gradient.svg
+│  ├─ supaprod-mark-mono-white.svg / -mono-black.svg
+│  ├─ supaprod-mark-animated.svg      (SMIL, self-animating)
+│  ├─ supaprod-mark-animated.html     (standalone tweakable reference)
+│  ├─ supaprod-lockup-dark.svg / -light.svg
+│  ├─ supaprod-appicon-dark.svg / -light.svg
+│  └─ supaprod-favicon.svg
+├─ png/                         ← raster marks + lockups (transparent); still under the
+│  │                              cadence- filename prefix, pending re-rasterization from
+│  │                              the renamed SVGs above (the lockup PNGs also still show
+│  │                              the old wordmark in their pixels until re-rendered)
 │  ├─ cadence-mark-gradient-{32,64,128,256,512,1024}.png
 │  ├─ cadence-mark-dark-{...}.png / -light-{...}.png
 │  ├─ cadence-mark-mono-{white,black}-{256,512}.png
@@ -86,7 +89,7 @@ meaning. Ember = the brand / needs-human; blue = data / machine.
 
 ## Typography
 
-- **Geist Sans** — wordmark, UI, headings. The "Cadence" wordmark is Geist Sans
+- **Geist Sans** — wordmark, UI, headings. The "Supaprod" wordmark is Geist Sans
   600, tight tracking. (For final production lockups, outline the wordmark to a
   path so it renders without the font installed.)
 - **Geist Mono** — data, code, trace ids, metadata.
@@ -120,8 +123,8 @@ The mark doubles as the product's loader wherever AI is working (thinking,
 drafting, shaping). In the app it is `CadenceMark animated` /
 `CadenceLoader` (`src/components/cadence/CadenceMark.tsx`) and the shared
 `AiWorking` indicator. For marketing/video, open
-`logo/cadence-mark-animated.html` (a self-contained, tweakable reference with a
-particle-flow trail) or use `logo/cadence-mark-animated.svg` (SMIL). Record the
+`logo/supaprod-mark-animated.html` (a self-contained, tweakable reference with a
+particle-flow trail) or use `logo/supaprod-mark-animated.svg` (SMIL). Record the
 HTML to a GIF/MP4 if a raster animation is needed.
 
 ## Regenerating the kit

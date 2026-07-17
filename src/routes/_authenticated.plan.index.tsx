@@ -5,7 +5,7 @@
 // `/roadmap` and `/stakeholder` legacy redirects land on the section they
 // promised (DESIGN-LOOM §9b: deep-link params are honored everywhere).
 import { createFileRoute } from "@tanstack/react-router";
-import { TopBar } from "@/components/cadence/TopBar";
+import { TopBar } from "@/components/supaprod/TopBar";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { PlanSurface, PLAN_VIEWS, type PlanView } from "@/components/plan/PlanSurface";
 import { IntelBriefPanel } from "@/components/today/IntelBriefPanel";
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
     };
   },
   component: PlanPage,
-  head: () => ({ meta: [{ title: "Plan · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Plan · Supaprod" }] }),
   errorComponent: ({ error, reset }) => {
     // Route-level crashes previously threw away the real error - log it so
     // any future occurrence is diagnosable from the console instead of a

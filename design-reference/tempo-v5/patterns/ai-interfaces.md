@@ -16,7 +16,7 @@
 > Vercel AI SDK UI primitives (paraphrased principle: a growing stream of text is its own
 > progress indicator — don't lay a second spinner over text that is visibly still arriving).
 
-This pattern covers eight parts that recur across every agentic surface in Cadence: the
+This pattern covers eight parts that recur across every agentic surface in Supaprod: the
 **Ask surface** (composer + message list), **streaming output** (text / code / artifacts),
 the **agent run timeline**, the **HITL gate card** (Approve / Send back / Challenge), **receipts
 & trust evidence**, **model & tool pickers**, **error & retry**, and **cost & time
@@ -35,7 +35,7 @@ of them at once (see Usage examples).
 │                                    │ Draft the onboarding email for the  │  │
 │                                    │ new workspace flow.                 │  │
 │                                    └──────────────────────────────────────┘  │
-│  ⬡ Cadence · 09:41                                                          │
+│  ⬡ Supaprod · 09:41                                                          │
 │  Here is a draft. I pulled tone from your last three                       │
 │  announcements. [1]                                                        │
 │                                                                              │
@@ -46,15 +46,15 @@ of them at once (see Usage examples).
 │  └────────────────────────────────────────────────────────────────────── ┘  │
 │                                                                              │
 │  Sources  [1 · design-anatomy.md]  [2 · #announcements]                    │
-│  Cadence 4.0 mini · gateway   1.4s   1.1k in / 340 out   $0.0021           │
+│  Supaprod 4.0 mini · gateway   1.4s   1.1k in / 340 out   $0.0021           │
 │  [👍][👎]  View trace  Replay with…                                        │
 └──────────────────────────────────────────────────────────────────────────── ┘
 ┌ composer (sticky bottom, material-medium) ──────────────────────────────────┐
 │  [ chip: email.md ✕ ]                                                      │
 │  ┌────────────────────────────────────────────────────────────────────┐    │
-│  │ Ask Cadence…                                                       │    │
+│  │ Ask Supaprod…                                                       │    │
 │  └────────────────────────────────────────────────────────────────────┘    │
-│  [ ⌘ model: Cadence 4.0 mini ▾ ]   [ tools: 3 connected ▾ ]      [ Send ]  │
+│  [ ⌘ model: Supaprod 4.0 mini ▾ ]   [ tools: 3 connected ▾ ]      [ Send ]  │
 └──────────────────────────────────────────────────────────────────────────── ┘
 ```
 
@@ -63,7 +63,7 @@ of them at once (see Usage examples).
   it exists so a scanning eye can find "what did I ask" without reading every line.
 - **Assistant turn** — plain text directly on `--ds-background-100`, no card, no border, no
   fill. Leads with a role marker: the pixel "C" monogram or a 16px lucide icon in
-  `--ds-gray-900`, the label "Cadence" (`text-label-13`, `--ds-gray-900`), and a mono
+  `--ds-gray-900`, the label "Supaprod" (`text-label-13`, `--ds-gray-900`), and a mono
   timestamp trailing (`text-label-12-mono`, `--ds-gray-700`). This is the restraint law in
   practice: the answer is the content, so nothing competes with it for weight.
 - **Meta footer** — one row per assistant turn: sources chips (if any), then a mono-figures
@@ -77,7 +77,7 @@ of them at once (see Usage examples).
   the tool/connector picker beside it, and Send (or Stop, while streaming) on the right.
 - **Empty state** — before the first turn, the message list renders an `EmptyState`
   (`research/empty-state.md`'s "Guide" framing): one small geometric composition (identity
-  layer budget), a title ("Ask Cadence anything"), a description naming what it can do for
+  layer budget), a title ("Ask Supaprod anything"), a description naming what it can do for
   _this_ workspace specifically, and up to four suggestion chips (secondary `Button`s) that
   fill the composer on click rather than sending immediately.
 
@@ -241,13 +241,13 @@ Full receipt (Trust Ledger entry):
 ```
 Model picker (trigger, closed):        Tool picker (trigger, closed):
 ┌────────────────────────────┐         ┌──────────────────────────┐
-│ ⬡ Cadence 4.0 mini      ▾  │         │ 🔧 3 connected         ▾  │
+│ ⬡ Supaprod 4.0 mini      ▾  │         │ 🔧 3 connected         ▾  │
 └────────────────────────────┘         └──────────────────────────┘
 
 Model picker (open, Combobox):
 ┌ search models… ──────────────────────────────────────────────────┐
-│ ⬡ Cadence 4.0 mini      fast · gateway                            │
-│ ⬡ Cadence 4.0           balanced · gateway                        │
+│ ⬡ Supaprod 4.0 mini      fast · gateway                            │
+│ ⬡ Supaprod 4.0           balanced · gateway                        │
 │ ◆ Claude (BYOK)         reasoning · needs key                     │
 │ ◆ o-series (BYOK)       reasoning · needs key                     │
 └──────────────────────────────────────────────────────────────────┘
@@ -328,7 +328,7 @@ Guardrail block (amber, not red — a pause, not a failure):
 
 ```
 Per-message meta strip:
-Cadence 4.0 mini · gateway   1.4s (620ms ttft)   1.1k in / 340 out   $0.0021
+Supaprod 4.0 mini · gateway   1.4s (620ms ttft)   1.1k in / 340 out   $0.0021
 
 Run-level summary (Description trio, see Agent run timeline):
 Steps: 6        Time: 38s        Cost: $0.42
@@ -453,7 +453,7 @@ Spend this run                                              $0.42 of $1.00
   screen readers announce growing content without interrupting), switching to
   `aria-live="assertive"` only for a turn-level `Error` (per `research/error.md`'s own
   accessibility guidance).
-- Each message turn carries a real accessible name pairing role and content ("Cadence
+- Each message turn carries a real accessible name pairing role and content ("Supaprod
   replied:", "You asked:") — never relying on visual position (left/right, plain-vs-bubble)
   alone to convey who is speaking.
 - The HITL gate card announces as a region with an `aria-label` naming what needs approval
@@ -533,7 +533,7 @@ Spend this run                                              $0.42 of $1.00
 | `--ds-gray-100` / `-200` / `-300`                      | User-turn bubble fill; interactive chip/row default/hover/active; HITL gate card lift-off fill.                          |
 | `--ds-gray-400` / `-500` / `-600`                      | Borders: default / hover / active, across chips, cards, and the timeline's connector line.                               |
 | `--ds-gray-700`                                        | Timestamps, digest-style secondary labels, disabled-state text.                                                          |
-| `--ds-gray-900`                                        | Role labels ("Cadence"), citation chip text, meta-strip figures, status-dot accessible-name-carrying icons.              |
+| `--ds-gray-900`                                        | Role labels ("Supaprod"), citation chip text, meta-strip figures, status-dot accessible-name-carrying icons.              |
 | `--ds-gray-1000`                                       | Primary body text (assistant and user turns), step titles, gate-card heading.                                            |
 | `--ds-gray-alpha-100`…`-500`                           | Layering washes over unknown backgrounds (e.g. artifact card hover lift on top of arbitrary content preview colors).     |
 | `--ds-ember-600`/`700`/`800`                           | Approve button fill only — the single ember moment this whole pattern is allowed per view (contract §2, §10).            |
@@ -556,7 +556,7 @@ Spend this run                                              $0.42 of $1.00
 | `--ds-size-medium` (36px)                              | Composer control row (model/tool picker triggers, Send/Stop), gate-card actions, retry buttons.                          |
 | `--ds-popover-padding` / `-row-height` / `-row-radius` | Model Combobox list rhythm, tool picker's Entity rows.                                                                   |
 | `text-heading-14` / `text-label-14` (strong)           | Gate-card header, chart-adjacent section titles reused inside a run summary.                                             |
-| `text-label-13`                                        | Role label ("Cadence"), step titles, receipt entity titles.                                                              |
+| `text-label-13`                                        | Role label ("Supaprod"), step titles, receipt entity titles.                                                              |
 | `text-label-13-mono` / `text-label-12-mono`            | Tool-call invocation lines, timestamps, durations, cost/token figures — all tabular.                                     |
 | `text-copy-14` / `-13`                                 | Message body text, gate-card body sentence, error body copy.                                                             |
 | `text-button-14` / `-12`                               | Gate-card and inline-note action labels; citation chip label.                                                            |
@@ -762,7 +762,7 @@ function AskComposer({ value, onChange, onSend, model, onModelChange, tools }: A
   happen to point at the same data.
 - Do reuse the existing `MessageMetaFooter`/`ChatMeta` contract, `trust-ledger.functions.ts`
   data model, and `retry.ts` backoff logic — this pattern is a token and anatomy pass over
-  real, already-correct Cadence code, not a rewrite.
+  real, already-correct Supaprod code, not a rewrite.
 - Don't tint the HITL gate card in ember to signal "needs a human," the way the pre-Tempo
   contract did. Tempo reserves ember for the brand/CTA role only (contract §2, §10); the
   card's chrome stays neutral (`--ds-gray-100`), and ember appears exactly once, on Approve.
@@ -826,16 +826,16 @@ The audited in-canvas inventory:
 | ------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | Today (populated)               | Hero lead phrase (`One call`, `12 calls`, `All clear.`) in ember/moss                              | `src/components/obsidian/today/Hero.tsx`                |
 | Today (cold workspace)          | Cold-start headline "Give your agents something to read." (replaces the hero)                      | `src/components/today/ColdStartOnramp.tsx`              |
-| Command palette (⌘K)            | No-results headline "Nothing by that name" (overlay surface; header stays Sans)                    | `src/components/cadence/CommandPalette.tsx`             |
+| Command palette (⌘K)            | No-results headline "Nothing by that name" (overlay surface; header stays Sans)                    | `src/components/supaprod/CommandPalette.tsx`             |
 | Discover (empty)                | Empty-state headline "Nothing sensed yet"                                                          | `src/components/discover/DiscoverSurface.tsx`           |
 | Build mission detail            | Compounding-count numeral                                                                          | `src/components/missions/MissionOrchestratorDetail.tsx` |
 | Build index                     | Stat numeral                                                                                       | `src/routes/_authenticated.build.index.tsx`             |
 | Brain                           | Stat-trio numerals (one trio, one moment)                                                          | `src/components/knowledge/BrainStatTrio.tsx`            |
 | Engine Room metrics             | Gauntlet score numeral                                                                             | `src/components/observe/GauntletMetricsPanel.tsx`       |
-| Login / auth                    | Auth scaffold display line                                                                         | `src/components/cadence/AuthScaffold.tsx`               |
+| Login / auth                    | Auth scaffold display line                                                                         | `src/components/supaprod/AuthScaffold.tsx`               |
 | Onboarding                      | Welcome display line                                                                               | `src/components/onboarding/ObsidianOnboarding.tsx`      |
 | 404 / error boundary            | The 404 numeral                                                                                    | `src/routes/__root.tsx`                                 |
-| Any empty screen                | `EmptyState` headline (default Pixel; hosts already carrying a Pixel element pass `pixel={false}`) | `src/components/cadence/Primitives.tsx`                 |
+| Any empty screen                | `EmptyState` headline (default Pixel; hosts already carrying a Pixel element pass `pixel={false}`) | `src/components/supaprod/Primitives.tsx`                 |
 | Any screen, while an agent runs | The `.ai-working-word` shimmer word (counts as that screen's moment while visible)                 | `src/styles.css` utility                                |
 
 Rules the inventory enforces: never body copy, never dense UI, never inside tables,

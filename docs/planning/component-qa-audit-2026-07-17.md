@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Cadence achieves **98% Vercel parity** across all critical interactive component patterns. The design system correctly implements smooth motion (Swift easing, timed transitions), visible focus rings, proper disabled/error/loading states, full keyboard navigation, and WCAG AA+ accessibility standards.
+Supaprod achieves **98% Vercel parity** across all critical interactive component patterns. The design system correctly implements smooth motion (Swift easing, timed transitions), visible focus rings, proper disabled/error/loading states, full keyboard navigation, and WCAG AA+ accessibility standards.
 
 **One minor accessibility gap** (breadcrumb link focus ring) has been **fixed** in commit `fa1d8021`.
 
@@ -112,7 +112,7 @@ Cadence achieves **98% Vercel parity** across all critical interactive component
 
 ## Vercel Parity Scorecard
 
-| Criterion | Cadence | Vercel Baseline | Status |
+| Criterion | Supaprod | Vercel Baseline | Status |
 |-----------|---------|---|--------|
 | Hover transitions | 150ms + Swift | 100-150ms, eased | ✅ PARITY |
 | Focus rings | 2px box-shadow | 2px outline/ring | ✅ PARITY |
@@ -165,7 +165,7 @@ Cadence achieves **98% Vercel parity** across all critical interactive component
 
 ## Conclusion
 
-Cadence's component library is **production-ready** with **100% Vercel parity** after the breadcrumb focus ring fix. The design system demonstrates:
+Supaprod's component library is **production-ready** with **100% Vercel parity** after the breadcrumb focus ring fix. The design system demonstrates:
 
 1. **Exceptional motion design** — Swift easing, proper durations, no jank
 2. **Full accessibility compliance** — Focus rings, keyboard nav, ARIA, screen readers

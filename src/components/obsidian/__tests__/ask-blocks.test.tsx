@@ -15,7 +15,7 @@ import type { AnswerBlock } from "@/lib/ask-blocks";
  *   params resolved into the href) because Link throws outside a
  *   RouterProvider; every other export is passed through untouched so
  *   transitive consumers keep working.
- * - "@/components/cadence/AuditLineageSheet": AuditTag value-imports
+ * - "@/components/supaprod/AuditLineageSheet": AuditTag value-imports
  *   openLineage from it, and the real module drags in server-function graphs
  *   (audit-lineage/trust-chain) irrelevant to a presentational test.
  * - "@/lib/ask-canvas.functions": value-imported by ask-canvas.tsx (loaded
@@ -48,8 +48,8 @@ mock.module("@tanstack/react-router", () => ({
   },
 }));
 
-mock.module("@/components/cadence/AuditLineageSheet", () => ({
-  OPEN_LINEAGE_EVENT: "cadence:open-lineage",
+mock.module("@/components/supaprod/AuditLineageSheet", () => ({
+  OPEN_LINEAGE_EVENT: "supaprod:open-lineage",
   openLineage: () => {},
   AuditLineageSheet: () => null,
 }));

@@ -2,7 +2,7 @@
  * Sub-processor disclosure registry (Data/Privacy, considerations.md).
  *
  * Enterprise security reviews and GDPR Article 28 require a current list of the third parties
- * that process customer data on Cadence's behalf. This module is that list, derived where
+ * that process customer data on Supaprod's behalf. This module is that list, derived where
  * possible from live configuration so the disclosure cannot drift from reality:
  *
  *   - Infrastructure sub-processors (the gateway, the database, the host) are a curated static
@@ -27,7 +27,7 @@ export type SubProcessor = {
   /** Display name. */
   name: string;
   category: SubProcessorCategory;
-  /** What Cadence uses the processor for (plain, one line). */
+  /** What Supaprod uses the processor for (plain, one line). */
   purpose: string;
   /** Categories of customer data that flow to the processor. Never empty. */
   dataCategories: string[];

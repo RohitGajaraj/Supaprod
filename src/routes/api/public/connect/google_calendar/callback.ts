@@ -15,7 +15,7 @@ import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
  * (user_id, provider, product, account_email), not (user_id, provider).
  * connection_id (NOT NULL, legacy from the Lovable-gateway era where it held
  * the gateway's opaque reference) is set to the vault secret's own id here -
- * it no longer carries independent meaning now that Cadence holds the token.
+ * it no longer carries independent meaning now that Supaprod holds the token.
  */
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -177,11 +177,11 @@ export const Route = createFileRoute("/api/public/connect/google_calendar/callba
 
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Google Calendar Connected - Cadence</title>
+<title>Google Calendar Connected - Supaprod</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">Google Calendar connected</h2>
-<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Cadence.</p>
+<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Supaprod.</p>
 <a href="${url.origin}/settings?section=connections" style="color:#f97316;font-size:.875rem">Or click here to return</a></div>
 <script>try{window.close()}catch(e){}</script>
 </body></html>`,

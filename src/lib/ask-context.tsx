@@ -110,8 +110,8 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
         summon();
       }
     };
-    window.addEventListener("cadence:open-ask", onOpenAsk);
-    return () => window.removeEventListener("cadence:open-ask", onOpenAsk);
+    window.addEventListener("supaprod:open-ask", onOpenAsk);
+    return () => window.removeEventListener("supaprod:open-ask", onOpenAsk);
   }, [summon, runIntent]);
 
   const value = React.useMemo(

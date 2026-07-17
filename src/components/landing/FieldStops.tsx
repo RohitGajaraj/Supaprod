@@ -1,6 +1,6 @@
 /**
  * Beat 5 - The USP beat (founder ruling 2026-07-15): building is commoditized;
- * knowing WHAT to build is the moat. Cadence is the second brain that makes
+ * knowing WHAT to build is the moat. Supaprod is the second brain that makes
  * the call with you and remembers whether it was right. Unnamed contrast,
  * agent-era framing, no comparison boxes, no competitor names.
  */
@@ -25,11 +25,11 @@ export function FieldStops() {
               letterSpacing: "0",
             }}
           >
-            Cadence builds that moat for you.
+            Supaprod builds that moat for you.
           </span>
         </h2>
 
-        {/* The ledger: what the field leaves on you, and what Cadence does
+        {/* The ledger: what the field leaves on you, and what Supaprod does
             about each one. Mono kickers, two voices, no boxes. */}
         <div className="mb-16">
           <div className="hidden md:grid md:grid-cols-2 gap-10 pb-3">
@@ -37,7 +37,7 @@ export function FieldStops() {
               the field today
             </span>
             <span className="text-[10px] font-mono uppercase tracking-widest text-[#6cb0f5]">
-              with cadence
+              with supaprod
             </span>
           </div>
           {[

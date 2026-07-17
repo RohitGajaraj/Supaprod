@@ -212,7 +212,7 @@ These are NOT omitted; they're blocked on specific unlock conditions:
 - **Effort:** ~40–50 hours of build time (12 commits)
 - **Build mode:** Build-only active (no plan updates, just ship)
 - **Founder QA:** One pass at end of phase 1
-- **Vercel baseline:** Adopted pattern (alternating showcases) + adapted for Cadence identity (Pixel, three-voice, starfield)
+- **Vercel baseline:** Adopted pattern (alternating showcases) + adapted for Supaprod identity (Pixel, three-voice, starfield)
 - **Claims law:** Zero customer logos (blocked); zero mocked numbers (all live)
 - **Autonomy rule:** Every decision traces back to existing law (Tempo, landing v2, founder taste)
 

@@ -21,7 +21,7 @@ _Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN.
 
 ## DONE (verified) — 66 files changed
 
-1. **IA = "The Cadence Loop"** — `src/lib/nav-model.ts`: 10 destinations, 3 zones (HOME=Today · THE LOOP 01 Discover · 02 Decide · 03 Plan · 04 Design · 05 Build · 06 Ship · 07 Learn · INTELLIGENCE Brain+Engine Room). Digit keys 1-9 + Engine Room `g` (10th, no single digit). `Decide` (Option B, 2026-07-13) is a first-class stage = the judgment gate, real page at `_authenticated.decide.tsx` rendering `OpportunityQueue`. Memory was renamed to **Brain** everywhere (route `/brain`). Tests: `nav-model.test.ts`, `__tests__/nav-model.test.ts`, `legacy-redirects.test.ts`, `palette-catalog.test.ts`.
+1. **IA = "The Supaprod Loop"** — `src/lib/nav-model.ts`: 10 destinations, 3 zones (HOME=Today · THE LOOP 01 Discover · 02 Decide · 03 Plan · 04 Design · 05 Build · 06 Ship · 07 Learn · INTELLIGENCE Brain+Engine Room). Digit keys 1-9 + Engine Room `g` (10th, no single digit). `Decide` (Option B, 2026-07-13) is a first-class stage = the judgment gate, real page at `_authenticated.decide.tsx` rendering `OpportunityQueue`. Memory was renamed to **Brain** everywhere (route `/brain`). Tests: `nav-model.test.ts`, `__tests__/nav-model.test.ts`, `legacy-redirects.test.ts`, `palette-catalog.test.ts`.
 2. **App shell** — `src/components/cadence/AppShell.tsx`: 3 narrative zones; numbered loop nodes (NO continuity line — it implied gating); Memory/Engine Room have no empty number slot; glass sidebar rail.
 3. **Shared Tempo header** — `src/components/cadence/PageHeader.tsx` (mono eyebrow + Geist Sans title + ember accent + always-visible USP capsule) on all 8 stage surfaces.
 4. **Ship + Learn = real pages** — `src/routes/_authenticated.ship.tsx` (new), `_authenticated.learn.tsx` (converted from redirect). `/outcome` → `/learn`.
@@ -45,13 +45,13 @@ _Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN.
 19. **Avatar library** — `Avatar` (8 theme-token orbs muted into the surface, calm in both themes) with a per-account default + a **user picker in Settings → You** (`useAvatarChoice`).
 20. **Button color grammar** — first-class ember **`accent`** Button variant + documented one-rule grammar (accent=primary/human · default=neutral · secondary/tertiary=support · link=blue/machine · destructive/warning=risk; one accent per screen).
 21. **Icon-only copy** — "Copy link" is icon-only in the share clusters (teardown, decision receipt); Share/Unshare stay labeled.
-22. **Ask panel redesign** — "Ask Cadence" framing (platform-wide, current screen as a secondary cue), ember sparkle + ambient wash, and a liquid-glass composer with an ember send button + focus glow.
+22. **Ask panel redesign** — "Ask Supaprod" framing (platform-wide, current screen as a secondary cue), ember sparkle + ambient wash, and a liquid-glass composer with an ember send button + focus glow.
 23. **CadenceMark brand logo + loader** — `src/components/cadence/CadenceMark.tsx`: a seven-petal spiral (the loop) around a glowing ember/gold core (Brain + Pulse); theme-aware metallic (silver/white on dark, black on light); the animated `CadenceLoader` plays in the sidebar/ticker/Ask (via `AiWorking`) wherever AI works.
 24. **Brand kit (GTM)** — `docs/Growth Strategy/branding/`: the mark in every form (SVG + PNG at all sizes + favicon.ico + apple-touch/PWA icons + dark/light OG social) + an animated HTML reference + `generate.ts` + a full guidelines README. `.gitignore` exception keeps the raster set committed.
 
 Design record for this pass: `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md` (2026-07-14 addendums 11-19).
 
-25. **Favicon** — the actual Cadence mark, transparent (NO box), theme-aware (white on dark tabs / black on light) + ember/gold core (`public/favicon.svg`); raster fallbacks (`public/favicon.png`, `apple-touch-icon.png`, `favicon.ico`) + `__root.tsx` updated; retired Butterfly favicon + its R2 png import removed.
+25. **Favicon** — the actual Supaprod mark, transparent (NO box), theme-aware (white on dark tabs / black on light) + ember/gold core (`public/favicon.svg`); raster fallbacks (`public/favicon.png`, `apple-touch-icon.png`, `favicon.ico`) + `__root.tsx` updated; retired Butterfly favicon + its R2 png import removed.
 26. **Hero brand watermark + crisp mark** — a large monochrome mark bleeds subtly into the Today hero's bottom-right (cropped, ~7% opacity, very slow turn, `.hero-watermark-spin`); the in-app mark is now crisp white/black (not dull silver).
 
 ## PENDING (tomorrow's pickup — nothing blocking; foundations in place)

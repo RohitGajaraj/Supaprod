@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { StudioApproval, StudioRunDetail } from "@/lib/studio.functions";
-import { ShimmerText } from "@/components/cadence/ShimmerText";
+import { ShimmerText } from "@/components/supaprod/ShimmerText";
 import { ApprovalCard } from "./ApprovalCard";
 import { StatusIcon, StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost, summarizeArgs } from "./studio-format";

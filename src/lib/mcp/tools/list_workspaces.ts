@@ -4,7 +4,7 @@ import { supabaseForUser, notAuthed } from "../supabase-for-user";
 export default defineTool({
   name: "list_workspaces",
   title: "List workspaces",
-  description: "List the Cadence workspaces the connected user can access.",
+  description: "List the Supaprod workspaces the connected user can access.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {

@@ -26,7 +26,7 @@ export function readEmailConfig(): EmailConfig {
   const apiKey = env.RESEND_API_KEY?.trim() || null;
   return {
     apiKey,
-    from: env.RESEND_FROM_EMAIL?.trim() || "Cadence <notifications@cadence.app>",
+    from: env.RESEND_FROM_EMAIL?.trim() || "Supaprod <notifications@supaprod.app>",
     enabled: !!apiKey,
   };
 }
@@ -77,9 +77,9 @@ export type EmailResult = { sent: boolean; link: string };
  */
 export async function sendInviteEmail(args: InviteEmail): Promise<EmailResult> {
   const subject = args.workspaceName
-    ? `You are invited to join ${args.workspaceName} on Cadence`
-    : "You are invited to join a workspace on Cadence";
-  const text = `You have been invited to join a Cadence workspace.\n\nJoin here: ${args.inviteLink}`;
+    ? `You are invited to join ${args.workspaceName} on Supaprod`
+    : "You are invited to join a workspace on Supaprod";
+  const text = `You have been invited to join a Supaprod workspace.\n\nJoin here: ${args.inviteLink}`;
   const { sent } = await sendEmail({ to: args.to, subject, text });
   return { sent, link: args.inviteLink };
 }

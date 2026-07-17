@@ -161,7 +161,7 @@ describe("classifyMcpRequest (the transport intent matrix)", () => {
 });
 
 describe("result builders", () => {
-  test("buildInitializeResult reports cadence identity + tool capability", () => {
+  test("buildInitializeResult reports supaprod identity + tool capability", () => {
     const r = buildInitializeResult("2025-06-18");
     expect(r.protocolVersion).toBe("2025-06-18");
     expect(r.serverInfo.name).toBe(MCP_SERVER_NAME);

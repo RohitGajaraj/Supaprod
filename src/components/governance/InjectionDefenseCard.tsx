@@ -15,7 +15,7 @@ import {
   assessInjectionSample,
   type InjectionSampleResult,
 } from "@/lib/guardrails-injection.functions";
-import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 import { toast } from "@/lib/notify";
 
 /** allow = safe (moss); flag = kept behind the fence but suspicious (saffron); quarantine = stripped (madder). */

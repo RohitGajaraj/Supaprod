@@ -9,7 +9,7 @@
 ---
 
 > [!IMPORTANT]
-> **PRODUCT NAME: CADENCE.** The product is Cadence, the only name to use. Any stray legacy token from the retired 2026-06-10 rename experiment reads as equivalent to `cadence`/`Cadence`.
+> **PRODUCT NAME: SUPAPROD.** The product is Supaprod, the only name to use. Any stray legacy token from the retired 2026-06-10 rename experiment reads as equivalent to `supaprod`/`Supaprod`.
 
 ---
 
@@ -31,7 +31,7 @@ Both came from one founder session (2026-06-20) and are best read as one arc: a 
 
 ### Thesis
 
-Today Cadence's memory is **flat vector recall** (embeddings plus RAG over chunks). The founder's cue is that the moat (memory plus the decision layer) needs a genuine **company-brain / second-brain engine** underneath, "like Obsidian, a company brain, a second brain." The correct, defensible reading of that cue, grounded in the 2026 agent-memory frontier, is:
+Today Supaprod's memory is **flat vector recall** (embeddings plus RAG over chunks). The founder's cue is that the moat (memory plus the decision layer) needs a genuine **company-brain / second-brain engine** underneath, "like Obsidian, a company brain, a second brain." The correct, defensible reading of that cue, grounded in the 2026 agent-memory frontier, is:
 
 > Evolve memory into a **typed, bi-temporal, auto-extracted decision knowledge graph, layered over the existing vector recall**, whose signature mechanic is **outcome-labeled supersession**.
 
@@ -105,7 +105,7 @@ The doctrine says "name the outcome, not the mechanism; the default surface neve
 ### What to borrow
 
 - **Linear `⌘K`:** one calm door that holds everything; calm equals reduced resting scope plus full power one keystroke away.
-- **Raycast AI Extensions:** natural-language intent maps to a tool plus arguments and runs. This is the Cadence shape.
+- **Raycast AI Extensions:** natural-language intent maps to a tool plus arguments and runs. This is the Supaprod shape.
 - **Slack Quick Switcher:** never open to a blank prompt; populate with frecency-ranked recents; treat speed as a feature.
 - **Warp blocks:** turn machine output into selectable, structured, reviewable units. This is the content model for the preview pane.
 - **Claude Artifacts / ChatGPT Canvas:** persistent artifact plus ephemeral conversation; highlight-to-edit scopes changes so the system never over-rewrites.

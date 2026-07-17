@@ -160,7 +160,7 @@ export type ExtractedDesignMemoryItem = {
   rationale: string | null;
 };
 
-const EXTRACT_SYSTEM = `You are the Cadence design analyst. Extract a workspace's design language as short, standing entries.
+const EXTRACT_SYSTEM = `You are the Supaprod design analyst. Extract a workspace's design language as short, standing entries.
 Rules:
 - Each entry has exactly one category: token (a color/visual-token value, e.g. "Accent color: #F4A64A"), type (a font/type-scale rule), spacing (a spacing/rhythm rule), principle (a design principle or IA law), voice (a copy/tone rule), or pattern (a recurring UI pattern, e.g. "Button styles: max 2").
 - Extract at most ${MAX_EXTRACTED_ITEMS}, most load-bearing first.

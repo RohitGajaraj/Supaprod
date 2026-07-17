@@ -54,7 +54,7 @@ const EvalCalibrationPanel = React.lazy(() =>
   })),
 );
 // RPT-50: the self-improvement engine, surfaced as a Quality view. Reads
-// Cadence's OWN quality signals and lists the deterministic improvements it
+// Supaprod's OWN quality signals and lists the deterministic improvements it
 // would make to itself (failing evals, over-corrected agents, losing playbooks).
 const SelfImprovementPanel = React.lazy(() =>
   import("@/components/engine-room/SelfImprovementPanel").then((m) => ({

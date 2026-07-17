@@ -11,7 +11,7 @@
  * generation date and a drift-state (is the spine current, or has the spec
  * moved past its last-drafted contract).
  *
- * "Competitors generate documents; Cadence deprecates documents into views."
+ * "Competitors generate documents; Supaprod deprecates documents into views."
  *
  * PURE: no db, no network, no AI. Nothing is fabricated. Sparse contract fields
  * degrade to plain "not recorded in the contract" statements rather than
@@ -47,7 +47,7 @@ const DOC_TITLE: Record<SpecProjectionKind, string> = {
 };
 
 const PROJECTION_FOOTER =
-  "Projected from this spec's Outcome Contract, generated on demand. Cadence deprecates documents into views, so nobody hand-maintains this.";
+  "Projected from this spec's Outcome Contract, generated on demand. Supaprod deprecates documents into views, so nobody hand-maintains this.";
 
 export type DriftState = "current" | "stale" | "no-contract";
 

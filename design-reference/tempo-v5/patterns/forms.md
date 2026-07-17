@@ -1,7 +1,7 @@
 # Forms & validation
 
 > How a field, a group of fields, and a submit row look, behave, and fail, across every
-> surface that collects input in Cadence.
+> surface that collects input in Supaprod.
 > Extension — base: Geist `Checkbox`, `Description`, `Error`, `ClearableInput`, `Button`,
 > `DestructiveActionModal` (see `research/`) + the color/typography/materials/spacing
 > tokens · inspiration: Stripe dashboard forms, Vercel project settings (principles only,
@@ -9,7 +9,7 @@
 
 ## Anatomy — the parts, named, with layout relationships
 
-A Cadence form is built from four nested levels. From the outside in: **Form** → **Field
+A Supaprod form is built from four nested levels. From the outside in: **Form** → **Field
 group** (optional, for related fields) → **Field** → **Control**.
 
 ```
@@ -89,7 +89,7 @@ the Button contract: more than two sibling actions become a Menu/Split Button).
   validation, use the `error` prop on `Input` instead").
 - **Server-error banner** — when the whole submit fails for a reason no field-level check
   could catch (network failure, permission error), that's a block failure: use the actual
-  `Error` component (or its Cadence port) above the submit row, with a retry action, per
+  `Error` component (or its Supaprod port) above the submit row, with a retry action, per
   `error.md`'s content rules (lead with what happened, then what to do; never "Unable to").
 
 **Persistence**

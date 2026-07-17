@@ -205,7 +205,7 @@ export const REVERSIBILITY_LABEL: Record<Reversibility, string> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Tools whose effect reaches a system OUTSIDE the Cadence workspace (repo / tracker / calendar).
+ * Tools whose effect reaches a system OUTSIDE the Supaprod workspace (repo / tracker / calendar).
  * Excluded deliberately: `studio.stage` (stages the local git index only, nothing leaves the repo
  * until `studio.commit`) and `scheduler.propose` (a workspace-local proposal, nothing books on the
  * calendar until `calendar.create`) — both are internal until their committing companion runs.

@@ -85,7 +85,7 @@ function Consent() {
 
   return (
     <main className="mx-auto max-w-md p-8">
-      <h1 className="mb-3 text-xl font-semibold">Connect {clientName} to your Cadence account</h1>
+      <h1 className="mb-3 text-xl font-semibold">Connect {clientName} to your Supaprod account</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         {clientName} will read data as you, using your workspace access.
       </p>

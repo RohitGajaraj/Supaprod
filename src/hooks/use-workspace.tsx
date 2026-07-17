@@ -52,8 +52,8 @@ type WorkspaceContextType = {
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
-const WORKSPACE_STORAGE_KEY = "cadence.workspace.active";
-const PRODUCT_STORAGE_KEY = "cadence.product.active";
+const WORKSPACE_STORAGE_KEY = "supaprod.workspace.active";
+const PRODUCT_STORAGE_KEY = "supaprod.product.active";
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();

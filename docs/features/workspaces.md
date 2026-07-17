@@ -40,5 +40,5 @@ Every new account will land in a richly seeded sample workspace (proposed "North
 - Build SoT: [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md)
 - Status board: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (group G10)
 - Pricing: [`pricing.md`](./pricing.md)
-- Monetization canon: [`../strategy/byo-build-and-cadence-cloud.md`](../strategy/byo-build-and-cadence-cloud.md) §5.5
+- Monetization canon: [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) §5.5
 - Security / RLS: [`../../architecture/security.md`](../../architecture/security.md) · Data model: [`../../architecture/data.md`](../../architecture/data.md)

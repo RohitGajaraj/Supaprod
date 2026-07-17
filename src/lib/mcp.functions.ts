@@ -10,7 +10,7 @@ import { buildArdDocument } from "./ard-schema";
 /**
  * Q1-MCP · Read-only MCP (Model Context Protocol) server functions.
  *
- * External agents call Cadence via MCP to read signals/opportunities/decisions/
+ * External agents call Supaprod via MCP to read signals/opportunities/decisions/
  * PRDs/roadmap and export a decision-lessons skill pack, governed by workspace
  * scope, rate limits, and audit. The decision-WRITE half is founder-gated
  * (Phase 4b) and is intentionally not exposed here.
@@ -335,7 +335,7 @@ export async function getPRD(supabaseClient: any, workspace_id: string, prd_id: 
  * CNV-03 · fetch a spec's Outcome Contract wrapped as a portable ARD document.
  * The dispatch-time counterpart to `get_prd`: `get_prd` never exposed
  * `contract` (it predates CNV-01), so this is the one MCP read path that
- * hands a dispatched agent the same structured acceptance contract Cadence
+ * hands a dispatched agent the same structured acceptance contract Supaprod
  * itself checks a build against, instead of the narrative body.
  */
 export async function getArdDocument(

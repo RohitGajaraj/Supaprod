@@ -11,7 +11,7 @@ import {
 // /.well-known/agent.json AND served from src/server.ts's well-known handler
 // (comment: "Shared between the card route AND the server.ts well-known
 // handler so the two representations never drift"). Anything wrong here is a
-// silent breakage for every peer agent that discovers Cadence, so the tests
+// silent breakage for every peer agent that discovers Supaprod, so the tests
 // pin the shape, not just "it returns an object".
 
 describe("buildAgentCard", () => {
@@ -19,10 +19,10 @@ describe("buildAgentCard", () => {
   const card = buildAgentCard(origin);
 
   it("stamps the fixed identity fields", () => {
-    expect(card.name).toBe("Cadence");
-    expect(card.slug).toBe("cadence");
+    expect(card.name).toBe("Supaprod");
+    expect(card.slug).toBe("supaprod");
     expect(card.version).toBe(AGENT_CARD_VERSION);
-    expect((card.provider as Record<string, unknown>).organization).toBe("Cadence");
+    expect((card.provider as Record<string, unknown>).organization).toBe("Supaprod");
   });
 
   it("derives every endpoint from the given origin, never hardcoding a host", () => {

@@ -1,4 +1,4 @@
-/* Cadence Tempo v5 — materials (radii + fills + strokes + shadows), motion, z-index, sizes.
+/* Supaprod Tempo v5 — materials (radii + fills + strokes + shadows), motion, z-index, sizes.
    Source: vercel.com/geist/materials + extracted --ds-* values (both themes).
    Materials encode ELEVATION ROLE — never hand-roll radius/stroke/shadow on a surface.
    Surface (on the page): base/small/medium/large. Floating (above it): tooltip/menu/modal/fullscreen.

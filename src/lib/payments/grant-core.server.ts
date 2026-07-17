@@ -1,7 +1,7 @@
 /**
  * PC-05 — the provider-agnostic grant core. Everything a verified billing
  * event is allowed to DO lives here, keyed by the two provider-neutral facts
- * every rail can supply: the Cadence userId (from checkout metadata /
+ * every rail can supply: the Supaprod userId (from checkout metadata /
  * custom_data) and the catalog lookup_key (the shared price vocabulary,
  * billing-tier.ts). The Stripe and Paddle adapters translate their events
  * into these calls; neither owns a money path of its own.

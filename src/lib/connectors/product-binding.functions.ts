@@ -342,7 +342,7 @@ export async function provisionGithubRepo(opts: {
  * using the authenticated user's GitHub connection. Optionally auto-binds the
  * new repo as a product-scoped binding.
  *
- * Never touches a Cadence-owned org — the endpoint routes to the caller's own
+ * Never touches a Supaprod-owned org — the endpoint routes to the caller's own
  * /user/repos unless an explicit org is provided.
  */
 export const createRepoForProduct = createServerFn({ method: "POST" })

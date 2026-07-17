@@ -1,7 +1,7 @@
 /**
  * Mission 3.8b (SW-3 remainder): the compounding pass, sweep half.
  *
- * Runs as outcome-tick's fourth step, same hourly cadence, fail-soft. Scans
+ * Runs as outcome-tick's fourth step, same hourly supaprod, fail-soft. Scans
  * recent learnings, joins the cheap signal keys (opportunity theme link,
  * else opportunity/spec title stem), groups them deterministically
  * (learning-compound.ts), and writes ONE playbook_proposals row per group of

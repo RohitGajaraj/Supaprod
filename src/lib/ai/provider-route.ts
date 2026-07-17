@@ -1,7 +1,7 @@
 /**
  * MODEL-AGNOSTIC dispatch resolver (pure).
  *
- * Cadence is model-agnostic at the platform layer: ANY model from ANY provider
+ * Supaprod is model-agnostic at the platform layer: ANY model from ANY provider
  * (Anthropic, OpenAI, Google, DeepSeek, xAI, Moonshot, Groq, Mistral, Together,
  * OpenRouter, Qwen/DashScope, MiniMax, Fireworks, Perplexity, Ollama, vLLM, …)
  * can power an internal AI action, as long as it speaks the OpenAI Chat

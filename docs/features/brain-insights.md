@@ -10,7 +10,7 @@ Makes the Brain human-useful instead of a node graph. The **Insights** tab rende
 
 - **Headline observations** — honest, rule-based notes the data supports (hit rate, evolving beliefs, sparse-data honesty).
 - **Beliefs** — current beliefs (standing decisions) vs revised (superseded), via bitemporal supersession.
-- **What Cadence has learned** — recorded outcomes by verdict (validated / missed / mixed) + the decisive **hit rate** + each recent outcome's metric and ICE shift.
+- **What Supaprod has learned** — recorded outcomes by verdict (validated / missed / mixed) + the decisive **hit rate** + each recent outcome's metric and ICE shift.
 - **Why we believe this** _(2026-06-24)_ — per-decision plain-language "why": each recent decision's recorded **rationale**, whether it still **stands** or was **revised**, and (when known) the title of the decision that **revised** it.
 - **What is unresolved** _(2026-06-24)_ — the open questions: decisions in an **active contradiction** that no later decision has settled, plus **mixed** outcomes still waiting on a clean result. Honest empty state when nothing is open.
 - **How it accrued** — a month-by-month timeline of decisions + outcomes (the darker base marks revised decisions).

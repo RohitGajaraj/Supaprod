@@ -4,7 +4,7 @@
  * A goal is a first-class outcome statement ("grow activation 15% this
  * quarter"). The swarm works it two ways: an inline first pass on creation
  * (so the goal demonstrably starts working without a human start button),
- * then the goal-tick cron re-plans on a cadence. Every proposal lands in
+ * then the goal-tick cron re-plans on a supaprod. Every proposal lands in
  * Decide as a normal opportunity linked via opportunities.goal_id; the
  * existing human gates are untouched.
  *

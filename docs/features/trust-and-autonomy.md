@@ -11,7 +11,7 @@
 ## 1. What the number means (operator view)
 
 **Scale: 0 to 100.** Every agent gets one Trust score, recomputed on every read
-from the real history Cadence already records. No cached column, can't go
+from the real history Supaprod already records. No cached column, can't go
 stale.
 
 |     Score | Qualitative label   | What it says                                                                                                    |

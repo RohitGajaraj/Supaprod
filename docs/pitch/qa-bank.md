@@ -20,7 +20,7 @@
 
 **"Why won't Atlassian/Airtable just do this?"** — They buy the pieces (Cycle absorbed 2025; Kraftful → Amplitude) but a suite can't be the neutral judge across its competitors' tools, and none of them will publish their misses. Our two controversial moves — artifacts-as-projections and published calibration — are organizationally impossible for an incumbent whose revenue is the artifact tooling. [moat.md §4; v13 §7]
 
-**"Why aren't you building the code generator yourselves?"** — Because it's a knife fight we'd lose and don't need: Devin went $37M→$492M ARR in twelve months at a $26B valuation, Cursor is at $2B ARR, Copilot's agent is GA on GitHub's distribution — and Amodei says models absorb SWE end-to-end within two years. We own the layer that strengthens every time they improve: the decision, the dispatch, the gate, and the receipts. A better generator makes Cadence better the same day, behind the same seam — and an enterprise can bring its own Devin contract, moving the spikiest compute cost to their bill. The judge doesn't enter the race. [full argument: build-driver-and-dispatch.md, the 2026-07-10 section]
+**"Why aren't you building the code generator yourselves?"** — Because it's a knife fight we'd lose and don't need: Devin went $37M→$492M ARR in twelve months at a $26B valuation, Cursor is at $2B ARR, Copilot's agent is GA on GitHub's distribution — and Amodei says models absorb SWE end-to-end within two years. We own the layer that strengthens every time they improve: the decision, the dispatch, the gate, and the receipts. A better generator makes Supaprod better the same day, behind the same seam — and an enterprise can bring its own Devin contract, moving the spikiest compute cost to their bill. The judge doesn't enter the race. [full argument: build-driver-and-dispatch.md, the 2026-07-10 section]
 
 **"What's defensible in the AI stack?"** — Nothing, per Casado ("no endemic tech moat") — which is our argument: the moat is the receipted, outcome-labeled record and the trust ramp, not the model calls. Method is commodity; method bound to your accumulated judgment is not. [investor corpus; v11 §8]
 
@@ -28,11 +28,11 @@
 
 **"You had a working product for weeks with zero users. Why hadn't you launched?"** — Fair hit, and we own it: we over-built before opening the doors, caught it on 2026-07-10, and reorganized the whole company around launch (beta within days, public listing inside the month). The honest posture is self-aware correction, not justification — partners respect "I was wrong and here's the fix date" far more than a rationale. [v13 campaign; interview-prep §4.1]
 
-**"Linear assigns issues to Cursor and Devin today. Why a second system?"** — Linear dispatches the build; it doesn't decide what's worth building or record whether the decision paid off. We sit above the tracker and dispatch to those same agents — a Linear customer is a Cadence customer. [BuildDriver seam; research-findings §3.2]
+**"Linear assigns issues to Cursor and Devin today. Why a second system?"** — Linear dispatches the build; it doesn't decide what's worth building or record whether the decision paid off. We sit above the tracker and dispatch to those same agents — a Linear customer is a Supaprod customer. [BuildDriver seam; research-findings §3.2]
 
 ## Customers (the skeptical senior PM)
 
-**"Who's accountable when the AI is wrong?"** — You are — that's the design. Cadence never hides that; it gives you the instruments: every act has a receipt, every artifact has one-key rewind, autonomy is earned per-agent by track record and you can tighten it anytime (hard floors: merge/revert always ask). Watch the demo's failure path: we rehearse being wrong on purpose. [demo-script.md]
+**"Who's accountable when the AI is wrong?"** — You are — that's the design. Supaprod never hides that; it gives you the instruments: every act has a receipt, every artifact has one-key rewind, autonomy is earned per-agent by track record and you can tighten it anytime (hard floors: merge/revert always ask). Watch the demo's failure path: we rehearse being wrong on purpose. [demo-script.md]
 
 **"What do you read from my tools? Where does my data live?"** — Read scopes shown at every connect (what we read / what we never touch / one-click revoke); your data lives in your workspace's Postgres, exportable in open formats anytime; no training on your data; BYO keys supported. The trust card is IN the connect flow, not a policy PDF. [PC-03/PC-02; 43% name security the blocker — research]
 
@@ -40,7 +40,7 @@
 
 **"I don't trust AI-written PRDs."** — Neither do we — that's why the PRD isn't the product. The decision is, with its evidence and its outcome window. The spec is a projection generated from the record, drift-stamped, and reverted in one key. You review calls, not prose. [the artifact doctrine]
 
-**"Why did we decide X?" (the wedge)** — That's the first thing Cadence answers — in seconds, with receipts. It's the top-voted pain in the community's own words. [research §12: the 480-pt thread]
+**"Why did we decide X?" (the wedge)** — That's the first thing Supaprod answers — in seconds, with receipts. It's the top-voted pain in the community's own words. [research §12: the 480-pt thread]
 
 ## Teams / engineers
 
@@ -48,7 +48,7 @@
 
 **"Will the agent commit garbage to our repo?"** — The build spine can't bypass your merge gate: PRs only, CI must pass, merge is permanently human-gated (a non-overridable floor), every step traced. The trust ramp means an agent earns even its lower-stakes permissions. [SW-2; the tool-mode floors]
 
-**"We already have Copilot/Cursor/Devin."** — Keep them — we dispatch to them. Cadence is the layer that decides WHAT'S worth building and proves what worked; your build tools stay, with receipts on top. [BuildDriver seam; moat.md §6]
+**"We already have Copilot/Cursor/Devin."** — Keep them — we dispatch to them. Supaprod is the layer that decides WHAT'S worth building and proves what worked; your build tools stay, with receipts on top. [BuildDriver seam; moat.md §6]
 
 ## The questions WE ask them (discovery, every beta first-session)
 

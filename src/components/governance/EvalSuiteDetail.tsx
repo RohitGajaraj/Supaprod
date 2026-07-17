@@ -1,5 +1,5 @@
 // Eval suite drill-down — screen 7 of the Ember Editorial migration, ported
-// 1:1 from design-reference/cadence/govern-detail.jsx (EvalDetail) onto real
+// 1:1 from design-reference/supaprod/govern-detail.jsx (EvalDetail) onto real
 // data only. Rides ?suite= on /govern?tab=evals (tab body only — SurfaceHeader
 // + TabRow stay; DrillHeader back returns to the bare tab).
 //
@@ -24,7 +24,7 @@
 //   · Config         real rows only — target prompt (no dataset exists),
 //                    judge, model, gate threshold with the truthful "a case
 //                    fails the run" copy (no gate-pause behavior exists),
-//                    cadence (raw cron or "manual"; no owner / auto-memory
+//                    supaprod (raw cron or "manual"; no owner / auto-memory
 //                    claim), enabled toggle, confirmed delete
 // Production functionality preserved: run now, enable/disable, delete
 // (confirmed), case CRUD (the Cases tab — the reference lacks one, but the
@@ -45,7 +45,7 @@ import {
   updateEvalCase,
   deleteEvalCase,
 } from "@/lib/evals.functions";
-import { DrillHeader, MonoLabel, SubTabs, VerdictChip } from "@/components/cadence/Primitives";
+import { DrillHeader, MonoLabel, SubTabs, VerdictChip } from "@/components/supaprod/Primitives";
 import { GraphSlider } from "@/components/obsidian";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -437,7 +437,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               ["Judge", suite.judge_model],
               ["Model", suite.model ?? "-"],
               ["Gate threshold", `≥ ${suite.pass_threshold}: below this, a case fails the run`],
-              ["Cadence", suite.schedule_cron ?? "manual"],
+              ["Supaprod", suite.schedule_cron ?? "manual"],
             ] as [string, string][]
           ).map(([l, v]) => (
             <div

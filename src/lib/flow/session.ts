@@ -124,7 +124,7 @@ export type FocusHistoryEntry = {
   completed: boolean;
 };
 
-export const HISTORY_KEY = "cadence.flow.history";
+export const HISTORY_KEY = "supaprod.flow.history";
 const HISTORY_CAP = 50;
 
 /** The localStorage GETTER itself can throw (storage-denied browsers: blocked

@@ -11,8 +11,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type CSSProperties, type RefObject } from "react";
 import { z } from "zod";
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +62,7 @@ const BUILD_STATION_AGENTS = ["builder"];
 
 export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
-  head: () => ({ meta: [{ title: "Build · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
   validateSearch: (search: Record<string, unknown>) =>
     z
       .object({
@@ -985,7 +985,6 @@ function BuildPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </>
   );
 }

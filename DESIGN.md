@@ -2,8 +2,8 @@
 version: 2.0
 created: 2026-06-12
 updated: 2026-06-19
-name: cadence-ember-editorial
-product: "Project Cadence — agentic product-operations platform"
+name: supaprod-ember-editorial
+product: "Supaprod — agentic product-operations platform"
 description: >
   RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
   (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces INCLUDING
@@ -12,22 +12,22 @@ description: >
   live proof) remains valid as content spec -- only the visual system moved
   to Geist. LANDING CONTENT RULING (2026-07-10, v13 Proof
   Campaign, work package PC-03): the landing hero carries the v13 one-liner
-  ("Cadence is Claude Code for the product lifecycle - agents do the product
+  ("Supaprod is Claude Code for the product lifecycle - agents do the product
   work end to end, you make the calls, and the ledger proves what worked"),
   one CTA (the Critic teardown), live proof over claims, and a plain
   data-trust answer above the fold's fold - content spec in
   docs/strategy/v13-proof-campaign.md sec 8 + the PC-03 row in
   docs/planning/v13-proof-campaign-plan.md; this file still owns the VISUAL
-  language it renders in. Was: THE source of truth for all Cadence design
+  language it renders in. Was: THE source of truth for all Supaprod design
   work, in any tool (Claude Code,
   Lovable, Cursor, design agents). Supersedes uploads/DESIGN-claude.md, which
-  was an ANALYSIS of Claude.com used only as a craft reference — Cadence is
+  was an ANALYSIS of Claude.com used only as a craft reference — Supaprod is
   deliberately differentiated from it. Warm parchment canvas, espresso/cacao
   ink, burnished ember copper accent, Newsreader serif display, the bilateral
   Butterfly mark. Read "How to plan and build" before writing any UI code.
 
 colors:
-  # oklch values are CANONICAL (see cadence/tokens.css). Hex ≈ fallbacks only.
+  # oklch values are CANONICAL (see supaprod/tokens.css). Hex ≈ fallbacks only.
   ember: "oklch(0.60 0.155 50)" # ≈ #c2622e — NEEDS-HUMAN ONLY
   ember-active: "oklch(0.52 0.145 48)" # ≈ #a64f24
   ember-soft: "oklch(0.78 0.08 55)" # ≈ #ddab88
@@ -71,11 +71,11 @@ motion:
 > This file remains the contract for the public landing page only, plus the
 > historical record. Do not apply parchment styles to any app surface.
 
-# Cadence Design — "Ember Editorial" · Source of Truth (landing page only)
+# Supaprod Design — "Ember Editorial" · Source of Truth (landing page only)
 
 > _Created: 2026-06-12 · Last updated: 2026-07-02_
 
-Cadence is a platform where a swarm of specialist agents (Scout, Scribe,
+Supaprod is a platform where a swarm of specialist agents (Scout, Scribe,
 Builder, Marketer, Historian…) runs the product loop — signals → opportunities
 → specs → missions → outcomes — and the human governs through gates. The design
 must read as a calm warm editorial publication on the human side AND make
@@ -83,10 +83,10 @@ autonomous machine work legible and trustworthy on the agent side.
 
 **Canonical implementations live in this project:**
 
-- `cadence/tokens.css` — every token, theme, and utility class. NEVER invent
+- `supaprod/tokens.css` — every token, theme, and utility class. NEVER invent
   colors or restate values; import or copy this file.
 - `styles.css` (root) — the one-line import entry (fonts + tokens).
-- `Cadence Prototype.html` + `cadence/*.jsx` — the living UI kit; every screen,
+- `Cadence Prototype.html` + `supaprod/*.jsx` — the living UI kit; every screen,
   component, and interaction pattern. When unsure how something looks, open it.
 - `Platform Design Blueprint.html` — the signed contract (v2).
 - `design-system/README.md` + `design-system/` — the codified design system and specimens.
@@ -98,7 +98,7 @@ autonomous machine work legible and trustworthy on the agent side.
 
 Nothing may be mistakable for Anthropic/Claude at a glance:
 
-- **No radial flower/asterisk marks.** The Cadence Butterfly is bilateral.
+- **No radial flower/asterisk marks.** The Supaprod Butterfly is bilateral.
 - **No coral-on-cream lookalikes.** Our accent is burnished ember copper
   (hue 50) on parchment (hue 85) — warmer canvas, deeper accent, different pair.
 - **No Claude-adjacent type.** Newsreader + Schibsted Grotesk + JetBrains Mono.
@@ -142,7 +142,7 @@ Accent variants: `data-accent="rust" | "marigold"` on `<html>`.
    "Approve · opens the PR" / "Reject · nothing ships" / "Reject · stays
    drafted". House separator is the middot `·`.
 2. **Auto-titles are objectives:** 2–3 words (4 max), stopwords stripped, first
-   word capitalized. Reuse `extractTitle()` from `cadence/chat.jsx` anywhere a
+   word capitalized. Reuse `extractTitle()` from `supaprod/chat.jsx` anywhere a
    title is generated (chat threads, missions, specs, docs).
 3. Calm and declarative; no exclamation marks, no hype, no emoji. Sentence case
    everywhere except mono caps.
@@ -175,7 +175,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 | Cooking banner       | Mission ticker on every screen; ember sweep; names what's running                                                                                                                                                     |
 | Construction pill    | TEMPORARY fixed top-center mono pill ("Agents are building in the back — we'll serve you soon"). Remove at GA                                                                                                         |
 | Footer stamp         | "Last build · date time" from `document.lastModified`                                                                                                                                                                 |
-| Govern observability | Drill-down, never static: list rows (eval suites, agents, traces, drift surfaces) open detail screens with sub-tabs (runs / cases / config) and time-range tabs. `cadence/govern-detail.jsx` is the pattern reference |
+| Govern observability | Drill-down, never static: list rows (eval suites, agents, traces, drift surfaces) open detail screens with sub-tabs (runs / cases / config) and time-range tabs. `supaprod/govern-detail.jsx` is the pattern reference |
 | Chat authorship      | User = ember-ringed initials chip (right); AI = Butterfly. Legible at a glance                                                                                                                                        |
 | Status placement     | Running status at sidebar bottom (above Trust). Topbar = breadcrumbs + date + weather only                                                                                                                            |
 | Calendar             | Contribution-style pixel month, ‹ › nav + Today, weekends de-emphasized (pref in Settings → Profile), quick-add syncs back                                                                                            |
@@ -187,7 +187,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 The annotation pattern from the founder's design-review reference: small
 mono-caps OUTLINE pills — `KEEP` `CORRECT` `ADD NEXT` — preceding the content
-they classify. This is how Cadence makes judgments legible at a glance and
+they classify. This is how Supaprod makes judgments legible at a glance and
 the platform feel edited, prominent, premium. It applies to EVERY current and
 future screen, not one surface.
 
@@ -278,10 +278,10 @@ weight never does.
 
 > **STOP if you are building an app surface.** Any authenticated-app UI work follows [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (the v3 contract) via the `cadence-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
 
-**Backend, data, and auth come from Lovable, live.** Cadence is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
+**Backend, data, and auth come from Lovable, live.** Supaprod is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
 
-1. **Read before designing:** this file, then `cadence/tokens.css`, then the
-   relevant screen in `Cadence Prototype.html` / `cadence/*.jsx`. The prototype
+1. **Read before designing:** this file, then `supaprod/tokens.css`, then the
+   relevant screen in `Cadence Prototype.html` / `supaprod/*.jsx`. The prototype
    is the visual contract — match it, don't reinterpret it.
 2. **Plan against the loop:** every screen serves signals → opportunities →
    specs → missions → outcomes, with governance gates as the human touchpoints.
@@ -327,7 +327,7 @@ decoration (the aurora and cooking sweep are the only sanctioned washes).
 
 | Canonical artifact (design project)                                                                                  | Production equivalent (this repo)                                                                                                                                                                |
 | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `cadence/tokens.css`                                                                                                 | `src/styles.css` — Tailwind v4 `@theme` + `:root`/`.dark` token blocks (Ember light + Char night). Legacy aliases: `--coral`→ember, `--violet`→orchid agent, `--cyan`→indigo, `--amber`→saffron. |
+| `supaprod/tokens.css`                                                                                                | `src/styles.css` — Tailwind v4 `@theme` + `:root`/`.dark` token blocks (Ember light + Char night). Legacy aliases: `--coral`→ember, `--violet`→orchid agent, `--cyan`→indigo, `--amber`→saffron. |
 | `styles.css` font import                                                                                             | Google Fonts link in `src/routes/__root.tsx` (Newsreader · Schibsted Grotesk · JetBrains Mono)                                                                                                   |
 | Theme switching (`data-theme="dark"`)                                                                                | `.dark` class on `<html>` via `src/hooks/use-theme.tsx` (light = default parchment, dark = char; aurora retired 2026-06-12)                                                                      |
 | `.bento`, `.mono-label`, `.hero-editorial`, `.ai-glow`, `.dot-*`, `.cite`                                            | `@layer utilities` in `src/styles.css`                                                                                                                                                           |

@@ -133,7 +133,7 @@ Can run immediately (replace image paths with real screenshots).
 
 ## Before/After: Vercel Baseline Comparison
 
-| Aspect                | Vercel       | Cadence (now)                              |
+| Aspect                | Vercel       | Supaprod (now)                             |
 | --------------------- | ------------ | ------------------------------------------ |
 | Canvas                | Plain black  | Ink + grid + starfield (differentiator)    |
 | Hero font             | Sans 64px    | **Pixel 64px** (ours only)                 |
@@ -145,7 +145,7 @@ Can run immediately (replace image paths with real screenshots).
 | Markup quality        | Premium      | Premium (match)                            |
 | Accessibility         | WCAG AA      | **WCAG AAA** (ours, stronger)              |
 
-**The law:** inspiration, never mimicry. Cadence's differentiators stay visible.
+**The law:** inspiration, never mimicry. Supaprod's differentiators stay visible.
 
 ---
 
@@ -153,8 +153,8 @@ Can run immediately (replace image paths with real screenshots).
 
 All pages follow v13 positioning (`docs/pitch/one-pager.md`, 2026-07-10, applied to landing 2026-07-15):
 
-- **One-liner:** "Cadence is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."
-- **Hero:** "Cadence tells you what to build. then builds it. ships it. grades it. gets sharper."
+- **One-liner:** "Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."
+- **Hero:** "Supaprod tells you what to build. then builds it. ships it. grades it. gets sharper."
 - **USP:** outcome ledger + earned autonomy + self-improving judgment
 - **Banned words:** chatbot, copilot, operating system, competitor names, "early access", "cohort"
 - **Sanctioned:** "agents that ship real code" (qualified), "second brain", insider vocabulary with plain-words escape
@@ -294,14 +294,14 @@ Once phase 1 ships (estimated: 2–3 days of build time):
 
 ## The One Law
 
-**Inspiration, never mimicry.** Every pattern flows through Cadence's differentiators:
+**Inspiration, never mimicry.** Every pattern flows through Supaprod's differentiators:
 
 - Geist Pixel for heroes (theirs is Sans)
 - Seven-petal epitrochoid mark (theirs is triangle)
 - Three-voice grammar: ember (human) + blue (agent) + gold (memory)
 - Starfield + engineering grid (theirs is plain black)
 
-When in doubt, choose the Cadence-distinctive option.
+When in doubt, choose the Supaprod-distinctive option.
 
 ---
 

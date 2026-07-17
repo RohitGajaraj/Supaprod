@@ -50,7 +50,7 @@ export type AuthMethod =
        */
       scopes?: string[];
     }
-  // SW-7: Cadence registers its OWN OAuth app directly with the provider
+  // SW-7: Supaprod registers its OWN OAuth app directly with the provider
   // (same shape as github_app, generalized), no Lovable gateway dependency.
   // The founder registers a real app in the provider's developer console and
   // sets clientIdEnv/clientSecretEnv; the callback lives at
@@ -174,7 +174,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "INTERCOM_ACCESS_TOKEN", resourceKind: "inbox" },
     setupHint:
-      "Register an Intercom OAuth app: Client ID/Secret go in INTERCOM_CLIENT_ID/INTERCOM_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register an Intercom OAuth app: Client ID/Secret go in INTERCOM_CLIENT_ID/INTERCOM_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // ── SF-CONNECTORS (Signal Fabric Phase 2): inside-out customer-voice fleet ──
   // Each is inflow-only (read customer voice in; never writes back), so the catalog
@@ -204,7 +204,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "STRIPE_API_KEY" },
     setupHint:
-      "Register a Stripe OAuth app: Client ID/Secret go in STRIPE_CLIENT_ID/STRIPE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Stripe OAuth app: Client ID/Secret go in STRIPE_CLIENT_ID/STRIPE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // JNY-05: Slack is the one SF-CONNECTOR with a second, outflow purpose —
   // posting the ambient stakeholder digest to a team channel (write-back),
@@ -237,7 +237,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "SLACK_BOT_TOKEN", resourceKind: "channel" },
     setupHint:
-      "Register a Slack OAuth app (api.slack.com/apps): Client ID/Secret are on Basic Information -> App Credentials; add the Cadence redirect URL under OAuth & Permissions -> Redirect URLs.",
+      "Register a Slack OAuth app (api.slack.com/apps): Client ID/Secret are on Basic Information -> App Credentials; add the Supaprod redirect URL under OAuth & Permissions -> Redirect URLs.",
   },
   zendesk: {
     id: "zendesk",
@@ -264,7 +264,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "ZENDESK_API_TOKEN" },
     setupHint:
-      "Register a Zendesk OAuth app: Client ID/Secret go in ZENDESK_CLIENT_ID/ZENDESK_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Zendesk OAuth app: Client ID/Secret go in ZENDESK_CLIENT_ID/ZENDESK_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   hubspot: {
     id: "hubspot",
@@ -286,7 +286,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "HUBSPOT_ACCESS_TOKEN" },
     setupHint:
-      "Register a HubSpot OAuth app: Client ID/Secret go in HUBSPOT_CLIENT_ID/HUBSPOT_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a HubSpot OAuth app: Client ID/Secret go in HUBSPOT_CLIENT_ID/HUBSPOT_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   salesforce: {
     id: "salesforce",
@@ -309,7 +309,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "SALESFORCE_ACCESS_TOKEN" },
     setupHint:
-      "Register a Salesforce OAuth app: Client ID/Secret go in SALESFORCE_CLIENT_ID/SALESFORCE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Salesforce OAuth app: Client ID/Secret go in SALESFORCE_CLIENT_ID/SALESFORCE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // No standard third-party OAuth exists for Canny (it authenticates with a single
   // static per-workspace secret API key; Canny's own docs document no
@@ -351,7 +351,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "PRODUCTBOARD_API_TOKEN" },
     setupHint:
-      "Register a Productboard OAuth app: Client ID/Secret go in PRODUCTBOARD_CLIENT_ID/PRODUCTBOARD_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Productboard OAuth app: Client ID/Secret go in PRODUCTBOARD_CLIENT_ID/PRODUCTBOARD_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   linear: {
     id: "linear",
@@ -374,7 +374,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "LINEAR_API_KEY", resourceKind: "team" },
     setupHint:
-      "Register a Linear OAuth app: Client ID/Secret go in LINEAR_CLIENT_ID/LINEAR_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Linear OAuth app: Client ID/Secret go in LINEAR_CLIENT_ID/LINEAR_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   notion: {
     id: "notion",
@@ -407,7 +407,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "NOTION_API_KEY", resourceKind: "database" },
     setupHint:
-      "Register a Notion OAuth app: Client ID/Secret go in NOTION_CLIENT_ID/NOTION_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Notion OAuth app: Client ID/Secret go in NOTION_CLIENT_ID/NOTION_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   google_docs: {
     id: "google_docs",
@@ -437,7 +437,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "GOOGLE_DOCS_API_KEY" },
     setupHint:
-      "Register a Google OAuth app (shared with Calendar, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Calendar, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // SW-7 (founder goal, 2026-07-09): converted off the Lovable connector
   // gateway onto native OAuth, same as every other provider. This one and
@@ -466,7 +466,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "calendar", label: "Calendar" }],
     capabilities: { inflow: true, outflow: true, sync: true },
     setupHint:
-      "Register a Google OAuth app (shared with Docs, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Docs, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // New (SW-7): lead/customer insight sitting in email. Multi-account, same
   // calendar-connections system, its own scope (readonly - inflow only).
@@ -489,11 +489,11 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "inbox", label: "Inbox" }],
     capabilities: { inflow: true, outflow: false, sync: false },
     setupHint:
-      "Register a Google OAuth app (shared with Docs, Calendar, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Docs, Calendar, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // Added 2026-07-10 alongside the founder's own Google Cloud registration
   // (Tasks API enabled at the same time as Docs/Calendar/Gmail). Multi-account,
-  // same calendar-connections system. Connect flow is real; what Cadence DOES
+  // same calendar-connections system. Connect flow is real; what Supaprod DOES
   // with a connected Tasks account (push action items out, pull existing
   // tasks in, or both) is not yet scoped - capabilities below are provisional
   // (outflow: push-action-items-out was the stated intent) and the adapter
@@ -519,7 +519,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "tasklist", label: "Task list" }],
     capabilities: { inflow: false, outflow: true, sync: false },
     setupHint:
-      "Register a Google OAuth app (shared with Docs, Calendar, and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Docs, Calendar, and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // SW-7: same conversion as google_calendar - native OAuth, multi-account
   // calendar-connections system, registry entry carries OAuth metadata only.
@@ -542,7 +542,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "calendar", label: "Calendar" }],
     capabilities: { inflow: true, outflow: true, sync: true },
     setupHint:
-      "Register an app in the Microsoft Entra admin center (shared with Outlook Mail): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Cadence redirect URL under that app's Authentication settings.",
+      "Register an app in the Microsoft Entra admin center (shared with Outlook Mail): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Supaprod redirect URL under that app's Authentication settings.",
   },
   // New (SW-7): lead/customer insight sitting in Outlook mail. Multi-account,
   // same calendar-connections system, its own read-only scope (inflow only).
@@ -565,7 +565,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "inbox", label: "Inbox" }],
     capabilities: { inflow: true, outflow: false, sync: false },
     setupHint:
-      "Register an app in the Microsoft Entra admin center (shared with Outlook Calendar): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Cadence redirect URL under that app's Authentication settings.",
+      "Register an app in the Microsoft Entra admin center (shared with Outlook Calendar): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Supaprod redirect URL under that app's Authentication settings.",
   },
   figma: {
     id: "figma",
@@ -595,7 +595,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [],
     capabilities: { inflow: false, outflow: false, sync: false },
     setupHint:
-      "Register a Figma OAuth app: Client ID/Secret go in FIGMA_CLIENT_ID/FIGMA_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Figma OAuth app: Client ID/Secret go in FIGMA_CLIENT_ID/FIGMA_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   jira: {
     id: "jira",
@@ -624,7 +624,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [],
     capabilities: { inflow: false, outflow: false, sync: false },
     setupHint:
-      "Register a Jira OAuth app: Client ID/Secret go in JIRA_CLIENT_ID/JIRA_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Jira OAuth app: Client ID/Secret go in JIRA_CLIENT_ID/JIRA_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // Platform infrastructure, not a user connector: the agent loop's web.*
   // tools read FIRECRAWL_API_KEY via the env fallback (resolve.server.ts and

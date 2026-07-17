@@ -1,8 +1,8 @@
 import type { StudioRunDetail } from "@/lib/studio.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost } from "./studio-format";
-import { EmptyState } from "@/components/cadence/EmptyState";
+import { EmptyState } from "@/components/supaprod/EmptyState";
 
 /** Cost tab — per-run model, status, tokens, and cost, with the session total. */
 export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: number }) {

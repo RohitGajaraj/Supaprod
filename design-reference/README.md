@@ -1,6 +1,6 @@
 # design-reference/ — the design of record
 
-This folder holds the **frozen, runnable reference designs** for Cadence. Nothing
+This folder holds the **frozen, runnable reference designs** for Supaprod. Nothing
 here is production code and none of it is imported by the app; it exists so
 humans and AI builders can see precisely how every screen should look and
 behave before implementing it in `src/`.
@@ -9,9 +9,9 @@ behave before implementing it in `src/`.
 >
 > ## CURRENT: the v5 "Tempo" system (adopted 2026-07-10)
 >
-> The design contract for EVERY Cadence surface (app AND landing) is
+> The design contract for EVERY Supaprod surface (app AND landing) is
 > [`/DESIGN-TEMPO.md`](../DESIGN-TEMPO.md) (repo root, the law): the base derived
-> from Vercel's Geist design system with Cadence's ember brand scale and identity
+> from Vercel's Geist design system with Supaprod's ember brand scale and identity
 > layer on top. The reference package is [`tempo-v5/`](./tempo-v5/): verbatim
 > `tokens/*.css` (both themes), `research/` (re-implementation-grade specs of every
 > Geist component + `_foundations.md` + `_public-sources.md`), and `patterns/`
@@ -39,7 +39,7 @@ behave before implementing it in `src/`.
 > are specified in [`obsidian-extensions.md`](./obsidian-extensions.md), composed
 > entirely from v3's own tokens and laws.
 > **Everything below this callout (the parchment prototype, the v2 Platform
-> Design Blueprint, `cadence/tokens.css`) is SUPERSEDED for app surfaces** and
+> Design Blueprint, `supaprod/tokens.css`) is SUPERSEDED for app surfaces** and
 > kept as the landing-page contract + historical record. Do not port parchment
 > styles to any app surface, and do not source design inputs from the
 > superseded material; improve on top of v3 only.
@@ -50,8 +50,8 @@ When implementing a screen that exists in a CURRENT reference: **port it**.
 Match layout, positioning, hierarchy, spacing, copy, and interaction. Do not
 redesign. For app surfaces the tokens are the Obsidian `tokens/*.css` custom
 properties (copy verbatim; see the v3 package). For the legacy parchment
-material below, tokens come from the repo root `cadence/tokens.css` (the copy
-in `design-reference/cadence/tokens.css` is a snapshot so this folder runs
+material below, tokens come from the repo root `supaprod/tokens.css` (the copy
+in `design-reference/supaprod/tokens.css` is a snapshot so this folder runs
 standalone — treat the root one as the live source).
 
 ## Running it
@@ -62,28 +62,28 @@ not file://
 ```bash
 cd design-reference
 npx serve .            # or: python3 -m http.server
-# open http://localhost:3000/Cadence%20Prototype.html
+# open http://localhost:3000/Supaprod%20Prototype.html
 ```
 
 ## Contents
 
 | File                             | What it is                                                               |
 | -------------------------------- | ------------------------------------------------------------------------ |
-| `Cadence Prototype.html`         | Entry point — the full app mockup                                        |
+| `Supaprod Prototype.html`        | Entry point — the full app mockup                                        |
 | `Platform Design Blueprint.html` | The signed design contract (v2)                                          |
-| `cadence/tokens.css`             | Token snapshot (live copy is at repo root)                               |
-| `cadence/data.js`                | All mock data, incl. drill-down payloads                                 |
-| `cadence/app.jsx`                | Routing, shared state, approvals/missions logic                          |
-| `cadence/shell.jsx`              | Sidebar, topbar, cooking banner, construction pill                       |
-| `cadence/home.jsx`               | Today screen — hero ritual, calls queue                                  |
-| `cadence/chat.jsx`               | Chat + Mission Cockpit + auto-title rule                                 |
-| `cadence/missions.jsx`           | Mission list, detail, graph view                                         |
-| `cadence/loop.jsx`               | Product / Knowledge / Govern / Settings screens                          |
-| `cadence/loop-detail.jsx`        | Drill-downs: signal, opportunity, release, decision, learning, connector |
-| `cadence/govern-detail.jsx`      | Drill-downs: eval suite, agent analytics, trace replay, drift            |
-| `cadence/onboard.jsx`            | Login + onboarding first-run flow                                        |
-| `cadence/icons.jsx`              | Icon set + the Butterfly mark                                            |
-| `cadence/tweaks-panel.jsx`       | Design-review tweaks panel (ignore for production)                       |
+| `supaprod/tokens.css`            | Token snapshot (live copy is at repo root)                               |
+| `supaprod/data.js`               | All mock data, incl. drill-down payloads                                 |
+| `supaprod/app.jsx`               | Routing, shared state, approvals/missions logic                          |
+| `supaprod/shell.jsx`             | Sidebar, topbar, cooking banner, construction pill                       |
+| `supaprod/home.jsx`              | Today screen — hero ritual, calls queue                                  |
+| `supaprod/chat.jsx`              | Chat + Mission Cockpit + auto-title rule                                 |
+| `supaprod/missions.jsx`          | Mission list, detail, graph view                                         |
+| `supaprod/loop.jsx`              | Product / Knowledge / Govern / Settings screens                          |
+| `supaprod/loop-detail.jsx`       | Drill-downs: signal, opportunity, release, decision, learning, connector |
+| `supaprod/govern-detail.jsx`     | Drill-downs: eval suite, agent analytics, trace replay, drift            |
+| `supaprod/onboard.jsx`           | Login + onboarding first-run flow                                        |
+| `supaprod/icons.jsx`             | Icon set + the Butterfly mark                                            |
+| `supaprod/tweaks-panel.jsx`      | Design-review tweaks panel (ignore for production)                       |
 
 Screen → source map: find any screen's code by its `data-screen-label`
 attribute in the jsx files.

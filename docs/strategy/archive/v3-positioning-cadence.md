@@ -15,7 +15,7 @@
 
 ---
 
-## 1. The Story of Cadence ⚡
+## 1. The Story of Supaprod ⚡
 
 ### Naming note (reverted)
 
@@ -35,13 +35,13 @@ The product lifecycle is a closed, unbroken loop. In a modern product organizati
 8. **Customer Feedback & Support tickets** (Operating) which feed back to:
 9. **Learnings & Re-scoring** (Learning).
 
-If any seam requires manual data transport, spreadsheets, or un-tracked updates, **the loop breaks**, and the current stops flowing. **Cadence** keeps the product current running in a continuous, unbroken, agent-run loop under human governance.
+If any seam requires manual data transport, spreadsheets, or un-tracked updates, **the loop breaks**, and the current stops flowing. **Supaprod** keeps the product current running in a continuous, unbroken, agent-run loop under human governance.
 
 ---
 
 ## 2. Target Personas (B2B Enterprise Team)
 
-Rather than focusing exclusively on the solo PM, Cadence addresses the entire cross-functional B2B enterprise team:
+Rather than focusing exclusively on the solo PM, Supaprod addresses the entire cross-functional B2B enterprise team:
 
 ### P1: Enterprise Director / VP of Product (The Portfolio Governor)
 
@@ -96,7 +96,7 @@ The platform offering represents the complete lifecycle, executed by specialist 
 
 ## 4. Pluggable Multi-Model Substrate
 
-To deliver optimal results, Cadence decouples cognitive tasks from individual providers, acting as an intelligent router:
+To deliver optimal results, Supaprod decouples cognitive tasks from individual providers, acting as an intelligent router:
 
 1. **Gemini 1.5 Pro:** Leverages a 1M+ token context window to parse audio meeting transcripts (WhisperFlow) and support logs without chunking loss.
 2. **DeepSeek-Coder-V2 / Claude 3.5 Sonnet:** Surgical, high-accuracy multi-file code generation and linter-guided repairs.

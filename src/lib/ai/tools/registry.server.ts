@@ -642,7 +642,7 @@ const githubIssueCreate = def({
             Authorization: `Bearer ${token}`,
             Accept: "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "cadence-agent",
+            "User-Agent": "supaprod-agent",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ title: a.title, body: a.body, labels: a.labels ?? [] }),
@@ -787,7 +787,7 @@ const githubPrOpen = def({
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "cadence-builder",
+      "User-Agent": "supaprod-builder",
       "Content-Type": "application/json",
     };
 
@@ -871,7 +871,7 @@ const githubPrOpen = def({
         }
 
         // 5) open PR
-        const prBody = `${a.body.trim()}\n\nCloses #${a.issue_number}\n\n_Opened by the Cadence Builder agent — approval-gated, single file (\`${a.path}\`) · acting as ${actorLabel}._`;
+        const prBody = `${a.body.trim()}\n\nCloses #${a.issue_number}\n\n_Opened by the Supaprod Builder agent — approval-gated, single file (\`${a.path}\`) · acting as ${actorLabel}._`;
         const prRes = await fetch(`https://api.github.com/repos/${repo}/pulls`, {
           method: "POST",
           headers,
@@ -927,7 +927,7 @@ const githubCiRead = def({
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "cadence-builder",
+      "User-Agent": "supaprod-builder",
     };
 
     // 1) PR → head sha + branch (uncached so we always see new commits).
@@ -1077,7 +1077,7 @@ const githubCommitAppend = def({
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "cadence-builder",
+      "User-Agent": "supaprod-builder",
       "Content-Type": "application/json",
     };
 
@@ -1186,7 +1186,7 @@ function ghHeaders(token: string): Record<string, string> {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "cadence-studio",
+    "User-Agent": "supaprod-studio",
     "Content-Type": "application/json",
   };
 }
@@ -1676,7 +1676,7 @@ const studioCommit = def({
           {
             method: "POST",
             body: JSON.stringify({
-              message: `${a.message}\n\nShipped by Cadence Studio (mission ${missionId.slice(0, 8)})`,
+              message: `${a.message}\n\nShipped by Supaprod Studio (mission ${missionId.slice(0, 8)})`,
               tree: newTree.sha,
               parents: [parentSha],
             }),
@@ -1864,7 +1864,7 @@ const studioPrOpen = def({
           .from("studio_changes")
           .select("id", { count: "exact", head: true })
           .eq("changeset_id", changeset.id);
-        const body = `${a.body.trim()}\n\n_Opened by Cadence Studio, multi-file changeset (${count ?? "?"} file${(count ?? 0) === 1 ? "" : "s"}), approval-gated · acting as ${actorLabel}._`;
+        const body = `${a.body.trim()}\n\n_Opened by Supaprod Studio, multi-file changeset (${count ?? "?"} file${(count ?? 0) === 1 ? "" : "s"}), approval-gated · acting as ${actorLabel}._`;
         const pr = await ghJson<{ number: number; html_url: string }>(
           `https://api.github.com/repos/${repo}/pulls`,
           headers,
@@ -1919,7 +1919,7 @@ const studioPrMerge = def({
     const headers = ghHeaders(token);
 
     // J2 — CI-green merge gate. studio.pr.merge is review-gated, but we also
-    // refuse at the Cadence level when CI is red or still running, so a clean
+    // refuse at the Supaprod level when CI is red or still running, so a clean
     // run is the only path to ship (independent of whether the repo configures
     // GitHub required checks). Read fresh so we never merge on a stale green;
     // kept outside withIdempotency so a blocked attempt re-checks each time and
@@ -2114,7 +2114,7 @@ const studioSyncBranch = def({
       body: JSON.stringify({
         base: changeset.branch,
         head: defaultBranch,
-        commit_message: `Sync ${changeset.branch} with ${defaultBranch} to re-trigger CI, Cadence Studio`,
+        commit_message: `Sync ${changeset.branch} with ${defaultBranch} to re-trigger CI, Supaprod Studio`,
       }),
     });
 
@@ -3115,7 +3115,7 @@ const delegateOpenhands = def({
         repoUrl: a.repo_url,
         baseBranch: a.base_branch,
         context: { evidence_ids: a.evidence_ids },
-        cadenceRunId: runId ?? null,
+        supaprodRunId: runId ?? null,
       },
       "openhands",
     );

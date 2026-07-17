@@ -21,7 +21,7 @@
 
 ## 2. Why we are doing it
 
-The Engine Room is the physical form of the **engine-room doctrine**: calm front, deep engine behind one door. Today Cadence exposes its machinery as a thirteen-tab governance console (`/govern`), which is exactly the kind of instrument panel the doctrine exists to hide. The port collapses that into **one door → a health glance → four rooms named for the user's question**: Spend ("What is this costing me?"), Quality ("Is the machine still good?"), Safety ("What is it allowed to do?"), Record ("What exactly happened?"). Every label passes the Engine-Room Test: it names the outcome, never the mechanism.
+The Engine Room is the physical form of the **engine-room doctrine**: calm front, deep engine behind one door. Today Supaprod exposes its machinery as a thirteen-tab governance console (`/govern`), which is exactly the kind of instrument panel the doctrine exists to hide. The port collapses that into **one door → a health glance → four rooms named for the user's question**: Spend ("What is this costing me?"), Quality ("Is the machine still good?"), Safety ("What is it allowed to do?"), Record ("What exactly happened?"). Every label passes the Engine-Room Test: it names the outcome, never the mechanism.
 
 This serves **Law 3, depth on demand.** The glance never shows more than one verdict per room. A room opens to its own detail with mono sub-tabs, and each row drills one level deeper (a table or a trace), never a modal. The depth budget is fixed at four levels and never exceeded: glance → room → sub-tab → row detail. Nothing dead-ends.
 

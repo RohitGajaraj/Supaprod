@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useEffect, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CommandPalette, GotoShortcuts } from "@/components/cadence/CommandPalette";
-import { AppShell } from "@/components/cadence/AppShell";
+import { CommandPalette, GotoShortcuts } from "@/components/supaprod/CommandPalette";
+import { AppShell } from "@/components/supaprod/AppShell";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
@@ -11,7 +11,7 @@ import { BillingBanner } from "@/components/billing/BillingBanner";
 
 import { AskProvider } from "@/lib/ask-context";
 import { AskPanel } from "@/components/obsidian/AskPanel";
-import { FocusDock } from "@/components/cadence/FocusDock";
+import { FocusDock } from "@/components/supaprod/FocusDock";
 
 export const Route = createFileRoute("/_authenticated")({
   // Disable SSR/prerender for the entire authenticated subtree. Without a
@@ -65,7 +65,7 @@ function AuthedError({ error }: { error: Error }) {
   return (
     <div data-obsidian style={fallbackWrap}>
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: "var(--text-body, #C6C0B8)" }}>
-        This part of Cadence hit an error.
+        This part of Supaprod hit an error.
       </p>
       <p
         style={{

@@ -62,7 +62,7 @@ export function Hero() {
                 textWrap: "balance",
               }}
             >
-              Cadence tells you what to build.
+              Supaprod tells you what to build.
               <span className="block mt-3 text-zinc-400">
                 then <span className="hero-verb">builds it.</span>{" "}
                 <span className="hero-verb">ships it.</span>{" "}

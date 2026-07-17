@@ -1,5 +1,5 @@
 /**
- * Cadence model catalog.
+ * Supaprod model catalog.
  * All `live: true` models route through the Lovable AI Gateway today.
  * `live: false` entries are adapter-ready and will light up when keys/gateway support land.
  */

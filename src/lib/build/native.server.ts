@@ -1,6 +1,6 @@
 /**
  * BD-1, the 'native' `BuildDriver` adapter: the home-grown agent loop wrapped
- * behind the seam ("Cadence Build (native)"). Nothing that works is ripped
+ * behind the seam ("Supaprod Build (native)"). Nothing that works is ripped
  * out: `dispatch` is EXACTLY what `dispatchStudioSession` did after work-order
  * assembly (createMission + a queued `agent_runs` row the resume-runs sweeper
  * promotes), `poll` reads the mission/run rows, `result` summarizes the

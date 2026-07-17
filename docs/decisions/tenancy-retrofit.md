@@ -166,7 +166,7 @@ create policy "owner manages members" on public.workspace_members
 
 So new tables/inserts carry tenancy from birth and the debt never returns:
 
-> **Cadence tenancy convention.** Every product-scoped table has: `user_id` (created_by/audit), `workspace_id uuid NOT NULL` (FK `workspaces`), and `product_id uuid` (FK `projects`, nullable only for workspace-level rows). Enable RLS and gate every policy with `public.is_workspace_member(workspace_id)` — never `auth.uid()` alone (except `profiles`). Index `(workspace_id)` and `(workspace_id, product_id)`. In server functions, **always set `workspace_id` + `product_id` from the request's current-workspace/product context — never trust the client.** High-volume child tables (telemetry) denormalize `workspace_id` rather than joining in the policy.
+> **Supaprod tenancy convention.** Every product-scoped table has: `user_id` (created_by/audit), `workspace_id uuid NOT NULL` (FK `workspaces`), and `product_id uuid` (FK `projects`, nullable only for workspace-level rows). Enable RLS and gate every policy with `public.is_workspace_member(workspace_id)` — never `auth.uid()` alone (except `profiles`). Index `(workspace_id)` and `(workspace_id, product_id)`. In server functions, **always set `workspace_id` + `product_id` from the request's current-workspace/product context — never trust the client.** High-volume child tables (telemetry) denormalize `workspace_id` rather than joining in the policy.
 
 New-table template:
 

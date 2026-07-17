@@ -14,7 +14,7 @@ import {
 import { CANONICAL_PATHS } from "./legacy-redirects";
 
 /**
- * IA — THE CADENCE LOOP (Option B, 2026-07-13): the rail tells the product
+ * IA — THE SUPAPROD LOOP (Option B, 2026-07-13): the rail tells the product
  * story in three zones — HOME (Today) · THE LOOP (01 Discover · 02 Decide · 03
  * Plan · 04 Design · 05 Build · 06 Ship · 07 Learn) · INTELLIGENCE (Memory ·
  * Engine Room). Ten primary destinations; digit keys 1-9 plus Engine Room's

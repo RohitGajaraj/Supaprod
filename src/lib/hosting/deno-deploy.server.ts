@@ -64,7 +64,7 @@ function authHeaders(): Record<string, string> {
 
 /** PoC-only slug derivation. A real adapter would persist the mapping, not recompute it. */
 function slugFor(ref: AppRuntimeRef): string {
-  return `cadence-${ref.hostedAppId}`
+  return `supaprod-${ref.hostedAppId}`
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-")
     .slice(0, 32);

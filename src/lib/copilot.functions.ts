@@ -132,7 +132,7 @@ OPEN TASKS: ${JSON.stringify(tasks ?? [])}`;
     messages: [
       {
         role: "system",
-        content: "You are Cadence, an agent-native chief of staff. Tone: Apple-calm, Notion-clear.",
+        content: "You are Supaprod, an agent-native chief of staff. Tone: Apple-calm, Notion-clear.",
       },
       { role: "user", content: prompt },
     ],
@@ -205,7 +205,7 @@ export const sendCopilotMessage = createServerFn({ method: "POST" })
 
     const ctxBlob = JSON.stringify({ projects, todayMeetings: meetings, tasks }).slice(0, 6000);
 
-    const system = `You are Cadence, an AI chief-of-staff for an AI Product Manager.
+    const system = `You are Supaprod, an AI chief-of-staff for an AI Product Manager.
 Be calm, concise, opinionated. Use plain text with short paragraphs and tight bullet lists when helpful.
 You have access to the user's current state below. Use it to ground every answer.
 

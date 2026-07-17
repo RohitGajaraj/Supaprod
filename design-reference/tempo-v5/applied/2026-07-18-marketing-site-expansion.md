@@ -62,7 +62,7 @@ Every public page uses **`PUBLIC_INK_THEME`** + `LandingBackdrop` (implemented i
 
 ## 4. The composition grammar: the reusable section unit
 
-Every marketing page section follows the **Vercel-inspired alternating showcase pattern**, adapted for Cadence:
+Every marketing page section follows the **Vercel-inspired alternating showcase pattern**, adapted for Supaprod:
 
 ### Section structure (left/right alternate)
 
@@ -182,12 +182,12 @@ Current: four-column grid with feature matrix. New: **Vercel-premium alt hero + 
   1. **The outcome ledger** — receipts, auditability, the moat
   2. **Earned autonomy** — trust ramp by track record, non-overridable gates
   3. **Self-improving judgment** — outcome-ranked playbooks, workspace learning
-- Each section: capability headline (Pixel) + problem statement + the mechanism (how Cadence solves it) + what users get
-- Closing: "See how other teams use Cadence" (link to `/use-cases`)
+- Each section: capability headline (Pixel) + problem statement + the mechanism (how Supaprod solves it) + what users get
+- Closing: "See how other teams use Supaprod" (link to `/use-cases`)
 
 ### Page 3: `/use-cases` — vertical/role-based stories
 
-**Purpose:** Help prospects see themselves in Cadence.
+**Purpose:** Help prospects see themselves in Supaprod.
 
 **Structure:**
 - Hero: "Built for every step of the product loop"
@@ -356,7 +356,7 @@ design-reference/tempo-v5/applied/
 
 ## 16. The one law
 
-**Inspiration, never mimicry.** Cadence's differentiators stay visible:
+**Inspiration, never mimicry.** Supaprod's differentiators stay visible:
 
 - **Geist Pixel Square** (Vercel uses Sans for headlines; we use Pixel for ours)
 - **Seven-petal epitrochoid mark** (different logo, ours is branded)
@@ -364,7 +364,7 @@ design-reference/tempo-v5/applied/
 - **Starfield + engineering grid** (their canvas is plain; ours breathes)
 - **The three-station loop** (our moat, our story, not theirs)
 
-Every adoption of Vercel's patterns flows through these. When in doubt, choose the Cadence-distinctive option.
+Every adoption of Vercel's patterns flows through these. When in doubt, choose the Supaprod-distinctive option.
 
 ---
 

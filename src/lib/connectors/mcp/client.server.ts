@@ -111,7 +111,7 @@ async function tryInitialize(serverUrl: string, token: string | null): Promise<s
         params: {
           protocolVersion: "2025-03-26",
           capabilities: {},
-          clientInfo: { name: "cadence", version: "1.0" },
+          clientInfo: { name: "supaprod", version: "1.0" },
         },
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),

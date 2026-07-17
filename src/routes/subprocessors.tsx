@@ -14,9 +14,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
-const TITLE = "Sub-processors · Cadence";
+const TITLE = "Sub-processors · Supaprod";
 const DESC =
-  "Every third party that touches Cadence data, what it does, and the region it runs in.";
+  "Every third party that touches Supaprod data, what it does, and the region it runs in.";
 
 export const Route = createFileRoute("/subprocessors")({
   component: SubprocessorsPage,
@@ -97,7 +97,7 @@ function SubprocessorsPage() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b hairline px-5 py-3 flex items-center justify-between bg-background/60 backdrop-blur">
         <a href="/" className="font-display text-sm" style={{ color: "var(--ink)" }}>
-          Cadence
+          Supaprod
         </a>
         <span className="mono-label" style={{ fontSize: 10, color: "var(--ink-faint)" }}>
           Trust
@@ -117,9 +117,9 @@ function SubprocessorsPage() {
             maxWidth: 600,
           }}
         >
-          The third parties that process customer data on Cadence&apos;s behalf, and what each one
-          does. This list is derived from Cadence&apos;s live model catalog and configuration, so it
-          reflects who can receive data today.
+          The third parties that process customer data on Supaprod&apos;s behalf, and what each one
+          does. This list is derived from Supaprod&apos;s live model catalog and configuration, so
+          it reflects who can receive data today.
         </p>
 
         <Section title="Currently processing your data" items={active} />
@@ -140,7 +140,7 @@ function SubprocessorsPage() {
           }}
         >
           For a data-processing agreement (DPA) or details on processing regions, contact your
-          Cadence account team.
+          Supaprod account team.
         </p>
       </main>
     </div>

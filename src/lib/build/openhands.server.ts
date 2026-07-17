@@ -109,7 +109,7 @@ export function createOpenHandsBuildDriver(deps?: Partial<OpenHandsBuildDeps>): 
           ...(spec.evidenceIds?.length ? { evidence_ids: spec.evidenceIds } : {}),
           ...(spec.budget ? { budget: spec.budget } : {}),
         },
-        cadenceRunId: ctx.runId ?? null,
+        supaprodRunId: ctx.runId ?? null,
       });
       if (!verdict.accepted || !verdict.externalJobId) {
         throw new Error(`openhands dispatch refused: ${verdict.reason}`);

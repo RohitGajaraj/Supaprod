@@ -10,7 +10,7 @@
 
 ## What it does
 
-In Ask, an explicit `@agentslug` is treated as an unambiguous command to run that specialist. Cadence:
+In Ask, an explicit `@agentslug` is treated as an unambiguous command to run that specialist. Supaprod:
 
 1. Parses the first resolvable `@slug` in the message against the user's **enabled** agent roster (the orchestrator is excluded, it is the implicit default).
 2. Skips the intent classifier entirely (one fewer model call) and dispatches a mission led by the named agent.

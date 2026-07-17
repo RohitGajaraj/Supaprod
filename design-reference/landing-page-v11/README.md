@@ -1,4 +1,4 @@
-# Cadence public landing page (v11) — design reference & handoff
+# Supaprod public landing page (v11) — design reference & handoff
 
 > Created 2026-06-28. For any future session, agent, or designer that picks up the public
 > landing page (`src/routes/index.tsx`). This is **not** a file dump — it captures the
@@ -11,7 +11,7 @@ The founder plans to revamp this page after a while. When that happens, start he
 
 ## 1. What this page is
 
-The public marketing landing page for **Cadence — the agent-native product OS**. One dark
+The public marketing landing page for **Supaprod — the agent-native product OS**. One dark
 canvas, scroll-through narrative, from first signal to shipped outcome. It must read as a
 **serious, enterprise-grade** product and at the same time feel **modern and alive** — never
 playful, never templated, never "designed by AI."
@@ -23,12 +23,12 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
 
 ## 2. The ideology (the non-negotiable intent)
 
-1. **Positioning = judgment, not automation.** Cadence is NOT "automate your workflows, then
+1. **Positioning = judgment, not automation.** Supaprod is NOT "automate your workflows, then
    come back and approve." It **makes the call the way your team would**, backed by the memory
    of every past decision and outcome. Never frame it as an automation/workflow tool. The
    differentiator is the **decision layer + outcome memory** (the moat), not the autonomy.
 2. **Warm spine, cool machinery (the colour law).**
-   - **Ember orange `#fb7100`** = Cadence itself: brand, wordmark, CTAs, the memory/brain core,
+   - **Ember orange `#fb7100`** = Supaprod itself: brand, wordmark, CTAs, the memory/brain core,
      section kickers, key numbers, the moat. This ties the page to the app's primary colour.
    - **Violet `#a78bfa`** = agents / the machinery of the loop (consistent with the app, where
      agents own the orchid hue).
@@ -56,7 +56,7 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
 
 1. **Hero** — "Product teams don't build anymore. / Agents do." + a **live typing terminal**
    (perpetual session: types each line, loops, session timer, LIVE pulse, scanline).
-2. **Orbit** — the six stations orbit a glowing **Ember "Cadence" brain core** they feed into;
+2. **Orbit** — the six stations orbit a glowing **Ember "Supaprod" brain core** they feed into;
    a write-pulse travels the active spoke; one live status line. **Opens on Sense** the first
    time it scrolls into view, then loops.
 3. **Stats strip** — 6 / 0 / D+14 / 100%, in ember.
@@ -75,7 +75,7 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
    framing: building got cheap; the hard part is knowing _what_ to build and _why_ the last
    thing shipped. Positive, system-led close (never "replace your people").
 10. **Brand band** (the artistic peak — founder loves this, wants to enhance it later) — a
-    cosmic morphing gradient + film grain + drifting particles, a giant **hollow "Cadence"
+    cosmic morphing gradient + film grain + drifting particles, a giant **hollow "Supaprod"
     outline wordmark**, and the **Silkscreen pixel** kicker "SIGNAL TO SHIPPED."
 11. **CTA** — "Decisions made the way your team would make them." (judgment, not automation).
 12. **Footer.**
@@ -91,7 +91,7 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
 | `inspiration-01-pixel-display-font.png`          | Gharage "From Function to Feeling" — chunky **pixel/bitmap display font** | Became the **Silkscreen pixel kicker** in the brand band. Keep pixel type as a _sparing accent_, never a heading. |
 | `inspiration-02-perplexity-answer-engine.png`    | Perplexity launch — painterly portrait, "We're an answer engine."         | The _feeling_ target: artistic, alive, emotional. Informs the brand band.                                         |
 | `inspiration-03-perplexity-surreal-portal.png`   | Perplexity — surreal book-portal on Mars                                  | Imaginative / premium mood reference.                                                                             |
-| `inspiration-04-perplexity-outline-wordmark.png` | Perplexity — **hollow/outline wordmark** over artwork                     | Became the **hollow "Cadence" outline wordmark** (`-webkit-text-stroke`) in the brand band.                       |
+| `inspiration-04-perplexity-outline-wordmark.png` | Perplexity — **hollow/outline wordmark** over artwork                     | Became the **hollow "Supaprod" outline wordmark** (`-webkit-text-stroke`) in the brand band.                       |
 | `inspiration-05-perplexity-comet-cosmic.png`     | Perplexity Comet — **cosmic gradient** swirl                              | Became the **cosmic morphing gradient + particles + grain** in the brand band.                                    |
 
 **Founder direction on these:** bring the _artistic touch / portrait form / liveliness_ into
@@ -149,11 +149,11 @@ revamp could push it further with real painterly/portrait art if assets exist.
 
 ## 7. What the founder explicitly liked (keep, and enhance — don't discard)
 
-- **The brand band** (cosmic gradient + **hollow "Cadence" wordmark** + the font) — "really
+- **The brand band** (cosmic gradient + **hollow "Supaprod" wordmark** + the font) — "really
   good and great ... the thought process is good, the font is great." **Enhance on top of this**
   in any revamp; it's the agreed artistic peak.
 - **The engine-in-motion** section.
-- **The orbit** with Cadence at the centre.
+- **The orbit** with Supaprod at the centre.
 - The **warm Ember spine** and the **three-voice type system**.
 
 ---

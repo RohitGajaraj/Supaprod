@@ -442,7 +442,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
           `\n---\n**References:**\n${data.referenceLinks.map((u) => `- ${u}`).join("\n")}`,
         );
       }
-      bodyParts.push(`\n---\n_Opened from Cadence Build Console_`);
+      bodyParts.push(`\n---\n_Opened from Supaprod Build Console_`);
 
       const res = await fetch(`https://api.github.com/repos/${gh.repo}/issues`, {
         method: "POST",
@@ -450,13 +450,13 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
           Authorization: `Bearer ${gh.token}`,
           Accept: "application/vnd.github+json",
           "X-GitHub-Api-Version": "2022-11-28",
-          "User-Agent": "cadence-agent",
+          "User-Agent": "supaprod-agent",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: titleSrc.slice(0, 250),
           body: bodyParts.join("\n"),
-          labels: ["cadence", "build"],
+          labels: ["supaprod", "build"],
         }),
       });
       if (!res.ok) {
@@ -536,14 +536,14 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     return { ...result, mission_id: missionId, issue_number: issueNumber, issue_url: issueUrl };
   });
 
-// ─── K1-deploy: Cadence-triggered deploy gate ────────────────────────────────
+// ─── K1-deploy: Supaprod-triggered deploy gate ────────────────────────────────
 
 export type DeployResult =
   | { ok: true; provider: string; triggered_at: string }
   | { ok: false; reason: "no_hook_configured" | "forbidden" | "upstream_error"; message: string };
 
 /**
- * K1-deploy: trigger a deploy from inside Cadence.
+ * K1-deploy: trigger a deploy from inside Supaprod.
  *
  * Posts to the `CLOUDFLARE_DEPLOY_HOOK_URL` wrangler secret (or
  * `LOVABLE_DEPLOY_HOOK_URL` as a fallback). Admins only.

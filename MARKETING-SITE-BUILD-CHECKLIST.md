@@ -169,7 +169,7 @@ A: One workspace, up to 10 missions/month, decision records (limited to 5).
 Q: Do you offer annual discounts?
 A: Yes, 20% off when you select "Bill annually" in the pricing page toggle.
 
-Q: Can I use Cadence with BYOK?
+Q: Can I use Supaprod with BYOK?
 A: Enterprise plans include BYOK for Claude via Anthropic; any model via custom integration.
 
 Q: What if I need more team members?
@@ -262,7 +262,7 @@ Hero + six SectionAlternate sections (Discover, Decide, Define, Build, Ship, Lea
     3. **Self-improving judgment** — outcome-ranked playbooks, workspace learning, visual: memory trace UI
   - [ ] Each section: headline (Pixel 64px) + body (Sans 16px) + mono spec list (4 items) + FramedVisual
   - [ ] Alternating text/visual layout (use SectionAlternate)
-  - [ ] Close section: "See how other teams use Cadence" → link to `/use-cases`
+  - [ ] Close section: "See how other teams use Supaprod" → link to `/use-cases`
   - [ ] SEO: title, description, OG tags
   - [ ] Test responsive: mobile, tablet, desktop
   - [ ] Test accessibility: semantic headings, alt text, contrast, focus rings

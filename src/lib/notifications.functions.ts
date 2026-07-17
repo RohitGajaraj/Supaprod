@@ -297,7 +297,7 @@ export const updateNotificationPreferences = createServerFn({ method: "POST" })
 
 // --- FS-03: the reach channel (real email, behind the Resend facade) ---
 // Engine-Room: dispatch/preference machinery -> Settings > Notifications ->
-// "Cadence reaches you when it matters." Instant sends are reserved for
+// "Supaprod reaches you when it matters." Instant sends are reserved for
 // expiring gates (approvals-tick) and critical incidents (drift.server.ts);
 // everything else waits for the user's own scheduled digest.
 
@@ -399,7 +399,7 @@ export async function dispatchInstantEmail(
 
   const { sent, reason } = await sendEmail({
     to,
-    subject: `Cadence: ${notification.title}`,
+    subject: `Supaprod: ${notification.title}`,
     text: notification.detail,
   });
   return { sent, reason };
@@ -547,14 +547,14 @@ export async function generateDigest(
     return { generated: false, reason: "No digest items found matching preferences." };
   }
 
-  const subject = `Cadence ${frequency} digest`;
+  const subject = `Supaprod ${frequency} digest`;
   const sections = [
-    `Hello,\n\nHere is your ${frequency} digest from Cadence:`,
+    `Hello,\n\nHere is your ${frequency} digest from Supaprod:`,
     // RPT-49: the outcome receipt LEADS, before the operational items.
     outcomeReceipt,
     digestItems.length > 0 ? digestItems.join("\n") : null,
     stakeholderSection ? `Stakeholder update:\n\n${stakeholderSection}` : null,
-    "Review detailed logs in your Cadence Cockpit dashboard.",
+    "Review detailed logs in your Supaprod Cockpit dashboard.",
   ].filter((s): s is string => !!s);
   const content = sections.join("\n\n");
 

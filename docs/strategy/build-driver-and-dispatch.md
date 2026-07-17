@@ -1,17 +1,17 @@
-# BuildDriver and dispatch: how Cadence actually builds
+# BuildDriver and dispatch: how Supaprod actually builds
 
 > _Created: 2026-06-29 (recovered and authored from the 2026-06-28 founder design session). Status: CANONICAL strategy + architecture reference. The decision is made (hybrid posture, below); the code (group G13, BD-1..BD-6) is PROPOSAL / founder-gated, not started. Decision owner: founder._
 
-> **One-line:** Cadence decides what to build and ships it, on whatever engine you choose. The code generator is a swappable adapter behind a `BuildDriver` seam; the decision, governance, lineage, and outcome loop above it are the moat and never move.
+> **One-line:** Supaprod decides what to build and ships it, on whatever engine you choose. The code generator is a swappable adapter behind a `BuildDriver` seam; the decision, governance, lineage, and outcome loop above it are the moat and never move.
 
-This is the canonical record for the single most important architectural question the product had left open: when something needs to be built, who writes the code, how the task is handed off, how control comes back, what it costs, and how we position it. It is written so that any agent or person touching the builder later reads this and knows exactly what was decided, what was rejected, why, and what the market looked like when we decided (June 2026). If this doc and an older one disagree on how Cadence builds, this doc wins.
+This is the canonical record for the single most important architectural question the product had left open: when something needs to be built, who writes the code, how the task is handed off, how control comes back, what it costs, and how we position it. It is written so that any agent or person touching the builder later reads this and knows exactly what was decided, what was rejected, why, and what the market looked like when we decided (June 2026). If this doc and an older one disagree on how Supaprod builds, this doc wins.
 
 ---
 
 ## 1. TL;DR (the decision)
 
 - **The strategy was already written; the code did the opposite.** `moat.md` says plainly: "we own the expensive part (deciding what is worth building and whether it worked), and we dispatch the builders" (§6), and "deliver BUILD end-to-end as a governed station (own engine or dispatched), but do not position or price it as the differentiator" (§8). Today the code is its own home-grown code generator with no seam to swap it. The gap is architectural, not strategic.
-- **Decision: hybrid posture, behind one seam.** Adopt a `BuildDriver` abstraction, the twin of the existing `RepoProvider`. `RepoProvider` abstracts where code lives (git). `BuildDriver` abstracts who writes it (the code-gen engine). The home-grown loop becomes one adapter ("Cadence Build, native"). External engines become other adapters behind the same interface.
+- **Decision: hybrid posture, behind one seam.** Adopt a `BuildDriver` abstraction, the twin of the existing `RepoProvider`. `RepoProvider` abstracts where code lives (git). `BuildDriver` abstracts who writes it (the code-gen engine). The home-grown loop becomes one adapter ("Supaprod Build, native"). External engines become other adapters behind the same interface.
 - **The three engine tiers:**
   1. **Native (default floor).** The existing Gemini agent loop, kept for small, safe, cheap changes. Owned, $0 vendor cost.
   2. **Owned premium + white-label.** A Claude Agent SDK adapter (the brain we brand) and the OpenHands adapter (MIT, self-host, the white-label / enterprise path, already half-built as `delegate.openhands`).
@@ -24,7 +24,7 @@ This is the canonical record for the single most important architectural questio
 
 ## 2. Why this doc exists (the question that prompted it)
 
-The founder asked, in plain terms: we are nearly done building the product; when it comes time for the product to actually build something for a user, how do we hand that off to a code-gen engine (Cursor, Devin, OpenHands, or whatever)? How does the information pass in both directions? How much control do we keep over what the external engine does? What does it cost? Do any of these tools white-label, or do we have to say "powered by X"? What is the model strategy? After the engine runs, how does control come back to Cadence for merge, maintenance, and PRs? Why only Cursor, and what even is OpenHands? Are there better alternatives, and should we just let users plug in their own code-gen tool? If we do that, what value are we actually bringing? How do we position and strategize all of it?
+The founder asked, in plain terms: we are nearly done building the product; when it comes time for the product to actually build something for a user, how do we hand that off to a code-gen engine (Cursor, Devin, OpenHands, or whatever)? How does the information pass in both directions? How much control do we keep over what the external engine does? What does it cost? Do any of these tools white-label, or do we have to say "powered by X"? What is the model strategy? After the engine runs, how does control come back to Supaprod for merge, maintenance, and PRs? Why only Cursor, and what even is OpenHands? Are there better alternatives, and should we just let users plug in their own code-gen tool? If we do that, what value are we actually bringing? How do we position and strategize all of it?
 
 That is the whole build-handoff layer, and it had never been specced. Everything below answers it.
 
@@ -36,7 +36,7 @@ This is the load-bearing idea behind the whole strategy.
 
 Code has a **fast oracle.** It compiles or it does not. Tests pass or fail. In seconds, at near-zero cost. That tight feedback loop is exactly why AI coding tools improved so fast, and exactly why they are racing to zero margin. The thing that has no fast oracle is "was this the right feature to build, and did it actually work in the market?" That answer takes weeks of real outcomes. You cannot brute-force your way to it, which is why it stays defensible.
 
-So the entire game is: **rent the fast-oracle layer (code generation), own the slow-oracle layer (decisions, outcomes, memory, governance).** Owning a mediocre code generator is owning the part that commoditizes. Building the spec the engine could never write for itself, then verifying and remembering the result, is owning the part that does not. `moat.md` §2 Layer 1 states it directly: "Code has a fast oracle ... that tight loop is why AI coding exploded and why it commoditizes." `moat.md` §1: "Lovable will build you the wrong feature, beautifully, in ten minutes. Cadence stops you from building the wrong thing, and proves which thing was right."
+So the entire game is: **rent the fast-oracle layer (code generation), own the slow-oracle layer (decisions, outcomes, memory, governance).** Owning a mediocre code generator is owning the part that commoditizes. Building the spec the engine could never write for itself, then verifying and remembering the result, is owning the part that does not. `moat.md` §2 Layer 1 states it directly: "Code has a fast oracle ... that tight loop is why AI coding exploded and why it commoditizes." `moat.md` §1: "Lovable will build you the wrong feature, beautifully, in ten minutes. Supaprod stops you from building the wrong thing, and proves which thing was right."
 
 ---
 
@@ -44,7 +44,7 @@ So the entire game is: **rent the fast-oracle layer (code generation), own the s
 
 Two facts from the code frame everything.
 
-**4.1 Cadence is currently its own code generator.** The agent loop `runAgentLoop(supabase, userId, input)` (`src/lib/ai/loop.server.ts:153`) calls `callModel(...)` with `surface: "agent"` and a default model of `google/gemini-2.5-flash`. The LLM writes full file contents as tool arguments, and the `studio.*` tools commit and ship them:
+**4.1 Supaprod is currently its own code generator.** The agent loop `runAgentLoop(supabase, userId, input)` (`src/lib/ai/loop.server.ts:153`) calls `callModel(...)` with `surface: "agent"` and a default model of `google/gemini-2.5-flash`. The LLM writes full file contents as tool arguments, and the `studio.*` tools commit and ship them:
 
 - `studio.stage` (`registry.server.ts:1232`) stages multi-file edits into a DB changeset (full new file contents per path, base content fetched fresh from the GitHub API).
 - `studio.commit` (`registry.server.ts:1369`) commits staged changes to an isolated `studio/*` branch via the Git Data API.
@@ -107,19 +107,19 @@ export interface BuildDriver {
 }
 ```
 
-- The home-grown Gemini loop becomes the `native` adapter: "Cadence Build (native)." Nothing that works gets ripped out.
+- The home-grown Gemini loop becomes the `native` adapter: "Supaprod Build (native)." Nothing that works gets ripped out.
 - `delegate.openhands` is promoted from a one-off tool into the real `openhands` adapter (the existing `DelegateProvider` plumbing becomes its implementation).
 - New adapters (Claude Agent SDK, Devin, Codex, Cursor) are each bounded additions, exactly the way adding GitLab was bounded once `RepoProvider` existed.
 
-Cadence is the conductor. `RepoProvider` is "where the code lives." `BuildDriver` is "who writes it." Cadence owns the brain above both. That is the whole shape. This is the architectural form of `moat.md` §6 and §8.
+Supaprod is the conductor. `RepoProvider` is "where the code lives." `BuildDriver` is "who writes it." Supaprod owns the brain above both. That is the whole shape. This is the architectural form of `moat.md` §6 and §8.
 
 ---
 
 ## 6. The two-way handoff, and the two control points
 
-**Out (Cadence to engine): the `BuildSpec`.** This is where the moat physically travels. A naked Cursor gets "add dark mode." A Cadence-dispatched engine gets the task, the acceptance criteria, the decision that mandated it and why, the design-system pointers, the files it should touch, the guardrails, the test bar, the branch (via `RepoProvider`), and a cost/iteration budget. The engine is the same commodity in both cases. The brief is not. The brief is assembled from memory and decisions, which is the thing the engine could never write for itself.
+**Out (Supaprod to engine): the `BuildSpec`.** This is where the moat physically travels. A naked Cursor gets "add dark mode." A Supaprod-dispatched engine gets the task, the acceptance criteria, the decision that mandated it and why, the design-system pointers, the files it should touch, the guardrails, the test bar, the branch (via `RepoProvider`), and a cost/iteration budget. The engine is the same commodity in both cases. The brief is not. The brief is assembled from memory and decisions, which is the thing the engine could never write for itself.
 
-**Back (engine to Cadence): a `BuildResult`,** a PR or diff, a session trace, test results, and a confidence/risk signal.
+**Back (engine to Supaprod): a `BuildResult`,** a PR or diff, a session trace, test results, and a confidence/risk signal.
 
 **The two control points we never cede:**
 
@@ -134,7 +134,7 @@ In-flight steering (pausing or correcting mid-run) depends on how open the engin
 
 This is the part that felt empty and is actually the part we are furthest along on. Code-gen tools hand you a diff and stop. They do not decide whether it is safe to merge given your product's risk posture, run your eval / guardrail / security suite, attach lineage (this PR came from this decision came from this signal), run the trust-arc / HITL gate, or maintain it over time (drift, regressions, follow-ups).
 
-Cadence already has these pieces, and none of them touch the generator:
+Supaprod already has these pieces, and none of them touch the generator:
 
 - CI verdict + merge readiness: `studio-ci.ts` (`overallFromChecks`, `mergeReadinessFromCi`), wired into the `studio.pr.merge` J2 gate.
 - Approvals + trust: `agent_approvals`, `resolveApprovalMode(toolMode, arc)` (`src/lib/ai/trust.server.ts:70`) mapping arc (observing / proving / trusted / ambient) to review / confirm / auto.
@@ -151,9 +151,9 @@ All facts below were web-verified against primary sources during the design sess
 
 ### 8.1 The engine landscape
 
-| Engine                                         | Type                   | Headless dispatch                                                              | Self-host / white-label                                        | Role for Cadence                                                |
+| Engine                                         | Type                   | Headless dispatch                                                              | Self-host / white-label                                        | Role for Supaprod                                                |
 | ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Native (Cadence loop)**                      | Owned agent            | Yes                                                                            | Yes (ours)                                                     | Cheap default floor for small, safe changes                     |
+| **Native (Supaprod loop)**                      | Owned agent            | Yes                                                                            | Yes (ours)                                                     | Cheap default floor for small, safe changes                     |
 | **Claude Agent SDK**                           | Headless SDK           | Yes, natively (`query()`)                                                      | Yes; "{YourName} Powered by Claude" allowed, not "Claude Code" | **Owned premium default (the brain we brand)**                  |
 | **OpenHands** (ex-OpenDevin)                   | OSS autonomous agent   | Yes (CLI, Python SDK, Cloud REST v1, GitHub resolver)                          | **Yes, MIT core** (enterprise/ folder is PolyForm trial)       | **White-label / self-host / enterprise path (already stubbed)** |
 | **Devin** (Cognition)                          | Closed cloud agent     | Yes (REST `api.devin.ai/v3`)                                                   | No self-host, no white-label, no BYO LLM                       | Visible "Send to Devin" BYO relay                               |
@@ -169,7 +169,7 @@ Notable shifts the research caught, which overturned older assumptions: **Cursor
 
 ### 8.2 White-label reality (the category splits cleanly)
 
-Brand-name IDE and end-user tools (Cursor, Windsurf, Copilot, Replit Agent) are product-only. None offers a white-label / OEM / embed-our-tool program. The ownable and embeddable layer is a different set entirely: raw model APIs, **Anthropic's Claude Agent SDK** (explicitly permits powering "products and services Customer makes available to its own customers"; you can ship "Cadence Build" on it, you may not call it "Claude Code" or resell bare API access), agent sandboxes (E2B, Modal, Daytona), and **OSS agents (OpenHands MIT, Aider Apache, SWE-agent MIT, Cline, Goose)**. So a coding agent you can put your own brand on and embed is served only by OSS (OpenHands above all) or by building on model-API plus sandbox infra (Claude Agent SDK). This is why the owned-engine plan is Claude Agent SDK plus OpenHands, and why Cursor/Devin/Codex are BYO relays, not backends.
+Brand-name IDE and end-user tools (Cursor, Windsurf, Copilot, Replit Agent) are product-only. None offers a white-label / OEM / embed-our-tool program. The ownable and embeddable layer is a different set entirely: raw model APIs, **Anthropic's Claude Agent SDK** (explicitly permits powering "products and services Customer makes available to its own customers"; you can ship "Supaprod Build" on it, you may not call it "Claude Code" or resell bare API access), agent sandboxes (E2B, Modal, Daytona), and **OSS agents (OpenHands MIT, Aider Apache, SWE-agent MIT, Cline, Goose)**. So a coding agent you can put your own brand on and embed is served only by OSS (OpenHands above all) or by building on model-API plus sandbox infra (Claude Agent SDK). This is why the owned-engine plan is Claude Agent SDK plus OpenHands, and why Cursor/Devin/Codex are BYO relays, not backends.
 
 ### 8.3 Cost magnitude (why this matters for pricing)
 
@@ -196,10 +196,10 @@ Vendor cost and spend implications belong in [`../operations/procurement-invento
 
 Never resell someone else's branded agent as the headline. Two honest modes only:
 
-- **Managed / native:** it is "Cadence Build," powered by an engine we own (native, Claude Agent SDK, or self-hosted OpenHands), with at most a model attribution ("runs on the model you choose"). The Claude Agent SDK terms and the OpenHands MIT license both permit this.
+- **Managed / native:** it is "Supaprod Build," powered by an engine we own (native, Claude Agent SDK, or self-hosted OpenHands), with at most a model attribution ("runs on the model you choose"). The Claude Agent SDK terms and the OpenHands MIT license both permit this.
 - **BYO:** be transparent, "Connect your Devin." The user knowing it is their own tool is a trust feature, not brand dilution.
 
-If users ever come to think "Cadence is a Cursor skin," the pricing power is gone. `moat.md` already forbids positioning build as the differentiator, so this is just executing what is written.
+If users ever come to think "Supaprod is a Cursor skin," the pricing power is gone. `moat.md` already forbids positioning build as the differentiator, so this is just executing what is written.
 
 ---
 
@@ -263,7 +263,7 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 ## 16. Cross-link map
 
 - Implements: [`moat.md`](./moat.md) §6 ("we dispatch the builders") and §8 ("own engine or dispatched, not the differentiator"); [`v11-guiding-star.md`](./v11-guiding-star.md) (decision-and-outcome layer as the moat).
-- Extends: [`byo-build-and-cadence-cloud.md`](./byo-build-and-cadence-cloud.md) (which specced `RepoProvider`, the git side); this doc is the code-gen-side twin. Sequencing of that initiative: [`../planning/byo-build-implementation-plan.md`](../planning/byo-build-implementation-plan.md).
+- Extends: [`byo-build-and-supaprod-cloud.md`](./byo-build-and-supaprod-cloud.md) (which specced `RepoProvider`, the git side); this doc is the code-gen-side twin. Sequencing of that initiative: [`../planning/byo-build-implementation-plan.md`](../planning/byo-build-implementation-plan.md).
 - Build/buy/integrate posture: [`build-buy-integrate.md`](./build-buy-integrate.md), [`sourcing-map.md`](./sourcing-map.md) (codegen = INTEGRATE, not BUILD).
 - Live diagnosis + the reliability tactical layer: [`../planning/builder-reliability-and-codegen-direction.md`](../planning/builder-reliability-and-codegen-direction.md).
 - Existing code seam: `src/lib/delegate/provider.ts`, `src/lib/delegate/poll.server.ts`, `delegate.openhands` in `src/lib/ai/tools/registry.server.ts`; the git twin `src/lib/connectors/repo-provider.ts`.
@@ -273,13 +273,13 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 
 ---
 
-## The 2026-07-10 re-decision: the driver ladder, and the full reasoning why Cadence never builds the code generator
+## The 2026-07-10 re-decision: the driver ladder, and the full reasoning why Supaprod never builds the code generator
 
 > _Appended 2026-07-10 (the v13 goal session's build-strategy question). This is the complete argument — for any agent touching the build layer, and for the founder facing "why aren't you building codegen?" from an investor. The one-breath version lives in [`../pitch/qa-bank.md`](../pitch/qa-bank.md); the launch execution lives in [`../planning/launch-sprint-specs.md`](../planning/launch-sprint-specs.md) §PC-35._
 
 ### The question
 
-"For one single platform to take care of everything, shouldn't Cadence own code generation end to end?" — asked by the founder 2026-07-10; asked by every investor eventually.
+"For one single platform to take care of everything, shouldn't Supaprod own code generation end to end?" — asked by the founder 2026-07-10; asked by every investor eventually.
 
 ### The answer: we own the EXPERIENCE end to end; we never own the generator. Five arguments, each sufficient alone.
 
@@ -289,7 +289,7 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 
 **3. The no-fast-oracle asymmetry (why their layer commoditizes and ours doesn't).** Code has a compiler: feedback in seconds, at zero cost — which is exactly why codegen exploded and why it races to zero margin. "What to build, and was it right" has NO fast oracle: feedback arrives in weeks, confounded, expensive. You cannot commoditize what you cannot instantly verify — so the decision-and-outcome layer defends structurally, and the outcome ledger (accrued per-workspace over calendar time) cannot be backfilled by any competitor at any funding level (moat.md §2). We chose the side of the asymmetry that compounds.
 
-**4. Every frontier release strengthens us (the seam economics).** Because the generator sits behind our `BuildDriver` seam, a better Claude/GPT/Devin makes Cadence better the day it ships, at zero engineering cost to us — while it makes the codegen vendors' differentiation SMALLER. Model-agnostic + BYO keys means an enterprise's heaviest compute can bill to their own contracts (their Devin, their Cursor), removing our COGS on the spikiest workload while we price the judgment, governance, and receipts at software margins (§13 above). The precedent for surviving beside giants is specific: **Cursor thrived beside Copilot on workflow depth; Jasper died as a thin layer with no data gravity.** We have the workflow depth and the un-backfillable data; the generator is where we would have neither.
+**4. Every frontier release strengthens us (the seam economics).** Because the generator sits behind our `BuildDriver` seam, a better Claude/GPT/Devin makes Supaprod better the day it ships, at zero engineering cost to us — while it makes the codegen vendors' differentiation SMALLER. Model-agnostic + BYO keys means an enterprise's heaviest compute can bill to their own contracts (their Devin, their Cursor), removing our COGS on the spikiest workload while we price the judgment, governance, and receipts at software margins (§13 above). The precedent for surviving beside giants is specific: **Cursor thrived beside Copilot on workflow depth; Jasper died as a thin layer with no data gravity.** We have the workflow depth and the un-backfillable data; the generator is where we would have neither.
 
 **5. The trust position requires neutrality.** The layer that decides what's worth building and judges whether it worked must be neutral across builders — the moment we own a generator competitively, our "dispatch to the best driver" claim and our benchmark honesty are conflicted. The judge doesn't enter the race.
 

@@ -1,7 +1,7 @@
 /**
  * PLG · pre-signup conversion CTA — shown at the foot of the public share pages
  * (`/t/$slug` teardowns, `/d/$slug` decisions). Turns a viral viewer into a
- * signup: it names what Cadence is and leads with the decided positioning
+ * signup: it names what Supaprod is and leads with the decided positioning
  * (free to start, pay to keep your memory — `docs/features/pricing.md`).
  *
  * Marketing cross-links use plain <a href> on purpose: these are public-to-public
@@ -28,7 +28,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
         className="mono-label"
         style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
       >
-        Made with Cadence
+        Made with Supaprod
       </div>
       <h2
         className="font-display"
@@ -45,7 +45,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
           maxWidth: 430,
         }}
       >
-        Cadence is the PM chief of staff that red-teams your decisions, runs the reversible work,
+        Supaprod is the PM chief of staff that red-teams your decisions, runs the reversible work,
         and remembers every outcome. Free to start; Pro keeps your decision memory forever.
       </p>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>

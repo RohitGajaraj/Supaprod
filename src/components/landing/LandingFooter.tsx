@@ -1,4 +1,4 @@
-import { MachineViewToggle } from "@/components/cadence/MachineViewToggle";
+import { MachineViewToggle } from "@/components/supaprod/MachineViewToggle";
 
 /**
  * Footer: Dense, honest footer for investor diligence
@@ -118,7 +118,7 @@ export function LandingFooter() {
             the other. Agents get a stateful, labeled control (aria-pressed);
             the M key and the Product-column link remain as entry points. */}
         <div className="border-t border-gray-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
-          <p>&copy; 2026 Cadence. All rights reserved.</p>
+          <p>&copy; 2026 Supaprod. All rights reserved.</p>
           <MachineViewToggle />
         </div>
       </div>

@@ -80,7 +80,7 @@ describe("openhands build driver, dispatch (delegates to the provider seam)", ()
     expect(calls[0].task).toContain("lockout after 5 failures");
     expect(calls[0].repoUrl).toBe("https://github.com/acme/app");
     expect(calls[0].baseBranch).toBe("main");
-    expect(calls[0].cadenceRunId).toBe("r1");
+    expect(calls[0].supaprodRunId).toBe("r1");
     expect(session).toEqual({
       driver: "openhands",
       missionId: "m1",

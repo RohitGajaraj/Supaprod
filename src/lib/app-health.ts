@@ -23,7 +23,7 @@ export type HealthChecks = {
 
 export type HealthBody = {
   status: "ok" | "degraded";
-  service: "cadence";
+  service: "supaprod";
   /** ISO timestamp, injected by the caller so this stays pure. */
   time: string;
   /**
@@ -77,7 +77,7 @@ export function assembleHealth(
   return {
     body: {
       status: degraded ? "degraded" : "ok",
-      service: "cadence",
+      service: "supaprod",
       time: nowIso,
       release,
       checks: { worker: "ok", database: checks.database, crons: checks.crons },

@@ -20,7 +20,7 @@ describe("deployableFile", () => {
     for (const p of [
       "main.ts",
       "deno.json",
-      "cadence.json",
+      "supaprod.json",
       "README.md",
       ".github/workflows/ci.yml",
       "assets/logo.svg",

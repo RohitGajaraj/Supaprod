@@ -16,7 +16,7 @@
 **Title (Beat 0 as the promise, per the demo doctrine):**
 
 ```
-Show HN: Cadence – an AI product team with a ledger that proves what worked
+Show HN: Supaprod – an AI product team with a ledger that proves what worked
 ```
 
 _Alt, if the above reads too close to "AI product tool" (v13's own ban list) — pick on submit day by reading both aloud:_
@@ -34,7 +34,7 @@ That excavation — hours of Slack archaeology — is the job today, even with
 AI tools everywhere. [PROVEN — the community's own words, cited: a 480-point
 r/ProductManagement thread on PRDs converges on the exact same line.]
 
-Cadence is an agent fleet that runs the product loop end to end — reads
+Supaprod is an agent fleet that runs the product loop end to end — reads
 signals, ranks the bets, red-teams them, writes the spec, builds to a PR,
 records what happened — plus the thing engineering never needed: an outcome
 ledger, because code has a compiler and product judgment doesn't.
@@ -79,7 +79,7 @@ The AI product team with a ledger that proves what worked
 **Description (short, PH-native, no adjectives doing a number's job):**
 
 ```
-Cadence runs product work end to end with an agent fleet — signal to
+Supaprod runs product work end to end with an agent fleet — signal to
 decision to spec to shipped PR — and keeps an outcome ledger so every call
 has a receipt. Free tier runs the full loop on a small credit budget. Try
 it without signing up: [DEMO-LINK].
@@ -100,7 +100,7 @@ NOT built yet — I'd rather tell you than have you find out.
 2. The teardown (Critic red-teaming a real bet) — evidence chain visible, not a chat bubble.
 3. A real merged PR with CI green, opened by the mission, under the merge gate.
 4. The revert moment — the failure path, captioned "we rehearse being wrong on purpose."
-5. The calibration surface — "Cadence called N of the last M," the published miss record.
+5. The calibration surface — "Supaprod called N of the last M," the published miss record.
 
 **Topics/categories:** Productivity, Artificial Intelligence, SaaS. Avoid "AI Assistant" / "No-Code" categories — the v13 ban on "AI PM tool" framing applies to category selection too, not just copy.
 
@@ -111,14 +111,14 @@ NOT built yet — I'd rather tell you than have you find out.
 **Copy for the share-link landing (what a stranger sees clicking a shared teardown):**
 
 ```
-This is a real teardown Cadence ran on [workspace]'s actual bet — evidence,
+This is a real teardown Supaprod ran on [workspace]'s actual bet — evidence,
 precedent, and the call, all with receipts. No login needed to read it.
 [Try it on your own bet → DEMO-LINK]
 ```
 
 ## 4. Build-in-public arc (routes to the brand repo, not authored here)
 
-Per [`CLAUDE.md`](../../CLAUDE.md) §1.65: the build-in-public brand system lives in a **separate private repo**, not this one. This repo's job is the one-way insight feed: when a genuinely postable build insight surfaces during the launch sprint (high bar — not a build log, something a real social post would use), it goes into [`../brand-feed.md`](../brand-feed.md) with a capture cue (the screenshot/video/link that would strengthen the post). The brand repo's engine drafts in the founder's voice and stages Buffer drafts for his review; it never publishes on its own. **Nothing from Cadence work publishes to the founder's accounts without his explicit approval** — this kit does not draft social posts directly; it feeds the one channel that's designed to.
+Per [`CLAUDE.md`](../../CLAUDE.md) §1.65: the build-in-public brand system lives in a **separate private repo**, not this one. This repo's job is the one-way insight feed: when a genuinely postable build insight surfaces during the launch sprint (high bar — not a build log, something a real social post would use), it goes into [`../brand-feed.md`](../brand-feed.md) with a capture cue (the screenshot/video/link that would strengthen the post). The brand repo's engine drafts in the founder's voice and stages Buffer drafts for his review; it never publishes on its own. **Nothing from Supaprod work publishes to the founder's accounts without his explicit approval** — this kit does not draft social posts directly; it feeds the one channel that's designed to.
 
 **Launch-week candidates worth capturing to brand-feed.md when they happen for real (not written yet — these are the shape, not drafted posts):** the day PC-04's demo goes live; the first real design-partner "aha" moment (with the partner's permission); the Show HN thread hitting front-page-of-day, if it does; the first paying-customer receipt.
 

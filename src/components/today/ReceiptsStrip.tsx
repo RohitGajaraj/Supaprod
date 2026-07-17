@@ -21,7 +21,7 @@ function fmtUsd(n: number): string {
 /** stage_events.actor is 'human', an agent slug, or 'system'. */
 function actorOf(group: SwarmActivityGroup): { label: string; slug: string | null } {
   const actor = group.items[0]?.actor ?? null;
-  if (!actor || actor === "system") return { label: "Cadence", slug: null };
+  if (!actor || actor === "system") return { label: "Supaprod", slug: null };
   if (actor === "human") return { label: "You", slug: null };
   return { label: agentDisplayName(actor, actor), slug: actor };
 }

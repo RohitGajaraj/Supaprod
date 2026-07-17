@@ -1,4 +1,4 @@
-// Learn (06) — the closing stage of THE CADENCE LOOP (Tempo revamp,
+// Learn (06) — the closing stage of THE SUPAPROD LOOP (Tempo revamp,
 // 2026-07-13). Previously /learn was a redirect into Brain's Learnings tab,
 // which hid the loop's most important stage: what actually happened after you
 // shipped, and what the system learned from it. It is now a first-class
@@ -15,8 +15,8 @@ import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MonoLabel } from "@/components/obsidian/primitives";
@@ -92,7 +92,7 @@ function LearnSurface() {
           title="Did it"
           accent="work?"
           subtitle="The loop closes here. Every shipped bet comes back with an outcome, a verdict, and the impact it produced, then feeds Memory so the next call is sharper."
-          usp="Outcomes close the loop and teach the system, so Cadence gets better with every release."
+          usp="Outcomes close the loop and teach the system, so Supaprod gets better with every release."
         />
         {presenceAgent ? (
           <div style={{ marginBottom: 14 }}>
@@ -140,7 +140,7 @@ function LearnSurface() {
 
 export const Route = createFileRoute("/_authenticated/learn")({
   component: LearnSurface,
-  head: () => ({ meta: [{ title: "Learn · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Learn · Supaprod" }] }),
   errorComponent: ({ error }) => {
     console.error("[Learn] route crashed:", error);
     return (

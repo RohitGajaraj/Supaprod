@@ -238,7 +238,7 @@ export const claudeSdkBuildDriver: BuildDriver = {
       throw new Error("claude-sdk dispatch failed: the model did not return a valid patch");
     }
 
-    const branchName = `cadence/claude-sdk/${ctx.missionId.slice(0, 8)}`;
+    const branchName = `supaprod/claude-sdk/${ctx.missionId.slice(0, 8)}`;
     const baseSha = await githubBranchHeadSha(repoRef, baseBranch, resolved.auth.token);
     const branch = await repoProvider.createBranch(repoRef, branchName, baseSha);
     await repoProvider.commitFiles(

@@ -20,7 +20,7 @@ import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { createPortalSession, getMyCreditsView } from "@/lib/payments.functions";
 import { LOW_CREDITS_WARN } from "@/lib/entitlements";
 
-const LOW_DISMISS_KEY = "cadence.credits.low-dismissed";
+const LOW_DISMISS_KEY = "supaprod.credits.low-dismissed";
 
 /**
  * Pure decision, extracted so the threshold behavior is testable without a

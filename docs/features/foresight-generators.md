@@ -6,7 +6,7 @@
 
 ## What it does
 
-Cadence's `derive-tick` cron watches emerging product themes and derives falsifiable foresight insights (`prediction`, `risk`, `cost_of_inaction`, `hidden_connection`) every two hours. FS-01 made those claims honest: every prediction and risk insight carries a checkable claim and a 30-90 day horizon, and a `calibrate-tick` cron scores expired ones (hit/miss/inconclusive, Brier-style) and throttles a generator whose rolling hit rate falls below 34%. FS-04 puts that credibility to work: the single highest-scored open risk, plus its calibration hit rate ("Cadence called 7 of the last 9"), now leads the Today brief and appears on the matching InsightRail card — foresight lands where the operator already looks, not a new panel.
+Supaprod's `derive-tick` cron watches emerging product themes and derives falsifiable foresight insights (`prediction`, `risk`, `cost_of_inaction`, `hidden_connection`) every two hours. FS-01 made those claims honest: every prediction and risk insight carries a checkable claim and a 30-90 day horizon, and a `calibrate-tick` cron scores expired ones (hit/miss/inconclusive, Brier-style) and throttles a generator whose rolling hit rate falls below 34%. FS-04 puts that credibility to work: the single highest-scored open risk, plus its calibration hit rate ("Supaprod called 7 of the last 9"), now leads the Today brief and appears on the matching InsightRail card — foresight lands where the operator already looks, not a new panel.
 
 ## Why it exists
 
@@ -19,14 +19,14 @@ v12 sec 4: Today is not a dashboard. Foresight that only lives in a background `
 
 ## Demo script (≤ 90s)
 
-1. Open `/today` on a workspace with an open `risk`-kind insight and at least one resolved calibration call. Read the brief: after the approvals lead, it names the risk and cites "Cadence called N of the last M."
+1. Open `/today` on a workspace with an open `risk`-kind insight and at least one resolved calibration call. Read the brief: after the approvals lead, it names the risk and cites "Supaprod called N of the last M."
 2. Point at the matching card in the Signal insights rail below — the same hit-rate line sits under its detail text.
 3. Contrast: on a fresh workspace with zero resolved calls, the same risk shows with no hit-rate clause — no invented credibility, no "not enough data yet" filler either.
 
 ## How it works
 
 - `deriveRisk` (`src/lib/brain/derive-insights.server.ts`) writes a `kind: "risk"` row into `insights`, workspace-scoped, with a falsifiable `claim` and a 30-90 day `horizon_date` (FS-01).
-- `summarizeCalibration` / `summarizeResolutions` (`src/lib/brain/calibrate-insights.server.ts`) compute the rolling hit rate over the last 10 decided calls of a kind (FS-01); `recentLabel` is the quotable "Cadence called N of the last M" primitive, built specifically for FS-04 to compose.
+- `summarizeCalibration` / `summarizeResolutions` (`src/lib/brain/calibrate-insights.server.ts`) compute the rolling hit rate over the last 10 decided calls of a kind (FS-01); `recentLabel` is the quotable "Supaprod called N of the last M" primitive, built specifically for FS-04 to compose.
 - `describeRisk` (`src/lib/copilot-brief.ts`, pure, unit-tested) composes the top open risk + its calibration summary into one deterministic line, honest when there is no open risk or no resolved history yet — never fabricates a hit rate.
 - `ensureTodayBrief` (`src/lib/copilot.functions.ts`) resolves the caller's `workspace_id`, fetches the top open risk + calls `summarizeCalibration` alongside its existing queries, and folds `describeRisk`'s line into the brief's AI prompt as an `OPEN RISK:` section, right after `PENDING CALLS`.
 - `getInsightRail` (`src/lib/brain/insights.functions.ts`) computes at most two calibration lookups per rail load (one per `prediction`/`risk` kind actually present, deduped), attaches `calibrationLabel: string | null` to each `InsightRailItem`, and only sets it once `resolved > 0` for that kind.

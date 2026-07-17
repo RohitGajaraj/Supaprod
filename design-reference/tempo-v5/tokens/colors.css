@@ -1,8 +1,8 @@
-/* Cadence Tempo v5 — color tokens.
+/* Supaprod Tempo v5 — color tokens.
    Source: vercel.com/geist/colors computed values (sRGB fallbacks; the site also ships P3
    variants via @supports (color: color(display-p3 1 1 1)) — treat these hex values as canon).
    Dark-first: :root IS the dark theme. Light is an override generated from the same names.
-   The ember scale is the ONE Cadence deviation — it replaces blue as the brand/interactive
+   The ember scale is the ONE Supaprod deviation — it replaces blue as the brand/interactive
    accent role. Blue remains for informational links, per the contract. */
 
 :root,
@@ -37,7 +37,7 @@
   --ds-gray-alpha-900: #ffffff9c;
   --ds-gray-alpha-1000: #ffffffeb;
 
-  /* Ember — the Cadence brand scale (same 10-step role model as every other scale) */
+  /* Ember — the Supaprod brand scale (same 10-step role model as every other scale) */
   --ds-ember-100: #331206;
   --ds-ember-200: #421808;
   --ds-ember-300: #57200b;

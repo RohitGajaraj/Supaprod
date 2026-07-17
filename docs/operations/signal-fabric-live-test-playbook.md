@@ -12,7 +12,7 @@
    - `20260701010000_mcp_connections.sql` (rate-limit ledger — SF-MCP)
 2. **Get the cron-hook secret** so you can force a tick on demand instead of waiting for the real schedule (5 min for sense-tick, hourly for scout-tick, every 2h for derive-tick). It's `CRON_SECRET` in Lovable Cloud → Secrets, or fetch it live: `SELECT public.get_cron_hook_secret();` via the Supabase MCP / SQL editor. Treat it like any other credential — do not paste it into chat or commit it anywhere.
 3. **Sign in.** Use the seeded demo account for a zero-setup look (`demo@redcadence.app`, password in [`demo-credentials.md`](./demo-credentials.md)) or your own workspace for a from-scratch test. The demo account already has signals/themes/insights seeded, so Scenario 1 needs no setup at all.
-4. **Base URL** for manual hook calls: `https://cadence-flow-beta.lovable.app` (swap in your own published URL if different).
+4. **Base URL** for manual hook calls: `https://supaprod.lovable.app` (swap in your own published URL if different).
 5. _(Optional, only needed for Scenario 5)_ Set `BRAIN_AUTO_TRIGGER=1` in Lovable project settings.
 6. _(Optional, only needed for Scenario 3)_ A sandbox/test API token for whichever customer-voice connector you want to test (Intercom is the easiest to get a free sandbox token for).
 7. _(Optional, only needed for Scenario 6)_ A real hosted MCP server URL + token — Linear's official hosted MCP server (`https://mcp.linear.app/sse` at time of writing — verify the current URL in Linear's own docs before using it) is the easiest of the four to test against since it needs no special enterprise contract.
@@ -20,7 +20,7 @@
 **Manual tick command shape** (replace `<TICK>` with `sense-tick` / `cluster-tick` / `derive-tick` / `trigger-tick` / `scout-tick`, and `<SECRET>` with the value from step 2):
 
 ```bash
-curl -s -X POST "https://cadence-flow-beta.lovable.app/api/public/hooks/<TICK>" \
+curl -s -X POST "https://supaprod.lovable.app/api/public/hooks/<TICK>" \
   -H "x-cron-key: <SECRET>" -H "Content-Type: application/json" -d '{}' | jq .
 ```
 

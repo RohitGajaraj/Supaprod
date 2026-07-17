@@ -2,12 +2,12 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-07-10_
 
-> You just opened Cadence. This file routes you. Cadence is the **B2B Enterprise Product Cockpit** — an agent-native system of record and action where a swarm of specialist agents runs the entire product lifecycle (discover → definition → plan → build → test → ship → GTM launch → support → cohort analytics → learning loop) and a human governs the calls that matter. Agents execute. Humans govern. Full thesis: [`README.md`](./README.md). Strategic positioning: [`docs/strategy/`](./docs/strategy/) — always read the latest version file there before any positioning, feature, or UX work.
+> You just opened Supaprod. This file routes you. Supaprod is the **B2B Enterprise Product Cockpit** — an agent-native system of record and action where a swarm of specialist agents runs the entire product lifecycle (discover → definition → plan → build → test → ship → GTM launch → support → cohort analytics → learning loop) and a human governs the calls that matter. Agents execute. Humans govern. Full thesis: [`README.md`](./README.md). Strategic positioning: [`docs/strategy/`](./docs/strategy/) — always read the latest version file there before any positioning, feature, or UX work.
 
 ---
 
 > [!IMPORTANT]
-> **PRODUCT NAME: CADENCE.** The product is **Cadence**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `cadence`/`Cadence`.
+> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
 
 ---
 
@@ -46,7 +46,7 @@
 
 | If you are…                                                | Read first                                                                                                                                                                                                                                                                                                                                        |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Asking "what is Cadence?"                                  | [`README.md`](./README.md)                                                                                                                                                                                                                                                                                                                        |
+| Asking "what is Supaprod?"                                  | [`README.md`](./README.md)                                                                                                                                                                                                                                                                                                                        |
 | The founding constitution (AI co-founder role + mandates)  | [`Ai_Cofounder.md`](./Ai_Cofounder.md) — posture, north star, mandates; its **Repo Concordance** maps its 13 mandated docs onto this doc system                                                                                                                                                                                                   |
 | About to build (any agent or human)                        | [`AGENTS.md`](./AGENTS.md). Claude Code: [`CLAUDE.md`](./CLAUDE.md). Antigravity/Gemini: [`GEMINI.md`](./GEMINI.md).                                                                                                                                                                                                                              |
 | Designing UI / motion / tokens                             | [`DESIGN-LOOM.md`](./DESIGN-LOOM.md) (app, CURRENT v4 contract, additive over v3) · [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (app, v3 base layer Loom builds on) · [`DESIGN.md`](./DESIGN.md) (public landing page only)                                                                                                                      |
@@ -69,7 +69,7 @@
 
 ## The thirty-second pitch
 
-Building software is no longer the bottleneck — product judgment under fragmented context is. Signals live in 6 places, reasoning in 4 more, planning in 3, execution in 5. The cost of switching, reconciling, and re-explaining now exceeds the cost of the work. Cadence collapses the lifecycle into one queryable substrate where agents cite their evidence, prove their reasoning, and act behind approval gates. **Agent-first, not a PM tool with AI bolted on.** Full thesis: [`README.md`](./README.md).
+Building software is no longer the bottleneck — product judgment under fragmented context is. Signals live in 6 places, reasoning in 4 more, planning in 3, execution in 5. The cost of switching, reconciling, and re-explaining now exceeds the cost of the work. Supaprod collapses the lifecycle into one queryable substrate where agents cite their evidence, prove their reasoning, and act behind approval gates. **Agent-first, not a PM tool with AI bolted on.** Full thesis: [`README.md`](./README.md).
 
 ---
 
@@ -81,7 +81,7 @@ bun run dev       # dev server
 # open http://localhost:5173
 ```
 
-Environment is auto-provisioned by the cloud project (Supabase URL/key + AI gateway key injected). That cloud project is **Lovable**: Cadence is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase DB, auth/OAuth, secrets, hosting, deploys). Read any live backend, OAuth, or database fact from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0. Migrations live in `supabase/migrations/` — author new ones via the migration tool; never edit existing migrations in place. Commits go through `gstack` ([`docs/operations/commits.md`](./docs/operations/commits.md)).
+Environment is auto-provisioned by the cloud project (Supabase URL/key + AI gateway key injected). That cloud project is **Lovable**: Supaprod is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase DB, auth/OAuth, secrets, hosting, deploys). Read any live backend, OAuth, or database fact from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0. Migrations live in `supabase/migrations/` — author new ones via the migration tool; never edit existing migrations in place. Commits go through `gstack` ([`docs/operations/commits.md`](./docs/operations/commits.md)).
 
 ---
 
@@ -94,7 +94,7 @@ Environment is auto-provisioned by the cloud project (Supabase URL/key + AI gate
 ## Repo navigation
 
 ```text
-Cadence/
+Supaprod/
 ├── ENTRY.md              <- repo index (here)
 ├── Ai_Cofounder.md       <- founding constitution (co-founder posture + mandates; see its Repo Concordance)
 ├── README.md             <- product: what + why

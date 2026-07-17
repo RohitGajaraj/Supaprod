@@ -137,7 +137,7 @@ export function ChangelogPanel() {
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* RPT-45: the changelog heartbeat leads the list. The weekly "what shipped /
           changed / was decided" pulse, generated from the ledger (zero hand-writing),
-          so the surface opens with the self-accountability cadence before the raw feed. */}
+          so the surface opens with the self-accountability supaprod before the raw feed. */}
       {activeWorkspace?.id ? <ChangelogHeartbeat workspaceId={activeWorkspace.id} /> : null}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {shownGroups.map((group) => (

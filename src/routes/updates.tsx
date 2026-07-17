@@ -3,9 +3,9 @@
 // build log. PC-15 extends this page with a "you said, we changed" section
 // fed by product-pulse feedback; this is the honest starting shape.
 import { createFileRoute } from "@tanstack/react-router";
-import { LegalPageShell } from "@/components/cadence/LegalPageShell";
+import { LegalPageShell } from "@/components/supaprod/LegalPageShell";
 
-const TITLE = "Changelog · Cadence";
+const TITLE = "Changelog · Supaprod";
 const DESC = "What shipped, in plain language, dated.";
 
 export const Route = createFileRoute("/updates")({
@@ -26,7 +26,7 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   {
     date: "2026-07-10",
     title: "The first ten minutes now prove the value",
-    body: "Onboarding no longer starts with a tour. Name your product, connect one source or paste your notes, and Cadence tears down your own bet with real evidence before you have done anything else.",
+    body: "Onboarding no longer starts with a tour. Name your product, connect one source or paste your notes, and Supaprod tears down your own bet with real evidence before you have done anything else.",
   },
   {
     date: "2026-07-09",
@@ -41,12 +41,12 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   {
     date: "2026-07-03",
     title: "Every outcome makes the next call sharper",
-    body: "Cadence now re-ranks what it recalls by how past decisions actually turned out, not just by how similar they read. Your Cadence gets smarter about your product with every outcome it records.",
+    body: "Supaprod now re-ranks what it recalls by how past decisions actually turned out, not just by how similar they read. Your Supaprod gets smarter about your product with every outcome it records.",
   },
   {
     date: "2026-06-25",
     title: "The Ledger",
-    body: "Every call Cadence makes is now recorded with the evidence behind it, then graded once the outcome lands. Right or wrong, it becomes precedent the next call reads from.",
+    body: "Every call Supaprod makes is now recorded with the evidence behind it, then graded once the outcome lands. Right or wrong, it becomes precedent the next call reads from.",
   },
 ];
 

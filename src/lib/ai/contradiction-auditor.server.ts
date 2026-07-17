@@ -11,7 +11,7 @@ import { callModel } from "./runtime.server";
 const MODEL = "google/gemini-2.5-flash" as const;
 const MAX_CORPUS = 24;
 
-const AUDIT_SYSTEM = `You are the Cadence contradiction auditor. You are given a decision that was just made, and a numbered list of prior decisions from the same workspace. Find the prior decisions that genuinely disagree with, or are now superseded by, the decision that was just made.
+const AUDIT_SYSTEM = `You are the Supaprod contradiction auditor. You are given a decision that was just made, and a numbered list of prior decisions from the same workspace. Find the prior decisions that genuinely disagree with, or are now superseded by, the decision that was just made.
 Rules:
 - Only flag a real, substantive disagreement. A merely related or adjacent decision is not a contradiction.
 - For each contradiction, give its 0-based index from the list and one plain sentence saying how it disagrees.

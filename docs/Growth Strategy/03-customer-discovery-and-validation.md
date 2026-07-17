@@ -4,13 +4,13 @@
 > _Builds ON [`../pitch/design-partner-kit.md`](../pitch/design-partner-kit.md) (the 25-target cohort + outreach templates + weekly ritual — never duplicated here, always referenced) and executes the v13 ground-truth mandate: **every beta first-session doubles as a discovery interview.** Pricing facts from [`../strategy/pricing/pricing-architecture.md`](../strategy/pricing/pricing-architecture.md) (Free / Pro $20 / Team $50 / Enterprise; credits, not seats)._
 > _Standing rule (binding): **nothing outward sends without founder approval, per message.** Every template below is a draft until the founder reads, edits, and sends it._
 
-**Contents:** [1. ICP](#1-icp-who-feels-this-worst) · [2. Segments](#2-segmentation-with-pain-hypotheses) · [3. Prospect sourcing](#3-prospect-sourcing-200-500-named-prospects) · [4. Cold outreach](#4-the-cold-outreach-system) · [5. Warm intros](#5-manufacturing-warm-intros) · [6. Pipeline](#6-founder-led-sales-pipeline) · [7. Interviews](#7-the-interview-framework-the-30-minute-beta-first-session) · [8. Problem scorecard](#8-problem-validation-scorecard) · [9. Pricing & WTP](#9-pricing-validation--willingness-to-pay) · [10. Concierge MVP](#10-the-concierge-mvp-run-cadence-for-them) · [11. Design partners](#11-design-partner-program-pc-13) · [12. Advisory group](#12-customer-advisory-group) · [13. The capture system](#13-the-capture-system-every-interaction-becomes-a-product-decision) · [14. Buyer-likelihood rubric](#14-the-paying-user-likelihood-rubric) · [15. The 7-day cut](#15-what-happens-in-the-first-7-days)
+**Contents:** [1. ICP](#1-icp-who-feels-this-worst) · [2. Segments](#2-segmentation-with-pain-hypotheses) · [3. Prospect sourcing](#3-prospect-sourcing-200-500-named-prospects) · [4. Cold outreach](#4-the-cold-outreach-system) · [5. Warm intros](#5-manufacturing-warm-intros) · [6. Pipeline](#6-founder-led-sales-pipeline) · [7. Interviews](#7-the-interview-framework-the-30-minute-beta-first-session) · [8. Problem scorecard](#8-problem-validation-scorecard) · [9. Pricing & WTP](#9-pricing-validation--willingness-to-pay) · [10. Concierge MVP](#10-the-concierge-mvp-run-supaprod-for-them) · [11. Design partners](#11-design-partner-program-pc-13) · [12. Advisory group](#12-customer-advisory-group) · [13. The capture system](#13-the-capture-system-every-interaction-becomes-a-product-decision) · [14. Buyer-likelihood rubric](#14-the-paying-user-likelihood-rubric) · [15. The 7-day cut](#15-what-happens-in-the-first-7-days)
 
 ---
 
 ## 1. ICP: who feels this worst
 
-**Primary wedge ICP (the one we sell to first):** the **senior or founding PM at a seed-to-Series-B startup who has already tried to hand-build their own AI product rig** (Claude Code + MCP + notes-as-memory) or watched a peer do it. Proof this person exists in volume: the year's top r/ProductManagement post (838 points) is literally a build-log of Cadence's shape, and its 223 commenters are the first outreach cohort ([design-partner-kit](../pitch/design-partner-kit.md)).
+**Primary wedge ICP (the one we sell to first):** the **senior or founding PM at a seed-to-Series-B startup who has already tried to hand-build their own AI product rig** (Claude Code + MCP + notes-as-memory) or watched a peer do it. Proof this person exists in volume: the year's top r/ProductManagement post (838 points) is literally a build-log of Supaprod's shape, and its 223 commenters are the first outreach cohort ([design-partner-kit](../pitch/design-partner-kit.md)).
 
 **Why this exact person (the tiebreakers — apply in order when choosing who to pursue):**
 
@@ -83,7 +83,7 @@ their own site or launch post. Real, not flattery.]
 Quick question: when your team ships something, does anyone go back and
 check whether the call behind it was right?
 
-I built Cadence because that answer is almost always no. Agents run the
+I built Supaprod because that answer is almost always no. Agents run the
 product loop end to end (signals in, ranked bets, specs, a PR out) and an
 outcome ledger records what worked, so the next call is smarter than the
 last one.
@@ -113,7 +113,7 @@ Cold works, warm converts ~3-4x better. A pre-seed founder without a network man
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------------------- | ------------------------------- |
 | **The build-in-public reply ladder** | Founder replies substantively (not "great post!") to 5 PM/AI posts daily on X/LinkedIn for 7 days before any ask. By day 5, DMs to those authors are warm.     | 30 min/day      | 10-15 warm-enough DM channels by day 7                    | Reply→conversation rate         |
 | **The demo-as-gift**                 | End every single call (any call, including rejections) with "who is one person who'd find this useful?" A specific ask ("one person") beats "anyone you know." | 10 seconds/call | 1 referral per 3 calls once sessions start                | Referrals/session               |
-| **Community citizenship first**      | In Lenny's/MTP/PLA Slack: answer 3 questions genuinely before mentioning Cadence exists. Then the mention is a member sharing their work, not an ad.           | 20 min/day      | Channel permission to share at launch + 5-10 warm members | Non-founder mentions of Cadence |
+| **Community citizenship first**      | In Lenny's/MTP/PLA Slack: answer 3 questions genuinely before mentioning Supaprod exists. Then the mention is a member sharing their work, not an ad.           | 20 min/day      | Channel permission to share at launch + 5-10 warm members | Non-founder mentions of Supaprod |
 
 ## 6. Founder-led sales pipeline
 
@@ -129,7 +129,7 @@ Seven stages. Every prospect lives in exactly one. **Exit criteria are behaviora
 | 5. Design partner | Signed the mutual commitment (§11)                                               | Weekly ritual running 2+ consecutive weeks                | Two silent weeks                                        |
 | 6. Paying         | Real card, real credits ([pricing](../strategy/pricing/pricing-architecture.md)) | — (this is the win; feed the case study machine)          | Churn → exit interview within 48 hrs, logged as signals |
 
-**The one pipeline metric that matters this month: stage-3→4 conversion (activation).** It is the product-truth number — G-SPRINT's "stranger gets a receipted value moment in under 10 minutes" made measurable. Below 40% = fix the first-session experience before adding more top-of-funnel. **Track in:** the founder's own Cadence workspace (§13), not a separate CRM — dogfood or admit the product can't do it.
+**The one pipeline metric that matters this month: stage-3→4 conversion (activation).** It is the product-truth number — G-SPRINT's "stranger gets a receipted value moment in under 10 minutes" made measurable. Below 40% = fix the first-session experience before adding more top-of-funnel. **Track in:** the founder's own Supaprod workspace (§13), not a separate CRM — dogfood or admit the product can't do it.
 
 ## 7. The interview framework: the 30-minute beta first session
 
@@ -139,7 +139,7 @@ The ground-truth mandate says beta sessions ARE discovery interviews. This scrip
 
 ```
 Thanks for the time. Two things today: I want to learn how you actually
-run product decisions now, and then I'll put Cadence on your real data
+run product decisions now, and then I'll put Supaprod on your real data
 and you tell me where it breaks. This is not a sales call. The most
 useful thing you can be is blunt. OK to record for my notes?
 ```
@@ -201,12 +201,12 @@ Log all four numbers per person. After 15 responses, plot; the acceptable band s
 
 **Credit-sizing validation (runs itself):** watch design partners' actual credit burn vs the 200/month Pro allowance. If median activated usage exceeds 60% of allowance, sizing is right (felt generous, drives upgrade). Under 20% = allowance reads as infinite; shrink before launch.
 
-## 10. The concierge MVP: run Cadence FOR them
+## 10. The concierge MVP: run Supaprod FOR them
 
 **The single highest-signal WTP experiment available to us, and nobody in our comp set does it.** Offer 3 prospects (score 8-10, too busy to onboard): "Give me read access to your backlog and support channel, or export me a dump. Monday morning you get: your signals clustered, your top 5 bets ranked with evidence, a Critic teardown of each, and a one-page brief. Free once."
 
 - **Why:** proves value with zero onboarding friction; produces the most concrete before/after case-study material possible; the follow-up ("want this every Monday?") converts a deliverable into a subscription conversation. If they won't take it FREE, the value hypothesis itself is in trouble — that is a finding, not a failure.
-- **Effort:** ~2 hrs founder time per prospect (Cadence does the work; founder curates — which is itself product QA on real external data, the first ever).
+- **Effort:** ~2 hrs founder time per prospect (Supaprod does the work; founder curates — which is itself product QA on real external data, the first ever).
 - **Metric:** 3 offered → ≥2 accepted → ≥1 asks for it again unprompted. The "asks again" is the pull signal.
 - **Risk note:** their data enters a founder-controlled workspace; say so plainly, offer deletion on request, and NEVER use their data in public materials without written OK.
 - **Next action:** slot the offer into session closes from day 3.
@@ -232,7 +232,7 @@ me every week what it got right and what it got wrong. Deal?
 
 Assemble AFTER 15+ first sessions (week 3-4, not launch week — earlier = guessing at composition). **5-8 people: 2×S1, 2×S2, 1×S3, 1-2×S4, at least one vocal skeptic** (advisory groups of fans produce applause, not advice; the skeptic is the quality control).
 
-**Format:** 45-min monthly call + async Slack Connect/DM channel. Agenda fixed: 10 min "here's what we shipped because of you" (the you-said-we-changed receipt — this retention mechanic is why people stay in advisory groups), 20 min one contested roadmap decision debated live, 15 min open. **The contested decision goes through Cadence's own Critic first and the group sees the teardown** — the advisory group experiences the product being used to run the product.
+**Format:** 45-min monthly call + async Slack Connect/DM channel. Agenda fixed: 10 min "here's what we shipped because of you" (the you-said-we-changed receipt — this retention mechanic is why people stay in advisory groups), 20 min one contested roadmap decision debated live, 15 min open. **The contested decision goes through Supaprod's own Critic first and the group sees the teardown** — the advisory group experiences the product being used to run the product.
 
 **What members get:** early features, launch-day credit ("founding advisor"), and visible influence. **Metric:** ≥6 of 8 attend month 2 (attendance decay is the honesty meter for whether WE are worth advising).
 
@@ -240,7 +240,7 @@ Assemble AFTER 15+ first sessions (week 3-4, not launch week — earlier = guess
 
 **The rule: if it isn't captured within 24 hours, it didn't happen. If it doesn't change a ranking, a message, or a build decision within a week, it wasn't captured — it was hoarded.**
 
-**Cadence runs its own discovery. This is not optional dogfooding theater — it is the demo.** Every interview becomes signals in the founder's production workspace; themes cluster; the Critic tears down the founder's own launch bets against accumulating evidence; outcomes get recorded when a bet resolves. When a prospect asks "does anyone actually use this?", the answer is the founder's live workspace running the company's own GTM. (Interim manual bridge until PC-15 ships the in-product pulse, per the kit's honest-claims note.)
+**Supaprod runs its own discovery. This is not optional dogfooding theater — it is the demo.** Every interview becomes signals in the founder's production workspace; themes cluster; the Critic tears down the founder's own launch bets against accumulating evidence; outcomes get recorded when a bet resolves. When a prospect asks "does anyone actually use this?", the answer is the founder's live workspace running the company's own GTM. (Interim manual bridge until PC-15 ships the in-product pulse, per the kit's honest-claims note.)
 
 **Fields per interaction (one signal entry each):**
 

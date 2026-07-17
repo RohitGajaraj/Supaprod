@@ -1,7 +1,7 @@
 # Public Marketing Site Redesign — Delivery Summary
 
 **Date:** 2026-07-18  
-**Scope:** Redesign Cadence public marketing site to match Vercel's ultra-premium standard  
+**Scope:** Redesign Supaprod public marketing site to match Vercel's ultra-premium standard  
 **Status:** COMPLETE — Design & spec delivery; implementation ready  
 **Delivery:** 7 files created; 3 components ready to build; 40–50 hours of prescriptive work
 
@@ -65,7 +65,7 @@ Instead of per-page custom layouts, one component handles all alternation logic.
 All hover glows are opacity-toggled (pre-rendered ::after), never animated box-shadow. **Why:** rauno.me craft rule (smoother, no layout thrashing); explicit in Tempo-v5 applied record.
 
 ### 6. **WCAG AAA (not AA)**
-All text: 7:1 contrast minimum (Cadence standard, above Vercel's AA). **Why:** accessibility is moral law, not a feature gate; founder has established this as table stakes.
+All text: 7:1 contrast minimum (Supaprod standard, above Vercel's AA). **Why:** accessibility is moral law, not a feature gate; founder has established this as table stakes.
 
 ### 7. **Founder taste rules as binding law**
 Documented 11 meta-patterns from landing v2 session (one line per section, no congestion, subtext stays short, everything hoverable reacts, motion is felt not watched, copy clarity over category words). Applied these to every new surface. **Why:** consistency, founder muscle memory, decision velocity (less back-and-forth).
@@ -171,7 +171,7 @@ Playbook section 6.1 blocks customer showcase sections. **Why:** claims law (zer
 
 ## Vercel Baseline Alignment
 
-| Pattern | Vercel | Cadence | Status |
+| Pattern | Vercel | Supaprod | Status |
 | --- | --- | --- | --- |
 | Monumental hero | Yes | Yes (3-zone grid) | ✓ Adopted |
 | Alternating showcase | Yes | Yes (SectionAlternate) | ✓ Adopted |
@@ -183,7 +183,7 @@ Playbook section 6.1 blocks customer showcase sections. **Why:** claims law (zer
 | Starfield + grid | No | Yes | Differentiator |
 | WCAG AA contrast | Vercel baseline | WCAG AAA (ours) | Enhancement |
 
-**Result:** Premium baseline matched; Cadence identity preserved.
+**Result:** Premium baseline matched; Supaprod identity preserved.
 
 ---
 
@@ -240,7 +240,7 @@ src/routes/
 ## Key Insights & Learnings
 
 ### 1. The Vercel playbook is generative, not prescriptive
-Studying Vercel's homepage taught us the reusable unit (headline + body + visual + mono specs), but copying their exact layout would dilute Cadence's identity. Instead: adopt the pattern, apply through Cadence's differentiators (Pixel headlines, three-voice grammar, starfield). Result: ultra-premium feel + brand distinctiveness.
+Studying Vercel's homepage taught us the reusable unit (headline + body + visual + mono specs), but copying their exact layout would dilute Supaprod's identity. Instead: adopt the pattern, apply through Supaprod's differentiators (Pixel headlines, three-voice grammar, starfield). Result: ultra-premium feel + brand distinctiveness.
 
 ### 2. Founder taste has meta-patterns
 From the landing v2 session, 11 meta-patterns emerged (one line per section, no congestion, subtext brevity, everything hoverable reacts, etc.). Codifying these as standing rules (section 13, expansion doc) accelerates future work; feedback loops tighten because the rules are explicit.
@@ -287,7 +287,7 @@ The prompt asked me to "make autonomous decisions." I did, guided by:
 
 1. **Existing design law** — `DESIGN-TEMPO.md` and the landing v2 applied record were canonical; every decision traces back to them
 2. **Founder taste rules** — extracted from the landing v2 session (11 meta-patterns); these became decision filters
-3. **Vercel baseline** — studied patterns, then adapted through Cadence's differentiators
+3. **Vercel baseline** — studied patterns, then adapted through Supaprod's differentiators
 4. **Claims law** — never design for aspirations; specs assume current state (zero external users, no customer logos)
 
 This isn't "I decided arbitrarily." It's "I decided within the constraints the project established, documented my reasoning, and provided a clear build path."
@@ -319,7 +319,7 @@ Strategy, specifications, and production-ready components delivered:
 - Features + use-cases page outlines
 - Builder checklist (11 commits, 40–50 hours, step-by-step verification)
 
-All design decisions documented and grounded in DESIGN-TEMPO.md, landing v2 applied record, and founder taste rules. Vercel baseline adopted; Cadence differentiators (Pixel headlines, three-voice grammar, starfield) preserved. Phase 1 implementation ready; awaits builder handoff.
+All design decisions documented and grounded in DESIGN-TEMPO.md, landing v2 applied record, and founder taste rules. Vercel baseline adopted; Supaprod differentiators (Pixel headlines, three-voice grammar, starfield) preserved. Phase 1 implementation ready; awaits builder handoff.
 
 Ref: design-reference/MARKETING-SITE-REDESIGN-SUMMARY.md
 ```

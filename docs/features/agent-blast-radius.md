@@ -13,7 +13,7 @@ An autonomous agent that can call any enabled tool has an unbounded blast radius
 Blast radius is two STATIC axes (safe to state plainly — never model output, so the claim never outruns the wiring):
 
 1. **Reversibility** (already catalogued in `src/lib/tool-consequences.ts`): `reversible` / `partial` / `irreversible`.
-2. **Scope**: does the effect reach a system OUTSIDE the Cadence workspace (a repo, a tracker, a calendar)? An external write is wider blast than an internal workspace write even when reversible — so the two axes are genuinely independent (opening a PR is _reversible_ yet _external_).
+2. **Scope**: does the effect reach a system OUTSIDE the Supaprod workspace (a repo, a tracker, a calendar)? An external write is wider blast than an internal workspace write even when reversible — so the two axes are genuinely independent (opening a PR is _reversible_ yet _external_).
 
 `toolRisk(name)` folds them into one tier:
 

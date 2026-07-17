@@ -28,7 +28,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { runWedgeTeardown, type CriticReview } from "@/lib/discovery.functions";
 import { classifyWedgeFailure, type WedgeFailure } from "@/lib/wedge-cold";
 import { getTeardownShareState, setTeardownShared } from "@/lib/opportunities-share.functions";
-import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 
 const VERDICT: Record<
   CriticReview["verdict"],

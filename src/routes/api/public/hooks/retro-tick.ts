@@ -183,9 +183,9 @@ async function retroDistillWorkspace(
     const cleaned = quarantineUntrusted(d.rule_text.trim());
     const flagNote =
       cleaned.verdict.decision === "quarantine"
-        ? "[Cadence flagged this draft: possible prompt-injection pattern, original text withheld] "
+        ? "[Supaprod flagged this draft: possible prompt-injection pattern, original text withheld] "
         : cleaned.verdict.decision === "flag"
-          ? "[Cadence flagged this draft for review: possible prompt-injection language] "
+          ? "[Supaprod flagged this draft for review: possible prompt-injection language] "
           : "";
 
     const rationale =

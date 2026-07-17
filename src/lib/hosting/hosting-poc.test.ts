@@ -50,7 +50,7 @@ describe("minimalShellHtml", () => {
     const html = minimalShellHtml("<b>Acme</b>");
     expect(html).toContain("&lt;b&gt;Acme&lt;/b&gt;");
     expect(html).not.toContain("<b>Acme</b>");
-    expect(html).toContain("hosted by Cadence");
+    expect(html).toContain("hosted by Supaprod");
   });
 });
 

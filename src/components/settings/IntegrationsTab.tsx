@@ -4,7 +4,7 @@
 // backend (token RPCs + the live /api/mcp JSON-RPC route, 4 tool dispatchers,
 // rate-limit, audit) already shipped (Phase 1/2). This surface lets an
 // operator issue and revoke per-workspace MCP tokens and copy the connection
-// details, so an external agent can use Cadence as a governed tool.
+// details, so an external agent can use Supaprod as a governed tool.
 //
 // Honesty note (Phase 4a, 2026-06-21): /api/mcp now speaks the native MCP
 // request/response methods (initialize / ping / tools.list / tools.call /
@@ -19,7 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Check, Copy, KeyRound, Plug, Trash2 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -150,7 +150,7 @@ export function IntegrationsTab() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const endpoint = `${origin}/api/mcp`;
   const curl = [
-    `curl -X POST ${endpoint || "https://YOUR-CADENCE-HOST/api/mcp"} \\`,
+    `curl -X POST ${endpoint || "https://YOUR-SUPAPROD-HOST/api/mcp"} \\`,
     `  -H "Authorization: Bearer YOUR_TOKEN" \\`,
     `  -H "Content-Type: application/json" \\`,
     `  -d '{"jsonrpc":"2.0","id":1,"method":"search_opportunities","params":{"query":"","limit":5}}'`,
@@ -174,7 +174,7 @@ export function IntegrationsTab() {
           Agent access
         </MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
-          Let an external AI agent use Cadence as a tool. A token grants read access to this
+          Let an external AI agent use Supaprod as a tool. A token grants read access to this
           workspace's signals, opportunities, and specs, plus the ability to append a decision
           (which still waits for your approval). Every call is rate-limited and audited.
         </p>

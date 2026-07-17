@@ -24,7 +24,7 @@ describe("skills-export - buildSkillsMarkdown", () => {
       houseRules: [],
       generatedAt: GENERATED_AT,
     });
-    expect(md).toContain("# Cadence - Agent Context Bundle");
+    expect(md).toContain("# Supaprod - Agent Context Bundle");
   });
 
   it("renders each decision with status, date, and rationale", () => {

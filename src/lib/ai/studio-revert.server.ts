@@ -20,7 +20,7 @@ function ghHeaders(token: string): Record<string, string> {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "cadence-studio",
+    "User-Agent": "supaprod-studio",
     "Content-Type": "application/json",
   };
 }

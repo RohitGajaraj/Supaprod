@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
 import { computeHero } from "@/components/obsidian/today/Hero";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { Button } from "@/components/obsidian";
 
 // TodayHeroCard — the daily-landing hero, rethought (founder addendum
@@ -78,7 +78,7 @@ export function TodayHeroCard({
           pointerEvents: "none",
         }}
       >
-        <CadenceMark size={248} mono glow={false} />
+        <SupaprodMark size={248} mono glow={false} />
       </div>
 
       <div style={{ position: "relative" }}>

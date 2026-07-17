@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { MonitorPlay } from "lucide-react";
 import { getStudioPreview, type StudioChangesetSummary } from "@/lib/studio.functions";
 import { resolveBuildPreview } from "@/lib/exec/provider";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "./studio-ui";
-import { EmptyState } from "@/components/cadence/EmptyState";
+import { EmptyState } from "@/components/supaprod/EmptyState";
 
 /**
  * SANDBOX — the Build "Preview" tab. Renders the best standalone HTML the

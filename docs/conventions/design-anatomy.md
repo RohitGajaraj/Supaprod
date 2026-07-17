@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-07 · Last updated: 2026-07-07_
 
-> **The comprehensive reference for how every object looks, reads, and behaves in the Cadence app.** This is the "how to build a surface" companion to the design law. [`DESIGN-LOOM.md`](../../DESIGN-LOOM.md) §0.1 dimension 17 is the short, binding CONTRACT (the rule any change is gated on); this doc is the LONG-FORM reference behind it: the full anatomy, the shared primitives, the color/token palette, the naming conventions, the ranking and designation logic, and the reasoning (the WHY) behind each decision. When the two agree they are the same rule stated at two lengths; if this doc ever drifts from the contract, the contract wins and this doc is corrected in the same change.
+> **The comprehensive reference for how every object looks, reads, and behaves in the Supaprod app.** This is the "how to build a surface" companion to the design law. [`DESIGN-LOOM.md`](../../DESIGN-LOOM.md) §0.1 dimension 17 is the short, binding CONTRACT (the rule any change is gated on); this doc is the LONG-FORM reference behind it: the full anatomy, the shared primitives, the color/token palette, the naming conventions, the ranking and designation logic, and the reasoning (the WHY) behind each decision. When the two agree they are the same rule stated at two lengths; if this doc ever drifts from the contract, the contract wins and this doc is corrected in the same change.
 >
 > Read this before building or retrofitting any object card, list row, graph node, or detail side panel. The Discover and Decide surfaces are the built exemplars; every other surface (Today, Plan/Define, Build, Brain, Trust Ledger, Engine Room, Settings) adopts this by default and is brought into line as it is touched.
 

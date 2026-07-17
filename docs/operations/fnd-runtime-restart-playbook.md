@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-06 · Last updated: 2026-06-11_
 
-> **Purpose.** Prove, with an operator's own hands, that a long Cadence mission survives a Cloudflare Worker restart mid-loop: the run resumes from its last checkpoint, every idempotent external write (GitHub PR, follow-up commit, CI read, issue create) returns its cached result instead of double-acting, and the operator sees one continuous mission timeline. This is the test that flips foundation-audit row **0.9 Durable runtime** from 🟡 → ✅.
+> **Purpose.** Prove, with an operator's own hands, that a long Supaprod mission survives a Cloudflare Worker restart mid-loop: the run resumes from its last checkpoint, every idempotent external write (GitHub PR, follow-up commit, CI read, issue create) returns its cached result instead of double-acting, and the operator sees one continuous mission timeline. This is the test that flips foundation-audit row **0.9 Durable runtime** from 🟡 → ✅.
 
 ## What's already in place (substrate)
 

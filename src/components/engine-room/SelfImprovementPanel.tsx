@@ -1,6 +1,6 @@
 // RPT-50 surface: makes the self-improvement engine VISIBLE in the Engine Room.
 //
-// Reads the shipped `getSelfImprovementProposals` server fn (Cadence-on-Cadence:
+// Reads the shipped `getSelfImprovementProposals` server fn (Supaprod-on-Supaprod:
 // its OWN failing eval suites, over-corrected agents, and losing playbooks) and
 // renders the deterministic proposals it returns, already sorted high-severity
 // first. Nothing here guesses or calls the AI chokepoint; every line traces to a
@@ -17,7 +17,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TriangleAlert, Circle, Sparkles } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
-import { StepDot } from "@/components/cadence/Primitives";
+import { StepDot } from "@/components/supaprod/Primitives";
 import {
   getSelfImprovementProposals,
   enrichSelfImproveProposal,
@@ -263,13 +263,13 @@ const MODE_COPY: Record<SelfImproveMode, { label: string; outcome: string; con: 
   auto: {
     label: "Auto",
     outcome:
-      "Cadence enriches and applies fixes on its own, as flags fire. You only step in for the exceptions.",
+      "Supaprod enriches and applies fixes on its own, as flags fire. You only step in for the exceptions.",
     con: "Highest AI spend, and changes land before you look (each one is screened, reversible, and on the Trust Ledger).",
   },
   scheduled: {
     label: "Scheduled",
     outcome:
-      "On a regular pass, Cadence explains open flags and readies a fix for your one-tap Apply.",
+      "On a regular pass, Supaprod explains open flags and readies a fix for your one-tap Apply.",
     con: "Bounded AI spend, but not real-time, and you still click Apply.",
   },
   off: {
@@ -416,7 +416,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
         <MonoLabel style={{ display: "block", marginBottom: 8 }}>
-          What Cadence would improve about itself
+          What Supaprod would improve about itself
         </MonoLabel>
         {/* The honesty caption, plain-spoken: these are rule-fired flags, not AI
             guesses. It stays true whether the list is full or empty. */}
@@ -429,7 +429,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
             margin: 0,
           }}
         >
-          Deterministic flags from Cadence's own quality signals: failing eval suites,
+          Deterministic flags from Supaprod's own quality signals: failing eval suites,
           over-corrected agents, and losing playbooks. Each one fired on a real number over a real
           sample. Nothing here is an AI guess.
         </p>

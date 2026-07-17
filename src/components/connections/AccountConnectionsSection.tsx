@@ -33,7 +33,7 @@ import {
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
-import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { DrillHeader, MonoLabel, StepDot } from "@/components/supaprod/Primitives";
 import { ProviderLogo } from "./ProviderLogo";
 import { RequestConnectorCard } from "./RequestConnectorCard";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
@@ -65,7 +65,7 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 // /settings?section=connections.
 //
 // Screen 6 (loop-detail drill-downs) adds ConnectorDetail - the per-provider
-// drill ported from design-reference/cadence/loop-detail.jsx (ConnectorDetail,
+// drill ported from design-reference/supaprod/loop-detail.jsx (ConnectorDetail,
 // lines 243-292) onto real data, exported from this file and rendered by the
 // settings route when ?connector= is set. The connect/verify mutations are
 // shared between the list and the detail via the local useConnectorActions
@@ -112,7 +112,7 @@ function providerConfigured(
   return false; // legacy api_key - OAuth migration pending, treat as setup-required
 }
 
-/** True when the provider's admin-managed env-fallback token is set: Cadence
+/** True when the provider's admin-managed env-fallback token is set: Supaprod
  *  is already reading through it even with no per-user OAuth connection, so
  *  the UI must show it as active rather than "coming soon" (founder ruling
  *  2026-07-06). Shared by the list badge (statusFor) and ConnectorDetail's
@@ -151,7 +151,7 @@ function useConnectorActions(qc: QueryClient) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  // Native OAuth (SW-7): Cadence's own registered app. Same mechanics as
+  // Native OAuth (SW-7): Supaprod's own registered app. Same mechanics as
   // mGithub: a new tab (not a same-tab redirect), so the callback's
   // close-tab page actually closes something and the Settings tab keeps
   // polling for the new connection instead of being navigated away.
@@ -653,7 +653,7 @@ export function AccountConnectionsSection({
             }}
           >
             <MonoLabel style={{ display: "block", marginBottom: 6 }}>Vendor neutral</MonoLabel>
-            Your agents will change. Your decision history should not. Cadence drives whichever
+            Your agents will change. Your decision history should not. Supaprod drives whichever
             builders you connect and keeps the outcome ledger yours, so swapping a model or a vendor
             never resets what the workspace has learned.
           </div>
@@ -684,7 +684,7 @@ export function AccountConnectionsSection({
               maxWidth: 480,
             }}
           >
-            Bring your tools in as sources; Cadence reads them into the loop.
+            Bring your tools in as sources; Supaprod reads them into the loop.
           </p>
         </header>
 
@@ -869,7 +869,7 @@ export function AccountConnectionsSection({
 }
 
 /* ---- ConnectorDetail - the screen-6 drill-down, ported from
-   design-reference/cadence/loop-detail.jsx ConnectorDetail (lines 243-292)
+   design-reference/supaprod/loop-detail.jsx ConnectorDetail (lines 243-292)
    onto real data. Rendered by the settings route when ?connector= is set; it
    replaces the whole Connections tab body. Three states: setup required
    (env missing), configured-but-not-connected (real Connect flow), and
@@ -1059,7 +1059,7 @@ export function ConnectorDetail({
     else mGateway.mutate(spec);
   };
   /* -- Active via an admin-managed env credential (envConfigured), no
-     per-user OAuth registered (gatewayConfigured false): Cadence is already
+     per-user OAuth registered (gatewayConfigured false): Supaprod is already
      reading through the workspace token, so there is nothing for THIS user
      to Connect. Showing "coming soon" with a disabled button here would be
      misleading - the list card already badges this provider "Active"

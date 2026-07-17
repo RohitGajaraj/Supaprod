@@ -26,10 +26,10 @@
 - Demo: include one even if unpolished — "the difference between nothing and something is actually huge" (YC's Stephanie Simon). — https://www.ycombinator.com/library/J8-yc-application-tips-include-a-demo
 - Community norms: 60–90 seconds of demo attention, one "magic" feature; funded videos "often look terrible… but they sound incredible - dense, factual, and fast." — https://zyner.io/blog/yc-application-video-guide · https://www.flowjam.com/blog/yc-application-tips-2025
 
-### 1.4 The RFS trail (Cadence's demand signal)
+### 1.4 The RFS trail (Supaprod's demand signal)
 
 - Summer 2026 RFS: **"Company Brain"** (Blomfield — "a living map of how a company works"; "an executable skills file for AI… every company in the world will need one"), **"The AI Operating System for Companies"** (Diana Hu — "make your entire company queryable"; turn the "open loop into a closed loop"), **"Software for Agents"** (Epstein — "the next trillion users… will be AI agents"), plus "SaaS Challengers." — https://www.ycombinator.com/rfs (fetched 2026-07-10; verbatim pulls in [`../../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md))
-- Earlier: Andrew Miklas's YC essay **"Cursor for Product Managers"** — the category-naming piece; Cadence's six founding threads (recorded 2026-06-03 in [`../../archive/idea-origination-inputs.md`](../../archive/idea-origination-inputs.md)) are literally RFS categories, thread #1 being this essay. Our operator's critique of it: [`../../strategy/v9-decision-wedge-and-build-next.md`](../../strategy/v9-decision-wedge-and-build-next.md).
+- Earlier: Andrew Miklas's YC essay **"Cursor for Product Managers"** — the category-naming piece; Supaprod's six founding threads (recorded 2026-06-03 in [`../../archive/idea-origination-inputs.md`](../../archive/idea-origination-inputs.md)) are literally RFS categories, thread #1 being this essay. Our operator's critique of it: [`../../strategy/v9-decision-wedge-and-build-next.md`](../../strategy/v9-decision-wedge-and-build-next.md).
 - Garry Tan on RFS intent: "YC wants founders who treat AI agents not as features but as the core operating system of brand-new companies and industries." — https://x.com/garrytan/status/1920153493492674984
 
 ### 1.5 The 2025–26 shift: AI-built codebases are now legible to YC
@@ -172,7 +172,7 @@ Airbnb "Book rooms with locals, rather than hotels." · Cruise "Self-driving car
 9. Kill AI cadence; add one true, slightly imperfect detail only you could know.
 10. One-liner: under 50 chars, noun-first, named user, zero buzzwords.
 
-## 6. What this means for Cadence (the synthesis applied in fall-2026-application.md)
+## 6. What this means for Supaprod (the synthesis applied in fall-2026-application.md)
 
 1. **Lead the rollover with the delta** (§1.1 re-application signal) → the 8h "did anything change" field carries the momentum timeline.
 2. **True-on-submit-day law** (numbers verified; misrepresentation = disqualification) → bracketed slots, two variants for "are people using."

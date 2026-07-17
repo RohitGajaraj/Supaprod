@@ -28,9 +28,9 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/supaprod/Primitives";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
-import { MissionGraph, type MissionGraphStep } from "@/components/cadence/MissionGraph";
+import { MissionGraph, type MissionGraphStep } from "@/components/supaprod/MissionGraph";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionDiff } from "@/components/missions/MissionDiff";

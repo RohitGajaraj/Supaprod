@@ -149,7 +149,7 @@ export function LoopsPanel({
             color: "var(--text-muted)",
           }}
         >
-          What should Cadence keep re-running?
+          What should Supaprod keep re-running?
         </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
           <select

@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 export type Theme = "dark" | "light" | "system";
 export type ResolvedTheme = "dark" | "light";
 
-const STORAGE_KEY = "cadence.theme";
+const STORAGE_KEY = "supaprod.theme";
 // Tempo v5 theme law (DESIGN-TEMPO.md section 1): dark is the default experience.
 const DEFAULT_THEME: Theme = "dark";
 

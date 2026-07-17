@@ -10,7 +10,7 @@ Inside a mission's slide-over, once its PRD has a compiled Outcome Contract (CNV
 
 ## Why it exists
 
-Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8 (the founder's "what testing needs to be done"): CI and evals already exist in Cadence but sit disconnected from a spec's stated acceptance criteria. CNV-02 compiles those criteria into real oracles (eval cases, a CI label, a UAT checklist); this closes the loop by giving them one place to live, per mission, with a real pass/fail verdict that lands on the decision record. Board entry: `docs/planning/feature-dashboard.md` row `JNY-03`.
+Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8 (the founder's "what testing needs to be done"): CI and evals already exist in Supaprod but sit disconnected from a spec's stated acceptance criteria. CNV-02 compiles those criteria into real oracles (eval cases, a CI label, a UAT checklist); this closes the loop by giving them one place to live, per mission, with a real pass/fail verdict that lands on the decision record. Board entry: `docs/planning/feature-dashboard.md` row `JNY-03`.
 
 ## Where to find it
 

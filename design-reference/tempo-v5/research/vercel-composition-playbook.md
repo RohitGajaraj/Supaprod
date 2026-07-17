@@ -1,10 +1,10 @@
 # The Vercel composition playbook — reference study and pickup instructions
 
-> _Created: 2026-07-15 · Source: the founder's Vercel (vercel.com) homepage screenshots and screen recording shared during the landing v2 sessions, plus the rauno.me/craft study (Vercel's design engineer) and the YC "How to Design With AI" video analysis run the same day. Status: **CANONICAL reference study.** This is the complete extraction of what the Vercel references teach, what Cadence implemented on 2026-07-15, and — most importantly — what is WAITING with explicit unlock conditions, so any future human or agent can pick a pattern up the day its missing ingredient exists, without re-deriving any of this._
+> _Created: 2026-07-15 · Source: the founder's Vercel (vercel.com) homepage screenshots and screen recording shared during the landing v2 sessions, plus the rauno.me/craft study (Vercel's design engineer) and the YC "How to Design With AI" video analysis run the same day. Status: **CANONICAL reference study.** This is the complete extraction of what the Vercel references teach, what Supaprod implemented on 2026-07-15, and — most importantly — what is WAITING with explicit unlock conditions, so any future human or agent can pick a pattern up the day its missing ingredient exists, without re-deriving any of this._
 >
 > Read together with: [`../applied/2026-07-15-landing-v2-ink-and-starfield.md`](../applied/2026-07-15-landing-v2-ink-and-starfield.md) (the landing applied record; its section 8 is the condensed version of this file) · [`DESIGN-TEMPO.md`](../../../DESIGN-TEMPO.md) (the contract; Tempo's base IS Geist, so Vercel inspiration flows through the contract naturally) · [`docs/planning/landing-page-v2-plan.md`](../../../docs/planning/landing-page-v2-plan.md) (claims law that gates several waiting patterns).
 >
-> **The one law over everything here (founder, 2026-07-15): inspiration, never mimicry.** Cadence must never read as a Vercel copy. Every adoption below passes through our differentiators: the Geist Pixel hero face (Vercel headlines are Sans), the seven-petal epitrochoid mark (theirs is the triangle), the three-voice chromatic grammar (agent blue / human ember / memory gold — they have nothing equivalent), and the starfield + engineering-grid canvas (theirs is plain near-black with vignettes).
+> **The one law over everything here (founder, 2026-07-15): inspiration, never mimicry.** Supaprod must never read as a Vercel copy. Every adoption below passes through our differentiators: the Geist Pixel hero face (Vercel headlines are Sans), the seven-petal epitrochoid mark (theirs is the triangle), the three-voice chromatic grammar (agent blue / human ember / memory gold — they have nothing equivalent), and the starfield + engineering-grid canvas (theirs is plain near-black with vignettes).
 
 ---
 
@@ -29,7 +29,7 @@ Observed structure, left to right on one row:
 3. **Descriptor zone (right):** three short mono uppercase lines ("FOR CODING AGENTS / TO SHIP APPS AND AGENTS / AUTOMATED BY AGENTS") — the machine-voice register carrying the audience/purpose statement.
 4. **Trust strip (bottom):** a single quiet row of customer wordmarks (Blackbox, Charles Schwab, DoorDash, OpenAI, Supreme, The Weather Company, Polymarket).
 
-What Cadence took (live today, `src/components/landing/Hero.tsx`): the three-zone grid (claim left + CTAs + microcopy, backlit mark center with slow revolve/glint/satellite/pointer-drift, mono descriptor right: "for product teams / to decide what to build / and ship it, gated by you"). What differs on purpose: our headline is Geist Pixel Square and USP-first; our mark moves (theirs is still); we keep a one-paragraph sub (our claim needs the mechanism stated).
+What Supaprod took (live today, `src/components/landing/Hero.tsx`): the three-zone grid (claim left + CTAs + microcopy, backlit mark center with slow revolve/glint/satellite/pointer-drift, mono descriptor right: "for product teams / to decide what to build / and ship it, gated by you"). What differs on purpose: our headline is Geist Pixel Square and USP-first; our mark moves (theirs is still); we keep a one-paragraph sub (our claim needs the mechanism stated).
 
 ### 2.2 The customer-showcase grammar (the page's repeating engine)
 
@@ -42,7 +42,7 @@ Every showcase section repeats one grammar with ALTERNATING orientation:
 - Faint line-art geometry INSIDE the frames (Mintlify's rocket/window sketches) — texture lives inside artifacts, not on the page canvas.
 - Enormous vertical negative space between sections; the section, not the viewport, is the unit of rhythm.
 
-What Cadence took (live today): the alternation (Receipts is text-right/evidence-left against the text-left walkthrough); the mono capability columns in our vocabulary ("In the loop: NAMED AGENTS / HUMAN GATES / PRECEDENT MEMORY / OUTCOME GRADING" and "On the ledger: LIVE COUNTERS / REAL DECISIONS / PUBLIC TEARDOWNS / DATED SHIPPING LOG", ember on hover, ink-scrimmed); framed product surfaces as section bodies (our replay frames). What waits: the customer version itself (section 6.1).
+What Supaprod took (live today): the alternation (Receipts is text-right/evidence-left against the text-left walkthrough); the mono capability columns in our vocabulary ("In the loop: NAMED AGENTS / HUMAN GATES / PRECEDENT MEMORY / OUTCOME GRADING" and "On the ledger: LIVE COUNTERS / REAL DECISIONS / PUBLIC TEARDOWNS / DATED SHIPPING LOG", ember on hover, ink-scrimmed); framed product surfaces as section bodies (our replay frames). What waits: the customer version itself (section 6.1).
 
 ### 2.3 The "Recently shipped" artifact bento
 
@@ -51,9 +51,9 @@ What Cadence took (live today): the alternation (Receipts is text-right/evidence
 - The artifacts are REAL product outputs given typographic drama: a passport card whose text is set in four scripts ("PASSPORT / PASAPORTE / PASSAPORTO / パスポート") slightly TILTED; a real CLI deploy log as a tilted mono card with green check glyphs.
 - The tilt (a few degrees) is what makes a flat artifact read as a physical object.
 
-What Cadence took: the interactive-card DNA went into the trust grid and the compounding June/July pair (untilted, honest). What waits: the tilted-artifact treatment itself (section 6.3).
+What Supaprod took: the interactive-card DNA went into the trust grid and the compounding June/July pair (untilted, honest). What waits: the tilted-artifact treatment itself (section 6.3).
 
-## 3. The extraction rules (how to design "from Vercel" for Cadence)
+## 3. The extraction rules (how to design "from Vercel" for Supaprod)
 
 1. **Capability headline, artifact body, mono spec column, alternating sides.** That four-part grammar is the reusable unit — apply it to any new landing/product-marketing section.
 2. **The brightest object is always a word.** Frames are dimmed; headlines and captions carry the light. Never let an artifact outshine its claim.
@@ -66,7 +66,7 @@ What Cadence took: the interactive-card DNA went into the trust grid and the com
 
 ## 4. The craft substrate (rauno.me/craft — the rules that make it feel like that)
 
-Adopted into Cadence today: never animate box-shadow (pre-render glows, toggle opacity — `.replay-frame::after`); mask-fade any grid at its edges; the double-ring focus state (`0 0 0 2px canvas, 0 0 0 4px accent`); reduced-motion must resolve to the finished visible frame; transform/opacity only; the **novelty budget** — classify every animation high/low novelty and never place two high-novelty moments in consecutive sections (ours: the orbit scrub and the tilt frames share ONE section; everything else is low-novelty rises).
+Adopted into Supaprod today: never animate box-shadow (pre-render glows, toggle opacity — `.replay-frame::after`); mask-fade any grid at its edges; the double-ring focus state (`0 0 0 2px canvas, 0 0 0 4px accent`); reduced-motion must resolve to the finished visible frame; transform/opacity only; the **novelty budget** — classify every animation high/low novelty and never place two high-novelty moments in consecutive sections (ours: the orbit scrub and the tilt frames share ONE section; everything else is low-novelty rises).
 
 Waiting (unlocks in section 6): gradient-tracing comets on SVG paths (animate the `linearGradient` coordinates, not the path); `offset-path` orbital motion; the six-layer hero stack with a code-split, hardware-gated shader on top (`navigator.deviceMemory` gate, graceful fade-in); frequency rules for in-product motion (high-frequency surfaces like command menus never animate in).
 
@@ -84,7 +84,7 @@ _This is the section the founder ordered: when the missing ingredient arrives, p
 
 - **Blocked by:** zero external users (claims law: no fabricated customers, ever).
 - **Unlocks when:** the first design partner or beta customer grants written permission for name + screenshot (the beta waitlist and design-partner kit feed this; see `docs/pitch/design-partner-kit.md`).
-- **Pickup instructions:** one section per customer, alternating sides with existing beats. Frame chrome = our replay-frame style (`#0d0d0e`, hairline border, opacity-toggled edge light). Content = the customer's REAL Cadence workspace (redacted via the proof-share/redaction path), dimmed ~15%. Caption: customer name in `zinc-500`, claim in white, ONE real metric ("**Acme** graded 40 shipped calls on Cadence" — number from their live workspace, dated). Mono features list under the caption: 4 uppercase items naming what THEY use (e.g. `WRITE-BACK CONNECTORS / MERGE GATES / PRECEDENT CHIPS / D+14 GRADING`). `.cap-item` hover + `.cap-scrim` apply.
+- **Pickup instructions:** one section per customer, alternating sides with existing beats. Frame chrome = our replay-frame style (`#0d0d0e`, hairline border, opacity-toggled edge light). Content = the customer's REAL Supaprod workspace (redacted via the proof-share/redaction path), dimmed ~15%. Caption: customer name in `zinc-500`, claim in white, ONE real metric ("**Acme** graded 40 shipped calls on Supaprod" — number from their live workspace, dated). Mono features list under the caption: 4 uppercase items naming what THEY use (e.g. `WRITE-BACK CONNECTORS / MERGE GATES / PRECEDENT CHIPS / D+14 GRADING`). `.cap-item` hover + `.cap-scrim` apply.
 
 ### 6.2 The customer logo trust strip (hero, bottom)
 

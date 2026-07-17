@@ -10,7 +10,7 @@ The Swarm HUD is a single live screen that answers, without tab-hopping, what ev
 
 ## Why it exists
 
-F-AGENT-1 made Cadence plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. Together they produce far more concurrent activity than the operator can track from `/missions`, `/inbox`, `/agents`, and `/governance` separately. The HUD closes the agent-ecosystem bundle by giving governance one screen that scales as the swarm scales. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-4).
+F-AGENT-1 made Supaprod plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. Together they produce far more concurrent activity than the operator can track from `/missions`, `/inbox`, `/agents`, and `/governance` separately. The HUD closes the agent-ecosystem bundle by giving governance one screen that scales as the swarm scales. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-4).
 
 ## Where to find it
 
@@ -71,7 +71,7 @@ F-AGENT-1 made Cadence plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. T
 ## Known limits / out of scope
 
 - **Read-only HUD.** No new write surfaces beyond the four reused buttons. Pause/steer-from-graph remains on `/missions/$id` (still deferred per the orchestration deferred list).
-- **Workspace-scoped only.** No cross-workspace aggregate (matches every other Cadence surface).
+- **Workspace-scoped only.** No cross-workspace aggregate (matches every other Supaprod surface).
 - **Throughput strip uses `est_cost_usd` at ingest time.** No retro-priced re-calculation.
 - **`agent_autonomy` does not yet track a `trust_score` column.** Only the arc (Observing → Proving → Trusted → Ambient) is shown.
 - **No new index.** If `getSwarmHud()` p50 climbs above ~200ms on a large workspace, add covering indexes on `agent_messages(created_at desc)` and `event_queue(created_at desc)`.

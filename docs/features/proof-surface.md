@@ -6,7 +6,7 @@
 
 ## What it does
 
-An admin-only tab that composes every moat-proof metric Cadence has, in one investor-safe panel: the Gauntlet (acceptance rate, autonomy ratio, ritual retention), the MOAT-METRIC pair (outcome accuracy, the memory-depth lift split, memory compounding), the AFD-12 admin materialized views (decision velocity, outcome rate by agent, cost per decision), and three pieces that did not exist anywhere before this: a babysitting-tax trend, a supersessions-caught count, and an FS-01 prediction hit-rate probe. The sentence it exists to prove: "the system gets measurably better at this workspace's decisions as its memory grows, and here is the curve." Every number reads from real tables; a sparse window says "not enough data yet" rather than inventing a figure.
+An admin-only tab that composes every moat-proof metric Supaprod has, in one investor-safe panel: the Gauntlet (acceptance rate, autonomy ratio, ritual retention), the MOAT-METRIC pair (outcome accuracy, the memory-depth lift split, memory compounding), the AFD-12 admin materialized views (decision velocity, outcome rate by agent, cost per decision), and three pieces that did not exist anywhere before this: a babysitting-tax trend, a supersessions-caught count, and an FS-01 prediction hit-rate probe. The sentence it exists to prove: "the system gets measurably better at this workspace's decisions as its memory grows, and here is the curve." Every number reads from real tables; a sparse window says "not enough data yet" rather than inventing a figure.
 
 ## Why it exists
 

@@ -4,7 +4,7 @@ import type { PencilInk } from "./pencil";
 // OBS-15 - the pencil layer: rough-SVG human annotations, the reciprocal
 // half of chart.tsx's exact machine grammar. The deterministic jitter
 // engine (mulberry32 + a one-pass rough walk) is copied from
-// src/components/cadence/Sketch.tsx's sketchPath, reduced to a single pass
+// src/components/supaprod/Sketch.tsx's sketchPath, reduced to a single pass
 // (no second stroke, no fill) since a pencil mark is one hand's single
 // motion, not the two-pass graphite of a machine-data sketch.
 

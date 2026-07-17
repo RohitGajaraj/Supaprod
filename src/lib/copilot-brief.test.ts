@@ -73,9 +73,9 @@ describe("describeRisk (FS-04) — the brief's risk lead, credibility-checked", 
   test("cites the calibration hit rate once at least one call has resolved", () => {
     const line = describeRisk(
       { headline: "Churn risk in the onboarding cohort", detail: "Signups drop after step 3." },
-      { resolved: 9, recentLabel: "Cadence called 7 of the last 9" },
+      { resolved: 9, recentLabel: "Supaprod called 7 of the last 9" },
     );
-    expect(line).toContain("Cadence called 7 of the last 9");
+    expect(line).toContain("Supaprod called 7 of the last 9");
   });
 
   test("never invents a hit rate when calibration is null", () => {

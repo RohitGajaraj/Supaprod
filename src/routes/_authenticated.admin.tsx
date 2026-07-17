@@ -14,7 +14,7 @@
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { TopBar } from "@/components/cadence/TopBar";
+import { TopBar } from "@/components/supaprod/TopBar";
 import { Button } from "@/components/obsidian";
 import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
@@ -22,7 +22,7 @@ import { toast } from "@/lib/notify";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
-  head: () => ({ meta: [{ title: "Admin · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Admin · Supaprod" }] }),
 });
 
 const TABS = [
@@ -51,7 +51,13 @@ function AdminLayout() {
   return (
     <>
       <TopBar crumbs={["Admin"]} />
-      <div style={{ padding: "var(--page-inset-v) var(--page-inset-h) 64px", maxWidth: 1100, margin: "0 auto" }}>
+      <div
+        style={{
+          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
+          maxWidth: 1100,
+          margin: "0 auto",
+        }}
+      >
         <p
           style={{
             fontFamily: "var(--font-sans)",

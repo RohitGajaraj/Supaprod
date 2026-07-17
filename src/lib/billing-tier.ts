@@ -1,5 +1,5 @@
 /**
- * Map a Stripe price `lookup_key` to a Cadence PlanTier.
+ * Map a Stripe price `lookup_key` to a Supaprod PlanTier.
  *
  * Lookup keys follow a stable prefix convention seeded with the Stripe catalog:
  *   cluster_*       -> pro

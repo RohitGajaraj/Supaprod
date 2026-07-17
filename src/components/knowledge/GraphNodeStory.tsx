@@ -17,7 +17,7 @@ import {
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { kindCssColor, kindLabel, kindTracePrefix } from "./graph-visual";
 import { GraphNodeActions } from "./GraphNodeActions";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import type { AuditKind } from "@/lib/audit-id";
 
 // Graph node kinds that resolve to a standalone traceable audit entity. The

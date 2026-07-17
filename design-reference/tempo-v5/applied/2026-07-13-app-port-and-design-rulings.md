@@ -22,7 +22,7 @@ recorded below.
 
 ---
 
-## 1. Information architecture — "The Cadence Loop"
+## 1. Information architecture — "The Supaprod Loop"
 
 **What.** `src/lib/nav-model.ts` defines **10 destinations in 3 narrative zones**, read top to
 bottom as a story:
@@ -251,7 +251,7 @@ All metric numerals render in **Geist Pixel** via the reusable `PixelStat` (`src
 
 ### 15. Ask panel — platform-wide + liquid-glass
 
-`AskPanel`: framed **"Ask Cadence · Anything in the platform · reads {screen}"** (the whole platform, with the current screen as a secondary cue), an ember sparkle + soft ember/blue header wash, and a liquid-glass composer with an ember send button + `.ask-composer:focus-within` glow. _Why:_ founder said Ask is for the whole platform (not just the screen) and the old input read like a bland placeholder.
+`AskPanel`: framed **"Ask Supaprod · Anything in the platform · reads {screen}"** (the whole platform, with the current screen as a secondary cue), an ember sparkle + soft ember/blue header wash, and a liquid-glass composer with an ember send button + `.ask-composer:focus-within` glow. _Why:_ founder said Ask is for the whole platform (not just the screen) and the old input read like a bland placeholder.
 
 ### 16. Intelligence layer names + nav shortcuts
 

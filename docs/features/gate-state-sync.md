@@ -31,7 +31,7 @@ Wiring (deterministic, idempotent, CAS-guarded):
 
 ## Scope boundary
 
-This is **orthogonal to BLD-RELIABILITY** (closed 2026-06-29 — _Cadence governs, OpenHands builds; don't invest in in-house codegen_). BLD-GATE-SYNC does not touch codegen; it makes the human-gate state truthful for **any** mission (in-house or delegated). It does not edit the pinned AI core (`loop.server.ts` et al.).
+This is **orthogonal to BLD-RELIABILITY** (closed 2026-06-29 — _Supaprod governs, OpenHands builds; don't invest in in-house codegen_). BLD-GATE-SYNC does not touch codegen; it makes the human-gate state truthful for **any** mission (in-house or delegated). It does not edit the pinned AI core (`loop.server.ts` et al.).
 
 ## Verification
 

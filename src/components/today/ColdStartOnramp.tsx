@@ -81,7 +81,7 @@ export function ColdStartOnramp() {
             lineHeight: 1.5,
           }}
         >
-          Cadence works from your real signals - customer feedback, tickets, call notes. Pipe in the
+          Supaprod works from your real signals - customer feedback, tickets, call notes. Pipe in the
           last couple of weeks and Scout clusters them into themes, Strategist ranks the
           opportunities, and your first calls land right here. The loop runs the reversible work;
           you make the calls.

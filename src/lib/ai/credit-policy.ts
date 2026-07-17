@@ -54,10 +54,10 @@ export function isAmbientSurface(surface: CallSurface): boolean {
 
 /**
  * PR-C1 — the moat surfaces (decision-layer judgment: the Critic and its eval harness,
- * plus decision-record work) stay on Cadence's own managed models even for an
+ * plus decision-record work) stay on Supaprod's own managed models even for an
  * enterprise account with BYOK configured, UNLESS that surface is on the account's
  * explicit approved-model list (pricing-architecture §5: "the moat surfaces still run
- * on Cadence's own managed models by default unless the enterprise explicitly approves
+ * on Supaprod's own managed models by default unless the enterprise explicitly approves
  * a model for them"). This is the DEFAULT the chokepoint enforces; an approved-model
  * override is a data lookup the caller supplies (no such list exists yet in this pass,
  * so today this is unconditional for these three surfaces).

@@ -12,7 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { getStageEvents } from "@/lib/stage-events.functions";
 import { DetailSection } from "@/components/discover/DetailKit";
 import { relTimeCaps } from "@/components/discover/format";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "@/components/studio/studio-ui";
 
 /** The entity kinds the stage_events read side accepts (getStageEvents). */

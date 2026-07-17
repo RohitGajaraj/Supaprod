@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CADENCE_MARK_PATH } from "@/components/cadence/CadenceMark";
+import { SUPAPROD_MARK_PATH } from "@/components/supaprod/SupaprodMark";
 import { trackLandingEvent } from "@/lib/landing.functions";
 import { LoopReplay, type ReplayTab } from "./replay/Replay";
 
@@ -106,7 +106,7 @@ export function LoopWalkthrough() {
       >
         <path
           ref={orbitRef}
-          d={CADENCE_MARK_PATH}
+          d={SUPAPROD_MARK_PATH}
           pathLength={100}
           strokeDasharray="100"
           strokeDashoffset="100"

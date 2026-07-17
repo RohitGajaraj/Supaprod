@@ -4,7 +4,7 @@
  * A one-keystroke stakeholder update: read live product state and hand the PM a ready-to-send
  * note, instead of writing it by hand. The trigger lives in the Today top bar (an on-demand
  * action, not a persistent panel). The text is composed server-side (deterministic + truthful)
- * and rendered here in the felt Cadence voice; Copy puts the portable markdown on the clipboard.
+ * and rendered here in the felt Supaprod voice; Copy puts the portable markdown on the clipboard.
  */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";

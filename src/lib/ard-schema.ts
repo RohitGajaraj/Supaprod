@@ -6,10 +6,10 @@
 // TypeScript/Zod (external coding agents, non-JS MCP clients).
 //
 // "ARD" is the published name of the standard; the mechanics underneath are
-// the same Outcome Contract Cadence itself already enforces (intent, success
+// the same Outcome Contract Supaprod itself already enforces (intent, success
 // metrics with their proof oracle, non-goals, budget, ambiguity policy) — a
 // dispatched coding agent (Devin/OpenHands/Claude Agent SDK adapters, or any
-// MCP client) receives the identical acceptance contract Cadence checks
+// MCP client) receives the identical acceptance contract Supaprod checks
 // against, not a re-parsed prose summary.
 import { OutcomeContractSchema, type OutcomeContract } from "@/lib/discovery.functions";
 
@@ -78,9 +78,9 @@ export function buildArdJsonSchema(origin: string) {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: `${origin}${ARD_SCHEMA_PATH}`,
-    title: "Cadence Agent Requirements Document (ARD)",
+    title: "Supaprod Agent Requirements Document (ARD)",
     description:
-      "The published wire format for Cadence's Outcome Contract: a typed, versioned acceptance contract a spec carries — intent, success metrics with their proof oracle, non-goals, a budget, and an ambiguity policy — the same contract Cadence itself checks a build against.",
+      "The published wire format for Supaprod's Outcome Contract: a typed, versioned acceptance contract a spec carries — intent, success metrics with their proof oracle, non-goals, a budget, and an ambiguity policy — the same contract Supaprod itself checks a build against.",
     type: "object",
     properties: {
       ard_version: {
@@ -191,7 +191,7 @@ export type ArdParseResult = { ok: true; contract: OutcomeContract } | { ok: fal
  * or a bare Outcome Contract object, so a caller can hand-author just the
  * contract body without wrapping it. This is the only gate a pasted/uploaded
  * ARD document passes through before it can reach `savePrd` — the same
- * `OutcomeContractSchema` Cadence's own draft/apply flow already enforces, so
+ * `OutcomeContractSchema` Supaprod's own draft/apply flow already enforces, so
  * an imported contract can never be less strict than an agent-drafted one.
  */
 export function parseArdDocument(json: unknown): ArdParseResult {

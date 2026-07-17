@@ -6,7 +6,7 @@
 
 ## What it does
 
-Lets a Cadence build mission hand a build task off to an **external coding agent** (OpenHands self-host first; Apache-licensed, free), still **governed** by the existing human-approval / trust dial, instead of running every build step in-house. This increment ships the **seam and the OpenHands adapter, dormant**: the contract, the request/response mapping, the resolver, and the dormancy guarantee are built and unit-tested, but outbound delegation is off until the founder supplies a BYO endpoint + key and a follow-up increment wires the tool into the agent loop.
+Lets a Supaprod build mission hand a build task off to an **external coding agent** (OpenHands self-host first; Apache-licensed, free), still **governed** by the existing human-approval / trust dial, instead of running every build step in-house. This increment ships the **seam and the OpenHands adapter, dormant**: the contract, the request/response mapping, the resolver, and the dormancy guarantee are built and unit-tested, but outbound delegation is off until the founder supplies a BYO endpoint + key and a follow-up increment wires the tool into the agent loop.
 
 ## Why it exists
 
@@ -62,44 +62,44 @@ The `delegate_meta` jsonb column on `agent_runs` + the poll/fold cycle:
 
 ### Why OpenHands self-host is not the enterprise model
 
-When a Cadence customer is a large enterprise (B2B target), asking them to self-host OpenHands creates four problems:
+When a Supaprod customer is a large enterprise (B2B target), asking them to self-host OpenHands creates four problems:
 
 1. **Operational burden**: Enterprise IT does not want to run another container/server just to use a SaaS product. Every self-hosted component is a support ticket, a security audit surface, and an ops burden on their team.
-2. **Multi-tenant risk**: If Cadence hosted one shared OpenHands for all customers, any bug in tenant isolation could let one customer's coding agent see another's repo. That is a critical security failure for enterprise.
-3. **Repo access**: OpenHands needs write access to the customer's codebase. Enterprises are extremely careful about what systems get that access. A third-party open-source tool running on Cadence's infra is a harder sell than their own Devin or Copilot Workspace instance, which their security team has already approved.
-4. **Cost opacity**: If Cadence hosts OpenHands and its LLM calls, the per-task cost is unpredictable and hard to pass through cleanly. Enterprises want line-item predictability.
+2. **Multi-tenant risk**: If Supaprod hosted one shared OpenHands for all customers, any bug in tenant isolation could let one customer's coding agent see another's repo. That is a critical security failure for enterprise.
+3. **Repo access**: OpenHands needs write access to the customer's codebase. Enterprises are extremely careful about what systems get that access. A third-party open-source tool running on Supaprod's infra is a harder sell than their own Devin or Copilot Workspace instance, which their security team has already approved.
+4. **Cost opacity**: If Supaprod hosts OpenHands and its LLM calls, the per-task cost is unpredictable and hard to pass through cleanly. Enterprises want line-item predictability.
 
 ### Two customer segments, two right models
 
 **Segment A — Individual / SMB (solo PM, small product team, no existing coding agent)**
 
-This customer wants end-to-end product lifecycle management in one place. They are not going to buy a $500/month Devin subscription separately just to use Cadence's Build step. For them, the right model is:
+This customer wants end-to-end product lifecycle management in one place. They are not going to buy a $500/month Devin subscription separately just to use Supaprod's Build step. For them, the right model is:
 
-> Cadence-managed OpenHands — Cadence hosts OpenHands as part of its managed service. One bill, one platform. The customer's LLM key (already BYO'd in Cadence) or a Cadence-managed usage pool powers the coding. The customer does not need to know OpenHands exists; it is the implementation of the "Build" step.
+> Supaprod-managed OpenHands — Supaprod hosts OpenHands as part of its managed service. One bill, one platform. The customer's LLM key (already BYO'd in Supaprod) or a Supaprod-managed usage pool powers the coding. The customer does not need to know OpenHands exists; it is the implementation of the "Build" step.
 
-This is feasible because OpenHands is Apache-licensed (free to run) and the LLM cost is the customer's own BYOK spend or a metered usage charge in a higher Cadence tier.
+This is feasible because OpenHands is Apache-licensed (free to run) and the LLM cost is the customer's own BYOK spend or a metered usage charge in a higher Supaprod tier.
 
 **Segment B — Enterprise (has existing coding agents: Devin Enterprise, GitHub Copilot Workspace, etc.)**
 
 Two sub-perspectives exist here and both are valid:
 
-- **BYO-first (most common today)**: The enterprise already trusts Devin or Copilot Workspace. Their security team has audited it. Their developer workflow is built around it. They do not want to switch; they want Cadence to govern and orchestrate what they already have. Correct model: BYO endpoint — `OPENHANDS_ENDPOINT` points at their Devin or Copilot instance; Cadence adds the governance, memory, and decision layer.
+- **BYO-first (most common today)**: The enterprise already trusts Devin or Copilot Workspace. Their security team has audited it. Their developer workflow is built around it. They do not want to switch; they want Supaprod to govern and orchestrate what they already have. Correct model: BYO endpoint — `OPENHANDS_ENDPOINT` points at their Devin or Copilot instance; Supaprod adds the governance, memory, and decision layer.
 
-- **Consolidation-first (emerging preference)**: Some enterprises are rationalizing their AI vendor list. One platform, one security audit, one contract, one line item. If Cadence can credibly offer the coding capability as part of its managed runtime (managed OpenHands, white-labelled), that is a real buying consideration — especially for cost optimization and compliance. This maps to BYO-P5 (the managed end-to-end runtime), which is the longer-term product direction.
+- **Consolidation-first (emerging preference)**: Some enterprises are rationalizing their AI vendor list. One platform, one security audit, one contract, one line item. If Supaprod can credibly offer the coding capability as part of its managed runtime (managed OpenHands, white-labelled), that is a real buying consideration — especially for cost optimization and compliance. This maps to BYO-P5 (the managed end-to-end runtime), which is the longer-term product direction.
 
 ### Recommended model architecture (the hybrid)
 
-| Customer type                    | Coding agent model                      | Who hosts it | Cadence's role                 |
-| -------------------------------- | --------------------------------------- | ------------ | ------------------------------ |
-| Individual / SMB                 | Cadence-managed OpenHands               | Cadence      | Full stack: govern + execute   |
-| Enterprise (has Devin/etc.)      | BYO endpoint                            | Customer     | Governance + memory layer only |
-| Enterprise (wants consolidation) | Cadence-managed OpenHands (white-label) | Cadence      | Full stack: govern + execute   |
+| Customer type                    | Coding agent model                       | Who hosts it | Supaprod's role                |
+| -------------------------------- | ----------------------------------------- | ------------ | ------------------------------- |
+| Individual / SMB                 | Supaprod-managed OpenHands               | Supaprod     | Full stack: govern + execute   |
+| Enterprise (has Devin/etc.)      | BYO endpoint                              | Customer     | Governance + memory layer only |
+| Enterprise (wants consolidation) | Supaprod-managed OpenHands (white-label) | Supaprod     | Full stack: govern + execute   |
 
-The `DelegateProvider` seam supports all three — it is a configuration question, not an architecture change. The customer either points to their own endpoint or Cadence routes to its internal managed instance.
+The `DelegateProvider` seam supports all three — it is a configuration question, not an architecture change. The customer either points to their own endpoint or Supaprod routes to its internal managed instance.
 
 ### Implications for pricing
 
-- Individual tier: Cadence-managed coding agent included (metered by usage / AI spend)
+- Individual tier: Supaprod-managed coding agent included (metered by usage / AI spend)
 - BYO tier: Customer's coding agent endpoint; no managed agent cost
 - Enterprise managed: Premium tier, includes the coding agent runtime
 
@@ -116,7 +116,7 @@ After the live test passes, BLD-04 moves to ✅. Full steps: [`docs/operations/o
 
 ### LLM key decision (2026-06-29, updated)
 
-The original plan was to use Cadence's own Anthropic API key in OpenHands. **That key does not exist** — Cadence currently has no Anthropic key in its env. Cadence's runtime has: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `COHERE_API_KEY`, and the webhook token `OPENHANDS_API_KEY=sk-oh-...` (only valid as auth to the self-hosted OpenHands REST API, not as an LLM key).
+The original plan was to use Supaprod's own Anthropic API key in OpenHands. **That key does not exist** — Supaprod currently has no Anthropic key in its env. Supaprod's runtime has: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `COHERE_API_KEY`, and the webhook token `OPENHANDS_API_KEY=sk-oh-...` (only valid as auth to the self-hosted OpenHands REST API, not as an LLM key).
 
 The adapter now handles this automatically via `resolveLlmConfig()` (commit `cfaa0d9575`):
 
@@ -149,7 +149,7 @@ Multiple payload and auth configurations were tested against `https://app.all-ha
 | 3       | `Authorization: Bearer sk-oh-...` | with Gemini LLM key inline | 401 NoCredentialsError |
 | 4       | `Authorization: Bearer sk-oh-...` | no repo field              | 401 NoCredentialsError |
 
-A test mission was also run in the Cadence platform while All-Hands Cloud envvars were set in Lovable. The mission produced 10 queue steps but routed through the Studio pipeline (`studio.commit`, `studio.pr.*` tools) rather than `delegate.openhands`, because the mission goal did not include evidence-gathering steps before delegation.
+A test mission was also run in the Supaprod platform while All-Hands Cloud envvars were set in Lovable. The mission produced 10 queue steps but routed through the Studio pipeline (`studio.commit`, `studio.pr.*` tools) rather than `delegate.openhands`, because the mission goal did not include evidence-gathering steps before delegation.
 
 ### Root cause
 
@@ -157,11 +157,11 @@ A test mission was also run in the Cadence platform while All-Hands Cloud envvar
 
 The `sk-oh-` key format is the All-Hands outbound webhook token — it is used when All-Hands Cloud sends events TO a webhook endpoint you register. It is NOT a bearer token for making calls TO the All-Hands Cloud REST API. The All-Hands Cloud web application authenticates users via GitHub OAuth sessions in the browser; there is no equivalent token-based auth for server-to-server REST API calls.
 
-This is a fundamental architectural mismatch. Cadence runs as a Cloudflare Worker (server-side, no browser) and needs to make outbound REST calls. All-Hands Cloud does not expose an authenticated REST API for external services to submit tasks.
+This is a fundamental architectural mismatch. Supaprod runs as a Cloudflare Worker (server-side, no browser) and needs to make outbound REST calls. All-Hands Cloud does not expose an authenticated REST API for external services to submit tasks.
 
 ### Why the Cloudflare Worker -> localhost gap matters
 
-Even if a local Docker OpenHands instance were running on `localhost:3000`, a Cloudflare Worker running in the cloud edge network cannot reach a `localhost` address. `localhost` in a CF Worker refers to the Worker's own process, which has no OpenHands container. Any self-hosted OpenHands instance must be on a **public HTTPS URL** to be reachable from Cadence.
+Even if a local Docker OpenHands instance were running on `localhost:3000`, a Cloudflare Worker running in the cloud edge network cannot reach a `localhost` address. `localhost` in a CF Worker refers to the Worker's own process, which has no OpenHands container. Any self-hosted OpenHands instance must be on a **public HTTPS URL** to be reachable from Supaprod.
 
 This rules out:
 

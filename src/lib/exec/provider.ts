@@ -2,7 +2,7 @@
  * SANDBOX (Build / execution spine) — the `ExecProvider` seam.
  *
  * One swappable abstraction for "where a build's checks run, and whether the
- * result clears it to merge / preview". Today there is no Cadence execution
+ * result clears it to merge / preview". Today there is no Supaprod execution
  * sandbox (see `ai/studio-ci.ts`): checks run in the connected repo's GitHub
  * Actions CI, which is the $0 native floor and is ALWAYS available. A paid
  * microVM backend — Cloudflare Sandbox SDK first, with E2B / Vercel one swap

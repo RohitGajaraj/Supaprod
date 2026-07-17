@@ -4,7 +4,7 @@
  *
  * When a spec carries a compiled contract, its ARD document travels INSIDE the
  * dispatch work order as a clearly delimited fenced JSON block after the prose,
- * so the engine receives the identical acceptance contract Cadence checks the
+ * so the engine receives the identical acceptance contract Supaprod checks the
  * build against, not a re-parsed prose summary. No DB, no env, no I/O here;
  * `dispatchStudioSession` does the fetching and calls these helpers.
  */

@@ -1,6 +1,6 @@
 > ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
 
-# v7 functionality map: how Cadence behaves, flow by flow
+# v7 functionality map: how Supaprod behaves, flow by flow
 
 > _Created: 2026-06-14 · Last updated: 2026-06-19_
 

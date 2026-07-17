@@ -46,7 +46,7 @@ describe("summarizeResolutions (FS-01)", () => {
     expect(s.resolved).toBe(3);
     expect(s.hits).toBe(2);
     expect(s.hitRate).toBeCloseTo(2 / 3, 5);
-    expect(s.recentLabel).toBe("Cadence called 2 of the last 3");
+    expect(s.recentLabel).toBe("Supaprod called 2 of the last 3");
   });
 });
 

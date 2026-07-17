@@ -4,7 +4,7 @@
  * launch_plans.check_by is the outcome window; until now nothing fired when it
  * CLOSED (outcome-tick only used it to suppress early RF-01 suggestions), so a
  * window could expire silently. This sweep, run from outcome-tick's hourly
- * cadence, finds expired windows with no review yet and drafts the review:
+ * supaprod, finds expired windows with no review yet and drafts the review:
  * predicted vs actual via the existing Historian path (draftOutcomeVerdict,
  * surface "judge"; no new CallSurface), the original bet designation scored
  * against reality (deterministic matrix), and one learnings row with

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-18 · Last updated: 2026-06-19_
 
-> **What this is.** The canonical plan for how Cadence models, names, shows, and manages its agents: the resolution of the long-standing "19 agents vs 6" confusion, the cast-vs-crew exposure model, the friendly naming + visual-identity system, and the live "relay" that shows agents working (in parallel) under each station. This builds ON the shipped agent substrate (orchestrator, memory, reactor, swarm HUD) documented in [`agent-ecosystem-plan.md`](./archive/agent-ecosystem-plan.md); it does not replace it. It turns that substrate into a calm, legible, branded surface that honors the Engine-Room Doctrine.
+> **What this is.** The canonical plan for how Supaprod models, names, shows, and manages its agents: the resolution of the long-standing "19 agents vs 6" confusion, the cast-vs-crew exposure model, the friendly naming + visual-identity system, and the live "relay" that shows agents working (in parallel) under each station. This builds ON the shipped agent substrate (orchestrator, memory, reactor, swarm HUD) documented in [`agent-ecosystem-plan.md`](./archive/agent-ecosystem-plan.md); it does not replace it. It turns that substrate into a calm, legible, branded surface that honors the Engine-Room Doctrine.
 >
 > **Status (2026-06-18):** BUILT, both phases. Gate green: `tsc --noEmit` clean, `bun run build` clean (24.8s), humanized (zero em/en dashes), and lint-clean on every changed file (0 errors). Founder ruling 2026-06-18: the standing design-last rule does NOT apply to this initiative, so both phases shipped under its own authority (see section 8). On `worktree-agent-experience` (off the overnight tip); pending merge to main + live-verify on the next publish.
 >

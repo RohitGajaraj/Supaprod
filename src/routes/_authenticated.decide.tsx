@@ -1,4 +1,4 @@
-// Decide (02) — the judgment gate of THE CADENCE LOOP, promoted to a
+// Decide (02) — the judgment gate of THE SUPAPROD LOOP, promoted to a
 // first-class stage (founder ruling, Option B, 2026-07-13). This is the
 // product's whole thesis made visible: everything else runs autonomously; the
 // human appears here, to keep or kill each ranked bet. The ranked queue
@@ -6,8 +6,8 @@
 // named home so the lifecycle spine states the differentiator outright.
 import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -34,8 +34,8 @@ function DecideSurface() {
           eyebrow="The Loop · 02 Decide"
           title="Keep it, or"
           accent="kill it."
-          subtitle="Every ranked bet Cadence surfaced, waiting on the one thing it will never do for you: the call. Approve to move it into Plan, send it back, or drop it."
-          usp="You make the judgment calls; Cadence runs everything else. This is the gate that is yours alone."
+          subtitle="Every ranked bet Supaprod surfaced, waiting on the one thing it will never do for you: the call. Approve to move it into Plan, send it back, or drop it."
+          usp="You make the judgment calls; Supaprod runs everything else. This is the gate that is yours alone."
         />
         <div style={{ marginBottom: 18 }}>
           <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
@@ -54,7 +54,7 @@ function DecideSurface() {
 
 export const Route = createFileRoute("/_authenticated/decide")({
   component: DecideSurface,
-  head: () => ({ meta: [{ title: "Decide · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Decide · Supaprod" }] }),
   errorComponent: ({ error }) => {
     console.error("[Decide] route crashed:", error);
     return (

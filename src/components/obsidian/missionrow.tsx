@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { StatusDot, STATUS_STYLES, STATUS_WORD, type StatusState } from "./status";
 import { VerdictChip, type VerdictTone } from "./verdict";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 
 export type MissionRowStatus = Extract<
   StatusState,

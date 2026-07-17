@@ -11,7 +11,7 @@
  * (claims discipline, section 1.5).
  */
 import { useEffect, useRef, useState } from "react";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 
 // Ink-and-metal palette, module-local.
 const R = {
@@ -45,7 +45,7 @@ export type LogEntry = {
   gate?: boolean;
   /** A station the tool never reaches (the drafting dead-end). */
   dead?: boolean;
-  /** Renders the small revolving CadenceMark: memory being written. */
+  /** Renders the small revolving SupaprodMark: memory being written. */
   mark?: boolean;
 };
 
@@ -679,7 +679,7 @@ export function FlowList({
                       animation: "landingMarkSpin 9s linear infinite",
                     }}
                   >
-                    <CadenceMark size={13} glow={false} />
+                    <SupaprodMark size={13} glow={false} />
                   </span>
                 )}
               </div>
@@ -738,7 +738,7 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
           borderBottom: `1px solid ${R.border}`,
         }}
       >
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>cadence / today</span>
+        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>supaprod / today</span>
         <ReplayChip />
       </div>
       <div

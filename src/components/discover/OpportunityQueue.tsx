@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel } from "@/components/obsidian";
-import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
@@ -160,7 +160,7 @@ export function OpportunityQueue() {
     [rows, themeById, outcomeSupportByTheme, briefAlignment.data],
   );
 
-  // PC-16: at decision time, Cadence cites the account's own record directly
+  // PC-16: at decision time, Supaprod cites the account's own record directly
   // on the ranked bets - fetched only for what is actually on screen (the
   // anti-scroll default of 3, or the full list once "show all" is pressed,
   // capped so this can never balloon into an unbounded number of embedding
@@ -479,7 +479,7 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
       </div>
       {rerankedAgo ? (
         // Quiet metadata, clearly information (not an action): the honest
-        // re-rank cadence, one small mono line.
+        // re-rank supaprod, one small mono line.
         <MonoLabel
           tone="faint"
           title="Scores re-rank automatically when new signals land. Nothing to press."

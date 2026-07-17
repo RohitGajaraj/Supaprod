@@ -1,16 +1,16 @@
 // CNV-03 · the public ARD (Agent Requirements Document) spec page.
-// Explains the wire format for Cadence's Outcome Contract to anyone who is
-// not a Cadence user: a dispatched coding agent, an integrator's MCP client,
+// Explains the wire format for Supaprod's Outcome Contract to anyone who is
+// not a Supaprod user: a dispatched coding agent, an integrator's MCP client,
 // or a person evaluating the standard. Public, unauthenticated, landing-page
 // tokens (parchment) per the design contract; the authenticated app's
 // Obsidian tokens do not apply here.
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { ARD_SCHEMA_PATH, ARD_SCHEMA_VERSION } from "@/lib/ard-schema";
 
-const TITLE = "ARD · Agent Requirements Document · Cadence";
+const TITLE = "ARD · Agent Requirements Document · Supaprod";
 const DESC =
-  "The ARD is Cadence's published, versioned wire format for a spec's Outcome Contract: intent, success metrics with their proof oracle, non-goals, and a budget. The same contract a dispatched coding agent receives instead of re-parsed prose.";
+  "The ARD is Supaprod's published, versioned wire format for a spec's Outcome Contract: intent, success metrics with their proof oracle, non-goals, and a budget. The same contract a dispatched coding agent receives instead of re-parsed prose.";
 
 export const Route = createFileRoute("/ard")({
   ssr: true,
@@ -39,7 +39,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const EXAMPLE = `{
   "ard_version": "${ARD_SCHEMA_VERSION}",
-  "schema_url": "https://cadence.app${ARD_SCHEMA_PATH}",
+  "schema_url": "https://supaprod.app${ARD_SCHEMA_PATH}",
   "spec_id": "9b1e2f3a-4c5d-4e6f-8a9b-0c1d2e3f4a5b",
   "spec_title": "Add CSV export to the roadmap view",
   "exported_at": "2026-07-03T02:00:00.000Z",
@@ -93,8 +93,8 @@ function ArdPage() {
             color: "inherit",
           }}
         >
-          <CadenceMark size={22} />
-          <span style={{ fontWeight: 600 }}>Cadence</span>
+          <SupaprodMark size={22} />
+          <span style={{ fontWeight: 600 }}>Supaprod</span>
         </Link>
         <nav style={{ display: "flex", gap: 14, fontSize: 13 }}>
           <a href="/llms.txt" style={{ color: "inherit", textDecoration: "none" }}>
@@ -131,11 +131,11 @@ function ArdPage() {
           The Agent Requirements Document (ARD)
         </h1>
         <p style={{ color: "var(--ink-muted, #4a443c)", lineHeight: 1.6, fontSize: 15 }}>
-          Every spec inside Cadence carries an Outcome Contract: a typed, structured statement of
+          Every spec inside Supaprod carries an Outcome Contract: a typed, structured statement of
           what it is trying to achieve, how success is proven, and what is explicitly out of scope.
-          The ARD is that same contract published as an open standard, so a coding agent Cadence
+          The ARD is that same contract published as an open standard, so a coding agent Supaprod
           dispatches work to, and any MCP client you bring, reads the identical acceptance contract
-          Cadence checks a build against. Not a summary of the spec. The spec's actual terms.
+          Supaprod checks a build against. Not a summary of the spec. The spec's actual terms.
         </p>
 
         <Section title="Why this exists">
@@ -178,13 +178,13 @@ function ArdPage() {
 
         <Section title="Reading and writing an ARD">
           <p style={{ margin: 0 }}>
-            <strong>Fetch one.</strong> Call the <code>get_ard</code> tool over Cadence&apos;s MCP
+            <strong>Fetch one.</strong> Call the <code>get_ard</code> tool over Supaprod&apos;s MCP
             server (<code>POST /api/mcp</code>, bearer token issued at Settings &gt; Interop) with a{" "}
             <code>prd_id</code>. It returns the full envelope below.
           </p>
           <p style={{ margin: "10px 0 0" }}>
-            <strong>Export one.</strong> Open any spec&apos;s Contract tab in Cadence and use Export
-            ARD to download the same JSON as a file.
+            <strong>Export one.</strong> Open any spec&apos;s Contract tab in Supaprod and use
+            Export ARD to download the same JSON as a file.
           </p>
           <p style={{ margin: "10px 0 0" }}>
             <strong>Import one.</strong> Paste a schema-conformant ARD document into a spec&apos;s

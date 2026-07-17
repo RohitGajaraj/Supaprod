@@ -4,11 +4,11 @@
 
 > **Feature ID:** `SAMPLE-SEED` · **Category:** Onboarding / Demo · **Owner:** founder-directed (built by Kiro, 2026-07-05)
 >
-> **What it is (one line):** A deep, idempotent, demo-scoped seed that fills a workspace with two fully-worked product stories · **Prism** (a consumer money app, the deep hero) and **Trellis** (a warehouse-native product-analytics platform, a second comprehensive product in a different domain) · so that every single Cadence surface renders with rich, believable business/product/stakeholder data. It doubles as the source for the per-signup "Explore workspace" (Layer A) and pairs with the guided tour / empty-state teaching (Layer B).
+> **What it is (one line):** A deep, idempotent, demo-scoped seed that fills a workspace with two fully-worked product stories · **Prism** (a consumer money app, the deep hero) and **Trellis** (a warehouse-native product-analytics platform, a second comprehensive product in a different domain) · so that every single Supaprod surface renders with rich, believable business/product/stakeholder data. It doubles as the source for the per-signup "Explore workspace" (Layer A) and pairs with the guided tour / empty-state teaching (Layer B).
 
 This document is two things at once:
 
-1. **A founder's feature-learning guide** · read top to bottom to understand what every Cadence surface does, what data drives it, and the story behind that data.
+1. **A founder's feature-learning guide** · read top to bottom to understand what every Supaprod surface does, what data drives it, and the story behind that data.
 2. **The authoring spec** for `seed_sample_workspace()` · every table, its columns, and the target row counts per product, so the seed is comprehensive and schema-correct.
 
 ---

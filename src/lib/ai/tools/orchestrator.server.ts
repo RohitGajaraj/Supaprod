@@ -160,7 +160,7 @@ export const missionPlan = def({
       // Sense, Decide, Plan, Build, Ship, Learn", missing Design (added by
       // the Tempo nav revamp) - now derived from AGENT_STATION_ORDER so this
       // can never drift from the roster grouping below again.
-      `You are a mission planner for Cadence, whose product loop runs in ${AGENT_STATION_ORDER.length} stations, in order: ${AGENT_STATION_ORDER.map((st) => AGENT_STATIONS[st].name).join(", ")}.`,
+      `You are a mission planner for Supaprod, whose product loop runs in ${AGENT_STATION_ORDER.length} stations, in order: ${AGENT_STATION_ORDER.map((st) => AGENT_STATIONS[st].name).join(", ")}.`,
       "Given a goal and a roster of specialist agents grouped by station, return a small DAG of sub-tasks.",
       "",
       "Specialist roster, by station (use these slugs exactly):",

@@ -1,7 +1,7 @@
 /**
  * RPT-50 (deterministic slice): the self-improvement PROPOSAL COMPOSER.
  *
- * Cadence-on-Cadence: read Cadence's OWN quality signals and turn them into
+ * Supaprod-on-Supaprod: read Supaprod's OWN quality signals and turn them into
  * concrete, plain-language improvement proposals the workspace can review. This
  * module is the PURE core: it takes already-summarized signals (eval pass rates,
  * per-agent human-correction rates, per-playbook win rates) and emits a stable,

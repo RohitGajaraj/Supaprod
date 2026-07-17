@@ -42,12 +42,12 @@ This is implemented as a facade, not by intercepting sonner: `src/lib/notify.ts`
 | Audio files (drop-in)                                            | `public/soundscape/*.mp3` (+ `README.md` for sourcing + license) |
 | Completion chime                                                 | `src/lib/flow/chime.ts`                                          |
 | State + persistence (context, localStorage, `html.flow`)         | `src/hooks/use-flow-mode.tsx`                                    |
-| The control                                                      | `src/components/cadence/FlowWidget.tsx`                          |
+| The control                                                      | `src/components/supaprod/FlowWidget.tsx`                          |
 | Provider wiring                                                  | `src/routes/_authenticated.tsx`                                  |
-| Footer placement                                                 | `src/components/cadence/AppShell.tsx`                            |
+| Footer placement                                                 | `src/components/supaprod/AppShell.tsx`                            |
 | Dim treatment + pulse                                            | `src/styles.css` (`html.flow`, `flowBreathe`)                    |
 
-Preferences persist client-side only (`cadence.flow.config`, `cadence.flow.session`), mirroring how theme and active-workspace are stored. No server table.
+Preferences persist client-side only (`supaprod.flow.config`, `supaprod.flow.session`), mirroring how theme and active-workspace are stored. No server table.
 
 ## Deferred (not built)
 

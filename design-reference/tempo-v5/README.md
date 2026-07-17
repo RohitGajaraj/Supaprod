@@ -1,9 +1,9 @@
-# Tempo v5 — Cadence design system reference package
+# Tempo v5 — Supaprod design system reference package
 
 > _Created 2026-07-10. The v5 "Tempo" system: the base derived faithfully from Vercel's
-> Geist design system (vercel.com/geist), with Cadence's own identity on top — the
+> Geist design system (vercel.com/geist), with Supaprod's own identity on top — the
 > **ember** accent scale (`#FF6B2C` family) in the brand/interactive role their blue
-> plays, our icon/illustration/logo treatment, and Cadence-specific pattern extensions.
+> plays, our icon/illustration/logo treatment, and Supaprod-specific pattern extensions.
 > Dark-first; light is a secondary theme generated from the same token names._
 
 **The contract lives at [`/DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md).** This folder is the

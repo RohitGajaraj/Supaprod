@@ -1,8 +1,8 @@
 # Supaprod — Brand, Domain, Email & Trademark Playbook
 
-> _Created: 2026-07-16 · Status: ACTIVE — brand decided, registration pending, rename-execution not started_
+> _Created: 2026-07-16 · Status: ACTIVE — brand decided, registration pending, in-product rename EXECUTED 2026-07-17_
 >
-> **The product continues to operate as "Cadence" in code, DB, envs, and UI until the separate rename-execution project runs.** This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`docs/pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md).
+> **The in-product rename executed 2026-07-17** — code, DB, envs, and UI now operate as "Supaprod." This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`docs/pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md).
 >
 > **Audience:** (1) the founder, executing registration and launch steps; (2) a **US trademark attorney or Indian trademark advocate**, who should be able to run clearance and file directly from §8 without redoing our research.
 >
@@ -156,7 +156,7 @@ Why Cloudflare:
 1. **Verified at-cost pricing, flat forever.** $10.46 .com / $80.00-yr .ai / $50.00 .io, zero markup ("Cloudflare does not mark up domain prices at all" — cloudflare.com/products/registrar/; corroborated by the live tracker cfdomainpricing.com, updated 2026-07-16). Proof of the no-markup claim: the .ai registry's March-2026 wholesale is $160/2-year term — Cloudflare charges exactly $80/yr.
 2. **Renewal price = registration price.** No teaser-then-jump. The renewal, not year one, is where registrars make their money on startups.
 3. **Free WHOIS privacy, free DNSSEC, free SSL.**
-4. **The constraint is a feature.** Cloudflare requires the domain to sit on Cloudflare nameservers for the registration's life — and Cadence/Supaprod already deploys to Cloudflare Workers, so DNS lives there anyway. One vendor for registrar + DNS + compute edge.
+4. **The constraint is a feature.** Cloudflare requires the domain to sit on Cloudflare nameservers for the registration's life — and Supaprod already deploys to Cloudflare Workers, so DNS lives there anyway. One vendor for registrar + DNS + compute edge.
 5. **.ai support confirmed** on Cloudflare's own buy-ai-domains page (one stale third-party claim to the contrary was checked and disproven).
 
 ### The founder's split-registrar question, answered directly
@@ -250,7 +250,7 @@ Once the US mark registers (§8), X and YouTube both have inactive-account and t
 | Phase | When | What | Cost |
 | --- | --- | --- | --- |
 | **1 — now** | Same day as domain purchase | Cloudflare Email Routing on `supaprod.com`: create the named addresses below + a **catch-all** → Gmail. Add Gmail Send-as (above). DNS: Cloudflare sets MX automatically when you enable routing; add SPF including `_spf.google.com` (for the send-as path) and a DMARC record at `p=none` (monitor mode). | **$0/mo** |
-| **1.5 — optional bridge** | If Outlook-facing email matters before launch | Either Zoho Mail Lite (**$1/user/mo**, real mailbox + IMAP — the cheapest proper mailbox in 2026) or Cloudflare's new Email Service authenticated SMTP (beta, June 2026; needs Workers **Paid $5/mo**, includes 3,000 sends/mo — the plan the Cadence deploy may already be on, making marginal cost ≈ $0). | $0–5/mo |
+| **1.5 — optional bridge** | If Outlook-facing email matters before launch | Either Zoho Mail Lite (**$1/user/mo**, real mailbox + IMAP — the cheapest proper mailbox in 2026) or Cloudflare's new Email Service authenticated SMTP (beta, June 2026; needs Workers **Paid $5/mo**, includes 3,000 sends/mo — the plan the Supaprod deploy may already be on, making marginal cost ≈ $0). | $0–5/mo |
 | **2 — at launch / first investor outreach** (~1 month, per the v13 horizon) | **Google Workspace Business Starter, 1 seat, annual: $7/user/mo** ($8.40 flexible). Full DKIM/DMARC-aligned sending from `supaprod.com`, 30 GB, Meet/Drive/Calendar — the suite investors and customers expect. **Aliases are free:** up to 30 per user; role addresses (`hello@`, `support@`) are best as **free Google Groups** (collaborative inboxes). Migration = swap MX records from Cloudflare-routing to Google on `supaprod.com`; keep Cloudflare routing on the secondary domain (`supaprod.ai`) forwarding into Workspace **forever, free**. | **$7/mo** |
 | **3 — when the app sends email** | Product transactional mail (auth, notifications) | **Resend free tier** — 3,000 emails/mo, 100/day, native Lovable integration — on a **dedicated subdomain `mail.supaprod.com`** with its own SPF/DKIM, so app-sending reputation never touches founder/human email. Upgrade Resend Pro $20/mo only past 3k/mo. (Postmark's "free" tier is ~100/mo — a test allowance, not production; revisit only if deliverability at scale becomes the bottleneck.) | $0 → $20/mo |
 
@@ -354,7 +354,7 @@ SUPAPROD vs SUPERPROD are **phonetically near-identical** ("supa" is the standar
 - [ ] **Spoken-pitch rule** in every demo, podcast, and the YC video: say "Supaprod — with an A" once; always show the wordmark on screen while saying it.
 - [ ] **Press-kit line:** pronunciation (SOO-pa-prod) + the one-line name story ("super + product — and it ships to prod, with receipts").
 - [ ] **Email posture for outreach:** investor/customer outreach only after Phase 2 email (Workspace DKIM) is live — pre-launch correspondence may use Phase 1 send-as (§7).
-- [ ] **Rename-execution dependency:** the in-product rename (code, DB identifiers, envs, Lovable project, `CLAUDE.md` product-name ruling, brand assets, app UI) is a **separate project** — it must complete **before public demos run under the new name**, sequenced inside the v13 Proof Campaign without displacing proof work. Until it runs, the product remains "Cadence" everywhere in-product, and this playbook governs only the outward brand.
+- [x] **Rename-execution dependency:** the in-product rename (code, DB identifiers, envs, Lovable project, `CLAUDE.md` product-name ruling, brand assets, app UI) is **DONE — executed 2026-07-17**, clearing the way for public demos under the new name.
 
 ---
 
@@ -380,7 +380,7 @@ The single do-not-forget table. Everything parked anywhere in this document appe
 | 14 | DMARC `p=none` → `p=quarantine` | $0 | After Phase-2 DKIM verified | Spoofing exposure stays open |
 | 15 | X + YouTube `@supaprod` handle-recovery petitions | $0 | After US trademark registers | Dormant exact handles stay squatted (Instagram: permanently unrecoverable — real person's surname) |
 | 16 | Friendly pre-launch heads-up note to Supabase team re: supa- naming | $0 | Week before launch | Adjacency discovered on launch day instead of converted to goodwill |
-| 17 | **Rename-execution project** (code, DB, envs, Lovable, `CLAUDE.md` ruling, brand assets) | time | Sequenced in v13 Proof Campaign; must finish before public demos under the new name | Demos ship with mixed Cadence/Supaprod identity |
+| 17 | ~~**Rename-execution project** (code, DB, envs, Lovable, `CLAUDE.md` ruling, brand assets)~~ | time | **DONE 2026-07-17** | — |
 | 18 | Security.txt + `security@` disclosure page | $0 | With launch site | — |
 
 ---

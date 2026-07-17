@@ -6,7 +6,7 @@ export default defineTool({
   name: "list_decisions",
   title: "List decisions",
   description:
-    "List recent decisions in a Cadence workspace. Use list_workspaces to find the workspace_id.",
+    "List recent decisions in a Supaprod workspace. Use list_workspaces to find the workspace_id.",
   inputSchema: {
     workspace_id: z.string().uuid().describe("Workspace UUID from list_workspaces."),
     limit: z.number().int().min(1).max(100).default(25).optional(),

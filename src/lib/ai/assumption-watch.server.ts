@@ -12,7 +12,7 @@ const WATCH_WINDOW_DAYS = 7;
 const MAX_ASSUMPTIONS_PER_TICK = 10;
 const MAX_EVIDENCE_ROWS = 20;
 
-const WATCH_SYSTEM = `You are the Cadence assumption watcher. You are given a standing assumption a past decision depends on, and a batch of recent signals and learnings. Judge whether any of them genuinely contradicts the assumption.
+const WATCH_SYSTEM = `You are the Supaprod assumption watcher. You are given a standing assumption a past decision depends on, and a batch of recent signals and learnings. Judge whether any of them genuinely contradicts the assumption.
 Rules:
 - Only flag a real, concrete contradiction; a merely related item is not a contradiction.
 - If you flag one, name exactly which item by its index and say why in one sentence.

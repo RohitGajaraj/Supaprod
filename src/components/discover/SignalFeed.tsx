@@ -19,7 +19,7 @@ import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
 import { SkeletonBar } from "./SkeletonBar";
 import { SignalDetailSheet, readSignalReferences, type SignalRecord } from "./SignalRecord";
-import { EmptyState } from "@/components/cadence/EmptyState";
+import { EmptyState } from "@/components/supaprod/EmptyState";
 import type { ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;

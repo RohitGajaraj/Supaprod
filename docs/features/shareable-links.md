@@ -4,7 +4,7 @@
 
 > Status · Decision links `/d/$slug` shipped 2026-06-14 (migration `20260614170000`) · Teardown links `/t/$slug` shipped 2026-06-17 (migration `20260617130000`) · Both migrations apply on next Lovable sync · Owner: the operator (you make the call / name the feature; the link carries it)
 
-Cadence ships two public, read-only share surfaces that turn the swarm's reasoning into a brand-carrying artifact an operator can post: **decision links** (`/d/<share_slug>`) and **Critic-teardown links** (`/t/<share_slug>`). Both are the §7 / wedge growth loop: the reasoning behind a product call travels, carrying the brand. They are deliberately built to the same shape and security model; the teardown link (`/t`) mirrors the decision link (`/d`).
+Supaprod ships two public, read-only share surfaces that turn the swarm's reasoning into a brand-carrying artifact an operator can post: **decision links** (`/d/<share_slug>`) and **Critic-teardown links** (`/t/<share_slug>`). Both are the §7 / wedge growth loop: the reasoning behind a product call travels, carrying the brand. They are deliberately built to the same shape and security model; the teardown link (`/t`) mirrors the decision link (`/d`).
 
 ---
 
@@ -79,7 +79,7 @@ v6 §7 names a shareable decision link as the viral mechanism: proof of the swar
 
 ### What it does
 
-Any WEDGE Critic-teardown result in Today can be made public and shared via a read-only link `/t/<share_slug>`. The public page shows the verdict (Ship / Revise / Kill) with its summary, plus three sections: **Risks**, **What would kill it**, and **What you cannot prove yet**, wrapped in a "Made with Cadence" frame with a quiet CTA. The teardown is Cadence's sharpest brand artifact - evidence-backed reasoning that a PM believed in something, then got an honest red-team.
+Any WEDGE Critic-teardown result in Today can be made public and shared via a read-only link `/t/<share_slug>`. The public page shows the verdict (Ship / Revise / Kill) with its summary, plus three sections: **Risks**, **What would kill it**, and **What you cannot prove yet**, wrapped in a "Made with Cadence" frame with a quiet CTA. The teardown is Supaprod's sharpest brand artifact - evidence-backed reasoning that a PM believed in something, then got an honest red-team.
 
 ### Why it exists
 

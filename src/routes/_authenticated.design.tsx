@@ -10,8 +10,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -306,7 +306,7 @@ function DesignSurface() {
 
 export const Route = createFileRoute("/_authenticated/design")({
   component: DesignSurface,
-  head: () => ({ meta: [{ title: "Design · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Design · Supaprod" }] }),
   errorComponent: ({ error }) => {
     console.error("[Design] route crashed:", error);
     return (

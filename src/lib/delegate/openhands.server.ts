@@ -40,10 +40,10 @@ const OPENHANDS_TIMEOUT_MS = 30_000;
  * /api/conversations can be used — without them the API returns
  * CONFIGURATION$SETTINGS_NOT_FOUND and then STATUS$ERROR_LLM_AUTHENTICATION.
  *
- * We reuse whichever LLM provider Cadence itself is configured with
+ * We reuse whichever LLM provider Supaprod itself is configured with
  * (env var priority: OPENHANDS_LLM_API_KEY → AI_PROVIDER_QWEN_KEY →
  * AI_PROVIDER_ANTHROPIC_KEY → AI_PROVIDER_OPENAI_KEY) so there is no
- * extra secret to manage: the same key that powers Cadence's own agent
+ * extra secret to manage: the same key that powers Supaprod's own agent
  * loop powers the delegated OpenHands session too.
  */
 async function configureOpenHandsLlm(
@@ -52,7 +52,7 @@ async function configureOpenHandsLlm(
 ): Promise<void> {
   // Only override settings when OPENHANDS_LLM_API_KEY is explicitly set.
   // If Railway's LLM_* env vars are set (the normal self-hosted path), OpenHands
-  // already has correct settings from startup — don't clobber them with Cadence's
+  // already has correct settings from startup — don't clobber them with Supaprod's
   // AI_PROVIDER_* keys which may point to a different model/endpoint.
   if (!process.env.OPENHANDS_LLM_API_KEY) return;
 

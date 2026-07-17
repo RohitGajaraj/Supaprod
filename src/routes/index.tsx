@@ -9,7 +9,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { MachineViewContainer } from "@/components/machine/MachineViewContainer";
-import { MachineViewToggle } from "@/components/cadence/MachineViewToggle";
+import { MachineViewToggle } from "@/components/supaprod/MachineViewToggle";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
@@ -21,30 +21,30 @@ import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getLandingStats, trackLandingEvent } from "@/lib/landing.functions";
 
-const SITE = "https://cadence-flow-beta.lovable.app";
+const SITE = "https://supaprod.lovable.app";
 
 // The canonical identity line: hero sub, meta description, and llms.txt all
 // carry the same sentence so answer engines never reconcile drift (plan 6.3).
-const TITLE = "Cadence: agents that know what to build, and ship it";
+const TITLE = "Supaprod: agents that know what to build, and ship it";
 const DESC =
-  "Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.";
+  "Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.";
 
 const ORG_LD = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Cadence",
+  name: "Supaprod",
   url: SITE,
   logo: `${SITE}/favicon.svg`,
   description: DESC,
   disambiguatingDescription:
-    "Cadence is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts. It is not affiliated with Cadence Design Systems, the electronic design automation company.",
+    "Supaprod is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts. It is not affiliated with Supaprod Design Systems, the electronic design automation company.",
   sameAs: ["https://github.com/RohitGajaraj", "https://x.com/RohitGajaraj"],
 };
 
 const APP_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Cadence",
+  name: "Supaprod",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: SITE,
@@ -53,12 +53,12 @@ const APP_LD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Beta waitlist" },
 };
 
-const MACHINE_CONTENT = `## Cadence
+const MACHINE_CONTENT = `## Supaprod
 
-Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
+Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
 
 Six stations: Discover, Decide, Plan, Build, Ship, Learn. One governed engine.
-When a build breaks, Cadence diagnoses the failure, revises its own spec, rebuilds, and ships green. The human gate stays in the middle the whole time.
+When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and ships green. The human gate stays in the middle the whole time.
 
 ## Live proof
 - Trust ledger: /proof
@@ -87,14 +87,14 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${SITE}/` },
-      { property: "og:image", content: `${SITE}/og-cadence.png` },
+      { property: "og:image", content: `${SITE}/og-supaprod.png` },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Cadence, your AI product team" },
+      { property: "og:image:alt", content: "Supaprod, your AI product team" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
-      { name: "twitter:image", content: `${SITE}/og-cadence.png` },
+      { name: "twitter:image", content: `${SITE}/og-supaprod.png` },
     ],
     links: [{ rel: "canonical", href: `${SITE}/` }],
     scripts: [
@@ -140,9 +140,9 @@ function LandingPage() {
   }, []);
 
   return (
-    <MachineViewContainer machineContent={MACHINE_CONTENT} title="Cadence">
+    <MachineViewContainer machineContent={MACHINE_CONTENT} title="Supaprod">
       {/* data-obsidian scopes the token set (styles.css) so brand components
-          (CadenceMark, machine view) resolve their CSS variables out here. */}
+          (SupaprodMark, machine view) resolve their CSS variables out here. */}
       <div className="bg-[#0a0a0a] min-h-screen landing-root" data-obsidian>
         {/* Keyboard focus is a human action: the double-ring ember focus
             state, separated from the control by the ink itself. */}

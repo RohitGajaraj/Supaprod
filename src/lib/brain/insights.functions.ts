@@ -37,7 +37,7 @@ export type FocusInsight = {
   confidence: number | null;
 };
 
-const FOCUS_SYSTEM = `You are the Cadence intelligence analyst. Given the single highest-priority emerging theme from a PM's signal stream, write ONE "focus on this next" recommendation.
+const FOCUS_SYSTEM = `You are the Supaprod intelligence analyst. Given the single highest-priority emerging theme from a PM's signal stream, write ONE "focus on this next" recommendation.
 Rules:
 - Signal-first: lead with what to do, not the reasoning.
 - Short: headline max 18 words, one sentence. detail max 2 sentences.
@@ -212,7 +212,7 @@ export type InsightRailItem = {
   themeId: string | null;
   createdAt: string;
   /**
-   * FS-04: FS-01's rolling calibration hit rate for this kind ("Cadence
+   * FS-04: FS-01's rolling calibration hit rate for this kind ("Supaprod
    * called N of the last M"), so the card reads as earned trust rather than
    * an unchecked claim. Only set for `prediction`/`risk` (the calibrated
    * kinds) and only once at least one call has resolved — never a fabricated

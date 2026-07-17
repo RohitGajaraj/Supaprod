@@ -4,11 +4,11 @@
 // data-isolation, and privacy-controls content now lives on this page and
 // /trust permanently redirects here.
 import { createFileRoute } from "@tanstack/react-router";
-import { LegalPageShell, LegalSection } from "@/components/cadence/LegalPageShell";
+import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
-const TITLE = "Security · Cadence";
+const TITLE = "Security · Supaprod";
 const DESC =
-  "How Cadence handles access, data, and privacy: workspace isolation, connector scopes, and the human gate on every AI action.";
+  "How Supaprod handles access, data, and privacy: workspace isolation, connector scopes, and the human gate on every AI action.";
 
 export const Route = createFileRoute("/security")({
   ssr: true,
@@ -29,7 +29,7 @@ function SecurityPage() {
     <LegalPageShell eyebrow="Trust" title="Security" updated="July 10, 2026">
       <p>
         We are a beta-stage company and say so plainly here rather than claiming certifications we
-        do not hold yet. This page states what is actually true about how Cadence is built.
+        do not hold yet. This page states what is actually true about how Supaprod is built.
       </p>
 
       <LegalSection title="Access and authentication">
@@ -53,7 +53,7 @@ function SecurityPage() {
 
       <LegalSection title="Secrets and encryption">
         <p>
-          Connection credentials and API keys you bring into Cadence are encrypted before being
+          Connection credentials and API keys you bring into Supaprod are encrypted before being
           stored. Decryption happens only inside server-side code paths. Data in transit uses TLS
           provided by the hosting platform.
         </p>
@@ -88,7 +88,7 @@ function SecurityPage() {
 
       <LegalSection title="Who processes your data">
         <p>
-          Cadence relies on infrastructure and AI providers to deliver the product, and on
+          Supaprod relies on infrastructure and AI providers to deliver the product, and on
           third-party services that you explicitly connect (for example a code repository or
           calendar). The full, live list of sub-processors and what each one receives is public at{" "}
           <a href="/subprocessors" style={{ color: "#ff9542" }}>

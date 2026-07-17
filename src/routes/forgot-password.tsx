@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Reset-request on the shared dark auth scaffold (auth_surfaces pass). Real
 // flow unchanged: supabase resetPasswordForEmail → /reset-password recovery
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/forgot-password")({
     if (data.user) throw redirect({ to: "/" });
   },
   component: ForgotPasswordPage,
-  head: () => ({ meta: [{ title: "Forgot password · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Forgot password · Supaprod" }] }),
 });
 
 function ForgotPasswordPage() {

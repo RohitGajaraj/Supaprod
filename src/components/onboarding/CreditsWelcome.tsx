@@ -15,7 +15,7 @@ import { X } from "lucide-react";
 import { getMyCreditsView } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
-const DISMISSED_KEY = "cadence.welcome.credits";
+const DISMISSED_KEY = "supaprod.welcome.credits";
 const HOLD_MS = 9000;
 
 export function creditsWelcomeDismissed(): boolean {

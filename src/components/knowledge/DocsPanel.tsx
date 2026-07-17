@@ -1,4 +1,4 @@
-// Docs — Knowledge tab 4, ported from design-reference/cadence/loop.jsx
+// Docs — Knowledge tab 4, ported from design-reference/supaprod/loop.jsx
 // (KnowledgeScreen · Docs): 2-col card grid (icon tile, title, mono meta,
 // blue "edit", chevron), click = preview expand (serif excerpt), double-click
 // or "edit" = the full-width editor card with "← All docs", Push to Signals
@@ -12,13 +12,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { ChevronDown, ChevronRight, FileText, Search, X } from "lucide-react";
-import { DocEditor } from "@/components/cadence/DocEditor";
+import { DocEditor } from "@/components/supaprod/DocEditor";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { listDocs, getDoc, createDoc, updateDoc, deleteDoc } from "@/lib/docs.functions";
 import { importGoogleDoc } from "@/lib/gdocs.functions";
 import { importNotionPage, searchNotionPages } from "@/lib/notion.functions";
 import { createSignal } from "@/lib/discovery.functions";
-import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
 
 type DocNode = {
   id: string;

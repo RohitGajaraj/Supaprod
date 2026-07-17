@@ -3,11 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import { TopBar } from "@/components/cadence/TopBar";
+import { TopBar } from "@/components/supaprod/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
-import { PixelStat } from "@/components/cadence/PixelStat";
+import { PixelStat } from "@/components/supaprod/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -47,7 +47,7 @@ import { recordRitualSession } from "@/lib/gauntlet.functions";
 import { getProductContext } from "@/lib/briefs.functions";
 import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
-import { PulsePrompt } from "@/components/cadence/PulsePrompt";
+import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
 import { generateDailyBrief } from "@/lib/copilot.functions";
 import { savePrd, updateOpportunity } from "@/lib/discovery.functions";
 import { decideDesignGate } from "@/lib/design-scaffold.functions";
@@ -62,7 +62,7 @@ import { CreditsWelcome, creditsWelcomeDismissed } from "@/components/onboarding
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: Dashboard,
-  head: () => ({ meta: [{ title: "Today · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Today · Supaprod" }] }),
 });
 
 // OBS-04 built the ritual screen; Loom W2-TODAY (DESIGN-LOOM §8b) rebuilt the
@@ -109,7 +109,7 @@ function pulseSentence(lp: LoopPulse): string {
       : parts.length === 2
         ? `${parts[0]} and ${parts[1]}`
         : `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
-  return `In the last 24 hours, Cadence ${list}.`;
+  return `In the last 24 hours, Supaprod ${list}.`;
 }
 
 function fmtUsd(n: number): string {
@@ -442,8 +442,8 @@ function Dashboard() {
   const [overlay, setOverlay] = useState<"none" | "credits" | "coach">("none");
   const coachPendingRef = useRef(false);
   useEffect(() => {
-    const justLanded = window.sessionStorage.getItem("cadence.onboarding.justLanded") === "1";
-    window.sessionStorage.removeItem("cadence.onboarding.justLanded");
+    const justLanded = window.sessionStorage.getItem("supaprod.onboarding.justLanded") === "1";
+    window.sessionStorage.removeItem("supaprod.onboarding.justLanded");
     const coachEligible = shouldShowCoachMark(justLanded, todayCoachMarkDismissed());
     if (justLanded && !creditsWelcomeDismissed()) {
       coachPendingRef.current = coachEligible;
@@ -1332,7 +1332,7 @@ function Dashboard() {
                     <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
                   </h3>
                   <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                    New calls surface here first. Cadence keeps sensing in the background.
+                    New calls surface here first. Supaprod keeps sensing in the background.
                   </p>
                 </div>
               ) : (

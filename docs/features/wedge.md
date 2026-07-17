@@ -3,7 +3,7 @@
 > _Created: 2026-06-17 · Last updated: 2026-06-19_
 
 > **Status:** ✅ Shipped to `main` (2026-06-17). The v10 launch wedge (P0 #2). Lane C (DECIDE).
-> **One line:** point Cadence at a feature you believe in and get an evidence-backed teardown in your first session, with no setup.
+> **One line:** point Supaprod at a feature you believe in and get an evidence-backed teardown in your first session, with no setup.
 
 ## Why it exists
 

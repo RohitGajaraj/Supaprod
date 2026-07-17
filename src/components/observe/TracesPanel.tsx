@@ -1,4 +1,4 @@
-// Traces tab — ported 1:1 from design-reference/cadence/loop.jsx (GovernScreen,
+// Traces tab — ported 1:1 from design-reference/supaprod/loop.jsx (GovernScreen,
 // tab "Traces"): a bento table (Trace 90px / 1fr / Hops 60px / Tokens 70px /
 // Cost 70px / When 110px) with a mono-label header row, the trace id as a blue
 // mono button and the title at 500 weight — both opening production's EXISTING

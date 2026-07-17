@@ -1,7 +1,7 @@
 /**
  * Platform-level provider credentials (server-only).
  *
- * Cadence powers its OWN internal AI actions (agent steps, daily briefs, idea
+ * Supaprod powers its OWN internal AI actions (agent steps, daily briefs, idea
  * bucketing/clustering, research, the Critic, …) and, per the WM-M9 ruling, does so
  * on PLATFORM keys — not user-supplied ones. Model-agnosticism therefore lives here:
  * the platform operator can plug in ANY provider by setting two env vars / wrangler
