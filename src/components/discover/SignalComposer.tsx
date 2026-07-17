@@ -138,7 +138,7 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
           />
           <Button
             type="submit"
-            variant="primary"
+            variant="accent"
             style={emberFill}
             loading={capture.isPending}
             disabled={content.trim().length < 2}

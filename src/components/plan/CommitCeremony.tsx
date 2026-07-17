@@ -34,7 +34,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className="fixed inset-0 z-40"
-          style={{ backgroundColor: "rgba(4,4,5,0.6)", backdropFilter: "blur(3px)" }}
+          style={{ backgroundColor: "var(--overlay-modal)", backdropFilter: "blur(3px)" }}
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -122,7 +122,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               Not yet
             </Button>
             <Button
-              variant="primary"
+              variant="accent"
               disabled={!canConfirm || pending}
               loading={pending}
               onClick={() => onConfirm({ outcome: outcome.trim(), measure: measure.trim() })}

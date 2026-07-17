@@ -78,7 +78,7 @@ export function SpecComposer() {
           }}
         />
         <Button
-          variant="primary"
+          variant="accent"
           disabled={draft.isPending || !intent.trim()}
           loading={draft.isPending}
           onClick={submit}

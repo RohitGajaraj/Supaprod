@@ -654,7 +654,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
           >
             <Button
-              variant="primary"
+              variant="accent"
               size="sm"
               disabled={deciding}
               onClick={() => act(detail.onOk)}

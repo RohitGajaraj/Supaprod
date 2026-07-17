@@ -335,7 +335,7 @@ export function DiscoverSurface() {
                   Connect a source and give it ten minutes.
                 </p>
                 <Button
-                  variant="primary"
+                  variant="accent"
                   style={{
                     background:
                       "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
