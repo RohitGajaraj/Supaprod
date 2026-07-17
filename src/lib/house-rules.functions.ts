@@ -43,10 +43,13 @@ export type HouseRule = {
   decided_by: string | null;
   decided_at: string | null;
   created_at: string;
+  /** PC-30/RPT-50: null = applies workspace-wide (the original behavior);
+   *  set = applies only to that one agent's system prompt. */
+  agent_slug: string | null;
 };
 
 const SELECT_COLUMNS =
-  "id,workspace_id,rule_text,rationale,status,source_learning_ids,decided_by,decided_at,created_at";
+  "id,workspace_id,rule_text,rationale,status,source_learning_ids,decided_by,decided_at,created_at,agent_slug";
 
 async function resolveWorkspaceId(
   supabase: SupabaseClient,
@@ -90,14 +93,34 @@ export function filterActiveRules(
 }
 
 /**
+ * PURE. Narrow a workspace's approved rules to the ones a given agent
+ * actually receives: every workspace-wide rule (agent_slug null) plus any
+ * rule scoped to exactly that agent. A null/undefined agentSlug is the
+ * original unscoped behavior -- every approved rule, untouched.
+ */
+export function filterRulesForAgent(
+  approvedRules: HouseRule[],
+  agentSlug: string | null | undefined,
+): HouseRule[] {
+  if (!agentSlug) return approvedRules;
+  return approvedRules.filter((r) => !r.agent_slug || r.agent_slug === agentSlug);
+}
+
+/**
  * Load this workspace's currently-active house rules: status='approved' and
  * not retired by an approved supersedes edge. Called directly (not a
  * createServerFn) from the chokepoint in loop.server.ts, same as the brief
  * load it sits beside.
+ *
+ * agentSlug (PC-30/RPT-50): when passed, narrows to rules that apply to that
+ * agent — every workspace-wide rule (agent_slug null) plus any rule scoped
+ * to exactly that agent. Omit to keep the original unscoped behavior (every
+ * approved rule), which existing callers that haven't been updated still get.
  */
 export async function getActiveHouseRulesForWorkspace(
   supabase: SupabaseClient,
   workspaceId: string,
+  agentSlug?: string | null,
 ): Promise<HouseRule[]> {
   const { data: rows } = await supabase
     .from("house_rules")
@@ -105,7 +128,7 @@ export async function getActiveHouseRulesForWorkspace(
     .eq("workspace_id", workspaceId)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
-  const approved = (rows ?? []) as HouseRule[];
+  const approved = filterRulesForAgent((rows ?? []) as HouseRule[], agentSlug);
   if (approved.length === 0) return [];
 
   const ids = approved.map((r) => r.id);

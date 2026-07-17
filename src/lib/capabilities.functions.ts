@@ -7,7 +7,8 @@
  * Capability lens.
  *
  * Write side: recordCapabilityChange records human edits (instructions, skill enable/disable)
- * via lineage + capability_changes table, displayed as receipts in the history section.
+ * and RPT-50 self-tuned fixes via lineage + capability_changes table, displayed as
+ * receipts in the history section.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -18,7 +19,9 @@ import {
   getActiveHouseRulesForWorkspace,
   renderHouseRulesBlock,
 } from "@/lib/house-rules.functions";
-import { renderBriefBlock } from "@/lib/briefs.functions";
+import { renderBriefBlock, renderBriefItemsBlock, type BriefItem } from "@/lib/briefs.functions";
+import { loadVoiceAnchorBlock } from "@/lib/ai/loop.server";
+import { computeAllAgentTrust, type Arc, type AgentTrust } from "@/lib/ai/trust.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { z } from "zod";
 
@@ -28,8 +31,13 @@ export interface AgentCapability {
   name: string;
   station: AgentStation;
   blurb: string;
-  /** Instructions the agent receives (concatenated system prompts + house_rules). */
-  instructions: string;
+  /** The agent's own base system prompt -- the only part a human edit changes. */
+  baseInstructions: string;
+  /** Read-only preview of what this agent is told every run: baseInstructions
+   *  + the voice anchor + the Strategic Brief + house rules scoped to this
+   *  agent -- assembled from the same render functions the real runtime
+   *  chokepoint (loop.server.ts) uses, so it can never silently drift. */
+  instructionsPreview: string;
   /** Playbooks this agent can run, with win-rates. */
   skills: SkillInfo[];
   /** Trust tier and autonomy info. */
@@ -49,15 +57,39 @@ export interface SkillInfo {
   winRate: number;
 }
 
+export interface ToolModeInfo {
+  toolName: string;
+  mode: string;
+  source: string;
+}
+
+export interface GraduationHistoryEntry {
+  id: string;
+  toolName: string;
+  fromMode: string;
+  toMode: string;
+  status: string;
+  decidedAt: string | null;
+  rationale: string | null;
+}
+
 export interface AutonomyInfo {
   station: AgentStation;
   tier: "crew" | "cast";
   status: "active" | "deprecated";
+  /** The trust-ramp arc, when this catalog slug resolves to a live agents row. */
+  arc: Arc | null;
+  score: number | null;
+  suggestedArc: Arc | null;
+  /** Tool modes graduated (or operator-set) away from their seeded default. */
+  toolModes: ToolModeInfo[];
+  /** Decided graduation proposals for this agent, most recent first. */
+  graduationHistory: GraduationHistoryEntry[];
 }
 
 export interface CapabilityChange {
   id: string;
-  type: "instructions" | "skill-enabled" | "skill-disabled";
+  type: "instructions" | "skill_enabled" | "skill_disabled" | "self_tuned";
   description: string;
   changedAt: string;
   changedBy: string | null;
@@ -71,7 +103,7 @@ export const getCapabilities = createServerFn({ method: "GET" })
       input ?? {},
   )
   .handler(async ({ context, data }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     let workspaceId = data.workspaceId ?? null;
     if (!workspaceId) {
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -81,10 +113,27 @@ export const getCapabilities = createServerFn({ method: "GET" })
     // Get all active cast members (not crew, not deprecated).
     const activeCast = SPECIALIST_CATALOG.filter((a) => a.tier === "cast" && a.status === "active");
 
+    // Trust is computed once for every agent this user has, not once per cast
+    // member -- computeAllAgentTrust already scans the user's runs/evals in a
+    // single pass, so calling it in a loop would just repeat the same work.
+    let trustByAgentId = new Map<string, AgentTrust>();
+    try {
+      const trust = await computeAllAgentTrust(supabase, userId);
+      trustByAgentId = new Map(trust.map((t) => [t.agent_id, t]));
+    } catch (e) {
+      console.warn("capabilities: trust load failed, autonomy will show tier only:", e);
+    }
+
     const capabilities: AgentCapability[] = [];
 
     for (const agent of activeCast) {
-      const cap = await buildCapabilityForAgent(supabase, agent, workspaceId);
+      const cap = await buildCapabilityForAgent(
+        supabase,
+        userId,
+        agent,
+        workspaceId,
+        trustByAgentId,
+      );
       capabilities.push(cap);
     }
 
@@ -93,63 +142,88 @@ export const getCapabilities = createServerFn({ method: "GET" })
 
 async function buildCapabilityForAgent(
   supabase: SupabaseClient,
+  userId: string,
   agent: CatalogEntry,
   workspaceId: string | null,
+  trustByAgentId: Map<string, AgentTrust>,
 ): Promise<AgentCapability> {
-  // Instructions: what this agent is told every run.
-  // Assembles: system prompt (from agents table) + Strategic Brief + house rules.
-  // PC-30 spec defers scoped "house_rules scoped to the agent" and "Brief injection preview" details,
-  // so we show the workspace-scoped context that EVERY agent receives at runtime.
-  let instructions = "";
-
-  // Load agent's system prompt from the agents table.
+  // Load the agent's own live row, scoped by (user_id, slug) -- the exact
+  // scoping the real runtime chokepoint uses (loop.server.ts), since a slug
+  // alone is not guaranteed unique across users.
+  let agentId: string | null = null;
+  let baseInstructions = "";
   try {
     const { data: agentRow } = await supabase
       .from("agents")
-      .select("system_prompt")
+      .select("id,system_prompt")
+      .eq("user_id", userId)
       .eq("slug", agent.slug)
       .maybeSingle();
-    instructions = agentRow?.system_prompt ?? "";
+    agentId = (agentRow as { id?: string } | null)?.id ?? null;
+    baseInstructions = (agentRow as { system_prompt?: string } | null)?.system_prompt ?? "";
   } catch (e) {
-    console.warn(`Failed to load system prompt for ${agent.name}:`, e);
+    console.warn(`Failed to load agent row for ${agent.name}:`, e);
   }
 
-  // Append workspace context (Brief + house rules) if available.
-  if (workspaceId && instructions) {
+  // Instructions preview: what this agent is actually told every run. Reuses
+  // the exact same render functions loop.server.ts's chokepoint calls, in the
+  // same order, so the preview can never silently drift from real behavior.
+  let instructionsPreview = baseInstructions;
+  try {
+    const voiceBlock = await loadVoiceAnchorBlock(supabase, userId);
+    instructionsPreview += voiceBlock;
+  } catch (e) {
+    console.warn(`Failed to load voice anchor for ${agent.name}:`, e);
+  }
+  if (workspaceId) {
     try {
       const { data: brief } = await supabase
         .from("workspace_briefs")
         .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
         .eq("workspace_id", workspaceId)
         .maybeSingle();
-      const briefBlock = renderBriefBlock(brief as any);
-      if (briefBlock) {
-        instructions += briefBlock;
-      }
-      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId);
-      const houseRulesBlock = renderHouseRulesBlock(activeRules);
-      if (houseRulesBlock) {
-        instructions += houseRulesBlock;
-      }
+      instructionsPreview += renderBriefBlock(brief as any);
+
+      const { data: briefItems } = await supabase
+        .from("brief_items")
+        .select(
+          "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
+        )
+        .eq("workspace_id", workspaceId)
+        .eq("status", "standing");
+      instructionsPreview += renderBriefItemsBlock(briefItems as BriefItem[] | null);
     } catch (e) {
-      // Non-fatal: if brief/rules load fails, still show base prompt.
-      console.warn(`Failed to load workspace context for ${agent.name}:`, e);
+      console.warn(`Failed to load brief for ${agent.name}:`, e);
+    }
+    try {
+      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId, agent.slug);
+      instructionsPreview += renderHouseRulesBlock(activeRules);
+    } catch (e) {
+      console.warn(`Failed to load house rules for ${agent.name}:`, e);
     }
   }
 
   // Skills: playbooks used by this agent's station, with win-rates.
   const skills = await getStationSkills(supabase, workspaceId, agent.station);
 
-  // Autonomy: basic info from the catalog.
-  // PC-30 spec remainder: arc, tool modes, and graduation history are documented placeholders.
+  // Autonomy: the trust-ramp arc/score (computed once for all agents, above)
+  // plus this agent's graduated tool modes and decided graduation history.
+  const trust = agentId ? trustByAgentId.get(agentId) : undefined;
+  const toolModes = await getGraduatedToolModes(supabase, userId, agent.slug);
+  const graduationHistory = await getGraduationHistory(supabase, userId, agent.slug);
   const autonomy: AutonomyInfo = {
     station: agent.station,
     tier: agent.tier,
     status: agent.status,
+    arc: trust?.arc ?? null,
+    score: trust?.score ?? null,
+    suggestedArc: trust?.suggested_arc ?? null,
+    toolModes,
+    graduationHistory,
   };
 
-  // History: capability changes recorded via human edits (PC-30 write side wiring).
-  // PC-18 distillation + RPT-50 proposals are deferred per spec.
+  // History: capability changes recorded via human edits and RPT-50 self-tuned fixes.
+  // PC-18 distillation is deferred (G-LEARN gate not earned) per the dashboard's own ruling.
   const history = await getCapabilityHistory(supabase, workspaceId, agent.slug);
 
   return {
@@ -157,7 +231,8 @@ async function buildCapabilityForAgent(
     name: agent.name,
     station: agent.station,
     blurb: agent.blurb,
-    instructions,
+    baseInstructions,
+    instructionsPreview,
     skills,
     autonomy,
     history,
@@ -209,6 +284,65 @@ async function getStationSkills(
   return skills.sort((a, b) => b.runs - a.runs); // Sort by frequency.
 }
 
+/** Tool modes graduated (or operator-set) away from their seeded default for
+ *  this agent -- the overlay agent_tool_modes carries, same shape reflection.server.ts's
+ *  maybeProposeTrustGraduations reads to compute clean streaks. */
+async function getGraduatedToolModes(
+  supabase: SupabaseClient,
+  userId: string,
+  agentSlug: string,
+): Promise<ToolModeInfo[]> {
+  const { data: rows } = await supabase
+    .from("agent_tool_modes" as never)
+    .select("tool_name,mode,source")
+    .eq("user_id", userId)
+    .eq("agent_slug", agentSlug);
+
+  return ((rows ?? []) as unknown as { tool_name: string; mode: string; source: string }[]).map(
+    (r) => ({ toolName: r.tool_name, mode: r.mode, source: r.source }),
+  );
+}
+
+/** Decided (approved/rejected) trust-graduation proposals for this agent,
+ *  most recent first -- the graduation history the spec names. Queried
+ *  directly (not via the unscoped listTrustGraduationProposals) so an
+ *  agent's older history can't be pushed out by another agent's proposals
+ *  sharing the same global 50-row cap. */
+async function getGraduationHistory(
+  supabase: SupabaseClient,
+  userId: string,
+  agentSlug: string,
+): Promise<GraduationHistoryEntry[]> {
+  const { data: rows } = await supabase
+    .from("trust_graduation_proposals" as never)
+    .select("id,tool_name,from_mode,to_mode,status,decided_at,rationale")
+    .eq("user_id", userId)
+    .eq("agent_slug", agentSlug)
+    .in("status", ["approved", "rejected"])
+    .order("decided_at", { ascending: false })
+    .limit(10);
+
+  return (
+    (rows ?? []) as unknown as {
+      id: string;
+      tool_name: string;
+      from_mode: string;
+      to_mode: string;
+      status: string;
+      decided_at: string | null;
+      rationale: string | null;
+    }[]
+  ).map((r) => ({
+    id: r.id,
+    toolName: r.tool_name,
+    fromMode: r.from_mode,
+    toMode: r.to_mode,
+    status: r.status,
+    decidedAt: r.decided_at,
+    rationale: r.rationale,
+  }));
+}
+
 /** Get recent capability changes for an agent in a workspace. */
 async function getCapabilityHistory(
   supabase: SupabaseClient,
@@ -239,13 +373,13 @@ async function getCapabilityHistory(
   return history;
 }
 
-/** Record a capability change (human edit). */
+/** Record a capability change (human edit, or an RPT-50 self-tuned fix). */
 export async function recordCapabilityChange(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string,
   agentSlug: string,
-  changeType: "instructions" | "skill_enabled" | "skill_disabled",
+  changeType: "instructions" | "skill_enabled" | "skill_disabled" | "self_tuned",
   description: string,
   previousValue?: string | null,
 ): Promise<string> {
@@ -301,9 +435,24 @@ export const updateAgentInstructions = createServerFn({ method: "POST" })
     }
     if (!workspaceId) throw new Error("updateAgentInstructions: no workspace");
 
-    // NOTE: Instructions are stored in the agents table, per-user (not per-workspace yet).
-    // This is a simplification for MVP; full house-rule scoping is deferred per spec.
-    // For now, we just record the change in capability_changes + lineage.
+    // Read the current text first so the receipt carries a real diff, then
+    // persist to the SAME agents.system_prompt column the runtime chokepoint
+    // reads every run -- an edit here now has a real, visible effect, not
+    // just a logged receipt.
+    const { data: before } = await supabase
+      .from("agents")
+      .select("system_prompt")
+      .eq("user_id", userId)
+      .eq("slug", data.agentSlug)
+      .maybeSingle();
+    const previousValue = (before as { system_prompt?: string } | null)?.system_prompt ?? null;
+
+    const { error: updateErr } = await supabase
+      .from("agents")
+      .update({ system_prompt: data.instructions })
+      .eq("user_id", userId)
+      .eq("slug", data.agentSlug);
+    if (updateErr) throw new Error(`updateAgentInstructions: ${updateErr.message}`);
 
     await recordCapabilityChange(
       supabase,
@@ -312,6 +461,7 @@ export const updateAgentInstructions = createServerFn({ method: "POST" })
       data.agentSlug,
       "instructions",
       `Updated ${data.agentSlug}'s instructions`,
+      previousValue,
     );
 
     return { ok: true };
