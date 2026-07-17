@@ -4,11 +4,7 @@
  */
 
 export type FunnelStage =
-  | "signup"
-  | "connected"
-  | "first_teardown"
-  | "first_mission"
-  | "week_2_return";
+  "signup" | "connected" | "first_teardown" | "first_mission" | "week_2_return";
 
 export interface FunnelMilestone {
   workspaceId: string;

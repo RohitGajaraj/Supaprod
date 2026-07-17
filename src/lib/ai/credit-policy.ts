@@ -105,9 +105,7 @@ export function byokFeeUsd(ratedSpendUsd: number, feePct: number = BYOK_FEE_PCT)
  */
 export function overageCeiling(monthlyGrant: number, capMultiplier: number): number {
   if (!Number.isFinite(monthlyGrant) || monthlyGrant <= 0) return 0;
-  const clamped = Number.isFinite(capMultiplier)
-    ? Math.max(1, Math.min(3, capMultiplier))
-    : 1.25;
+  const clamped = Number.isFinite(capMultiplier) ? Math.max(1, Math.min(3, capMultiplier)) : 1.25;
   return monthlyGrant * clamped;
 }
 

@@ -27,8 +27,8 @@
 ```
 
 - **Trace label** — the canonical tag `formatAuditId(kind, id)` = uppercase stage prefix + `·`
-  + the first six alphanumerics of the uuid. Mono, `text-faint`, letter-spacing 0.06em. This is
-  the whole control in the plain variant.
+  - the first six alphanumerics of the uuid. Mono, `text-faint`, letter-spacing 0.06em. This is
+    the whole control in the plain variant.
 - **Copy affordance** (copyable variant only) — a 12px lucide `Copy` icon to the right, its own
   small control, that writes the **full uuid** (not the short tag) to the clipboard and briefly
   swaps to a `Check` on success. Replaces the old standalone "copy trace id" button so one chip
@@ -40,9 +40,9 @@ screen full of ids does not read as a screen full of buttons.
 
 ## Variants
 
-| Variant | Where | Composition |
-| --- | --- | --- |
-| **plain** | lists, cards, table cells, graph node story | trace label only |
+| Variant      | Where                                                                                             | Composition             |
+| ------------ | ------------------------------------------------------------------------------------------------- | ----------------------- |
+| **plain**    | lists, cards, table cells, graph node story                                                       | trace label only        |
 | **copyable** | entity detail views / slide-overs (spec, decision, learning, signal record, mission, opportunity) | trace label + copy icon |
 
 There is exactly one component (`AuditTag`); `copyable` is a boolean prop. Do not fork it.

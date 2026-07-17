@@ -40,7 +40,11 @@ function DecideSurface() {
         <div style={{ marginBottom: 18 }}>
           <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
         </div>
-        <Suspense fallback={<div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading the queue…</div>}>
+        <Suspense
+          fallback={
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading the queue…</div>
+          }
+        >
           <OpportunityQueue />
         </Suspense>
       </div>

@@ -45,10 +45,10 @@ export function LoopThread() {
         {LOOP_SURFACES.map((s, i) => {
           const cls =
             i === idx
-              ? "text-[color:var(--ink)] font-semibold"
+              ? "text-[color:var(--ds-gray-1000)] font-semibold"
               : s.id === neighbors?.next.id
                 ? "text-[color:var(--action-blue)] font-medium hover:opacity-80"
-                : "text-[color:var(--ds-gray-700)] hover:text-[color:var(--ink)]";
+                : "text-[color:var(--ds-gray-700)] hover:text-[color:var(--ds-gray-1000)]";
           return (
             <Fragment key={s.id}>
               {i > 0 && (

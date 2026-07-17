@@ -37,6 +37,7 @@ Digit keys **1–9** jump to the first nine; the Engine Room (10th) uses **`g`**
 left). `navKeyHint()` is the single source for these hints (palette + command surfaces derive from it).
 
 **Why.**
+
 - **Lifecycle-first, not feature-first.** A first-time user should see the product's actual shape
   (how work flows from a signal to a shipped outcome) in the nav itself — the IA teaches the model
   of the product with zero onboarding.
@@ -56,6 +57,7 @@ left). `navKeyHint()` is the single source for these hints (palette + command su
 ## 2. Color — de-purpling and the ember/blue grammar
 
 **What.**
+
 - **Ember is the only brand accent** (`--ember: oklch(0.65 0.18 50)`, the `#FF6B2C` family). It means
   **needs-human**: gates, calls, the one primary CTA per view, brand moments. At most one ember
   primary CTA per screen.
@@ -68,6 +70,7 @@ left). `navKeyHint()` is the single source for these hints (palette + command su
   on content.
 
 **Why.**
+
 - **A legible human/machine grammar.** If ember always means "a human is needed here" and blue always
   means "the machine is acting/linking," the user learns the whole product's state language from two
   colors. This is the single most load-bearing color decision in the app.
@@ -100,7 +103,7 @@ metrics, page titles, and agent names (now in ~24 surfaces). `PageHeader` sets i
 with an ember accent word; headline metric numerals (e.g. the Engine Room figure, the Decide ICE
 score) are Pixel; agent **names** render in Pixel at ~14px (via `AgentBadge`'s `pixelName`).
 
-**Why.** Pixel is the one place the product gets to feel *branded* rather than generically clean.
+**Why.** Pixel is the one place the product gets to feel _branded_ rather than generically clean.
 Reserving it for the moments that matter — the number a buyer reads, the stage title, the agent's
 name — makes those moments feel authored and distinct without adding color. Variations in size are
 allowed; the rule is that Pixel appears where identity should be felt, at least once per screen,
@@ -111,6 +114,7 @@ never as body text.
 ## 5. Iconography & identity — monotone sources, liquid-glass agents
 
 **What.**
+
 - **Source/provider logos are monotone** (`ProviderLogo.tsx` renders `fill="currentColor"`), with a
   first-letter monogram fallback. A brand-color version was built and then **reverted**.
 - **Agent icons are liquid-glass "gems"** (`AgentMark.tsx`): gradient depth, a catch-light edge, a
@@ -122,7 +126,7 @@ trademarked colors across our UI is a licensing/branding hazard; a monotone glyp
 reference, not a reproduction. **(2) Cognitive load** — a row of full-color vendor logos pulls the eye
 to the vendors, not to the user's own work; monotone keeps the source a quiet attribute. **(3)
 Friction** — matching, maintaining, and theming dozens of exact brand palettes across dark/light is
-ongoing cost for negative value. Agents, by contrast, are *ours*, so they earn crafted, gem-like
+ongoing cost for negative value. Agents, by contrast, are _ours_, so they earn crafted, gem-like
 identity.
 
 ---
@@ -130,6 +134,7 @@ identity.
 ## 6. Chrome — TopBar and PageHeader on every surface
 
 **What.**
+
 - **`TopBar`** (`components/cadence/TopBar.tsx`): breadcrumb + **ThemeToggle** (light/dark/system) +
   **AskButton** (fires `cadence:open-ask`) + **DayWeather** (day/date/live clock + keyless IP-based
   weather, no geolocation prompt) + LiveTicker. Now on **every** surface, including Discover and the
@@ -139,6 +144,7 @@ identity.
   01–07.
 
 **Why.**
+
 - **Consistency is trust.** A user should never land on a surface that looks like a different app;
   uniform chrome (same breadcrumb, same theme/ask/weather cluster) makes the whole product feel like
   one thing. Discover and the Engine Room being bare broke that.
@@ -153,6 +159,7 @@ identity.
 ## 7. Homelessness closure & component hygiene
 
 **What.**
+
 - Both orphaned panels were given a real home: **CalendarPanel → Today's Desk** (`DeskRail`
   `DeskCalendar`), **ProductAnalyticsPanel → OpportunityDetailSheet**.
 - The **Engine Room `RoomRail` is an accordion** — only the active room expands its sub-views; others
@@ -174,7 +181,7 @@ across every entity surface. Full pattern: [`patterns/audit-trace-tag.md`](../pa
 Full feature (resolver / lineage / mission-chain): [`docs/features/audit-id-lineage.md`](../../../docs/features/audit-id-lineage.md).
 
 **Why.** Founder ruling 2026-07-13: "everything should have a traceable audit id generated out of this
-platform." Trust is verifiable provenance; an id that only *looks* auditable is a broken promise.
+platform." Trust is verifiable provenance; an id that only _looks_ auditable is a broken promise.
 Making the existing chip a control (rather than adding new chrome) delivered universal traceability
 while keeping the surface calm. It renders as `<span role="button">` specifically so it can nest
 inside clickable rows without invalid DOM nesting — see the pattern doc.
@@ -213,7 +220,6 @@ AI fingerprints.
 - Feature: [`docs/features/audit-id-lineage.md`](../../../docs/features/audit-id-lineage.md)
 - Session handoff (full DONE list): [`/UI-REVAMP-HANDOFF.md`](../../../UI-REVAMP-HANDOFF.md)
 
-
 ---
 
 ## Addendum — 2026-07-14 UX pass (founder feedback)
@@ -221,7 +227,9 @@ AI fingerprints.
 A second wave of founder-directed polish. New standing rulings, with the why:
 
 ### 11. Button color grammar (one rule, platform-wide)
+
 A button's color states its role. Codified in `src/components/ui/button.tsx` (new `accent` variant):
+
 - **accent (ember)** = the SINGLE primary "needs-human" CTA per view. Prefer `variant="accent"` over ad-hoc inline ember so the brand action is identical everywhere.
 - **default (neutral high-contrast invert)** = ordinary confirmations (Save, Apply, Add).
 - **secondary / tertiary / ghost / outline** = supporting, low-emphasis.
@@ -230,27 +238,35 @@ A button's color states its role. Codified in `src/components/ui/button.tsx` (ne
 - At most one accent button per screen; everything else stays neutral. _Why:_ the founder asked "what is the logic?" — inconsistency came from primary CTAs being ad-hoc inline while everything else used the neutral variant. A first-class accent variant makes the grammar enforceable.
 
 ### 12. Number tone — blue is data, ember is human
+
 All metric numerals render in **Geist Pixel** via the reusable `PixelStat` (`src/components/cadence/PixelStat.tsx`): tabular figures, tone + optional glow, sized to sit WITH their label (never an oversized floating number), center-aligned. **Blue is the number/attention tone** (the landing "Receipt" data blue) — numbers are data/machine output. **Ember stays for needs-human/CTA + the single hero brand moment.** _Why:_ founder ruling that numbers should read consistently and use the blue data tone; ember was over-applied and numerals were misaligned/oversized.
 
 ### 13. Account avatar = a theme-aligned orb library
+
 `src/components/cadence/Avatar.tsx`: a library of orb templates built from theme tokens **muted into the surface** (`color-mix` with `--card`), so each is calm and on-theme in BOTH light and dark — never a loud saturated disc. A default is assigned per account (seed hash); the user picks their own in **Settings → You** (`useAvatarChoice`, device-local, live-syncing). _Why:_ founder rejected both the too-subtle single style and the too-loud cosmic gradients; wanted per-user distinctness that still respects the calm theme, plus user control.
 
 ### 14. TopBar weather chip
+
 `DayWeather`: **weather icon + status + temperature + location**, no date/time (the OS has those). Colored, condition-tinted (overcast = calm slate-blue, not flat gray), gently animated (`.weather-live` breath). Temperature unit follows the **country** (Fahrenheit for the US + verified holdouts, Celsius elsewhere).
 
 ### 15. Ask panel — platform-wide + liquid-glass
+
 `AskPanel`: framed **"Ask Cadence · Anything in the platform · reads {screen}"** (the whole platform, with the current screen as a secondary cue), an ember sparkle + soft ember/blue header wash, and a liquid-glass composer with an ember send button + `.ask-composer:focus-within` glow. _Why:_ founder said Ask is for the whole platform (not just the screen) and the old input read like a bland placeholder.
 
 ### 16. Intelligence layer names + nav shortcuts
+
 "Memory" → **Brain**; "Engine Room" → **Pulse** (a single word from the same living-system family as Brain — the Brain is what the product knows, the Pulse is how it lives; route `/engine-room` + doctrine unchanged). The rail shortcut now **equals the visible number**: Today 0, the loop 1-7, Brain 8, Pulse 9, Settings s, Admin a — displayed hint and key binding both derive from `navKeyHint`. Zone captions simplified to clean section labels.
 
 ### 17. Ambient aurora (Today hero)
+
 A calm, slow ambient aurora (ember/maroon when a call needs you, moss/gold at all-clear) that drifts like air; no left-to-right shimmer sweep, no emblem (both removed as "cheap"). Tuned to gel in light mode (opacity pulled back so it tints, not stains). Liquid-glass embossed card retained.
 
 ### Icon-only affordances
+
 "Copy link" is icon-only in the share clusters (teardown, decision receipt); Share/Unshare stay labeled (state toggles, not one-shot actions).
 
 ### Still open (this pass)
+
 - Migrate remaining ad-hoc ember buttons to `variant="accent"` (grammar is defined; rollout is ongoing).
 - Broader liquid-glass / 3D-embossed rollout across more content cards.
 - Extend the `PixelStat` metric tone to every remaining numeral surface.
@@ -262,9 +278,11 @@ A calm, slow ambient aurora (ember/maroon when a call needs you, moss/gold at al
 The logo (earlier deferred) was designed and shipped, and a full brand kit built.
 
 ### 18. CadenceMark — the product brand mark
+
 `src/components/cadence/CadenceMark.tsx`. A **seven-petal spiral epitrochoid**
 (`u(t) = ((R-r)cos t + d cos((R-r)t/r), (R-r)sin t − d sin((R-r)t/r)`, R=7, r=1,
 d=3) revolving around a **glowing core**. The meaning is the product:
+
 - **7 petals = the 7 loop stages** (Discover→Learn), one continuous curve.
 - **The core = the intelligence the loop revolves around** — the **Brain** (what
   it knows) keeping the **Pulse** (the beat): an ember disc with a small **gold
@@ -290,6 +308,7 @@ d=3) revolving around a **glowing core**. The meaning is the product:
   founder feedback that it should read premium and differentiated, not generated.
 
 ### 19. Brand kit (GTM)
+
 `docs/Growth Strategy/branding/` — the ready-to-upload base kit, generated from
 the SAME mark curve (`generate.ts`) so it never drifts: SVGs (dark/light/gradient/
 mono/lockups/app-icons/favicon/animated), PNGs at 32-1024 + mono + lockups, app
@@ -299,15 +318,15 @@ a self-contained tweakable animated HTML reference, and a full guidelines README
 scoped `.gitignore` exception keeps the raster set committed.
 
 ### 20. Favicon + hero watermark
+
 - **Favicon = the mark itself, no box.** `public/favicon.svg` is the bare
   CadenceMark on a transparent field (no tile/background), **theme-aware** via
   `prefers-color-scheme` (white spiral on dark browser tabs, black on light) with
   the ember/gold core. Raster fallbacks (`public/favicon.png`, `apple-touch-icon.png`,
   `favicon.ico`) + the brand-kit favicons were regenerated to match (white default
-  + a black light variant); `src/routes/__root.tsx` points at the local files, and
-  the retired Butterfly favicon + its R2 png import were removed. The served PNGs
-  are un-ignored in `.gitignore` so they deploy.
+  - a black light variant); `src/routes/__root.tsx` points at the local files, and
+    the retired Butterfly favicon + its R2 png import were removed. The served PNGs
+    are un-ignored in `.gitignore` so they deploy.
 - **Hero brand watermark.** A large monochrome (`mono`) CadenceMark bleeds into the
   Today hero's empty bottom-right — cropped by the card, ~7% opacity, a very slow
   turn (`.hero-watermark-spin`) — a quiet brand touch, not decoration.
-

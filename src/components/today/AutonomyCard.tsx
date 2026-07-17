@@ -79,8 +79,8 @@ export function AutonomyCard() {
         <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ minWidth: 92 }}>
             <div
-              className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--ds-gray-1000)" }}
+              className="text-heading-24 tabular-nums font-pixel"
+              style={{ color: "var(--ds-gray-1000)" }}
             >
               {pctText}
             </div>

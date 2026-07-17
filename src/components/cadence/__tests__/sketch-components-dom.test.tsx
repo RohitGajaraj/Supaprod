@@ -125,7 +125,6 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
     });
   });
 
-
   it("should detect and bypass stale onBlur events (focus race guard logic)", async () => {
     const data: SketchBarDatum[] = [
       { label: "Mon", value: 10 },
@@ -382,9 +381,7 @@ describe("SketchLine — Path Rendering (DOM-mounted)", () => {
   it("should handle flat series (all identical values) without crashing and draw baseline when it matches the data range", () => {
     // Flat series where all points have the same value (e.g., [50, 50, 50])
     // sketchLineGeometry should compute a path where all y-coords map to the same position
-    const { container } = render(
-      <SketchLine data={[50, 50, 50]} w={100} h={50} baseline={50} />,
-    );
+    const { container } = render(<SketchLine data={[50, 50, 50]} w={100} h={50} baseline={50} />);
 
     // Should render the SVG and paths without NaN
     const svg = container.querySelector("svg");

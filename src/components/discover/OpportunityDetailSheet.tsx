@@ -67,12 +67,12 @@ export interface OpportunityDetailRecord {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "grid", gap: "5px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+      <MonoLabel className="text-label-12-mono" style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
         {label}
       </MonoLabel>
       <p
+        className="text-copy-14"
         style={{
-          fontSize: "var(--text-base)",
           lineHeight: 1.6,
           color: "var(--text-body)",
           margin: 0,
@@ -89,14 +89,13 @@ function Field({ label, value }: { label: string; value: string }) {
 function TimeLine({ iso }: { iso: string }) {
   return (
     <span
-      className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+      className="flex items-baseline text-copy-13"
+      style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
+        className="text-label-12-mono"
         style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -121,7 +120,6 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
   const precedents = q.data?.precedents ?? [];
   const peers = q.data?.consideredAgainst ?? [];
   const emptyLine: React.CSSProperties = {
-    fontSize: "12px",
     color: "var(--text-subtle)",
     fontStyle: "italic",
     margin: 0,

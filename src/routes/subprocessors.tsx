@@ -15,7 +15,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
 const TITLE = "Sub-processors · Cadence";
-const DESC = "Every third party that touches Cadence data, what it does, and the region it runs in.";
+const DESC =
+  "Every third party that touches Cadence data, what it does, and the region it runs in.";
 
 export const Route = createFileRoute("/subprocessors")({
   component: SubprocessorsPage,

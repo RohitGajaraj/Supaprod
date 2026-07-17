@@ -48,9 +48,7 @@ export function DataSubstrateCard() {
       </p>
 
       <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
-        <div className="text-label-12-mono">
-          Ownership
-        </div>
+        <div className="text-label-12-mono">Ownership</div>
         <p className="text-copy-13 mt-[6px] max-w-[520px] text-[var(--ink-muted)]">
           This data is yours. Cadence does not train shared models on it or sell it. The full export
           below is the same data you own, in one file, with no lock-in.
@@ -58,18 +56,14 @@ export function DataSubstrateCard() {
       </div>
 
       <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
-        <div className="text-label-12-mono">
-          Archive, delete, forget
-        </div>
+        <div className="text-label-12-mono">Archive, delete, forget</div>
         <div className="grid gap-[10px] mt-2">
           {TIERS.map((t) => (
             <div key={t.label} className="flex gap-[10px] items-baseline">
               <span className="text-label-12-mono w-14 shrink-0 text-[var(--ink-subtle)]">
                 {t.label}
               </span>
-              <p className="text-copy-13 m-0 leading-[1.5] text-[var(--ink-muted)]">
-                {t.body}
-              </p>
+              <p className="text-copy-13 m-0 leading-[1.5] text-[var(--ink-muted)]">{t.body}</p>
             </div>
           ))}
         </div>
@@ -77,9 +71,7 @@ export function DataSubstrateCard() {
 
       {hasSeal && seal && (
         <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
-          <div className="text-label-12-mono">
-            Integrity seal
-          </div>
+          <div className="text-label-12-mono">Integrity seal</div>
           <p className="text-copy-13 mt-[6px] max-w-[520px] text-[var(--ink-muted)]">
             A SHA-256 fingerprint of your decision and outcome record, so you can confirm later it
             has not been altered. No blockchain, no keys, just a checksum every user can run.

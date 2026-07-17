@@ -200,7 +200,11 @@ function HouseRuleCard({
               {resolvedLine.text}
             </span>
             {r.status === "approved" && !replacing ? (
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setReplacing(true)}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setReplacing(true)}
+              >
                 Supersede · draft a replacement
               </button>
             ) : null}
@@ -215,11 +219,21 @@ function HouseRuleCard({
               marginTop: 8,
             }}
           >
-            <button type="button" className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
+            <button
+              type="button"
+              className="btn btn-approve btn-sm"
+              disabled={busy}
+              onClick={onApprove}
+            >
               <Check size={11} />
               Approve · applies to every AI call
             </button>
-            <button type="button" className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
+            <button
+              type="button"
+              className="btn btn-reject btn-sm"
+              disabled={busy}
+              onClick={onReject}
+            >
               <X size={11} />
               Reject
             </button>
@@ -256,7 +270,11 @@ function HouseRuleCard({
               >
                 Draft replacement
               </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setReplacing(false)}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setReplacing(false)}
+              >
                 Cancel
               </button>
             </div>

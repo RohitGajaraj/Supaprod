@@ -606,95 +606,103 @@ function PricingPage() {
       }}
     >
       <LandingBackdrop />
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1 }}>
-      <header
+      <div
         style={{
-          borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-          padding: "12px 18px",
+          position: "relative",
+          zIndex: 1,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: "column",
+          flex: 1,
         }}
       >
-        <Link
-          to="/"
+        <header
           style={{
-            display: "inline-flex",
+            borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+            padding: "12px 18px",
+            display: "flex",
             alignItems: "center",
-            gap: 8,
-            textDecoration: "none",
-            color: "inherit",
+            justifyContent: "space-between",
           }}
         >
-          <CadenceMark />
-          <span className="font-display" style={{ fontSize: 14 }}>
-            Cadence
-          </span>
-        </Link>
-        <a
-          href="/login"
-          style={{
-            fontSize: 13,
-            color: "var(--ink, #f4f4f5)",
-            textDecoration: "none",
-            border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
-            borderRadius: 999,
-            padding: "7px 16px",
-          }}
-        >
-          Sign in
-        </a>
-      </header>
+          <Link
+            to="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
+            <CadenceMark />
+            <span className="font-display" style={{ fontSize: 14 }}>
+              Cadence
+            </span>
+          </Link>
+          <a
+            href="/login"
+            style={{
+              fontSize: 13,
+              color: "var(--ink, #f4f4f5)",
+              textDecoration: "none",
+              border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
+              borderRadius: 999,
+              padding: "7px 16px",
+            }}
+          >
+            Sign in
+          </a>
+        </header>
 
-      <main style={{ flex: 1, padding: "48px 24px" }}>
-        <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
-          {/* Headline */}
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <p
-              style={{
-                fontFamily: "Geist Mono, monospace",
-                fontSize: 10,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "#FF6B2C",
-                margin: "0 0 10px",
-              }}
-            >
-              Pricing
-            </p>
-            <h1
-              style={{
-                fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
-                fontSize: "clamp(22px, 3vw, 30px)",
-                lineHeight: 1.3,
-                margin: "0 0 12px",
-                fontWeight: 400,
-                letterSpacing: 0,
-              }}
-            >
-              Start free. Get to the exact capacity that fits your team.
-            </h1>
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.6,
-                color: "var(--ink-subtle, #6b6457)",
-                margin: "0 auto 24px",
-                maxWidth: 520,
-              }}
-            >
-              Cadence runs your product loop for free. Paid plans add more capacity and give your
-              team one shared record of every call and its outcome.
-            </p>
+        <main style={{ flex: 1, padding: "48px 24px" }}>
+          <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
+            {/* Headline */}
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <p
+                style={{
+                  fontFamily: "Geist Mono, monospace",
+                  fontSize: 10,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: "#FF6B2C",
+                  margin: "0 0 10px",
+                }}
+              >
+                Pricing
+              </p>
+              <h1
+                style={{
+                  fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+                  fontSize: "clamp(22px, 3vw, 30px)",
+                  lineHeight: 1.3,
+                  margin: "0 0 12px",
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                }}
+              >
+                Start free. Get to the exact capacity that fits your team.
+              </h1>
+              <p
+                style={{
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: "var(--ink-subtle, #6b6457)",
+                  margin: "0 auto 24px",
+                  maxWidth: 520,
+                }}
+              >
+                Cadence runs your product loop for free. Paid plans add more capacity and give your
+                team one shared record of every call and its outcome.
+              </p>
 
-            {/* Global billing toggle */}
-            <BillingToggle annual={annual} onChange={setAnnual} />
-          </div>
+              {/* Global billing toggle */}
+              <BillingToggle annual={annual} onChange={setAnnual} />
+            </div>
 
-          {/* Tier grid — 4 columns on desktop, 2 on tablet, 1 below 768px.
+            {/* Tier grid — 4 columns on desktop, 2 on tablet, 1 below 768px.
               Inline styles cannot carry media queries, so the grid gets a
               scoped class + style block (no horizontal scroll on mobile). */}
-          <style>{`
+            <style>{`
             .pricing-tier-grid {
               display: grid;
               grid-template-columns: repeat(4, 1fr);
@@ -707,49 +715,49 @@ function PricingPage() {
               .pricing-tier-grid { grid-template-columns: 1fr; }
             }
           `}</style>
-          <div className="pricing-tier-grid">
-            {PUBLIC_TIERS.map((tier) => (
-              <PricingCard key={tier} tier={tier} annual={annual} />
-            ))}
+            <div className="pricing-tier-grid">
+              {PUBLIC_TIERS.map((tier) => (
+                <PricingCard key={tier} tier={tier} annual={annual} />
+              ))}
+            </div>
+
+            {/* Footer note */}
+            <p
+              style={{
+                fontSize: 11.5,
+                color: "var(--ink-subtle, #6b6457)",
+                textAlign: "center",
+                marginTop: 28,
+                lineHeight: 1.5,
+              }}
+            >
+              Every plan starts free. No credit card needed until you upgrade. Change or cancel
+              anytime from Settings.
+            </p>
           </div>
+        </main>
 
-          {/* Footer note */}
-          <p
-            style={{
-              fontSize: 11.5,
-              color: "var(--ink-subtle, #6b6457)",
-              textAlign: "center",
-              marginTop: 28,
-              lineHeight: 1.5,
-            }}
-          >
-            Every plan starts free. No credit card needed until you upgrade. Change or cancel
-            anytime from Settings.
-          </p>
-        </div>
-      </main>
-
-      <footer
-        style={{
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-          padding: "14px 18px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontSize: 11,
-          color: "var(--ink-subtle, #6b6457)",
-        }}
-      >
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          Made with Cadence
-        </span>
-        <a
-          href="/signup?from=pricing"
-          style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
+        <footer
+          style={{
+            borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+            padding: "14px 18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: 11,
+            color: "var(--ink-subtle, #6b6457)",
+          }}
         >
-          Start free -&gt;
-        </a>
-      </footer>
+          <span className="mono-label" style={{ fontSize: 9 }}>
+            Made with Cadence
+          </span>
+          <a
+            href="/signup?from=pricing"
+            style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
+          >
+            Start free -&gt;
+          </a>
+        </footer>
       </div>
     </div>
   );

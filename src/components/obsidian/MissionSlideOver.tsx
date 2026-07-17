@@ -39,13 +39,7 @@ import type { LoopStep } from "@/lib/ai/loop.server";
 
 /** The dim 17 meta row: the mission's start time a touch more present
  * (--text-subtle), the copyable MIS trace ref the faintest tone. */
-function MissionMeta({
-  missionId,
-  startedIso,
-}: {
-  missionId: string;
-  startedIso?: string;
-}) {
+function MissionMeta({ missionId, startedIso }: { missionId: string; startedIso?: string }) {
   return (
     <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
       {startedIso ? (

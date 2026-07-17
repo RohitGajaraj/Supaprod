@@ -72,7 +72,13 @@ export function ExecutedCard() {
                 <span className="mono-label" style={{ fontSize: 9, color: "var(--ds-gray-800)" }}>
                   {who}
                 </span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ds-gray-1000)" }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    color: "var(--ds-gray-1000)",
+                  }}
+                >
                   {r.tool_name}
                 </span>
                 <span

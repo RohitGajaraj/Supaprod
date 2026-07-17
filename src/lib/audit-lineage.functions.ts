@@ -141,7 +141,12 @@ export const getEntityLineage = createServerFn({ method: "GET" })
       steps.push({ label: "Current status", detail: status, at: updatedAt, ref: null });
     }
     if (updatedAt && updatedAt !== createdAt) {
-      steps.push({ label: "Last change", detail: "most recent update on the record", at: updatedAt, ref: null });
+      steps.push({
+        label: "Last change",
+        detail: "most recent update on the record",
+        at: updatedAt,
+        ref: null,
+      });
     }
 
     return {

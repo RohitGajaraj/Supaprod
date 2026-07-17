@@ -27,16 +27,16 @@ with **R = 7, r = 1, d = 3** (K = 6 → seven petals).
 
 ## Variations (and when to use each)
 
-| Variation | File(s) | Use it for |
-| --- | --- | --- |
-| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/cadence-mark-dark.svg`, `png/cadence-mark-dark-*.png` | The default mark on dark surfaces (the app is dark-first). |
-| **On light** (graphite/black spiral + ember/gold core) | `logo/cadence-mark-light.svg`, `png/cadence-mark-light-*.png` | The mark on white/light surfaces. |
-| **Gradient / hero** (ember→blue spiral + ember/gold core) | `logo/cadence-mark-gradient.svg`, `png/cadence-mark-gradient-*.png` | Marketing, hero moments, the app icon, favicon — the full-color expression. |
-| **Mono white / black** (single color) | `logo/cadence-mark-mono-*.svg`, `png/cadence-mark-mono-*-*.png` | Photographic backgrounds, print, one-color contexts, embossing. |
-| **Lockup** (mark + "Cadence" wordmark) | `logo/cadence-lockup-{dark,light}.svg`, `png/cadence-lockup-*-*.png` | Headers, docs, decks, email signatures. |
-| **App icon** (mark on a rounded square) | `logo/cadence-appicon-{dark,light}.svg`, `icons/appicon-*-*.png` | App stores, PWA, desktop/dock icons. |
-| **Favicon** | `logo/cadence-favicon.svg`, `icons/favicon.ico`, `icons/favicon-{16,32,48}.png` | Browser tab / bookmarks. |
-| **Animated** (loader) | `logo/cadence-mark-animated.svg` (SMIL), `logo/cadence-mark-animated.html` (tweakable, particle flow) | Loading / "AI is working" states; the HTML is the reference "gif" you can open, tweak, or record. |
+| Variation                                                      | File(s)                                                                                               | Use it for                                                                                        |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/cadence-mark-dark.svg`, `png/cadence-mark-dark-*.png`                                           | The default mark on dark surfaces (the app is dark-first).                                        |
+| **On light** (graphite/black spiral + ember/gold core)         | `logo/cadence-mark-light.svg`, `png/cadence-mark-light-*.png`                                         | The mark on white/light surfaces.                                                                 |
+| **Gradient / hero** (ember→blue spiral + ember/gold core)      | `logo/cadence-mark-gradient.svg`, `png/cadence-mark-gradient-*.png`                                   | Marketing, hero moments, the app icon, favicon — the full-color expression.                       |
+| **Mono white / black** (single color)                          | `logo/cadence-mark-mono-*.svg`, `png/cadence-mark-mono-*-*.png`                                       | Photographic backgrounds, print, one-color contexts, embossing.                                   |
+| **Lockup** (mark + "Cadence" wordmark)                         | `logo/cadence-lockup-{dark,light}.svg`, `png/cadence-lockup-*-*.png`                                  | Headers, docs, decks, email signatures.                                                           |
+| **App icon** (mark on a rounded square)                        | `logo/cadence-appicon-{dark,light}.svg`, `icons/appicon-*-*.png`                                      | App stores, PWA, desktop/dock icons.                                                              |
+| **Favicon**                                                    | `logo/cadence-favicon.svg`, `icons/favicon.ico`, `icons/favicon-{16,32,48}.png`                       | Browser tab / bookmarks.                                                                          |
+| **Animated** (loader)                                          | `logo/cadence-mark-animated.svg` (SMIL), `logo/cadence-mark-animated.html` (tweakable, particle flow) | Loading / "AI is working" states; the HTML is the reference "gif" you can open, tweak, or record. |
 
 ## File inventory
 
@@ -69,17 +69,17 @@ branding/
 
 ## Color palette
 
-| Token | Hex | Role |
-| --- | --- | --- |
-| **Ember** (brand) | `#FF6B2C` | Primary CTA, "needs-human", the one brand accent. Ember-hi `#FFD9C2`, ember-lo `#C24E1E`. |
-| **Blue** (machine) | `#3E63DD` | Links, metric numerals (data), the machine's voice. |
-| **Gold** (core bead) | `#E8B44C` | The mark's living centre; also the "warning/caution" accent. |
-| **Moss** (success) | `#7FBF8E` | Success / present / "still stands". |
-| **Madder** (risk) | `#E06557` | Errors, gaps, rejected. |
-| Neutral · dark bg | `#0A0A0A` | App/marketing dark background. |
-| Neutral · light bg | `#FFFFFF` | Light background. |
-| Text · on dark | `#EDEDED` | Primary text on dark; silver `#8A8A93` secondary. |
-| Text · on light | `#111111` | Primary text on light. |
+| Token                | Hex       | Role                                                                                      |
+| -------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| **Ember** (brand)    | `#FF6B2C` | Primary CTA, "needs-human", the one brand accent. Ember-hi `#FFD9C2`, ember-lo `#C24E1E`. |
+| **Blue** (machine)   | `#3E63DD` | Links, metric numerals (data), the machine's voice.                                       |
+| **Gold** (core bead) | `#E8B44C` | The mark's living centre; also the "warning/caution" accent.                              |
+| **Moss** (success)   | `#7FBF8E` | Success / present / "still stands".                                                       |
+| **Madder** (risk)    | `#E06557` | Errors, gaps, rejected.                                                                   |
+| Neutral · dark bg    | `#0A0A0A` | App/marketing dark background.                                                            |
+| Neutral · light bg   | `#FFFFFF` | Light background.                                                                         |
+| Text · on dark       | `#EDEDED` | Primary text on dark; silver `#8A8A93` secondary.                                         |
+| Text · on light      | `#111111` | Primary text on light.                                                                    |
 
 Grayscale carries ≥90% of any surface; chromatic color appears only with
 meaning. Ember = the brand / needs-human; blue = data / machine.

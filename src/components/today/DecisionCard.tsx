@@ -148,7 +148,14 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               )}{" "}
               · needs your approval · {item.toolName}
             </div>
-            <div style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}>
+            <div
+              style={{
+                fontSize: 13.5,
+                color: "var(--ds-gray-1000)",
+                fontWeight: 600,
+                marginTop: 2,
+              }}
+            >
               {c.effect}
             </div>
           </div>
@@ -242,7 +249,9 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         {/* Actions */}
         {rejecting ? (
           <div style={{ marginLeft: 22, display: "flex", flexDirection: "column", gap: 6 }}>
-            <label htmlFor="rejection-reason" className="sr-only">Rejection reason</label>
+            <label htmlFor="rejection-reason" className="sr-only">
+              Rejection reason
+            </label>
             <textarea
               id="rejection-reason"
               autoFocus
@@ -336,7 +345,9 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           <div className="mono-label" style={{ color: "var(--ds-gray-800)", fontSize: 10 }}>
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
-          <div style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}>
+          <div
+            style={{ fontSize: 13.5, color: "var(--ds-gray-1000)", fontWeight: 600, marginTop: 2 }}
+          >
             {question}
           </div>
         </div>

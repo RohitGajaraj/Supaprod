@@ -184,10 +184,7 @@ export function SurfaceHeader({
   return (
     <header style={{ marginBottom: 26 }}>
       <MonoLabel icon={icon}>{kicker}</MonoLabel>
-      <h1
-        className="text-heading-26"
-        style={{ marginTop: 7 }}
-      >
+      <h1 className="text-heading-26" style={{ marginTop: 7 }}>
         {title}
       </h1>
       <p style={{ fontSize: 12.5, color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
@@ -290,7 +287,12 @@ export function EmptyState({
         {title}
       </h3>
       <p
-        style={{ fontSize: 13, color: "var(--ds-gray-900)", margin: "6px auto 16px", maxWidth: 360 }}
+        style={{
+          fontSize: 13,
+          color: "var(--ds-gray-900)",
+          margin: "6px auto 16px",
+          maxWidth: 360,
+        }}
       >
         {body}
       </p>

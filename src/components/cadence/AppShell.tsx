@@ -65,10 +65,7 @@ import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 function ZoneHeader({ label, caption }: { label: string; caption?: string }) {
   return (
     <div aria-hidden="true" style={{ padding: "14px 12px 6px", userSelect: "none" }}>
-      <div
-        className="flex items-baseline"
-        style={{ gap: 8 }}
-      >
+      <div className="flex items-baseline" style={{ gap: 8 }}>
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -155,7 +152,9 @@ function NavRow({
             background: active ? "var(--ember)" : "var(--card)",
             color: active ? "#fff" : "var(--text-faint)",
             border: `1px solid ${active ? "var(--ember)" : "var(--hairline-strong)"}`,
-            boxShadow: active ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)" : "none",
+            boxShadow: active
+              ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)"
+              : "none",
           }}
         >
           {navKeyHint(item)}

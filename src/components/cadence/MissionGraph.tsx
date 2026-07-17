@@ -132,7 +132,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   width={NW}
                   height={NH}
                   rx="10"
-                  fill={active ? "var(--surface-2)" : "var(--canvas)"}
+                  fill={active ? "var(--surface-2)" : "var(--ds-background-100)"}
                   stroke={active ? "var(--hairline-strong)" : "var(--hairline)"}
                   strokeWidth="1"
                 ></rect>
@@ -197,7 +197,9 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               close
             </button>
           </div>
-          <div style={{ fontSize: 12.5, color: "var(--ds-gray-800)", marginTop: 5 }}>{sel.goal}</div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-gray-800)", marginTop: 5 }}>
+            {sel.goal}
+          </div>
           {sel.note ? (
             <div style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
           ) : null}

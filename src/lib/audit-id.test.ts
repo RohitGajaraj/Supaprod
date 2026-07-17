@@ -66,7 +66,9 @@ describe("audit-id · parseAuditId", () => {
 
 describe("audit-id · findAuditIds", () => {
   it("extracts known ids from a free-text Ask query, de-duplicated", () => {
-    const found = findAuditIds("what happened with MIS·7E7D59 and OPP·005C82? and MIS·7E7D59 again");
+    const found = findAuditIds(
+      "what happened with MIS·7E7D59 and OPP·005C82? and MIS·7E7D59 again",
+    );
     expect(found.map((f) => `${f.kind}:${f.short}`)).toEqual([
       "mission:7E7D59",
       "opportunity:005C82",

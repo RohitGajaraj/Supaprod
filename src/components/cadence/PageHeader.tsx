@@ -50,16 +50,11 @@ export function PageHeader({
   actions,
   children,
 }: PageHeaderProps) {
-  const accentSpan = accent ? (
-    <span style={{ color: "var(--ember)" }}>{accent}</span>
-  ) : null;
+  const accentSpan = accent ? <span style={{ color: "var(--ember)" }}>{accent}</span> : null;
 
   return (
     <header style={{ marginBottom: 24 }}>
-      <div
-        className="flex items-start justify-between"
-        style={{ gap: 20, flexWrap: "wrap" }}
-      >
+      <div className="flex items-start justify-between" style={{ gap: 20, flexWrap: "wrap" }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div
             style={{
@@ -110,7 +105,11 @@ export function PageHeader({
             </p>
           ) : null}
         </div>
-        {actions ? <div className="shrink-0 flex items-center" style={{ gap: 10 }}>{actions}</div> : null}
+        {actions ? (
+          <div className="shrink-0 flex items-center" style={{ gap: 10 }}>
+            {actions}
+          </div>
+        ) : null}
       </div>
 
       {usp ? (
@@ -139,9 +138,7 @@ export function PageHeader({
               boxShadow: "0 0 8px color-mix(in srgb, var(--ember) 55%, transparent)",
             }}
           />
-          <span style={{ fontSize: 12.5, color: "var(--text-body)", lineHeight: 1.35 }}>
-            {usp}
-          </span>
+          <span style={{ fontSize: 12.5, color: "var(--text-body)", lineHeight: 1.35 }}>{usp}</span>
         </div>
       ) : null}
 

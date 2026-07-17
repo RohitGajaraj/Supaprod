@@ -89,38 +89,38 @@ function EngineRoomPage() {
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Pulse"]} />
       <EngineRoomContainer>
-      {/* IA 2026-07-11: the persistent room switcher. The rail (rooms + view
+        {/* IA 2026-07-11: the persistent room switcher. The rail (rooms + view
           sub-tabs, Vercel project-settings pattern) stays visible from the
           glance and from any room depth; the content column swaps. */}
-      <div
-        className="md:grid"
-        style={{ gridTemplateColumns: "196px minmax(0, 1fr)", gap: 32, alignItems: "start" }}
-      >
-        <RoomRail
-          room={room}
-          view={activeView}
-          rooms={rooms}
-          onOverview={() => navigate({ search: {} })}
-          onSelect={(nextRoom, nextView) =>
-            navigate({ search: { room: nextRoom, view: nextView } })
-          }
-        />
-        {!room ? (
-          <EngineRoomGlance />
-        ) : (
-          <RoomDetail
+        <div
+          className="md:grid"
+          style={{ gridTemplateColumns: "196px minmax(0, 1fr)", gap: 32, alignItems: "start" }}
+        >
+          <RoomRail
             room={room}
-            view={activeView!}
-            drill={{ suite, agent, surface }}
-            // Switching a sub-tab clears any open drill (the /govern tab
-            // contract, inherited): a fresh search object drops suite/agent/
-            // surface.
-            onSetView={(next) => navigate({ search: { room, view: next } })}
-            onBack={() => navigate({ search: {} })}
+            view={activeView}
+            rooms={rooms}
+            onOverview={() => navigate({ search: {} })}
+            onSelect={(nextRoom, nextView) =>
+              navigate({ search: { room: nextRoom, view: nextView } })
+            }
           />
-        )}
-      </div>
-    </EngineRoomContainer>
+          {!room ? (
+            <EngineRoomGlance />
+          ) : (
+            <RoomDetail
+              room={room}
+              view={activeView!}
+              drill={{ suite, agent, surface }}
+              // Switching a sub-tab clears any open drill (the /govern tab
+              // contract, inherited): a fresh search object drops suite/agent/
+              // surface.
+              onSetView={(next) => navigate({ search: { room, view: next } })}
+              onBack={() => navigate({ search: {} })}
+            />
+          )}
+        </div>
+      </EngineRoomContainer>
     </>
   );
 }

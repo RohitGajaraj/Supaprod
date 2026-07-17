@@ -51,7 +51,8 @@ export function AttentionBell() {
 
   return (
     <a
-      href="/engine-room?room=record&view=verify" className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-focus-ring)]"
+      href="/engine-room?room=record&view=verify"
+      className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-focus-ring)]"
       title={label}
       aria-label={label}
       style={{

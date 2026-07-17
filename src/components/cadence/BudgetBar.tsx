@@ -55,7 +55,11 @@ export function BudgetBar() {
       >
         <span
           className="block h-full rounded-full"
-          style={{ width: `${pct}%`, background: tone, transition: "width 200ms var(--ds-motion-timing-swift)" }}
+          style={{
+            width: `${pct}%`,
+            background: tone,
+            transition: "width 200ms var(--ds-motion-timing-swift)",
+          }}
         />
       </span>
     </Link>

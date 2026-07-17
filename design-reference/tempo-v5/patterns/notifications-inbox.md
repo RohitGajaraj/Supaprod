@@ -178,13 +178,14 @@ plus Loading only rarely — most inline notes are static facts, not progress tr
 
 **Toast timing** (severity sets the default; any toast with a destructive Undo or a
 required decision extends past its severity default):
-| Variant | Default duration | Notes |
-| --- | --- | --- |
-| Neutral / Success | 4s | |
-| Warning | 6s | Longer — the caveat needs a beat to register |
-| Error | Until dismissed | Never auto-dismiss a failure; the user must see it was seen |
-| Undo (destructive-confirmation) | 5–6s | Long enough to read + decide; collapses the Undo window once elapsed |
-| Loading (promise) | Until the promise settles | Then transitions in place to its Success/Error duration |
+
+| Variant                         | Default duration          | Notes                                                                |
+| ------------------------------- | ------------------------- | -------------------------------------------------------------------- |
+| Neutral / Success               | 4s                        |                                                                      |
+| Warning                         | 6s                        | Longer — the caveat needs a beat to register                         |
+| Error                           | Until dismissed           | Never auto-dismiss a failure; the user must see it was seen          |
+| Undo (destructive-confirmation) | 5–6s                      | Long enough to read + decide; collapses the Undo window once elapsed |
+| Loading (promise)               | Until the promise settles | Then transitions in place to its Success/Error duration              |
 
 **Keyboard**
 

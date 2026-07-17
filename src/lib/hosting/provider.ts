@@ -29,10 +29,7 @@
 
 /** Every app-hosting backend named in the plan, wired or not. */
 export type AppRuntimeProviderId =
-  | "cloudflare-wfp"
-  | "deno-deploy"
-  | "neon-silo"
-  | "supabase-for-platforms";
+  "cloudflare-wfp" | "deno-deploy" | "neon-silo" | "supabase-for-platforms";
 
 /** Identifies one hosted app: which tenant, which product, which app. */
 export interface AppRuntimeRef {

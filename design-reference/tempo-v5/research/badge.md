@@ -95,11 +95,12 @@ import { Link } from '@vercel/microfrontends/next/client';
 **Shape & structure (all variants):** `inline-flex`, `shrink-0`, `items-center`, `justify-center`, `rounded-full` (fully pill-shaped, not just rounded corners), `whitespace-nowrap`, `py-0.5`, `font-medium`, `capitalize`, `tabular-nums`. Icon slot governed via arbitrary-variant selectors: `**:data-[slot=icon]:block`, `**:data-[slot=icon]:shrink-0`, and a `-webkit-transform: translate(0px,0px)` hack (likely a Safari sub-pixel/anti-aliasing fix for the icon).
 
 **Size scale (three sizes, distinct box + type + icon geometry):**
-| size | height | text size | horizontal padding | gap (icon-to-text) | icon size | extra |
-|---|---|---|---|---|---|---|
-| `sm` | `h-5` (20px) | `text-[11px]` | `px-1.5` | `gap-1` | `size-3` (12px) | `tracking-[0.2px]` |
-| `md`/default demo | `h-6` (24px) | `text-[12px]` | `px-3` | `gap-1` | `size-3.5` (14px) | `-ml-0.5` on icon (optical pull-in) |
-| `lg` | `h-8` (32px) | `text-sm` | `px-3` | `gap-1.5` | `size-4` (16px) | none |
+
+| size              | height       | text size     | horizontal padding | gap (icon-to-text) | icon size         | extra                               |
+| ----------------- | ------------ | ------------- | ------------------ | ------------------ | ----------------- | ----------------------------------- |
+| `sm`              | `h-5` (20px) | `text-[11px]` | `px-1.5`           | `gap-1`            | `size-3` (12px)   | `tracking-[0.2px]`                  |
+| `md`/default demo | `h-6` (24px) | `text-[12px]` | `px-3`             | `gap-1`            | `size-3.5` (14px) | `-ml-0.5` on icon (optical pull-in) |
+| `lg`              | `h-8` (32px) | `text-sm`     | `px-3`             | `gap-1.5`          | `size-4` (16px)   | none                                |
 
 (Note: the raw class dump shows two different `md`-ish rows — a 24px/12px row and a 32px/text-sm row — consistent with `sm`/`md`/`lg` all differing in height, font-size, padding, gap and icon size simultaneously, not just height.)
 

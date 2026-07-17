@@ -43,7 +43,13 @@ export type AuditKindMeta = {
 // kind traceable + Ask-fetchable in one place.
 export const AUDIT_KINDS: readonly AuditKindMeta[] = [
   { kind: "signal", prefix: "SIG", table: "signals", label: "Signal", stage: "Discover" },
-  { kind: "opportunity", prefix: "OPP", table: "opportunities", label: "Opportunity", stage: "Decide" },
+  {
+    kind: "opportunity",
+    prefix: "OPP",
+    table: "opportunities",
+    label: "Opportunity",
+    stage: "Decide",
+  },
   { kind: "decision", prefix: "DEC", table: "decisions", label: "Decision", stage: "Decide" },
   { kind: "spec", prefix: "PRD", table: "prds", label: "Spec", stage: "Plan" },
   { kind: "goal", prefix: "GOL", table: "goals", label: "Goal", stage: "Plan" },

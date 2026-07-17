@@ -180,7 +180,9 @@
   /* Brand roles */
   --primary-ink: oklch(0.215 0.018 50); /* cacao block (logo, toast) */
   --deep-green: oklch(0.3 0.018 75); /* approve — solid espresso, premium */
-  --action-blue: oklch(0.47 0.11 245); /* links + running state — clean rich blue (was indigo 265) */
+  --action-blue: oklch(
+    0.47 0.11 245
+  ); /* links + running state — clean rich blue (was indigo 265) */
   --focus-blue: oklch(0.55 0.12 245);
   --form-focus: var(--focus-blue);
   --coral: var(--ember); /* legacy token name → ember */
@@ -210,7 +212,9 @@
   --page-gutter: 24px; /* page/section horizontal margins */
   --card-pad: 16px; /* card content padding (was 18px) */
   --section-gap: 16px; /* gap between major sections (was 24px) */
-  --control-h: var(--ds-size-small); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
+  --control-h: var(
+    --ds-size-small
+  ); /* button/input height, 32px — alias of the Tempo v5 scale, not a second one */
   --row-h: 38px; /* table/list row height (was 48px) */
   --bento-pad: 14px; /* bento grid cell padding (from aurora cards) */
 
@@ -2298,8 +2302,16 @@ html[data-motion="off"] .flow-pulse {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(58% 48% at 10% -2%, color-mix(in oklab, var(--ember) 7%, transparent) 0%, transparent 60%),
-    radial-gradient(52% 44% at 94% 4%, color-mix(in oklab, var(--action-blue) 6%, transparent) 0%, transparent 58%),
+    radial-gradient(
+      58% 48% at 10% -2%,
+      color-mix(in oklab, var(--ember) 7%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      52% 44% at 94% 4%,
+      color-mix(in oklab, var(--action-blue) 6%, transparent) 0%,
+      transparent 58%
+    ),
     radial-gradient(ellipse 120% 90% at 50% 20%, transparent 55%, rgba(0, 0, 0, 0.03) 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
 }
@@ -3382,169 +3394,169 @@ html[data-motion="off"] .ai-pulse-mark {
  * components layer they still beat base styles but yield to utilities,
  * which is the intended contract. */
 @layer components {
-.text-heading-72 {
-  font: 600 72px/72px var(--font-sans);
-  letter-spacing: -4.32px;
-}
-.text-heading-64 {
-  font: 600 64px/64px var(--font-sans);
-  letter-spacing: -3.84px;
-}
-.text-heading-56 {
-  font: 600 56px/56px var(--font-sans);
-  letter-spacing: -3.36px;
-}
-.text-heading-48 {
-  font: 600 48px/56px var(--font-sans);
-  letter-spacing: -2.88px;
-}
-.text-heading-40 {
-  font: 600 40px/48px var(--font-sans);
-  letter-spacing: -2.4px;
-}
-.text-heading-32 {
-  font: 600 32px/40px var(--font-sans);
-  letter-spacing: -1.28px;
-}
-.text-heading-24 {
-  font: 600 24px/32px var(--font-sans);
-  letter-spacing: -0.96px;
-}
-.text-heading-20 {
-  font: 600 20px/26px var(--font-sans);
-  letter-spacing: -0.4px;
-}
-.text-heading-16 {
-  font: 600 16px/24px var(--font-sans);
-  letter-spacing: -0.32px;
-}
-.text-heading-14 {
-  font: 600 14px/20px var(--font-sans);
-  letter-spacing: -0.28px;
-}
-.text-button-16 {
-  font: 500 16px/20px var(--font-sans);
-}
-.text-button-14 {
-  font: 500 14px/20px var(--font-sans);
-}
-.text-button-12 {
-  font: 500 12px/16px var(--font-sans);
-}
-.text-label-20 {
-  font: 400 20px/32px var(--font-sans);
-}
-.text-label-18 {
-  font: 400 18px/20px var(--font-sans);
-}
-.text-label-16 {
-  font: 400 16px/20px var(--font-sans);
-}
-.text-label-14 {
-  font: 400 14px/20px var(--font-sans);
-}
-.text-label-13 {
-  font: 400 13px/16px var(--font-sans);
-}
-.text-label-12 {
-  font: 400 12px/16px var(--font-sans);
-}
-.text-label-14-mono {
-  font: 400 14px/20px var(--font-mono);
-}
-.text-label-13-mono {
-  font: 400 13px/16px var(--font-mono);
-}
-.text-label-12-mono {
-  font: 400 12px/16px var(--font-mono);
-}
-.text-copy-24 {
-  font: 400 24px/36px var(--font-sans);
-}
-.text-copy-20 {
-  font: 400 20px/36px var(--font-sans);
-}
-.text-copy-18 {
-  font: 400 18px/28px var(--font-sans);
-}
-.text-copy-16 {
-  font: 400 16px/24px var(--font-sans);
-}
-.text-copy-14 {
-  font: 400 14px/20px var(--font-sans);
-}
-.text-copy-13 {
-  font: 400 13px/18px var(--font-sans);
-}
-.text-copy-13-mono {
-  font: 400 13px/18px var(--font-mono);
-}
-.text-label-14 strong,
-.text-label-13 strong,
-.text-label-12 strong,
-.text-copy-16 strong,
-.text-copy-14 strong,
-.text-copy-13 strong {
-  font-weight: 600;
-}
-.text-heading-72 strong,
-.text-heading-64 strong,
-.text-heading-56 strong,
-.text-heading-48 strong,
-.text-heading-40 strong,
-.text-heading-32 strong,
-.text-heading-24 strong,
-.text-heading-20 strong,
-.text-heading-16 strong,
-.text-heading-14 strong {
-  font-weight: inherit;
-  color: var(--ds-gray-900);
-}
-.text-tabular {
-  font-variant-numeric: tabular-nums;
-}
+  .text-heading-72 {
+    font: 600 72px/72px var(--font-sans);
+    letter-spacing: -4.32px;
+  }
+  .text-heading-64 {
+    font: 600 64px/64px var(--font-sans);
+    letter-spacing: -3.84px;
+  }
+  .text-heading-56 {
+    font: 600 56px/56px var(--font-sans);
+    letter-spacing: -3.36px;
+  }
+  .text-heading-48 {
+    font: 600 48px/56px var(--font-sans);
+    letter-spacing: -2.88px;
+  }
+  .text-heading-40 {
+    font: 600 40px/48px var(--font-sans);
+    letter-spacing: -2.4px;
+  }
+  .text-heading-32 {
+    font: 600 32px/40px var(--font-sans);
+    letter-spacing: -1.28px;
+  }
+  .text-heading-24 {
+    font: 600 24px/32px var(--font-sans);
+    letter-spacing: -0.96px;
+  }
+  .text-heading-20 {
+    font: 600 20px/26px var(--font-sans);
+    letter-spacing: -0.4px;
+  }
+  .text-heading-16 {
+    font: 600 16px/24px var(--font-sans);
+    letter-spacing: -0.32px;
+  }
+  .text-heading-14 {
+    font: 600 14px/20px var(--font-sans);
+    letter-spacing: -0.28px;
+  }
+  .text-button-16 {
+    font: 500 16px/20px var(--font-sans);
+  }
+  .text-button-14 {
+    font: 500 14px/20px var(--font-sans);
+  }
+  .text-button-12 {
+    font: 500 12px/16px var(--font-sans);
+  }
+  .text-label-20 {
+    font: 400 20px/32px var(--font-sans);
+  }
+  .text-label-18 {
+    font: 400 18px/20px var(--font-sans);
+  }
+  .text-label-16 {
+    font: 400 16px/20px var(--font-sans);
+  }
+  .text-label-14 {
+    font: 400 14px/20px var(--font-sans);
+  }
+  .text-label-13 {
+    font: 400 13px/16px var(--font-sans);
+  }
+  .text-label-12 {
+    font: 400 12px/16px var(--font-sans);
+  }
+  .text-label-14-mono {
+    font: 400 14px/20px var(--font-mono);
+  }
+  .text-label-13-mono {
+    font: 400 13px/16px var(--font-mono);
+  }
+  .text-label-12-mono {
+    font: 400 12px/16px var(--font-mono);
+  }
+  .text-copy-24 {
+    font: 400 24px/36px var(--font-sans);
+  }
+  .text-copy-20 {
+    font: 400 20px/36px var(--font-sans);
+  }
+  .text-copy-18 {
+    font: 400 18px/28px var(--font-sans);
+  }
+  .text-copy-16 {
+    font: 400 16px/24px var(--font-sans);
+  }
+  .text-copy-14 {
+    font: 400 14px/20px var(--font-sans);
+  }
+  .text-copy-13 {
+    font: 400 13px/18px var(--font-sans);
+  }
+  .text-copy-13-mono {
+    font: 400 13px/18px var(--font-mono);
+  }
+  .text-label-14 strong,
+  .text-label-13 strong,
+  .text-label-12 strong,
+  .text-copy-16 strong,
+  .text-copy-14 strong,
+  .text-copy-13 strong {
+    font-weight: 600;
+  }
+  .text-heading-72 strong,
+  .text-heading-64 strong,
+  .text-heading-56 strong,
+  .text-heading-48 strong,
+  .text-heading-40 strong,
+  .text-heading-32 strong,
+  .text-heading-24 strong,
+  .text-heading-20 strong,
+  .text-heading-16 strong,
+  .text-heading-14 strong {
+    font-weight: inherit;
+    color: var(--ds-gray-900);
+  }
+  .text-tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* --- Tempo material presets (tokens/materials.css) --- */
-.material-base {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border);
-}
-.material-small {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-small);
-}
-.material-medium {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-medium);
-}
-.material-large {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-border-large);
-}
-.material-tooltip {
-  border-radius: var(--ds-radius-small);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-tooltip);
-}
-.material-menu {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-menu);
-}
-.material-modal {
-  border-radius: var(--ds-radius-medium);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-modal);
-}
-.material-fullscreen {
-  border-radius: var(--ds-radius-large);
-  background: var(--ds-background-100);
-  box-shadow: var(--ds-shadow-fullscreen);
-}
+  /* --- Tempo material presets (tokens/materials.css) --- */
+  .material-base {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border);
+  }
+  .material-small {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-small);
+  }
+  .material-medium {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-medium);
+  }
+  .material-large {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-border-large);
+  }
+  .material-tooltip {
+    border-radius: var(--ds-radius-small);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-tooltip);
+  }
+  .material-menu {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-menu);
+  }
+  .material-modal {
+    border-radius: var(--ds-radius-medium);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-modal);
+  }
+  .material-fullscreen {
+    border-radius: var(--ds-radius-large);
+    background: var(--ds-background-100);
+    box-shadow: var(--ds-shadow-fullscreen);
+  }
 }
 
 /* The appended Obsidian/Loom rule blocks above (e.g. [data-obsidian] select,
