@@ -168,7 +168,7 @@ import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api
 import { Route as ApiPublicConnectFigmaCallbackRouteImport } from './routes/api/public/connect/figma/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
 import { Route as ApiPublicA2aMessageSendRouteImport } from './routes/api/public/a2a.message.send'
-import { Route as ApiPublicA2aAgentsCadenceCardRouteImport } from './routes/api/public/a2a.agents.cadence.card'
+import { Route as ApiPublicA2aAgentsSupaprodCardRouteImport } from './routes/api/public/a2a.agents.supaprod.card'
 
 const UpdatesRoute = UpdatesRouteImport.update({
   id: '/updates',
@@ -1032,10 +1032,10 @@ const ApiPublicA2aMessageSendRoute = ApiPublicA2aMessageSendRouteImport.update({
   path: '/api/public/a2a/message/send',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicA2aAgentsCadenceCardRoute =
-  ApiPublicA2aAgentsCadenceCardRouteImport.update({
-    id: '/api/public/a2a/agents/cadence/card',
-    path: '/api/public/a2a/agents/cadence/card',
+const ApiPublicA2aAgentsSupaprodCardRoute =
+  ApiPublicA2aAgentsSupaprodCardRouteImport.update({
+    id: '/api/public/a2a/agents/supaprod/card',
+    path: '/api/public/a2a/agents/supaprod/card',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -1198,7 +1198,7 @@ export interface FileRoutesByFullPath {
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
   '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
-  '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
+  '/api/public/a2a/agents/supaprod/card': typeof ApiPublicA2aAgentsSupaprodCardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1357,7 +1357,7 @@ export interface FileRoutesByTo {
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
   '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
-  '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
+  '/api/public/a2a/agents/supaprod/card': typeof ApiPublicA2aAgentsSupaprodCardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1520,7 +1520,7 @@ export interface FileRoutesById {
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
   '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
-  '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
+  '/api/public/a2a/agents/supaprod/card': typeof ApiPublicA2aAgentsSupaprodCardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1683,7 +1683,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/slack/callback'
     | '/api/public/connect/stripe/callback'
     | '/api/public/connect/zendesk/callback'
-    | '/api/public/a2a/agents/cadence/card'
+    | '/api/public/a2a/agents/supaprod/card'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1842,7 +1842,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/slack/callback'
     | '/api/public/connect/stripe/callback'
     | '/api/public/connect/zendesk/callback'
-    | '/api/public/a2a/agents/cadence/card'
+    | '/api/public/a2a/agents/supaprod/card'
   id:
     | '__root__'
     | '/'
@@ -2004,7 +2004,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/slack/callback'
     | '/api/public/connect/stripe/callback'
     | '/api/public/connect/zendesk/callback'
-    | '/api/public/a2a/agents/cadence/card'
+    | '/api/public/a2a/agents/supaprod/card'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2100,7 +2100,7 @@ export interface RootRouteChildren {
   ApiPublicConnectSlackCallbackRoute: typeof ApiPublicConnectSlackCallbackRoute
   ApiPublicConnectStripeCallbackRoute: typeof ApiPublicConnectStripeCallbackRoute
   ApiPublicConnectZendeskCallbackRoute: typeof ApiPublicConnectZendeskCallbackRoute
-  ApiPublicA2aAgentsCadenceCardRoute: typeof ApiPublicA2aAgentsCadenceCardRoute
+  ApiPublicA2aAgentsSupaprodCardRoute: typeof ApiPublicA2aAgentsSupaprodCardRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -3218,11 +3218,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicA2aMessageSendRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/a2a/agents/cadence/card': {
-      id: '/api/public/a2a/agents/cadence/card'
-      path: '/api/public/a2a/agents/cadence/card'
-      fullPath: '/api/public/a2a/agents/cadence/card'
-      preLoaderRoute: typeof ApiPublicA2aAgentsCadenceCardRouteImport
+    '/api/public/a2a/agents/supaprod/card': {
+      id: '/api/public/a2a/agents/supaprod/card'
+      path: '/api/public/a2a/agents/supaprod/card'
+      fullPath: '/api/public/a2a/agents/supaprod/card'
+      preLoaderRoute: typeof ApiPublicA2aAgentsSupaprodCardRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -3513,7 +3513,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicConnectSlackCallbackRoute: ApiPublicConnectSlackCallbackRoute,
   ApiPublicConnectStripeCallbackRoute: ApiPublicConnectStripeCallbackRoute,
   ApiPublicConnectZendeskCallbackRoute: ApiPublicConnectZendeskCallbackRoute,
-  ApiPublicA2aAgentsCadenceCardRoute: ApiPublicA2aAgentsCadenceCardRoute,
+  ApiPublicA2aAgentsSupaprodCardRoute: ApiPublicA2aAgentsSupaprodCardRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

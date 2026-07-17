@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-04 · Last updated: 2026-06-14_
 
-> Operator-facing reference for the `github.issue.create` → `prd.link_issue` slice. This is the exit ramp where the Discover → Define → Plan loop leaves Cadence and lands as a real GitHub issue against the engineering system of record, under an explicit human approval gate.
+> Operator-facing reference for the `github.issue.create` → `prd.link_issue` slice. This is the exit ramp where the Discover → Define → Plan loop leaves Supaprod and lands as a real GitHub issue against the engineering system of record, under an explicit human approval gate.
 >
 > Operating rules: [`../../AGENTS.md`](../../AGENTS.md). Orchestration contract: [`../../architecture/orchestration.md`](../../architecture/orchestration.md). Connector contract: [`../../architecture/integrations.md`](../../architecture/integrations.md). Trust + autonomy: [`./trust-and-autonomy.md`](./trust-and-autonomy.md). A2A handoff: [`./a2a-handoff.md`](./a2a-handoff.md).
 
@@ -10,7 +10,7 @@
 
 ## 1. Purpose: why this exists
 
-Claim C3 ("one governed loop") only becomes literally true once a mission can exit Cadence into the engineering system of record **without** the operator hand-copying a draft PRD into GitHub. The `github.issue.create` tool is that exit; the `prd.link_issue` follow-up writes the resulting issue URL back onto the PRD so the loop is visible end-to-end from `/prds/$id`.
+Claim C3 ("one governed loop") only becomes literally true once a mission can exit Supaprod into the engineering system of record **without** the operator hand-copying a draft PRD into GitHub. The `github.issue.create` tool is that exit; the `prd.link_issue` follow-up writes the resulting issue URL back onto the PRD so the loop is visible end-to-end from `/prds/$id`.
 
 The tool is **`confirm`-gated by default** (not `auto`). It performs a real, billable, side-effecting write to a third-party system, so it stops at the Decision Queue every time the Planner reaches the Plan step. Nothing reaches GitHub until a human clicks **Approve**.
 
@@ -35,7 +35,7 @@ The tool is **`confirm`-gated by default** (not `auto`). It performs a real, bil
 - **Single token.** `GITHUB_TOKEN` is a fine-grained Personal Access Token, scoped to that one repo, with **Issues: Read & Write**. No `admin`, no `repo` (full), no org scopes. The minimum permission to do the job.
 - **Secrets are runtime-only.** Both values live in the Lovable Cloud secret store and are only ever read inside the server-side tool handler (`process.env` inside `.handler()`). They are never bundled into the client, never logged, and never surfaced in tool args.
 
-To point Cadence at a different repo: rotate `GITHUB_REPO` (and `GITHUB_TOKEN` if the new repo needs a different PAT) via the Lovable Cloud secrets UI. No code change, no redeploy. The next call picks up the new values.
+To point Supaprod at a different repo: rotate `GITHUB_REPO` (and `GITHUB_TOKEN` if the new repo needs a different PAT) via the Lovable Cloud secrets UI. No code change, no redeploy. The next call picks up the new values.
 
 ## 4. Failure modes (and how each surfaces)
 

@@ -32,7 +32,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { TabRow, EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { TabRow, EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
 import {
   listTrustReceipts,
   getLedgerSeal,
@@ -41,7 +41,7 @@ import {
 } from "@/lib/trust-ledger.functions";
 import { shortHead } from "@/lib/trust-verify";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 import { relTimeCaps } from "@/components/discover/format";
 import {
   receiptStatusTone,

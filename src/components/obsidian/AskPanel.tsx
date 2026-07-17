@@ -5,8 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
 import { findAuditIds, formatAuditId } from "@/lib/audit-id";
-import { openLineage } from "@/components/cadence/AuditLineageSheet";
-import { CadenceLoader, CadenceMark } from "@/components/cadence/CadenceMark";
+import { openLineage } from "@/components/supaprod/AuditLineageSheet";
+import { SupaprodLoader, SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { MissionCanvasBlocks } from "@/components/obsidian";
 import { PendingApprovalsStrip } from "@/components/obsidian/ask-canvas";
 import { AnswerBlocks } from "@/components/obsidian/ask-blocks";
@@ -67,7 +67,7 @@ type Msg = {
 type PromotedRecords = Partial<{ note: string; decision: string; task: string }>;
 
 /** localStorage key for the panel's last conversation (PC-36 rehydration). */
-const ASK_CONVERSATION_KEY = "cadence.ask.conversation.v1";
+const ASK_CONVERSATION_KEY = "supaprod.ask.conversation.v1";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class AskUiError extends Error {}
@@ -79,7 +79,7 @@ function ShimmerStatus({ label }: { label: string }) {
   // the working moment is unmistakably ours. Never re-roll the shimmer.
   return (
     <span className="inline-flex items-center" style={{ gap: 8 }}>
-      <CadenceLoader size={16} />
+      <SupaprodLoader size={16} />
       <span className="ai-working-word" style={{ fontSize: 12 }}>
         {label}
       </span>
@@ -223,9 +223,9 @@ const AskAiMessage = React.memo(function AskAiMessage({
 
   return (
     <div>
-      {/* PC-36 G: the answer is signed. Cadence is the accountable voice. */}
+      {/* PC-36 G: the answer is signed. Supaprod is the accountable voice. */}
       <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
-        <CadenceMark size={16} strokeWidth={2.6} glow={false} />
+        <SupaprodMark size={16} strokeWidth={2.6} glow={false} />
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -235,7 +235,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
             color: "var(--text-subtle)",
           }}
         >
-          Cadence
+          Supaprod
         </span>
       </div>
       {/* PC-36 C: typed receipts render ABOVE the prose, full width. */}
@@ -598,8 +598,8 @@ function AskComposer({
               }
             }
           }}
-          placeholder="Ask anything in Cadence, or / for commands"
-          aria-label="Ask anything in Cadence"
+          placeholder="Ask anything in Supaprod, or / for commands"
+          aria-label="Ask anything in Supaprod"
           rows={1}
           style={{
             width: "100%",
@@ -1144,7 +1144,7 @@ export function AskPanel() {
                     lineHeight: 1.15,
                   }}
                 >
-                  Ask Cadence
+                  Ask Supaprod
                 </div>
                 <div
                   className="truncate"
@@ -1291,7 +1291,7 @@ export function AskPanel() {
                       margin: 0,
                     }}
                   >
-                    Ask anything in Cadence
+                    Ask anything in Supaprod
                   </p>
                   <p
                     style={{

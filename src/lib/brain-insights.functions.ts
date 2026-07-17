@@ -177,7 +177,7 @@ export function derivePatterns(beliefs: BrainBeliefs, learned: LearnedSummary): 
   if (totalDecisions === 0 && learned.total === 0) {
     out.push({
       tone: "neutral",
-      text: "Cadence is still gathering precedent. These lenses sharpen as decisions get made and their outcomes come back.",
+      text: "Supaprod is still gathering precedent. These lenses sharpen as decisions get made and their outcomes come back.",
     });
     return out;
   }
@@ -452,7 +452,7 @@ export type BrainAnalysis = {
 
 const MODEL = "google/gemini-2.5-flash" as const;
 
-const ANALYST_SYSTEM = `You are the Cadence intelligence analyst. You volunteer useful intelligence from a PM's decision and outcome graph.
+const ANALYST_SYSTEM = `You are the Supaprod intelligence analyst. You volunteer useful intelligence from a PM's decision and outcome graph.
 Rules:
 - Signal-first: lead with the insight, not the reasoning.
 - Short: each signal is one sentence, max 18 words.
@@ -564,7 +564,7 @@ export const getForecastCalibration = createServerFn({ method: "GET" })
 
 // ---------------------------------------------------------------------------
 // SEAM-3 (mission 3.9): the push channel read side. The detection pass
-// (src/lib/brain/push-insights.server.ts, riding the derive-tick cadence)
+// (src/lib/brain/push-insights.server.ts, riding the derive-tick supaprod)
 // writes push rows into `insights` with pushed_at set and digest=false, capped
 // at DAILY_PUSH_CAP per workspace per day. This returns today's undigested,
 // still-open pushes in the exact shape Today's SW-5 lane consumes. Keep the

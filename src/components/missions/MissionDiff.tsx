@@ -11,7 +11,7 @@
 // loaded-but-missing original degrades silent.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { getMission, type MissionDetail } from "@/lib/missions.functions";
 import { LOOM_CARD } from "@/components/studio/studio-ui";
 import { diffMissions } from "@/lib/mission-diff";

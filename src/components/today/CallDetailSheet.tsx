@@ -12,7 +12,7 @@ import { type ReactNode } from "react";
 import { Copy, ExternalLink } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import type { AuditKind } from "@/lib/audit-id";
 import {
   Sheet,

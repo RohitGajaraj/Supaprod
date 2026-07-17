@@ -26,8 +26,8 @@ const CONTRACT: OutcomeContract = {
 
 describe("buildArdJsonSchema (CNV-03) — the published JSON Schema for the ARD envelope", () => {
   test("$id is an absolute URL under the given origin", () => {
-    const schema = buildArdJsonSchema("https://cadence.app");
-    expect(schema.$id).toBe("https://cadence.app/api/public/ard/schema");
+    const schema = buildArdJsonSchema("https://supaprod.app");
+    expect(schema.$id).toBe("https://supaprod.app/api/public/ard/schema");
     expect(schema.$schema).toContain("json-schema.org");
   });
 
@@ -40,7 +40,7 @@ describe("buildArdJsonSchema (CNV-03) — the published JSON Schema for the ARD 
   // `required` arrays list and asserts the live Zod validator still accepts
   // it — if the two ever diverge again in this direction, this fails.
   test("a document built from only the published required keys is accepted by parseArdDocument", () => {
-    const schema = buildArdJsonSchema("https://cadence.app");
+    const schema = buildArdJsonSchema("https://supaprod.app");
     const clauseRequired = (
       schema.properties.contract.properties.success_metrics.items as { required: readonly string[] }
     ).required;
@@ -78,14 +78,14 @@ describe("buildArdJsonSchema (CNV-03) — the published JSON Schema for the ARD 
 describe("buildArdDocument (CNV-03) — wraps a contract in the portable ARD envelope", () => {
   test("stamps version, schema_url, and the given spec identity", () => {
     const doc = buildArdDocument(
-      "https://cadence.app",
+      "https://supaprod.app",
       "22222222-2222-2222-2222-222222222222",
       "My spec",
       CONTRACT,
       "2026-07-03T00:00:00.000Z",
     );
     expect(doc.ard_version).toBe("0.1");
-    expect(doc.schema_url).toBe("https://cadence.app/api/public/ard/schema");
+    expect(doc.schema_url).toBe("https://supaprod.app/api/public/ard/schema");
     expect(doc.spec_id).toBe("22222222-2222-2222-2222-222222222222");
     expect(doc.contract).toEqual(CONTRACT);
   });
@@ -93,7 +93,7 @@ describe("buildArdDocument (CNV-03) — wraps a contract in the portable ARD env
 
 describe("parseArdDocument (CNV-03) — the import gate", () => {
   test("round-trips a full ARD envelope produced by buildArdDocument", () => {
-    const doc = buildArdDocument("https://cadence.app", "id", "title", CONTRACT);
+    const doc = buildArdDocument("https://supaprod.app", "id", "title", CONTRACT);
     const result = parseArdDocument(JSON.parse(JSON.stringify(doc)));
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.contract).toEqual(CONTRACT);

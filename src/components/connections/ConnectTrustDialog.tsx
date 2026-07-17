@@ -61,7 +61,7 @@ export function ConnectTrustDialog({
             label="Where it lives"
             value="Encrypted at rest. Only your workspace can use it."
           />
-          <TrustLine label="Training" value="Cadence never trains models on your data." />
+          <TrustLine label="Training" value="Supaprod never trains models on your data." />
           <TrustLine label="Revoke" value="One click, anytime, from this same screen." />
         </div>
         <DialogFooter>

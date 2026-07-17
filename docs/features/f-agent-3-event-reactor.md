@@ -17,11 +17,11 @@
 
 ## What it does
 
-Turns Cadence from "agents that act when summoned" into "agents that react." Every new signal, scored opportunity, and approved PRD fires a typed event. Operator-defined subscriptions route those events to the right agent in `auto` or `confirm` mode. The discover → define → plan chain now runs itself, end-to-end, behind governance gates.
+Turns Supaprod from "agents that act when summoned" into "agents that react." Every new signal, scored opportunity, and approved PRD fires a typed event. Operator-defined subscriptions route those events to the right agent in `auto` or `confirm` mode. The discover → define → plan chain now runs itself, end-to-end, behind governance gates.
 
 ## Why it exists
 
-F-AGENT-1 gave Cadence a planner; F-AGENT-2 gave it memory. Without a reactor the system still required the operator to push every button, defeating the agent-native premise. F-AGENT-3 closes the autonomous loop. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-3).
+F-AGENT-1 gave Supaprod a planner; F-AGENT-2 gave it memory. Without a reactor the system still required the operator to push every button, defeating the agent-native premise. F-AGENT-3 closes the autonomous loop. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-3).
 
 ## Where to find it
 

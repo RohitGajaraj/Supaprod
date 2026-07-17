@@ -31,7 +31,7 @@ UI: `OpportunityDetail.tsx` (`["provenance","opportunity",id]`), `_authenticated
 - `src/lib/lineage.functions.ts` - `getProvenance` server fn + `ProvenanceSignal` type.
 - `src/components/product/OpportunityDetail.tsx` - the "Why this · source evidence" card on the opportunity drill.
 - `src/routes/_authenticated.prds.$id.tsx` - the "Why this spec · source evidence" card on the spec/PRD detail.
-- `src/components/cadence/LineageDrawer.tsx` - the "Traces back to" section in the shared Lineage drawer.
+- `src/components/supaprod/LineageDrawer.tsx` - the "Traces back to" section in the shared Lineage drawer.
 
 ## Verify (live, after publish)
 

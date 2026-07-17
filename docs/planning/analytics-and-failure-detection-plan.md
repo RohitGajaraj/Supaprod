@@ -4,7 +4,7 @@
 > **Initiative ID:** `AFD` · **Dashboard group:** `G12` · **Task IDs:** `AFD-01` … `AFD-14`.
 > **Created:** 2026-06-25 · **Owner:** any session that picks an `AFD-*` row from [`feature-dashboard.md`](./feature-dashboard.md).
 >
-> This is the **single front-door** for everything analytics + failure-detection in Cadence. When the founder unblocks the build, the picker reads this file end-to-end, **does not re-derive the vendor choice**, and starts at `AFD-01`. Every other doc that touches observability points HERE (see §13 "Cross-doc map").
+> This is the **single front-door** for everything analytics + failure-detection in Supaprod. When the founder unblocks the build, the picker reads this file end-to-end, **does not re-derive the vendor choice**, and starts at `AFD-01`. Every other doc that touches observability points HERE (see §13 "Cross-doc map").
 
 ## Phase 1 ship log (2026-06-25, lovable, autonomous)
 
@@ -38,7 +38,7 @@
 - **What:** Two capabilities, treated as one initiative: (a) **Analytics** — product usage, AI/agent-run economics, business outcomes, infra perf; (b) **Failure detection** — server function & route errors, AI runtime failures, DB failures, background-job failures.
 - **Posture:** **Hybrid (V3, recommended).** **BUY/INTEGRATE** the commodity layer (PostHog EU for product usage, Sentry EU for errors, Better Stack for uptime + on-call + status page). **BUILD in-house** the moat-adjacent layer (Decision-velocity analytics, Agent-cost analytics, in-app Incidents panel) on existing Supabase tables so the "receipts" stay on our side of the line.
 - **Why this split:** PostHog/Sentry/Better Stack are mature, EU-resident, free at our scale, and have a one-line SDK; rebuilding them is months of work for a worse product. Decision/agent-cost analytics are the **moat** — they cross our private tables (`decisions`, `artifact_lineage`, `agent_runs`, `model_costs`) and are how PMs feel the value, so they stay BUILT and stay on Postgres.
-- **EU residency:** every paid dependency picked has an EU region — GDPR posture by default (Cadence is a global consumer-facing PM tool; users will be from the EU).
+- **EU residency:** every paid dependency picked has an EU region — GDPR posture by default (Supaprod is a global consumer-facing PM tool; users will be from the EU).
 - **Cost at our scale:** **$0/mo** through demo + early users (all free tiers). First paid tier triggers at PostHog 1M events / Sentry 5k errors / Better Stack 10 monitors — see [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
 - **Activation posture:** **Dormant by design** (mirroring the credit-engine pattern). The façade ships keyless, no-ops when env vars are absent, and is admin-flipped on at go-live. No vendor traffic happens until the founder sets the keys.
 - **Exit posture:** All vendor calls go through `src/lib/observability/` façades (`track()`, `captureError()`, `setUser()`). Swapping PostHog → Mixpanel or Sentry → Honeybadger is a 1-file edit; **leaving Lovable** is exporting secrets + redeploying the same code to a new host. Moat data in Supabase is `pg_dump`-able. Founder holds the root credentials (vendor accounts are opened under a founder-owned inbox).
@@ -137,7 +137,7 @@ Spec: [`../features/observability-facade.md`](../features/observability-facade.m
 
 ```
                            ┌─────────────────────────────────────┐
-                           │       Cadence (CF Worker + UI)      │
+                           │       Supaprod (CF Worker + UI)     │
                            │                                     │
   user click ──► PostHog SDK ──┐                                 │
   page view  ──► PostHog SDK ──┤                                 │
@@ -160,7 +160,7 @@ Spec: [`../features/observability-facade.md`](../features/observability-facade.m
                               Better Stack uptime probes
                                        │
                                        ▼
-                             status.cadence.app (public)
+                             status.supaprod.app (public)
                                        │
                               on-call: Slack + SMS + phone
 ```
@@ -224,7 +224,7 @@ Spec: [`../features/observability-facade.md`](../features/observability-facade.m
 - **`/admin/ai-costs`** (admin-only) — agent-cost-by-mission + budget burn + cost-per-decision. Reads `v_agent_cost_by_mission`.
 - **`/admin/incidents`** (admin-only) — extends the existing `IncidentsPanel` with the new feeds (Sentry deep-link, last cron heartbeat, recent `job_runs.error_kind`, top error_kinds last 24h).
 - **`/admin/observability`** (admin-only) — the kill-switch + sample-rate sliders + vendor health (PostHog / Sentry / Better Stack reachable yes/no).
-- **`status.cadence.app`** (public, hosted by Better Stack) — uptime + incident timeline. Domain is renameable later (DNS-only change, 10 min) when Cadence rebrands.
+- **`status.supaprod.app`** (public, hosted by Better Stack) — uptime + incident timeline. Domain is renameable later (DNS-only change, 10 min) when Supaprod rebrands.
 
 ---
 
@@ -261,7 +261,7 @@ Runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md
 
 When the founder unblocks the build, the executing agent:
 
-1. **Asks the founder for a founder-owned inbox** (e.g. `ops@cadence.app` or `<founder>@gmail.com`). The vendor account is opened under THAT inbox, not an agent address.
+1. **Asks the founder for a founder-owned inbox** (e.g. `ops@supaprod.app` or `<founder>@gmail.com`). The vendor account is opened under THAT inbox, not an agent address.
 2. Sets the founder as the **owner** on every vendor (PostHog org owner, Sentry org owner, Better Stack account owner). The agent's role, if any, is `admin` — revocable.
 3. Records each vendor's account email + dashboard URL in [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md) (the standing rule already exists).
 4. Stores the API keys as Cloudflare Worker secrets (`POSTHOG_API_KEY`, `SENTRY_DSN`, `BETTER_STACK_HEARTBEAT_URL`). The founder can rotate any key from the Cloudflare dashboard.
@@ -299,7 +299,7 @@ Lovable hosts the CF Worker + Supabase project. Leaving means redeploying the sa
 | **AFD-10** | Surface: `/admin/ai-costs` — agent-cost-by-mission + budget burn + cost-per-decision. Reads the views.                                                                                          | AFD-09                                   | `src/routes/_admin.ai-costs.tsx`                                                     | M    |
 | **AFD-11** | Extend `IncidentsPanel`: pull last 24h of Sentry top error_kinds via API + last cron heartbeat status + recent `job_runs` errors.                                                               | AFD-08                                   | `src/components/governance/IncidentsPanel.tsx`                                       | M    |
 | **AFD-12** | Surface: `/admin/observability` — the kill-switch + sample-rate sliders + vendor reachability (PostHog/Sentry/Better Stack ping).                                                               | AFD-03, AFD-10                           | `src/routes/_admin.observability.tsx`                                                | M    |
-| **AFD-13** | Configure Better Stack monitors (`/api/public/health`, `/`) + on-call escalation policy (Sev 1 → phone, Sev 2 → SMS, Sev 3+ → Slack) + public status page at `status.cadence.app` (renameable). | AFD-01, app-health endpoint already live | Better Stack dashboard config; runbook updated                                       | S    |
+| **AFD-13** | Configure Better Stack monitors (`/api/public/health`, `/`) + on-call escalation policy (Sev 1 → phone, Sev 2 → SMS, Sev 3+ → Slack) + public status page at `status.supaprod.app` (renameable). | AFD-01, app-health endpoint already live | Better Stack dashboard config; runbook updated                                       | S    |
 | **AFD-14** | Subprocessor disclosure + privacy policy update + right-to-erasure façade `forget(userId)` wired to PostHog/Sentry delete APIs.                                                                 | AFD-04, AFD-05                           | `docs/features/subprocessor-disclosure.md` + `src/lib/observability/forget.ts`       | S    |
 
 **Total estimate:** ~3-5 build days when picked up.
@@ -316,7 +316,7 @@ The initiative is **done** when:
 4. An admin opens `/admin/ai-costs` → sees cost-per-mission for last 7d.
 5. An admin opens `/admin/incidents` → sees the last 24h Sentry top kinds + cron heartbeat status.
 6. An admin flips `admin_set_observability_enabled(false)` → all three vendor SDKs go silent; no telemetry leaves the Worker.
-7. `status.cadence.app` (or whatever the renamed domain is) is publicly reachable with a green/red dot.
+7. `status.supaprod.app` (or whatever the renamed domain is) is publicly reachable with a green/red dot.
 8. A user requests right-to-erasure → `forget(userId)` deletes them from PostHog + Sentry; Supabase cascade handles the rest.
 9. Subprocessor disclosure lists PostHog + Sentry + Better Stack with their EU URLs.
 10. `tsc 0` + tests green + lint clean.
@@ -340,7 +340,7 @@ The initiative is **done** when:
 The picker MUST NOT start AFD until:
 
 - [ ] Founder confirms a founder-owned inbox to open the vendor accounts under.
-- [ ] Founder confirms the status-page domain (`status.cadence.app` for now; renameable later).
+- [ ] Founder confirms the status-page domain (`status.supaprod.app` for now; renameable later).
 - [ ] Founder confirms the on-call channel(s): phone number for Sev 1, Slack workspace + channel name for Sev 2+.
 - [ ] Founder reads §6 (exit posture) and accepts the vendor-account ownership model.
 

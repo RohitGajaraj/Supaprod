@@ -8,7 +8,7 @@ turned out to be a dead end for any provider beyond what Lovable had already
 manually provisioned: registering a NEW provider on that gateway requires
 Lovable's own manual provisioning, with no self-serve path (confirmed
 2026-07-09 by asking Lovable's own agent directly). Every connector below now
-uses **native OAuth**: Cadence is registered as its own OAuth app directly
+uses **native OAuth**: Supaprod is registered as its own OAuth app directly
 with each provider, exactly the same pattern GitHub already used
 (`GITHUB_APP_ID`/`GITHUB_APP_SLUG`/`GITHUB_APP_PRIVATE_KEY`, set up on
 github.com, nothing to do with Lovable). The old gateway path only survives
@@ -33,8 +33,8 @@ For every row below:
 3. Add the two secrets to Lovable (project → Cloud → Secrets) under the exact
    names in the table.
 4. In that same app's OAuth settings, add the **Redirect URL** shown, exactly
-   (base URL: `https://supaprod.ai`).
-5. Go to Settings → Connections in Cadence, click Connect on that provider's
+   (base URL: `https://supaprod.ai` - the canonical live domain; `supaprod.lovable.app` 302-redirects here, confirmed live 2026-07-17, so register `supaprod.ai` directly rather than relying on that redirect hop).
+5. Go to Settings → Connections in Supaprod, click Connect on that provider's
    card. It should redirect to the provider's real consent screen, and after
    approving, redirect back showing a connected account.
 
@@ -105,7 +105,7 @@ OAuth flow to migrate to, so there was nothing left to keep it for.
     verification needs a live privacy policy URL, a live homepage, domain
     ownership verified in Google Search Console, and a scope-usage
     explanation. Turnaround is normally days, not weeks, once those
-    prerequisites exist. Cadence has a privacy policy already; it does not
+    prerequisites exist. Supaprod has a privacy policy already; it does not
     yet have a public homepage - that is the actual blocker for even
     starting this, not anything technical.
   - **Gmail's `gmail.readonly`** is a Google _restricted_ scope, not merely

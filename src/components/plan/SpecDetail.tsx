@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,7 +9,7 @@ import { MonoLabel, VerdictChip, Citation } from "@/components/obsidian";
 import type { Citation as CitationRecord } from "@/components/product/CitationsCard";
 import { getPrd, type CriticReview } from "@/lib/discovery.functions";
 import { getLineage, getProvenance } from "@/lib/lineage.functions";
-import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { DetailSection, StatCell, StatStrip, type StatTone } from "@/components/discover/DetailKit";
 import { StageTimeline } from "@/components/shared/StageTimeline";

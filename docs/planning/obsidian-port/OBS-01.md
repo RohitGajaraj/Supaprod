@@ -220,7 +220,7 @@ OBS-01 ships **no user-facing strings** (no UI renders). The only authored text 
 
 ```
 /* ============================================================
- * Cadence · Obsidian v3 · app-scoped token layer (OBS-01).
+ * Supaprod · Obsidian v3 · app-scoped token layer (OBS-01).
  * Ported verbatim from design-reference/obsidian-v3/tokens/*.css.
  * Scoped to [data-obsidian] so the parchment landing page is untouched.
  * Dark-only cockpit. Never invent a hex, a duration, or an easing here.

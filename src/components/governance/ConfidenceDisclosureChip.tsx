@@ -1,5 +1,5 @@
 // RPT-08: disclosed confidence, always visible, on every Critic verdict and
-// bet score -- distinct from PC-11's `ConfidenceChip` (src/components/cadence),
+// bet score -- distinct from PC-11's `ConfidenceChip` (src/components/supaprod),
 // which deliberately renders NOTHING above "low" (a gate, not a disclosure).
 // This one always shows a number: a flat "SHIP"/"REVISE" chip with no
 // confidence reads as uniform certainty, and disclosed confidence (even when
@@ -35,7 +35,7 @@ export function ConfidenceDisclosureChip({
   const pct = Math.round(Math.min(1, Math.max(0, confidence)) * 100);
   return (
     <span
-      title={`Cadence discloses its own confidence in this verdict: ${pct}%`}
+      title={`Supaprod discloses its own confidence in this verdict: ${pct}%`}
       style={{
         display: "inline-flex",
         alignItems: "center",

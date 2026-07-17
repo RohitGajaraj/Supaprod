@@ -5,7 +5,7 @@
 > **Status: DEFERRED, staying on Lovable Cloud for now.** Written 2026-06-17. Founder decided on
 > 2026-06-17 to stay on Lovable for now and migrate later when ready, to avoid friction before the
 > first demo. Keep this runbook current; execute when the founder gives the signal. This is the
-> step-by-step for moving Cadence's auth and data backend off **Lovable Cloud** (Lovable's managed
+> step-by-step for moving Supaprod's auth and data backend off **Lovable Cloud** (Lovable's managed
 > Supabase) onto **our own Supabase project + our own Google OAuth**, while optionally continuing to
 > build/preview in Lovable for a few more months.
 >

@@ -1,8 +1,8 @@
-# v7 PRD: Cadence, the Agentic Product OS
+# v7 PRD: Supaprod, the Agentic Product OS
 
 > _Created: 2026-06-14 · Last updated: 2026-06-19_
 
-> **What this is.** The product requirements document for Cadence at the v7 reset. It turns the v7 strategy canon into buildable scope: problem, personas, epics as user stories with acceptance criteria, priorities tied to the M-0 to M-D milestones, dependencies, and the success metrics that gate launch. It is held to one rule above all others: a requirement may claim only what the code already does or what this document explicitly asks us to build. Every line is marked Built, Partial, or Missing against `main` at commit `f515cfb` (2026-06-14).
+> **What this is.** The product requirements document for Supaprod at the v7 reset. It turns the v7 strategy canon into buildable scope: problem, personas, epics as user stories with acceptance criteria, priorities tied to the M-0 to M-D milestones, dependencies, and the success metrics that gate launch. It is held to one rule above all others: a requirement may claim only what the code already does or what this document explicitly asks us to build. Every line is marked Built, Partial, or Missing against `main` at commit `f515cfb` (2026-06-14).
 >
 > **Read alongside:** [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) (the positioning + build canon this PRD serves) · [`known-issues.md`](./known-issues.md) (the live blocker register the milestones clear) · [`feature-backlog.md`](./feature-backlog.md) (granular, build-ready scope) · [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (the engine/station/agent-mesh reference).
 
@@ -20,7 +20,7 @@ This is an operating-expense tax, not a tooling gap. The cost is paid in PM sala
 
 No vendor today owns the governed, closed-loop PM system with compounding memory. The edges are converging fast. Productboard Spark moves insights into PRDs with org memory. Atlassian Rovo pushes downstream execution at enterprise scale. Dovetail and Enterpret turn signal into action. ChatPRD ships PRD drafting inside Linear. Build and engineering agents (Devin, Cursor, Factory, Replit, v0) own the Build station but not the PM loop. The window to own the middle, the decision and memory layer that ties sense to ship to learn, is roughly 18 to 24 months and may be as short as 6 to 12 if a distribution-rich incumbent bundles it as a feature.
 
-The market is also bifurcated, and the gap is the opportunity. The honest base rate is failure: Gartner expects 40% of agentic projects cancelled by 2027; MIT finds 95% of GenAI pilots do not scale; only 21% of firms (McKinsey) have mature agent governance. The winners are separated from the cancelled 40% by exactly Cadence's surface: grounding, governance, human-in-the-loop, reliability, and demonstrable return. The job is to be the system-of-record that keeps a PM team out of the 40%.
+The market is also bifurcated, and the gap is the opportunity. The honest base rate is failure: Gartner expects 40% of agentic projects cancelled by 2027; MIT finds 95% of GenAI pilots do not scale; only 21% of firms (McKinsey) have mature agent governance. The winners are separated from the cancelled 40% by exactly Supaprod's surface: grounding, governance, human-in-the-loop, reliability, and demonstrable return. The job is to be the system-of-record that keeps a PM team out of the 40%.
 
 ### Why now, and what is already real
 
@@ -74,11 +74,11 @@ Acquired through PM communities, Product Hunt, and build-in-public. Lower ACV, h
 
 ### The agent-as-user
 
-A first-class persona, not a metaphor. An external agent (the user's other tools, a partner's automation, or a future third-party integration) that reads and writes against Cadence through MCP and the public API.
+A first-class persona, not a metaphor. An external agent (the user's other tools, a partner's automation, or a future third-party integration) that reads and writes against Supaprod through MCP and the public API.
 
 **Job to be done:** "Let me query a team's decision and memory layer and hand work into their governed loop through a typed, documented contract, so I can act on their product context without a human relaying it."
 
-The typed A2A handoff payload already exists internally. This persona makes "ecosystem-driven" true by exposing that contract outward. It is also the B2B2B fallback if the standalone window closes: embed Cadence's memory and decision layer inside another tool.
+The typed A2A handoff payload already exists internally. This persona makes "ecosystem-driven" true by exposing that contract outward. It is also the B2B2B fallback if the standalone window closes: embed Supaprod's memory and decision layer inside another tool.
 
 ---
 
@@ -94,7 +94,7 @@ The Chief of Staff entry point: a Today surface that brings the PM only the call
 
 **A1 · Needs-You decision queue** · Priority P0 (M-A) · Status: **Built**
 
-> As a PM, when I open Cadence I want one queue of the calls that need me (approval gates, PRDs in review, opportunities the Critic flagged) so I can clear my decisions in one place instead of hunting across tabs.
+> As a PM, when I open Supaprod I want one queue of the calls that need me (approval gates, PRDs in review, opportunities the Critic flagged) so I can clear my decisions in one place instead of hunting across tabs.
 
 Acceptance criteria:
 
@@ -349,7 +349,7 @@ Dependencies: C1 (memory must exist to expire or persist), margin controls (BYOK
 
 **E2 · Shareable decision link (the viral loop)** · Priority P0 (M-C) · Status: **Built (entry surface) · Partial (funnel)**
 
-> As a PM building in public, I want to share a public, redacted decision card so my network sees Cadence's reasoning and follows the link back.
+> As a PM building in public, I want to share a public, redacted decision card so my network sees Supaprod's reasoning and follows the link back.
 
 Acceptance criteria (Built):
 

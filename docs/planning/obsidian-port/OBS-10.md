@@ -53,7 +53,7 @@ OBS-04 through OBS-09 each ported one surface, but the app still carries roughly
 - **The route inventory** (60 `_authenticated.*` files). Already redirect-only stubs (from prior passes): `agents→/govern`, `analytics→/govern`, `briefing→/settings`, `budgets→/govern`, `cockpit→/missions`, `discovery→/product`, `docs→/knowledge`, `drift→/govern`, `evals→/govern`, `governance→/govern`, `guardrails→/govern`, `inbox→/govern`, `integrations→/settings`, `learn→/knowledge`, `meetings→/calendar`, `meetings.$id→/calendar`, `memory→/knowledge`, `notifications→/settings`, `observe→/govern`, `opportunities→/product`, `outcome→/learn`, `prds.index→/product`, `prompts→/govern`, `roadmap→/product`, `studio.index→/build`, `studio.$missionId→/build`, `swarm→/govern`, `tasks→/`. **Note the chains** (`meetings→/calendar→/knowledge`, `outcome→/learn→/knowledge`) - OBS-10 flattens these to one hop.
 - **Still-rendering parchment routes that must become stubs:** `product`, `knowledge`, `prds` (+ `prds.$id`), `traces` (+ `traces.$traceId`), `missions.index` (+ `missions.$missionId`), `stakeholder`, `impact`, `changelog`, `fleet`, `delegate`. (Each has a `component:` today.)
 - **Stays live, no fold:** `today`, `build.index`, `build.$missionId` (Build depth-3 full view), `govern`, `settings`, `onboarding`, `trust-ledger` and `sync` (Engine Room door links), all `admin.*` (role-gated Admin door). The OBS-06/07/08 destination routes (`discover`, `plan`, `brain` per §6 below) are created by their own items, not here.
-- **`src/components/cadence/CommandPalette.tsx`** - the current ⌘K. Indexes Navigate entries with hardcoded targets (`/`, `/chat`, `/govern?tab=team`, `/knowledge?tab=calendar`, `/product`, `/build`, `/knowledge`, `/missions`, `/govern`, `/settings`) + a `GotoShortcuts` g-prefix map (`d→/`, `c→/chat`, `a→/missions`, `b→/build`, `p→/product`, `k/m/l→/knowledge`, `v→/govern`, `s→/settings`). These still work through redirects; OBS-10 re-points them to canonical paths to avoid double hops. The glass rebuild is OBS-11.
+- **`src/components/supaprod/CommandPalette.tsx`** - the current ⌘K. Indexes Navigate entries with hardcoded targets (`/`, `/chat`, `/govern?tab=team`, `/knowledge?tab=calendar`, `/product`, `/build`, `/knowledge`, `/missions`, `/govern`, `/settings`) + a `GotoShortcuts` g-prefix map (`d→/`, `c→/chat`, `a→/missions`, `b→/build`, `p→/product`, `k/m/l→/knowledge`, `v→/govern`, `s→/settings`). These still work through redirects; OBS-10 re-points them to canonical paths to avoid double hops. The glass rebuild is OBS-11.
 
 ## 5. How - step by step
 
@@ -69,7 +69,7 @@ OBS-04 through OBS-09 each ported one surface, but the app still carries roughly
 
 5. **Re-point the existing redirect stubs** so they land on the new canonical paths in one hop (§6): `discovery`, `opportunities`, `roadmap` off `/product`; `memory`, `docs`, `learn`, `outcome`, `calendar`, `meetings`, `meetings.$id` off `/knowledge`/`/calendar`; `cockpit`, cockpit→`/missions` becomes `→/build`; `inbox`→`/today`; `tasks`→`/today`. Update each file's inline comment to name the new home. Flatten every chain to a single hop.
 
-6. **Re-point the ⌘K + GotoShortcuts targets** in `src/components/cadence/CommandPalette.tsx` to canonical paths (`/product`→`/discover`, `/knowledge`→`/brain`, `/missions`→`/build`, `/`→`/today`, `/chat`→`/today`). This is a courtesy pass so no palette click double-redirects; the full glass rebuild is OBS-11. If OBS-11 is already in flight on another lane, coordinate and skip this step (note it in the ship report).
+6. **Re-point the ⌘K + GotoShortcuts targets** in `src/components/supaprod/CommandPalette.tsx` to canonical paths (`/product`→`/discover`, `/knowledge`→`/brain`, `/missions`→`/build`, `/`→`/today`, `/chat`→`/today`). This is a courtesy pass so no palette click double-redirects; the full glass rebuild is OBS-11. If OBS-11 is already in flight on another lane, coordinate and skip this step (note it in the ship report).
 
 7. **Regenerate the route tree.** Run the dev server (or `bun run build` on the primary checkout) so the TanStack router plugin regenerates `src/routes/routeTree.gen.ts`. Never hand-edit it. Confirm the generated tree has no orphaned or duplicate route ids.
 
@@ -133,7 +133,7 @@ OBS-04 through OBS-09 each ported one surface, but the app still carries roughly
 - `src/lib/nav-model.ts` (five `to` targets, drop Ask, prune the door links).
 - `src/lib/nav-model.test.ts` (assert 5 + door, no `/chat`).
 - The `[render→stub]` and `[stub]` route files above (redirect bodies).
-- `src/components/cadence/CommandPalette.tsx` (re-point navigate targets - optional / coordinate with OBS-11).
+- `src/components/supaprod/CommandPalette.tsx` (re-point navigate targets - optional / coordinate with OBS-11).
 - `src/routes/routeTree.gen.ts` (regenerated, not hand-edited).
 
 **Data flow.** OBS-10 consumes no server functions and no query keys. The redirect stubs are pure `beforeLoad` throws; the destination surfaces (OBS-04..09) already own every `useQuery`. `nav-model.ts` stays pure (data + active-state math, no JSX). The shell renders the model; OBS-02 owns that render.
@@ -240,4 +240,4 @@ Open `design-reference/obsidian-v3/design-reference/cadence-app.html` beside the
   - [`./OBS-02.md`](./OBS-02.md) - the shell renders the rail; OBS-10 feeds it the reshaped `nav-model.ts`. Coordinate the icon-removal / label ownership.
   - [`./OBS-04.md`](./OBS-04.md) · [`./OBS-05.md`](./OBS-05.md) · [`./OBS-06.md`](./OBS-06.md) · `./OBS-07.md` · `./OBS-08.md` · `./OBS-09.md` - the six destinations that must render before OBS-10 folds legacy paths into them. Read each item's Structure section (step 1) to confirm the canonical paths.
   - [`./OBS-11.md`](./OBS-11.md) - the ⌘K glass palette + catalog; it catches the rare surfaces (agents roster, swarm, fleet, prompts, observe) that OBS-10 redirects into the door but that truly belong in ⌘K. Coordinate `CommandPalette.tsx` edits.
-- **Code touched:** `src/lib/nav-model.ts`, `src/lib/nav-model.test.ts`, `src/lib/legacy-redirects.ts` (new), `src/lib/legacy-redirects.test.ts` (new), the `_authenticated.*` stub routes in §6, `src/components/cadence/CommandPalette.tsx`, `src/routes/routeTree.gen.ts` (regenerated).
+- **Code touched:** `src/lib/nav-model.ts`, `src/lib/nav-model.test.ts`, `src/lib/legacy-redirects.ts` (new), `src/lib/legacy-redirects.test.ts` (new), the `_authenticated.*` stub routes in §6, `src/components/supaprod/CommandPalette.tsx`, `src/routes/routeTree.gen.ts` (regenerated).

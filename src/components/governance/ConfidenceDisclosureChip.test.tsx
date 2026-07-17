@@ -100,7 +100,7 @@ describe("ConfidenceDisclosureChip", () => {
     });
     const title = (chip.props as { title?: string })?.title;
     expect(title).toContain("85%");
-    expect(title).toContain("Cadence discloses");
+    expect(title).toContain("Supaprod discloses");
   });
 
   test("accepts optional custom style prop merged into base styles", () => {

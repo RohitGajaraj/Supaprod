@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { trackLandingEvent } from "@/lib/landing.functions";
 
 /**
@@ -10,9 +10,9 @@ import { trackLandingEvent } from "@/lib/landing.functions";
 export function LandingNav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
-      <Link to="/" className="flex items-center gap-2" aria-label="Cadence home">
+      <Link to="/" className="flex items-center gap-2" aria-label="Supaprod home">
         <div className="w-8 h-8 flex items-center justify-center">
-          <CadenceMark size={26} />
+          <SupaprodMark size={26} />
         </div>
       </Link>
 

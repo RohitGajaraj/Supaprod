@@ -3,7 +3,7 @@ version: 3.0 "Obsidian" (design-system lineage: v1 tokens, v2 Ember Editorial pa
 created: 2026-07-02
 updated: 2026-07-02 (repo amendments, see the Amendments section at the end;
   each clarification is sourced from this package's own tokens and prototype)
-name: cadence-obsidian
+name: supaprod-obsidian
 status: RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
   (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces. Kept as
   history only; never build new surfaces from this file.
@@ -14,10 +14,10 @@ specimen: design-reference/obsidian-v3/design-reference/obsidian-specimen.html
   how something should look, open it. The full frozen handoff package incl.
   tokens, component anatomies, implementation notes, and the runnable
   six-surface prototype lives at design-reference/obsidian-v3/; agent entry
-  point is the cadence-design skill)
+  point is the supaprod-design skill)
 ---
 
-# Cadence Design v3 · "Obsidian" · Source of truth
+# Supaprod Design v3 · "Obsidian" · Source of truth
 
 Every agent (Claude Code, Lovable, Gemini, or human) building or redesigning
 ANY feature reads this file first. The strategy document (HTML specimen) shows
@@ -243,7 +243,7 @@ package's own files, never from the superseded parchment system:
 4. The committed home of this system: the contract lives at the repo root
    (this file, the law); the full frozen handoff package (tokens, anatomies,
    notes, runnable prototype, specimen) lives at `design-reference/obsidian-v3/`;
-   the agent entry point is the `cadence-design` skill (`.claude/skills/`).
+   the agent entry point is the `supaprod-design` skill (`.claude/skills/`).
 5. The surfaces the handoff deliberately stubbed (the ⌘K palette UI, the Ask
    panel, Settings, onboarding, Engine Room room details, chart grammar,
    density modes, micro-interaction recipes, the empty-state catalog) are

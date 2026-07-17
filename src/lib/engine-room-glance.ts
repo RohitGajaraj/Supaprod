@@ -128,7 +128,7 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       label: "What to fix",
       technical: "Self-improvement",
       descriptor:
-        "What Cadence flags to improve about its own quality, from real signals (RPT-50).",
+        "What Supaprod flags to improve about its own quality, from real signals (RPT-50).",
     },
     {
       id: "prompts",

@@ -17,8 +17,8 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Send, Copy } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
-import { TopBar } from "@/components/cadence/TopBar";
-import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { MonoLabel, StepDot, SubTabs } from "@/components/supaprod/Primitives";
 import { stepLabel } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -47,7 +47,7 @@ import { fmtCost } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 
 type Tab = "changes" | "pr" | "preview" | "cost" | "receipts";
 const TABS: Tab[] = ["changes", "pr", "preview", "cost", "receipts"];
@@ -67,7 +67,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
     return { tab: (TABS as string[]).includes(t as string) ? (t as Tab) : undefined };
   },
   component: BuildSessionPage,
-  head: () => ({ meta: [{ title: "Build · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
   errorComponent: ({ error, reset }) => {
     // A stale or deleted mission id deep-links here (quality register: param'd
     // detail routes had no designed not-found). getStudioSession throws

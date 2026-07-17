@@ -23,7 +23,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Rocket } from "lucide-react";
 import { CiPanel } from "./CiPanel";
-import { MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
 import type { StudioChangesetSummary, StudioCi } from "@/lib/studio.functions";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 

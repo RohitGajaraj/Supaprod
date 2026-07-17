@@ -43,7 +43,7 @@ No migration: `missions.status` and `agent_runs.status` carry no CHECK constrain
 
 - `src/lib/missions.functions.ts` - `cancelMission` server fn.
 - `src/routes/_authenticated.missions.$missionId.tsx` - the Cancel control in the hero (shown only while the mission is active; destructive confirm via `useConfirm`).
-- `src/components/cadence/Primitives.tsx` - `cancelled` status badge.
+- `src/components/supaprod/Primitives.tsx` - `cancelled` status badge.
 
 ## Verify (live, after publish)
 

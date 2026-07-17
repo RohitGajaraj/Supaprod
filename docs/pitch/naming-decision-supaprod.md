@@ -1,9 +1,9 @@
 # Naming Decision — Cadence → Supaprod
 
-> _Created: 2026-07-16 · Status: **DECIDED (Supaprod)** — execution not yet started_
+> _Created: 2026-07-16 · Status: **DECIDED and EXECUTED (2026-07-17)**_
 
 > [!IMPORTANT]
-> **Cadence remains the in-product / working name in code, DB, env, and docs until the separate rename-execution project runs.** The `CLAUDE.md` product-name ruling ("PRODUCT NAME: CADENCE") stands until the founder updates it. This document records the **brand decision and its evidence chain only** — nothing in the codebase changes because of this file. The operational side of the decision (what to buy, where, the attorney brief, email, handles, parked items) lives in the companion playbook: [`../gtm/brand-supaprod.md`](../gtm/brand-supaprod.md).
+> **The in-product rename executed 2026-07-17** — code, DB, env, and docs now read Supaprod; the `CLAUDE.md` product-name ruling was updated accordingly. This document records the **brand decision and its evidence chain**, unchanged by the later execution. The operational side of the decision (what to buy, where, the attorney brief, email, handles, parked items) lives in the companion playbook: [`../gtm/brand-supaprod.md`](../gtm/brand-supaprod.md).
 
 **Audience:** the founder re-reading this in six months, YC / investor diligence, and any future work session that needs the full "why not X" chain without re-running the research.
 
@@ -254,7 +254,7 @@ Everything operational — the exact buy list with verified registrar prices (an
 
 **→ [`docs/gtm/brand-supaprod.md`](../gtm/brand-supaprod.md)**
 
-The rename **execution** (code, DB, env, Lovable project, brand assets, the CLAUDE.md name ruling) is a separate project to be sequenced against the v13 Proof Campaign; nothing in the repo renames until the founder schedules it.
+The rename **execution** (code, DB, env, Lovable project, brand assets, the CLAUDE.md name ruling) is DONE — it ran 2026-07-17.
 
 ---
 

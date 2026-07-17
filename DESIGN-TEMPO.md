@@ -1,7 +1,7 @@
 # DESIGN-TEMPO.md — the v5 "Tempo" design contract
 
 > _Adopted 2026-07-10 (founder ruling). **Tempo is THE standing design system for every
-> Cadence surface — the authenticated app AND the public landing/marketing pages.** It
+> Supaprod surface — the authenticated app AND the public landing/marketing pages.** It
 > supersedes Loom v4 (`DESIGN-LOOM.md`), Obsidian v3 (`DESIGN-OBSIDIAN.md`), and the Ember
 > Editorial landing system (`DESIGN.md`); those files are retired history. When any other
 > file disagrees with this one on look, feel, tokens, type, or component anatomy, this
@@ -17,14 +17,14 @@
 **Tempo derives its base from Vercel's Geist design system** (vercel.com/geist) —
 structure, token architecture, typography model, materials, component anatomy, and
 documentation quality mirrored deliberately: we are adopting an enterprise-grade, proven
-system, not inventing one. On that base, Tempo layers **Cadence's own identity** so the
+system, not inventing one. On that base, Tempo layers **Supaprod's own identity** so the
 result is recognizably ours:
 
 1. **The ember brand color** (`#FF6B2C` family) as a full 10-step scale in the role
    Geist's blue plays for brand/interactive accents.
 2. **Our own identity layer** (§8): icon treatment, illustration language, logo usage,
    Geist Pixel as the brand display face, and sanctioned personality touches.
-3. **Cadence-specific pattern extensions** (§9): AI/agent interfaces and enterprise
+3. **Supaprod-specific pattern extensions** (§9): AI/agent interfaces and enterprise
    workflow patterns Geist does not document.
 
 Where Geist is silent, we fill gaps from the craft of Linear, Stripe, Notion, Figma, Arc
@@ -129,7 +129,7 @@ this changes WHAT the blue is):**
   a blue-family gradient; `agent-shimmer` keyframes) is THE marker for
   machine-working moments, at most one per screen, always reduced-motion
   gated. `.ai-working-word` pairs it with the Pixel face for hero AI moments;
-  `ShimmerText` (src/components/cadence/ShimmerText.tsx) is the shared
+  `ShimmerText` (src/components/supaprod/ShimmerText.tsx) is the shared
   component consumers use — never re-roll a private shimmer.
 - **Theme trio.** `light`, `dark`, and `system` (live `prefers-color-scheme`
   tracking) via `useTheme()` in `src/hooks/use-theme.tsx`. Dark stays the
@@ -267,14 +267,14 @@ The build rule:
 5. For anything Geist does not cover, use the matching `patterns/` extension doc (§9);
    if none exists yet, write it in the same session following the extension protocol.
 
-## 8. Identity layer — recognizably Cadence
+## 8. Identity layer — recognizably Supaprod
 
 The base is Geist; these are the elements that make Tempo ours. Tweaks sit ON TOP of the
 derived base and never contradict §§1–7.
 
 - **Brand color**: ember (`--ds-ember-*`). The single chromatic voice of the brand.
 - **Brand display face**: Geist Pixel (Square) under the §3 brand-moment rules — this
-  face IS the visual signature of Cadence surfaces.
+  face IS the visual signature of Supaprod surfaces.
 - **Icons**: lucide, 16px default (20px in headers), consistent 1.5px stroke, always
   paired with the text label except in `svgOnly` buttons with `aria-label`. Icon color
   follows the text color of its pairing (gray-900/1000); ember icons only on brand/active
@@ -283,7 +283,7 @@ derived base and never contradict §§1–7.
   own primitives (pixel-font glyphs, 1px `--ds-gray-400` grid lines, ember accents on
   ≤10% of the composition) — never stock illustration styles, never gradients-as-decor,
   never emoji. Empty states get one small composition max.
-- **Logo & branding**: the Cadence wordmark set in Geist Sans 600 with tight tracking;
+- **Logo & branding**: the Supaprod wordmark set in Geist Sans 600 with tight tracking;
   the pixel "C" monogram (Geist Pixel Square) as the compact mark. Clear space = the
   monogram's own width; never recolor beyond gray-1000/ember; the retired Butterfly mark
   is not carried into v5.
@@ -294,7 +294,7 @@ derived base and never contradict §§1–7.
 
 ## 9. Pattern extensions — AI + enterprise workflow
 
-Geist documents primitives; Cadence is an agentic product OS and needs more. The
+Geist documents primitives; Supaprod is an agentic product OS and needs more. The
 extension library lives at `design-reference/tempo-v5/patterns/` — one doc per reusable
 pattern, each with: anatomy, variants, states, accessibility, responsive behavior,
 interaction model, tokens used, implementation guidance, and usage examples.
@@ -321,14 +321,14 @@ but never redefine them.
 - **Error states** — 3-tier (inline validation, recovery path, fatal/full-page).
 
 The full reasoning behind every design ruling applied when porting the authenticated app to
-Tempo — the lifecycle IA ("The Cadence Loop"), the **ember = needs-human / blue = machine**
+Tempo — the lifecycle IA ("The Supaprod Loop"), the **ember = needs-human / blue = machine**
 color grammar (with purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage,
 monotone source logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
 [`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
 
 ## 10. Responsive behavior — breakpoints and adaptation
 
-Cadence is a desktop-first product (the primary user is a PM planning on a multi-monitor
+Supaprod is a desktop-first product (the primary user is a PM planning on a multi-monitor
 desk), but all surfaces must be responsive and touch-friendly. Breakpoints (via Tailwind):
 
 | Breakpoint | Width  | Adaptation                                                      |
@@ -365,7 +365,7 @@ hardcode `@media` queries; use Tailwind responsive prefixes.
 
 ## 11. What survives from the old contracts
 
-These Cadence operating laws are **orthogonal to the visual system and remain in force**:
+These Supaprod operating laws are **orthogonal to the visual system and remain in force**:
 
 - **Humanized output** (`docs/conventions/humanized-output.md`): zero AI fingerprints in
   UI strings and generated output; no em/en dashes in UI copy; no AI-cliché phrasing.
@@ -416,8 +416,8 @@ Geist Pixel is THE brand display face — one moment per surface max. Wave 1-2 a
 
 ## 12. Enforcement
 
-- **The skill**: `.claude/skills/cadence-tempo/` loads this contract + tokens + specs +
-  patterns and MUST be invoked before any design/UI work. The old `cadence-design` skill
+- **The skill**: `.claude/skills/supaprod-tempo/` loads this contract + tokens + specs +
+  patterns and MUST be invoked before any design/UI work. The old `supaprod-design` skill
   is disconnected (deprecation stub).
 - **The Tempo test** before shipping any surface: (1) both themes render from the same
   tokens; (2) every color traces to a `--ds-*` token in its correct role step; (3) type

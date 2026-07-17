@@ -10,7 +10,7 @@ import {
   collectRepoFiles,
   denoDeployConfigured,
   deployChangesetApp,
-  isCadenceManaged,
+  isSupaprodManaged,
 } from "@/lib/hosting/changeset-deploy.server";
 
 /**
@@ -45,7 +45,7 @@ import {
  *      a human. studio.pr.merge stays review-gated either way; this only
  *      guarantees the gate actually appears.
  *   3.5. pending / neutral -> no-op.
- *   4. MERGED changesets on Cadence-managed repos (cadence.json) auto-deploy
+ *   4. MERGED changesets on Supaprod-managed repos (supaprod.json) auto-deploy
  *      ONCE to a Deno Deploy preview revision (mission 3.7: merge is not the
  *      end; a live URL is); the promote gate moves production.
  *
@@ -90,7 +90,7 @@ function ghHeaders(token: string): Record<string, string> {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "cadence-ci-poll",
+    "User-Agent": "supaprod-ci-poll",
   };
 }
 
@@ -125,10 +125,10 @@ export async function runCiPollTick() {
 
     for (const cs of (rows ?? []) as unknown as ChangesetLite[]) {
       try {
-        // SEAM-2 SHIP: a merged changeset on a Cadence-managed repo
+        // SEAM-2 SHIP: a merged changeset on a Supaprod-managed repo
         // auto-deploys to a PREVIEW revision once (the promote gate
         // moves production). Honest gates: skips silently without a
-        // Deno token; only cadence.json (template-family) repos ride.
+        // Deno token; only supaprod.json (template-family) repos ride.
         if (cs.status === "merged") {
           if (!cs.repo || !cs.workspace_id || !denoDeployConfigured()) continue;
           const { count: existing } = await supabaseAdmin
@@ -154,7 +154,7 @@ export async function runCiPollTick() {
           );
           if (!refRes.ok) continue;
           const headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
-          if (!(await isCadenceManaged({ token: gh.token, repo: cs.repo, ref: headSha }))) {
+          if (!(await isSupaprodManaged({ token: gh.token, repo: cs.repo, ref: headSha }))) {
             continue;
           }
           const files = await collectRepoFiles({
@@ -313,7 +313,7 @@ export async function runCiPollTick() {
         // all. Previously that required a human to notice and click
         // GitHub's "Update branch" by hand; Dependabot / GitHub
         // auto-merge solve exactly this for their own PRs, and now
-        // Cadence does the same for studio PRs. A stale check and a
+        // Supaprod does the same for studio PRs. A stale check and a
         // genuine code failure look identical from here, so we try
         // the sync and let the response tell us which one this is.
         //
@@ -350,7 +350,7 @@ export async function runCiPollTick() {
               body: JSON.stringify({
                 base: cs.branch,
                 head: pr.base.ref,
-                commit_message: `Sync ${cs.branch} with ${pr.base.ref} to re-trigger CI, Cadence autonomous`,
+                commit_message: `Sync ${cs.branch} with ${pr.base.ref} to re-trigger CI, Supaprod autonomous`,
               }),
             });
 

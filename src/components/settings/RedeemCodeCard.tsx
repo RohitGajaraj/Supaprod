@@ -9,7 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gift } from "lucide-react";
 import { redeemVoucher } from "@/lib/admin-vouchers.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/lib/notify";

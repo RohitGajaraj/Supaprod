@@ -18,6 +18,10 @@ dist-ssr
 
 # Wrangler / Cloudflare
 .wrangler/
+
+# Playwright
+test-results/
+playwright-report/
 .dev.vars
 
 # Secrets — never commit real env values; .env.example is the committed template

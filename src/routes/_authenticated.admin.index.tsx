@@ -273,7 +273,7 @@ function AdminOverview() {
         >
           <input
             type="email"
-            placeholder="email@cadence.app"
+            placeholder="email@supaprod.app"
             aria-label="Email of the user to make admin"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

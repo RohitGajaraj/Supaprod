@@ -19,7 +19,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ExternalLink, Link2 } from "lucide-react";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
@@ -30,7 +30,7 @@ import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/d
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
 import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
 import { PanelSkeleton } from "./PanelSkeleton";

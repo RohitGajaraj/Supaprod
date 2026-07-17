@@ -93,7 +93,7 @@ The ultra-premium mandate required elevation to Vercel parity across three dimen
 - `/pricing` — ink theme + Pixel H1 + real sign-in button
 - `/security`, `/privacy`, `/terms` — LegalPageShell (backdrop, Pixel title)
 - `/proof`, `/d/$slug`, `/t/$slug` — ink theme + backdrop
-- `/login`, `/signup` — AuthScaffold (CadenceMark watermark, 150s slow revolve)
+- `/login`, `/signup` — AuthScaffold (SupaprodMark watermark, 150s slow revolve)
 
 ---
 

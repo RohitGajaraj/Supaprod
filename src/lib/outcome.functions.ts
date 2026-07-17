@@ -142,7 +142,7 @@ export const checkPrdShipped = createServerFn({ method: "POST" })
         Authorization: `Bearer ${gh.token}`,
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "cadence-agent",
+        "User-Agent": "supaprod-agent",
       },
     });
     if (!res.ok) return { shipped: false, issueState: "unknown" as const };

@@ -31,7 +31,7 @@ export type ObservabilityStatus = {
   /** SW-6 cron watchdog: expected-vs-actual per job, stale first. */
   cronHealth: Array<{
     job: string;
-    cadence: string;
+    supaprod: string;
     lastRunAt: string | null;
     ageMinutes: number | null;
     stale: boolean;
@@ -123,7 +123,7 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
         const ageMs = lastRunAt ? nowMs - Date.parse(lastRunAt) : null;
         return {
           job: exp.job,
-          cadence: exp.cadence,
+          supaprod: exp.supaprod,
           lastRunAt,
           ageMinutes: ageMs === null ? null : Math.round(ageMs / 60_000),
           stale: ageMs === null || ageMs > exp.staleAfterMs,

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getDecisionCurrency } from "@/lib/decision-currency.functions";
-import { VerdictChip } from "@/components/cadence/Primitives";
+import { VerdictChip } from "@/components/supaprod/Primitives";
 
 /**
  * DBR-3d: warn when the decision being VIEWED has itself been superseded or contradicted by

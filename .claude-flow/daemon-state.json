@@ -1,6 +1,6 @@
 {
   "running": true,
-  "startedAt": "2026-07-17T07:09:56.392Z",
+  "startedAt": "2026-07-17T14:14:38.202Z",
   "workers": {
     "map": {
       "runCount": 47,
@@ -9,7 +9,7 @@
       "averageDurationMs": 19.617021276595747,
       "lastRun": "2026-07-14T20:06:20.276Z",
       "lastStartedAt": "2026-07-14T20:06:20.263Z",
-      "nextRun": "2026-07-17T07:09:56.392Z",
+      "nextRun": "2026-07-17T14:14:38.202Z",
       "isRunning": false
     },
     "audit": {
@@ -19,17 +19,17 @@
       "averageDurationMs": 103897.71428571429,
       "lastRun": "2026-07-14T20:08:33.390Z",
       "lastStartedAt": "2026-07-14T20:06:20.190Z",
-      "nextRun": "2026-07-17T07:11:56.392Z",
+      "nextRun": "2026-07-17T14:16:38.202Z",
       "isRunning": false
     },
     "optimize": {
       "runCount": 41,
       "successCount": 41,
-      "failureCount": 3,
+      "failureCount": 4,
       "averageDurationMs": 300208.60975609755,
       "lastRun": "2026-07-14T16:13:46.249Z",
       "lastStartedAt": "2026-07-14T20:06:20.264Z",
-      "nextRun": "2026-07-17T07:13:56.392Z",
+      "nextRun": "2026-07-17T14:18:38.202Z",
       "isRunning": false
     },
     "consolidate": {
@@ -39,7 +39,7 @@
       "averageDurationMs": 16.043478260869563,
       "lastRun": "2026-07-14T16:03:46.095Z",
       "lastStartedAt": "2026-07-14T16:03:46.093Z",
-      "nextRun": "2026-07-17T07:15:56.392Z",
+      "nextRun": "2026-07-17T14:20:38.202Z",
       "isRunning": false
     },
     "testgaps": {
@@ -49,7 +49,7 @@
       "averageDurationMs": 238284.38709677418,
       "lastRun": "2026-07-14T16:11:26.277Z",
       "lastStartedAt": "2026-07-14T16:03:46.109Z",
-      "nextRun": "2026-07-17T07:17:56.392Z",
+      "nextRun": "2026-07-17T14:22:38.202Z",
       "isRunning": false
     },
     "backup": {
@@ -59,7 +59,7 @@
       "averageDurationMs": 6.75,
       "lastRun": "2026-07-14T14:28:49.503Z",
       "lastStartedAt": "2026-07-14T14:28:49.491Z",
-      "nextRun": "2026-07-17T07:19:56.392Z",
+      "nextRun": "2026-07-17T14:24:38.202Z",
       "isRunning": false
     },
     "harness": {
@@ -69,7 +69,7 @@
       "averageDurationMs": 103.25,
       "lastRun": "2026-07-14T09:19:59.418Z",
       "lastStartedAt": "2026-07-14T09:19:59.374Z",
-      "nextRun": "2026-07-17T07:21:56.393Z",
+      "nextRun": "2026-07-17T14:26:38.203Z",
       "isRunning": false
     },
     "predict": {
@@ -89,8 +89,8 @@
   },
   "config": {
     "autoStart": false,
-    "logDir": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-4/.claude-flow/logs",
-    "stateFile": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-4/.claude-flow/daemon-state.json",
+    "logDir": "/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v5/.claude-flow/logs",
+    "stateFile": "/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v5/.claude-flow/daemon-state.json",
     "maxConcurrent": 2,
     "workerTimeoutMs": 960000,
     "resourceThresholds": {
@@ -174,5 +174,5 @@
       }
     ]
   },
-  "savedAt": "2026-07-17T07:09:56.393Z"
+  "savedAt": "2026-07-17T14:14:38.203Z"
 }

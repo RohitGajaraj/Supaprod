@@ -33,7 +33,7 @@ deciding got the worst tools in the building.
 
 3/ I spent 13 months building the other thing.
 
-Cadence. Agents run the product loop end to end. They read your
+Supaprod. Agents run the product loop end to end. They read your
 signals, rank the bets, red team them, write the spec, build to a PR,
 and record what actually happened.
 
@@ -104,7 +104,7 @@ I spent 13 months building a product without letting a single
 outsider touch it. Not stealth for drama. I wanted the engine finished
 before the first user walked in.
 
-The product is Cadence. The shortest honest description: agents run
+The product is Supaprod. The shortest honest description: agents run
 the product work end to end, you make the calls, and a ledger proves
 what worked.
 
@@ -115,7 +115,7 @@ and whether the call was right. That last question is the one nobody's
 tooling answers. Roadmaps get made, shipped, and nobody checks the
 score.
 
-For 13 months Cadence ran on itself. The numbers from my own
+For 13 months Supaprod ran on itself. The numbers from my own
 workspace: 133 missions, 72 recorded decisions, 2,162 AI calls through
 one governed pipeline [refresh]. It wrote specs, built to pull
 requests through a human gate, and recorded outcomes against its own
@@ -145,7 +145,7 @@ our own product, wrong calls included.
 **X thread:**
 
 ```
-1/ Yesterday I said Cadence shipped part of itself. Here is the
+1/ Yesterday I said Supaprod shipped part of itself. Here is the
 receipt.
 
 [VIDEO: the uncut trace]
@@ -183,7 +183,7 @@ First reply: Waitlist + the live Launch Ledger: [LINK]
 **LinkedIn version (shorter, engineer-lead angle):**
 
 ```
-Proof over pitch: here is a screen recording of Cadence taking a spec
+Proof over pitch: here is a screen recording of Supaprod taking a spec
 through its own gated path to a merged PR. Spec, agent build, human
 approval, CI, merge, outcome recorded. Uncut.
 
@@ -285,7 +285,7 @@ Critic on one bet from the audience. Come pick the bet.
 ```
 Tomorrow, [TIME] ET: watch the ledger live.
 
-30 minutes. I walk through our launch running as a Cadence mission
+30 minutes. I walk through our launch running as a Supaprod mission
 (every decision this week, including the flops), then the Critic red
 teams one product bet submitted by the audience, live.
 
@@ -366,9 +366,9 @@ where this falls short on your real backlog. Want a seat?
 **Founder approval: [ ]**
 
 ```
-Subject: intro: [FOUNDER] (Cadence) <> [NAME]
+Subject: intro: [FOUNDER] (Supaprod) <> [NAME]
 
-[NAME], meet [FOUNDER]. He spent 13 months building Cadence: agents
+[NAME], meet [FOUNDER]. He spent 13 months building Supaprod: agents
 that run the product loop end to end (signals, ranked bets, specs,
 build to PR) with a ledger that records whether each call was right.
 The part that got my attention: it shipped part of itself through its
@@ -454,7 +454,7 @@ I have opinions about where it comes from.
 Title: After 13 months of dogfooding, I am opening my agent-run
 product OS to outsiders. Numbers inside.
 
-I built Cadence: agents run the product loop (signals in, ranked and
+I built Supaprod: agents run the product loop (signals in, ranked and
 red teamed bets, specs, build to PR through a human gate) and a
 ledger records whether each call was right.
 
@@ -596,7 +596,7 @@ front. We let people in as fast as first sessions stay personal.
 ```
 Subject: You are #[N]. Here is how the line moves.
 
-You are on the Cadence waitlist, position [N].
+You are on the Supaprod waitlist, position [N].
 
 Two ways forward:
 
@@ -647,7 +647,7 @@ session comes with first claim on a design partner seat: [CALENDAR]
 **Founder approval: [ ]**
 
 ```
-Subject: Your design partner seat at Cadence
+Subject: Your design partner seat at Supaprod
 
 You are in. Here is the deal, plainly:
 
@@ -656,7 +656,7 @@ onboarding with me personally, and real influence on what gets built
 (your asks go in the ledger; you will see exactly what happened to
 them).
 
-We get: the truth. You run Cadence on real work and tell us where it
+We get: the truth. You run Supaprod on real work and tell us where it
 breaks. Two 30-minute check-ins a month. Permission to ask about
 outcomes.
 

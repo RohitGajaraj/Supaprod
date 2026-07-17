@@ -1,4 +1,4 @@
-// Prompts tab — ported 1:1 from design-reference/cadence/loop.jsx
+// Prompts tab — ported 1:1 from design-reference/supaprod/loop.jsx
 // (GovernScreen, tab "Prompts"): a bento table (Surface 1fr / Version 70px /
 // Note 1fr / Status 90px / actions 150px) with the surface at 500 weight, the
 // version mono ink, the note at 12px text-subtle, the status mono 8.5
@@ -26,7 +26,7 @@ import {
   getPromptAnalytics,
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
-import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
 
 const GRID = "1fr 70px 1fr 90px 150px";
 

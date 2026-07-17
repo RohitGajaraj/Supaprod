@@ -103,7 +103,7 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                       Authorization: `Bearer ${gh.token}`,
                       Accept: "application/vnd.github+json",
                       "X-GitHub-Api-Version": "2022-11-28",
-                      "User-Agent": "cadence-agent",
+                      "User-Agent": "supaprod-agent",
                     },
                   },
                 );

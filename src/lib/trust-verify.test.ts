@@ -57,7 +57,7 @@ describe("sealReceipts — the tamper-evident chain", () => {
     const s = await sealReceipts([]);
     expect(s.count).toBe(0);
     expect(s.links).toEqual([]);
-    expect(s.head).toBe(await sha256Hex("cadence-trust-ledger/v1"));
+    expect(s.head).toBe(await sha256Hex("supaprod-trust-ledger/v1"));
   });
 
   test("a different record set yields a different head", async () => {

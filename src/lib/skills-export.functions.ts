@@ -50,10 +50,10 @@ export function buildSkillsMarkdown(input: {
   const { workspaceName, decisions, learnings, houseRules, generatedAt } = input;
   const lines: string[] = [];
 
-  lines.push(`# ${workspaceName ?? "Cadence"} - Agent Context Bundle`);
+  lines.push(`# ${workspaceName ?? "Supaprod"} - Agent Context Bundle`);
   lines.push("");
   lines.push(
-    `Generated ${fmtDate(generatedAt)} by Cadence. Mount this file as project context for ` +
+    `Generated ${fmtDate(generatedAt)} by Supaprod. Mount this file as project context for ` +
       "Claude Code, Codex, or any AI agent fleet so it inherits this workspace's decisions, " +
       "outcomes, and standing rules instead of relearning them from scratch. Regenerate any " +
       "time from Settings - Export; this file is never the source of truth, the ledger is.",

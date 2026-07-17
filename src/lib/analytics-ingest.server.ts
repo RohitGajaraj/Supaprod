@@ -1,9 +1,9 @@
 /**
  * SEN-05 — PostHog inbound: pull product-usage data FROM PostHog into the
- * Cadence signal + product_analytics tables.
+ * Supaprod signal + product_analytics tables.
  *
- * This is the INBOUND direction (PostHog → Cadence), the complement to AFD-04
- * which is the outbound direction (Cadence → PostHog).
+ * This is the INBOUND direction (PostHog → Supaprod), the complement to AFD-04
+ * which is the outbound direction (Supaprod → PostHog).
  *
  * Gate: both POSTHOG_PERSONAL_API_KEY and POSTHOG_PROJECT_ID must be set.
  * The personal API key (Settings → Personal API Keys in PostHog) is distinct
@@ -50,7 +50,7 @@ export async function ingestPostHogAnalytics(
     };
   }
 
-  // HogQL query: daily event counts for tracked Cadence events over last N days.
+  // HogQL query: daily event counts for tracked Supaprod events over last N days.
   const hogql = `
     SELECT
       event,

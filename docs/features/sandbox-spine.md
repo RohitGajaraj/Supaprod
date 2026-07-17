@@ -6,7 +6,7 @@
 
 ## What it does
 
-A build needs somewhere to run its checks before it can merge or be previewed. Today there is no Cadence execution sandbox — `src/lib/ai/studio-ci.ts` says so outright: checks run in the connected repo's GitHub Actions CI. SANDBOX turns that implicit dependency into an explicit, swappable seam and ships the free floor:
+A build needs somewhere to run its checks before it can merge or be previewed. Today there is no Supaprod execution sandbox — `src/lib/ai/studio-ci.ts` says so outright: checks run in the connected repo's GitHub Actions CI. SANDBOX turns that implicit dependency into an explicit, swappable seam and ships the free floor:
 
 1. **The `ExecProvider` seam** (`src/lib/exec/provider.ts`) — one interface for "where a build's checks run, and whether the result clears it to merge / preview". A paid microVM backend (Cloudflare Sandbox SDK first, then E2B / Vercel one swap away for untrusted code) plugs in behind the same interface when the founder confirms the spend.
 2. **The $0 native floor** — `githubActionsProvider`, always available, never metered. Its `verdictFromChecks` reuses `studio-ci.ts` (`overallFromChecks` + `mergeReadinessFromCi`), so an `ExecProvider` verdict and the `studio.pr.merge` gate can never disagree on what "green" means.

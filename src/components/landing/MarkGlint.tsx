@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { CadenceMark, CADENCE_MARK_PATH } from "@/components/cadence/CadenceMark";
+import { SupaprodMark, SUPAPROD_MARK_PATH } from "@/components/supaprod/SupaprodMark";
 
 /**
- * MarkGlint: the seven-petal CadenceMark revolving very slowly around its
+ * MarkGlint: the seven-petal SupaprodMark revolving very slowly around its
  * ember core (founder ruling 2026-07-15: the petals turn, barely), with a
  * soft white light pass traveling the epitrochoid stroke and a satellite
  * tracing the orbit. This is the hero's ONE personality touch. Reduced
@@ -35,7 +35,7 @@ export function MarkGlint({ size = 136 }: { size?: number }) {
           to { transform: rotate(360deg); }
         }
       `}</style>
-      <CadenceMark size={size} />
+      <SupaprodMark size={size} />
 
       {!reduced && (
         <svg
@@ -51,7 +51,7 @@ export function MarkGlint({ size = 136 }: { size?: number }) {
               enough to be felt rather than watched (founder 2026-07-15). */}
           <path
             id="mark-glint-path"
-            d={CADENCE_MARK_PATH}
+            d={SUPAPROD_MARK_PATH}
             pathLength={100}
             stroke="rgba(255,255,255,0.55)"
             strokeWidth={3.4}

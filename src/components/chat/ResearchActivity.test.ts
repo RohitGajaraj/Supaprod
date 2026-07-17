@@ -6,7 +6,7 @@ import {
   ResearchSummaryRow,
 } from "./ResearchActivity";
 import type { ChatMeta } from "@/components/chat/MessageMeta";
-import { ShimmerText } from "@/components/cadence/ShimmerText";
+import { ShimmerText } from "@/components/supaprod/ShimmerText";
 
 describe("ResearchActivity", () => {
   describe("parseResearchStatus", () => {

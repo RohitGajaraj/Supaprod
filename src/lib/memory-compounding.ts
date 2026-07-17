@@ -288,7 +288,7 @@ export function computeMemoryLift(
 }
 
 // ---------------------------------------------------------------------------
-// PC-16 - the weekly "what Cadence learned" digest. PURE and DB-free: the
+// PC-16 - the weekly "what Supaprod learned" digest. PURE and DB-free: the
 // caller passes the same learnings rows the Memory panel already loads
 // (newest first), and this just windows + counts them. Real rows only - an
 // empty week reads as an honest empty state, never a fabricated count.

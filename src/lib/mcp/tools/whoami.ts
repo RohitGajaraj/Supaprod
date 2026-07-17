@@ -4,7 +4,7 @@ import { z } from "zod";
 export default defineTool({
   name: "whoami",
   title: "Who am I",
-  description: "Return the connected Cadence user's id and email.",
+  description: "Return the connected Supaprod user's id and email.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: (_input, ctx) => {

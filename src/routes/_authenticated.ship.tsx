@@ -1,4 +1,4 @@
-// Ship (05) — the stage of THE CADENCE LOOP between Build and Learn (Tempo
+// Ship (05) — the stage of THE SUPAPROD LOOP between Build and Learn (Tempo
 // revamp, 2026-07-13). It was invisible before: a shipped changeset's history
 // lived buried in Memory's Docs tab, so the lifecycle appeared to jump from
 // "agents opened a PR" straight to "outcomes." Ship is now a first-class
@@ -13,8 +13,8 @@ import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MonoLabel } from "@/components/obsidian/primitives";
@@ -131,7 +131,7 @@ function ShipSurface() {
 
 export const Route = createFileRoute("/_authenticated/ship")({
   component: ShipSurface,
-  head: () => ({ meta: [{ title: "Ship · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Ship · Supaprod" }] }),
   errorComponent: ({ error }) => {
     console.error("[Ship] route crashed:", error);
     return (

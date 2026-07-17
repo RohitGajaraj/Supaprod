@@ -384,7 +384,7 @@ announcement"`) — it's persistent chrome, not a live-region interruption.
   and `notification-digest-row.tsx` at full page width (no `material-menu` wrapper needed —
   the page background already provides the surface).
 
-**Where these compose with existing Cadence code**
+**Where these compose with existing Supaprod code**
 
 - Destructive `Button` → confirming Toast is already a named cross-component contract
   (contract §7); any new destructive, undo-able action wires through
@@ -427,7 +427,7 @@ function ConnectorRow({ connector }: { connector: Connector }) {
       {connector.needsReauth && (
         <Alert variant="warning" className="text-copy-14">
           <AlertDescription>
-            Cadence lost access to <strong>{connector.name}</strong>.{" "}
+            Supaprod lost access to <strong>{connector.name}</strong>.{" "}
             <a href={connector.reauthUrl} className="text-button-14">
               Reconnect
             </a>

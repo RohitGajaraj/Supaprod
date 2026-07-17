@@ -9,8 +9,8 @@ import { useCallback, useEffect, useState } from "react";
 // Persisted device-local, under ONE global key (one signed-in user per device),
 // so the sidebar chip and the Settings picker always agree regardless of how
 // each sources the display name. `seed` is used only for the default orb.
-const STORAGE_KEY = "cadence:avatar";
-const EVENT = "cadence:avatar-changed";
+const STORAGE_KEY = "supaprod:avatar";
+const EVENT = "supaprod:avatar-changed";
 
 export function getAvatarChoice(_seed?: string): number | null {
   if (typeof window === "undefined") return null;

@@ -3,7 +3,7 @@
 // provisionRepoForSpec loads the spec, resolves GitHub auth through the SAME
 // path createRepoForProduct uses (provisionGithubRepo in
 // src/lib/connectors/product-binding.functions.ts), creates the repo in the
-// user's own account, pushes the Cadence starter template as the initial
+// user's own account, pushes the Supaprod starter template as the initial
 // commit (RepoProvider.bootstrapRepo, createRepo uses auto_init:false, so a
 // fresh repo has no branch and no commit), auto-binds the repo to the spec's
 // product when one is linked, and returns the ref. Provisioning is not a
@@ -119,7 +119,7 @@ export const provisionRepoForSpec = createServerFn({ method: "POST" })
       userId: context.userId,
       name: data.name ?? repoNameFromTitle(spec.title),
       isPrivate: true,
-      description: `Cadence build: ${spec.title}`.slice(0, 350),
+      description: `Supaprod build: ${spec.title}`.slice(0, 350),
       productId: spec.product_id,
       workspaceId: spec.workspace_id,
     });
@@ -135,7 +135,7 @@ export const provisionRepoForSpec = createServerFn({ method: "POST" })
     await provider.bootstrapRepo(
       repoRef,
       files,
-      `feat: Cadence starter - provisioned for ${spec.title}`,
+      `feat: Supaprod starter - provisioned for ${spec.title}`,
       DEFAULT_BRANCH,
     );
 

@@ -38,7 +38,7 @@
 //     §1 - the button hierarchy already bans the bare text-button; this adds
 //     the copy rule on top: "Approve the spec", not "SUBMIT").
 //   - Empty states are honest, name who acts next, and when: "Nothing needs
-//     you. Cadence's next sweep is at 2am." Never a bare "No results" or a
+//     you. Supaprod's next sweep is at 2am." Never a bare "No results" or a
 //     dead silence.
 //   - Taglines derive from the one-liner family in docs/pitch/one-pager.md -
 //     never invent a new slogan per surface.

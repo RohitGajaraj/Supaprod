@@ -1,5 +1,5 @@
 // Trace replay — screen 7 of the Ember Editorial migration, ported 1:1 from
-// design-reference/cadence/govern-detail.jsx (TraceDetail): DrillHeader with
+// design-reference/supaprod/govern-detail.jsx (TraceDetail): DrillHeader with
 // the "Trace · N hops · tokens · cost" kicker, mission title + "Open mission"
 // ghost CTA when the trace resolves to a mission, and the hop table (status
 // dot / Agent / Tool call / What happened / Dur / Tokens / Cost). Production
@@ -15,8 +15,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, FileText, Shield } from "lucide-react";
-import { TopBar } from "@/components/cadence/TopBar";
-import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { DrillHeader, MonoLabel } from "@/components/supaprod/Primitives";
 import { EvalScoreChips } from "@/components/observe/EvalScoreChips";
 import { getTrace } from "@/lib/traces.functions";
 import { relTime } from "@/components/product/format";
@@ -25,7 +25,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   component: TraceReplayPage,
-  head: () => ({ meta: [{ title: "Activity · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Activity · Supaprod" }] }),
 });
 
 type EventRow = {

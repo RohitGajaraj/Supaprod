@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/notify";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { Button } from "@/components/ui/button";
 import {
   getNotificationPreferences,
@@ -30,7 +30,7 @@ const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; d
   {
     key: "Drift",
     label: "Output Quality & Trends",
-    desc: "Alerts when Cadence's output quality changes or slips.",
+    desc: "Alerts when Supaprod's output quality changes or slips.",
   },
 ];
 

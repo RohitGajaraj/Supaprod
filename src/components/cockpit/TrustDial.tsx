@@ -23,7 +23,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronDown, ShieldCheck } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { getAllAgentTrust, setAgentArc, type AgentTrust, type Arc } from "@/lib/trust.functions";
 import {
   TRUST_LADDER_CHAIN,

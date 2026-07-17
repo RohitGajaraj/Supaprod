@@ -1,4 +1,4 @@
-// Budgets tab — ported 1:1 from design-reference/cadence/loop.jsx
+// Budgets tab — ported 1:1 from design-reference/supaprod/loop.jsx
 // (GovernScreen tab "Budgets"): 2-col bentos for Today + the current month —
 // mono label, "edit cap" blue mono toggle that becomes the inline 76px-input
 // form, serif 30 "$burn of $cap", the 5px progress bar (rose >80% else
@@ -20,7 +20,7 @@ import {
   deleteSurfaceBudget,
   acknowledgeAlert,
 } from "@/lib/budgets.functions";
-import { MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
 import { relTime, fmtUsd } from "@/components/product/format";
 
 const SURFACES = [

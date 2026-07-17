@@ -95,12 +95,12 @@ export type ProviderAvailability = Record<
     missingEnv: string[];
     githubAppConfigured?: boolean;
     gatewayConfigured?: boolean;
-    /** True when Cadence's own OAuth app (clientIdEnv + clientSecretEnv) is
+    /** True when Supaprod's own OAuth app (clientIdEnv + clientSecretEnv) is
      *  registered directly with the provider: the real "Connect" round-trip
      *  (SW-7), same shape as githubAppConfigured but for oauth_native. */
     nativeOAuthConfigured?: boolean;
     /** True when the provider's server-side env token (envFallback.tokenEnv) is
-     *  set: Cadence can already read/ingest through the workspace token even
+     *  set: Supaprod can already read/ingest through the workspace token even
      *  without a per-user OAuth grant, so the UI must show it as active, not
      *  "coming soon" (founder ruling 2026-07-06). */
     envConfigured?: boolean;
@@ -186,7 +186,7 @@ function deriveProviderAvailability(): ProviderAvailability {
         entry.gatewayConfigured = !!process.env[method.clientIdEnv] && lovableKeyPresent;
       }
       if (method.kind === "oauth_native") {
-        // Native connect needs Cadence's own OAuth app credentials, no
+        // Native connect needs Supaprod's own OAuth app credentials, no
         // Lovable dependency (SW-7).
         if (!process.env[method.clientIdEnv]) missingEnv.push(method.clientIdEnv);
         if (!process.env[method.clientSecretEnv]) missingEnv.push(method.clientSecretEnv);
@@ -197,7 +197,7 @@ function deriveProviderAvailability(): ProviderAvailability {
     // Providers with no user-facing auth method (userFacing: false infra like
     // firecrawl) report configured: false and are filtered out by the UI.
     entry.configured = spec.authMethods.length > 0 && missingEnv.length === 0;
-    // Server-side env token present: Cadence can ingest via the workspace token
+    // Server-side env token present: Supaprod can ingest via the workspace token
     // even before per-user OAuth is registered, so this is "active", not gated.
     entry.envConfigured = !!(spec.envFallback?.tokenEnv && process.env[spec.envFallback.tokenEnv]);
     availability[spec.id] = entry;
@@ -247,7 +247,7 @@ export const startGithubAppConnect = createServerFn({ method: "POST" })
   });
 
 /**
- * Kick off Cadence's own OAuth connect flow for an oauth_native provider:
+ * Kick off Supaprod's own OAuth connect flow for an oauth_native provider:
  * returns the provider's authorize URL for a FULL-PAGE redirect (same UX as
  * the GitHub App install: no popup/postMessage machinery). SW-7: this is the
  * generalized pattern every non-GitHub provider uses once its OAuth app is

@@ -1,7 +1,7 @@
 /**
  * DESIGN-TEMPO.md §8 Icon Sizing Rules
  *
- * Standardized icon sizing convention for all Cadence surfaces.
+ * Standardized icon sizing convention for all Supaprod surfaces.
  * Base: Lucide icons, consistent stroke weight by size tier.
  *
  * Usage:
@@ -43,7 +43,7 @@ export const iconStroke = {
  * Display/hero moments: >24px (size case-by-case, e.g., 48px, 64px)
  *
  * Rule: Never hardcode size={X}. Use the iconSize.* tier, pair with correct stroke.
- * Exception: Display/hero moments (CadenceMark, MarkGlint, etc.) can use custom sizes.
+ * Exception: Display/hero moments (SupaprodMark, MarkGlint, etc.) can use custom sizes.
  */
 
 export type IconSizeTier = keyof typeof iconSize;

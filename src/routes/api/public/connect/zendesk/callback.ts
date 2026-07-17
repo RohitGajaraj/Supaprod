@@ -16,7 +16,7 @@ import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
  *
  * Zendesk-specific wrinkle (see docs/ research on the provider): both the
  * authorize URL and the token URL are hosted on the customer's own
- * "{subdomain}.zendesk.com", not a fixed host. Cadence has no UI yet that
+ * "{subdomain}.zendesk.com", not a fixed host. Supaprod has no UI yet that
  * captures a per-connection subdomain before the redirect is built (that is
  * a separate, not-yet-shipped piece of work), so this callback falls back to
  * the single shared ZENDESK_SUBDOMAIN env var, the same interim, one-tenant
@@ -211,11 +211,11 @@ export const Route = createFileRoute("/api/public/connect/zendesk/callback")({
 
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Zendesk Connected - Cadence</title>
+<title>Zendesk Connected - Supaprod</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">Zendesk connected</h2>
-<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Cadence.</p>
+<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Supaprod.</p>
 <a href="${url.origin}/settings?section=connections" style="color:#f97316;font-size:.875rem">Or click here to return</a></div>
 <script>try{window.close()}catch(e){}</script>
 </body></html>`,

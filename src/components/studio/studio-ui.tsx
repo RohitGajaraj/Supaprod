@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { StatusBadge, StepDot } from "@/components/cadence/Primitives";
+import { StatusBadge, StepDot } from "@/components/supaprod/Primitives";
 import { changesetColor, changesetLabel, statusLabel } from "./studio-format";
 
 /**

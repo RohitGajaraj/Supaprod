@@ -2,8 +2,8 @@
  * SEAM-2 (mission 3.7): merge is not the end; a live URL is.
  *
  * Deploys a merged studio changeset's repo content to Deno Deploy as a real
- * running app. Scope is deliberately honest: only Cadence-managed repos
- * (cadence.json at root, the deno-starter template family) qualify, because
+ * running app. Scope is deliberately honest: only Supaprod-managed repos
+ * (supaprod.json at root, the deno-starter template family) qualify, because
  * those are the apps we KNOW are `Deno.serve` programs with a main.ts
  * entrypoint. Arbitrary customer repos keep the existing capture-only
  * deployment records.
@@ -98,18 +98,18 @@ function ghHeaders(token: string): Record<string, string> {
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "cadence-ship",
+    "User-Agent": "supaprod-ship",
   };
 }
 
-/** cadence.json at the repo root marks a Cadence-managed (template) app. */
-export async function isCadenceManaged(args: {
+/** supaprod.json at the repo root marks a Supaprod-managed (template) app. */
+export async function isSupaprodManaged(args: {
   token: string;
   repo: string;
   ref: string;
 }): Promise<boolean> {
   const res = await fetch(
-    `https://api.github.com/repos/${args.repo}/contents/cadence.json?ref=${encodeURIComponent(args.ref)}`,
+    `https://api.github.com/repos/${args.repo}/contents/supaprod.json?ref=${encodeURIComponent(args.ref)}`,
     { headers: ghHeaders(args.token) },
   );
   return res.ok;

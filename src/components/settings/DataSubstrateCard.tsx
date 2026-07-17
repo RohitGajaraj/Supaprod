@@ -50,7 +50,7 @@ export function DataSubstrateCard() {
       <div className="mt-[18px] border-t border-[var(--hairline)] pt-4">
         <div className="text-label-12-mono">Ownership</div>
         <p className="text-copy-13 mt-[6px] max-w-[520px] text-[var(--ink-muted)]">
-          This data is yours. Cadence does not train shared models on it or sell it. The full export
+          This data is yours. Supaprod does not train shared models on it or sell it. The full export
           below is the same data you own, in one file, with no lock-in.
         </p>
       </div>

@@ -4,7 +4,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 
 // Recovery-link landing on the shared dark auth scaffold (auth_surfaces pass).
 // Real flow unchanged: a valid recovery link carries a session,
@@ -18,7 +18,7 @@ import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cad
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
   component: ResetPasswordPage,
-  head: () => ({ meta: [{ title: "Reset password · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Reset password · Supaprod" }] }),
 });
 
 function ResetPasswordPage() {

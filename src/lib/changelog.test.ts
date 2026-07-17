@@ -78,11 +78,11 @@ describe("groupByProduct", () => {
 
   it("groups entries by product_name, first-seen order", () => {
     const groups = groupByProduct([
-      entry({ id: "a", product_name: "Cadence" }),
+      entry({ id: "a", product_name: "Supaprod" }),
       entry({ id: "b", product_name: "Loop" }),
-      entry({ id: "c", product_name: "Cadence" }),
+      entry({ id: "c", product_name: "Supaprod" }),
     ]);
-    expect(groups.map((g) => g.label)).toEqual(["Cadence", "Loop"]);
+    expect(groups.map((g) => g.label)).toEqual(["Supaprod", "Loop"]);
     expect(groups[0].entries.map((e) => e.id)).toEqual(["a", "c"]);
     expect(groups[1].entries.map((e) => e.id)).toEqual(["b"]);
   });

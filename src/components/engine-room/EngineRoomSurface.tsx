@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { PageHeader } from "@/components/cadence/PageHeader";
-import { PixelStat } from "@/components/cadence/PixelStat";
+import { PageHeader } from "@/components/supaprod/PageHeader";
+import { PixelStat } from "@/components/supaprod/PixelStat";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
@@ -235,7 +235,7 @@ export function EngineRoomGlance() {
               with the to-date stats below instead. */}
           {throughput.totalRuns > 0 ? (
             <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
-              Cadence ran <PixelStat value={throughput.totalRuns} tone="blue" size={16} glow />{" "}
+              Supaprod ran <PixelStat value={throughput.totalRuns} tone="blue" size={16} glow />{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
           ) : null}

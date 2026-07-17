@@ -27,12 +27,12 @@ export const ACT_VERBS: readonly ActVerb[] = [
   { label: "Challenge a belief", run: { to: "/discover", search: { tab: "opportunities" } } },
   { label: "Connect a source", run: { to: "/settings", search: { section: "connections" } } },
   { label: "Answer the waiting call", run: { to: "/today" } },
-  { label: "Ask about this screen", run: { to: "/today", event: "cadence:open-ask" } },
+  { label: "Ask about this screen", run: { to: "/today", event: "supaprod:open-ask" } },
   // PM Desk (2026-07-09): the desk tools, reachable from anywhere. Every
-  // composer opens in place via its scoped cadence:* event (the dock listens
+  // composer opens in place via its scoped supaprod:* event (the dock listens
   // globally for focus; the Desk cards consume a pending intent after the
   // /today landing) - no verb merely navigates and calls it an action.
-  { label: "Start a focus block", run: { to: "/today", event: "cadence:focus-compose" } },
+  { label: "Start a focus block", run: { to: "/today", event: "supaprod:focus-compose" } },
   { label: "Add a task", run: { to: "/today", event: TASK_COMPOSE_EVENT } },
   { label: "Capture a signal", run: { to: "/today", event: SIGNAL_COMPOSE_EVENT } },
   { label: "Share status", run: { to: "/today", event: STATUS_COMPOSE_EVENT } },

@@ -1,7 +1,7 @@
 ---
 version: 3.0 "Obsidian" (design-system lineage: v1 tokens, v2 Ember Editorial parchment, v3 Obsidian dark · distilled from the founder-approved Design Strategy DOCUMENT v4)
 created: 2026-07-02
-name: cadence-obsidian
+name: supaprod-obsidian
 status: THE design contract for the product app (supersedes the Ember Editorial
   parchment system for all authenticated surfaces; the public landing page is
   out of scope and untouched)
@@ -9,7 +9,7 @@ specimen: "Cadence Design Strategy.dc.html" (the founder-approved visual
   specimen; when in doubt about how something should look, open it)
 ---
 
-# Cadence Design v3 · "Obsidian" · Source of truth
+# Supaprod Design v3 · "Obsidian" · Source of truth
 
 Every agent (Claude Code, Lovable, Gemini, or human) building or redesigning
 ANY feature reads this file first. The strategy document (HTML specimen) shows

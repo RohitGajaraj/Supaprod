@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const DISMISSED_KEY = "cadence.coachmark.today-badge";
+const DISMISSED_KEY = "supaprod.coachmark.today-badge";
 
 function anchorRect(): DOMRect | null {
   const el =

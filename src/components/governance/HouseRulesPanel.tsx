@@ -15,7 +15,7 @@ import {
   supersedeHouseRule,
   type HouseRule,
 } from "@/lib/house-rules.functions";
-import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
 
 export function HouseRulesPanel() {
   const fList = useServerFn(listHouseRules);

@@ -35,7 +35,7 @@ describe("assembleHealth", () => {
   it("echoes the injected timestamp and a stable service id, and leaks nothing else", () => {
     const { body } = assembleHealth({ database: "error", crons: "error" }, NOW);
     expect(body.time).toBe(NOW);
-    expect(body.service).toBe("cadence");
+    expect(body.service).toBe("supaprod");
     // No message/detail/error fields that could leak internals on the public
     // endpoint. `release` is deliberate (SW-6 build stamp; already public via
     // the x-deployment-id response header).

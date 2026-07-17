@@ -3,7 +3,7 @@
 // both component files keep Vite fast-refresh (react-refresh rule: a file
 // must export only components). SourceLink stays in DecisionsPanel.
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
-import type { VerdictTone } from "@/components/cadence/Primitives";
+import type { VerdictTone } from "@/components/supaprod/Primitives";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 export const SOURCE_LABEL: Record<DecisionSource, string> = {

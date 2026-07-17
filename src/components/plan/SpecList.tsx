@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { VerdictChip, MonoLabel } from "@/components/obsidian";
-import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
 import { listSpecs, deletePrd, createGithubIssueForPrd, savePrd } from "@/lib/discovery.functions";
 import { promotePrdToTasks } from "@/lib/lineage.functions";
 import { dispatchStudioSession } from "@/lib/studio.functions";
@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { relTimeCaps } from "@/components/discover/format";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { InlineApprovalMarker } from "@/components/studio/InlineApprovalMarker";
 import { useSpecApprovals } from "@/hooks/use-mission-approvals";
 import { stateChip, citesLabel } from "./format";

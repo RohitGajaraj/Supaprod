@@ -1,5 +1,5 @@
 // Per-agent spend drill-down — screen 7 of the Ember Editorial migration,
-// ported from design-reference/cadence/govern-detail.jsx (AgentDetail). Rides
+// ported from design-reference/supaprod/govern-detail.jsx (AgentDetail). Rides
 // ?agent= on /govern?tab=analytics (tab body only — SurfaceHeader + TabRow
 // stay). All numbers are real: stats + daily sparkline come from ai_events
 // (the authoritative per-call ledger); runs / top missions / the recent-runs
@@ -12,7 +12,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
+import { DrillHeader, MonoLabel } from "@/components/supaprod/Primitives";
 import { GraphSlider } from "@/components/obsidian";
 import { getAgentAnalyticsDetail } from "@/lib/analytics.functions";
 import { relTime, fmtUsd } from "@/components/product/format";

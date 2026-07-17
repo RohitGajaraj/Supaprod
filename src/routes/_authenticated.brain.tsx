@@ -24,8 +24,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
@@ -365,7 +365,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
     };
   },
   component: MemoryPage,
-  head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Brain · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <MemorySurface>
       <div

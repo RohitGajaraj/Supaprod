@@ -9,7 +9,7 @@ Two pre-provisioned demo accounts ship with the database. Use them for YC / inve
 | 1   | `demo@redcadence.app`  | `Cadence!Demo2026` |
 | 2   | `demo2@redcadence.app` | `Cadence!Demo2026` |
 
-Sign in at [`/login`](https://supaprod.ai/login) (or the preview URL).
+Sign in at [`/login`](https://supaprod.ai/login) (or the preview URL - `supaprod.lovable.app` 302-redirects here, confirmed live 2026-07-17).
 
 > [!WARNING]
 > **`demo@redcadence.app` credit balance is not guaranteed sufficient for a full live walkthrough — check/top-up before demoing.** During this ship-week's live testing the account repeatedly hit the cost guard (balance seen as low as 2 credits against a 32-credit projected action) before a manual grant of 1,000 standing credits was applied. Separately, on 2026-07-10 the platform-wide free-tier starter grant was raised from 500 to 750 credits for NEW signups (existing accounts were trued up +250) — that platform change is unrelated to, and does not substitute for, verifying this specific demo account's live balance. Check the account's actual balance before any demo/investor walkthrough; do not assume it is sufficient.

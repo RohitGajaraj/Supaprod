@@ -1,5 +1,5 @@
 // Shared formatters for the Product surface (Ember Editorial port).
-// The reference (design-reference/cadence/loop.jsx) renders freshness as
+// The reference (design-reference/supaprod/loop.jsx) renders freshness as
 // terse relative stamps ("now" / "2h" / "1d" / "Jun 4") — derive them from
 // real timestamps; never invent.
 

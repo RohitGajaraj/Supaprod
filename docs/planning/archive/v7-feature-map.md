@@ -1,10 +1,10 @@
 > ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
 
-# v7 Feature Map: the catalog of what Cadence ships today (2026-06-14)
+# v7 Feature Map: the catalog of what Supaprod ships today (2026-06-14)
 
 > _Created: 2026-06-14 · Last updated: 2026-06-19_
 
-> **What this is.** The shipped-state catalog of Cadence: every feature we offer, organized by the six lifecycle stations (Sense, Decide, Define, Build, Ship, Learn) and by surface. Each entry carries a name, a one-line, the agent(s) and tool(s) behind it, a status (Built / Partial / Missing-Planned), and the surface or route it lives on. This is the _what we offer_ register, not behavior detail and not schema. It is code-verified against `main` at commit `f515cfb`.
+> **What this is.** The shipped-state catalog of Supaprod: every feature we offer, organized by the six lifecycle stations (Sense, Decide, Define, Build, Ship, Learn) and by surface. Each entry carries a name, a one-line, the agent(s) and tool(s) behind it, a status (Built / Partial / Missing-Planned), and the surface or route it lives on. This is the _what we offer_ register, not behavior detail and not schema. It is code-verified against `main` at commit `f515cfb`.
 >
 > **Read with.** Positioning and the honest state-of-product live in [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) (the canon). The full L0→L5 expansion superset (7 laws, 6 stations, the 19-agent mesh roadmap, handoff contract, HITL gates, milestones M1 to M5) lives in [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md). Live gaps are tracked in [`known-issues.md`](./known-issues.md); sub-feature scope in [`feature-backlog.md`](./feature-backlog.md).
 >
@@ -154,7 +154,7 @@ These are not stations. They run beneath all six, and the operator sees them on 
 
 ## 8. Two users: human surfaces and the agent-facing handoff
 
-Cadence serves two readers. Most of this catalog is the human's surface. A growing slice is for _agents_ talking to agents.
+Supaprod serves two readers. Most of this catalog is the human's surface. A growing slice is for _agents_ talking to agents.
 
 ### 8.1 Human surfaces (the seven-surface IA)
 
@@ -180,7 +180,7 @@ Plus `/chat` (Brain), `/sync` (workspace bindings), and two public surfaces: `/p
 | Tool registry              | Agentic tools agents can call, with per-tool approval modes (`auto` / `confirm` / `review`).                                  | Built           | `tools/registry.server.ts`                 |
 | Ingest webhook             | External systems push signals in with a bearer token.                                                                         | Partial (KI-09) | `/api/public/ingest-signals`               |
 | Event reactor hook         | A cron-driven endpoint that fans events out to subscribed agents.                                                             | Built           | `/api/public/hooks/event-reactor-tick`     |
-| MCP server (planned)       | Expose Cadence's tools to external agents over MCP.                                                                           | Missing-Planned | n/a                                        |
+| MCP server (planned)       | Expose Supaprod's tools to external agents over MCP.                                                                           | Missing-Planned | n/a                                        |
 | Public agent API (planned) | A stable external API for agent-to-agent and programmatic use.                                                                | Missing-Planned | n/a                                        |
 
 Today, A2A is in-process: agents hand off to each other inside a mission, not across an org boundary. The MCP server and public API are the planned external face. Until then, the only external ingress is the ingest webhook and the reactor hook.

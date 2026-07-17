@@ -23,7 +23,7 @@
 
 ## 3. The top questions (spoken answers, one breath each)
 
-**"What does Cadence do?"**
+**"What does Supaprod do?"**
 "It's Cursor for product managers. AI agents run the product lifecycle — read your customer signals, rank what's worth building, write the spec with evidence, hand the build to coding agents — and every action leaves a receipt, so you can always answer why a call was made and whether it was right."
 
 **"How many users? Revenue?"**
@@ -59,7 +59,7 @@
 "The person whose name is on the decision — a PM or founder running product on a small team, living across five tools. First beta users: [one true concrete example, e.g. 'a solo founder running two products']."
 
 **"How big can this get?"**
-"Every team that builds software decides what to build. PM tooling is ~$8B, AI dev tools passed $10B, and they're merging. If Cadence is where a product org runs, it's very large. What I can defend today: the first hundred teams."
+"Every team that builds software decides what to build. PM tooling is ~$8B, AI dev tools passed $10B, and they're merging. If Supaprod is where a product org runs, it's very large. What I can defend today: the first hundred teams."
 
 **"What would you do with the $500K?"**
 "Nothing exotic. Me full-time in SF, model costs, and the first two hires once launch proves the loop — one growth, one product engineer. It's 18+ months of runway at my burn."
@@ -77,13 +77,13 @@
 "Kraftful got absorbed by Amplitude, Cycle by Atlassian — drafting and feedback features, not the loop. ChatPRD is genuinely winning at specs and stops at the document. The failed pattern is tools that write more documents. I record decisions and outcomes instead."
 
 **"What stops OpenAI or Anthropic from doing this?"**
-"They ship capability; they've been walking away from accountability — audit trails and operator products keep getting cut. Cadence is cross-tool, permissioned, and keeps the customer's own judgment history. Every model release makes my agents better the same day, because keys are bring-your-own."
+"They ship capability; they've been walking away from accountability — audit trails and operator products keep getting cut. Supaprod is cross-tool, permissioned, and keeps the customer's own judgment history. Every model release makes my agents better the same day, because keys are bring-your-own."
 
 **"What does a run cost you? Unit economics?"**
 "[FILL from live cost tracking: average agent run ≈ $X in model spend, sold as Y credits ≈ $Z — gross margin ~N%.] Caching and model routing are already in the chokepoint, so margin improves as usage grows."
 
 **"How do you handle hallucination?"**
-"Receipts by design. Every claim links to its source signal, a critic agent argues against weak bets before commit, builds must pass gates a human controls, everything has one-key rollback — and Cadence records its own hit rate instead of hiding it. Ask any other AI tool for its miss record."
+"Receipts by design. Every claim links to its source signal, a critic agent argues against weak bets before commit, builds must pass gates a human controls, everything has one-key rollback — and Supaprod records its own hit rate instead of hiding it. Ask any other AI tool for its miss record."
 
 **"Why not charge 10x more?"**
 "Enterprises will pay 10x for the audit trail — that's the expand motion. I start where adoption needs no procurement, because I need usage and outcomes on the ledger more than I need early revenue."
@@ -100,7 +100,7 @@
    "Fair — I over-built before opening the doors. I caught it and reorganized the whole company around launch. [True state: 'It's public since [date]' / 'Beta is live and the public listing ships within days — it's written.']"
 
 2. **"Linear assigns issues to Cursor and Devin today. Why does a PM need your second system?"**
-   "Linear dispatches the build; it doesn't decide what's worth building or check whether the decision paid off. I sit above the tracker — and I dispatch to those same agents. A Linear customer is a Cadence customer, not a lost one."
+   "Linear dispatches the build; it doesn't decide what's worth building or check whether the decision paid off. I sit above the tracker — and I dispatch to those same agents. A Linear customer is a Supaprod customer, not a lost one."
 
 3. **"ChatPRD has 100k+ PMs, bootstrapped. What do you know that Claire Vo doesn't?"**
    "She proved the demand — huge respect. A PRD is where her loop ends and mine starts: the decision behind the doc, the build after it, and the outcome after that. Documents don't compound; the decision record does."
@@ -121,7 +121,7 @@
    "Then my agents get better that same day — keys are bring-your-own and every call goes through one chokepoint. The model is capability. The cross-tool permissions, the trust ramp, and your accumulated decision record are the product, and a lab won't own those."
 
 9. **"Your moat is an outcome ledger and you have zero users, so zero outcomes. Cold start?"**
-   "The ledger pays from day one — it answers 'why did we decide X' with receipts from your first week of usage. The learning loop compounds on top. And I don't ship empty: Cadence's own ledger, running Cadence, is in the product as proof."
+   "The ledger pays from day one — it answers 'why did we decide X' with receipts from your first week of usage. The learning loop compounds on top. And I don't ship empty: Supaprod's own ledger, running Supaprod, is in the product as proof."
 
 10. **"45 days building alone. Why couldn't you convince one engineer to join you?"**
     "I didn't ask anyone to quit for a pitch. I built the proof first — that's how I've made every move in my career. Recruiting on a working product with users is a different conversation, and I'm having it from a position of strength now."
@@ -130,7 +130,7 @@
     "Nothing. [TRUE status: passport valid, visa plan — CONFIRM before interview.] I'm relocating for the batch and basing the company in SF. My answer was the same in the application; it hasn't wavered."
 
 12. **"What exact number do you show at Demo Day in December?"**
-    "[X] teams running their product on Cadence weekly, [Y]% week-2 return, and the first paying workspaces. Those are the three numbers on my wall."
+    "[X] teams running their product on Supaprod weekly, [Y]% week-2 return, and the first paying workspaces. Those are the three numbers on my wall."
 
 ## 5. Between application and interview (the slope play)
 
@@ -139,7 +139,7 @@ YC's guide: "the best way to get an edge is to work hard and have your startup i
 ## 6. The 90-second screen-share path (rehearse until boring)
 
 1. **Today view** — "This is my morning: the fleet worked overnight; these are the calls waiting for me." (10s)
-2. **The wedge** — ask "why did we decide [X]?" → the answer with receipts. "This is the question every PM gets asked and can't answer. Cadence answers it in seconds." (25s)
+2. **The wedge** — ask "why did we decide [X]?" → the answer with receipts. "This is the question every PM gets asked and can't answer. Supaprod answers it in seconds." (25s)
 3. **A decision** — open the top call, show the critic's argument and evidence, approve it. "Recorded, with what I saw when I decided." (25s)
 4. **Build + the gate** — the spec becomes tasks, a real PR opens. "No agent can merge — that's a hard floor." (15s)
 5. **The miss** — show the outcome check on a past decision that was wrong + one-key rollback. "It keeps score on itself. That's the whole company in one screen." (15s)

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, ExternalLink, Radio } from "lucide-react";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { Button, MonoLabel } from "@/components/obsidian";
 import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";

@@ -3,7 +3,7 @@ import { VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
 import { relTimeCaps } from "@/components/discover/format";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {

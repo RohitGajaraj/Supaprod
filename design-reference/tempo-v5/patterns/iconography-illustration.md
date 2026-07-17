@@ -1,6 +1,6 @@
 # Iconography & illustration (identity layer)
 
-> The layer that makes a screen unmistakably Cadence without adding a single pixel of
+> The layer that makes a screen unmistakably Supaprod without adding a single pixel of
 > decoration: a disciplined lucide icon system, a grid-born geometric illustration
 > recipe, the pixel monogram and wordmark, and a short, capped catalog of personality
 > touches. Every part of this pattern is restraint expressed as a recipe, not a license
@@ -74,7 +74,7 @@ No other color appears in a grid-born composition.
 ┌ clear space = monogram's own width (w), on all four sides ─────────────┐
 │  w                                                                w    │
 │ ┌───┐                                                                 │
-│w│ C │  Cadence            ← horizontal lockup: monogram + wordmark    │
+│w│ C │  Supaprod            ← horizontal lockup: monogram + wordmark    │
 │ └───┘  (Geist Sans 600, tight tracking)                               │
 │  w                                                                w    │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -85,7 +85,7 @@ No other color appears in a grid-born composition.
 ```
 
 The monogram is a single Geist Pixel Square glyph rendered as a fixed square. The
-wordmark is the literal word "Cadence" set in Geist Sans 600 with tight tracking (the
+wordmark is the literal word "Supaprod" set in Geist Sans 600 with tight tracking (the
 same tracking curve the heading classes use at that size — see Tokens). Clear space
 around either the monogram alone or the full lockup equals the monogram's own width on
 every side; nothing (a border, another control, page padding that reads as tighter than
@@ -189,7 +189,7 @@ Pixel numeral        Ember completion glow       Springy palette settle
   `role="presentation"`); the real content a screen reader announces is the empty
   state's own `title`/`description` text sitting beside it, per `empty-state.md`.
 - Monogram/wordmark: when it functions as a home link, the link carries an `aria-label`
-  of `"Cadence, go to home"` (or equivalent) rather than relying on the pixel glyph's
+  of `"Supaprod, go to home"` (or equivalent) rather than relying on the pixel glyph's
   shape, since a pixel-rendered "C" is not reliably announced as a letter by every
   screen reader.
 - A pixel numeral used as a personality touch is still real text content (the actual
@@ -295,7 +295,7 @@ Pixel numeral        Ember completion glow       Springy palette settle
 - **shadcn/ui structure**: this repo has no icon/logo/illustration primitives yet
   (`src/components/ui/` currently has no `icon.tsx`; the only existing brand-mark
   component is `src/components/connections/ProviderLogo.tsx`, which is a third-party
-  connector logo, not the Cadence identity itself). Add:
+  connector logo, not the Supaprod identity itself). Add:
   - `src/components/ui/icon.tsx` — a thin wrapper around a passed-in `lucide-react`
     component that pins `size` (16 default, 20 via a `size="header"` prop) and
     `strokeWidth={1.5}` so no call site can drift from the spec by passing raw props to
@@ -305,7 +305,7 @@ Pixel numeral        Ember completion glow       Springy palette settle
   - `src/components/brand/monogram.tsx` — the Geist Pixel Square "C" glyph, a fixed
     square box, accepting only a `size` prop; no color prop beyond the sanctioned
     gray-1000/ember pair.
-  - `src/components/brand/wordmark.tsx` — the "Cadence" text mark in `--font-sans` 600,
+  - `src/components/brand/wordmark.tsx` — the "Supaprod" text mark in `--font-sans` 600,
     tight tracking; accepts no color override beyond the same pair.
   - `src/components/brand/logo-lockup.tsx` — composes `Monogram` + `Wordmark` with the
     clear-space rule baked in as padding equal to the monogram's own rendered width, plus
@@ -329,7 +329,7 @@ Pixel numeral        Ember completion glow       Springy palette settle
   `command.tsx`'s `CommandDialog`). Confirm the surface actually rides one of those
   materials rather than a hand-rolled transition before counting it as this pattern's
   personality touch.
-- **Composition with existing Cadence code**: `EmptyState`/`EmptyStateIcon` usage stays
+- **Composition with existing Supaprod code**: `EmptyState`/`EmptyStateIcon` usage stays
   exactly as documented in `empty-state.md` for the plain icon-in-chip case; reach for
   `GridIllustration` only when a first-run or celebratory empty state has earned the
   extra presence, and never both an `EmptyStateIcon` and a `GridIllustration` in the same
@@ -385,7 +385,7 @@ import { LogoLockup } from "@/components/brand/logo-lockup";
 
 <LogoLockup
   variant={isCollapsedOrMobile ? "monogram-only" : "horizontal"}
-  aria-label="Cadence, go to home"
+  aria-label="Supaprod, go to home"
   asChild
 >
   <Link to="/today" />

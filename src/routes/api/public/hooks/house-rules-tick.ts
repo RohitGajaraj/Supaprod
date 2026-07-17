@@ -191,9 +191,9 @@ async function distillWorkspace(
     const screened = assessAndQuarantine(d.rule_text.trim());
     const flagNote =
       screened.verdict.decision === "quarantine"
-        ? "[Cadence flagged this draft: possible prompt-injection pattern, original text withheld] "
+        ? "[Supaprod flagged this draft: possible prompt-injection pattern, original text withheld] "
         : screened.verdict.decision === "flag"
-          ? "[Cadence flagged this draft for review: possible prompt-injection language] "
+          ? "[Supaprod flagged this draft for review: possible prompt-injection language] "
           : "";
 
     const { error } = await db.from("house_rules").insert({

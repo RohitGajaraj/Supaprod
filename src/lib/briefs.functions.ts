@@ -301,7 +301,7 @@ export const retireBriefItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const EXTRACT_BRIEF_ASSUMPTION_SYSTEM = `You are the Cadence strategy analyst. Given a strategic brief item's title and body, extract the standing assumptions it depends on.
+const EXTRACT_BRIEF_ASSUMPTION_SYSTEM = `You are the Supaprod strategy analyst. Given a strategic brief item's title and body, extract the standing assumptions it depends on.
 Rules:
 - Each assumption is a single falsifiable statement about the world that, if it stopped being true, would call this item into question.
 - Extract at most 3, most load-bearing first.

@@ -63,8 +63,8 @@ type FlowContextValue = {
   resumeSound: () => void;
 };
 
-const CONFIG_KEY = "cadence.flow.config";
-const SESSION_KEY = "cadence.flow.session";
+const CONFIG_KEY = "supaprod.flow.config";
+const SESSION_KEY = "supaprod.flow.session";
 
 // Sound defaults OFF (founder correction, 2026-07-09): starting a block must
 // never surprise a PM in a professional setting with ambient audio. Sound is
@@ -155,7 +155,7 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     setConfigState(readConfig());
     // The pre-Desk strip timer is retired; clear its stray key once.
     try {
-      window.localStorage.removeItem("cadence.focus.timer");
+      window.localStorage.removeItem("supaprod.focus.timer");
     } catch {
       /* noop */
     }
@@ -374,7 +374,7 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
         }
         // The countdown rides the tab title so a block stays visible from any
         // tab; navigation may rewrite it, the next tick reclaims it.
-        document.title = `${formatRemaining(left)} · ${intentRef.current ?? "Focus"} · Cadence`;
+        document.title = `${formatRemaining(left)} · ${intentRef.current ?? "Focus"} · Supaprod`;
         if (left !== null && left <= 0) {
           if (configRef.current.preset !== "off") playChime();
           exitRef.current("completed");

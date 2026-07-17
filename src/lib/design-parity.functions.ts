@@ -12,7 +12,7 @@
  *
  * Deliberately "lightweight": this checks the changeset's own recorded
  * title/summary text for the tokens/flow-state vocabulary it was given, not
- * a full PR diff (BuildDriver, the seam that would let Cadence fetch and
+ * a full PR diff (BuildDriver, the seam that would let Supaprod fetch and
  * grade a diff against the design contract mechanically, does not exist in
  * code yet — see docs/strategy/build-driver-and-dispatch.md). A real, honest
  * signal today; a deeper check is BuildDriver's job later.

@@ -16,7 +16,7 @@ import type {
   WatchItem,
 } from "@/lib/today-lanes.functions";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 
 function fmtUsd(n: number): string {
   if (n <= 0) return "$0";
@@ -185,7 +185,7 @@ export function SwarmActivityLane({
 }) {
   return (
     <LaneSection
-      title="What Cadence did"
+      title="What Supaprod did"
       hint={
         lane.total_cost_usd > 0
           ? `${fmtUsd(lane.total_cost_usd)} in the last 24h`

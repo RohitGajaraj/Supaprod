@@ -4,7 +4,7 @@ import { useState } from "react";
 import { getBillingState } from "@/lib/billing.functions";
 import { FREE_MEMORY_RETENTION_DAYS } from "@/lib/entitlements";
 
-const DISMISS_KEY = "cadence:memory-nudge-until";
+const DISMISS_KEY = "supaprod:memory-nudge-until";
 const SNOOZE_MS = 14 * 86_400_000; // re-surface after two weeks, never nag
 
 /**

@@ -15,8 +15,8 @@ function memStorage(): Storage {
 
 describe("notepadKey", () => {
   test("scopes by workspace id, falls back to a stable default", () => {
-    expect(notepadKey("ws-1")).toBe("cadence.notepad.ws-1");
-    expect(notepadKey(null)).toBe("cadence.notepad.default");
+    expect(notepadKey("ws-1")).toBe("supaprod.notepad.ws-1");
+    expect(notepadKey(null)).toBe("supaprod.notepad.default");
   });
 });
 
@@ -47,7 +47,7 @@ describe("readNotepad / writeNotepad", () => {
   test("null storage and malformed JSON degrade to empty, never throw", () => {
     expect(readNotepad(null, "ws-1")).toEqual({ text: "", updatedAt: 0 });
     const s = memStorage();
-    s.setItem("cadence.notepad.ws-1", "not json");
+    s.setItem("supaprod.notepad.ws-1", "not json");
     expect(readNotepad(s, "ws-1")).toEqual({ text: "", updatedAt: 0 });
   });
 });

@@ -3,7 +3,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 
 // FS-01: calibrate-tick. Scores expired prediction/risk claims Brier-style
 // against what actually happened, throttles a kind that keeps missing, and
-// makes the resulting hit rate readable ("Cadence called 7 of the last 9").
+// makes the resulting hit rate readable ("Supaprod called 7 of the last 9").
 
 const MODEL = "google/gemini-2.5-flash" as const;
 const CALIBRATE_BATCH = 10;
@@ -15,7 +15,7 @@ const ROLLING_WINDOW = 10;
 export type CalibrationOutcome = "hit" | "miss" | "inconclusive";
 export type CalibrationKind = "prediction" | "risk";
 
-const CALIBRATE_SYSTEM = `You are the Cadence forecast auditor. You are given a claim made in the past and what is known now. Judge honestly whether the claim came true.
+const CALIBRATE_SYSTEM = `You are the Supaprod forecast auditor. You are given a claim made in the past and what is known now. Judge honestly whether the claim came true.
 Rules:
 - Signal-first: state the verdict, then the one fact that decided it.
 - Short: rationale max 2 sentences.
@@ -107,7 +107,7 @@ export function summarizeResolutions(
   const hitRate = resolved > 0 ? hits / resolved : null;
   const recentLabel =
     resolved > 0
-      ? `Cadence called ${hits} of the last ${resolved}`
+      ? `Supaprod called ${hits} of the last ${resolved}`
       : "Not enough resolved calls yet";
   return { kind, resolved, hits, hitRate, recentLabel };
 }

@@ -10,7 +10,7 @@
 // for components, shared identically by the Desk's NotepadCard and the
 // FocusDock's Note tab so the two are always the same note, not two notes.
 
-const KEY_PREFIX = "cadence.notepad";
+const KEY_PREFIX = "supaprod.notepad";
 const DEBOUNCE_MS = 400;
 
 // Two surfaces write the same note (the Desk's NotepadCard and the
@@ -20,7 +20,7 @@ const DEBOUNCE_MS = 400;
 // call dispatches this so any mounted consumer can re-read on a genuine
 // external change. Same-tab only (the native `storage` event never fires for
 // the tab that made the write); cross-tab sync remains a follow-up.
-export const NOTEPAD_CHANGE_EVENT = "cadence:notepad-change";
+export const NOTEPAD_CHANGE_EVENT = "supaprod:notepad-change";
 
 export function notepadKey(workspaceId: string | null): string {
   return workspaceId ? `${KEY_PREFIX}.${workspaceId}` : `${KEY_PREFIX}.default`;

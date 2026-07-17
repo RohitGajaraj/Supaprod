@@ -111,7 +111,7 @@ export function Component(): JSX.Element {
 }
 ```
 
-Note: every example data set is styled as a Vercel-platform-flavored payload (deployment/trace/request objects with ids like `dpl_...`, `span_...`, `req_...`) — a deliberate documentation convention worth mirroring in our own examples (use Cadence-flavored ids instead, e.g. `mission_...`, `agent_...`).
+Note: every example data set is styled as a Vercel-platform-flavored payload (deployment/trace/request objects with ids like `dpl_...`, `span_...`, `req_...`) — a deliberate documentation convention worth mirroring in our own examples (use Supaprod-flavored ids instead, e.g. `mission_...`, `agent_...`).
 
 ## Best practices (paraphrased)
 

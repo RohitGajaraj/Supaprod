@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-11 · Last updated: 2026-06-19_
 
-> **What this is.** The canonical, stress-tested feature scope for Cadence (interim name, see [`../decisions/naming.md`](../decisions/naming.md)): every lifecycle station, every agent, every handoff, every human gate, decomposed L0→L5 and sequenced into milestones. **This supersedes [`v3-positioning-cadence.md`](./v3-positioning-cadence.md) for feature scope and IA.** Personas and the closed-loop metaphor from v3 remain valid.
+> **What this is.** The canonical, stress-tested feature scope for Supaprod (interim name, see [`../decisions/naming.md`](../decisions/naming.md)): every lifecycle station, every agent, every handoff, every human gate, decomposed L0→L5 and sequenced into milestones. **This supersedes [`v3-positioning-cadence.md`](./v3-positioning-cadence.md) for feature scope and IA.** Personas and the closed-loop metaphor from v3 remain valid.
 >
 > **Who reads this.** Any human or AI session (Claude Code / Lovable / Antigravity) before building any feature. Build order lives in [`../../plan.md`](../../plan.md) §3; ticket-level F-IDs in [`../planning/feature-backlog.md`](../planning/feature-backlog.md); why this map exists in [`v4-stress-test.md`](./v4-stress-test.md); market evidence in [`../references/competitive-landscape.md`](../references/competitive-landscape.md).
 >
@@ -257,7 +257,7 @@ ENG-08 roles + persona approval lanes; DEF-04/05 design scaffolds + handoff; BLD
 
 ### M4: The Org Runs Itself
 
-Portfolio view, budgets enforcement UX, ENG-07 MCP server/client + A2A delegate-out (BLD-04), LRN-05 skill packs, ENG-09 enterprise plane, LCH-03 pricing briefs. **Proof: an external agent completes a Cadence mission step under our governance, fully traced.**
+Portfolio view, budgets enforcement UX, ENG-07 MCP server/client + A2A delegate-out (BLD-04), LRN-05 skill packs, ENG-09 enterprise plane, LCH-03 pricing briefs. **Proof: an external agent completes a Supaprod mission step under our governance, fully traced.**
 
 ### M5: Compounding
 

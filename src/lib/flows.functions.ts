@@ -101,7 +101,7 @@ export function parseGeneratedFlow(raw: unknown): { steps: FlowStep[]; edges: Fl
   return { steps, edges };
 }
 
-const GENERATE_FLOW_SYSTEM = `You are the Cadence flow analyst. Given a PRD's title and body, extract the user flow it implies: the steps, decision points, and states a user moves through.
+const GENERATE_FLOW_SYSTEM = `You are the Supaprod flow analyst. Given a PRD's title and body, extract the user flow it implies: the steps, decision points, and states a user moves through.
 Rules:
 - 4 to ${MAX_STEPS} nodes. Each node has a short label (under 60 chars) and a kind: "step" (an action the user takes), "decision" (a branch point), or "state" (an end state or a waiting state).
 - Edges connect node ids in the order the flow happens. A "decision" node can have 2 or more outgoing edges, each with a short label naming the branch (e.g. "approved", "rejected").

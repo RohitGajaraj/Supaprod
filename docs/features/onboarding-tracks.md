@@ -24,7 +24,7 @@ The cold-start problem: a brand-new workspace has nothing to prioritize, so the 
 1. Sign in as a fresh (not-yet-onboarded) account; the gate routes to `/onboarding`.
 2. **Basic details**: enter first/last name + role (a Google signup arrives prefilled), click "Continue · setup begins".
 3. On "Pick your path", choose **Solo PM**. A toast confirms "Track selected"; the flow advances to step 2.
-4. Step 2 "Where should Cadence listen?": leave connectors empty, click "Skip for now".
+4. Step 2 "Where should Supaprod listen?": leave connectors empty, click "Skip for now".
 5. Step 3 "Meet your staff": toggle one specialist off and on (it now persists; see the fix note below), then Continue.
 6. Step 4 "Hand them a first goal": the seeded themes appear as goal candidates. Pick one (or type your own), click Finish.
 7. Land on Today; the seeded signals and opportunities are present and the WEDGE cold-start card has a real idea to tear down.

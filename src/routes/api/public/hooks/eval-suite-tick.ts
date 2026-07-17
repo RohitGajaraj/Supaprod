@@ -6,7 +6,7 @@ import { withJobRun } from "@/lib/observability";
 
 /**
  * Scheduled eval-suite runner. Picks up enabled suites whose `schedule_cron`
- * is set and whose `last_run_at` is older than the cadence floor (1h grace),
+ * is set and whose `last_run_at` is older than the supaprod floor (1h grace),
  * then runs them with the user's stored configuration.
  *
  * NOTE: This uses supabaseAdmin and intentionally iterates per-user; RLS does

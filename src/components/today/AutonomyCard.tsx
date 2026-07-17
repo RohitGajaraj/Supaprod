@@ -13,7 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Gauge, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { getAutonomyRatio } from "@/lib/gauntlet.functions";
 import type { Trend } from "@/lib/gauntlet-metrics";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import {
   AUTONOMY_STAGES,
   autonomyStage,

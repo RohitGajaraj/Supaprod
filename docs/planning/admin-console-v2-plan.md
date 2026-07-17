@@ -139,7 +139,7 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
 
 ### 4.3 Top-of-tab outcome statements (one line each, calm front)
 
-- People: "Manage who can use Cadence, grant credits, and run promo campaigns."
+- People: "Manage who can use Supaprod, grant credits, and run promo campaigns."
 - Workspaces: "Inspect tenants, adjust plans, and move ownership."
 - Platform: "Pull kill switches, post banners, and read the admin audit trail."
 

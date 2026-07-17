@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { SpotlightCard } from "@/components/obsidian/spotlight";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBrainInsights,
@@ -177,7 +177,7 @@ export function InsightsPanel() {
           and glow-lit so it reads as "notice this" — not a competing wall of
           insight blocks (Loom §0.1 prominence + rethink-don't-just-delete). */}
       {qa.data && !qa.data.sparse && qa.data.signals.length > 0 ? (
-        <SpotlightCard kicker="What Cadence is seeing" tone="neutral">
+        <SpotlightCard kicker="What Supaprod is seeing" tone="neutral">
           <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
             {qa.data.signals.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
@@ -242,7 +242,7 @@ export function InsightsPanel() {
           </p>
         </div>
         <div className="bento" style={{ padding: 16 }}>
-          <MonoLabel style={{ marginBottom: 12 }}>What Cadence has learned</MonoLabel>
+          <MonoLabel style={{ marginBottom: 12 }}>What Supaprod has learned</MonoLabel>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
             <Stat
               value={d.learned.hitRate === null ? "-" : `${d.learned.hitRate}%`}

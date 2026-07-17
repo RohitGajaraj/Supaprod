@@ -3,7 +3,7 @@
 // here, so the promote hand-off token (?tab=queue) keeps working everywhere.
 import { createFileRoute } from "@tanstack/react-router";
 import { MonoLabel } from "@/components/obsidian";
-import { TopBar } from "@/components/cadence/TopBar";
+import { TopBar } from "@/components/supaprod/TopBar";
 import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
 
 export type DiscoverTab = "signals" | "queue";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/discover")({
           : undefined,
   }),
   component: DiscoverSurface,
-  head: () => ({ meta: [{ title: "Discover · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Discover · Supaprod" }] }),
   errorComponent: () => (
     <>
       <TopBar crumbs={["Workspace", "Discover"]} />

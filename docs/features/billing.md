@@ -21,7 +21,7 @@
 
 ## What it does
 
-The end-to-end Stripe subscription + portal rail for Cadence. Tiers are feature gates; the headline price is driven by a per-tier credit-bundle dropdown (Lovable-style). Top-ups live on a separate `/settings/credits` page (Anthropic-style isolation, not the Plan tab). Admin pricing is editable from `/admin/pricing` (inbuilt console; no separate portal).
+The end-to-end Stripe subscription + portal rail for Supaprod. Tiers are feature gates; the headline price is driven by a per-tier credit-bundle dropdown (Lovable-style). Top-ups live on a separate `/settings/credits` page (Anthropic-style isolation, not the Plan tab). Admin pricing is editable from `/admin/pricing` (inbuilt console; no separate portal).
 
 ## Tier shape (placeholder prices, edit from the admin console)
 

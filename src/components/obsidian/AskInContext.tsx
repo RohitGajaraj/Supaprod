@@ -87,8 +87,8 @@ export function AskInContext({ stationOrKind, targetId, targetTitle }: AskInCont
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`Ask Cadence to ${verb.toLowerCase()}`}
-          title={`Ask Cadence to ${verb.toLowerCase()}`}
+          aria-label={`Ask Supaprod to ${verb.toLowerCase()}`}
+          title={`Ask Supaprod to ${verb.toLowerCase()}`}
           disabled={dispatch.isPending}
           onClick={(event) => event.stopPropagation()}
           className="loom-press"

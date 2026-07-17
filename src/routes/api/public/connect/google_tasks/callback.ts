@@ -10,7 +10,7 @@ import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
  * 2026-07-10 alongside google_calendar/gmail - byte-for-byte the same shape
  * (state validated before any DB write, token vaulted, upsert on
  * (user_id, provider, product, account_email)), just product: "tasks"
- * instead of "calendar"/"mail". What Cadence does with a connected Tasks
+ * instead of "calendar"/"mail". What Supaprod does with a connected Tasks
  * account is not yet built (registry.ts google_tasks entry) - this callback
  * only proves the OAuth round-trip and stores a real, working credential.
  */
@@ -174,11 +174,11 @@ export const Route = createFileRoute("/api/public/connect/google_tasks/callback"
 
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Google Tasks Connected - Cadence</title>
+<title>Google Tasks Connected - Supaprod</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">Google Tasks connected</h2>
-<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Cadence.</p>
+<p style="color:#a1a1aa;margin-bottom:1.5rem">You can close this tab and return to Supaprod.</p>
 <a href="${url.origin}/settings?section=connections" style="color:#f97316;font-size:.875rem">Or click here to return</a></div>
 <script>try{window.close()}catch(e){}</script>
 </body></html>`,

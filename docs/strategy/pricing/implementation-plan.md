@@ -12,7 +12,7 @@
 
 To have another agent build this without you re-explaining anything, give it a prompt like:
 
-> _"Build the Cadence pricing architecture. The finalized design is `docs/strategy/pricing/pricing-architecture.md` (read it + `credit-model-and-byok-research.md` for the WHY — do NOT change the design, it's finalized). The per-task build plan is `docs/strategy/pricing/implementation-plan.md` — work the tasks in the build order (PR-A1 first). For each task: implement it, gate it (tsc + build + tests), commit with a WHY, and push. The exact numbers (prices, allowances, the BYOK %) are config I set in Stripe/admin — leave TODOs, don't block on them. Claim each task on the feature dashboard (group G-PRICE) before starting so parallel lanes don't collide."_
+> _"Build the Supaprod pricing architecture. The finalized design is `docs/strategy/pricing/pricing-architecture.md` (read it + `credit-model-and-byok-research.md` for the WHY — do NOT change the design, it's finalized). The per-task build plan is `docs/strategy/pricing/implementation-plan.md` — work the tasks in the build order (PR-A1 first). For each task: implement it, gate it (tsc + build + tests), commit with a WHY, and push. The exact numbers (prices, allowances, the BYOK %) are config I set in Stripe/admin — leave TODOs, don't block on them. Claim each task on the feature dashboard (group G-PRICE) before starting so parallel lanes don't collide."_
 
 The agent has everything it needs from those two files: **what** to build (the task cards), **why** (the reasoning chain in the architecture doc), and the **order**. The tasks are self-contained (each lists its `touches`/`depends`), so an agent can pick up any unblocked task cold. See the `G-PRICE` rows in [`../../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) once greenlit — those are the claimable units.
 
@@ -35,7 +35,7 @@ Turn the finalized architecture into product: **seats-free credits** metered **o
 ### PR-A2 — The free-vs-charged surface map
 
 - **What:** classify every `CallSurface` as CHARGED (agent, studio/Build, chat, copilot, prd, discovery, brief, decision, sense) or FREE (eval, judge/Critic, self-improve, guardrails, injection screening, embed, scheduler, test), enforced at the chokepoint.
-- **Why:** "pay for output you keep; Cadence pays to keep it honest." Charging for the verification layer would suppress the moat (pricing-architecture §4 map).
+- **Why:** "pay for output you keep; Supaprod pays to keep it honest." Charging for the verification layer would suppress the moat (pricing-architecture §4 map).
 - **Includes:** a `chargeable: boolean` (or surface→policy map) consulted by the debit path; FREE surfaces never debit; `sense` is CHARGED-but-GOVERNED (see PR-D2).
 - **Touches:** `src/lib/ai/runtime.server.ts` (the `CallSurface` chokepoint), `credits.functions.ts`.
 - **Depends:** PR-A1.
@@ -62,7 +62,7 @@ Turn the finalized architecture into product: **seats-free credits** metered **o
 
 ### PR-B1 — Platform-managed routing is the default for all tiers
 
-- **What:** confirm/ensure all charged surfaces route through Cadence's managed models via the cost-router (cheap flash for routine/verification, frontier for hard reasoning); the customer never sees a model price.
+- **What:** confirm/ensure all charged surfaces route through Supaprod's managed models via the cost-router (cheap flash for routine/verification, frontier for hard reasoning); the customer never sees a model price.
 - **Why:** Perplexity-style abstraction; the value is the decision engine, not raw model access (pricing-architecture §3). Cheap ≈ free, frontier costs more (credits-school).
 - **Includes:** the existing `COST_ROUTABLE_SURFACES` + `runtime.server.ts` routing is the base; ensure every charged surface has a routing policy; frontier calls cost proportionally more credits.
 - **Touches:** `src/lib/ai/runtime.server.ts`, the routing/cost tables.
@@ -82,9 +82,9 @@ Turn the finalized architecture into product: **seats-free credits** metered **o
 
 ### PR-C1 — Enterprise BYOK connect + governed routing
 
-- **What:** an enterprise admin binds their own provider (Anthropic key / Azure OpenAI / Bedrock / private OpenAI-compatible endpoint / fine-tuned model) at workspace/org level; the chokepoint routes eligible surfaces to it; moat surfaces (decision/Critic/eval/self-improve) stay on Cadence's models unless explicitly approved-model-listed.
+- **What:** an enterprise admin binds their own provider (Anthropic key / Azure OpenAI / Bedrock / private OpenAI-compatible endpoint / fine-tuned model) at workspace/org level; the chokepoint routes eligible surfaces to it; moat surfaces (decision/Critic/eval/self-improve) stay on Supaprod's models unless explicitly approved-model-listed.
 - **Why:** compliance / data residency / private models — the only real reasons for BYOK (pricing-architecture §5). The seam already exists (`resolveProviderAuth`).
-- **Includes:** enterprise-tier gating; encrypted key vault (existing AES-256-GCM); every BYOK call still flows through Cadence (guardrails, injection screen, Trust Ledger, caps, audit all still apply).
+- **Includes:** enterprise-tier gating; encrypted key vault (existing AES-256-GCM); every BYOK call still flows through Supaprod (guardrails, injection screen, Trust Ledger, caps, audit all still apply).
 - **Touches:** `src/lib/connectors/` (`resolveProviderAuth`), `runtime.server.ts`, `entitlements.ts` (enterprise gate).
 - **Depends:** PR-B1.
 

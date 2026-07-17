@@ -29,7 +29,7 @@ export function SkillsFileExportCard() {
     try {
       const { markdown, counts } = await fExport();
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadMarkdown(`cadence-agent-context-${stamp}.md`, markdown);
+      downloadMarkdown(`supaprod-agent-context-${stamp}.md`, markdown);
       toast.success(
         `Exported ${counts.decisions} decisions, ${counts.outcomes} outcomes, ${counts.houseRules} house rules`,
       );
@@ -49,7 +49,7 @@ export function SkillsFileExportCard() {
       >
         Your decisions, outcomes, and standing rules as one markdown file - mountable into Claude
         Code, Codex, or any AI coding fleet as project context, so your other tools inherit what
-        Cadence already knows. Regenerate any time; the ledger is always the source of truth.
+        Supaprod already knows. Regenerate any time; the ledger is always the source of truth.
       </p>
       <Button
         variant="ghost"

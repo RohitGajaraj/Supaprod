@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { AgentRelay } from "@/components/agents/AgentRelay";
@@ -39,12 +39,12 @@ export type PlanView = (typeof PLAN_VIEWS)[number];
 const SECTION_META: Record<PlanView, { label: string; sub: string; collapsible: boolean }> = {
   goals: {
     label: "Goals",
-    sub: "Standing outcomes Cadence keeps working",
+    sub: "Standing outcomes Supaprod keeps working",
     collapsible: true,
   },
   loops: {
     label: "Recurring missions",
-    sub: "Missions Cadence re-runs on a schedule, every run logged with its cost",
+    sub: "Missions Supaprod re-runs on a schedule, every run logged with its cost",
     collapsible: true,
   },
   roadmap: {

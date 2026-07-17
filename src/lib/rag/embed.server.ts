@@ -1,7 +1,7 @@
 /**
  * Embeddings chokepoint (EMBED-CHOKEPOINT).
  *
- * Every vector in Cadence is produced HERE, so embeddings get the same governance treatment as
+ * Every vector in Supaprod is produced HERE, so embeddings get the same governance treatment as
  * completions instead of calling the gateway directly with no oversight: a cost estimate, an
  * `ai_events` telemetry row, and BYO-key routing. It reuses the SAME shared primitives the
  * completion chokepoint (`ai/runtime.server.ts`) uses — `estimateCostUsd` (pricing.ts), `loadBYOKey`

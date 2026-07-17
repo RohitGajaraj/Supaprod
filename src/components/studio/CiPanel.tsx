@@ -7,9 +7,9 @@ import {
   type StudioChangesetSummary,
   type StudioCi,
 } from "@/lib/studio.functions";
-import { MonoLabel, StatusBadge, StepDot, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, StatusBadge, StepDot, VerdictChip } from "@/components/supaprod/Primitives";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
-import { EmptyState } from "@/components/cadence/EmptyState";
+import { EmptyState } from "@/components/supaprod/EmptyState";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 
 /** Per-check StepDot vocabulary — live = running, outcomes = moss/madder. */

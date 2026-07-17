@@ -1,5 +1,5 @@
 // FlashlightTabs: the Rauno flashlight-tabs pattern (rauno.me/craft/flashlight-tabs),
-// the STANDARD tab bar across Cadence (DESIGN-LOOM Interaction-Feel Law).
+// the STANDARD tab bar across Supaprod (DESIGN-LOOM Interaction-Feel Law).
 // A soft ember "flashlight" glow tracks the pointer across the row, and a
 // sliding ember indicator marks the active tab. UI voice (never mono-caps),
 // fires a light interaction-feedback tick on select. Reduced motion is handled

@@ -6,7 +6,7 @@
 
 ## Why this exists
 
-Cadence agents reason over workspace data by default. The moment a mission needs the outside world ("scout how Linear's AI triage is positioned and give me a non-reactive one-pager"), an agent with no web tool either hallucinates or stops short. That breaks the "agents _do_, humans govern" promise. Web access closes the loop.
+Supaprod agents reason over workspace data by default. The moment a mission needs the outside world ("scout how Linear's AI triage is positioned and give me a non-reactive one-pager"), an agent with no web tool either hallucinates or stops short. That breaks the "agents _do_, humans govern" promise. Web access closes the loop.
 
 ## The four tools
 

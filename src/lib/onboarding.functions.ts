@@ -450,7 +450,7 @@ export const seedWorkspaceFromContext = createServerFn({ method: "POST" })
       throw new Error("Workspace already seeded. Reset in Settings to re-seed.");
     }
 
-    const system = `You are the Cadence Onboarding Concierge. Generate a personalized product workspace seed from the user's real context.
+    const system = `You are the Supaprod Onboarding Concierge. Generate a personalized product workspace seed from the user's real context.
 
 Return JSON matching this exact schema (no markdown fences, no prose outside JSON):
 {

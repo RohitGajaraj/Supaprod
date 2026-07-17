@@ -27,7 +27,7 @@ export function FocusNext({
   const ev = insight.evidence;
   return (
     <section>
-      <MonoLabel style={{ fontSize: 9.5 }}>Cadence suggests</MonoLabel>
+      <MonoLabel style={{ fontSize: 9.5 }}>Supaprod suggests</MonoLabel>
       <h3
         style={{
           fontFamily: "var(--font-sans)",

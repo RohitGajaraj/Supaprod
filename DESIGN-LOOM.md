@@ -3,7 +3,7 @@ version: 4.0 "Loom" (design-system lineage: v1 tokens · v2 Ember Editorial parc
   landing-only · v3 Obsidian dark cockpit · v4 Loom, the lit instrument)
 created: 2026-07-04
 updated: 2026-07-07
-name: cadence-loom
+name: supaprod-loom
 status: RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
   (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces. Kept as
   history only; never build new surfaces from this file. Orthogonal laws
@@ -17,7 +17,7 @@ origin: founder mission 2026-07-04 (docs/Readiness Audit & Consumer Production
   of design engineering); success bar Linear / Stripe / Vercel polish.
 ---
 
-# Cadence Design v4 · "Loom" · Source of truth
+# Supaprod Design v4 · "Loom" · Source of truth
 
 > **Campaign addendum (2026-07-10, v13 Proof Campaign — additive, changes no law here):** during the launch sprint, every design decision also clears the **Love Gate with the founder's subtraction bar** ("most of the things are there, but it's too much overwhelming… partially cooked"): nothing on a fresh account's screen it doesn't understand, one receipted value moment in the first session, warm-or-honest on every panel (never empty). This operationalizes §0.1's doctrine for the 25-day ship; rulings + the gate: [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md) + [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) §0. The landing page stays on `DESIGN.md` (its v13 content ruling is noted there).
 
@@ -557,7 +557,7 @@ and loses its shout.
 
 ## 4b. Desktop-first canvas (founder feedback 2026-07-04: v3 reads mobile-sized)
 
-Cadence is a desktop browser instrument. v3's 1060/1160px caps with 13px type
+Supaprod is a desktop browser instrument. v3's 1060/1160px caps with 13px type
 float like a phone layout in a void; v4 uses the room it is given:
 
 - Container tiers: prose 68ch · standard surface 1240px · work surface

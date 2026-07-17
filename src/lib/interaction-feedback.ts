@@ -19,7 +19,7 @@ export type FeedbackPrefs = {
   haptics: boolean;
 };
 
-const PREF_KEY = "cadence.feedback.prefs.v1";
+const PREF_KEY = "supaprod.feedback.prefs.v1";
 const DEFAULT_PREFS: FeedbackPrefs = { sound: false, haptics: true };
 
 const isBrowser = typeof window !== "undefined";

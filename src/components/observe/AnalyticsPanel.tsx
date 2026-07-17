@@ -1,4 +1,4 @@
-// Analytics tab — ported from design-reference/cadence/govern-detail.jsx
+// Analytics tab — ported from design-reference/supaprod/govern-detail.jsx
 // (AnalyticsTab): range sub-tab pills, three stat bentos (serif 26 tabular
 // values, 11px faint sub-line), and the span-3 "Spend by …" bentos with
 // per-row ember share bars and right-aligned mono spend. Production keeps the
@@ -28,8 +28,8 @@ import {
   getGuardrailStats,
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
-import { MonoLabel, SubTabs, VerdictChip } from "@/components/cadence/Primitives";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { MonoLabel, SubTabs, VerdictChip } from "@/components/supaprod/Primitives";
+import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { relTime } from "@/components/product/format";
 
 function fmtUsd(n: number) {

@@ -38,7 +38,7 @@ function hasKeys(env: PaymentsEnv): boolean {
 }
 
 /**
- * Resolve-or-create the Stripe customer for a Cadence user. Metadata.userId is
+ * Resolve-or-create the Stripe customer for a Supaprod user. Metadata.userId is
  * the join key the webhook relies on; e-mail is a fallback match that gets the
  * metadata backfilled.
  */

@@ -6,10 +6,10 @@ import { buildArdJsonSchema } from "@/lib/ard-schema";
  *
  * GET /api/public/ard/schema
  * Public, unauthenticated. The formal JSON Schema for the ARD (Agent
- * Requirements Document) — the published wire format for Cadence's Outcome
- * Contract. Any external tool (a coding agent Cadence dispatches to, or a
+ * Requirements Document) — the published wire format for Supaprod's Outcome
+ * Contract. Any external tool (a coding agent Supaprod dispatches to, or a
  * user's own MCP client) can fetch this to validate or generate ARD
- * documents without depending on Cadence's internal Zod types.
+ * documents without depending on Supaprod's internal Zod types.
  */
 export const Route = createFileRoute("/api/public/ard/schema")({
   server: {

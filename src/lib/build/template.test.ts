@@ -1,4 +1,4 @@
-// W5a: Cadence starter template rendering tests (pure module, no I/O).
+// W5a: Supaprod starter template rendering tests (pure module, no I/O).
 
 import { describe, it, expect } from "bun:test";
 import { renderStarterTemplate, repoNameFromTitle } from "./template";
@@ -20,7 +20,7 @@ describe("renderStarterTemplate", () => {
       "deno.json",
       ".github/workflows/ci.yml",
       "README.md",
-      "cadence.json",
+      "supaprod.json",
     ]);
     for (const file of renderStarterTemplate(PARAMS)) {
       expect(file.content.length).toBeGreaterThan(0);
@@ -38,15 +38,15 @@ describe("renderStarterTemplate", () => {
     expect(readme.content).toContain("Share a note with a link");
   });
 
-  it("emits valid JSON for deno.json and cadence.json", () => {
+  it("emits valid JSON for deno.json and supaprod.json", () => {
     const deno = JSON.parse(fileFor("deno.json").content) as {
       tasks: { check: string; test: string };
     };
     expect(deno.tasks.check).toContain("deno check");
     expect(deno.tasks.test).toContain("deno test");
 
-    const cadence = JSON.parse(fileFor("cadence.json").content);
-    expect(cadence).toEqual({ managedBy: "cadence", template: "deno-starter", version: 1 });
+    const supaprod = JSON.parse(fileFor("supaprod.json").content);
+    expect(supaprod).toEqual({ managedBy: "supaprod", template: "deno-starter", version: 1 });
   });
 
   it("runs check and test in CI on push and pull_request", () => {
@@ -72,7 +72,7 @@ describe("renderStarterTemplate", () => {
     const main = fileFor("main.ts", { productName: "Acme\nNotes", specTitle: "  " });
     expect(main.content).toContain('"Acme Notes"');
     const fallback = fileFor("main.ts", { productName: "", specTitle: "" });
-    expect(fallback.content).toContain('"Cadence build"');
+    expect(fallback.content).toContain('"Supaprod build"');
   });
 });
 
@@ -83,7 +83,7 @@ describe("repoNameFromTitle", () => {
   });
 
   it("falls back when nothing usable remains", () => {
-    expect(repoNameFromTitle("???")).toBe("cadence-build");
-    expect(repoNameFromTitle("")).toBe("cadence-build");
+    expect(repoNameFromTitle("???")).toBe("supaprod-build");
+    expect(repoNameFromTitle("")).toBe("supaprod-build");
   });
 });

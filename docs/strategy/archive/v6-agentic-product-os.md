@@ -1,4 +1,4 @@
-# v6: Cadence as the **Agentic Product OS** (positioning + build canon)
+# v6: Supaprod as the **Agentic Product OS** (positioning + build canon)
 
 > _Created: 2026-06-13 · Last updated: 2026-06-19_
 
@@ -7,7 +7,7 @@
 > remains the **expansion / engine map** (the 19-agent mesh, 7 laws, 6 stations). Personas trace to
 > v3; this doc refines them.
 > **Author:** Claude (technical co-founder / CTO, per `Ai_Cofounder.md`).
-> **Naming:** product name not finalized; **Cadence** everywhere (see CLAUDE.md disclaimer).
+> **Naming:** product name not finalized; **Supaprod** everywhere (see CLAUDE.md disclaimer).
 > **Method:** 3 internal-lens explorations (surfaces · strategy canon · runtime reality) + 3
 > market-research streams (competition · customer pain · UX/pricing/GTM) + a 5-seat pressure test
 > (CTO red-team · CEO/GTM · investor · principal-PM · AI-architect). Every code-level claim below was
@@ -71,7 +71,7 @@ gap between _claimed_ autonomy and _wired_ autonomy (closed with real engineerin
 
 ## 3. Positioning: the Agentic Product OS
 
-**Umbrella:** **Cadence is the Agentic Product OS, the autonomous operating system for the entire
+**Umbrella:** **Supaprod is the Agentic Product OS, the autonomous operating system for the entire
 product lifecycle.** Connected to your sources, a mesh of specialist agents runs the loop end-to-end:
 sense → decide → define → build → launch → learn, executing the work itself under governance. You set
 direction and make the calls only you can; the system does the rest, and gets sharper every cycle.
@@ -89,7 +89,7 @@ Two pillars under the umbrella:
 Chief-of-Staff ritual = front door; Decision System = spine; autonomous end-to-end execution = engine
 and destination. The human's supervision burden _shrinks as trust compounds_.
 
-**One-liner (draft):** _"Cadence is the Agentic Product OS: it runs your product's entire lifecycle,
+**One-liner (draft):** _"Supaprod is the Agentic Product OS: it runs your product's entire lifecycle,
 sensing signals, deciding priorities, drafting specs, shipping code, launching, and learning,
 autonomously, under your governance. You make the calls only you can; it does the rest, and remembers
 everything so it gets sharper every cycle."_
@@ -290,7 +290,7 @@ public launch. Gate on the §8 gauntlet, not a date.
 4. **Beachhead:** senior/founding PM at 50 to 400-person B2B SaaS. (§3)
 5. **Course-corrections accepted:** the §2 set (incl. 5 agents met-through-output +
    claim-never-outruns-wiring).
-6. **Naming:** unfinalized; **Cadence** placeholder (Cadence).
+6. **Naming:** unfinalized; **Supaprod** placeholder (Supaprod).
 7. **Session method:** first executable unit = persistence (§11) + **full Phase 0**; refinement mode =
    **ground + flag risks**; this doc is the **full plan**, not a change-list.
 

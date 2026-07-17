@@ -11,7 +11,7 @@
  * prototype shows rather than inventing values the data contract doesn't have.
  */
 import { useEffect, useState } from "react";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

@@ -20,7 +20,7 @@ omitted.
 ```
 Trigger (in the app rail, medium 36px control)
 ┌───────────────────────────────────────────┐
-│  Search Cadence...                   ⌘K   │
+│  Search Supaprod...                   ⌘K   │
 └───────────────────────────────────────────┘
 
 Overlay (material-modal, centered, opens on click or ⌘K/Ctrl+K)
@@ -366,7 +366,7 @@ Filter bar:
   (the composed bar: search field, pill row, add-filter trigger, saved views, clear all,
   summary line), `src/components/ui/global-search.tsx` (the Command Menu overlay + its
   `Cmd+K`/`Ctrl+K` listener, mounted once in the authenticated app shell, not per page).
-- **Composition with existing Cadence code** — global search queries across surfaces via
+- **Composition with existing Supaprod code** — global search queries across surfaces via
   one server function (e.g. `src/lib/search.functions.ts`) returning grouped results by
   entity type (PRDs, missions, agents, traces); debounce the free-text query 150 to 250ms
   before firing it, and keep client-side highlighting instant regardless of debounce.
@@ -404,10 +404,10 @@ function GlobalSearch() {
         variant="secondary"
         size="medium"
         onClick={() => setOpen(true)}
-        aria-label="Search Cadence"
+        aria-label="Search Supaprod"
         className="w-60 justify-between"
       >
-        <span className="text-label-14 text-gray-700">Search Cadence...</span>
+        <span className="text-label-14 text-gray-700">Search Supaprod...</span>
         <kbd className="text-label-12-mono text-gray-700">Ctrl K</kbd>
       </Button>
 

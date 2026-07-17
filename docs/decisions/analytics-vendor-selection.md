@@ -10,7 +10,7 @@
 
 The founder asked: "add analytics and failure-log detection to our application; what's the infra?" Two layers were considered together because they overlap (an error capture vendor often offers performance/RUM; an analytics vendor often offers replay/flags).
 
-Cadence is a Cloudflare-Worker + Supabase app, EU-residency-aware, solo-founder operated, with a strong existing receipts moat (decisions/outcomes/agent_runs/model_costs). The doctrine [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) says **BUILD the moat, BUY the commodity, INTEGRATE at a façade so the buy is reversible.**
+Supaprod is a Cloudflare-Worker + Supabase app, EU-residency-aware, solo-founder operated, with a strong existing receipts moat (decisions/outcomes/agent_runs/model_costs). The doctrine [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) says **BUILD the moat, BUY the commodity, INTEGRATE at a façade so the buy is reversible.**
 
 ## Decision
 
@@ -47,7 +47,7 @@ Cadence is a Cloudflare-Worker + Supabase app, EU-residency-aware, solo-founder 
 
 ## Why EU residency for all three
 
-Cadence is a global consumer-facing PM tool; users will be from the EU. GDPR posture by default avoids a later DPA scramble. Every chosen vendor has a native EU region with the same SDK contract.
+Supaprod is a global consumer-facing PM tool; users will be from the EU. GDPR posture by default avoids a later DPA scramble. Every chosen vendor has a native EU region with the same SDK contract.
 
 ## Cost posture (web-verified 2026-06-25)
 

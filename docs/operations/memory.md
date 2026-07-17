@@ -2,16 +2,16 @@
 
 > _Created: 2026-06-11 · Last updated: 2026-06-11_
 
-> Cadence's work spans two distinct memory stores. They sound similar ("memory" vs "remember") — so this file names them clearly and says exactly **where each lives and what goes in it.** Operating rules: [`AGENTS.md`](../../AGENTS.md). Session boot via hooks: [`hooks.md`](./hooks.md).
+> Supaprod's work spans two distinct memory stores. They sound similar ("memory" vs "remember") — so this file names them clearly and says exactly **where each lives and what goes in it.** Operating rules: [`AGENTS.md`](../../AGENTS.md). Session boot via hooks: [`hooks.md`](./hooks.md).
 
 ## The two layers at a glance
 
 | Layer | Clear name                    | Scope                                                            | Where it is stored                                                              | What goes in it                                                            |
 | ----- | ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | 1     | **User Memory** (auto-memory) | The _person_, across **all** their projects (user/account level) | The Claude Code auto-memory store (outside this repo), indexed in a `MEMORY.md` | Durable facts about the user, validated preferences, cross-project context |
-| 2     | **Project Memory**            | **This project only**                                            | The project-local `.remember/` folder in this repo                              | Session logs, decisions, and learnings specific to Cadence                 |
+| 2     | **Project Memory**            | **This project only**                                            | The project-local `.remember/` folder in this repo                              | Session logs, decisions, and learnings specific to Supaprod                 |
 
-Rule of thumb: _"Is this true no matter what project I'm in?"_ → **User Memory.** _"Is this about Cadence specifically?"_ → **Project Memory** (`.remember/`). If both, write both and keep them in sync.
+Rule of thumb: _"Is this true no matter what project I'm in?"_ → **User Memory.** _"Is this about Supaprod specifically?"_ → **Project Memory** (`.remember/`). If both, write both and keep them in sync.
 
 > Note: the project-local folder is named `.remember/` (a Claude Code session convention the SessionStart hook reads — see [`hooks.md`](./hooks.md)). We keep that folder name for tool compatibility, but refer to its _contents_ as **Project Memory** for clarity.
 
@@ -34,7 +34,7 @@ Persistent across sessions and projects. Four types: `user`, `feedback`, `projec
 
 ## Layer 2 — Project Memory (`.remember/`, this project only)
 
-Visible at session start (via the SessionStart hook). Append after non-trivial work on Cadence.
+Visible at session start (via the SessionStart hook). Append after non-trivial work on Supaprod.
 
 | File                  | Purpose                              |
 | --------------------- | ------------------------------------ |

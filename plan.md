@@ -3,13 +3,13 @@
 > _Created: 2026-06-03 · Last updated: 2026-07-10_
 
 > [!IMPORTANT]
-> **PRODUCT NAME: CADENCE.** The product is **Cadence**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `cadence`/`Cadence`.
+> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
 >
-> **Rename decision 2026-07-16 (brand-only, NOT yet executed):** the founder locked **Supaprod** as the next public brand after a 5-round, 19-name ownability study. This ruling above still governs all code/DB/UI until the separate rename-execution project runs. Decision record: [`docs/pitch/naming-decision-supaprod.md`](./docs/pitch/naming-decision-supaprod.md) · execution playbook + parked-purchases register: [`docs/gtm/brand-supaprod.md`](./docs/gtm/brand-supaprod.md) · attorney handoff: [`docs/gtm/trademark-brief-supaprod.md`](./docs/gtm/trademark-brief-supaprod.md).
+> **Rename decision 2026-07-16, executed 2026-07-17:** the founder locked **Supaprod** as the next public brand after a 5-round, 19-name ownability study on 2026-07-16; the in-product rename (this file, the other entry docs, and the codebase) ran the next day. Dated build-log entries below predate the rename and keep the product's name at the time they were written (`Cadence`) — do not rewrite that history. Decision record: [`docs/pitch/naming-decision-supaprod.md`](./docs/pitch/naming-decision-supaprod.md) · execution playbook + parked-purchases register: [`docs/gtm/brand-supaprod.md`](./docs/gtm/brand-supaprod.md) · attorney handoff: [`docs/gtm/trademark-brief-supaprod.md`](./docs/gtm/trademark-brief-supaprod.md) · rename ledger (casing rules + full exclusion list): [`docs/operations/rename-cadence-to-supaprod.md`](./docs/operations/rename-cadence-to-supaprod.md).
 >
 > _Do not perform destructive refactoring of database column/table names or folder structures that are bound to Lovable Cloud and pgvector schemas. All modifications should map the name logically at the user and documentation level while keeping underlying plumbing compatible._
 
-> The canonical record of **what Cadence is built to be** (the full feature scope), **the order we build it**, and **what already exists to reuse**. Product framing: [`README.md`](./README.md). Operating rules: [`AGENTS.md`](./AGENTS.md). Architecture: [`architecture/`](./architecture/). UI contract: [`DESIGN.md`](./DESIGN.md).
+> The canonical record of **what Supaprod is built to be** (the full feature scope), **the order we build it**, and **what already exists to reuse**. Product framing: [`README.md`](./README.md). Operating rules: [`AGENTS.md`](./AGENTS.md). Architecture: [`architecture/`](./architecture/). UI contract: [`DESIGN.md`](./DESIGN.md).
 >
 > **🚀 THE CURRENT MILESTONE (2026-07-10): the v13 Proof Campaign — ship publicly in under 25 days.** The engine is finished (292/327 register rows done, outside-audited); the campaign converts it into users, proof, and love: a 3–4 day build sprint → beta wave → Show HN + Product Hunt → the YC application after launch. Canon: [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md); execution + lanes: [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (board group G17). This supersedes older sequencing in this file where they differ.
 >
@@ -36,13 +36,13 @@
 > [!IMPORTANT]
 > **v4 supersedes this section for scope (2026-06-11).** The canonical feature scope is now [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md) — 7 platform laws, 6 stations over the 12-stage engine, the 19-agent mesh with handoff contract + HITL gate matrix, the 7-surface IA, station feature catalogs (SEN/DEC/DEF/BLD/LCH/LRN/ENG/OPS), and milestones M1–M5. The adversarial reasoning behind it: [`docs/strategy/archive/v4-stress-test.md`](./docs/strategy/archive/v4-stress-test.md). The 12-stage engine description below remains valid as the _internal_ loop reference; where wording differs, **the v4 map wins**. **v5 overlay (2026-06-11):** the _felt product_ — wedge UX, nav, vocabulary, June 22 demo scope — is governed by [`docs/strategy/archive/v5-chief-of-staff.md`](./docs/strategy/archive/v5-chief-of-staff.md) (PM Chief of Staff; 4 felt surfaces + Trust drawer; phases `F-V5-RITUAL` → `F-V5-DEMO`). v4 remains the expansion map.
 
-Cadence runs the full product lifecycle as one governed, autonomous loop. The scope below is the target product — not a discovery tool. Each stage is run by autonomous agents; the human approves at the gates.
+Supaprod runs the full product lifecycle as one governed, autonomous loop. The scope below is the target product — not a discovery tool. Each stage is run by autonomous agents; the human approves at the gates.
 
 ### Who we serve, what they expect, and the gap (grounding for the feature list)
 
 The feature list below is a deliberate response to who the customer is and what the market already sets as table-stakes — not a wish list. Inspiration drawn from products worth learning from is captured in [`docs/references/competitive-reference.md`](./docs/archive/competitive-reference.md) (deferred; inspiration only).
 
-**Personas (who orchestrates Cadence):**
+**Personas (who orchestrates Supaprod):**
 
 - **P1 — Enterprise Director / VP of Product (The Portfolio Governor)**: owns portfolio-level alignment, agent spend budgets, and compliance. Pain: Swarm drift, lack of visibility into agent actions, security audits, budget overruns, and multi-product roadmap health.
 - **P2 — Lead / Senior PM (The Daily Cockpit Operator)**: runs day-to-day discovery, spec definition, and feature delivery. Pain: Mechanical process work (spec writing, ticket updates, release logs, alert triage) eating up time needed for strategic judgment.
@@ -144,7 +144,7 @@ The feature list below is a deliberate response to who the customer is and what 
 
 **X5 — Interop (agent-native)**
 
-- MCP server (Cadence as a tool surface) + MCP client (consume external tools) + A2A (Agent Cards, delegate-to-agent, peer registry). Capability scopes, rate limits, prompt-injection guard on external results, audit log.
+- MCP server (Supaprod as a tool surface) + MCP client (consume external tools) + A2A (Agent Cards, delegate-to-agent, peer registry). Capability scopes, rate limits, prompt-injection guard on external results, audit log.
 
 **X6 — Identity, auth, billing**
 
@@ -261,7 +261,7 @@ Every feature, grouped by area. Format: **Feature — what it is — _why we nee
 
 ### Q. Interop (agent-native)
 
-- **MCP server + client** — expose Cadence as tools; consume external tools. — _Be the place agents plug in._ `[new]`
+- **MCP server + client** — expose Supaprod as tools; consume external tools. — _Be the place agents plug in._ `[new]`
 - **A2A server/client + Agent Cards + scopes/limits/audit** — peer agents, delegate-to-agent, governed. — _Cross-vendor agent ecosystem._ `[new]`
 
 ### R. Platform & ops
@@ -1185,7 +1185,7 @@ Gate: `bunx tsc --noEmit` 0; `bun test` **1704 pass / 0 fail** (+ provider-route
 
 ### 2026-06-29 (lane 1 — BUILD-DRIVER: recovered + committed the build-handoff canon, doc-only, founder-gated)
 
-Recovered a 2026-06-28 founder design session on the code-gen / build engine that was interrupted before any deliverable was written (it had reached the decision + a 16-agent market study, all of which lived only in the closed conversation). Reconstructed the design from the session transcript and committed it so the work is not lost. **Decision: dispatch the builder behind a `BuildDriver` seam (hybrid posture)**, the code-gen-side twin of `RepoProvider`: the home-grown Gemini loop becomes the "native" adapter (cheap floor), with owned adapters (Claude Agent SDK = the brain we brand; OpenHands MIT = self-host / white-label, generalizing the dormant `delegate.openhands` / BLD-04 seam) and BYO demand-gated adapters (Devin / Codex / Cursor). Two control points held regardless of engine: the `BuildSpec` out + the merge gate in. Pricing: BYO pass-through floor + managed-credits markup, metered per driver, never flat-fee unlimited. Canonical doc: [`docs/strategy/build-driver-and-dispatch.md`](./docs/strategy/build-driver-and-dispatch.md) (full design + first principles + code-grounded current state + June-2026 market study with cited facts + `BuildDriver` interface spec + cost/white-label + rejected alternatives + risks + phases `BD-1..BD-6`). Registered as **board group G13** (`BUILD-DRIVER` row, ⏭️ deferred founder-gated PROPOSAL; dashboard four-section tally refreshed to 233 rows). Cross-linked: SSOT §4 (the terse `BLD-04` gate expanded into the `BUILD-DRIVER` umbrella), strategy/README.md role map, byo-build-and-cadence-cloud.md (Related, the twin doc), moat.md §6 (architecture pointer), session-decisions.md, AGENTS.md + CLAUDE.md + GEMINI.md (pointers). **No code changes** (the `src/lib/delegate/*` seam + the native loop are untouched; the build is parked on founder greenlight to start BD-1, which touches the pinned AI chokepoint).
+Recovered a 2026-06-28 founder design session on the code-gen / build engine that was interrupted before any deliverable was written (it had reached the decision + a 16-agent market study, all of which lived only in the closed conversation). Reconstructed the design from the session transcript and committed it so the work is not lost. **Decision: dispatch the builder behind a `BuildDriver` seam (hybrid posture)**, the code-gen-side twin of `RepoProvider`: the home-grown Gemini loop becomes the "native" adapter (cheap floor), with owned adapters (Claude Agent SDK = the brain we brand; OpenHands MIT = self-host / white-label, generalizing the dormant `delegate.openhands` / BLD-04 seam) and BYO demand-gated adapters (Devin / Codex / Cursor). Two control points held regardless of engine: the `BuildSpec` out + the merge gate in. Pricing: BYO pass-through floor + managed-credits markup, metered per driver, never flat-fee unlimited. Canonical doc: [`docs/strategy/build-driver-and-dispatch.md`](./docs/strategy/build-driver-and-dispatch.md) (full design + first principles + code-grounded current state + June-2026 market study with cited facts + `BuildDriver` interface spec + cost/white-label + rejected alternatives + risks + phases `BD-1..BD-6`). Registered as **board group G13** (`BUILD-DRIVER` row, ⏭️ deferred founder-gated PROPOSAL; dashboard four-section tally refreshed to 233 rows). Cross-linked: SSOT §4 (the terse `BLD-04` gate expanded into the `BUILD-DRIVER` umbrella), strategy/README.md role map, byo-build-and-supaprod-cloud.md (Related, the twin doc), moat.md §6 (architecture pointer), session-decisions.md, AGENTS.md + CLAUDE.md + GEMINI.md (pointers). **No code changes** (the `src/lib/delegate/*` seam + the native loop are untouched; the build is parked on founder greenlight to start BD-1, which touches the pinned AI chokepoint).
 
 ### 2026-06-25 (lane 1 — AFD: committed the Analytics & Failure Detection build bible, doc-only, founder-gated)
 
@@ -1977,7 +1977,7 @@ Schema per agent: `slug, name, system_prompt, tool_allowlist[], default_model, t
 
 - **Unit:** pricing math, each guardrail rule kind, RAG chunker boundaries, ICE/cron/date helpers.
 - **Integration:** chokepoint (one `ai_events` row + trace; budget throws before provider; cache short-circuits but logs; guardrail block aborts + logs; ticks idempotent); orchestration (parallel sessions isolated; checkpoints resume; cancellation saves partial trace); RLS isolation across products/workspaces.
-- **Autonomous build/test loop:** the Builder agent's output must pass the QA agent's generated tests before Ship; a failing eval suite ("Cadence core") blocks deploy (≥10-point regression on the 0–100 scale, without override — KI-14).
+- **Autonomous build/test loop:** the Builder agent's output must pass the QA agent's generated tests before Ship; a failing eval suite ("Supaprod core") blocks deploy (≥10-point regression on the 0–100 scale, without override — KI-14).
 - **E2E:** intent → discover → define → plan → build → test → ship, watched in the orchestration view; multi-product isolation; ⌘K across routes; `/observe` renders on seeded data.
 - **Manual QA before release:** auth + tenancy isolation; every route empty/partial/full; AI message contract present ([`DESIGN.md`](./DESIGN.md)); guardrail block works; budget breach is friendly; light-theme Cohere editorial contrast.
 

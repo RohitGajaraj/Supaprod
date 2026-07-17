@@ -3,7 +3,7 @@ import { PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { JUMP_DESTINATIONS } from "@/lib/palette-sections";
 
 /**
- * THE CADENCE LOOP (Option B, 2026-07-13) - the DERIVATION LAW: the palette
+ * THE SUPAPROD LOOP (Option B, 2026-07-13) - the DERIVATION LAW: the palette
  * JUMP section, the displayed key hints, and the GotoShortcuts key range are
  * DERIVED from PRIMARY_NAV, never hand-copied. These tests fail the moment
  * anything drifts back to a parallel list.

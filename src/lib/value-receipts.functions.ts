@@ -1,6 +1,6 @@
 /**
  * RPT-33: the value-receipts attribution meter. Two objectively countable
- * facts about a workspace's use of Cadence - decisions closed and PRs
+ * facts about a workspace's use of Supaprod - decisions closed and PRs
  * shipped - not a fabricated "hours saved" estimate. Honesty rule
  * (claim-never-outruns-wiring): no real methodology exists yet for a
  * defensible time-automated figure, so this deliberately does not invent

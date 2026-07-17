@@ -8,7 +8,7 @@ const MODEL = "google/gemini-2.5-flash" as const;
 const MAX_ASSUMPTIONS = 3;
 const MIN_RATIONALE_CHARS = 20;
 
-const EXTRACT_SYSTEM = `You are the Cadence decision analyst. Given a decision's title and rationale, extract the standing assumptions it depends on.
+const EXTRACT_SYSTEM = `You are the Supaprod decision analyst. Given a decision's title and rationale, extract the standing assumptions it depends on.
 Rules:
 - Each assumption is a single falsifiable statement about the world that, if it stopped being true, would call the decision into question.
 - Extract at most 3, most load-bearing first.

@@ -143,7 +143,7 @@ export function SpecProjectionsPanel({
         }}
       >
         Every view below is generated fresh from this spec's Outcome Contract. Nothing here is
-        hand-maintained. Competitors generate documents; Cadence deprecates documents into views.
+        hand-maintained. Competitors generate documents; Supaprod deprecates documents into views.
       </p>
 
       <div

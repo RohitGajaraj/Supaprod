@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { decideFanoutBatch, type FanoutBatch } from "@/lib/fanout.functions";
-import { PulsePrompt } from "@/components/cadence/PulsePrompt";
+import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
 
 const SECTION_LABELS: { key: "draft" | "eval" | "risks"; label: string }[] = [
   { key: "draft", label: "Draft path" },

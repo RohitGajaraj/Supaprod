@@ -1,8 +1,8 @@
-# Handoff: Cadence App · Obsidian shell
+# Handoff: Supaprod App · Obsidian shell
 
 ## Overview
 
-Cadence is the operating system for product judgment: governed agents run the
+Supaprod is the operating system for product judgment: governed agents run the
 product loop (sense, decide, define, build, ship, learn) and the human makes
 only the calls that matter. This package covers the complete authenticated
 app prototype in the v3 "Obsidian" design language: a 236px rail, six

@@ -7,7 +7,7 @@ import { ObsidianOnboarding } from "@/components/onboarding/ObsidianOnboarding";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
-  head: () => ({ meta: [{ title: "Get started · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Get started · Supaprod" }] }),
 });
 
 function OnboardingPage() {

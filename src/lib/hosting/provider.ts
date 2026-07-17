@@ -1,7 +1,7 @@
 /**
  * BYO-P5 (Managed end-to-end runtime): the `AppRuntimeProvider` seam.
  *
- * One swappable abstraction for "Cadence hosts a user's app end to end (DB,
+ * One swappable abstraction for "Supaprod hosts a user's app end to end (DB,
  * auth, deploy), no external account required". The plan
  * (`docs/planning/byo-p5-managed-runtime-plan.md`) recommends Cloudflare
  * Workers for Platforms as the production target; `neon-silo` and

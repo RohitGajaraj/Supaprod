@@ -176,7 +176,7 @@ sed -i 's/var(--madder)/var(--ds-red-600)/g' <file>
 
 ## Success Criteria
 
-Cadence achieves "genuine ultra-premium" status (Vercel parity, 95%+) when:
+Supaprod achieves "genuine ultra-premium" status (Vercel parity, 95%+) when:
 
 - ✅ All 14 surfaces have exactly 1 Geist Pixel brand moment
 - ✅ All color values use pure `--ds-*` tokens (no hex fallbacks)

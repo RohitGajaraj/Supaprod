@@ -2,14 +2,14 @@
 
 > _Created: 2026-07-17 · Last updated: 2026-07-17_
 
-Registrar + DNS: Cloudflare (both `supaprod.ai` and `supaprod.com`, same account, nameservers `fred.ns.cloudflare.com` / `diva.ns.cloudflare.com`). App hosting: Lovable (`Project-Cadence-v5`, project id `371dd588-1b70-4629-9bb5-9f003f3af373`). `.ai` is the canonical domain; `.com` exists only to redirect to it — founder decision 2026-07-17.
+Registrar + DNS: Cloudflare (both `supaprod.ai` and `supaprod.com`, same account, nameservers `fred.ns.cloudflare.com` / `diva.ns.cloudflare.com`). App hosting: Lovable (`supaprod`, project id `371dd588-1b70-4629-9bb5-9f003f3af373` — renamed from `Project-Cadence-v5` as part of the brand rename). `.ai` is the canonical domain; `.com` exists only to redirect to it — founder decision 2026-07-17.
 
 ## Domains — live status
 
 | Hostname          | Purpose                          | Points to                     | Status                       |
 | ------------------ | --------------------------------- | ------------------------------ | ------------------------------ |
-| `supaprod.ai`      | Canonical app domain               | Lovable (Cadence app)          | Live                          |
-| `www.supaprod.ai`  | `www` alias                        | Lovable (Cadence app)          | Live — 302-redirects to `supaprod.ai` (Lovable's "primary domain" toggle, already set); no code change needed here |
+| `supaprod.ai`      | Canonical app domain               | Lovable (Supaprod app)          | Live                          |
+| `www.supaprod.ai`  | `www` alias                        | Lovable (Supaprod app)          | Live — 302-redirects to `supaprod.ai` (Lovable's "primary domain" toggle, already set); no code change needed here |
 | `supaprod.com`     | Secondary TLD, redirects to `.ai`  | Cloudflare Redirect Rule (301) | Live — verified path + query string preserved |
 
 ## Email — live addresses
@@ -67,13 +67,13 @@ DMARC is set to `p=none` (monitor-only): it collects aggregate reports (both to 
 - [x] Updated the vague "contact address on your account" copy in `src/routes/privacy.tsx` and `src/routes/security.tsx` to name `privacy@supaprod.ai` / `security@supaprod.ai` explicitly. (2026-07-17)
 - [x] Updated `src/routes/subprocessors.tsx` (the DPA / data-processing-regions footnote, previously "contact your Cadence account team") to name `privacy@supaprod.ai`, styled in the page's neutral ink tone per its own no-ember-accent convention. (2026-07-17)
 - [x] Updated the transactional-email fallback sender in `src/lib/email.server.ts` from `notifications@cadence.app` to `notifications@supaprod.ai`. This is the `RESEND_FROM_EMAIL` fallback constant — the send path is env-gated and currently a no-op (no `RESEND_API_KEY` set), so this was a safe, forward-looking rename. **Still required before this can actually send:** verify `supaprod.ai` as a sending domain in Resend (its own DKIM setup, separate from Cloudflare Email Routing's receiving-side records) — tracked under "Transactional/system email" above. (2026-07-17)
-- [ ] `src/routes/_authenticated.admin.index.tsx:276` has a form input `placeholder="email@cadence.app"` — deliberately left alone. It's illustrating the expected format for an admin to type *someone else's* email when granting admin access, not a Cadence-owned contact address, so it isn't part of this rebrand.
+- [x] `src/routes/_authenticated.admin.index.tsx:276` had a form input `placeholder="email@cadence.app"` illustrating the expected format for an admin to type *someone else's* email when granting admin access — not a Cadence-owned contact address, so out of scope for this doc's rebrand pass. It was picked up regardless by the separate product-name rename sweep and now reads `placeholder="email@supaprod.app"`.
 
 Verification for the four fixes above: `tsc --noEmit` clean across the project; `eslint` clean on every touched file. `bun run build` was not run — this environment's Node (v22.23.1) is known to fail at Vite config load independent of this change (see `~/.claude/…/memory/build-node-version.md`).
 
 - [x] Found and fixed a second, unrelated batch: 6 files still referenced the abandoned Lovable preview subdomain `cadence-flow-beta.lovable.app` in SEO-critical spots — the homepage's `<link rel="canonical">` + OG/Twitter image URLs (`__root.tsx`, `src/routes/index.tsx`), 3 route-level `OG_IMAGE` constants (`proof.tsx`, `d.$slug.tsx`, `t.$slug.tsx`), a mention in `terms.tsx` prose, plus `public/sitemap.xml` (12 URLs) and `public/robots.txt`'s `Sitemap:` line. All now point at `https://supaprod.ai`. `tsc --noEmit` clean after. (2026-07-17)
 
-**Scope note (checked 2026-07-17 after a mid-session flag):** none of the fixes above rename the product — "Cadence" is untouched everywhere in this repo's UI copy, titles, and code. This is domain/URL/email plumbing only. A separate, founder-gated **brand rename** (Cadence → Supaprod as the product name) is tracked by a different, already-merged decision record — see [`docs/pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md), which explicitly states execution has not started and CLAUDE.md's "PRODUCT NAME: CADENCE" ruling stands. Checked all 5 sibling lane worktrees (`cadence-lane-0/1/2/4`) for overlapping uncommitted changes — none found.
+**Scope note (checked 2026-07-17 after a mid-session flag):** none of the fixes above rename the product on their own — this doc's own scope is domain/URL/email plumbing only. At the time this was written, "Cadence" was still untouched elsewhere in the repo's UI copy, titles, and code, and the separate founder-gated **brand rename** (Cadence → Supaprod as the product name) had not started execution. That rename has since executed (2026-07-17, same day) — see [`docs/pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md) and [`docs/operations/rename-cadence-to-supaprod.md`](./rename-cadence-to-supaprod.md) for the ledger — so CLAUDE.md's product-name ruling now reads Supaprod. Checked all 5 sibling lane worktrees (`cadence-lane-0/1/2/4`) for overlapping uncommitted changes — none found (at the time).
 
 ## Related
 

@@ -77,7 +77,7 @@ This is two separate decisions — do not conflate them:
 **Cross-impacts of going open-core:**
 
 - **Moat:** open-sourcing the engine does **not** give away the moat. Per [`../../README.md`](../../README.md), the moat is owning + orchestrating the _end-to-end governed lifecycle loop_, the trust/governance layer, the switching cost of being system-of-record-and-action, and agent-native interop + hosting — **not the code, and not raw data**. Open code can even strengthen distribution while the moat stays in the orchestration, governance, and hosted tier.
-- **Frontier-model risk:** open-core + MCP/A2A interop reinforces "Cadence orchestrates the models; it does not compete with them" — you become infrastructure others build on.
+- **Frontier-model risk:** open-core + MCP/A2A interop reinforces "Supaprod orchestrates the models; it does not compete with them" — you become infrastructure others build on.
 - **Build effort:** can I build it fully myself (with the agent swarm)? The _technical_ answer is yes on this stack. The real constraint is **scope discipline** — open-sourcing adds packaging, docs, license, and community-support work. That is the part to defer, not the product itself.
 
 **Recommendation on OSS:** keep dependency licenses permissive now (free, do it). **Do not open-source the product pre-PMF** — it adds work and gives away nothing useful yet (founder-endorsed). Design the engine/app boundary cleanly now so open-core stays _possible_ later without committing to it.
@@ -101,7 +101,7 @@ This is two separate decisions — do not conflate them:
 
 **Their stack (relevant for comparison):** React, Next.js, Radix UI Primitives, Zustand, Zod, Recharts, Mermaid, Motion, react-markdown, react-syntax-highlighter, remark-gfm, react-zoom-pan-pinch, cmdk, sonner, next-themes, date-fns, nanoid, clsx, tailwind-merge, @dnd-kit/core, @tanstack/react-virtual, @sentry/nextjs, fuse.js, class-variance-authority, lucide-react.
 
-**Decision for Cadence:**
+**Decision for Supaprod:**
 
 1. **No stack change needed.** Our stack (TanStack Start + Vite + shadcn/ui + Framer Motion + Supabase + Cloudflare Workers) is production-grade and already chosen deliberately — see this file above. HyperAgent's choices confirm we are using the right primitives (Radix, cmdk, lucide, dnd-kit, Zod, Recharts all overlap).
 

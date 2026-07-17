@@ -56,8 +56,8 @@ The twelve traceable kinds (extend `AUDIT_KINDS` to add a thirteenth — resolve
 
 **P3 — the UI + Ask:**
 
-- `src/components/cadence/AuditLineageSheet.tsx` — a single global sheet, opened by the `cadence:open-lineage` event (`openLineage(ref)` helper). Renders the walk with each connected entity as a click-to-walk tag. **Mission enrichment:** when the resolved kind is `mission`, it additionally fetches [`getMissionChain`](./trust-ledger.md) and renders the `MissionChain` component under a "Trust chain" heading.
-- `src/components/cadence/AuditTag.tsx` — the reusable clickable chip (design-system pattern: [`audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md)). Rendered as a `<span role="button">` (not a `<button>`) so it nests safely inside clickable row `<button>`s without invalid DOM nesting. Optional `copyable` adds a secondary copy-the-full-id icon (used in entity detail views, replacing the old standalone copy button so one chip both traces and copies).
+- `src/components/supaprod/AuditLineageSheet.tsx` — a single global sheet, opened by the `supaprod:open-lineage` event (`openLineage(ref)` helper). Renders the walk with each connected entity as a click-to-walk tag. **Mission enrichment:** when the resolved kind is `mission`, it additionally fetches [`getMissionChain`](./trust-ledger.md) and renders the `MissionChain` component under a "Trust chain" heading.
+- `src/components/supaprod/AuditTag.tsx` — the reusable clickable chip (design-system pattern: [`audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md)). Rendered as a `<span role="button">` (not a `<button>`) so it nests safely inside clickable row `<button>`s without invalid DOM nesting. Optional `copyable` adds a secondary copy-the-full-id icon (used in entity detail views, replacing the old standalone copy button so one chip both traces and copies).
 - `src/components/obsidian/AskPanel.tsx` — on submit, `findAuditIds` scans the question; if it names an id, `openLineage` fires the lineage sheet deterministically (no model round-trip).
 
 ## How it works (map)

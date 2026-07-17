@@ -1,7 +1,7 @@
 /**
  * Signal Fabric - the source taxonomy and the candidate contract.
  *
- * Every signal that enters Cadence comes from exactly one SourceKind, and every
+ * Every signal that enters Supaprod comes from exactly one SourceKind, and every
  * writer hands the sink (`writeSignals`, sink.server.ts) a SignalCandidate rather
  * than building a `signals` row by hand. This is the one place the shape of an
  * inbound signal is defined, so dedup + injection-screening + normalization happen

@@ -1,4 +1,4 @@
-# Tempo — the Cadence design system (portable distribution)
+# Tempo — the Supaprod design system (portable distribution)
 
 > Self-contained brief for ANY AI builder or human (Lovable, OpenAI Codex, Cursor, Claude
 > Code, Gemini, a new hire). Paste this file into the tool's knowledge/rules, or point it
@@ -8,11 +8,11 @@
 
 ## Identity in one paragraph
 
-Tempo is Cadence's design system, v5 (adopted 2026-07-10). Its base derives from Vercel's
+Tempo is Supaprod's design system, v5 (adopted 2026-07-10). Its base derives from Vercel's
 Geist design system — token architecture, color role model, typography system, materials,
-component anatomy — with Cadence's own identity on top: the **ember** orange brand scale
+component anatomy — with Supaprod's own identity on top: the **ember** orange brand scale
 where Geist uses blue, Geist Pixel as the brand display face, a restrained
-personality layer, and Cadence-specific AI/enterprise patterns. Dark mode is the default
+personality layer, and Supaprod-specific AI/enterprise patterns. Dark mode is the default
 experience; light is a full first-class theme generated from the same token names.
 
 ## Files in this package
@@ -121,6 +121,6 @@ Type quick reference: UI workhorse `text-label-14` (14/20 400); body `text-copy-
 Base: Vercel's Geist design system (public documentation; token values are facts, and
 our components are original re-implementations — Vercel's `@vercel/geistcn` library is
 not publicly published). Fonts: Geist Sans/Mono/Pixel, SIL Open Font License 1.1, from
-`vercel/geist-font`. Ember scale and all extension patterns: Cadence originals.
+`vercel/geist-font`. Ember scale and all extension patterns: Supaprod originals.
 Inspiration credits (judgment only): Linear, Stripe, Notion, Figma, Arc, Anthropic,
 Perplexity.

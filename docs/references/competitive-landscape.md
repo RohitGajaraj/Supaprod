@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> **What this is.** Full market/competitor research conducted 2026-06-11 (≈27 web searches) for the v4 feature-map rebuild. Reference for positioning, fundraising, and feature prioritization. Do not re-run this research in a new session - read this instead. This file also absorbs the earlier deferred competitive study (originally dated 2026-05-29, retained below as section 9) so the lifecycle-band framing and the per-product "Cadence's take" notes live in one place.
+> **What this is.** Full market/competitor research conducted 2026-06-11 (≈27 web searches) for the v4 feature-map rebuild. Reference for positioning, fundraising, and feature prioritization. Do not re-run this research in a new session - read this instead. This file also absorbs the earlier deferred competitive study (originally dated 2026-05-29, retained below as section 9) so the lifecycle-band framing and the per-product "Supaprod's take" notes live in one place.
 >
 > **Cross-references.** Stress-test verdict → [`../strategy/archive/v4-stress-test.md`](../strategy/archive/v4-stress-test.md). Feature map → [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md). Session tracker → [`../planning/archive/v4-rebuild-handoff.md`](../planning/archive/v4-rebuild-handoff.md).
 
@@ -10,7 +10,7 @@
 
 ## The pattern (lifecycle-band framing)
 
-Each reference product owns **one band** of the lifecycle. **Nobody owns the whole loop (discover → define → plan → build → test → ship → launch → support → learn) as one governed autonomous system.** That whitespace is Cadence's position and moat ([`../../README.md`](../../README.md)).
+Each reference product owns **one band** of the lifecycle. **Nobody owns the whole loop (discover → define → plan → build → test → ship → launch → support → learn) as one governed autonomous system.** That whitespace is Supaprod's position and moat ([`../../README.md`](../../README.md)).
 
 ---
 
@@ -24,7 +24,7 @@ Strongest external validation of our thesis: **airfocus-by-Lucid research (June 
 
 ## 1. AI-PM-specific tools
 
-| Player                                                                                    | What it is                                                                                                                                                                                                                                                                                                         | Agenticness                                                             | Gap vs Cadence                                                                               |
+| Player                                                                                    | What it is                                                                                                                                                                                                                                                                                                         | Agenticness                                                             | Gap vs Supaprod                                                                               |
 | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | **ChatPRD** ([chatprd.ai](https://www.chatprd.ai/))                                       | Category leader "AI for PMs"; PRD/spec/GTM doc generation; 100k+ PMs; bootstrapped (no VC), from ~$15/mo                                                                                                                                                                                                           | Assistant → semi-agent (ships a ChatPRD agent inside Linear for Agents) | Doc-centric. No signal ingestion, no execution, no GTM/support/analytics loop, no governance |
 | **Productboard** ([/ai](https://www.productboard.com/product/ai-for-product-management/)) | VoC + prioritization + roadmap incumbent; Productboard AI + Pulse; Spark plan $15-19/maker/mo + 250 AI credits; enterprise $70k-$120k/yr                                                                                                                                                                           | Assistant (classify/summarize)                                          | Stops at insight + roadmap; humans do everything downstream                                  |
@@ -58,7 +58,7 @@ Strongest external validation of our thesis: **airfocus-by-Lucid research (June 
 - **Cognition (Devin)** - raised **$1B+ at $25B pre** (May 2026); **$492M ARR run-rate** ([TechCrunch](https://techcrunch.com/2026/05/27/ai-coding-startup-cognition-raises-1b-at-25b-pre-money-valuation/)).
 - **Factory.ai** - $50M Series B (~$300M, Sept 2025); "Droids" delegable from Slack/Linear/IDE ([factory.ai](https://factory.ai/news/series-b)).
 - **Cursor** $29.3B (Nov 2025) · **Lovable** $6.6B, **$400M ARR by Mar 2026** ([Bloomberg](https://www.bloomberg.com/news/articles/2026-03-12/vibe-coding-startup-lovable-hits-400-million-recurring-revenue)) · **Replit** $3B · **Vercel/v0** $9.3B. Combined vibe-coding >$48B.
-- **Implication:** the build step is solved by others. Cadence's job: orchestrate build agents (Linear-style delegation, MCP) while owning upstream (discover→spec) and downstream (launch→learn) that nobody has claimed.
+- **Implication:** the build step is solved by others. Supaprod's job: orchestrate build agents (Linear-style delegation, MCP) while owning upstream (discover→spec) and downstream (launch→learn) that nobody has claimed.
 
 ## 5. Agent infra / interop
 
@@ -83,17 +83,17 @@ Strongest external validation of our thesis: **airfocus-by-Lucid research (June 
 ## 8. Naming research (2026-06-11)
 
 - **Cadence**: Cadence Design Systems (~$80B EDA) is branding aggressively in _agentic AI_ ("first fully autonomous virtual AI design engineer", Computex 2026) ([BusinessWire](https://www.businesswire.com/news/home/20260531072918/en/Cadence-Unveils-Industrys-First-Fully-Autonomous-Virtual-Engineer-for-Chip-Design-powered-by-NVIDIA)). **Hard avoid.**
-- **Name search (paused 2026-06-16):** a brief rebrand to a different name was explored on 2026-06-10 and reverted; that candidate collided with existing route-planning and other products on the same word and had weak SEO ownability. **Product stays Cadence; fresh-name exploration is paused.**
+- **Name search (paused 2026-06-16):** a brief rebrand to a different name was explored on 2026-06-10 and reverted; that candidate collided with existing route-planning and other products on the same word and had weak SEO ownability. **Product renamed to Supaprod on 2026-07-17** (founder-locked decision; see [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)), superseding the 2026-06-16 pause.
 - Checked and **taken/conflicted**: Vega ($120M cyber startup), Lyra ($5.6B health), Altair (Siemens $10.6B), Quark (Alibaba 100M-MAU assistant), Flux (Black Forest Labs), Helix (helix.ml = agent control room - direct collision), Heron (YC agent automation), Kestrel (Microsoft web server), Catalyst, Pulsar (Apache), Photon, Meridian (Google), Orbit.
 - **Relatively clear** (light verification only): Rigel, Argon, Osprey. Founder reviewed Rigel/Tanager/Sittella/Perihelion on 2026-06-11 and rejected all - **naming deferred to the final activity**. Fresh directions logged in [`../decisions/naming.md`](../decisions/naming.md).
 
-## 9. Deferred reference study (per-band notes + "Cadence's take", 2026-05-29)
+## 9. Deferred reference study (per-band notes + "Supaprod's take", 2026-05-29)
 
 > Originally a separate deferred reference (not a maintained scorecard); merged here 2026-06-19. We studied a few products to learn what good looks like and where the open ground is. The takeaways are baked into the feature catalog in [`../../plan.md`](../../plan.md) (section 2); this section retains the underlying notes and the band-by-band comparison.
 
-### Reference notes (per-capability, with Cadence's take)
+### Reference notes (per-capability, with Supaprod's take)
 
-| Capability           | factory.ai                                                 | hyperagent                                                        | Linear                                                                           | Cadence's take                                         |
+| Capability           | factory.ai                                                 | hyperagent                                                        | Linear                                                                           | Supaprod's take                                         |
 | -------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | Core                 | Autonomous SWE "Droids" run the SDLC; multi-day "Missions" | Build a team of agents (own tools/memory/budget); watch them live | Product system of record (issues/projects/roadmaps); agents as first-class users | The full lifecycle as one governed autonomous loop     |
 | Autonomy             | High - merge-ready PRs, incident response                  | High - multi-step workflows, self-improving skills                | Emerging - assignable/@mentionable agents, coding agent on roadmap               | Fully autonomous super-agents across all stages, gated |

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-15 · Last updated: 2026-07-10_
 
-This is the single capture point for postable insights from building Cadence. As we build (any tool, any session), real, non-obvious, public-safe moments get appended here: a decision, a mechanism, a real number, a lesson, a launch reaction, a screenshot worth grabbing. The private **build-in-public** repo's weekly engine and real-time watch read this file first, before scouting, so the posts are grounded in what actually happened.
+This is the single capture point for postable insights from building Supaprod. As we build (any tool, any session), real, non-obvious, public-safe moments get appended here: a decision, a mechanism, a real number, a lesson, a launch reaction, a screenshot worth grabbing. The private **build-in-public** repo's weekly engine and real-time watch read this file first, before scouting, so the posts are grounded in what actually happened.
 
 ## What these become, and the mix (context for whoever captures here)
 

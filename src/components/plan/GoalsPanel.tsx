@@ -17,7 +17,7 @@ import {
  * SW-4 / mission 3.10 GOAL MODE: the standing-objectives panel on Plan.
  *
  * A goal is an outcome the swarm keeps working: state it once, and the
- * goal planner proposes opportunities into Decide on its own cadence (an
+ * goal planner proposes opportunities into Decide on its own supaprod (an
  * inline first pass on creation, then the goal-tick cron). This panel is
  * the plainest honest surface over that capability: state a goal, see what
  * it has proposed, pause or close it. All judgment stays in Decide.
@@ -57,10 +57,10 @@ export function GoalsPanel({
       qc.invalidateQueries({ queryKey: ["goals"] });
       qc.invalidateQueries({ queryKey: ["opportunities"] });
       if (r.firstPass?.proposed === 1) {
-        toast.success("Goal set. Cadence already proposed its first opportunity into Decide.");
+        toast.success("Goal set. Supaprod already proposed its first opportunity into Decide.");
       } else {
         toast.success(
-          "Goal set. Cadence found nothing new yet. It keeps watching and re-plans every 20 minutes.",
+          "Goal set. Supaprod found nothing new yet. It keeps watching and re-plans every 20 minutes.",
         );
       }
     },
@@ -125,7 +125,7 @@ export function GoalsPanel({
           goalsQ.isError
             ? "Open to retry"
             : goals.length === 0
-              ? "Open to set one; Cadence starts working it immediately"
+              ? "Open to set one; Supaprod starts working it immediately"
               : when
                 ? `Last worked ${when}`
                 : "Not worked yet"
@@ -152,14 +152,14 @@ export function GoalsPanel({
             color: "var(--text-muted)",
           }}
         >
-          What outcome should Cadence keep working?
+          What outcome should Supaprod keep working?
         </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            aria-label="What outcome should Cadence keep working?"
-            placeholder='State the outcome, like "grow activation 15% this quarter". Cadence re-plans against it.'
+            aria-label="What outcome should Supaprod keep working?"
+            placeholder='State the outcome, like "grow activation 15% this quarter". Supaprod re-plans against it.'
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();
             }}
@@ -230,7 +230,7 @@ export function GoalsPanel({
         </div>
       ) : goals.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
-          No standing goals yet. Set one above and Cadence starts working it immediately.
+          No standing goals yet. Set one above and Supaprod starts working it immediately.
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

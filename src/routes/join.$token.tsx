@@ -5,8 +5,8 @@ import { Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acceptInvitation } from "@/lib/workspaces.functions";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
-import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { useObsidianAuthSurface } from "@/components/supaprod/AuthScaffold";
 
 // WM-F5 accept side: the join landing for a workspace invitation link. A standalone
 // page (not under the auth shell, so a logged-out invitee gets a clear prompt instead of
@@ -21,7 +21,7 @@ import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
 export const Route = createFileRoute("/join/$token")({
   ssr: false,
   component: JoinPage,
-  head: () => ({ meta: [{ title: "Join a workspace · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Join a workspace · Supaprod" }] }),
 });
 
 type State =
@@ -94,7 +94,7 @@ function JoinPage() {
     <div style={surface}>
       <div style={card}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
-          <CadenceMark size={40} />
+          <SupaprodMark size={40} />
         </div>
 
         {(state.kind === "checking" || state.kind === "accepting") && (
@@ -175,7 +175,7 @@ function JoinPage() {
               className="btn btn-primary btn-sm"
               onClick={() => navigate({ to: "/" })}
             >
-              Go to Cadence
+              Go to Supaprod
             </button>
           </div>
         )}
@@ -199,7 +199,7 @@ function JoinPage() {
               {state.message}
             </p>
             <Link to="/" className="btn btn-ghost btn-sm">
-              Go to Cadence
+              Go to Supaprod
             </Link>
           </div>
         )}

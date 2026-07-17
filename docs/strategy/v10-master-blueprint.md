@@ -12,13 +12,13 @@
 
 ## 1. The one-line and the tagline
 
-**Product one-liner:** Cadence is the agentic product OS where a PM decides what is worth building and watches it get built and shipped. Agents run the loop; you make the calls that matter; every decision and outcome compounds into memory the team can trust.
+**Product one-liner:** Supaprod is the agentic product OS where a PM decides what is worth building and watches it get built and shipped. Agents run the loop; you make the calls that matter; every decision and outcome compounds into memory the team can trust.
 
 | Context                  | Verbatim                                                          | Why                                                                                            |
 | ------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Launch hook (marketing)  | **"The AI that red-teams your roadmap."**                         | Enters an existing emotional category; leads with judgment (v9 section 2). The shareable hook. |
 | Site hero (positioning)  | **"Decide what's worth building. Watch it ship."**                | The two heroes in one breath (v8 Fork 2).                                                      |
-| In-product footer (live) | **"Cadence - agents execute, you govern."**                       | Keep. The governance promise in five words.                                                    |
+| In-product footer (live) | **"Supaprod - agents execute, you govern."**                       | Keep. The governance promise in five words.                                                    |
 | Investor / category      | **"The decision and memory system of record for product teams."** | The moat framing (v7).                                                                         |
 
 Do not ship "Agentic Product OS" as a public tagline (internal north star only).
@@ -51,7 +51,7 @@ Two human gates (the decision call, the merge approval); everything else runs un
 
 The "why" behind the build. These are the PM pains the loop must remove; each maps to a catalog feature in section 15.
 
-| #   | Pain (the PM's words)                                                       | Today's broken workaround                       | The Cadence feature that kills it                                             | Lane     |
+| #   | Pain (the PM's words)                                                       | Today's broken workaround                       | The Supaprod feature that kills it                                             | Lane     |
 | --- | --------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
 | 1   | "Signal is scattered across 15 tools; I miss things and react late."        | Manual triage across Intercom/Gong/Notion/email | Live ingest + clustering (SEN-01, F3, SEN-05)                                 | A        |
 | 2   | "I can't defend my roadmap calls; I get overruled or burned."               | Gut + slides                                    | Critic red-team with evidence (DEC-02, the teardown)                          | C        |
@@ -111,7 +111,7 @@ Five calm top-level surfaces + Trust row + one Engine Room door. No new top-leve
 
 ## 8. Naming and verbatim conventions
 
-Product name: **Cadence** only (retired experiment name never reintroduced; internal `studio.*` slugs intentionally not renamed, user-facing is **Build**). Name the outcome not the mechanism (Safety/Spend/Quality checks/Activity/Trends/Loop health/Brain/Ask). Voice: human, clear, contractions, active, one idea per sentence; H1 <= 6 words, button <= 3, toast <= 12. Banned: em/en dashes, buzzwords (seamlessly, leverage, empower, robust, powerful, unlock), triple-listicles, preamble, hedged confirms, trailing "!". Confirms name the effect. Humanized output is a hard gate (the `humanizeText()` sanitizer enforces it on generated prose). Canon lines: "All clear. The loop is running itself." / "Cadence - agents execute, you govern." / "Every autonomous action is cited, observable, gated, and reversible."
+Product name: **Supaprod** only (retired experiment name never reintroduced; internal `studio.*` slugs intentionally not renamed, user-facing is **Build**). Name the outcome not the mechanism (Safety/Spend/Quality checks/Activity/Trends/Loop health/Brain/Ask). Voice: human, clear, contractions, active, one idea per sentence; H1 <= 6 words, button <= 3, toast <= 12. Banned: em/en dashes, buzzwords (seamlessly, leverage, empower, robust, powerful, unlock), triple-listicles, preamble, hedged confirms, trailing "!". Confirms name the effect. Humanized output is a hard gate (the `humanizeText()` sanitizer enforces it on generated prose). Canon lines: "All clear. The loop is running itself." / "Supaprod - agents execute, you govern." / "Every autonomous action is cited, observable, gated, and reversible."
 
 ---
 
@@ -137,7 +137,7 @@ Roster: 19 internal slugs to 5 faces (Scout/Strategist/Critic/Scribe/Chief of St
 
 ## 11. Connectors and plugins
 
-Rule: Connect-button OAuth only for users, no key paste. Live OAuth-wired (operational once the founder registers each OAuth client): GitHub (App), Linear, Notion, Google Docs, Google Calendar, Outlook, Figma (reference); Jira parked; Firecrawl infra-only. Credential chain: workspace binding → user connection → env fallback; secrets AES-256-GCM, service-role vault. Next: register one client for a second live ingest (SEN-01), then analytics inbound (SEN-05). **MCP server (pull forward from M-D):** a thin read-only surface (read signals/opps/PRDs, append decision) so Cadence is the neutral brain other agents plug into; a moat against the workspace incumbents (v9 section 3).
+Rule: Connect-button OAuth only for users, no key paste. Live OAuth-wired (operational once the founder registers each OAuth client): GitHub (App), Linear, Notion, Google Docs, Google Calendar, Outlook, Figma (reference); Jira parked; Firecrawl infra-only. Credential chain: workspace binding → user connection → env fallback; secrets AES-256-GCM, service-role vault. Next: register one client for a second live ingest (SEN-01), then analytics inbound (SEN-05). **MCP server (pull forward from M-D):** a thin read-only surface (read signals/opps/PRDs, append decision) so Supaprod is the neutral brain other agents plug into; a moat against the workspace incumbents (v9 section 3).
 
 ---
 
@@ -195,7 +195,7 @@ _Owns: `outcome.functions.ts`, `src/lib/ai/memory.server.ts`, `outcome-memory.ts
 
 _Owns: `discovery.functions.ts` Critic path, `today.functions.ts`, `decisions-share.functions.ts`, onboarding first-run._
 
-- **`WEDGE` (Critic-teardown first-run)** ⬜ · **P0 (the launch wedge)** — _What:_ "point Cadence at a feature you believe in, get an evidence-backed teardown." _Pain:_ #2 (can't defend calls). _How:_ a guided first-run takes a feature idea + connected signals, runs the Critic, returns a cited red-team in <10 min; lands on Today. _Build accept:_ a new user gets a cited teardown in the first session. _Files:_ onboarding (with W6), `discovery.functions.ts` Critic path, Today hero.
+- **`WEDGE` (Critic-teardown first-run)** ⬜ · **P0 (the launch wedge)** — _What:_ "point Supaprod at a feature you believe in, get an evidence-backed teardown." _Pain:_ #2 (can't defend calls). _How:_ a guided first-run takes a feature idea + connected signals, runs the Critic, returns a cited red-team in <10 min; lands on Today. _Build accept:_ a new user gets a cited teardown in the first session. _Files:_ onboarding (with W6), `discovery.functions.ts` Critic path, Today hero.
 - **`F-SHARE-TEARDOWN`** ◐ · **P0/P1 (viral loop)** — _What:_ make the Critic teardown the shareable `/d/$slug` artifact (F-SHARE rails exist). _Pain:_ growth. _How:_ one click publishes a redacted teardown card; it drives signups. _Build accept:_ the share link renders the teardown, anon-safe.
 - **`DEC-02-LOOP`** ⬜ · **P1** — _What:_ promote Critic from inline call to a routable DECIDE step in the DAG. _Pain:_ #2, #6 (every call should be challenged in-loop). _Files:_ orchestrator step + `registry.server.ts`.
 - **`H2-WRITES`** ◐ · **P1** — _What:_ outcome-roadmap place-into-bucket live writes. _Pain:_ #2. _How:_ commit opportunities to Now/Next/Later with a declared outcome+measure; gated on the migration sync. _Files:_ `roadmap.functions.ts`, migration sync.
@@ -224,7 +224,7 @@ _Owns: `billing.functions.ts`, `entitlements.ts`, onboarding, `_authenticated.se
 
 _Owns: new MCP route, A2A card._
 
-- **`Q1-MCP` (read-only MCP slice)** ⬜ · **P1 (pull forward)** — _What:_ expose read signals/opps/PRDs + append-decision over MCP. _Pain:_ the workspace-incumbent threat (v9 section 3). _How:_ an external agent uses Cadence as a governed tool. _Build accept:_ an external agent reads an opportunity and appends a decision, governed. _Files:_ new MCP route (A2A card route exists).
+- **`Q1-MCP` (read-only MCP slice)** ⬜ · **P1 (pull forward)** — _What:_ expose read signals/opps/PRDs + append-decision over MCP. _Pain:_ the workspace-incumbent threat (v9 section 3). _How:_ an external agent uses Supaprod as a governed tool. _Build accept:_ an external agent reads an opportunity and appends a decision, governed. _Files:_ new MCP route (A2A card route exists).
 - **`Q2` (A2A external)** ⬜ · **P2** — peer agents discover + call us, scoped/audited.
 - **`U6` (data export)** ⬜ · **P2** — full export (signals, decisions+lineage, PRDs, memory graph); the trust/escape-hatch.
 
@@ -242,7 +242,7 @@ _Owns: routes, `AppShell.tsx`, Engine Room tabs._
 
 ### CUT / DEFER (mark down, do not build now)
 
-- **`K1-deploy`** ⏭ — Cadence-triggered deploy needs a deploy hook + founder config; deploy stays external. Keep deferred.
+- **`K1-deploy`** ⏭ — Supaprod-triggered deploy needs a deploy hook + founder config; deploy stays external. Keep deferred.
 - **F-AUDIO-1/2, SEN-04** — defer to post-PMF (Lane A).
 - **The full 19-agent mesh breadth** — defer; the 5-face loop must close on real data first (v7 section 7).
 - **Outcome-pricing machinery** — defer; ship seat/usage first (v9, section 13).

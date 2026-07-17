@@ -63,7 +63,7 @@ const STEPS: readonly Step[] = [
     kind: "top_bet",
     label: "Top bets",
     question: "What are you betting on right now?",
-    why: "Each top bet becomes a watched assumption: if incoming signals ever contradict it, Cadence flags it for review.",
+    why: "Each top bet becomes a watched assumption: if incoming signals ever contradict it, Supaprod flags it for review.",
     placeholder: "Name the bet and why now. One to three is plenty.",
   },
 ];
@@ -220,7 +220,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               agent reads on every task.
             </p>
             <p style={{ fontSize: 12.5, color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
-              Each call also grows watched assumptions that Cadence checks against incoming signals,
+              Each call also grows watched assumptions that Supaprod checks against incoming signals,
               so a strategy drifting out of date surfaces itself.
             </p>
             <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
@@ -464,7 +464,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 paddingTop: 12,
               }}
             >
-              Every agent now reads this brief on every task. Cadence is extracting the watched
+              Every agent now reads this brief on every task. Supaprod is extracting the watched
               assumptions behind each call; if an incoming signal ever contradicts one, it will
               surface as a "worth re-examining?" prompt rather than drifting silently.
             </p>

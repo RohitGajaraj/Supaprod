@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { useState, type CSSProperties } from "react";
 import { Loader2, ArrowRight, Clock } from "lucide-react";
-import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { useObsidianAuthSurface } from "@/components/supaprod/AuthScaffold";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { TeardownReceipt } from "@/components/public/TeardownReceipt";
 import type { Teardown } from "@/lib/ai/public-teardown.server";
 
@@ -20,11 +20,11 @@ export const Route = createFileRoute("/p/teardown")({
   component: TeardownPage,
   head: () => ({
     meta: [
-      { title: "Free PRD teardown · Cadence" },
+      { title: "Free PRD teardown · Supaprod" },
       {
         name: "description",
         content:
-          "Paste a PRD or a product bet and get a sharp, honest, receipted teardown from Cadence's Critic. No signup, no setup.",
+          "Paste a PRD or a product bet and get a sharp, honest, receipted teardown from Supaprod's Critic. No signup, no setup.",
       },
     ],
   }),
@@ -134,7 +134,7 @@ function TeardownPage() {
           pointerEvents: "none",
         }}
       >
-        <CadenceMark size={520} />
+        <SupaprodMark size={520} />
       </div>
 
       <div
@@ -144,10 +144,10 @@ function TeardownPage() {
         {/* Hero. */}
         <header style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <CadenceMark size={44} />
+            <SupaprodMark size={44} />
           </div>
           <div className="mono-label" style={{ marginTop: 14, color: "var(--text-subtle)" }}>
-            Cadence Critic · live teardown
+            Supaprod Critic · live teardown
           </div>
           {/* The one Geist Pixel brand moment on this surface. */}
           <h1
@@ -170,7 +170,7 @@ function TeardownPage() {
               margin: "14px auto 0",
             }}
           >
-            No signup. No setup. Cadence's Critic reads what you paste and hands back a sharp,
+            No signup. No setup. Supaprod's Critic reads what you paste and hands back a sharp,
             honest receipt, usually in under a minute.
           </p>
         </header>
@@ -268,7 +268,7 @@ function TeardownPage() {
                 margin: "0 auto 12px",
               }}
             >
-              Keep this teardown and your decision history. Create a free workspace and Cadence
+              Keep this teardown and your decision history. Create a free workspace and Supaprod
               remembers every call you make.
             </p>
             <Link
@@ -291,7 +291,7 @@ function TeardownPage() {
             marginTop: 32,
           }}
         >
-          Your text is sent once to Cadence's Critic to write this receipt. Nothing is stored to an
+          Your text is sent once to Supaprod's Critic to write this receipt. Nothing is stored to an
           account until you make one.
         </p>
       </div>

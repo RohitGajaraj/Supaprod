@@ -12,7 +12,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
@@ -29,7 +29,7 @@ import {
 } from "@/lib/demo.functions";
 import { trackActivation } from "@/lib/activation.functions";
 
-const TITLE = "Try Cadence, no signup - a real demo workspace";
+const TITLE = "Try Supaprod, no signup - a real demo workspace";
 const DESC =
   "Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";
 
@@ -70,12 +70,12 @@ export const Route = createFileRoute("/demo")({
 function useDemoSessionId() {
   const ref = useRef<string>("");
   if (!ref.current && typeof window !== "undefined") {
-    const existing = window.sessionStorage.getItem("cadence_demo_session");
+    const existing = window.sessionStorage.getItem("supaprod_demo_session");
     if (existing) {
       ref.current = existing;
     } else {
       ref.current = crypto.randomUUID();
-      window.sessionStorage.setItem("cadence_demo_session", ref.current);
+      window.sessionStorage.setItem("supaprod_demo_session", ref.current);
     }
   }
   return ref.current;
@@ -112,7 +112,7 @@ function OverviewSection({ overview }: { overview: DemoOverview | null }) {
       <div className="max-w-5xl mx-auto">
         <Eyebrow>Today, in {overview.workspaceName}</Eyebrow>
         <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
-          What Cadence is watching right now.
+          What Supaprod is watching right now.
         </h2>
         <div className="flex flex-wrap gap-x-10 gap-y-4">
           {[
@@ -325,8 +325,8 @@ function DemoPage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/75 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="inline-flex items-center gap-2.5 no-underline">
-            <CadenceMark size={22} />
-            <span className="text-sm font-medium text-white">Cadence</span>
+            <SupaprodMark size={22} />
+            <span className="text-sm font-medium text-white">Supaprod</span>
           </Link>
           <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
             read-only demo &middot; live seeded data
@@ -348,7 +348,7 @@ function DemoPage() {
               className="text-3xl md:text-4xl text-white m-0"
               style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, maxWidth: "24ch" }}
             >
-              This is a real Cadence workspace.
+              This is a real Supaprod workspace.
             </h1>
             <p
               className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0"
@@ -388,7 +388,7 @@ function DemoPage() {
           viewport height the artifacts need. */}
       <footer className="border-t border-white/[0.07] px-6 py-6">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <p className="text-xs text-zinc-600 m-0">&copy; 2026 Cadence</p>
+          <p className="text-xs text-zinc-600 m-0">&copy; 2026 Supaprod</p>
           <div className="flex flex-wrap gap-5">
             {[
               { href: "/security", label: "Security" },

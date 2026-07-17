@@ -1,4 +1,4 @@
-// Evals tab — ported 1:1 from design-reference/cadence/loop.jsx (GovernScreen,
+// Evals tab — ported 1:1 from design-reference/supaprod/loop.jsx (GovernScreen,
 // tab "Evals"): a 2-col grid of bento .lift cards — mono suite name + case
 // count on the top row, the serif 30 score with a trend mono label
 // ("↑ improving" moss / "→ steady" ink-subtle, plus an honest "↓ falling"
@@ -30,7 +30,7 @@ import {
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { EmptyState, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
 // One source of truth for the canonical surface×prompt targets (shared with the EVAL-COVERAGE
 // scorer), so the "new suite" picker and the coverage banner can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";

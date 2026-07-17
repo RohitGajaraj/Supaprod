@@ -19,7 +19,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight } from "lucide-react";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
 import { AgentMark } from "@/components/agents/AgentMark";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {

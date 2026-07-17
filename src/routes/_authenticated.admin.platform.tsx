@@ -171,7 +171,7 @@ function HostingPocPanel() {
 
   return (
     <div style={cardStyle()}>
-      <div style={sectionTitleStyle()}>Cadence-hosted · proof of concept</div>
+      <div style={sectionTitleStyle()}>Supaprod-hosted · proof of concept</div>
       <p style={bodyTextStyle()}>
         Deploys a minimal static shell for one of your own Products to Deno Deploy. Not user-facing;
         safe to click more than once for the same Product.

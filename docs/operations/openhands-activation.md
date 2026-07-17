@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-29 · Last updated: 2026-06-29_
 
-> **BLD-04 status (2026-06-29):** Cadence code is complete and dormant. The seam, adapter, model-agnostic LLM resolver, poll/fold cycle, and `delegate_meta` persistence are all shipped and tested. This guide covers deploying a publicly accessible OpenHands instance and wiring 3 env vars in Lovable to activate delegation end-to-end.
+> **BLD-04 status (2026-06-29):** Supaprod code is complete and dormant. The seam, adapter, model-agnostic LLM resolver, poll/fold cycle, and `delegate_meta` persistence are all shipped and tested. This guide covers deploying a publicly accessible OpenHands instance and wiring 3 env vars in Lovable to activate delegation end-to-end.
 >
 > Cross-references: [`docs/features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) | [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29
 
@@ -12,7 +12,7 @@
 
 **All-Hands Cloud does not work for server-to-server calls.** All-Hands Cloud (app.all-hands.dev) is a web UI product that uses GitHub OAuth for auth. The `sk-oh-` keys visible in their settings panel are outbound webhook tokens — they authenticate payloads All-Hands sends TO you, not bearer tokens for you to call their REST API. There is no token-based server-to-server REST API.
 
-Cadence runs as a Cloudflare Worker (cloud process, no browser). Self-hosted OpenHands on a public HTTPS URL is the correct path. Full diagnosis: [`docs/features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29`](../features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29).
+Supaprod runs as a Cloudflare Worker (cloud process, no browser). Self-hosted OpenHands on a public HTTPS URL is the correct path. Full diagnosis: [`docs/features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29`](../features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29).
 
 ---
 
@@ -28,7 +28,7 @@ Railway auto-provisions a permanent public HTTPS URL. No reverse-proxy setup, no
    PORT=3000
    ```
 4. Railway will give the service a public domain like `https://openhands-<hash>.railway.app`
-5. Proceed to "Wire the 3 Cadence env vars" below
+5. Proceed to "Wire the 3 Supaprod env vars" below
 
 ---
 
@@ -74,11 +74,11 @@ This URL changes every ngrok restart. Not stable for Lovable env vars. Use a pai
 
 ---
 
-## Wire the 3 Cadence env vars (Lovable project settings)
+## Wire the 3 Supaprod env vars (Lovable project settings)
 
 **Important:** secrets go in Lovable project settings (Environment Variables), NOT in wrangler CLI, NOT committed to git.
 
-In Lovable → your Cadence project → Settings → Environment Variables, set:
+In Lovable → your Supaprod project → Settings → Environment Variables, set:
 
 ```
 DELEGATE_OUTBOUND_ENABLED=1
@@ -94,9 +94,9 @@ OPENHANDS_API_KEY=<your OpenHands instance auth token, or leave blank>
 
 ## LLM configuration inside OpenHands
 
-OpenHands needs an LLM to write code. Cadence's adapter (`openhands.server.ts`) automatically passes the best available LLM key inline via `resolveLlmConfig()`:
+OpenHands needs an LLM to write code. Supaprod's adapter (`openhands.server.ts`) automatically passes the best available LLM key inline via `resolveLlmConfig()`:
 
-| Priority | Env var (in Cadence/Lovable) | LiteLLM model passed to OpenHands   |
+| Priority | Env var (in Supaprod/Lovable) | LiteLLM model passed to OpenHands   |
 | -------- | ---------------------------- | ----------------------------------- |
 | 1        | `ANTHROPIC_API_KEY`          | `anthropic/claude-sonnet-4-6`       |
 | 2        | `OPENAI_API_KEY`             | `openai/gpt-4o`                     |
@@ -106,7 +106,7 @@ OpenHands needs an LLM to write code. Cadence's adapter (`openhands.server.ts`) 
 
 As of 2026-06-29, `OPENAI_API_KEY` is configured in Lovable, so the live test will use `openai/gpt-4o` automatically. No extra setup needed.
 
-If you want to override to a specific model, set `ANTHROPIC_API_KEY` in Lovable (highest priority) and it will use Claude Sonnet. Or set env vars directly in your OpenHands deployment (Railway/Render) to control the fallback when Cadence passes no inline config:
+If you want to override to a specific model, set `ANTHROPIC_API_KEY` in Lovable (highest priority) and it will use Claude Sonnet. Or set env vars directly in your OpenHands deployment (Railway/Render) to control the fallback when Supaprod passes no inline config:
 
 ```
 LLM_MODEL=openai/gpt-4o
@@ -123,7 +123,7 @@ A mission that goes directly to a build goal without evidence-gathering will rou
 
 **For the live test, use this sequence:**
 
-1. Open a mission in Cadence
+1. Open a mission in Supaprod
 2. Run 2-3 steps that gather evidence (e.g., "research how X works", "audit Y file")
 3. These steps create evidence items in the DB
 4. Then say: "Given this evidence, delegate the implementation to OpenHands"

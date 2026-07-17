@@ -54,7 +54,7 @@ function samplePrds(workspaceId: string, userId: string): Record<string, unknown
       workspace_id: workspaceId,
     },
     {
-      title: "AI brief cadence: configurable delivery schedule",
+      title: "AI brief supaprod: configurable delivery schedule",
       body_md: [
         "## Context",
         "",

@@ -124,7 +124,7 @@ export function planPrecedentCitations(args: {
   return { citeLearningIds, bumpDecisionIds };
 }
 
-/** PC-16: at decision time, Cadence cites the user's own record directly on a
+/** PC-16: at decision time, Supaprod cites the user's own record directly on a
  * ranked bet - not just inside the opened detail sheet. PURE: collapses a
  * bet's precedent matches (same Ambient Precedent recall the decision card
  * and OpportunityJudgment use) into one honest sentence, or null when there

@@ -1,4 +1,4 @@
-// Controls tab — ported 1:1 from design-reference/cadence/loop.jsx
+// Controls tab — ported 1:1 from design-reference/supaprod/loop.jsx
 // (GovernScreen, tab "Controls"): the 2-col bento grid — Kill switch span-2
 // with the 44×24 rose-track pill, Mission cap (serif 28 + "concurrent"),
 // Stuck approvals (ember when >0, "open the queue →"), and Auto-pipelines
@@ -27,7 +27,7 @@ import {
   listEventQueue,
   decideEventDispatch,
 } from "@/lib/reactor.functions";
-import { MonoLabel, VerdictChip, StepDot, type VerdictTone } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip, StepDot, type VerdictTone } from "@/components/supaprod/Primitives";
 import { relTime, fmtUsd } from "@/components/product/format";
 import {
   CONSENT_PHILOSOPHY,
@@ -644,7 +644,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         </MonoLabel>
         <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 10 }}>
           Tighten a tool and the agent asks before every run. After five clean runs in a row,
-          Cadence proposes handing it back. You decide, in the approvals queue.
+          Supaprod proposes handing it back. You decide, in the approvals queue.
         </div>
         {toolsQ.isLoading ? (
           <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "8px 0" }}>

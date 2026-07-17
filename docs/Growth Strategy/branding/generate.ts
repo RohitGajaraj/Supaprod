@@ -1,6 +1,6 @@
-// Cadence brand-kit generator (founder-directed, 2026-07-14). Emits every form
-// of the CadenceMark as standalone SVGs from the SAME parametric curve the app
-// renders (src/components/cadence/CadenceMark.tsx), so the kit can never drift
+// Supaprod brand-kit generator (founder-directed, 2026-07-14). Emits every form
+// of the SupaprodMark as standalone SVGs from the SAME parametric curve the app
+// renders (src/components/supaprod/SupaprodMark.tsx), so the kit can never drift
 // from the product. Run:  bun "docs/Growth Strategy/branding/generate.ts"
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -103,36 +103,36 @@ const GRAD: Spiral = { kind: "grad", a: C.ember, b: C.blue };
 
 // --- Emit the marks ---------------------------------------------------------
 const files: Record<string, string> = {
-  "cadence-mark-dark.svg": svg(markInner({ spiral: SILVER, glow: C.white })),
-  "cadence-mark-light.svg": svg(markInner({ spiral: GRAPHITE, glow: null })),
-  "cadence-mark-gradient.svg": svg(markInner({ spiral: GRAD, glow: C.ember })),
-  "cadence-mark-mono-white.svg": svg(
+  "supaprod-mark-dark.svg": svg(markInner({ spiral: SILVER, glow: C.white })),
+  "supaprod-mark-light.svg": svg(markInner({ spiral: GRAPHITE, glow: null })),
+  "supaprod-mark-gradient.svg": svg(markInner({ spiral: GRAD, glow: C.ember })),
+  "supaprod-mark-mono-white.svg": svg(
     markInner({ spiral: { kind: "solid", color: C.white }, mono: C.white }),
   ),
-  "cadence-mark-mono-black.svg": svg(
+  "supaprod-mark-mono-black.svg": svg(
     markInner({ spiral: { kind: "solid", color: C.black }, mono: C.black }),
   ),
-  "cadence-mark-animated.svg": svg(markInner({ spiral: SILVER, glow: C.white, animated: true })),
+  "supaprod-mark-animated.svg": svg(markInner({ spiral: SILVER, glow: C.white, animated: true })),
 };
 
 // Lockup: mark + wordmark (240x72 canvas).
 function lockup(spiral: Spiral, glow: string | null, textColor: string): string {
   const inner = markInner({ spiral, glow });
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 72" width="480" height="144" fill="none"><g transform="translate(2,4) scale(0.64)">${inner}</g><text x="78" y="45" font-family="Geist, Inter, system-ui, sans-serif" font-size="30" font-weight="600" letter-spacing="-0.5" fill="${textColor}">Cadence</text></svg>\n`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 72" width="480" height="144" fill="none"><g transform="translate(2,4) scale(0.64)">${inner}</g><text x="78" y="45" font-family="Geist, Inter, system-ui, sans-serif" font-size="30" font-weight="600" letter-spacing="-0.5" fill="${textColor}">Supaprod</text></svg>\n`;
 }
-files["cadence-lockup-dark.svg"] = lockup(SILVER, C.white, C.silverHi);
-files["cadence-lockup-light.svg"] = lockup(GRAPHITE, null, C.black);
+files["supaprod-lockup-dark.svg"] = lockup(SILVER, C.white, C.silverHi);
+files["supaprod-lockup-light.svg"] = lockup(GRAPHITE, null, C.black);
 
 // App icons: rounded square + centered mark (scaled to ~64% for clear space).
 function appIcon(bg: string, spiral: Spiral, glow: string | null): string {
   const inner = markInner({ spiral, glow });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none"><rect width="512" height="512" rx="114" fill="${bg}"/><g transform="translate(92,92) scale(3.28)">${inner}</g></svg>\n`;
 }
-files["cadence-appicon-dark.svg"] = appIcon(C.bgDark, GRAD, C.ember);
-files["cadence-appicon-light.svg"] = appIcon(C.bgLight, GRAPHITE, null);
+files["supaprod-appicon-dark.svg"] = appIcon(C.bgDark, GRAD, C.ember);
+files["supaprod-appicon-light.svg"] = appIcon(C.bgLight, GRAPHITE, null);
 
 // Favicon: compact gradient mark on transparent, bolder stroke for tiny sizes.
-files["cadence-favicon.svg"] = svg(markInner({ spiral: GRAD, glow: null, sw: 4 }), 32);
+files["supaprod-favicon.svg"] = svg(markInner({ spiral: GRAD, glow: null, sw: 4 }), 32);
 
 for (const [name, content] of Object.entries(files)) {
   writeFileSync(join(LOGO, name), content);

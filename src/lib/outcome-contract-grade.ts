@@ -15,7 +15,7 @@
  * enforced.
  *
  * Oracle model (from `ContractClause.oracle_kind`):
- *   - "eval" | "ci"    -> machine-checkable (Cadence grades it / CI gates it)
+ *   - "eval" | "ci"    -> machine-checkable (Supaprod grades it / CI gates it)
  *   - "uat"            -> human-verifiable (a real checklist item)
  *   - "unverifiable"   -> a watched assumption; not falsifiable as written
  *   - null             -> not yet compiled to an oracle (verifiability unknown)
@@ -38,7 +38,7 @@ export type ContractGrade = {
   verdict: ContractVerdict;
   /** Standing success metrics considered (superseded clauses are ignored). */
   total: number;
-  /** eval | ci: Cadence or CI can grade this without a human. */
+  /** eval | ci: Supaprod or CI can grade this without a human. */
   machine: number;
   /** uat: a human ticks it off on a real checklist. */
   human: number;
@@ -180,7 +180,7 @@ function reasonFor(g: {
       return `${g.verifiable} of ${g.total} success metrics are verifiable. The rest are still open, but this can be checked on outcome day.`;
     case "verifiable":
       return g.machineCheckable
-        ? "Every success metric has an oracle. Cadence can verify this on outcome day."
+        ? "Every success metric has an oracle. Supaprod can verify this on outcome day."
         : "Every success metric is on a checklist to verify on outcome day.";
   }
 }

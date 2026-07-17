@@ -1,5 +1,5 @@
 // Settings — screen 5 wave B of the Ember Editorial migration, ported from
-// design-reference/cadence/loop.jsx (SettingsScreen, lines 966–1071): mono
+// design-reference/supaprod/loop.jsx (SettingsScreen, lines 966–1071): mono
 // kicker "Workspace", serif h1, hairline TabRow. Production functionality
 // rides the reference layout: the ?section= search-param contract (legacy
 // brief→workspace, calendar→connections deep links keep landing), the
@@ -12,14 +12,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/cadence/TopBar";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import {
   Avatar,
   orbBackground,
   AVATAR_VARIANTS,
   defaultAvatarVariant,
-} from "@/components/cadence/Avatar";
+} from "@/components/supaprod/Avatar";
 import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
@@ -117,7 +117,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
     checkout: typeof search.checkout === "string" ? search.checkout : undefined,
   }),
   component: SettingsPage,
-  head: () => ({ meta: [{ title: "Settings · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
     <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
@@ -301,7 +301,7 @@ function AppearanceSection() {
 // IA SPINE (2026-07-11): the claim-admin affordance moved OUT of the rail
 // (the rail shows Admin console only to actual admins) and lives here as a
 // dismissible card on Settings > Workspace.
-const CLAIM_ADMIN_DISMISS_KEY = "cadence:claim-admin-dismissed";
+const CLAIM_ADMIN_DISMISS_KEY = "supaprod:claim-admin-dismissed";
 
 function AdminDoor() {
   const fAmIAdmin = useServerFn(amIAdmin);
@@ -2173,7 +2173,7 @@ function ByoKeysSection() {
         </p>
       ) : (
         <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-          An Enterprise feature. Every other plan runs on Cadence credits. Model-agnostic provider
+          An Enterprise feature. Every other plan runs on Supaprod credits. Model-agnostic provider
           routing still applies, it just uses our keys instead of your own.
         </p>
       )}
@@ -2682,7 +2682,7 @@ const BRIEF_FIELDS: {
   {
     key: "current_focus",
     label: "Current focus",
-    hint: "What Cadence should prioritize this quarter. Cut, don't expand.",
+    hint: "What Supaprod should prioritize this quarter. Cut, don't expand.",
     placeholder: "Q3 2026: close the Discover, Plan, Build loop on real signals.",
     rows: 4,
   },
@@ -2695,7 +2695,7 @@ const BRIEF_FIELDS: {
   },
   {
     key: "notes",
-    label: "Notes for Cadence",
+    label: "Notes for Supaprod",
     hint: "Tone, constraints, decisions, references.",
     placeholder: "Speak in product terms. Lean concise over verbose. Always cite evidence.",
     rows: 4,
@@ -3055,7 +3055,7 @@ function ProfileTab() {
               placeholder="Jane Q. Doe"
             />
           </Field>
-          <Field label="Preferred display name" hint="How Cadence and your agents will greet you.">
+          <Field label="Preferred display name" hint="How Supaprod and your agents will greet you.">
             <input
               className="input"
               value={displayName}

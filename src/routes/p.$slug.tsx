@@ -106,7 +106,7 @@ function PublicPage() {
         <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
           <div className="font-display text-sm">{title}</div>
           <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Made with Cadence
+            Made with Supaprod
           </div>
         </header>
         <main className="flex-1 w-full">
@@ -133,7 +133,7 @@ function PublicPage() {
       <header className="border-b hairline px-4 py-2.5 flex items-center justify-between bg-background/60 backdrop-blur">
         <div className="font-display text-sm">{state.name}</div>
         <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Made with Cadence
+          Made with Supaprod
         </div>
       </header>
       <iframe

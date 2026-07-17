@@ -295,7 +295,7 @@ contract); the flat block plus the surface's own entrance motion is the only aff
   and gate the primitive's `onOpenChange`/`onDismiss` callback: if dirty, open a small
   Confirm modal instead of forwarding the dismiss; only forward it once the guard confirms.
 
-**Where these compose with existing Cadence surfaces**
+**Where these compose with existing Supaprod surfaces**
 
 - Engine Room advanced settings and connector configuration: Standard modal or Focus sheet,
   per the engine-room doctrine's "one door, revealed on demand" — never a second nested
@@ -329,7 +329,7 @@ function DisconnectGithubButton({ connectorName }: { connectorName: string }) {
         title="Disconnect GitHub"
         description={
           <>
-            Cadence will stop reading <strong>{connectorName}</strong> and any builds that depend on
+            Supaprod will stop reading <strong>{connectorName}</strong> and any builds that depend on
             it will fail until you reconnect it.
           </>
         }

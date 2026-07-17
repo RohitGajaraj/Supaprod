@@ -342,6 +342,33 @@ export type Database = {
           },
         ]
       }
+      agent_disabled_skills: {
+        Row: {
+          agent_slug: string
+          created_at: string
+          id: string
+          playbook_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_slug: string
+          created_at?: string
+          id?: string
+          playbook_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          agent_slug?: string
+          created_at?: string
+          id?: string
+          playbook_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       agent_memory: {
         Row: {
           agent_id: string | null

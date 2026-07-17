@@ -5,7 +5,7 @@
 import { useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
-import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import {
   planPresentation,
@@ -60,7 +60,7 @@ const READ_CONNECTORS: ConnectorMeta[] = [
 ];
 
 function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
-  // The write-back row shows only providers Cadence actually writes to;
+  // The write-back row shows only providers Supaprod actually writes to;
   // showing the full read set under a "read + write" badge overclaimed.
   const chips = showWrite ? READ_CONNECTORS.filter((c) => c.writeBack) : READ_CONNECTORS;
   return (
@@ -118,9 +118,9 @@ function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
   );
 }
 
-const TITLE = "Pricing · Cadence";
+const TITLE = "Pricing · Supaprod";
 const DESC =
-  "Cadence runs your product loop for free. Paid plans add capacity and give your team one shared record of every call.";
+  "Supaprod runs your product loop for free. Paid plans add capacity and give your team one shared record of every call.";
 
 export const Route = createFileRoute("/pricing")({
   ssr: true,
@@ -128,7 +128,7 @@ export const Route = createFileRoute("/pricing")({
     meta: [
       { title: TITLE },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Cadence · Pricing" },
+      { property: "og:title", content: "Supaprod · Pricing" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
@@ -634,9 +634,9 @@ function PricingPage() {
               color: "inherit",
             }}
           >
-            <CadenceMark />
+            <SupaprodMark />
             <span className="font-display" style={{ fontSize: 14 }}>
-              Cadence
+              Supaprod
             </span>
           </Link>
           <a
@@ -691,7 +691,7 @@ function PricingPage() {
                   maxWidth: 520,
                 }}
               >
-                Cadence runs your product loop for free. Paid plans add more capacity and give your
+                Supaprod runs your product loop for free. Paid plans add more capacity and give your
                 team one shared record of every call and its outcome.
               </p>
 
@@ -749,7 +749,7 @@ function PricingPage() {
           }}
         >
           <span className="mono-label" style={{ fontSize: 9 }}>
-            Made with Cadence
+            Made with Supaprod
           </span>
           <a
             href="/signup?from=pricing"

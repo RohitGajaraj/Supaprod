@@ -19,7 +19,7 @@ export function MachineViewProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const param = new URLSearchParams(window.location.search).get("view");
-    const stored = sessionStorage.getItem("cadence-machine-view");
+    const stored = sessionStorage.getItem("supaprod-machine-view");
     setIsMachineView(param === "machine" || stored === "machine");
   }, []);
 
@@ -27,7 +27,7 @@ export function MachineViewProvider({ children }: { children: ReactNode }) {
     setIsMachineView((prev) => {
       const next = !prev;
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("cadence-machine-view", next ? "machine" : "human");
+        sessionStorage.setItem("supaprod-machine-view", next ? "machine" : "human");
       }
       return next;
     });

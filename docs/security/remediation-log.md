@@ -139,7 +139,7 @@ bun audit          # ✓ 20 vulnerabilities (0 high, 15 moderate, 5 low)
 1. **Monitor upstream dependency releases** — dompurify, js-yaml, brace-expansion, esbuild are community-maintained; upgrades may arrive quarterly
 2. **Enable HSTS preload** — Header is configured; submit domain to https://hstspreload.org to improve ecosystem coverage
 3. **Annual security audit** — Repeat full audit after major framework updates (Vite, TanStack, Supabase) or quarterly if high-velocity shipping
-4. **CORS scoping (optional)** — For additional defense-in-depth, replace wildcard with specific origin (e.g., `https://app.cadence.com`), but this requires static app domain configuration
+4. **CORS scoping (optional)** — For additional defense-in-depth, replace wildcard with specific origin (e.g., `https://app.supaprod.com`), but this requires static app domain configuration
 5. **WAF rules (optional)** — Cloudflare WAF can add rule-based payload inspection for the public endpoints if adoption grows
 
 ---

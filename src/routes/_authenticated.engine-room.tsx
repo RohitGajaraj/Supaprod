@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
-import { TopBar } from "@/components/cadence/TopBar";
+import { TopBar } from "@/components/supaprod/TopBar";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   EngineRoomGlance,
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     surface: typeof search.surface === "string" ? search.surface : undefined,
   }),
   component: EngineRoomPage,
-  head: () => ({ meta: [{ title: "Pulse · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Pulse · Supaprod" }] }),
   // OBS-02 hoisted the Obsidian shell into _authenticated.tsx, so this route
   // renders bare. No AppShell wrap here.
   errorComponent: ({ error, reset }) => (

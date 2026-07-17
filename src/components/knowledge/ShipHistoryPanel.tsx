@@ -16,7 +16,7 @@ import { StatusDot, STATUS_WORD } from "@/components/obsidian/status";
 import { fmtUsd, relTime } from "./ship-format";
 import { PanelSkeleton } from "./PanelSkeleton";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (

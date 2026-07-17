@@ -78,7 +78,7 @@ export const getLaunchPlan = createServerFn({ method: "GET" })
     return (row as LaunchPlan | null) ?? null;
   });
 
-const POSITIONING_SYSTEM = `You are the Cadence launch strategist. Given a spec's title, its core intent, and (if present) the rationale of the decision that approved it, write ONE tight positioning paragraph for its launch: who it is for, why it matters now, in plain language.
+const POSITIONING_SYSTEM = `You are the Supaprod launch strategist. Given a spec's title, its core intent, and (if present) the rationale of the decision that approved it, write ONE tight positioning paragraph for its launch: who it is for, why it matters now, in plain language.
 Rules:
 - Ground every claim ONLY in the provided intent, rationale, and title. Never invent a benefit, number, or feature the text does not support.
 - 2 to 4 sentences. No hype, no hedging.

@@ -77,7 +77,7 @@ const { token } = await getIngestToken();
 From any external system, send:
 
 ```bash
-curl -X POST https://cadence-flow-beta.lovable.app/api/public/ingest-signals \
+curl -X POST https://supaprod.lovable.app/api/public/ingest-signals \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -90,7 +90,7 @@ curl -X POST https://cadence-flow-beta.lovable.app/api/public/ingest-signals \
 **Batch:**
 
 ```bash
-curl -X POST https://cadence-flow-beta.lovable.app/api/public/ingest-signals \
+curl -X POST https://supaprod.lovable.app/api/public/ingest-signals \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -167,7 +167,7 @@ The demo accounts (`demo@redcadence.app`, `demo2@redcadence.app`) ship with the 
 const { token } = await getIngestToken();
 
 # Then POST a signal using that token
-curl -X POST https://cadence-flow-beta.lovable.app/api/public/ingest-signals \
+curl -X POST https://supaprod.lovable.app/api/public/ingest-signals \
   -H "Authorization: Bearer $token" \
   -d '{"title": "Test signal"}'
 ```

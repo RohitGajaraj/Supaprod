@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import type { AnswerBlock, TimelineEvent } from "@/lib/ask-blocks";
 import { MonoLabel } from "./primitives";
 import { runStatusLabel } from "./ask-canvas";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 
 // PC-36 workstream C - receipts-first typed answer cards for the 420px Ask
 // panel. Each card is a sibling of ProgressBlock/MemoryBlock/CriticBlock in

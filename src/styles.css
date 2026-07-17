@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Cadence — Tempo v5 design system (Geist-derived, ember brand accent).
+ * Supaprod — Tempo v5 design system (Geist-derived, ember brand accent).
  * Source of truth: /DESIGN-TEMPO.md + design-reference/tempo-v5/tokens/.
  * Typography is Geist Sans (all UI, display included) · Geist Mono (technical
  * content) · Geist Pixel (brand moments only). Never Newsreader, Schibsted
@@ -153,7 +153,7 @@
   --dur-base: 180ms;
   --dur-slow: 260ms;
 
-  /* === Ember Editorial — light (canonical: cadence/tokens.css) === */
+  /* === Ember Editorial — light (canonical: supaprod/tokens.css) === */
 
   /* Accent: ember, brightened toward the reference orange (devouringdetails #fb7100),
    * still warm on parchment, not neon (founder ruling 2026-06-16). Needs-human only. */
@@ -557,7 +557,7 @@
 
   /* === Ember editorial utilities === */
 
-  /* Buttons — base + sizes + variants, per cadence/tokens.css. Compose as
+  /* Buttons — base + sizes + variants, per supaprod/tokens.css. Compose as
    * `btn btn-primary`, `btn btn-secondary`, `btn btn-tertiary btn-sm`.
    * AFFORDANCE DOCTRINE (Loom v4.1): every button carries a shape (padding +
    * radius) and either a fill or a border, so it can never read as a label.
@@ -916,7 +916,7 @@
   }
 
   /* Editorial hero — the signature plum-umber band. Slow ember·indigo·saffron
-   * aurora (::after), engraved loop rings (::before). Per cadence/tokens.css. */
+   * aurora (::after), engraved loop rings (::before). Per supaprod/tokens.css. */
   .hero-editorial {
     position: relative;
     overflow: hidden;
@@ -1199,7 +1199,7 @@
   }
 
   /* Stagger entrance — small rise per child. */
-  @keyframes cadence-rise {
+  @keyframes supaprod-rise {
     from {
       opacity: 0;
       transform: translateY(6px);
@@ -1210,7 +1210,7 @@
     }
   }
   .stagger-rise > * {
-    animation: cadence-rise 320ms var(--ease-out) both;
+    animation: supaprod-rise 320ms var(--ease-out) both;
   }
   .stagger-rise > *:nth-child(1) {
     animation-delay: 0ms;
@@ -2471,30 +2471,30 @@ html[data-motion="off"] .flow-pulse {
   border-color: var(--ember-line) !important;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ember) 13%, transparent);
 }
-/* CadenceMark loader — the brand spiral as a live loader: a slow rotation with
+/* SupaprodMark loader — the brand spiral as a live loader: a slow rotation with
    a bright energy comet flowing along the curve (over a faint full-curve
    track). Premium + alive; pauses under prefers-reduced-motion. */
-.cadence-spin {
-  animation: cadenceSpin 18s linear infinite;
+.supaprod-spin {
+  animation: supaprodSpin 18s linear infinite;
 }
-.cadence-flow {
+.supaprod-flow {
   stroke-dasharray: 20 80;
-  animation: cadenceFlow 2.7s linear infinite;
+  animation: supaprodFlow 2.7s linear infinite;
 }
-.cadence-core {
-  animation: cadenceCore 3s ease-in-out infinite;
+.supaprod-core {
+  animation: supaprodCore 3s ease-in-out infinite;
 }
-@keyframes cadenceSpin {
+@keyframes supaprodSpin {
   to {
     transform: rotate(360deg);
   }
 }
-@keyframes cadenceFlow {
+@keyframes supaprodFlow {
   to {
     stroke-dashoffset: -100;
   }
 }
-@keyframes cadenceCore {
+@keyframes supaprodCore {
   0%,
   100% {
     transform: scale(0.9);
@@ -2506,11 +2506,11 @@ html[data-motion="off"] .flow-pulse {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cadence-spin,
-  .cadence-core {
+  .supaprod-spin,
+  .supaprod-core {
     animation: none;
   }
-  .cadence-flow {
+  .supaprod-flow {
     animation: none;
     stroke-dasharray: none;
   }
@@ -2519,7 +2519,7 @@ html[data-motion="off"] .flow-pulse {
    turning very slowly. Subtle brand presence, never a focal point. */
 .hero-watermark-spin {
   transform-origin: center;
-  animation: cadenceSpin 90s linear infinite;
+  animation: supaprodSpin 90s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-watermark-spin {
@@ -3437,7 +3437,7 @@ html[data-motion="off"] .ai-pulse-mark {
   --font-dotted: var(--font-pixel);
   /* Pencil annotations are the app's one sanctioned personality touch
      (PencilLabel in obsidian/pencil-mark.tsx, the insight/scale labels in
-     cadence/Sketch.tsx) - they need Pixel to actually read as different from
+     supaprod/Sketch.tsx) - they need Pixel to actually read as different from
      body text, per DESIGN-TEMPO.md section 3 "brand moments". */
   --font-pencil: var(--font-pixel);
   /* Motion convergence (2026-07-11): Obsidian + Loom easing/duration vars

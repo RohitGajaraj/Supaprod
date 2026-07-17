@@ -26,7 +26,7 @@ import { StageTimeline } from "@/components/shared/StageTimeline";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 import type { ReceiptEdge, TrustReceipt } from "@/lib/trust-ledger.functions";
 import { RECEIPT_PREFIX, receiptStatusTone, receiptStatusLabel, RECEIPT_TONE_VAR } from "./format";
 

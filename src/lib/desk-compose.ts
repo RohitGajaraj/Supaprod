@@ -2,8 +2,8 @@
  * IA SPINE (2026-07-11) — the desk composer events behind the palette's ACT
  * verbs. "Add a task", "Capture a signal", and "Share status" used to lie:
  * they claimed an action but only navigated to /today. Each now fires a
- * scoped cadence:* event that opens its composer in place, mirroring how
- * "Start a focus block" works (FocusDock's cadence:focus-compose).
+ * scoped supaprod:* event that opens its composer in place, mirroring how
+ * "Start a focus block" works (FocusDock's supaprod:focus-compose).
  *
  * The focus dock is mounted globally, so its event always lands. These three
  * composers live on Today's Desk, so a fired intent is ALSO held as pending:
@@ -13,9 +13,9 @@
  */
 import { useEffect } from "react";
 
-export const TASK_COMPOSE_EVENT = "cadence:task-compose";
-export const SIGNAL_COMPOSE_EVENT = "cadence:signal-compose";
-export const STATUS_COMPOSE_EVENT = "cadence:status-compose";
+export const TASK_COMPOSE_EVENT = "supaprod:task-compose";
+export const SIGNAL_COMPOSE_EVENT = "supaprod:signal-compose";
+export const STATUS_COMPOSE_EVENT = "supaprod:status-compose";
 
 export const DESK_COMPOSE_EVENTS: readonly string[] = [
   TASK_COMPOSE_EVENT,

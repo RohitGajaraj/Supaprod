@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Target, Sparkles } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { recordOutcome, checkPrdShipped, suggestOutcomeVerdict } from "@/lib/outcome.functions";
-import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 
 type Verdict = "validated" | "mixed" | "missed";
 

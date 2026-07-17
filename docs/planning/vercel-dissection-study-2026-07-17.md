@@ -2,7 +2,7 @@
 
 **Study Date**: 2026-07-17  
 **Source**: vercel.com/geist (design system), vercel.com (product site), public design documentation  
-**Purpose**: Extract design principles that create "ultra-premium" perception and apply to Cadence
+**Purpose**: Extract design principles that create "ultra-premium" perception and apply to Supaprod
 
 ---
 
@@ -15,7 +15,7 @@
   - Link underlines
   - Error/warning states
 - **Lesson**: Chromatic color is MEANING, never decoration
-- **Cadence Application**: ✅ Already applied via ember + glacier narrowing (DESIGN-TEMPO §2)
+- **Supaprod Application**: ✅ Already applied via ember + glacier narrowing (DESIGN-TEMPO §2)
 
 ### 2. Typography Hierarchy (Intentional)
 - **Display**: Geist Sans at 48px–72px, 600 weight (headlines)
@@ -23,7 +23,7 @@
 - **Small**: Geist Sans at 12px, 400 weight (captions, helpers)
 - **Mono**: Geist Mono for technical content (slugs, commands, IDs)
 - **Lesson**: No arbitrary sizes (12.5, 13.5, 11.5). All sizes are discrete, predictable steps.
-- **Cadence Application**: ⏳ Partially applied. Typography classes exist but 1600+ violations remain.
+- **Supaprod Application**: ⏳ Partially applied. Typography classes exist but 1600+ violations remain.
 
 ### 3. Spacing/Alignment
 - **Base unit**: 4px grid throughout
@@ -31,15 +31,15 @@
 - **Card padding**: 20–24px (consistent, not mixed)
 - **Component spacing**: Tight, intentional. Nothing "feels loose" or "breathing room" without purpose.
 - **Lesson**: Every space has a reason. Grid adherence creates visual calm.
-- **Cadence Application**: ✅ Tailwind gap scale (4px base) already in use. Verify consistency.
+- **Supaprod Application**: ✅ Tailwind gap scale (4px base) already in use. Verify consistency.
 
 ### 4. Component Anatomy
 - **Buttons**: 32/36/40px heights (never random), clear states (default/hover/active/disabled)
 - **Inputs**: Consistent 36px, hairline border, no drop shadows
 - **Cards**: Material elevation (border + subtle shadow), rounded corners (6–12px)
-- **Focus rings**: 2px offset outline, visible color (blue in Vercel, ember in Cadence)
+- **Focus rings**: 2px offset outline, visible color (blue in Vercel, ember in Supaprod)
 - **Lesson**: Component anatomy is predictable and consistent across all surfaces.
-- **Cadence Application**: ✅ Already implemented (material presets, component states verified)
+- **Supaprod Application**: ✅ Already implemented (material presets, component states verified)
 
 ### 5. Motion
 - **Easing**: Swift curve (cubic-bezier with ~1.1 tail for subtle overshoot)
@@ -47,7 +47,7 @@
 - **Frequency**: Sparing. Motion is feedback, never decoration.
 - **Rule**: All motion gates on `prefers-reduced-motion`
 - **Lesson**: Premium products feel "crisp" not "flashy"
-- **Cadence Application**: ✅ Motion system implemented (--ds-motion-timing-swift)
+- **Supaprod Application**: ✅ Motion system implemented (--ds-motion-timing-swift)
 
 ### 6. Density & Content
 - **Page max-width**: 1200–1400px (never full-bleed)
@@ -55,14 +55,14 @@
 - **Whitespace**: Generous at desktop, strategic on mobile
 - **Line length**: Typically 60–80 chars for readability
 - **Lesson**: Premium feels spacious even when information-dense.
-- **Cadence Application**: ✅ Page width enforced (--ds-page-width: 1400px)
+- **Supaprod Application**: ✅ Page width enforced (--ds-page-width: 1400px)
 
 ### 7. Icons
 - **Style**: Line-based, 1.5px stroke consistently
 - **Sizes**: 16px (default), 20px (nav/headers), 24px (CTAs), 12px (badges)
 - **Pairing**: Icons always pair with text for clarity, rarely icon-only
 - **Lesson**: Icons are utilitarian, never decorative. Restraint applies.
-- **Cadence Application**: ✅ Stroke standardization done (1.5px). Sizing mostly standardized (14/16/20px).
+- **Supaprod Application**: ✅ Stroke standardization done (1.5px). Sizing mostly standardized (14/16/20px).
 
 ---
 
@@ -73,14 +73,14 @@
 - **Geist Mono**: Technical, readable (code/technical content)
 - **Geist Pixel**: Display face for brand moments ONLY (never in UI, never in body)
 - **Lesson**: Typography IS brand. Font choice matters intensely.
-- **Cadence Application**: ✅ Fonts migrated. Pixel usage enforced (heroes/empty states only).
+- **Supaprod Application**: ✅ Fonts migrated. Pixel usage enforced (heroes/empty states only).
 
 ### The Color Palette
 - **Primaries**: White (bg), Grays (neutral hierarchy), Black (text)
 - **Brand**: Blue (very specific saturation—not too vivid, not too chalky)
 - **Functional**: Red (danger), Green (success), Amber (warning)
 - **Lesson**: Color is disciplined. Saturation and lightness are intentional.
-- **Cadence Application**: ✅ Token-based (--ds-blue-600 at #5c9bf0 dark, #2e6ed6 light). Ember scales refined.
+- **Supaprod Application**: ✅ Token-based (--ds-blue-600 at #5c9bf0 dark, #2e6ed6 light). Ember scales refined.
 
 ---
 
@@ -106,7 +106,7 @@
 
 ---
 
-## Cadence's Current Alignment
+## Supaprod's Current Alignment
 
 ### ✅ Already Premium
 - **Geist foundation**: Pixel, Sans, Mono all in place
@@ -130,7 +130,7 @@
 
 ---
 
-## Actionable Next Steps for Cadence
+## Actionable Next Steps for Supaprod
 
 ### Immediate (High Impact)
 1. ✅ Complete icon standardization (remaining 30 exceptions)
@@ -152,8 +152,8 @@
 
 ## Verdict
 
-**Cadence is 85–90% of the way to Vercel parity on foundations.** The core system (Geist, tokens, materials, focus, motion) is solid. Remaining work is polish: fixing typography inconsistencies in high-traffic surfaces, responsive testing, and edge-case verification.
+**Supaprod is 85–90% of the way to Vercel parity on foundations.** The core system (Geist, tokens, materials, focus, motion) is solid. Remaining work is polish: fixing typography inconsistencies in high-traffic surfaces, responsive testing, and edge-case verification.
 
 The path to 95%+ is clear: fix typography in Today/Discover/Plan, verify responsive, test edge states, commit.
 
-**Critical insight**: Premium is not MORE, it's CONSISTENT. Vercel feels premium because every detail is intentional and predictable. Cadence's path is to ensure consistency across high-visibility surfaces, not to add new features or complexity.
+**Critical insight**: Premium is not MORE, it's CONSISTENT. Vercel feels premium because every detail is intentional and predictable. Supaprod's path is to ensure consistency across high-visibility surfaces, not to add new features or complexity.

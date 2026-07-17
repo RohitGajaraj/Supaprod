@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
               // PC-08: this routine scanned the workspace this tick -- leave a receipt.
               markRoutineRun(routinesDb, ws.id, "learnings-synthesis");
               // SEAM-3 (mission 3.9): deterministic push detection rides the
-              // derive cadence. Runs before the derive cap check because it has
+              // derive supaprod. Runs before the derive cap check because it has
               // its own hard cap (3 pushes/workspace/day) and zero AI spend; a
               // push failure never blocks the derive pass.
               let pushed = 0;

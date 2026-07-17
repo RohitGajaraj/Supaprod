@@ -16,7 +16,7 @@ interface DotPatternProps {
 
 /**
  * Decorative dotted background pattern. Uses semantic muted tokens so it
- * blends with Cadence's Midnight Indigo theme. Drop inside a relatively
+ * blends with Supaprod's Midnight Indigo theme. Drop inside a relatively
  * positioned container.
  */
 export function DotPattern({

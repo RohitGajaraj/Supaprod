@@ -1,6 +1,6 @@
-# Cadence — Agent Access Policy
-# https://cadence.app/agents.txt
-# This file declares Cadence's policy for autonomous AI agents interacting with
+# Supaprod — Agent Access Policy
+# https://supaprod.app/agents.txt
+# This file declares Supaprod's policy for autonomous AI agents interacting with
 # this platform. It is the robots.txt equivalent for the agentic era.
 
 # ── Read access ──────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ ARD-schema: /api/public/ard/schema
 
 # ── Responsible use ───────────────────────────────────────────────────────────
 
-# Cadence's decision brain intelligence (supersession engine, contradiction
+# Supaprod's decision brain intelligence (supersession engine, contradiction
 # detection, confidence scoring) is never exposed as raw data. Tools return
 # curated outcomes only. Do not attempt to reverse-engineer scoring logic
 # from API responses.

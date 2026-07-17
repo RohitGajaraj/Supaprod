@@ -32,8 +32,8 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
             </h2>
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
               {stats
-                ? "Every number here is pulled live from our own workspace. Cadence has been building itself on its own loop since May 2026. We publish the misses on the same ledger as the wins."
-                : "Every artifact here is a live object in our workspace. Cadence has been building itself on its own loop since May 2026. We publish the misses on the same ledger as the wins."}
+                ? "Every number here is pulled live from our own workspace. Supaprod has been building itself on its own loop since May 2026. We publish the misses on the same ledger as the wins."
+                : "Every artifact here is a live object in our workspace. Supaprod has been building itself on its own loop since May 2026. We publish the misses on the same ledger as the wins."}
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
               <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the ledger</span>
@@ -128,7 +128,7 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
             className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto py-16"
             style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
           >
-            Agents do the work. You answer for it. <span style={{ color: "#FF6B2C" }}>Cadence</span>{" "}
+            Agents do the work. You answer for it. <span style={{ color: "#FF6B2C" }}>Supaprod</span>{" "}
             is how you answer.
           </p>
           <div

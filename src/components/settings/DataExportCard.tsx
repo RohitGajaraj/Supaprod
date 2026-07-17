@@ -59,7 +59,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
         data: { ...(workspaceId ? { workspaceId } : {}), sections: [...selected] },
       });
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadJson(`cadence-workspace-export-${stamp}.json`, data);
+      downloadJson(`supaprod-workspace-export-${stamp}.json`, data);
       const total = Object.values(data.counts ?? {}).reduce((a, b) => a + b, 0);
       toast.success(`Exported ${total} records`);
       qc.invalidateQueries({ queryKey: ["export-log"] });

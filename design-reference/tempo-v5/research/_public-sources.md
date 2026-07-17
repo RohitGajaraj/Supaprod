@@ -70,7 +70,7 @@
   Geistdocs projects, including initialization and updating." It's a scaffolding CLI for building
   a Next.js + Fumadocs documentation site in Vercel's docs style (MDX authoring, AI chat, i18n,
   feedback widgets). Confirmed in use by the public `vercel/components.build` repo (a `geistdocs.tsx`
-  config file at its root wires the docs-site branding/nav/search). Useful only if Cadence ever
+  config file at its root wires the docs-site branding/nav/search). Useful only if Supaprod ever
   wants a _docs site_ that looks like Vercel's docs shell — irrelevant to the in-app component
   system.
 - **`vercel/components.build`** (github.com/vercel/components.build, MIT, 775 stars, not
@@ -103,7 +103,7 @@
   archived, last pushed 2025-06-24, 123 stars — the most actively maintained clone found. **No
   LICENSE file in the repo** (GitHub reports `license: null`), so it is default all-rights-reserved;
   fine to look at for structural/anatomy reference, not safe to copy code from verbatim. Also
-  Svelte, not React — irrelevant to Cadence's stack even if it were licensed.
+  Svelte, not React — irrelevant to Supaprod's stack even if it were licensed.
 - **`rishiosaur/geist`, `paul-vd/geist-ui`** — forks/mirrors of the same old `geist-org/geist-ui`
   codebase; same pre-2023 fidelity problem.
 - **No maintained, clearly-licensed shadcn/Tailwind-v4 "Geist" theme or preset** turned up in the
@@ -141,7 +141,7 @@
   plus the Next.js `font.js` loaders. This is exactly what `tempo-v5/tokens/fonts.css` already
   self-hosts from `/public/fonts/geist/` — correct call, keep doing it, no reason to touch a
   third-party font mirror (`non.geist`, `@fontsource/geist`, etc.) instead.
-- (Situational) **`@vercel/geistdocs`** if Cadence ever needs a standalone public _docs site_
+- (Situational) **`@vercel/geistdocs`** if Supaprod ever needs a standalone public _docs site_
   matching Vercel's docs-site shell — not applicable to the in-app design system today.
 
 **(b) Re-implement — and why:**
@@ -155,7 +155,7 @@
 - **Token values** (color scales, spacing, radii, shadows, type scale) — same reasoning: they are
   observable on the public site but the source CSS/token file is never shipped anywhere public.
   Keep hand-extracting into `tokens/*.css` as already underway.
-- **Docs-site IA/chrome**, if ever wanted for Cadence's own docs — the real site source isn't
+- **Docs-site IA/chrome**, if ever wanted for Supaprod's own docs — the real site source isn't
   public, so this would mean pattern-matching visually, not forking code.
 
 **(c) Do-not-copy:**

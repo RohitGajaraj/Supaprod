@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
-import { TopBar } from "@/components/cadence/TopBar";
-import { PageHeader } from "@/components/cadence/PageHeader";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHeader } from "@/components/supaprod/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -405,7 +405,7 @@ export function DiscoverSurface() {
                 </div>
 
                 {/* Market watch: the tracked competitors + platforms and the
-                  weekly briefs Cadence writes when one of them moves. Lives
+                  weekly briefs Supaprod writes when one of them moves. Lives
                   below the signal pipeline as its own labelled section so its
                   purpose reads plainly. */}
                 <div style={{ marginTop: 44 }}>
@@ -416,7 +416,7 @@ export function DiscoverSurface() {
                     Market watch
                   </h2>
                   <p style={{ margin: "3px 0 16px", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
-                    Competitors and platforms you track. Cadence writes you a brief the first Monday
+                    Competitors and platforms you track. Supaprod writes you a brief the first Monday
                     after one of them actually moves.
                   </p>
                   <StrategySection />

@@ -1,13 +1,13 @@
-# Cadence Pricing Strategy
+# Supaprod Pricing Strategy
 
 > _Created: 2026-06-26 (founder session — 4-tier model decision + credit-dropdown architecture)_
 > _Last updated: 2026-07-10 (research merge: Critic teardown moves INTO Free; the value-metric evolution note — credits price closed loops, never tokens or seats; the labor-budget anchor line. Executed under the founder's full-tweak-authority grant, [`session-decisions.md`](../session-decisions.md) 2026-07-10 decision 7; every change carries its evidence pointer inline.)_
 
-> **Status: CANONICAL.** This is the single source of truth for WHY Cadence prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../../features/billing.md). This doc is the strategy layer those two reference.
+> **Status: CANONICAL.** This is the single source of truth for WHY Supaprod prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../../features/billing.md). This doc is the strategy layer those two reference.
 
 > **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](../session-decisions.md) in the same session.
 
-> **Related research (2026-07-12):** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) — an 8-platform competitor teardown + a per-surface free-vs-charged map for Cadence, with a recommended credit model (unified credits, BYOK-as-model-choice-only, the three-control governance model, outcome-gated ambient-spend billing). It **confirms** this doc's "credits price closed loops, not seats" and platform-cost-absorption stance, and **proposes one revision** — moving enterprise off per-seat to committed-credit + unlimited seats (this doc §0 decision 4). That revision is a pending founder call (research §9); do not treat it as ratified here until recorded.
+> **Related research (2026-07-12):** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) — an 8-platform competitor teardown + a per-surface free-vs-charged map for Supaprod, with a recommended credit model (unified credits, BYOK-as-model-choice-only, the three-control governance model, outcome-gated ambient-spend billing). It **confirms** this doc's "credits price closed loops, not seats" and platform-cost-absorption stance, and **proposes one revision** — moving enterprise off per-seat to committed-credit + unlimited seats (this doc §0 decision 4). That revision is a pending founder call (research §9); do not treat it as ratified here until recorded.
 
 > **⭐ FINALIZED architecture (2026-07-12, PROPOSED — pending founder approval):** [`pricing-architecture.md`](./pricing-architecture.md) is the single end-to-end system that closes the credit model + BYOK + model access + metering + the 4-tier packaging together, grounded in 2026 inference costs. When approved, it supersedes several calls in THIS doc: enterprise per-seat → committed credits + unlimited seats (§8.1 there); adds the platform-managed-default + enterprise-only-BYOK model-access strategy; replaces the flat $0.25/1M BYOK fee with a margin-slice %; adds the per-surface free-vs-charged map + credit unit peg (1 credit = $0.01 rated spend). Until the founder ratifies pricing-architecture.md §10, THIS doc's 2026-06-26 decisions still govern; after ratification, its tweaks fold in here.
 
@@ -36,14 +36,14 @@ Anthropic's pricing (Free / Pro / Max, with Max showing "5x or 20x more usage th
 - Claude's users are often developers who think in tokens/context windows
 - The multiplier is legible because "5x more Claude usage" is a felt experience
 
-For Cadence, this model has two problems:
+For Supaprod, this model has two problems:
 
-1. **Cadence users think in outcomes, not usage.** A PM does not ask "how many tokens will I burn this month?" They ask "how many missions can I run, how many decisions can I analyze, how much of the loop can I automate?" A usage multiplier is abstract where it should be concrete.
+1. **Supaprod users think in outcomes, not usage.** A PM does not ask "how many tokens will I burn this month?" They ask "how many missions can I run, how many decisions can I analyze, how much of the loop can I automate?" A usage multiplier is abstract where it should be concrete.
 2. **The 5-tier stack is cognitively heavy.** Free / Pro / Max / Team / Enterprise with Individual/Business toggles and 5x/20x sub-choices on Max is too many decisions at the moment of purchase.
 
 ### What we chose: Lovable's 4-tier credit dropdown
 
-Lovable's model (Free / Pro / Business / Enterprise, with a credit dropdown on Pro and Business) maps exactly to how Cadence users think:
+Lovable's model (Free / Pro / Business / Enterprise, with a credit dropdown on Pro and Business) maps exactly to how Supaprod users think:
 
 - The credit dropdown is a concrete selector: "I run about 400 credits of missions per month, so I'll pick 400."
 - 4 tiers with a clean value step at each boundary is a faster purchase decision.
@@ -51,13 +51,13 @@ Lovable's model (Free / Pro / Business / Enterprise, with a credit dropdown on P
 
 **The key correction from the Anthropic model:** the dropdown does NOT give a volume discount. More credits = more cost, linearly. The only discount is switching from monthly to annual billing (roughly 17% off, framed as "get 2 months free"). This keeps the math simple and the upgrade motivation honest: you upgrade credits because you need more, not because a discount made a bigger bundle look smart.
 
-### Why this fits Cadence specifically
+### Why this fits Supaprod specifically
 
-Cadence's value is the decision layer, not the raw AI compute. Credits are the meter; the decision memory, the Critic, the Trust Ledger, the governance rails — those are the product. The credit dropdown says "how much of the engine do you want running" and the tier boundary says "what level of the product do you need." These are orthogonal questions, which is why the dropdown sits inside a tier card rather than across separate tier cards.
+Supaprod's value is the decision layer, not the raw AI compute. Credits are the meter; the decision memory, the Critic, the Trust Ledger, the governance rails — those are the product. The credit dropdown says "how much of the engine do you want running" and the tier boundary says "what level of the product do you need." These are orthogonal questions, which is why the dropdown sits inside a tier card rather than across separate tier cards.
 
 ### Value-metric evolution — credits price closed loops and finished results, never tokens or seats (2026-07-10 research merge)
 
-**The standing direction for every future pricing/packaging decision:** a credit is a proxy for **finished results — closed decision loops** (decision → dispatched work → shipped → outcome recorded), never for tokens, API calls, or seats. Fits because Cadence's value event IS the closed decision loop, so the loop is the honest unit to price — the five-source market convergence corroborates rather than decides: seat pricing is visibly dying at the agentic frontier (Warp's Zach Lloyd: "fixed price per seat... doesn't work that well," 2025-09-27; Braintrust removed user-based pricing entirely, 2026-03-20; Pendo's Todd Olson naming Fin's "99 cents per support ticket closed" his favorite model, 2025-12-03 — [`../references/podcast-corpus-aakash.md`](../../references/podcast-corpus-aakash.md) synthesis #1), Sierra's Bret Taylor: "tokens are not correlated with value" (2026-03-10, [`../references/podcast-corpus-frontier.md`](../../references/podcast-corpus-frontier.md) §15), a16z: "'users' is being replaced by 'output'" (2024-12 / 2025-10-03, [`../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md) §7), and Meng To: "you pay for the finished result" (2026-05-06 transcript, [`../references/pm-voice-and-ai-tooling-research.md`](../../references/pm-voice-and-ai-tooling-research.md) §13.6).
+**The standing direction for every future pricing/packaging decision:** a credit is a proxy for **finished results — closed decision loops** (decision → dispatched work → shipped → outcome recorded), never for tokens, API calls, or seats. Fits because Supaprod's value event IS the closed decision loop, so the loop is the honest unit to price — the five-source market convergence corroborates rather than decides: seat pricing is visibly dying at the agentic frontier (Warp's Zach Lloyd: "fixed price per seat... doesn't work that well," 2025-09-27; Braintrust removed user-based pricing entirely, 2026-03-20; Pendo's Todd Olson naming Fin's "99 cents per support ticket closed" his favorite model, 2025-12-03 — [`../references/podcast-corpus-aakash.md`](../../references/podcast-corpus-aakash.md) synthesis #1), Sierra's Bret Taylor: "tokens are not correlated with value" (2026-03-10, [`../references/podcast-corpus-frontier.md`](../../references/podcast-corpus-frontier.md) §15), a16z: "'users' is being replaced by 'output'" (2024-12 / 2025-10-03, [`../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md) §7), and Meng To: "you pay for the finished result" (2026-05-06 transcript, [`../references/pm-voice-and-ai-tooling-research.md`](../../references/pm-voice-and-ai-tooling-research.md) §13.6).
 
 Presentation follows the metric: the pricing page and the in-app meter lead with **per-artifact outcome ranges, never token math**, and adopt the **labor-budget anchor copy line** (investor corpus §A move 8): each mission pack lists its credit range against the work it replaces — e.g. _"a Critic teardown ≈ 15–40 credits; a spec→PR mission ≈ 150–400 credits — an afternoon of coordination work."_ (a16z: the budget line agentic products tap is labor, and "per-seat is no longer the atomic unit of software," 2024-12; Huang at Sequoia AI Ascent: "you pay them salaries; you pay agents tokens," 2026-04-20.) True per-outcome billing (pay per resolved decision / merged PR) is **NOT adopted — FOUNDER-CALL**: the migration evidence points there, but outcome-attribution disputes pre-launch cut the other way (v13 §6); registered as G18 row RPT-20.
 
@@ -148,7 +148,7 @@ This is what "credits" actually buy: the amount of autonomous loop execution the
 How much context the loop can pull from the outside world — and how far it can push decisions back out.
 
 > **2026-06-27 decision — integration tiering (founder session):**
-> Inspired by Notion's pricing page (Basic integrations on Plus, Premium integrations on Business). Cadence's core value is connecting to where work happens — GitHub, Linear, Notion, Jira. Connector access IS the product, not a feature list item, so tiering it drives the sharpest upgrade signal below memory. The read/write split is the key: Pro lets you pull signals in; Business lets Cadence push decisions back out to where the team works. The upgrade moment: "why is my team still copy-pasting Cadence decisions back into Jira? Business does that automatically."
+> Inspired by Notion's pricing page (Basic integrations on Plus, Premium integrations on Business). Supaprod's core value is connecting to where work happens — GitHub, Linear, Notion, Jira. Connector access IS the product, not a feature list item, so tiering it drives the sharpest upgrade signal below memory. The read/write split is the key: Pro lets you pull signals in; Business lets Supaprod push decisions back out to where the team works. The upgrade moment: "why is my team still copy-pasting Supaprod decisions back into Jira? Business does that automatically."
 
 **Connector tier definitions (enforced at the server credential chokepoint — `resolve.server.ts`):**
 
@@ -156,7 +156,7 @@ How much context the loop can pull from the outside world — and how far it can
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Free       | Manual input only. No live connectors.                                                                                                                                                                                                       |
 | Pro        | Read connectors — pull signals in (GitHub issues/PRs, Linear cycles, Notion pages, Jira tickets). No write-back.                                                                                                                             |
-| Business   | Read + Write connectors — read signals in AND push decisions back (create GitHub issues from PRDs, update Linear/Jira ticket status, write Cadence decisions to Notion pages). Team-shared sources (one GitHub OAuth covers the whole team). |
+| Business   | Read + Write connectors — read signals in AND push decisions back (create GitHub issues from PRDs, update Linear/Jira ticket status, write Supaprod decisions to Notion pages). Team-shared sources (one GitHub OAuth covers the whole team). |
 | Enterprise | Custom connectors + connector development. Full API rates. Dedicated pipelines.                                                                                                                                                              |
 
 **Why read-only on Pro:** a solo PM who pulls signals in gets enormous value. They can see their GitHub repo health, their Linear backlog health, their Notion docs. That is the aha moment. But write-back is a TEAM operation — creating a GitHub issue from a PRD should be reviewed before it lands in the repo. Governance belongs to Business. This creates a clear, felt upgrade reason even before a second seat is added.
@@ -171,7 +171,7 @@ How much context the loop can pull from the outside world — and how far it can
 | Linear            | Cycles, issues, project status    | Create/update issues; link PRDs to cycles              |
 | Jira              | Tickets, sprints, epic health     | Create tickets; transition status from agent decisions |
 | Notion            | Pages, databases, docs            | Write decision records; update PRD status              |
-| Google Docs       | Documents as signal source        | Write Cadence summaries to docs                        |
+| Google Docs       | Documents as signal source        | Write Supaprod summaries to docs                        |
 | Figma             | Design files (reference only)     | N/A (read-only by nature)                              |
 | Google Calendar   | Meeting events for context        | N/A (read-only)                                        |
 | Microsoft Outlook | Meeting events for context        | N/A (read-only)                                        |
@@ -228,7 +228,7 @@ These are upgrade signals, but they are secondary to memory and governance. The 
 
 | Dimension                    | Free                   | Pro                    | Business             | Enterprise               |
 | ---------------------------- | ---------------------- | ---------------------- | -------------------- | ------------------------ |
-| No model training on content | Default Cadence policy | Default Cadence policy | Explicitly confirmed | Contractually guaranteed |
+| No model training on content | Default Supaprod policy | Default Supaprod policy | Explicitly confirmed | Contractually guaranteed |
 | SSO                          | No                     | No                     | No                   | Yes (SAML/OIDC)          |
 | SCIM provisioning            | No                     | No                     | No                   | Yes                      |
 | Data residency               | No                     | No                     | No                   | Custom                   |
@@ -262,7 +262,7 @@ Enterprise accounts have a negotiated credit model. Options (per §2.4 of the mo
 - **(a) Seat-based pooled:** each seat carries a monthly allowance, pooled org-wide. Admins allocate from the pool. Simplest to invoice.
 - **(b) Committed org pool:** annual credit commitment with a volume discount. Like a pre-paid block.
 - **(c) Postpaid metered:** usage invoiced monthly at API rates, true-up at cycle end. Best for unpredictable usage.
-- **(d) BYOK / dedicated capacity:** customer's own model keys or a dedicated inference deployment. COGS off Cadence's book.
+- **(d) BYOK / dedicated capacity:** customer's own model keys or a dedicated inference deployment. COGS off Supaprod's book.
 
 The default recommendation is (a) seat-based pooled + per-user caps, which is the Anthropic Team/Enterprise model (from reference image 6). The enterprise contact-sales path selects the model per deal.
 

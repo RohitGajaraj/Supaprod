@@ -23,9 +23,9 @@ The SF-CONNECTORS fleet (Stripe/Slack/Zendesk/HubSpot/Salesforce/Canny/Productbo
 
 ## Stripe — blocked, not a quick task
 
-Stripe operates **invite-only in India** and requires a properly registered business entity (incorporation docs, business bank account) — there is no individual or unregistered-venture signup path, and no verification-free way to even reach the API-keys screen. This is a business-formation-level process, not a 5-minute setup step, and it's the likely reason Cadence's own live billing rail has been sitting dormant ("live-capable but currently sandbox/test-mode and dormant pending founder secrets" per `docs/planning/workspace-tenancy-and-monetization-plan.md`) — worth raising as its own conversation separately, not solved as a side effect of Signal Fabric testing.
+Stripe operates **invite-only in India** and requires a properly registered business entity (incorporation docs, business bank account) — there is no individual or unregistered-venture signup path, and no verification-free way to even reach the API-keys screen. This is a business-formation-level process, not a 5-minute setup step, and it's the likely reason Supaprod's own live billing rail has been sitting dormant ("live-capable but currently sandbox/test-mode and dormant pending founder secrets" per `docs/planning/workspace-tenancy-and-monetization-plan.md`) — worth raising as its own conversation separately, not solved as a side effect of Signal Fabric testing.
 
-**Decision: skip for now.** Revisit only once Cadence (or a suitable entity) has a verified, invited Stripe account.
+**Decision: skip for now.** Revisit only once Supaprod (or a suitable entity) has a verified, invited Stripe account.
 
 Sources: [Stripe accounts are invite-only in India](https://support.stripe.com/questions/stripe-accounts-are-invite-only-in-india), [How can I open a Stripe account in India?](https://support.stripe.com/questions/how-can-i-open-a-stripe-account-in-india), [2025 updates to India verification requirements](https://support.stripe.com/questions/2025-updates-to-india-verification-requirements)
 

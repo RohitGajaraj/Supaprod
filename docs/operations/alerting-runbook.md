@@ -18,11 +18,11 @@
 - **Better Stack on-call rotation:** founder phone (Sev 1), founder phone via SMS (Sev 2), Slack webhook (Sev 3+). Configured in Better Stack UI; renameable.
 - **Slack workspace + channels:** `#incidents` (Sev 1-2), `#observability` (Sev 3). Webhook URLs stored as CF Worker secrets.
 - **In-app `/admin/incidents`:** the always-available pane; pulls last 24h from Sentry + last 7d from `job_runs`.
-- **Public status page:** `status.cadence.app` (Better Stack-hosted; DNS-renameable when Cadence rebrands).
+- **Public status page:** `status.supaprod.app` (Better Stack-hosted; DNS-renameable when Supaprod rebrands).
 
 ## Triage steps (Sev 1)
 
-1. Hit `https://cadence-flow-beta.lovable.app/api/public/health` — confirm the 503.
+1. Hit `https://supaprod.lovable.app/api/public/health` — confirm the 503.
 2. Check Better Stack dashboard for which probe failed (Worker / DB / cron heartbeat).
 3. Check Sentry "issues" EU dashboard for new exceptions in the last 15 min.
 4. Check `/admin/incidents` for `job_runs.status='error'` in the last hour.

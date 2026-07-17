@@ -1,5 +1,5 @@
 import type { ChatMeta } from "@/components/chat/MessageMeta";
-import { ShimmerText } from "@/components/cadence/ShimmerText";
+import { ShimmerText } from "@/components/supaprod/ShimmerText";
 
 /**
  * Shared SSE protocol v2 — zero or more research-progress events stream before

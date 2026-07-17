@@ -1,5 +1,5 @@
 /**
- * BYO-P5 P5b: the server fn behind the founder-only "Cadence-hosted" toggle.
+ * BYO-P5 P5b: the server fn behind the founder-only "Supaprod-hosted" toggle.
  *
  * Admin-gated via the `user_roles` table, the same real mechanism `amIAdmin`
  * (`pricing.functions.ts`) and the `/admin/*` route layout use — NOT the

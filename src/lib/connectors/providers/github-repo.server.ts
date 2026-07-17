@@ -66,7 +66,7 @@ export class GitHubRepoProvider implements RepoProvider {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "cadence-repo-provider",
+      "User-Agent": "supaprod-repo-provider",
       "Content-Type": "application/json",
     };
     this.defaultRef = defaultRef;
@@ -362,7 +362,7 @@ export class GitHubRepoProvider implements RepoProvider {
     name: string,
     opts: { private?: boolean; org?: string; description?: string },
   ): Promise<RepoRef> {
-    // NEVER use a Cadence-owned org; only the authenticated user's account
+    // NEVER use a Supaprod-owned org; only the authenticated user's account
     // unless an explicit org is passed by the caller.
     const endpoint = opts.org
       ? `${GH_API}/orgs/${encodeURIComponent(opts.org)}/repos`

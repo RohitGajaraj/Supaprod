@@ -10,7 +10,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Clock } from "lucide-react";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { getMemoryExpiry } from "@/lib/today.functions";
 
 export function MemoryExpiryBanner({ workspaceId }: { workspaceId: string | null }) {

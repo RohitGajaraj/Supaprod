@@ -19,9 +19,9 @@ import {
   type ToolRisk,
 } from "@/lib/tool-consequences";
 
-/** The memorable line the panel leads with. Cadence drafts, the human releases. */
+/** The memorable line the panel leads with. Supaprod drafts, the human releases. */
 export const CONSENT_PHILOSOPHY =
-  "Cadence drafts. You release. Nothing stakeholder-facing sends itself.";
+  "Supaprod drafts. You release. Nothing stakeholder-facing sends itself.";
 
 /** The four consequence classes, floor (safest) to ceiling (widest blast radius). */
 export type ConsequenceClassId = "read-only" | "internal-write" | "stakeholder" | "repo-write";
@@ -96,7 +96,7 @@ const CLASSES: Record<ConsequenceClassId, ConsequenceClass> = {
       posture: "draft-to-you",
       mode: "confirm",
       label: "Draft to you, batch-approve daily",
-      rationale: "Cadence drafts, you release. Auto-send is opt-in, per destination.",
+      rationale: "Supaprod drafts, you release. Auto-send is opt-in, per destination.",
     },
   },
   "repo-write": {

@@ -1,10 +1,10 @@
 /**
- * IA — THE CADENCE LOOP (Tempo revamp, 2026-07-13). The pure navigation model
+ * IA — THE SUPAPROD LOOP (Tempo revamp, 2026-07-13). The pure navigation model
  * for the app shell.
  *
  * The rail is no longer a cold flat "WORKFLOW" list; it tells the product's
  * story in three narrative zones, top to bottom, so a first-time user can see
- * what Cadence does, where to start, and how to move through it — with zero
+ * what Supaprod does, where to start, and how to move through it — with zero
  * training:
  *
  *   HOME
@@ -18,7 +18,7 @@
  *     05 Build         agents build, test, and open the PR               [5]
  *     06 Ship          preview to production, with receipts              [6]
  *     07 Learn         outcomes close the loop and teach the system      [7]
- *   INTELLIGENCE  (always on)      — the compounding layers that make Cadence
+ *   INTELLIGENCE  (always on)      — the compounding layers that make Supaprod
  *                                     more than a tracker:
  *     Brain            everything the product knows, one substrate       [8]
  *     Pulse            the machine's vital signs: spend/quality/safety    [9] (also `g`)

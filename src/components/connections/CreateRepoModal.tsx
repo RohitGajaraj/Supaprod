@@ -3,7 +3,7 @@
  *
  * Creates a GitHub repo in the user's own account (or an explicit org) using
  * their existing GitHub connection. Repo lands in the user's personal namespace
- * by default — never in a Cadence-owned org (BYO means it's theirs).
+ * by default — never in a Supaprod-owned org (BYO means it's theirs).
  *
  * On success, the repo is auto-bound as a product-level binding for the current
  * product, and an onSuccess callback fires so the parent can refresh bindings.

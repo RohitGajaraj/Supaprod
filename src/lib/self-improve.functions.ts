@@ -1,7 +1,7 @@
 /**
  * RPT-50 (deterministic slice): server adapter for the self-improvement engine.
  *
- * Reads three of Cadence's own quality signals for a workspace and hands them to
+ * Reads three of Supaprod's own quality signals for a workspace and hands them to
  * the PURE `composeProposals` (src/lib/self-improve.ts). No AI, no chokepoint:
  * every proposal is a deterministic flag on a real number over a real sample.
  *
@@ -359,7 +359,7 @@ export async function enrichProposalCore(
         {
           role: "system",
           content:
-            'You are Cadence\'s own quality analyst, reviewing a problem that Cadence\'s DETERMINISTIC self-check raised about Cadence itself. A rule (not you) already decided this is a real problem, from a real number over a real sample. Your ONLY job, using the ACTUAL records provided: (1) explain the specific pattern behind the flag in one or two sentences, and (2) propose exactly one concrete, specific fix. Rules: ground every statement in the provided records; do not restate the headline number; do not invent problems the records do not show; do not comment on how severe it is (already decided); if the records do not reveal a clear pattern, say so plainly and suggest gathering more signal. Reply as strict JSON: {"explanation": string, "suggested_fix": string}. Keep each under 60 words, plain language, no em dashes.',
+            'You are Supaprod\'s own quality analyst, reviewing a problem that Supaprod\'s DETERMINISTIC self-check raised about Supaprod itself. A rule (not you) already decided this is a real problem, from a real number over a real sample. Your ONLY job, using the ACTUAL records provided: (1) explain the specific pattern behind the flag in one or two sentences, and (2) propose exactly one concrete, specific fix. Rules: ground every statement in the provided records; do not restate the headline number; do not invent problems the records do not show; do not comment on how severe it is (already decided); if the records do not reveal a clear pattern, say so plainly and suggest gathering more signal. Reply as strict JSON: {"explanation": string, "suggested_fix": string}. Keep each under 60 words, plain language, no em dashes.',
         },
         {
           role: "user",
@@ -440,7 +440,7 @@ export type ApplyFixResult = {
  *
  * Targets DATA-backed config (house_rules), NOT code -- so it is safe, needs no
  * repo, and is the SAME mechanism a customer's own self-improvement uses on their
- * own workspace config (RPT-39). The code-PR path (against Cadence's own repo) is
+ * own workspace config (RPT-39). The code-PR path (against Supaprod's own repo) is
  * a separate, internal-only rung.
  */
 export const applySelfImproveFix = createServerFn({ method: "POST" })
@@ -517,7 +517,7 @@ export async function applyFixCore(
     .insert({
       workspace_id: data.workspaceId,
       rule_text: ruleText,
-      rationale: `Cadence self-improvement: applied to fix "${title}".`,
+      rationale: `Supaprod self-improvement: applied to fix "${title}".`,
       status: "approved",
       agent_slug: data.kind === "agent" ? data.subjectRef : null,
     })
@@ -541,7 +541,7 @@ export async function applyFixCore(
       workspace_id: data.workspaceId,
       title: `Self-tuned: ${title}`.slice(0, 280),
       rationale:
-        `Cadence flagged "${title}" from its own signals and applied a house rule to fix it: ${ruleText}`.slice(
+        `Supaprod flagged "${title}" from its own signals and applied a house rule to fix it: ${ruleText}`.slice(
           0,
           2000,
         ),
@@ -573,7 +573,7 @@ export async function applyFixCore(
         data.workspaceId,
         data.subjectRef,
         "self_tuned",
-        `Cadence self-improvement applied a fix for "${title}": ${ruleText.slice(0, 200)}${ruleText.length > 200 ? "…" : ""}`,
+        `Supaprod self-improvement applied a fix for "${title}": ${ruleText.slice(0, 200)}${ruleText.length > 200 ? "…" : ""}`,
         null,
       );
     } catch {

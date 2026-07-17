@@ -45,7 +45,7 @@ function HeaderRow({ count }: { count: number }) {
           Clustered into bets
         </h2>
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
-          Cadence continuously reads your captured signals and clusters them into themes
+          Supaprod continuously reads your captured signals and clusters them into themes
           automatically, ranked by corroboration. Promote one and it lands in the queue as a ranked
           bet.
         </p>
@@ -408,7 +408,7 @@ export function AutoClustered() {
               margin: 0,
             }}
           >
-            No themes yet. Capture a few signals and Cadence clusters them into ranked themes here.
+            No themes yet. Capture a few signals and Supaprod clusters them into ranked themes here.
           </p>
           <div style={{ marginTop: 8 }}>
             <Button variant="secondary" onClick={() => navigate({ to: "/discover" })}>

@@ -1,4 +1,4 @@
-# Cadence pricing architecture — the FINALIZED end-to-end system
+# Supaprod pricing architecture — the FINALIZED end-to-end system
 
 > _Created: 2026-07-12 (founder /goal: move from research to a finalized, implementation-ready pricing architecture — credit model, BYOK, model access, metering, billing, and the full 4-tier packaging as ONE coherent system). Finalized 2026-07-12 under the founder's explicit grant to finalize the what/how/why; the founder does not build from this — it is the spec agents build from._
 
@@ -10,7 +10,7 @@
 
 ## 1. First principles (what this system must satisfy)
 
-**What we're solving:** a PM is drowning in the coordination work around decisions. Cadence does that PM work end-to-end and remembers what happened. The value event is a **closed decision loop** (decide → dispatch → ship → outcome recorded), not a token or a seat.
+**What we're solving:** a PM is drowning in the coordination work around decisions. Supaprod does that PM work end-to-end and remembers what happened. The value event is a **closed decision loop** (decide → dispatch → ship → outcome recorded), not a token or a seat.
 
 **Who we're building for:** the solo/indie PM (Free/Pro), the accountable PM team (Business), the governed org (Enterprise). Most are **not** technical and do not think in tokens or model names.
 
@@ -30,9 +30,9 @@
 
 The canon already made the right core call: **a credit prices a finished result / closed loop, never a token or a seat**, shown as per-artifact ranges against the work it replaces ("a spec→PR mission ≈ 150–400 credits — an afternoon of coordination"). This research **confirms** it (Replit's effort-checkpoints, Devin's ACUs, Intercom Fin's per-resolution, Sierra's "tokens aren't correlated with value" — all converge). We keep it, and sharpen it into a named, coherent model with four rules:
 
-**Rule 1 — Charge for the takeaway, free the trust layer.** A credit is drawn only when an AI call PRODUCES the customer's own work product (agent, Build, chat, copilot, PRD, discovery, brief, decision, governed foresight). Cadence **bears** the cost of everything that grades, verifies, screens, or self-diagnoses its own output (evals, judge/Critic, self-improvement, guardrails, injection screening) and of plumbing (embeddings, scheduling, connection tests). _Charging users to verify our quality would suppress the exact trust mechanism that is the moat — so we eat it._ (The full per-surface map is §4 of the research doc; it becomes the billing spec.)
+**Rule 1 — Charge for the takeaway, free the trust layer.** A credit is drawn only when an AI call PRODUCES the customer's own work product (agent, Build, chat, copilot, PRD, discovery, brief, decision, governed foresight). Supaprod **bears** the cost of everything that grades, verifies, screens, or self-diagnoses its own output (evals, judge/Critic, self-improvement, guardrails, injection screening) and of plumbing (embeddings, scheduling, connection tests). _Charging users to verify our quality would suppress the exact trust mechanism that is the moat — so we eat it._ (The full per-surface map is §4 of the research doc; it becomes the billing spec.)
 
-**Rule 2 — Charge only on DELIVERY, and only for substantial work. Stop it early and it is free.** A credit is spent when Cadence hands you a finished deliverable you can point at (a PRD, a completed mission, a build, a deep-research brief) — never mid-run, never on a stopped/abandoned run, never on a retry or a failed attempt. Stop a mission after it has churned for an hour but before it delivers, and you are NOT charged; Cadence eats that (cheap-routed) cost. This kills the "it burned an hour then charged me for nothing" resentment (Bolt/Replit's exact failure) and dissolves the "what happens to the tokens I already spent if I stop?" anxiety: nothing is spent until something is delivered. It is NOT a self-scored "was this good?" outcome (the Intercom/Zendesk trust-war, §9d) — the trigger is the simple, observable fact that an artifact was produced.
+**Rule 2 — Charge only on DELIVERY, and only for substantial work. Stop it early and it is free.** A credit is spent when Supaprod hands you a finished deliverable you can point at (a PRD, a completed mission, a build, a deep-research brief) — never mid-run, never on a stopped/abandoned run, never on a retry or a failed attempt. Stop a mission after it has churned for an hour but before it delivers, and you are NOT charged; Supaprod eats that (cheap-routed) cost. This kills the "it burned an hour then charged me for nothing" resentment (Bolt/Replit's exact failure) and dissolves the "what happens to the tokens I already spent if I stop?" anxiety: nothing is spent until something is delivered. It is NOT a self-scored "was this good?" outcome (the Intercom/Zendesk trust-war, §9d) — the trigger is the simple, observable fact that an artifact was produced.
 
 **Rule 2b — Everyday work feels unlimited; only heavy deliverables touch the meter.** The high-frequency, cheap actions — chat, viewing, the Critic teardown, briefs, discovery, manual edits — are effectively free and never visibly metered (Copilot makes completions unlimited; Perplexity makes chat unlimited). Only substantial, expensive deliverables (missions, builds, deep research) draw from the monthly allowance. So for typical use the meter is invisible; it only becomes real for a power user running many missions.
 
@@ -48,11 +48,11 @@ The canon already made the right core call: **a credit prices a finished result 
 
 **Decision: default to platform-managed models for EVERY tier. The model is abstracted behind the credit. BYOK is an _option_, not the primary experience.**
 
-The founder's instinct is right and the market backs it: Perplexity, Lovable, v0, and Bolt all bundle frontier models into the subscription with **no BYOK** and succeed — because a non-technical user should never manage a key or reason about a second wallet. For Cadence specifically, the value is the decision engine, not raw model access, so abstracting the model is honest, not hiding.
+The founder's instinct is right and the market backs it: Perplexity, Lovable, v0, and Bolt all bundle frontier models into the subscription with **no BYOK** and succeed — because a non-technical user should never manage a key or reason about a second wallet. For Supaprod specifically, the value is the decision engine, not raw model access, so abstracting the model is honest, not hiding.
 
 **How model choice works without BYOK:**
 
-- **Default (all tiers):** Cadence picks the model. Cost-routed — cheap flash for briefs/foresight/verification, frontier for the hard reasoning. The user just spends credits on outcomes.
+- **Default (all tiers):** Supaprod picks the model. Cost-routed — cheap flash for briefs/foresight/verification, frontier for the hard reasoning. The user just spends credits on outcomes.
 - **Optional model menu (Pro+):** for users who _want_ to choose, a small curated menu ("Balanced / Deep / Fast") maps to model classes, each with a credit-burn rate — an in-product dial, exactly like v0/Bolt, **not** a billing bypass. Model choice changes how fast you spend credits, never who bills you.
 - **Cheap is effectively free; frontier costs credits (the Poe/Abacus "credits school," §9c — pick this over pure "unlimited").** Because a credit prices rated model spend, routine/ambient work on cost-routed flash burns almost nothing (it _feels_ unlimited), while a frontier-grade reasoning pass on a hard decision costs more. This internalizes the ~100x flash-to-frontier gap and caps margin exposure — without Perplexity's "quietly-tightened unlimited" that generates backlash.
 - We stay genuinely **model-agnostic on our side** (the `runtime.server.ts` chokepoint already routes provider-agnostically), so adding a new model is an internal config change, invisible to pricing.
@@ -63,28 +63,28 @@ This kills the confusion the founder was worried about (platform credits vs brin
 
 ## 4. BYOK — an enterprise/advanced option, metered and governed (with a platform fee)
 
-**Decision: BYOK is NOT part of the primary experience. It exists as an option, primarily for Enterprise (and optionally Business-advanced), always routed through Cadence so we still meter, govern, secure, and orchestrate — with a thin platform fee so it never becomes a value bypass.**
+**Decision: BYOK is NOT part of the primary experience. It exists as an option, primarily for Enterprise (and optionally Business-advanced), always routed through Supaprod so we still meter, govern, secure, and orchestrate — with a thin platform fee so it never becomes a value bypass.**
 
 **Why BYOK survives at all (not everything can be on us):**
 
 - **Compliance / data residency:** an enterprise may require inference on their own tenant/keys (their Azure OpenAI, AWS Bedrock, private endpoint).
-- **Their own fine-tuned / private models:** an enterprise with a domain model wants Cadence to orchestrate it.
+- **Their own fine-tuned / private models:** an enterprise with a domain model wants Supaprod to orchestrate it.
 - **Cost control at extreme scale:** a very heavy account may prefer its own negotiated provider rate.
 
-**BYOK is NEVER a live dual-meter (the founder's confusion point).** The regular customer never sees BYOK at all — models are included, one allowance, one wallet. Even for the enterprise that uses it, BYOK is a **contract term, not a real-time reconciliation**: their provider bills them for tokens on their own key (as they already do), and Cadence's thin platform fee is a **single line on the committed invoice**, not a per-call meter the admin watches tick alongside a credit balance. So there is never "your tokens billed here + my credits billed there" to map in the moment — the two are separated cleanly: raw inference is their provider's bill (invisible to Cadence's UI), platform value is one contract line. That is the whole reason BYOK stays enterprise-only: the moment it becomes a self-serve dual-meter, it creates exactly the friction the founder flagged.
+**BYOK is NEVER a live dual-meter (the founder's confusion point).** The regular customer never sees BYOK at all — models are included, one allowance, one wallet. Even for the enterprise that uses it, BYOK is a **contract term, not a real-time reconciliation**: their provider bills them for tokens on their own key (as they already do), and Supaprod's thin platform fee is a **single line on the committed invoice**, not a per-call meter the admin watches tick alongside a credit balance. So there is never "your tokens billed here + my credits billed there" to map in the moment — the two are separated cleanly: raw inference is their provider's bill (invisible to Supaprod's UI), platform value is one contract line. That is the whole reason BYOK stays enterprise-only: the moment it becomes a self-serve dual-meter, it creates exactly the friction the founder flagged.
 
 **How BYOK works (the architecture) — see §5.**
 
 **The platform fee on BYOK (the Cursor move) — and is $0.25/1M still right?**
-Even on a BYOK call, Cadence still does the expensive, valuable part: the decision orchestration, memory, Critic, guardrails, routing. So BYOK decouples _who pays for the raw tokens_, not _Cadence works for free_. We keep a **thin platform fee** on BYOK usage so heavy/enterprise users can't route their most valuable calls entirely off our meter.
+Even on a BYOK call, Supaprod still does the expensive, valuable part: the decision orchestration, memory, Critic, guardrails, routing. So BYOK decouples _who pays for the raw tokens_, not _Supaprod works for free_. We keep a **thin platform fee** on BYOK usage so heavy/enterprise users can't route their most valuable calls entirely off our meter.
 
 **The finalized answer (grounded in §9): keep the margin, drop the flat $0.25/1M — it is now the wrong structure.** At 2026 prices a flat $0.25/1M is **1.8–5x the entire input cost** of the cheap models customers actually route high volume to (Gemini Flash-Lite $0.10, DeepSeek $0.14, Llama-8B $0.05) — you'd charge more for the wrapper than the model — while being an invisible <1% on frontier. And because the cheap floor deflates ~3–10x/yr against a static fee, its share of spend *grows* over time exactly on the tiers you want to encourage. So $0.25/1M is not "a bit high," it is structurally broken and gets worse every quarter.
 
-**The fee, expressed cleanly inside our own credit model:** a BYOK call costs the **orchestration-margin portion of the normal credit price** — the customer's key covers the raw model tokens; Cadence still charges for the decision/memory/Critic/guardrail/routing work around the call. This is the Cursor "we still take a margin" intent, done right:
+**The fee, expressed cleanly inside our own credit model:** a BYOK call costs the **orchestration-margin portion of the normal credit price** — the customer's key covers the raw model tokens; Supaprod still charges for the decision/memory/Critic/guardrail/routing work around the call. This is the Cursor "we still take a margin" intent, done right:
 
 - It is a **% of the equivalent-managed value** (the margin already baked into a credit), so it **auto-deflates** with the market and can never invert to cost more than the model.
 - It scales fairly across a 100x flash-to-frontier spread (a % is proportional; a flat per-token fee is not).
-- It reads honestly to the customer: _"you cover the tokens on your key; you pay for the Cadence work that wraps them."_
+- It reads honestly to the customer: _"you cover the tokens on your key; you pay for the Supaprod work that wraps them."_
 
 **Provisional number: a THIN ~10–20% of the call's rated pass-through spend** (the research's recommendation) — NOT the full managed product margin. A full-margin fee would make BYOK cost the same as managed (just splitting the bill) and kill the reason to use it. The customer's key covers the raw tokens; we take a small orchestration cut on top. So BYOK stays genuinely _cheaper_ for the customer (they keep the model markup + get compliance) while we capture margin on work we'd otherwise not touch. Founder sets the exact % inside the 10–20% band; the _structure_ (a % of pass-through, not a flat per-1M) is the locked recommendation. A tiered flat-per-1M by model band is the fallback only if enterprise procurement demands a fixed number — banded so it is always a fraction of, never a multiple of, the model price. Worked dollars in §11.
 
@@ -92,14 +92,14 @@ Even on a BYOK call, Cadence still does the expensive, valuable part: the decisi
 
 ## 5. Enterprise private-model / provider architecture
 
-**Decision: enterprise plugs in their own provider or private model; Cadence remains the control plane — we meter, govern, secure, and orchestrate every call. They bring the _inference_; they never bypass the _platform_.**
+**Decision: enterprise plugs in their own provider or private model; Supaprod remains the control plane — we meter, govern, secure, and orchestrate every call. They bring the _inference_; they never bypass the _platform_.**
 
 The seam already exists: [`resolveProviderAuth`](../../src/lib/connectors) (workspace binding → user connection → env fallback) and the model-agnostic `runtime.server.ts` chokepoint. Enterprise BYOK extends that:
 
 1. **Connect:** an admin binds a provider at the workspace/org level (Anthropic key, Azure OpenAI, AWS Bedrock, a private/OpenAI-compatible endpoint, or a fine-tuned model). Keys are encrypted (AES-256-GCM, service-role vault) — the existing connector security model.
-2. **Route:** the chokepoint routes eligible surfaces to the bound provider. The moat surfaces (decision, Critic, eval, self-improve) still run on Cadence's own managed models by default unless the enterprise explicitly approves a model for them ("approved-model lists," already in the canon's Enterprise row).
-3. **Meter + govern:** every call still flows through Cadence — so guardrails, injection screening, the Trust Ledger, per-user caps, audit export, and the platform fee all still apply. BYOK changes the _inference bill_, not the _governance_.
-4. **Orchestrate:** the agent loop, memory, handoff, and Critic are unchanged — Cadence orchestrates the enterprise's model exactly as it orchestrates ours.
+2. **Route:** the chokepoint routes eligible surfaces to the bound provider. The moat surfaces (decision, Critic, eval, self-improve) still run on Supaprod's own managed models by default unless the enterprise explicitly approves a model for them ("approved-model lists," already in the canon's Enterprise row).
+3. **Meter + govern:** every call still flows through Supaprod — so guardrails, injection screening, the Trust Ledger, per-user caps, audit export, and the platform fee all still apply. BYOK changes the _inference bill_, not the _governance_.
+4. **Orchestrate:** the agent loop, memory, handoff, and Critic are unchanged — Supaprod orchestrates the enterprise's model exactly as it orchestrates ours.
 
 This is the honest answer to "should they just plug in their providers while we meter/govern/secure/orchestrate?" — **yes**, and the architecture already supports it; enterprise BYOK is a governance + billing policy on top of the existing provider-resolution chain, not a new pipeline.
 
@@ -132,7 +132,7 @@ Keep the clear, self-explaining names, **as originally named: Free / Pro / Busin
 Reasoning (why clear names, not a clever theme):
 
 - **Clarity converts.** The pricing page is decoded in seconds by a buyer under time pressure; a clever tier name makes them work at the exact moment of purchase. Every strong comparable — Perplexity (Pro/Max), Cursor, Copilot (Pro/Business/Enterprise), Lovable, Linear, Notion — uses boring-clear tier names.
-- **We already learned this.** Cadence retired thematic names (Constellation / Galaxy / Cosmos) precisely because they added cognitive load (canon §10). Reintroducing cleverness would re-make a fixed mistake.
+- **We already learned this.** Supaprod retired thematic names (Constellation / Galaxy / Cosmos) precisely because they added cognitive load (canon §10). Reintroducing cleverness would re-make a fixed mistake.
 - **Reverted 2026-07-13.** The original rationale for "Team over Business" (reads more human, describes the solo→team jump) was sound in isolation, but the founder corrected this the same day: keep **Business**, the originally-decided name. Not applied.
 
 Personality lives in the brand voice, the product moments, and feature names — not the tier selector.
@@ -166,7 +166,7 @@ From §9 COGS (mission ≈ $0.50 cached; small artifacts ≈ pennies; everyday a
 1. **One wallet.** Every customer has a single platform-credit balance. There is no second "bring-your-own-credits" wallet, ever.
 2. **The model is ours to manage** (all tiers, default) — cost-routed, flex-buffered, invisible. New models slot in without re-pricing.
 3. **Credits price kept outcomes** — model-abstracted, outcome-gated, stop-at-budget. The trust layer + plumbing are free.
-4. **BYOK is an enterprise/advanced escape valve** — for compliance / private models / extreme scale — that still flows through Cadence (metered, governed, orchestrated) with a thin platform fee, so it never bypasses the value.
+4. **BYOK is an enterprise/advanced escape valve** — for compliance / private models / extreme scale — that still flows through Supaprod (metered, governed, orchestrated) with a thin platform fee, so it never bypasses the value.
 5. **Enterprise is bought as a committed credit envelope with unlimited seats** — value = agent work, not license count.
 6. **Ambient spend is governed by the three controls** — free baseline (always on), universal spend dial (outcome-gated + capped + downgrade-to-free), enterprise compliance off-switch.
 
@@ -176,7 +176,7 @@ From §9 COGS (mission ≈ $0.50 cached; small artifacts ≈ pennies; everyday a
 
 On approval, these fold into [`pricing-strategy.md`](./pricing-strategy.md) + [`session-decisions.md`](../session-decisions.md):
 
-1. **Enterprise pricing: per-seat → committed credits + unlimited seats.** Canon §8 = "platform fee + per-seat + metered usage." Revise to committed-credit envelope + unlimited seats (per-seat only as a procurement fallback). _Justification:_ Cadence's value is agent work, not licenses; per-seat taxes the cross-functional collaboration we want; Replit/Lovable/Devin all dropped per-seat for exactly this reason. (Founder ratified 2026-07-12.)
+1. **Enterprise pricing: per-seat → committed credits + unlimited seats.** Canon §8 = "platform fee + per-seat + metered usage." Revise to committed-credit envelope + unlimited seats (per-seat only as a procurement fallback). _Justification:_ Supaprod's value is agent work, not licenses; per-seat taxes the cross-functional collaboration we want; Replit/Lovable/Devin all dropped per-seat for exactly this reason. (Founder ratified 2026-07-12.)
 2. **Add the model-access + BYOK strategy** (canon only mentioned BYOK as enterprise option (d)): platform-managed default for all; BYOK enterprise/advanced-only, metered + governed + platform fee. _Justification:_ Perplexity-style abstraction removes key/wallet confusion for non-technical PMs; §3–5.
 3. **Add the per-surface free-vs-charged map** as the billing spec (research §4). _Justification:_ it's the concrete implementation of "credits price closed loops," and freeing the verification layer protects the moat.
 4. **Add the flex buffer + outcome-gating + stop-at-budget-downgrade** to the credit engine spec. _Justification:_ fairness + model-cost insulation + the anti-"hidden cost" guarantee.
@@ -212,7 +212,7 @@ Assessed on legible / gameable / absorbs-model-swings:
 - **Interpreted outcomes (Intercom Fin / Zendesk "per-resolution") read fair per-unit but the total is unpredictable and the definition is the exploit surface** ("assumed resolution" bills you when a user just leaves). The Forbes/Parloa "outcome-based pricing myth": efficiency capture, permanent risk premiums, attribution debates, budget instability, definition-gaming. **→ Do NOT price on a system-self-scored outcome.**
 - **Flat credit per discrete, user-visible unit of work (Salesforce Agentforce $0.10/action, Zapier per-task) is the fairest + hardest to game** — the user can see and predict it, and we absorb model volatility inside the flat price. Zapier's guardrail to copy: **bounded overage (1.25x up to a 3x hard stop) + a hard cap/pre-approval before overage** — the single missing feature that sank Replit and Devin.
 
-**Net correction to §2:** Cadence charges per **discrete, PM-visible unit of delivered work** (an artifact produced / an action taken — a PRD, a mission, a decision, a merged PR), NOT per a self-scored "kept improvement." "Per-artifact credit ranges" (already the canon) IS this model. Add the two guardrails (hard cap + pre-approval; bounded overage) as launch-gating.
+**Net correction to §2:** Supaprod charges per **discrete, PM-visible unit of delivered work** (an artifact produced / an action taken — a PRD, a mission, a decision, a merged PR), NOT per a self-scored "kept improvement." "Per-artifact credit ranges" (already the canon) IS this model. Add the two guardrails (hard cap + pre-approval; bounded overage) as launch-gating.
 
 Full evidence with sources: this session's research outputs + [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md).
 
@@ -264,8 +264,8 @@ _(Final numbers are the founder's to set in Stripe; the point here is a self-con
 Sample heavy team, 500M input + 150M output tokens/month, Sonnet-5-class ($2/$10 per 1M):
 
 - **Rated model spend = $2,500/mo.**
-- **BYOK:** their key pays the $2,500 to their provider directly. Cadence platform fee at **15% of pass-through = $375/mo** (one invoice line). Their total ≈ **$2,875**.
+- **BYOK:** their key pays the $2,500 to their provider directly. Supaprod platform fee at **15% of pass-through = $375/mo** (one invoice line). Their total ≈ **$2,875**.
 - **Managed equivalent** (credits at ~2.5x COGS): ≈ **$6,250/mo**.
-- **So BYOK saves them ~$3,375/mo** (they keep the model markup) *and* gives them compliance/their-own-model — while Cadence still nets **~$375/mo** of orchestration margin on work it would otherwise not touch.
+- **So BYOK saves them ~$3,375/mo** (they keep the model markup) *and* gives them compliance/their-own-model — while Supaprod still nets **~$375/mo** of orchestration margin on work it would otherwise not touch.
 
 This is the concrete proof that the thin ~10–20% fee (not a full-margin slice, not a flat $0.25/1M) is the right structure: BYOK is genuinely valuable to the enterprise, and still profitable for us.

@@ -12,7 +12,7 @@ import { withJobRun } from "@/lib/observability";
  * no-op while `data_retention_enabled()` is false (the function self-gates, so
  * this returns `{ skipped: "dormant" }` until the founder flips the flag) and
  * pre-migration tolerant (a missing function returns a tolerant note instead of
- * a 500). Idempotent - safe to poke on any cadence; wire it via pg_cron / an
+ * a 500). Idempotent - safe to poke on any supaprod; wire it via pg_cron / an
  * external scheduler (founder, on publish). Hook auth is the shared secret in
  * `requireHookCaller`.
  */

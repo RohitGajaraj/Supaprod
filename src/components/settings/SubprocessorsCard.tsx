@@ -30,7 +30,7 @@ export function SubprocessorsCard() {
         className="text-copy-13"
         style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
       >
-        The third parties that process your data on Cadence&apos;s behalf, and what each one does.
+        The third parties that process your data on Supaprod&apos;s behalf, and what each one does.
         We only list a provider while your data actually flows to it.
       </p>
 

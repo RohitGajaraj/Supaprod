@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-10 · Last updated: 2026-06-19_
 
-> **What this is.** A record of the 2026-06-10 strategic pivot to the **B2B Enterprise Product Cockpit** positioning, focusing on target personas, the pluggable multi-model substrate, and the 12-stage product development lifecycle. (The rename that accompanied it was reverted on 2026-06-16; the product is Cadence.)
+> **What this is.** A record of the 2026-06-10 strategic pivot to the **B2B Enterprise Product Cockpit** positioning, focusing on target personas, the pluggable multi-model substrate, and the 12-stage product development lifecycle. (The rename that accompanied it was reverted on 2026-06-16; the product is now Supaprod, per the 2026-07-17 rename.)
 >
 > **When to revisit.** When aligning agent system prompts, adjusting UX layouts, or introducing custom tenant integrations for enterprise clients.
 >
@@ -11,15 +11,15 @@
 ---
 
 > [!IMPORTANT]
-> **PRODUCT NAME: CADENCE.** The product is **Cadence**. This is a superseded v3 positioning doc kept for its personas; a brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16 and the retired name must not be reintroduced.
+> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod** (renamed 2026-07-17; it was Cadence before that). This is a superseded v3 positioning doc kept for its personas; a brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16 and the retired name must not be reintroduced.
 
 ---
 
-## 1. The Story of Cadence ⚡
+## 1. The Story of Supaprod ⚡
 
 ### Naming note (reverted)
 
-This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name is **Cadence**; fresh-name exploration is paused, see [`../decisions/naming.md`](../decisions/naming.md).
+This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name was Cadence until the 2026-07-17 rename; it is now **Supaprod**, see [`../decisions/naming.md`](../decisions/naming.md).
 
 ### The Closed-Loop Lifecycle
 
@@ -35,13 +35,13 @@ The product lifecycle is a closed, unbroken loop. In a modern product organizati
 8. **Customer Feedback & Support tickets** (Operating) which feed back to:
 9. **Learnings & Re-scoring** (Learning).
 
-If any seam requires manual data transport, spreadsheets, or un-tracked updates, **the loop breaks**, and the current stops flowing. **Cadence** keeps the product current running in a continuous, unbroken, agent-run loop under human governance.
+If any seam requires manual data transport, spreadsheets, or un-tracked updates, **the loop breaks**, and the current stops flowing. **Supaprod** keeps the product current running in a continuous, unbroken, agent-run loop under human governance.
 
 ---
 
 ## 2. Target Personas (B2B Enterprise Team)
 
-Rather than focusing exclusively on the solo PM, Cadence addresses the entire cross-functional B2B enterprise team:
+Rather than focusing exclusively on the solo PM, Supaprod addresses the entire cross-functional B2B enterprise team:
 
 ### P1: Enterprise Director / VP of Product (The Portfolio Governor)
 
@@ -96,7 +96,7 @@ The platform offering represents the complete lifecycle, executed by specialist 
 
 ## 4. Pluggable Multi-Model Substrate
 
-To deliver optimal results, Cadence decouples cognitive tasks from individual providers, acting as an intelligent router:
+To deliver optimal results, Supaprod decouples cognitive tasks from individual providers, acting as an intelligent router:
 
 1. **Gemini 1.5 Pro:** Leverages a 1M+ token context window to parse audio meeting transcripts (WhisperFlow) and support logs without chunking loss.
 2. **DeepSeek-Coder-V2 / Claude 3.5 Sonnet:** Surgical, high-accuracy multi-file code generation and linter-guided repairs.

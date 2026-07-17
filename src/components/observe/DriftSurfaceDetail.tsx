@@ -1,5 +1,5 @@
 // Drift surface drill-down — screen 7 of the Ember Editorial migration, ported
-// from design-reference/cadence/govern-detail.jsx (DriftDetail). Rides
+// from design-reference/supaprod/govern-detail.jsx (DriftDetail). Rides
 // ?surface= on /govern?tab=drift (tab body only) and shares the panel's
 // ["drift_overview"] query cache so resolve/reopen/re-sample invalidations
 // propagate to the table and the govern tab badge. Honesty deltas vs the
@@ -27,7 +27,7 @@ import {
   resolveDriftIncident,
   reopenDriftIncident,
 } from "@/lib/drift.functions";
-import { DrillHeader, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { DrillHeader, MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
 import { GraphSlider } from "@/components/obsidian";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";

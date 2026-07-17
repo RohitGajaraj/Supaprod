@@ -28,7 +28,7 @@ import {
   type OutcomeAccuracy,
   type MemoryLiftResult,
 } from "@/lib/gauntlet.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 
 function pct(n: number | null): string {
   if (n == null) return "-";

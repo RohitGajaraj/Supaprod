@@ -298,7 +298,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
     // Contract, its machine-readable ARD document travels INSIDE the work
     // order as a delimited fenced block AFTER the prose, and the standing
     // success metrics become the BuildSpec's acceptance criteria — the engine
-    // receives the identical contract Cadence checks the build against.
+    // receives the identical contract Supaprod checks the build against.
     let acceptanceCriteria: string[] | undefined;
     if (prd?.contract) {
       const parsed = parseArdDocument(prd.contract);

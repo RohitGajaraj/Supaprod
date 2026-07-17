@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { getAgentMemory } from "@/lib/memory.functions";
 import { kindLabel, relativeTime } from "@/lib/memory-view";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { MemoryCard } from "./MemoryCard";
 
 function plural(n: number, word: string): string {

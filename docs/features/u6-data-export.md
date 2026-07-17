@@ -22,7 +22,7 @@ Settings (`/settings`) > the **Data** tab > "Download workspace export".
 
 1. Open Settings, click the **Data** tab.
 2. Read the one-line promise: everything in this workspace, yours, no lock-in.
-3. Click **Download workspace export**. A `cadence-workspace-export-<date>.json` file downloads.
+3. Click **Download workspace export**. A `supaprod-workspace-export-<date>.json` file downloads.
 4. Open it: a single JSON object with per-section arrays and a `counts` summary, plus `workspace_id`, `exported_by`, and `exported_at`.
 
 ## How it works

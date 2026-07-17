@@ -23,9 +23,9 @@ Two honest paths exist, and the founder has already ruled Fall 2026 live (applic
 
 ## 1. What investors actually weigh (ranked)
 
-Pre-seed, AI B2B, solo founder, 2026 market. Ranked by how much each moves a partner or angel, with the Cadence-specific form of each:
+Pre-seed, AI B2B, solo founder, 2026 market. Ranked by how much each moves a partner or angel, with the Supaprod-specific form of each:
 
-| Rank | Signal                                                                                                  | Cadence's version                                                                                                                                        | Status                                                              |
+| Rank | Signal                                                                                                  | Supaprod's version                                                                                                                                        | Status                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | 1    | **Genuine usage by strangers** — people with no relationship to the founder, returning                  | Weekly closed loops per external workspace (decision → shipped → outcome recorded); week-2 return                                                        | ROADMAP until launch — this is what the sprint exists to create     |
 | 2    | **Willingness to pay** — a real card, a paid pilot, even one                                            | First credit purchase through the live billing path (PC-05, Stripe sandbox-verified)                                                                     | WIRING — billing built; first real charge is the event              |
@@ -40,7 +40,7 @@ The order matters: a partner discounts 3–6 without 1–2. Everything below in 
 
 ## 2. The quote vault
 
-**What it is:** one file of verbatim, dated, permissioned customer quotes — the raw material for the application's "who's using it" field, the interview's "show me a user" moment, and every investor update. Dogfood it: each quote is filed as a signal in Cadence itself, tagged `quote-vault`, THEN distilled into `docs/pitch/one-pager.md`'s honest-numbers section when used publicly.
+**What it is:** one file of verbatim, dated, permissioned customer quotes — the raw material for the application's "who's using it" field, the interview's "show me a user" moment, and every investor update. Dogfood it: each quote is filed as a signal in Supaprod itself, tagged `quote-vault`, THEN distilled into `docs/pitch/one-pager.md`'s honest-numbers section when used publicly.
 
 **Capture rules:** verbatim or don't file it (paraphrase is worthless under partner probing) · date + name + company + context line · ask permission in the moment ("mind if I quote that, with your name?") — the ask itself is a signal (people who say yes are advocates; log refusals too) · capture at the moment of delight or the moment of money, never retroactively by email (retroactive asks produce polite fiction).
 
@@ -48,10 +48,10 @@ The order matters: a partner discounts 3–6 without 1–2. Everything below in 
 
 | #   | Archetype                        | The shape of it                                                                          | Why it converts investors                                                                  |
 | --- | -------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 1   | **The switched-from**            | "I stopped doing X in [tool] because Cadence…"                                           | Proves displacement, not addition — budget comes from somewhere                            |
+| 1   | **The switched-from**            | "I stopped doing X in [tool] because Supaprod…"                                           | Proves displacement, not addition — budget comes from somewhere                            |
 | 2   | **The pay quote**                | "Can I pay you?" / "what does the paid tier get me?" — unprompted                        | The only pricing validation that matters pre-revenue                                       |
 | 3   | **The retention quote**          | "It's part of my Monday now" / evidence of a ritual formed                               | Retention narrated by the user beats a chart at this scale                                 |
-| 4   | **The wrong-then-recovered**     | "It ranked X wrong, I reverted, and the ledger showed me why — that's when I trusted it" | THE Cadence-specific quote: the trust thesis in a customer's mouth. Hunt this one hardest. |
+| 4   | **The wrong-then-recovered**     | "It ranked X wrong, I reverted, and the ledger showed me why — that's when I trusted it" | THE Supaprod-specific quote: the trust thesis in a customer's mouth. Hunt this one hardest. |
 | 5   | **The time-saved-with-a-number** | "The Monday brief saves me ~2 hours of Slack archaeology"                                | Numbers in quotes survive diligence; adjectives don't                                      |
 | 6   | **The upset-if-it-died**         | "Don't kill this / what happens to my ledger if you shut down?"                          | YC's literal live-wire test, verbatim                                                      |
 | 7   | **The unprompted share**         | Screenshot of them sending a teardown/ledger link to a colleague                         | Word-of-mouth caught in the act — attach the artifact                                      |
@@ -101,8 +101,8 @@ The v13 gates are already the operating calendar; this maps each gate to the sen
 
 | Gate         | Closes when                                                                                          | The sentence it unlocks (truthfully)                                                      | Fundraising beat                                                                      |
 | ------------ | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **G-SPRINT** | A stranger signs up, connects a source, gets a Critic teardown of their own bet, unassisted, <10 min | "A stranger can get value from Cadence in under ten minutes, unassisted."                 | Application: product-readiness; demo confidence                                       |
-| **G-BETA**   | 10+ external beta workspaces active; loop closes live in demo; a real card buys credits              | "Ten external product teams run Cadence weekly; the first customers have paid."           | The live wire. This gate is the difference between a good and a fundable application. |
+| **G-SPRINT** | A stranger signs up, connects a source, gets a Critic teardown of their own bet, unassisted, <10 min | "A stranger can get value from Supaprod in under ten minutes, unassisted."                 | Application: product-readiness; demo confidence                                       |
+| **G-BETA**   | 10+ external beta workspaces active; loop closes live in demo; a real card buys credits              | "Ten external product teams run Supaprod weekly; the first customers have paid."           | The live wire. This gate is the difference between a good and a fundable application. |
 | **G-LAUNCH** | Listed publicly; ≥50 external workspaces; ≥20 weekly-active                                          | "We launched on [date]; here is the week-over-week curve since."                          | Momentum narrative + the HN/PH story as distribution proof                            |
 | **G-REV**    | ≥10 paying workspaces, first revenue booked                                                          | "Revenue is real and growing off a knowable zero."                                        | Seed-round opener; converts YC from accelerator-ask to allocation-competition         |
 | **G-LEARN**  | Judgment memory felt by users; outcome contracts GA                                                  | "The system provably gets better from customers' own outcomes — here's a user saying so." | The moat, demonstrated instead of argued — the series-A story seeded at pre-seed      |
@@ -130,7 +130,7 @@ The anti-pattern list, each with the discipline that prevents it (most are alrea
 
 **20 minutes, every Friday, non-negotiable from launch week onward.** The compounding asset this file exists for is built here or not at all.
 
-The ritual (in Cadence itself — the evidence workflow IS a dogfood workflow):
+The ritual (in Supaprod itself — the evidence workflow IS a dogfood workflow):
 
 1. **Metrics pack refresh (5 min):** the six §3 metrics pulled from the live DB into the investor one-pager view. Numbers that don't trace to the DB don't ship.
 2. **Quote vault filing (5 min):** the week's captures filed with date/name/permission status; archetype coverage checked (§2 table — which of the eight are still empty?).

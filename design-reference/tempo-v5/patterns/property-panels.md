@@ -222,7 +222,7 @@ Shell placement and selection state are orthogonal — a docked rail can be in m
 - `PropertyRow` — wraps `Description` and owns the display-mode/edit-mode swap, the Mixed-value rendering, and the disabled/error/loading visuals described above.
 - Place these under `src/components/shared/` (the existing home for cross-surface UI, alongside `StageTimeline.tsx`) rather than inside any one domain folder — every surface below composes the same three components instead of hand-rolling its own inspector.
 
-**Composition with existing Cadence code**
+**Composition with existing Supaprod code**
 
 - `src/components/cockpit/AgentInspector.tsx` is the closest existing surface to this pattern today, but it predates Tempo (it's built on legacy `--ink-*` tokens, not `--ds-*`) and hand-rolls its own row markup rather than using `Description`/`Fieldset`. When it's next touched, port it onto `PropertyPanel`/`PropertySection`/`PropertyRow` rather than reworking its bespoke styles in place.
 - Any future PRD, roadmap-item, or trust-ledger-entry detail view that needs a right-rail inspector (per the v13 build queue) should reach for `PropertyPanel` from the start rather than composing `Fieldset`/`Description` ad hoc per surface.

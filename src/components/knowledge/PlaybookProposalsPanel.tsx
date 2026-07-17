@@ -23,7 +23,7 @@ import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { traceRef } from "@/components/discover/format";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
-import { ConfidenceChip } from "@/components/cadence/ConfidenceChip";
+import { ConfidenceChip } from "@/components/supaprod/ConfidenceChip";
 
 /** Same "when" rhythm as the outcome feed below this panel. */
 function whenOf(iso: string): string {

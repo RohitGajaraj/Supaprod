@@ -2,7 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getValueReceipts } from "@/lib/value-receipts.functions";
 
-// RPT-33: the value-receipts attribution meter. Two counts Cadence can
+// RPT-33: the value-receipts attribution meter. Two counts Supaprod can
 // actually stand behind - decisions closed, PRs shipped - never a
 // fabricated "hours saved" figure. That third number needs a real,
 // defensible methodology before it ships; this card names that honestly
@@ -34,7 +34,7 @@ export function ValueReceiptsCard() {
         className="text-copy-13"
         style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
       >
-        What this workspace has actually closed out with Cadence, counted straight from the ledger -
+        What this workspace has actually closed out with Supaprod, counted straight from the ledger -
         never estimated.
       </p>
       {isLoading ? (

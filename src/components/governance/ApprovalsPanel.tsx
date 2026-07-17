@@ -1,4 +1,4 @@
-// Approvals tab — ported 1:1 from design-reference/cadence/loop.jsx
+// Approvals tab — ported 1:1 from design-reference/supaprod/loop.jsx
 // (GovernScreen tab "Approvals" + ApprovalCard + RiskTag): "{n} waiting"
 // mono header with the real median response time, "Approve all low-risk"
 // ghost, and the detailed approval card — StepDot, "{agent} wants {tool}"
@@ -25,7 +25,7 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
 import { TrustGraduationsBlock } from "./TrustGraduations";
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
@@ -370,7 +370,7 @@ function ApprovalCard({
             <span
               className="mono-label"
               style={{ color: "var(--marigold)", fontSize: 9.5 }}
-              title="You have declined this agent + tool before. Cadence has registered it."
+              title="You have declined this agent + tool before. Supaprod has registered it."
             >
               declined {declines}&times; before
             </span>

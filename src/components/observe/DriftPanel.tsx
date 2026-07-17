@@ -1,4 +1,4 @@
-// Drift tab — ported 1:1 from design-reference/cadence/loop.jsx (GovernScreen,
+// Drift tab — ported 1:1 from design-reference/supaprod/loop.jsx (GovernScreen,
 // tab "Drift"): a bento table (AI surface 1fr / Δ baseline 80px / Status 90px /
 // Note 1fr / chevron 20px), surface at 500 weight, the delta mono tabular
 // (marigold on watch), the status as an Obsidian VerdictChip (watch → WATCH
@@ -19,7 +19,7 @@ import { useMemo, useState, useEffect } from "react";
 import { ChevronRight, Waves } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
 import { VerdictChip } from "@/components/obsidian";
 import { GraphSlider } from "@/components/obsidian";
 
@@ -323,7 +323,7 @@ export function DriftPanel() {
         <EmptyState
           icon={Waves}
           title="No drift data yet"
-          body="Once AI calls accumulate, Cadence rolls daily snapshots and flags any surface that moves against its baseline."
+          body="Once AI calls accumulate, Supaprod rolls daily snapshots and flags any surface that moves against its baseline."
           cta="Run drift check · rolls up today"
           onCta={() => runMut.mutate()}
         />

@@ -7,7 +7,7 @@
 
 > **SSOT first.** The single front-door tracker is [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (status, build queue, founder rulings, findings, progress). This file is the granular acceptance-criteria and scope ledger (the F-ID detail) it points to, not the tracker to follow day-to-day.
 
-> **What this is.** The exhaustive, sub-feature-level enumeration of _everything Cadence is built to ship_ — the dev-ready expansion of [`../plan.md`](../../plan.md) §2 (granular catalog). Every feature has a **stable ID** (e.g. `F2.3`) so it can become an issue/PR/spec and be referenced by traces, decisions, and the build log without re-describing scope.
+> **What this is.** The exhaustive, sub-feature-level enumeration of _everything Supaprod is built to ship_ — the dev-ready expansion of [`../plan.md`](../../plan.md) §2 (granular catalog). Every feature has a **stable ID** (e.g. `F2.3`) so it can become an issue/PR/spec and be referenced by traces, decisions, and the build log without re-describing scope.
 >
 > **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`../plan.md`](../../plan.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`../docs/considerations.md`](./considerations.md). UI/IA/screen + AI-message contract: [`../design.md`](../../DESIGN.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../AGENTS.md).
 >
@@ -57,9 +57,9 @@ Full L4 decomposition pattern: v4 map §9 M1 exemplar (every hop = HandoffEnvelo
 
 ## ▶ Agentic Proof Platform (v1.1) — full product lifecycle, end-to-end on real systems
 
-> **What this is.** A scope overlay — not a new roadmap. The exhaustive backlog below is unchanged. This section picks the smallest subset of existing features whose _combined, end-to-end behavior on real data_ proves that Cadence delivers agentic-native product management that legacy PM tools (Jira, Linear, Productboard, ProductPlan, Aha) structurally cannot. **The YC demo is a by-product; the platform is the point.**
+> **What this is.** A scope overlay — not a new roadmap. The exhaustive backlog below is unchanged. This section picks the smallest subset of existing features whose _combined, end-to-end behavior on real data_ proves that Supaprod delivers agentic-native product management that legacy PM tools (Jira, Linear, Productboard, ProductPlan, Aha) structurally cannot. **The YC demo is a by-product; the platform is the point.**
 >
-> **Locked decisions (2026-06-03):** Demo persona = **Founder-as-PM** ("run the product org you can't afford to hire"). Demo data = **real product** (default: Cadence-on-Cadence; design partner is additive). **v1.1 un-defers Build/Test/Ship/Launch/Support** to cover the whole PM lifecycle end-to-end — under one realism rule: _agents orchestrate existing tools (GitHub, CI, deploy, Slack/email, support channel) where the tool already exists; they don't replace IDEs, CI, or helpdesks._ See [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) for the reframe.
+> **Locked decisions (2026-06-03):** Demo persona = **Founder-as-PM** ("run the product org you can't afford to hire"). Demo data = **real product** (default: Supaprod-on-Supaprod; design partner is additive). **v1.1 un-defers Build/Test/Ship/Launch/Support** to cover the whole PM lifecycle end-to-end — under one realism rule: _agents orchestrate existing tools (GitHub, CI, deploy, Slack/email, support channel) where the tool already exists; they don't replace IDEs, CI, or helpdesks._ See [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) for the reframe.
 >
 > **From demo cut → proof cut.** Every bundle now ships against an explicit **proof bar** — the minimum behavior that makes the claim true on real data, not just visible in a screenshot. If a visitor cannot point to each of the four claims being true in the running product within ~5 minutes, the bundle hasn't shipped.
 
@@ -78,15 +78,15 @@ For each lifecycle stage, the demo bar is: a real artifact lands in a real exter
 
 | Stage    | Real external system                                            | Real artifact                                                       | What the agent owns                                                 | What we do NOT build                      |
 | -------- | --------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------- |
-| Discover | Cadence DB (own signals: feedback, issues, session-decisions)   | Themes + scored opportunities                                       | Discovery agent: ingest, cluster, score                             | New signal connectors beyond what 0.x has |
-| Define   | Cadence DB (PRD doc, tiptap)                                    | Versioned PRD with lineage to opportunities                         | Strategist agent: draft + iterate                                   | A new doc editor                          |
-| Plan     | Cadence DB + GitHub Issues                                      | Sprint plan + real issues in GitHub                                 | Strategist proposes; Orchestrator writes via GitHub MCP on approval | Replacing Linear/Jira                     |
-| Build    | GitHub PR                                                       | A real PR on the Cadence repo for one planned task                  | Builder agent: scoped diff + PR via GitHub MCP                      | A custom autonomous IDE (Cursor/Devin)    |
+| Discover | Supaprod DB (own signals: feedback, issues, session-decisions)   | Themes + scored opportunities                                       | Discovery agent: ingest, cluster, score                             | New signal connectors beyond what 0.x has |
+| Define   | Supaprod DB (PRD doc, tiptap)                                    | Versioned PRD with lineage to opportunities                         | Strategist agent: draft + iterate                                   | A new doc editor                          |
+| Plan     | Supaprod DB + GitHub Issues                                      | Sprint plan + real issues in GitHub                                 | Strategist proposes; Orchestrator writes via GitHub MCP on approval | Replacing Linear/Jira                     |
+| Build    | GitHub PR                                                       | A real PR on the Supaprod repo for one planned task                  | Builder agent: scoped diff + PR via GitHub MCP                      | A custom autonomous IDE (Cursor/Devin)    |
 | Test     | GitHub Actions (existing CI)                                    | CI run on the PR; agent reads results                               | Builder: watch CI, surface failures, propose fix                    | A new test runner                         |
-| Ship     | GitHub merge + existing deploy webhook                          | Merged PR + deploy event recorded                                   | Builder (with approval gate): merge; Cadence ingests deploy webhook | A new deploy pipeline                     |
+| Ship     | GitHub merge + existing deploy webhook                          | Merged PR + deploy event recorded                                   | Builder (with approval gate): merge; Supaprod ingests deploy webhook | A new deploy pipeline                     |
 | Launch   | Markdown changelog + one outbound channel (email/Slack via MCP) | Real changelog + a real draft message in the channel                | Growth agent: draft on ship; send on approval                       | A marketing automation tool               |
 | Support  | One real inbound channel (email forward / webhook)              | Tickets ingested, triaged, routed back as signals                   | Support agent: triage + link to PRD/opportunity                     | A full helpdesk (Zendesk)                 |
-| Learn    | Cadence DB                                                      | Outcome attached to opportunity → re-scored → re-ranked next sprint | Analyst agent: measure, insight memo, feed Trust Score              | A full analytics product                  |
+| Learn    | Supaprod DB                                                      | Outcome attached to opportunity → re-scored → re-ranked next sprint | Analyst agent: measure, insight memo, feed Trust Score              | A full analytics product                  |
 
 ### The 12 capability bundles + proof bars
 
@@ -115,28 +115,28 @@ Each bundle composes existing backlog IDs; nothing here is a parallel scope. Bun
 4. **E1–E5** — the A2A primitives (protocol + tables + tracing). Hardest bundle; budget the most time here. **This is where C2 becomes true.**
 5. **E6 Mission Graph** — the visualization on top of #4. Without #4 it's a fake screenshot.
 6. **Bundle 6: Discover→Define→Plan slice + N1 GitHub-issues sync** — Plan stage writes real GitHub issues on approval.
-7. **Bundle 9: Build + Test (I-thin, J-thin)** — Builder opens a real, scoped PR on the Cadence repo and reads CI.
+7. **Bundle 9: Build + Test (I-thin, J-thin)** — Builder opens a real, scoped PR on the Supaprod repo and reads CI.
 8. **Bundle 10: Ship (K-thin)** — approval-gated merge + deploy webhook ingest into Mission Graph.
 9. **Bundle 11: Launch (L-thin)** — changelog + one outbound channel (Slack or email) with send-gate.
 10. **Bundle 12: Support → Learn (M-thin + Z1)** — one inbound channel + Analyst outcome/re-score. **The full lifecycle loop closes here.**
 11. **D3 polish** — make it the obvious "govern here" surface.
 12. **O1/O2 lineage view + U6 Export** — anti-lock-in proof.
 
-### Real-data seeding (default: Cadence-on-Cadence)
+### Real-data seeding (default: Supaprod-on-Supaprod)
 
-Bundles 6, 9, 10, 11, and 12 all run on real product data. **Default seed = Cadence itself** (we run our own roadmap on Cadence: real signals from this repo's issues, decisions, session-decisions log, feature-backlog; real PRs on this repo; real deploys; one outbound channel; one inbound support address). Most credible YC story ("we eat our own dog food") and no design-partner dependency. If a design partner is signed later, their product becomes an additional seed — not a replacement.
+Bundles 6, 9, 10, 11, and 12 all run on real product data. **Default seed = Supaprod itself** (we run our own roadmap on Supaprod: real signals from this repo's issues, decisions, session-decisions log, feature-backlog; real PRs on this repo; real deploys; one outbound channel; one inbound support address). Most credible YC story ("we eat our own dog food") and no design-partner dependency. If a design partner is signed later, their product becomes an additional seed — not a replacement.
 
-**Repo-write decision (Bundle 9):** Builder agent opens PRs on the **Cadence repo itself** (option (a) from the plan). Requires a `GITHUB_TOKEN` runtime secret with `repo` scope; branch protection on `main` enforces that no agent can bypass review. To be added when Bundle 9 starts — not now.
+**Repo-write decision (Bundle 9):** Builder agent opens PRs on the **Supaprod repo itself** (option (a) from the plan). Requires a `GITHUB_TOKEN` runtime secret with `repo` scope; branch protection on `main` enforces that no agent can bypass review. To be added when Bundle 9 starts — not now.
 
 ### Demo narrative (one continuous mission, ~3 minutes)
 
-> Operator updates the Strategic Briefing. Discovery ingests Cadence's own signals and surfaces a re-ranked opportunity. Strategist drafts a PRD via A2A handoff. Planner proposes a sprint; one item is high-blast-radius → lands in Decision Queue. Operator approves. Orchestrator writes a **real GitHub issue**. Builder opens a **real PR** on the Cadence repo, watches CI. CI passes. Merge gate fires → operator approves → **real merge** → **real deploy webhook** lands → Ship node lights up on Mission Graph. Growth drafts a **real changelog + outbound message**; operator approves; message **really sends**. Two days later, a **real support ticket** lands; Support agent triages and links it back to the same opportunity; Analyst attaches the outcome, re-scores the opportunity, writes the insight memo. The next Discovery cycle reflects the learning. Operator opens Product Memory → sees full lineage from ticket → opportunity → PRD → PR → deploy → ticket. Clicks Export.
+> Operator updates the Strategic Briefing. Discovery ingests Supaprod's own signals and surfaces a re-ranked opportunity. Strategist drafts a PRD via A2A handoff. Planner proposes a sprint; one item is high-blast-radius → lands in Decision Queue. Operator approves. Orchestrator writes a **real GitHub issue**. Builder opens a **real PR** on the Supaprod repo, watches CI. CI passes. Merge gate fires → operator approves → **real merge** → **real deploy webhook** lands → Ship node lights up on Mission Graph. Growth drafts a **real changelog + outbound message**; operator approves; message **really sends**. Two days later, a **real support ticket** lands; Support agent triages and links it back to the same opportunity; Analyst attaches the outcome, re-scores the opportunity, writes the insight memo. The next Discovery cycle reflects the learning. Operator opens Product Memory → sees full lineage from ticket → opportunity → PRD → PR → deploy → ticket. Clicks Export.
 
 Every step in that paragraph is real behavior on real systems, not a slide.
 
 ### Explicitly deferred (NOT in v1.1, NOT removed from the product)
 
-External-facing **MCP / A2A interop** (Q — Cadence exposing its agents to outside callers), advanced eval / drift / guardrail UIs beyond what the chokepoint already does, multi-product portfolio view (B3), BYO keys UI polish (A5), billing UI, full autonomous coding/IDE depth (we orchestrate GitHub via MCP; we do NOT replace Cursor/Devin), full helpdesk depth (one inbound channel only), marketing-automation depth (one outbound channel only), analytics dashboards (Learn is a re-score + insight memo). Positioning: _"agentic orchestration of the existing stack; each integration deepens over time."_
+External-facing **MCP / A2A interop** (Q — Supaprod exposing its agents to outside callers), advanced eval / drift / guardrail UIs beyond what the chokepoint already does, multi-product portfolio view (B3), BYO keys UI polish (A5), billing UI, full autonomous coding/IDE depth (we orchestrate GitHub via MCP; we do NOT replace Cursor/Devin), full helpdesk depth (one inbound channel only), marketing-automation depth (one outbound channel only), analytics dashboards (Learn is a re-score + insight memo). Positioning: _"agentic orchestration of the existing stack; each integration deepens over time."_
 
 ### New features this overlay adds to the backlog
 
@@ -146,7 +146,7 @@ These need feature entries written in full when their bundle becomes the next-up
 - **C6 — Agent Trust Score + Autonomy Dial** `[new]` · `P0` · `X1` — Per-agent score derived from eval pass-rate, approval-acceptance-rate, mission success-rate. Operator can move each agent along the trust arc (Observing → Proving → Trusted → Ambient) and the dial changes the default approval mode.
 - **U6 — Full data portability / export** `[new]` · `P0` · `U` — Export signals, themes, opportunities, PRDs (markdown), decisions+lineage (JSON), agent configs (YAML), and the product-memory graph (JSON). One-click per product; scheduled exports later.
 - **N1 — GitHub Issues sync (write)** `[new]` · `P0` · `H` — On approval of a sprint plan item, Orchestrator creates a real GitHub issue via GitHub MCP with title/body/labels and back-links to the PRD + opportunity. Bidirectional status sync read-only at first.
-- **I-thin — Builder agent (scoped PR)** `[new]` · `P0` · `I` — Thin slice of S4: Builder picks one planned task, produces a small scoped diff, opens a real PR on the Cadence repo via GitHub MCP. Blast-radius `high`; default approval mode `confirm`. NOT an autonomous IDE — scoped diffs only.
+- **I-thin — Builder agent (scoped PR)** `[new]` · `P0` · `I` — Thin slice of S4: Builder picks one planned task, produces a small scoped diff, opens a real PR on the Supaprod repo via GitHub MCP. Blast-radius `high`; default approval mode `confirm`. NOT an autonomous IDE — scoped diffs only.
 - **J-thin — CI-read for Builder** `[new]` · `P0` · `J` — Thin slice of S5: Builder reads GitHub Actions status on its open PR, surfaces failures, proposes a fix as a follow-up commit. No custom test runner.
 - **K-thin — Merge gate + deploy webhook ingest** `[new]` · `P0` · `K` — Thin slice of S6: approval-gated merge via GitHub MCP; `/api/public/hooks/deploy` ingests deploy events from the existing platform (Cloudflare/Vercel) and posts a Ship node to the Mission Graph with deploy URL + commit SHA.
 - **L-thin — Changelog + one outbound channel** `[new]` · `P0` · `L` — On ship event, Growth agent drafts a markdown changelog entry + a single outbound message (Slack OR email, one channel only for v1.1). Send is approval-gated. Real send via MCP/connector, no mocks.
@@ -412,7 +412,7 @@ _Focus: Autonomous code writing, CI status loop, test generation, test runners._
 
 **J2 — QA gate + self-correct loop** `[new]` · `P1` · `S5`
 
-- Build: failing tests feed back to the build agent until green or escalate; regression gate (≥10-point eval regression on the 0–100 scale blocks without override — KI-14); ties "Cadence core" eval suite (P5).
+- Build: failing tests feed back to the build agent until green or escalate; regression gate (≥10-point eval regression on the 0–100 scale blocks without override — KI-14); ties "Supaprod core" eval suite (P5).
 - States: infinite-correct guard (cap); unrecoverable → escalate to Decision Queue.
 - Done when: a failing suite loops the Engineer until green or escalates; a regression blocks Ship.
 - Depends: J1, P5, D3.
@@ -756,7 +756,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 
 **P4 — Eval harness + regression gate** `[reuse]` · `P1` · `X3`
 
-- Build: "Cadence core" eval suite; per-surface/agent coverage targets; ≥10-point regression (0–100 scale — KI-14) blocks deploy without override.
+- Build: "Supaprod core" eval suite; per-surface/agent coverage targets; ≥10-point regression (0–100 scale — KI-14) blocks deploy without override.
 - Done when: a regression blocks Ship (ties J2/K1).
 
 **P5 — Drift watch** `[reuse]` · `P1` · `X3`
@@ -785,9 +785,9 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 
 **Q1 — MCP server + client** `[new]` · `P2` · `X5`
 
-- Build: expose Cadence capabilities as MCP tools (server); consume external MCP tools (client); capability scopes; rate limits; audit.
+- Build: expose Supaprod capabilities as MCP tools (server); consume external MCP tools (client); capability scopes; rate limits; audit.
 - States: untrusted tool result → quarantine (0.7); scope-exceeded call blocked.
-- Done when: an external agent calls a scoped Cadence tool and the call is audited.
+- Done when: an external agent calls a scoped Supaprod tool and the call is audited.
 - Depends: 0.7, S5.
 
 **Q2 — A2A server/client + Agent Cards + scopes/limits/audit** `[new]` · `P2` · `X5`
@@ -991,7 +991,7 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 | F-ID                     | What                                                                                                                                                                                                     | Source recs                          | Owner | Status |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | :---: | :----: |
 | `F-COCKPIT-MACHINE-MODE` | Header toggle: Human Mode (current dense surface) ↔ Machine Mode (full-screen dispatch board showing running agents, queue, attention, throughput; hides everything else). Depends on `F-COCKPIT-MERGE`. | REC-22 · REC-08 (mode toggle aspect) |  any  |   ☐    |
-| `F-MCP-V1`               | Ship minimal Cadence MCP server (read signals/opportunities/PRDs · append decision · queue mission).                                                                                                     | REC-09                               |  any  |   ☐    |
+| `F-MCP-V1`               | Ship minimal Supaprod MCP server (read signals/opportunities/PRDs · append decision · queue mission).                                                                                                     | REC-09                               |  any  |   ☐    |
 | `F-AGENTS-MENTIONABLE`   | Agents as first-class users: `@discovery, please re-cluster the last 50 signals` from any PRD comment or Today card.                                                                                     | REC-10                               |  any  |   ☐    |
 | `F-BUILDER-MULTIFILE`    | Lift Builder from single-file to scoped multi-file: pre-declared touch list, max N files, review per file.                                                                                               | REC-21                               |  any  |   ☐    |
 | `F-VOICE-CHIP`           | Enforce AI-message chip spec via component prop types: `<AiCallChip model via score latency tokens cost />`.                                                                                             | LANG-CHIP                            |  any  |   ☐    |

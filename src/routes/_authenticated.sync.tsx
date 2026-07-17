@@ -35,7 +35,7 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncInboxPage,
-  head: () => ({ meta: [{ title: "Sync & bindings · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Sync & bindings · Supaprod" }] }),
   // Deep-link target for the honest doors to this surface (the Engine Room
   // "Connections & sync" glance card, a future Today Call): /sync?conflict=<id>
   // lands on, scrolls to, and highlights that conflict row.
@@ -115,7 +115,7 @@ function SyncInboxPage() {
   const mPush = useMutation({
     mutationFn: (id: string) => fPush({ data: { id } }),
     onSuccess: () => {
-      toast.success("Pushed the Cadence version to the remote tool");
+      toast.success("Pushed the Supaprod version to the remote tool");
       qc.invalidateQueries({ queryKey: ["sync-mappings"] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Push failed"),
@@ -301,7 +301,7 @@ function SyncInboxPage() {
                       {m.external_id}
                     </div>
                     <div style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 3 }}>
-                      Both sides changed since the last sync: Cadence is on version{" "}
+                      Both sides changed since the last sync: Supaprod is on version{" "}
                       {m.version_local}, {providerLabel(m.provider)} is on version{" "}
                       {m.version_remote}.
                     </div>
@@ -342,7 +342,7 @@ function SyncInboxPage() {
                     disabled={mResolve.isPending}
                     onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
                   >
-                    Keep Cadence version
+                    Keep Supaprod version
                   </button>
                   <button
                     className="btn btn-ghost btn-sm loom-press"
@@ -531,7 +531,7 @@ function SyncInboxPage() {
                         className="btn btn-ghost btn-sm loom-press"
                         disabled={isBusy(m.id)}
                         onClick={() => mPush.mutate(m.id)}
-                        title={`Push the Cadence version to ${providerLabel(m.provider)}`}
+                        title={`Push the Supaprod version to ${providerLabel(m.provider)}`}
                         style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
                         {mPush.isPending && mPush.variables === m.id ? (

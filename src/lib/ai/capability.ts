@@ -1,7 +1,7 @@
 /**
  * Perplexity-style CAPABILITY ROUTING (pure).
  *
- * Cadence runs a great deal of internal AI work — agent steps, daily briefs, idea
+ * Supaprod runs a great deal of internal AI work — agent steps, daily briefs, idea
  * bucketing/clustering, research synthesis — plus a consumer-facing "Auto" mode.
  * Rather than pin one model everywhere, the platform routes each call to the model
  * BEST at the task it represents (code, reasoning, vision, long-context, fast chat),

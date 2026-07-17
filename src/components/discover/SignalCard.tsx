@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AskInContext } from "@/components/obsidian/AskInContext";
 import { signalPreview } from "./format";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 
 export interface SignalCardProps {
   src: string;

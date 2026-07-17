@@ -668,7 +668,7 @@ export const OutcomeContractSchema = z.object({
 });
 export type OutcomeContract = z.infer<typeof OutcomeContractSchema>;
 
-const CONTRACT_DRAFT_SYSTEM = `You are the Cadence contract analyst. Given a spec's title and markdown body, extract a structured Outcome Contract from what it already says.
+const CONTRACT_DRAFT_SYSTEM = `You are the Supaprod contract analyst. Given a spec's title and markdown body, extract a structured Outcome Contract from what it already says.
 Rules:
 - intent: one tight paragraph, the core bet in plain language.
 - success_metrics: the acceptance criteria / success metrics as short, individually falsifiable statements (max 8, most load-bearing first).
@@ -795,7 +795,7 @@ export const draftContractFromPrd = createServerFn({ method: "POST" })
 
 // ---------- CNV-04: agent-authored contracts (the friction killer) ----------
 
-const CONTRACT_FROM_INTENT_SYSTEM = `You are the Cadence contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
+const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
 Rules:
 - intent: restate the bet as one tight, sharpened paragraph (not the one-liner verbatim).
 - success_metrics: up to 6 falsifiable acceptance criteria / success metrics, most load-bearing first.
@@ -1035,12 +1035,12 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
 // assumptions get watched, not asserted." Compiles each success-metric
 // clause into whichever real oracle already exists for its kind: an eval
 // case (evals engine, LLM-judged), the standard CI gate (inline label, no
-// new artifact — Cadence cannot mint a GitHub check per clause), a UAT
+// new artifact — Supaprod cannot mint a GitHub check per clause), a UAT
 // checklist item (inline, human-ticked), or — when a clause is not
 // falsifiable as written — a watched assumption (FS-02), so it is tracked
 // against contradicting signals instead of silently asserted.
 
-const ORACLE_CLASSIFY_SYSTEM = `You are the Cadence oracle compiler. For each acceptance-criteria clause from a spec's Outcome Contract, classify how it can be verified.
+const ORACLE_CLASSIFY_SYSTEM = `You are the Supaprod oracle compiler. For each acceptance-criteria clause from a spec's Outcome Contract, classify how it can be verified.
 Rules:
 - "eval": a qualitative or behavioral claim an LLM judge can grade against the spec's intent. Most product claims land here.
 - "ci": already covered by the standard CI gate (type-check, lint, automated tests) with no new artifact needed. Use ONLY for claims that are inherently about code correctness or build health, not product behavior.
@@ -1490,17 +1490,17 @@ export const createGithubIssueForPrd = createServerFn({ method: "POST" })
       userClient: supabase as unknown as SupabaseClient,
     });
 
-    const body = `${(prd.body_md ?? "").slice(0, 55_000)}\n\n---\n_Opened from Cadence PRD ${prd.id}_`;
+    const body = `${(prd.body_md ?? "").slice(0, 55_000)}\n\n---\n_Opened from Supaprod PRD ${prd.id}_`;
     const res = await fetch(`https://api.github.com/repos/${gh.repo}/issues`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${gh.token}`,
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "cadence-agent",
+        "User-Agent": "supaprod-agent",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: prd.title.slice(0, 250), body, labels: ["cadence", "prd"] }),
+      body: JSON.stringify({ title: prd.title.slice(0, 250), body, labels: ["supaprod", "prd"] }),
     });
     if (!res.ok) {
       const txt = await res.text();

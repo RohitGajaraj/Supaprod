@@ -6,7 +6,7 @@
 
 ## What it does (one paragraph)
 
-Maintains the canonical list of the third parties that process customer data on Cadence's behalf (the AI model providers, the inference gateway, and the infrastructure), so an enterprise security questionnaire or a GDPR Article 28 review can be answered from a single source of truth. The AI-model half is derived from the live model catalog rather than hand-maintained, so the disclosure cannot drift from where data actually flows.
+Maintains the canonical list of the third parties that process customer data on Supaprod's behalf (the AI model providers, the inference gateway, and the infrastructure), so an enterprise security questionnaire or a GDPR Article 28 review can be answered from a single source of truth. The AI-model half is derived from the live model catalog rather than hand-maintained, so the disclosure cannot drift from where data actually flows.
 
 ## Why it exists (one paragraph)
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getDecisionPrecedent } from "@/lib/decision-precedent.functions";
-import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 
 const VERDICT_TONE: Record<string, VerdictTone> = {
   validated: "moss",

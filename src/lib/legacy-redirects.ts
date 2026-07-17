@@ -16,7 +16,7 @@
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
 
-/** The nine primary destinations (THE CADENCE LOOP, Tempo revamp 2026-07-13):
+/** The nine primary destinations (THE SUPAPROD LOOP, Tempo revamp 2026-07-13):
  * Today (home), the six loop stages (Discover · Plan · Design · Build · Ship ·
  * Learn), and the two always-on intelligence layers (Memory /brain, Engine
  * Room). Ship (/ship) and Learn (/learn) are now first-class loop pages, no

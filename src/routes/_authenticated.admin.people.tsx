@@ -67,7 +67,7 @@ function AdminPeople() {
           margin: 0,
         }}
       >
-        Manage who can use Cadence · grant credits · run promo campaigns
+        Manage who can use Supaprod · grant credits · run promo campaigns
       </p>
       <div
         style={{

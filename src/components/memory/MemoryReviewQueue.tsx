@@ -21,7 +21,7 @@ import {
 import { sourceLabel, statusTone, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { VerdictChip } from "@/components/obsidian/verdict";
-import { StepDot } from "@/components/cadence/Primitives";
+import { StepDot } from "@/components/supaprod/Primitives";
 
 const CARD_STYLE: React.CSSProperties = {
   background: "var(--card)",

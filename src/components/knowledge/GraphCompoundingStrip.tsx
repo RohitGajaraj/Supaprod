@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { MonoLabel } from "@/components/obsidian/primitives";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 

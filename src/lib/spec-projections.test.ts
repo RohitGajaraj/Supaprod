@@ -192,7 +192,7 @@ describe("renderProjectionMarkdown: artifact", () => {
     expect(md).toContain("Generated on 2026-06-24 · Contract behind spec");
     expect(md).toContain("Re-draft the contract");
     expect(md).toContain("## Success metrics");
-    expect(md).toContain("Cadence deprecates documents into views");
+    expect(md).toContain("Supaprod deprecates documents into views");
   });
 
   it("renders a numbered Sources section for PRD/FRD and none for status/one-pager", () => {

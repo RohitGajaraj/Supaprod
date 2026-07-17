@@ -36,7 +36,7 @@ const JSON_HEADERS = {
 /**
  * Q1-MCP · Model Context Protocol (MCP) server — Phase 2.
  *
- * External agents (Claude with MCP, other AI frameworks) call Cadence to:
+ * External agents (Claude with MCP, other AI frameworks) call Supaprod to:
  * - Read signals / opportunities / decisions (search)
  * - Read a PRD (fetch) and the roadmap
  * - Export a versioned decision-lessons skill pack

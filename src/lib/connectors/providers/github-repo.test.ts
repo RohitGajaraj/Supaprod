@@ -172,7 +172,7 @@ describe("GitHubRepoProvider", () => {
       const result = await provider.bootstrapRepo(
         REF,
         [{ path: "main.ts", content: "export {};" }],
-        "feat: Cadence starter",
+        "feat: Supaprod starter",
         "main",
       );
       expect(result.sha).toBe("initcommit");
@@ -189,7 +189,7 @@ describe("GitHubRepoProvider", () => {
       // 2. Initial commit has no parents.
       expect(calls[1].url).toContain("/repos/acme/widget/git/commits");
       expect(calls[1].body).toMatchObject({
-        message: "feat: Cadence starter",
+        message: "feat: Supaprod starter",
         tree: "roottree",
         parents: [],
       });

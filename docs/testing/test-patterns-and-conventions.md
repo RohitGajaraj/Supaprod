@@ -1,6 +1,6 @@
 # Test Patterns & Conventions
 
-**Reference guide for implementing test skeletons in the Cadence codebase**
+**Reference guide for implementing test skeletons in the Supaprod codebase**
 
 ---
 

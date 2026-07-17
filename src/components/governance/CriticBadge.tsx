@@ -11,7 +11,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
-import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
 import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 import { tierFromProbability } from "@/lib/confidence";
 

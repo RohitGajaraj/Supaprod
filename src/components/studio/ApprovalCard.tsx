@@ -4,7 +4,7 @@ import { ShieldAlert } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import type { StudioApproval } from "@/lib/studio.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/supaprod/Primitives";
 import { summarizeArgs } from "./studio-format";
 
 /** Consequence-first approve label — name what really happens per tool. */

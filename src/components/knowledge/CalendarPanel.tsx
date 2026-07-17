@@ -1,4 +1,4 @@
-// Calendar — Knowledge tab 1, ported from design-reference/cadence/loop.jsx
+// Calendar — Knowledge tab 1, ported from design-reference/supaprod/loop.jsx
 // (KnowledgeScreen · Calendar): list / Month / Year mono switcher, bento event
 // rows with the expandable Historian capture section, the contribution-style
 // pixel month (ember-mix occupancy, today ringed ember, quick-add that syncs
@@ -35,15 +35,15 @@ import {
 } from "@/lib/calendar-connections.functions";
 import { listMeetings } from "@/lib/meetings.functions";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MeetingDetailBody } from "@/components/cadence/MeetingDetailBody";
+import { MeetingDetailBody } from "@/components/supaprod/MeetingDetailBody";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
 
 type View = "list" | "month" | "year";
-const VIEW_KEY = "cadence.calendar.view";
+const VIEW_KEY = "supaprod.calendar.view";
 
 /* Occupancy shades — pixel intensity = how occupied the day is (reference). */
 const SHADES = [
@@ -1596,7 +1596,7 @@ function ConnectButton({
         </div>
         {connections.length === 0 ? (
           <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 8 }}>
-            Connect once and your events flow into Cadence. You can change this anytime.
+            Connect once and your events flow into Supaprod. You can change this anytime.
           </p>
         ) : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

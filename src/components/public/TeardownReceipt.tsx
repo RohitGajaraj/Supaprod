@@ -71,7 +71,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
     <div
       className="material-medium fade-up"
       style={{ padding: 24, textAlign: "left", width: "100%" }}
-      aria-label="Cadence Critic teardown receipt"
+      aria-label="Supaprod Critic teardown receipt"
     >
       {/* Receipt header: mono kicker + verdict chip. */}
       <div
@@ -84,7 +84,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         }}
       >
         <div className="mono-label" style={{ fontSize: 9, color: "var(--text-subtle)" }}>
-          Cadence Critic · receipt
+          Supaprod Critic · receipt
         </div>
         <div
           style={{
@@ -211,7 +211,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           marginTop: 18,
         }}
       >
-        Cadence's Critic read only the text you pasted. No web search, no market data, no memory of
+        Supaprod's Critic read only the text you pasted. No web search, no market data, no memory of
         a workspace. It judges what your words support, nothing more.
       </p>
     </div>

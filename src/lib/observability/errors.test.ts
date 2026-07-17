@@ -208,7 +208,7 @@ describe("sendSentryEnvelope (vendor integration)", () => {
     //
     // HTTP headers must be:
     //   - content-type: application/x-sentry-envelope
-    //   - x-sentry-auth: Sentry sentry_version=7, sentry_key=<key>, sentry_client=cadence/1.0
+    //   - x-sentry-auth: Sentry sentry_version=7, sentry_key=<key>, sentry_client=supaprod-observability-facade/1.0
     //
     // Implementation test (requires fetch mock):
     //   let fetchedUrl = "";

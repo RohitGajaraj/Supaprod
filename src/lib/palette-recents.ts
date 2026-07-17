@@ -16,7 +16,7 @@ export type RecentObject = {
   search?: Record<string, string>;
 };
 
-const KEY = "cadence:recents";
+const KEY = "supaprod:recents";
 const CAP = 3;
 
 function read(): RecentObject[] {

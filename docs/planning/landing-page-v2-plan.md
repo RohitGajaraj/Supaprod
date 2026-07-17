@@ -39,11 +39,11 @@ The founder reviewed the current page and the first draft of this plan live. Eac
 
 ### 1.1 The one story the page tells
 
-**Engineers got agents. The person deciding what they build got a chatbot. Cadence closes that gap, and proves it with receipts.**
+**Engineers got agents. The person deciding what they build got a chatbot. Supaprod closes that gap, and proves it with receipts.**
 
 Everything on the page serves this arc: envy (engineering got Cursor), the gap (product decisions are the bottleneck and the reasoning evaporates), the answer (governed agents run the loop end to end, you hold the gate), the proof (a ledger of real decisions, real outcomes, real misses), the ask (join the beta, bring a bet).
 
-The thesis underneath, from the one-pager and used as the page's emotional spine: **everyone sells capability, we sell accountability.** "Agents do the work. You answer for it. Cadence is how you answer."
+The thesis underneath, from the one-pager and used as the page's emotional spine: **everyone sells capability, we sell accountability.** "Agents do the work. You answer for it. Supaprod is how you answer."
 
 ### 1.2 Differentiation posture (Samepage Signals, BriefHQ, the field)
 
@@ -83,7 +83,7 @@ Why the waitlist beats "Start free" as the primary right now: signup is live but
 ### 1.5 Claims discipline (binding, from the Pitch Room)
 
 - Only **[PROVEN]** claims appear in present tense. The live numbers strip re-pulls from the DB at render (SSR) so the page can never quote a stale count.
-- **[WIRING]** never speaks in present tense anywhere on the page. "Cadence runs on Cadence" stays OFF the page until it demonstrably runs; the "built part of itself" PR is the provable version and links to the real merge.
+- **[WIRING]** never speaks in present tense anywhere on the page. "Supaprod runs on Supaprod" stays OFF the page until it demonstrably runs; the "built part of itself" PR is the provable version and links to the real merge.
 - Zero fabricated numbers. The mock ledger rows in the walkthrough are visually labeled as a replay; the proof section carries only real, dated, linked artifacts.
 - The honest zero: external users today are stated plainly and framed as the offer ("you're early"), consistent with the one-pager's "honest state" doctrine.
 - Banned vocabulary enforced in review: no em/en dashes, no _seamless / empower / supercharge / unlock / revolutionize / game-changing / AI-powered platform_, no "not just X but Y", no "AI PM tool" ever, cite artifacts never gurus, no adjective doing a number's job.
@@ -116,9 +116,9 @@ Every line below is proposed final copy. Rename-proof: the product name appears 
 
 ### Beat 1 — Hero
 
-The founder's ruling: keep the Cursor hook (it says what and why instantly) but stop capping the claim at "deciding what to build" — Cadence owns the loop past the decision. And the old trilogy sub-line is retired for a concrete single-journey sentence.
+The founder's ruling: keep the Cursor hook (it says what and why instantly) but stop capping the claim at "deciding what to build" — Supaprod owns the loop past the decision. And the old trilogy sub-line is retired for a concrete single-journey sentence.
 
-> **H1:** What Cursor did for writing code, Cadence does for the rest of the product.
+> **H1:** What Cursor did for writing code, Supaprod does for the rest of the product.
 >
 > **Sub:** One governed loop takes a signal all the way to shipped code, then comes back and grades the call. You approve the moments that matter. Every step leaves a receipt.
 >
@@ -128,7 +128,7 @@ The founder's ruling: keep the Cursor hook (it says what and why instantly) but 
 
 H1 alternates, same beyond-deciding scope (all rename-proof):
 
-> **A2:** What Cursor did for writing code, Cadence does for running the product.
+> **A2:** What Cursor did for writing code, Supaprod does for running the product.
 >
 > **B:** Engineers got agents that ship. This is the one that decides, ships, and answers for it. _(bolder, no borrowed brand)_
 >
@@ -168,7 +168,7 @@ Treatment: this is where typographic scale does the design work (the benchmark p
 >
 > **The copilot tab (NEW — the contrast, experienced):** the same signal plays, produces "PRD draft ready. Waiting for you." and stops. The remaining stations sit grayed out, the timeline visibly dead-ends, and one caption lands: **This is where every other tool stops.** No comparison boxes anywhere on the page; the reader feels the difference in ten seconds.
 >
-> **Failure-tab callout (kept, the differentiator):** CI fails. Cadence reads the failure, revises its own spec, rebuilds, and ships green. It never stopped; it recovered. Your gate stayed in the middle the whole time.
+> **Failure-tab callout (kept, the differentiator):** CI fails. Supaprod reads the failure, revises its own spec, rebuilds, and ships green. It never stopped; it recovered. Your gate stayed in the middle the whole time.
 >
 > **Section closer (text link):** Run one on your own roadmap. The Critic will tear it down, free, no signup. → `/p/teardown`
 
@@ -178,7 +178,7 @@ Structure: the six/seven stations render as a compact horizontal spine above the
 
 > **H2:** Receipts, not screenshots.
 >
-> **Sub:** Every number below is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins.
+> **Sub:** Every number below is pulled live from our own workspace. Supaprod has run our product since June 2026. We publish the misses on the same ledger as the wins.
 >
 > **Live counters (SSR, real, dated):** `missions run` · `decisions recorded` · `outcomes graded` · `AI calls through one governed chokepoint` _(rendered from the live DB at request time; the figures in the repo today are 133 / 72 / 49 / 2,162 and will differ on publish day, correctly)_
 >
@@ -187,7 +187,7 @@ Structure: the six/seven stations render as a compact horizontal spine above the
 >
 > **The honesty card:** Where we actually are: the engine is built and it survived an outside code audit. External users today: zero. We built the operating system before opening the doors, on purpose, and it ran our own product while we did. This month the doors open. Early is the offer.
 >
-> **Pull quote (the thesis, promoted from the one-pager):** Agents do the work. You answer for it. Cadence is how you answer.
+> **Pull quote (the thesis, promoted from the one-pager):** Agents do the work. You answer for it. Supaprod is how you answer.
 
 This beat replaces every fabricated stat on the current page. If a number cannot be pulled live, it does not render (the strip degrades to the artifact row, never to a hardcoded count).
 
@@ -202,7 +202,7 @@ The old moat section's abstract labels ("decision layer", "outcome memory", "com
 > **Context layers** brief your coding agents. Nobody checks how the story ended.
 > **Copilots** draft the document. The decision inside it goes untracked.
 >
-> **The turn:** Cadence closes the loop and keeps the record. A record like that cannot be bought or backfilled. It exists only if the system was in the loop when the call was made.
+> **The turn:** Supaprod closes the loop and keeps the record. A record like that cannot be bought or backfilled. It exists only if the system was in the loop when the call was made.
 >
 > **The compounding moment (shown, not told):** two renderings of the same decision card, months apart. March: the bet arrives cold, ranked on evidence alone. July: the same class of bet arrives carrying its precedent chip, the real UI element: _"Similar call, right 3 of 4 times."_ One caption: **It gets sharper with every call it records. That is the part nobody can copy.**
 >
@@ -314,7 +314,7 @@ _Grounded in a dedicated research pass (2026-07-14) over current 2025-2026 sourc
 ### 6.3 GEO: what actually earns citations (evidence-ranked)
 
 1. **Factual claim density is the best-replicated lever** (~30-40% relative visibility gains in the founding GEO study; independently corroborated 2026). Every claim gets a number, a name, or a date, written as self-contained extractable sentences. The receipts beat IS the GEO beat, and `/proof` (a page of dated verifiable outcomes) is a native GEO asset no competitor has.
-2. **Comparison pages are the best-evidenced owned-content play** (Ramp grew AI-citation share 3.2% → 22.2% in one month on this format). Week-2 content, not launch-gating: "Cadence vs Productboard", "ChatPRD alternatives", "AI agents for product teams, compared" — honest tables, named pricing, explicit "when to pick them instead" (which is also the engineer-trust posture).
+2. **Comparison pages are the best-evidenced owned-content play** (Ramp grew AI-citation share 3.2% → 22.2% in one month on this format). Week-2 content, not launch-gating: "Supaprod vs Productboard", "ChatPRD alternatives", "AI agents for product teams, compared" — honest tables, named pricing, explicit "when to pick them instead" (which is also the engineer-trust posture).
 3. **Third-party presence outranks on-site polish for the head queries.** "Best AI tools for product managers" is 100% listicles on page 1; no product page ranks. The play: Crunchbase + G2 + Capterra profiles now, Product Hunt timed to the beta, pitch inclusion into the existing listicles (Pendo, G2 Learn, Builder.io). Skip Wikipedia (not notable yet; rejected drafts are indexed).
 4. **llms.txt reclassified:** near-zero citation lift (97% of llms.txt files get zero AI-assistant requests; Google explicitly doesn't read it), BUT genuinely consumed by IDE agents and MCP clients — which for a product whose buyers point Claude Code at vendors is a real channel. Keep and maintain the whole machine layer (llms.txt, agents.txt, A2A card, the `M`-key machine view) and market it as engineering proof ("agent-native down to the wire protocol"), not as discoverability. **One canonical one-liner everywhere:** today the hero, meta, and llms.txt each carry a different self-description; LLMs reconcile drift poorly. The v2 copy deck's identity line propagates verbatim to all of them.
 

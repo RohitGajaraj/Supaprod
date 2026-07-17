@@ -33,8 +33,8 @@ import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AutoChip } from "@/components/supaprod/AutoChip";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
@@ -169,7 +169,7 @@ export function DecisionsPanel() {
     mutationFn: (data: { title: string; rationale?: string }) => fCreate({ data }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["decisions"] });
-      toast.success("Decision logged · Cadence reads it");
+      toast.success("Decision logged · Supaprod reads it");
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -445,7 +445,7 @@ function LogDecisionDialog({
             Log decision
           </DialogTitle>
           <DialogDescription style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
-            Capture a choice that should outlive this week. Cadence reads these.
+            Capture a choice that should outlive this week. Supaprod reads these.
           </DialogDescription>
         </DialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

@@ -23,7 +23,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **Overwhelm named at an AI-native company:** "We have information overload. And so this is why we took the time as a company to be like, we can't just assume that people... are not going to be overwhelmed by the number [of agents and automations]."
 - **Captains model (accountable human per outcome):** "What is the most critical piece to nail for the outcome that we're looking for and therefore the feature that we're building? And as a result, how do we appoint a captain that is skilled in that particular area?"
 
-**Read for Cadence:** the most senior operator in the corpus independently describes Cadence's shape — playbooks that graduate into agents, one routing front-door agent, Slack-side delivery, a named accountable human per outcome — and names the two launch risks (the 90-99% don't know what to use when; agent sprawl overwhelms) that the calm-front/Engine-Room doctrine exists to solve.
+**Read for Supaprod:** the most senior operator in the corpus independently describes Supaprod's shape — playbooks that graduate into agents, one routing front-door agent, Slack-side delivery, a named accountable human per outcome — and names the two launch risks (the 90-99% don't know what to use when; agent sprawl overwhelms) that the calm-front/Engine-Room doctrine exists to solve.
 
 ### 2. Abhi Muchhal — PM, International Growth, OpenAI (ex-Meta, ex-Nubank) — "The OpenAI PM Who Helped Grow ChatGPT to 900M Users Demos His Actual Setup" (2026-06-03, video `j1IOG8WoW1A`)
 
@@ -36,7 +36,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **Evals as the frontier currency:** "The currency of progress, especially in a frontier lab, is evals... anytime we think about a problem that we want to get our researchers excited to improve, the question they ask is, can we build an eval?"
 - **Weekly update automation:** "A lot is in Slack, some in Google Drive, some in Notion, some from dashboards. So I've got an automation running that pulls all these things, puts it together, creates a weekly update, and posts it into Slack for me to review and send it out to everyone."
 
-**Read for Cadence:** an OpenAI growth PM's demoed setup is Cadence's exact wedge (multi-source synthesis with a TLDR "that doesn't exist in a dashboard," decision-postmortem loops, auto-drafted status updates) — and his explicit draft-first gate because "signal to noise" is unsolved is the strongest possible external license for Cadence's HITL floors.
+**Read for Supaprod:** an OpenAI growth PM's demoed setup is Supaprod's exact wedge (multi-source synthesis with a TLDR "that doesn't exist in a dashboard," decision-postmortem loops, auto-drafted status updates) — and his explicit draft-first gate because "signal to noise" is unsolved is the strongest possible external license for Supaprod's HITL floors.
 
 ### 3. Ryan Lopopolo — OpenAI frontier team (wrote OpenAI's harness-engineering post) — "I got an inside look at how OpenAI PMs ship code" (2026-05-25, video `8suwvrF0Lv0`)
 
@@ -50,7 +50,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **It was slower first:** [host, confirmed by Ryan] the first month was ~10x slower than doing it solo; Ryan: "The goal is to get Codex to do the full [job]," and the agent-built product was "a repository with about a million lines of code... there's about 250,000 lines of markdown in this repository... when you're shipping an agent, what you're really shipping is a multi-agent system."
 - **PM's own time shift:** "With code generation increasingly being automated, the bulk of my time is spent on feature triage and scheduling."
 
-**Read for Cadence:** OpenAI's internal recipe for trustworthy autonomy is receipts-by-construction (tests + review agents + LLM-judge gates) plus feedback captured as durable repo context — Cadence's outcome-memory + guardrails thesis restated as shipped practice, with a dated cost benchmark ($2-3K/engineer/day at the frontier) for the BYOK/cost-routing story.
+**Read for Supaprod:** OpenAI's internal recipe for trustworthy autonomy is receipts-by-construction (tests + review agents + LLM-judge gates) plus feedback captured as durable repo context — Supaprod's outcome-memory + guardrails thesis restated as shipped practice, with a dated cost benchmark ($2-3K/engineer/day at the frontier) for the BYOK/cost-routing story.
 
 ### 4. Matthew Wensing — VP Product & Design, customer.io (>$100M ARR) — "How This VP Uses Claude to Do a Week of Work in a Day" (2026-06-09, video `yDeFGKaSoX8`)
 
@@ -61,7 +61,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **The leader's irreplaceable part:** "As a leader we don't exist just to generate Claude outputs... we exist to create mental models, to reframe, to drive alignment." And: "My value is actually choosing the sources or set of sources to use."
 - **Enterprise-safe internal agents:** "We took a strategy of, in a controlled way, letting there be experimentation with OpenClaw and other agents like it. We actually have our own version of OpenClaw that we're working on where it's an agentic loop... [a] version that is enterprise-data safe so we can use it with our enterprise clients."
 
-**Read for Cadence:** a $100M-ARR product leader hands Cadence two things — a named, unbuilt feature (cross-artifact contradiction/staleness audit: "eight of these 12 disagree") that maps straight onto Cadence's drift surface, and the enterprise datapoint that companies are hand-rolling data-safe agent loops because nothing packaged is trusted yet.
+**Read for Supaprod:** a $100M-ARR product leader hands Supaprod two things — a named, unbuilt feature (cross-artifact contradiction/staleness audit: "eight of these 12 disagree") that maps straight onto Supaprod's drift surface, and the enterprise datapoint that companies are hand-rolling data-safe agent loops because nothing packaged is trusted yet.
 
 ### 5. Hannah Stulberg — PM, DoorDash (ex-Google APM) — "How this PM Used Claude Code to Support 20 People" [Team OS] (2026-04-07, video `0UArKLQ6bXA`)
 
@@ -74,7 +74,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **Verification concept:** "Verification is how Claude knows that the work was done and done well."
 - **1,500 hours in, still not done:** "I have spent now like 1,500 hours in Claude and I'm still iterating on my setup and improving it literally every single day."
 
-**Read for Cadence:** the year's clearest persona proof after the Reddit Sr-PM post (§12.2 of the sibling doc) — a team-wide, reviewable, contribution-based memory OS built by hand on git, with non-technical people doing PRs; Cadence's job is exactly this without the 1,500 hours or the terminal, and her "checked-in truth kills hallucination anxiety" line is the receipts thesis from a user's mouth.
+**Read for Supaprod:** the year's clearest persona proof after the Reddit Sr-PM post (§12.2 of the sibling doc) — a team-wide, reviewable, contribution-based memory OS built by hand on git, with non-technical people doing PRs; Supaprod's job is exactly this without the 1,500 hours or the terminal, and her "checked-in truth kills hallucination anxiety" line is the receipts thesis from a user's mouth.
 
 ### 6. Gabor Meyer — PM, Google — "Google PM Runs 7 Claude Code Agents to Build Apps (0 Employees)" [21-agent setup] (2026-04-30, video `kQelqKkI-EQ`)
 
@@ -86,7 +86,7 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **The two-year gap claim:** "In two years, the gap will be so big between those who build and those who are just productivity AI users that it will be very hard to catch up."
 - Context facts: he runs this on the $200/month Claude plan; hasn't written production code since 2011 and shipped a working iOS app to TestFlight in 72 minutes (facts demonstrated in-episode, amplified in the host's posts).
 
-**Read for Cadence:** a non-coding Google PM hand-assembles Cadence's agent-mesh idea (role agents + documented decisions + enforced visual references + spot-check trust) for $200/month — proof the persona pays and self-serves today, and his "the AI was lying" Lovable exit is the trust-collapse pattern Cadence's verified receipts exist to prevent.
+**Read for Supaprod:** a non-coding Google PM hand-assembles Supaprod's agent-mesh idea (role agents + documented decisions + enforced visual references + spot-check trust) for $200/month — proof the persona pays and self-serves today, and his "the AI was lying" Lovable exit is the trust-collapse pattern Supaprod's verified receipts exist to prevent.
 
 ### 7. Mike Ball — product lead, David's Bridal — "The AI-Native PM Operating System [Live Demo]" (2026-02-03, video `1C0daBcDBig`)
 
@@ -97,11 +97,11 @@ Ex-product lead at Airbnb, Dropbox, Webflow, WeWork; ex-CPO Linktree; teaches PM
 - **Receipts, as a user preference:** "This is a lot of different pieces to prove that it did the thinking... It has the details, but you can trace it back, which I really like."
 - **The red-team ask (a decision-critique use case):** "I've done my research. I've talked to customers. Here's scripts from interviews. Here's our whole justification. Tear this thing apart. Red-team this thing. Tell me what I'm missing. Be a skeptic."
 
-**Read for Cadence:** a mainstream (non-frontier) enterprise PM voice confirming three Cadence bets at once — pay-for-use pricing expectations, memory-write curation as a first-class control (v12's operable memory OS), and traceable "prove it did the thinking" output — plus the Critic-teardown wedge ("red-team this") requested verbatim as a workflow.
+**Read for Supaprod:** a mainstream (non-frontier) enterprise PM voice confirming three Supaprod bets at once — pay-for-use pricing expectations, memory-write curation as a first-class control (v12's operable memory OS), and traceable "prove it did the thinking" output — plus the Critic-teardown wedge ("red-team this") requested verbatim as a workflow.
 
 ---
 
-## Cluster B — Evals (the discipline Cadence's receipts live inside)
+## Cluster B — Evals (the discipline Supaprod's receipts live inside)
 
 ### 8. Ankur Goyal — founder/CEO, Braintrust — "If You Don't Understand AI Evals, Don't Build AI" (2026-03-20, video `71qvIkO9d_A`)
 
@@ -116,7 +116,7 @@ Braintrust: built as an internal tool when he led the AI team at Figma; Zapier w
 - **Judge design detail:** "If you're creating LLM-based scores you shouldn't ask the LLM to generate a number, because that's not very clear" — use labeled options; the platform "has the model actually tell you the rationale."
 - **Benchmark skepticism:** "More often than not, when you see something interesting happened in a benchmark, including an improvement, it means that the benchmark itself is broken."
 
-**Read for Cadence:** the eval-market leader independently validates Cadence's moat logic (durable = the evaluation/outcome layer, not the agent wiring), hands over the "ledger" vocabulary for the decision-receipts pitch, and models the pricing precedent — he dropped seats for run/data-volume pricing to escape the single-team ceiling.
+**Read for Supaprod:** the eval-market leader independently validates Supaprod's moat logic (durable = the evaluation/outcome layer, not the agent wiring), hands over the "ledger" vocabulary for the decision-receipts pitch, and models the pricing precedent — he dropped seats for run/data-volume pricing to escape the single-team ceiling.
 
 ### 9. Hamel Husain & Shreya Shankar — evals educators (their Maven course is where OpenAI/Anthropic/Google/Meta people learn evals) — "How to Build AI Evals in 2026 (Step-by-Step, No Hype)" (2026-01-15, video `J7N9FMouSKg`)
 
@@ -127,7 +127,7 @@ Braintrust: built as an internal tool when he led the AI team at Figma; Zapier w
 - **Naive LLM-judging is sycophantic:** "We show so many demos in class where we just dump this trace into ChatGPT and we ask 'was the assistant correct' and then ChatGPT will say 'yeah, absolutely' — but [it wasn't]."
 - **Production traces are the ground truth:** "This is what your AI agents are actually doing out there in production, and that's why looking at the traces is so important... Your demo is one thing... but then when it goes out in production, there's all this hairiness."
 
-**Read for Cadence:** the field's reference curriculum says the human decision-record should be binary verdicts + notes on real traces, owned by the PM — a direct spec for how Cadence's outcome-recording UI should capture judgments (binary + rationale, not star ratings), and a warning to never ship a naive judge as a receipt.
+**Read for Supaprod:** the field's reference curriculum says the human decision-record should be binary verdicts + notes on real traces, owned by the PM — a direct spec for how Supaprod's outcome-recording UI should capture judgments (binary + rationale, not star ratings), and a warning to never ship a naive judge as a receipt.
 
 ### 10. Ankit Shukla — AI-evals instructor (HelloPM) — "The Most Important New Skill for Product Managers in 2026: AI Evals Masterclass" (2026-02-19, video `Raa3qjEBvKE`)
 
@@ -137,7 +137,7 @@ Braintrust: built as an internal tool when he led the AI team at Figma; Zapier w
 - **Soft failure signals worth logging:** "A soft feedback could be that people are trying to generate the same answer again, or they are not closing the session... or maybe they have removed the session before going ahead and buying."
 - Weight note: instructor-guest (sells courses), so used here for frameworks and the cost arithmetic, not as an operator fact source.
 
-**Read for Cadence:** the eval-verified model-downshift argument (25x) is the concrete mechanism behind Cadence's cost-routing story — route to cheap models wherever a recorded eval proves parity, and log soft frustration signals as outcome evidence.
+**Read for Supaprod:** the eval-verified model-downshift argument (25x) is the concrete mechanism behind Supaprod's cost-routing story — route to cheap models wherever a recorded eval proves parity, and log soft frustration signals as outcome evidence.
 
 ### 11. Laura Burkhauser — CEO, Descript (IC PM → VP Product → CEO under founder Andrew Mason) — "How AI PMs Ship Features Users Love (Descript CEO Explains)" (2025-12-15, video `LR_WOmcE9WI`)
 
@@ -151,7 +151,7 @@ External corroboration: Descript ~$55M revenue growing ~75% YoY; Underlord (agen
 - **Agentic honesty about the harness:** "We are still in the middle of building Underlord... I think right now it's on a harness that is still too brittle for it to be as open-world and to be able to take advantage of leaps in general intelligence."
 - **Success metrics:** "We looked at adoption and retention."
 
-**Read for Cadence:** a CEO who rose by owning eval criteria gives Cadence the delegation arc to productize — human-defined pass/fail first, tie-goes-to-human, delegation to the machine only after calibration is proven — which is exactly the trust-arc/HITL-floor mechanic, plus a warning that eval receipts are only as good as the representativeness of their sample data.
+**Read for Supaprod:** a CEO who rose by owning eval criteria gives Supaprod the delegation arc to productize — human-defined pass/fail first, tie-goes-to-human, delegation to the machine only after calibration is proven — which is exactly the trust-arc/HITL-floor mechanic, plus a warning that eval receipts are only as good as the representativeness of their sample data.
 
 ---
 
@@ -167,7 +167,7 @@ External corroboration: Descript ~$55M revenue growing ~75% YoY; Underlord (agen
 - **Rules = persistent user law for agents:** "Here's one: ask me before committing changes... agents have non-deterministic behavior where they might commit to the wrong branch. I just want our agent to be very explicit."
 - **The production feedback loop:** "You're looking at real user data in the wild... trying to understand are there common patterns where people are failing using your agent, are there common patterns where the agent's really successful and you might want to market that. It's a big data feedback loop that you want to put in place."
 
-**Read for Cadence:** the fastest-growing agentic-product CEO in the corpus states Cadence's two commercial theses on the record — seat pricing doesn't fit agentic value, and user-specific memory is what makes switching painful — and models "public evals as credibility marketing," a play Cadence can run with its calibration/outcome scorecards at launch.
+**Read for Supaprod:** the fastest-growing agentic-product CEO in the corpus states Supaprod's two commercial theses on the record — seat pricing doesn't fit agentic value, and user-specific memory is what makes switching painful — and models "public evals as credibility marketing," a play Supaprod can run with its calibration/outcome scorecards at launch.
 
 ### 13. Xiankun Wu — founder/CEO, Kuse (age 21, bootstrapped) — "$10M ARR in 60 days with context engineering" (2025-11-21, video `jxxD3tVJm0o`)
 
@@ -180,7 +180,7 @@ External corroboration: VentureBeat covered the $10M-ARR-in-60-days, no-VC, zero
 - **Growth mechanics fact:** "We are probably the very early batch of companies who did heavily social promotions in Threads. We almost spend no money and we hire a bunch of intern armies and they create a lot of contents." (Post-2.0 launch: peak traffic 6x, demo requests 10x.)
 - **Pivot story:** started as a design agent; "people just upload a lot of files and documents into the product... so probably around late 2024 we decided we should not continue building specifically a design agent. We should go for a more horizontal knowledge-based AI."
 
-**Read for Cadence:** independent proof that accumulated project context is monetizable retention (a bootstrapped $10M ARR on exactly the "living work OS" premise), that the market punishes one-shot-magic claims, and that underpriced attention channels (Threads-class) beat ad spend for AI launches — directly relevant to Cadence's zero-influencer Show-HN launch posture.
+**Read for Supaprod:** independent proof that accumulated project context is monetizable retention (a bootstrapped $10M ARR on exactly the "living work OS" premise), that the market punishes one-shot-magic claims, and that underpriced attention channels (Threads-class) beat ad spend for AI launches — directly relevant to Supaprod's zero-influencer Show-HN launch posture.
 
 ### 14. Todd Olson — CEO, Pendo (28 years in product) — "What AI PMs REALLY Need to KNOW in 2026" (2025-12-03, video `C9hL_4Hrr8E`)
 
@@ -193,7 +193,7 @@ External corroboration: VentureBeat covered the $10M-ARR-in-60-days, no-VC, zero
 - **The synthesis pain (his product bet):** "One of the biggest pain points that people have is there's so much interesting product insight spread across your enterprise, and how do I make sure I synthesize those and bring those back to the ones that really, really matter... one of the most painful parts of a PM job is just sifting through qualitative information." And the interface consequence: "The way we think of dashboards is: I want systems that are self-service for my team. If I have a question, I'm not going to Slack someone, I'm not going to call a meeting — that's a waste of my time and their time."
 - **Hiring datapoint:** AI-experienced PMs command more ("It comes down to scarcity of skill set... am I willing to pay a little bit more for someone who has that? Yeah") against the host's data that AI PM postings doubled to ~20% of PM listings and pay 30-40% more.
 
-**Read for Cadence:** an incumbent-tool CEO concedes the agenda Cadence is built on (outcomes over activity, per-outcome pricing as the interesting model, PM-authored evals, cross-source synthesis as the worst pain) — and his sub-15%-margin warning is the financial argument for Cadence's eval-verified cheap-model routing and BYOK cost posture.
+**Read for Supaprod:** an incumbent-tool CEO concedes the agenda Supaprod is built on (outcomes over activity, per-outcome pricing as the interesting model, PM-authored evals, cross-source synthesis as the worst pain) — and his sub-15%-margin warning is the financial argument for Supaprod's eval-verified cheap-model routing and BYOK cost posture.
 
 ### 15. Sahil Lavingia — founder/CEO, Gumroad (one full-time employee) — "How to Run a $100M Company with AI: v0 + Devin" (2025-10-19, video `I_ue2vrTM9M`)
 
@@ -206,7 +206,7 @@ External corroboration: VentureBeat covered the $10M-ARR-in-60-days, no-VC, zero
 - **One-person-company nuance:** "The reason we don't have $1 billion single-person companies is not that we can't, it's just that we don't want to... I can't imagine how many PMs run a billion-dollar company by themselves [inside Google]... within FAANG there's probably thousands of examples." And: "It tends to be more of like a marketing gimmick — like, oh, one person."
 - **Design principle for staying small:** "My bias is to tend towards: what's the right approach such that one person could ship the entire product? A lot of the way that big companies move faster makes it impossible to get smaller."
 
-**Read for Cadence:** the cleanest one-person-company case study for the YC market section (dated revenue, valuation, dividend, headcount), whose stated workflow gaps — opaque agent work you "don't know until you open it up," and the PRD's new job as an intent-vs-implementation diff — are both buildable Cadence features.
+**Read for Supaprod:** the cleanest one-person-company case study for the YC market section (dated revenue, valuation, dividend, headcount), whose stated workflow gaps — opaque agent work you "don't know until you open it up," and the PRD's new job as an intent-vs-implementation diff — are both buildable Supaprod features.
 
 ---
 
@@ -223,39 +223,39 @@ External corroboration: VentureBeat covered the $10M-ARR-in-60-days, no-VC, zero
 - **Public roadmaps anchor:** "You have to be ready for reality to tell you that your roadmap is wrong... when you put out a public roadmap... it has an anchoring effect."
 - **Team-size doctrine:** "The question we always ask is: okay, here's what we need to do — how few people can we hire in order to do this effectively?"
 
-**Read for Cadence:** the product leader closest to the agent-work-graph problem rules that accountability can never transfer to an agent — every dispatch needs a human on the end — which is Cadence's HITL floor stated as an industry design law by a neutral (and adjacent-competitor) authority, alongside a falsifiable-launch method Cadence should copy for its own agent-mesh claims.
+**Read for Supaprod:** the product leader closest to the agent-work-graph problem rules that accountability can never transfer to an agent — every dispatch needs a human on the end — which is Supaprod's HITL floor stated as an industry design law by a neutral (and adjacent-competitor) authority, alongside a falsifiable-launch method Supaprod should copy for its own agent-mesh claims.
 
 ---
 
-## Closing synthesis — top 10 insights, ranked by relevance to Cadence's positioning, pricing, and roadmap
+## Closing synthesis — top 10 insights, ranked by relevance to Supaprod's positioning, pricing, and roadmap
 
 1. **Seat pricing is visibly dying at the agentic frontier — usage/outcome pricing is the migration path.** Zach Lloyd: "fixed price per seat... doesn't work that well" (2025-09-27). Ankur Goyal removed user-based pricing entirely for run/data-volume pricing (2026-03-20). Todd Olson's favorite model is Fin's "99 cents per support ticket closed" (2025-12-03). Mike Ball, as a buyer: "pay for what I use... usage-based billing... that's probably the way a lot of this will move" (2026-02-03). Four independent voices — vendor, platform, incumbent CEO, buyer — one direction.
-2. **"The modern PRD is an eval," and the PM owns pass/fail.** Ankur Goyal (2026-03-20), Laura Burkhauser ("you and only you are qualified to write the eval criteria," 2025-12-15), Abhi Muchhal ("the currency of progress... is evals," 2026-06-03), Todd Olson ("the PM is probably the best-suited human... a must-have," 2025-12-03), Hamel & Shreya (error analysis is the inhibitor, binary verdicts, 2026-01-15). The corpus's strongest convergence — and it maps 1:1 onto Cadence's decision-with-receipts artifact.
-3. **Memory/context is the stated retention moat of the people winning.** Zach Lloyd: users "won't want to use some tool that doesn't know them as well" (2025-09-27). Xiankun Wu built $10M ARR in 60 days on compounding project context (2025-11-21). Ankur Goyal: evals/data outlast agent wiring (2026-03-20). External CEOs are saying Cadence's moat sentence out loud.
-4. **Accountability never transfers to the agent.** Nan Yu: "robots are not actually responsible for anything, so we have to have a human on the end" (2025-08-04); Jiaona Zhang's captains model (2026-06-24); Laura Burkhauser's "tie goes to the human — for now" delegation arc (2025-12-15); Abhi Muchhal's draft-first gate at OpenAI (2026-06-03). HITL floors are not a Cadence compromise; they're the industry's current design law.
+2. **"The modern PRD is an eval," and the PM owns pass/fail.** Ankur Goyal (2026-03-20), Laura Burkhauser ("you and only you are qualified to write the eval criteria," 2025-12-15), Abhi Muchhal ("the currency of progress... is evals," 2026-06-03), Todd Olson ("the PM is probably the best-suited human... a must-have," 2025-12-03), Hamel & Shreya (error analysis is the inhibitor, binary verdicts, 2026-01-15). The corpus's strongest convergence — and it maps 1:1 onto Supaprod's decision-with-receipts artifact.
+3. **Memory/context is the stated retention moat of the people winning.** Zach Lloyd: users "won't want to use some tool that doesn't know them as well" (2025-09-27). Xiankun Wu built $10M ARR in 60 days on compounding project context (2025-11-21). Ankur Goyal: evals/data outlast agent wiring (2026-03-20). External CEOs are saying Supaprod's moat sentence out loud.
+4. **Accountability never transfers to the agent.** Nan Yu: "robots are not actually responsible for anything, so we have to have a human on the end" (2025-08-04); Jiaona Zhang's captains model (2026-06-24); Laura Burkhauser's "tie goes to the human — for now" delegation arc (2025-12-15); Abhi Muchhal's draft-first gate at OpenAI (2026-06-03). HITL floors are not a Supaprod compromise; they're the industry's current design law.
 5. **The buildable market is the 90-99%, and they buy relief from tool-confusion, delivered where they work.** Jiaona Zhang: the 1% are AI-pilled, "the 90 to 99%... isn't sure what to use when," and the answer is one routing mega-agent + just-in-time delivery in Slack/email (2026-06-24). Todd Olson: self-service beats dashboards and Slack-asks (2025-12-03).
-6. **Hand-built Cadences are now standard practice at the frontier — the demand proof and the competitor.** Hannah Stulberg's Team OS repo (2026-04-07), Gabor Meyer's 21-agent company on a $200 plan (2026-04-30), Abhi Muchhal's Codex harness (2026-06-03), Matthew Wensing's enterprise-safe OpenClaw clone (2026-06-09), Jiaona Zhang's company OS (2026-06-24). Every one is terminal- or git-gated and hand-maintained. Cadence's one-liner ("this capability without the terminal") is re-proven five more times.
+6. **Hand-built Supaprods are now standard practice at the frontier — the demand proof and the competitor.** Hannah Stulberg's Team OS repo (2026-04-07), Gabor Meyer's 21-agent company on a $200 plan (2026-04-30), Abhi Muchhal's Codex harness (2026-06-03), Matthew Wensing's enterprise-safe OpenClaw clone (2026-06-09), Jiaona Zhang's company OS (2026-06-24). Every one is terminal- or git-gated and hand-maintained. Supaprod's one-liner ("this capability without the terminal") is re-proven five more times.
 7. **Anti-slop is structural: gates and role-structure, not model quality.** Ryan Lopopolo: "you can not have slop by simply not permitting the agent to write slop... tests, review agents, LLM-as-judge" (2026-05-25). Gabor Meyer: "you get more AI slop if you're not going to have these agents replicate real roles" (2026-04-30). Matthew Wensing: slop = "micro-hallucinations" about how work gets done here (2026-06-09).
 8. **Trust collapses on false completion claims — and the corpus names the offenders.** Gabor Meyer on Lovable: "the AI was lying... it said it fixed it and it didn't" (2026-04-30). Mike Ball on Replit: "designed to make you feel like you're progressing when maybe you aren't" (2026-02-03). Sahil Lavingia on Codex: "you don't know until you open it up" (2025-10-19). Verified-before-claimed receipts are the category's open trust wound.
 9. **Margins will force eval-verified cost-routing.** Todd Olson: sub-15% gross margin "is not a business" (2025-12-03). Ankit Shukla: a 25x price gap between frontier and nano models, closable only when evals prove parity (2026-02-19). Ryan Lopopolo's counterweight: at the frontier, a billion tokens a day (~$2-3K/engineer/day) is the ambition level (2026-05-25). The winning posture prices the outcome and routes the tokens.
-10. **A named, unbuilt wish: the artifact-drift auditor.** Matthew Wensing (2026-06-09): nobody has time to re-audit past docs; he wants AI that flags "eight out of these other 12 disagree with this." Closest single feature-shaped gap in the corpus, and it sits directly on Cadence's existing drift/receipts machinery.
+10. **A named, unbuilt wish: the artifact-drift auditor.** Matthew Wensing (2026-06-09): nobody has time to re-audit past docs; he wants AI that flags "eight out of these other 12 disagree with this." Closest single feature-shaped gap in the corpus, and it sits directly on Supaprod's existing drift/receipts machinery.
 
 ---
 
-## Product moves for Cadence (ranked)
+## Product moves for Supaprod (ranked)
 
-> Per the founder's course-correction: concrete deltas against what Cadence already is (decision layer + outcome memory above agent fleets, receipts, connector fabric, HITL floors, BYOK, credits model in flight). Each move is traceable to mined evidence.
+> Per the founder's course-correction: concrete deltas against what Supaprod already is (decision layer + outcome memory above agent fleets, receipts, connector fabric, HITL floors, BYOK, credits model in flight). Each move is traceable to mined evidence.
 
-1. **Ship every generated PRD with its eval attached (feature).** When Cadence writes a PRD, it also writes the pass/high-pass/fail acceptance criteria and a runnable grader, and the human edits both as one artifact. Rationale: "the modern PRD is an eval" (Ankur Goyal, 2026-03-20); the PM "and only you" writes what good looks like (Laura Burkhauser, 2025-12-15); evals as the PRD for AI engineers (Ankit Shukla, 2026-02-19). Delta: Cadence generates PRDs today; the eval half is the unbuilt twin that makes the artifact defensible.
+1. **Ship every generated PRD with its eval attached (feature).** When Supaprod writes a PRD, it also writes the pass/high-pass/fail acceptance criteria and a runnable grader, and the human edits both as one artifact. Rationale: "the modern PRD is an eval" (Ankur Goyal, 2026-03-20); the PM "and only you" writes what good looks like (Laura Burkhauser, 2025-12-15); evals as the PRD for AI engineers (Ankit Shukla, 2026-02-19). Delta: Supaprod generates PRDs today; the eval half is the unbuilt twin that makes the artifact defensible.
 2. **Meter the credit model on runs and recorded outcomes, not seats — and publish a per-outcome flagship tier (pricing/packaging).** Keep a low flat entry ($20-class, per Mike Ball's graduated-seat buying behavior, 2026-02-03), meter decision-runs/agent-runs (Ankur Goyal's evals-run + data-logged precedent, 2026-03-20; Zach Lloyd's seat-pricing verdict, 2025-09-27), and pilot one outcome-priced SKU in the spirit of Fin's 99c/resolved ticket (Todd Olson, 2025-12-03) — e.g. per shipped-and-verified decision loop. Delta: G10 monetization is in flight; this fixes its unit of account before launch.
-3. **Make "draft-to-me" the visible default for anything stakeholder-facing, branded as the same gate OpenAI PMs use (feature tweak + messaging).** Auto-sends are opt-in per destination, never default. Rationale: Abhi Muchhal's admission that signal/noise is unsolved at OpenAI so he drafts-first (2026-06-03). Messaging line: "Even OpenAI PMs don't auto-send. Cadence drafts, you release." Delta: HITL floors exist; the delta is defaulting + naming the gate at the send moment on every surface.
-4. **Put an accountable human ("captain") on every agent dispatch, rendered on the receipt (feature).** Every autonomous run shows who dispatched it and who owns the outcome; unowned runs cannot start. Rationale: Nan Yu — "robots are not actually responsible for anything... a human on the end" (2025-08-04); Jiaona Zhang's captains model (2026-06-24). Delta: Cadence has approval gates; the delta is a visible, queryable ownership chain — the enterprise-trust artifact for the §9 accountability seam.
-5. **Point drift detection at the workspace's own artifacts: the contradiction auditor (new feature candidate, demo-grade).** A standing agent that re-reads decisions/PRDs/docs after each new decision and flags "8 of these 12 disagree with what you just decided," proposing supersessions. Rationale: Matthew Wensing's verbatim wish (2026-06-09) + Hannah Stulberg's compounding checked-in context (2026-04-07). Delta: Cadence's drift surface watches signals today; turning it inward on the decision ledger converts a named leader pain into a first-session aha.
+3. **Make "draft-to-me" the visible default for anything stakeholder-facing, branded as the same gate OpenAI PMs use (feature tweak + messaging).** Auto-sends are opt-in per destination, never default. Rationale: Abhi Muchhal's admission that signal/noise is unsolved at OpenAI so he drafts-first (2026-06-03). Messaging line: "Even OpenAI PMs don't auto-send. Supaprod drafts, you release." Delta: HITL floors exist; the delta is defaulting + naming the gate at the send moment on every surface.
+4. **Put an accountable human ("captain") on every agent dispatch, rendered on the receipt (feature).** Every autonomous run shows who dispatched it and who owns the outcome; unowned runs cannot start. Rationale: Nan Yu — "robots are not actually responsible for anything... a human on the end" (2025-08-04); Jiaona Zhang's captains model (2026-06-24). Delta: Supaprod has approval gates; the delta is a visible, queryable ownership chain — the enterprise-trust artifact for the §9 accountability seam.
+5. **Point drift detection at the workspace's own artifacts: the contradiction auditor (new feature candidate, demo-grade).** A standing agent that re-reads decisions/PRDs/docs after each new decision and flags "8 of these 12 disagree with what you just decided," proposing supersessions. Rationale: Matthew Wensing's verbatim wish (2026-06-09) + Hannah Stulberg's compounding checked-in context (2026-04-07). Delta: Supaprod's drift surface watches signals today; turning it inward on the decision ledger converts a named leader pain into a first-session aha.
 6. **Verified-completion receipts as the anti-"it said it fixed it" wedge (positioning + feature discipline).** Every "done" claim in Build/agent runs carries its verification evidence (test run, screenshot diff, trace link) or says "unverified" — never a bare claim. Rationale: the trust-collapse trio — Gabor Meyer on Lovable (2026-04-30), Mike Ball on Replit (2026-02-03), Sahil Lavingia on Codex opacity (2025-10-19). Delta: claim-never-outruns-wiring is already doctrine; the delta is surfacing verification state on every completion chip, and naming competitors' failure pattern (not the competitors) in the demo script.
 7. **Binary verdict + rationale as the only outcome-recording UI (feature tweak).** Outcome capture on decisions = pass/fail (+ optional note), never star ratings or confidence sliders; LLM-judge receipts show a labeled verdict with rationale, not a number. Rationale: Hamel & Shreya — business decisions are binary, LLM numeric scores are unreliable (2026-01-15); Ankur Goyal — never ask the judge for a number, show the rationale (2026-03-20). Delta: makes the outcome-memory loop cheap enough to actually get fed — the learning loop's data-quality guarantee.
 8. **Memory writes get a review gate: curate-at-write, supersede-on-conflict (feature).** Users see and approve what enters workspace memory (Slack-side "save this to the brain" affordance included), because wrong memories anchor future judgment. Rationale: Mike Ball — "they'll pick and choose what's in the memory... common beliefs... if you're not careful about what you feed it" (2026-02-03); Hannah Stulberg's PR-reviewed context repo as the working pattern (2026-04-07). Delta: v12's operable memory OS names supersession; the delta is the write-time consent UX, which is also a beta trust surface.
 9. **Cost-routing with receipts: auto-downshift models where a recorded eval proves parity (runtime/roadmap).** The runtime routes each surface to the cheapest model whose eval history clears the bar, and shows the savings. Rationale: Ankit Shukla's 25x price spread closable only via evals (2026-02-19); Todd Olson's sub-15% margin warning + small-model prediction (2025-12-03). Delta: `runtime.server.ts` already routes BYOK; the delta is eval-gated downshifting as a marketable "your margin, protected" feature.
-10. **Launch scorecard as credibility marketing (GTM move).** Publish Cadence's own failing-and-passing eval scorecard (calibration of its ranked decisions vs recorded outcomes) at launch, Warp-style. Rationale: Zach Lloyd — public benchmarks "give us a whole bunch of credibility" and passing 100% means you're not learning (2025-09-27); Ankur Goyal — have evals that fail (2026-03-20). Delta: turns the outcome ledger into the Show-HN artifact — receipts-first, zero influencer smell, per §12.4's GTM law.
+10. **Launch scorecard as credibility marketing (GTM move).** Publish Supaprod's own failing-and-passing eval scorecard (calibration of its ranked decisions vs recorded outcomes) at launch, Warp-style. Rationale: Zach Lloyd — public benchmarks "give us a whole bunch of credibility" and passing 100% means you're not learning (2025-09-27); Ankur Goyal — have evals that fail (2026-03-20). Delta: turns the outcome ledger into the Show-HN artifact — receipts-first, zero influencer smell, per §12.4's GTM law.
 
 ---
 

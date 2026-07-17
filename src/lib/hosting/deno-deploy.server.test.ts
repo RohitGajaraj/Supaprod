@@ -52,7 +52,7 @@ describe("provisionApp", () => {
 
     const handle = await denoDeployProvider.provisionApp(REF, { dedicatedDb: false });
     expect(capturedUrl).toBe("https://api.deno.com/v2/apps");
-    expect(capturedBody).toEqual({ slug: "cadence-poc-test-1" });
+    expect(capturedBody).toEqual({ slug: "supaprod-poc-test-1" });
     expect(handle).toEqual({ providerId: "deno-deploy", ref: REF });
   });
 
@@ -94,7 +94,7 @@ describe("deploy", () => {
     // hyphen-separated. Confirmed live 2026-07-02 after the hyphen guess 404'd.
     expect(result).toEqual({
       deploymentId: "rev_1",
-      url: "https://cadence-poc-test-1.cadencehostingtest.deno.net",
+      url: "https://supaprod-poc-test-1.cadencehostingtest.deno.net",
       status: "success",
     });
   });
@@ -139,7 +139,7 @@ describe("readHealth", () => {
 
     const health = await denoDeployProvider.readHealth(HANDLE);
     expect(health.healthy).toBe(true);
-    expect(health.detail).toBe("https://cadence-poc-test-1.cadencehostingtest.deno.net");
+    expect(health.detail).toBe("https://supaprod-poc-test-1.cadencehostingtest.deno.net");
   });
 
   test("healthy false on a non-ok response", async () => {

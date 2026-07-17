@@ -83,7 +83,7 @@ export interface BuildSpec {
 /** The handle a dispatch returns, enough to poll, fold, and cancel later. */
 export interface BuildSession {
   driver: BuildDriverId;
-  /** The Cadence mission this build belongs to. */
+  /** The Supaprod mission this build belongs to. */
   missionId: string;
   /** The `agent_runs` row (native: the queued run; external: the source run to fold onto). */
   runId?: string;

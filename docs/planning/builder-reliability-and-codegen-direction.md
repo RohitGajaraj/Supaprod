@@ -8,7 +8,7 @@
 There are two layers here, and they should be weighted very differently:
 
 1. **Tactical (small, optional):** harden the in-house Builder so a _cheap_ model can't silently produce an unusable build. Worth doing **only** if the in-house Builder must demo reliably in the very near term. ~half a day, but touches the pinned AI chokepoint (attended change).
-2. **Strategic (the real call):** **do not over-invest in our own codegen agent.** The durable direction — already named in the canon (`ORCH-DELEGATE`, `BLD-04`, the sourcing map) — is **"build = orchestration of external coding agents, not codegen."** Delegate the actual code-writing to capable external agents (Claude Code, OpenHands, Cursor, etc.) and keep Cadence as the **governing + decision/memory layer on top.** That sidesteps the cheap-model-capability problem entirely and is where the moat is.
+2. **Strategic (the real call):** **do not over-invest in our own codegen agent.** The durable direction — already named in the canon (`ORCH-DELEGATE`, `BLD-04`, the sourcing map) — is **"build = orchestration of external coding agents, not codegen."** Delegate the actual code-writing to capable external agents (Claude Code, OpenHands, Cursor, etc.) and keep Supaprod as the **governing + decision/memory layer on top.** That sidesteps the cheap-model-capability problem entirely and is where the moat is.
 
 **My recommendation:** treat the in-house Builder as a **$0 floor for trivial single-file changes only.** Put real investment into the **delegation path (`BLD-04` / `ORCH-DELEGATE`)**, which is both the reliable answer for "codes and tools" and the on-moat one. Only do the tactical hardening if you need a believable in-house-Builder demo before the delegation path is ready.
 
@@ -44,10 +44,10 @@ The canon already says this is the answer; the live failure just makes it concre
 **Why this is the right call for "codes and tools":**
 
 - **Reliability for free.** External coding agents (Claude Code, OpenHands, Cursor) are already strong at exactly the task our in-house loop is weak at, and they improve without our effort. We stop fighting model capability.
-- **It's on-moat.** Cadence's defensibility is the **governance + decision/memory** layer. "We govern and orchestrate the best coding agents, with full decision lineage and trust receipts" is a moat; "we wrote our own mediocre codegen agent" is not.
-- **It matches the BYO / tools posture.** Users plug in the coding agent they trust; Cadence is the control plane (specs in, governed PRs out, outcomes fed back to the brain).
+- **It's on-moat.** Supaprod's defensibility is the **governance + decision/memory** layer. "We govern and orchestrate the best coding agents, with full decision lineage and trust receipts" is a moat; "we wrote our own mediocre codegen agent" is not.
+- **It matches the BYO / tools posture.** Users plug in the coding agent they trust; Supaprod is the control plane (specs in, governed PRs out, outcomes fed back to the brain).
 
-**The tradeoff to weigh:** delegation adds an external dependency + integration surface (auth, callbacks, cost attribution per the procurement inventory) and means the "build" isn't fully inside our walls. The in-house Builder keeps a $0, fully-owned floor for trivial changes. So the likely end-state is **both:** in-house Builder as the trivial-change floor; external delegation as the real engine — with Cadence governing both identically.
+**The tradeoff to weigh:** delegation adds an external dependency + integration surface (auth, callbacks, cost attribution per the procurement inventory) and means the "build" isn't fully inside our walls. The in-house Builder keeps a $0, fully-owned floor for trivial changes. So the likely end-state is **both:** in-house Builder as the trivial-change floor; external delegation as the real engine — with Supaprod governing both identically.
 
 ---
 

@@ -15,7 +15,7 @@ const GH_API = "https://api.github.com";
 const GH_HEADERS = {
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
-  "User-Agent": "cadence-connectors",
+  "User-Agent": "supaprod-connectors",
 } as const;
 
 const MAX_ITEMS = 30;

@@ -1,4 +1,4 @@
-// W5a: The Cadence starter template - the honest first commit for a newly
+// W5a: The Supaprod starter template - the honest first commit for a newly
 // provisioned build repo. Pure module (no imports, no side effects) so it is
 // unit-testable and safe to import from anywhere.
 //
@@ -29,7 +29,7 @@ function oneLine(value: string): string {
 
 /**
  * Derive a GitHub-safe repo name from a spec title (letters, numbers, ., _, -).
- * Falls back to "cadence-build" when the title has no usable characters.
+ * Falls back to "supaprod-build" when the title has no usable characters.
  */
 export function repoNameFromTitle(title: string): string {
   const slug = oneLine(title)
@@ -38,7 +38,7 @@ export function repoNameFromTitle(title: string): string {
     .slice(0, 80)
     .replace(/^[-._]+/, "")
     .replace(/[-._]+$/, "");
-  return slug || "cadence-build";
+  return slug || "supaprod-build";
 }
 
 /**
@@ -47,17 +47,17 @@ export function repoNameFromTitle(title: string): string {
  * (JS string literal, HTML, Markdown one-liners).
  */
 export function renderStarterTemplate(params: TemplateParams): TemplateFile[] {
-  const productName = oneLine(params.productName) || "Cadence build";
+  const productName = oneLine(params.productName) || "Supaprod build";
   const specTitle = oneLine(params.specTitle) || productName;
   const productJs = JSON.stringify(productName);
   const productHtml = escapeHtml(productName);
   const specHtml = escapeHtml(specTitle);
 
-  const mainTs = `// ${productName} - provisioned by Cadence.
+  const mainTs = `// ${productName} - provisioned by Supaprod.
 // Spec: ${specTitle}
 //
 // A minimal Deno web service: an HTML page for the product at / and a JSON
-// health check at /health. Cadence builds the product on top of this.
+// health check at /health. Supaprod builds the product on top of this.
 
 export const PRODUCT_NAME = ${productJs};
 
@@ -155,7 +155,7 @@ jobs:
 
   const readmeMd = `# ${productName}
 
-Starter repository provisioned by Cadence for the spec "${specTitle}".
+Starter repository provisioned by Supaprod for the spec "${specTitle}".
 
 ## What this is
 
@@ -172,17 +172,17 @@ deno task test               # run the tests
 deno run --allow-net main.ts # serve on http://localhost:8000
 \`\`\`
 
-## How Cadence builds on it
+## How Supaprod builds on it
 
-Cadence commits changes on branches, opens change requests against the default
+Supaprod commits changes on branches, opens change requests against the default
 branch, and reads the CI defined here to verify each change before merge.
-\`cadence.json\` marks this repository as Cadence-managed.
+\`supaprod.json\` marks this repository as Supaprod-managed.
 `;
 
-  const cadenceJson =
+  const supaprodJson =
     JSON.stringify(
       {
-        managedBy: "cadence",
+        managedBy: "supaprod",
         template: "deno-starter",
         version: 1,
       },
@@ -196,6 +196,6 @@ branch, and reads the CI defined here to verify each change before merge.
     { path: "deno.json", content: denoJson },
     { path: ".github/workflows/ci.yml", content: ciYml },
     { path: "README.md", content: readmeMd },
-    { path: "cadence.json", content: cadenceJson },
+    { path: "supaprod.json", content: supaprodJson },
   ];
 }

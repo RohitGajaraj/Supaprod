@@ -29,7 +29,7 @@ export function validateDispatch(tasks: DispatchableTask[]): DispatchValidation 
   return { ok: true };
 }
 
-/** Map Cadence local priority label to Linear's numeric priority (1=urgent…4=low). */
+/** Map Supaprod local priority label to Linear's numeric priority (1=urgent…4=low). */
 export function toLinearPriority(priority: string | null): number {
   const MAP: Record<string, number> = { urgent: 1, high: 2, medium: 3, low: 4 };
   return MAP[priority ?? "medium"] ?? 3;

@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getDelegateDesk } from "@/lib/delegate-desk.functions";
 import type { DeskLane, DeskMission } from "@/lib/delegate-desk";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/cadence/AutoChip";
+import { AutoChip } from "@/components/supaprod/AutoChip";
 
 const LANE_ACCENT: Record<string, string> = {
   needsYou: "var(--coral, #e11d48)",

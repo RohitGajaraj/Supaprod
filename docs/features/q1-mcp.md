@@ -12,7 +12,7 @@
 
 ## What it is
 
-**Cadence as a neutral brain:** external agents (Claude with MCP, Cursor, ChatGPT, other AI frameworks) can read signals, opportunities, PRDs and append decisions via HTTP, governed by workspace scope, rate limits, and audit logging.
+**Supaprod as a neutral brain:** external agents (Claude with MCP, Cursor, ChatGPT, other AI frameworks) can read signals, opportunities, PRDs and append decisions via HTTP, governed by workspace scope, rate limits, and audit logging.
 
 The MCP server exposes **seven read tools** (always in the `tools/list` catalog) plus **one governed write tool** that appears only for an authorized token (see Q2 below):
 
@@ -34,7 +34,7 @@ All calls require a bearer token (workspace-scoped), enforce per-token rate limi
 
 ### The moat
 
-If the loop closes on real data, _and_ the data is readable by other agents, then the incumbent threat (a PM using their own Claude instance + Cadence's output) vanishes. The data lives here; other agents are tools, not competitors.
+If the loop closes on real data, _and_ the data is readable by other agents, then the incumbent threat (a PM using their own Claude instance + Supaprod's output) vanishes. The data lives here; other agents are tools, not competitors.
 
 ---
 
@@ -183,7 +183,7 @@ Closes the "full streamable-HTTP transport handshake" half of the Phase 4 fast-f
 
 ## Phase 4b (Q2, future): OAuth discovery + SSE streaming + full CRUD
 
-- **Q2** — peer agents discover Cadence + call us with scoped/audited writes
+- **Q2** — peer agents discover Supaprod + call us with scoped/audited writes
   - OAuth client registration + `WWW-Authenticate` / `.well-known/oauth-protected-resource` metadata for auto-discovery
   - SSE / streamable-HTTP session transport (`Accept: text/event-stream`, GET stream)
   - Full CRUD (signals, opps, PRDs, missions, outcomes) with approval gates
@@ -254,7 +254,7 @@ The founder lifted the Q2 scopes/audit gate. This is the outward GOVERNED WRITE 
 - The gate resolver **fails closed** (any error → writes disabled).
 - Every attempt is audited to `api_calls` with `result` ∈ `success | error | permission_denied`.
 
-**Files:** migration `20260625140000_interop_write_scopes_gate.sql` (scopes column + `interop_write_enabled()` + `admin_set_interop_write_enabled` + `issue_mcp_token` overload); pure write layer in `mcp-protocol.ts` (`MCP_WRITE_TOOLS`, `WRITE_SCOPE_BY_TOOL`, `toolsForScopes`, `canCallWriteTool`, `isWriteTool`); `ingestSignal` in `mcp.functions.ts`; route enforcement + `dispatchWriteTool` + `resolveWriteEnabled` in `api/mcp.ts`; the A2A `discovery.ingest_signal` skill in `a2a.agents.cadence.card.ts`. Tests: `mcp-protocol.test.ts` (scope filtering + call-time enforcement, +14) and new `mcp.functions.test.ts` (screening, tenant-stamp resistance, insert shape, error propagation).
+**Files:** migration `20260625140000_interop_write_scopes_gate.sql` (scopes column + `interop_write_enabled()` + `admin_set_interop_write_enabled` + `issue_mcp_token` overload); pure write layer in `mcp-protocol.ts` (`MCP_WRITE_TOOLS`, `WRITE_SCOPE_BY_TOOL`, `toolsForScopes`, `canCallWriteTool`, `isWriteTool`); `ingestSignal` in `mcp.functions.ts`; route enforcement + `dispatchWriteTool` + `resolveWriteEnabled` in `api/mcp.ts`; the A2A `discovery.ingest_signal` skill in `a2a.agents.supaprod.card.ts`. Tests: `mcp-protocol.test.ts` (scope filtering + call-time enforcement, +14) and new `mcp.functions.test.ts` (screening, tenant-stamp resistance, insert shape, error propagation).
 
 > **Deploy ordering (hardened):** the route selects `mcp_tokens.scopes` and calls `interop_write_enabled()`. To survive the Lovable/Workers split-deploy (the worker can land before the migration), `validateToken` **degrades gracefully**: if the `scopes` column is absent (PostgREST `42703`) it re-selects without it and treats the token as read-only (`scopes = []`), so the READ tools keep working and writes stay impossible until the migration applies. `resolveWriteEnabled` likewise fails closed. So an out-of-order deploy is safe (read-only), and once the migration applies the gate is still OFF until the founder flips it. _(Adversarial review 2026-06-25 flagged the un-hardened version as a HIGH availability risk — all MCP traffic would 401 — now fixed.)_
 

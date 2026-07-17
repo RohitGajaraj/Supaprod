@@ -19,7 +19,7 @@ const REQ: DelegateRequest = {
   repoUrl: "https://github.com/acme/app",
   baseBranch: "main",
   context: { prdId: "p1" },
-  cadenceRunId: "run_123",
+  supaprodRunId: "run_123",
 };
 
 // Restore env + global fetch after each test so dormancy/transport tests never leak.

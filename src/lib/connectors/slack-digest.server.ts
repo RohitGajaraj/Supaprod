@@ -1,12 +1,12 @@
 // JNY-05: the ambient stakeholder loop's Slack write-back half. The email leg
 // (notifications.functions.ts's generateDigest) is per-user, scheduled on each
-// user's own cadence — Slack posting is deliberately NOT nested in that loop.
+// user's own supaprod — Slack posting is deliberately NOT nested in that loop.
 // A shared team channel must be posted to once per workspace per period, not
 // once per user who happens to have the email toggle on, so this runs as its
 // own pass over workspaces that have bound a "digest_channel" (sendDueDigests
 // calls this once per due workspace, separately from the per-user email loop).
 //
-// Fixed to the 'exec' audience and a ~daily cadence for v1 — no UI exists yet to
+// Fixed to the 'exec' audience and a ~daily supaprod for v1 — no UI exists yet to
 // pick a different audience or frequency for the shared channel post, and adding
 // one before anyone asks for it would be speculative. Known simplification,
 // documented in docs/features/stakeholder-digest.md.
@@ -26,7 +26,7 @@ const SLACK_DIGEST_DUE_MS = 20 * 60 * 60 * 1000; // ~daily, mirrors notification
  *  Without this, a literal `<!channel>`, `<@U…>`, or `<https://evil|label>` inside a decision's
  *  title/rationale (ordinary workspace-member-authored PRD text, never sanitized upstream) would
  *  be interpreted by Slack as a live directive — a mass-ping or a spoofed link rendered under
- *  Cadence's own trusted bot identity. Must run BEFORE the markdown->mrkdwn conversion below;
+ *  Supaprod's own trusted bot identity. Must run BEFORE the markdown->mrkdwn conversion below;
  *  neither `#` headings nor `**bold**` involve these three characters, so order is safe. */
 function escapeSlackText(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

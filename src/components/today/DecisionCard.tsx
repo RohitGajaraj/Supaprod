@@ -23,7 +23,7 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { StepDot } from "@/components/cadence/Primitives";
+import { StepDot } from "@/components/supaprod/Primitives";
 import { CriticBadge } from "@/components/governance/CriticBadge";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { formatTrackRecord, type AgentTrackRecord } from "@/lib/agent-track-record";

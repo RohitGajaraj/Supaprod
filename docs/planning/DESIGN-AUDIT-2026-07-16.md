@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Goal:** Elevate Cadence product UI/UX to genuine Vercel/Linear/Stripe premium standard (founder directive 2026-07-16).
+**Goal:** Elevate Supaprod product UI/UX to genuine Vercel/Linear/Stripe premium standard (founder directive 2026-07-16).
 
 **Audit Result:** One critical design contract violation identified and fixed; broader architectural fragmentation documented for Wave 2+ strategic resolution.
 
@@ -147,7 +147,7 @@
 **Exceeds Geist in:**
 
 - Ember brand accent consistency (stronger two-voice grammar than Geist blue-only)
-- AI/agent pattern extensions (unique to Cadence agentic product OS)
+- AI/agent pattern extensions (unique to Supaprod agentic product OS)
 
 ---
 

@@ -28,7 +28,7 @@ import { Link } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
-import { AuditTag } from "@/components/cadence/AuditTag";
+import { AuditTag } from "@/components/supaprod/AuditTag";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 
