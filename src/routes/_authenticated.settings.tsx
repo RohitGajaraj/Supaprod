@@ -2183,7 +2183,7 @@ function ByoKeysSection() {
             if (keyValue.trim()) mSaveKey.mutate();
           }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 3fr 4fr 2fr", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
             <select
               className="input"
               value={keyProv}
