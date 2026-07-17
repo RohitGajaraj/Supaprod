@@ -1281,7 +1281,8 @@ export function ChangesPanel({
                   readOnly: true,
                   renderSideBySide: false,
                   minimap: { enabled: false },
-                  fontSize: "var(--text-label-14)",
+                  // Monaco's canvas renderer needs a numeric px value, not a CSS custom property.
+                  fontSize: 14,
                   scrollBeyondLastLine: false,
                   automaticLayout: true,
                 }}
