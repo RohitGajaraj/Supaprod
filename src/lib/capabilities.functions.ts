@@ -13,6 +13,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import pLimit from "p-limit";
 import { SPECIALIST_CATALOG, type AgentStation, type CatalogEntry } from "@/lib/agent-vocabulary";
 import {
   AGENT_TO_PLAYBOOK_STATION,
@@ -134,18 +135,17 @@ export const getCapabilities = createServerFn({ method: "GET" })
       console.warn("capabilities: trust load failed, autonomy will show tier only:", e);
     }
 
-    const capabilities: AgentCapability[] = [];
-
-    for (const agent of activeCast) {
-      const cap = await buildCapabilityForAgent(
-        supabase,
-        userId,
-        agent,
-        workspaceId,
-        trustByAgentId,
-      );
-      capabilities.push(cap);
-    }
+    // Parallelize capability building across all cast members, capping concurrent
+    // Supabase connections to prevent connection pool exhaustion (same pattern used
+    // in notifications.functions.ts and orchestrator.functions.ts).
+    const limit = pLimit(8);
+    const capabilities = await Promise.all(
+      activeCast.map((agent) =>
+        limit(() =>
+          buildCapabilityForAgent(supabase, userId, agent, workspaceId, trustByAgentId),
+        ),
+      ),
+    );
 
     return { capabilities };
   });
