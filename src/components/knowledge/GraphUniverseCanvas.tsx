@@ -528,7 +528,17 @@ export function GraphUniverseCanvas({
     renderOnceRef.current = renderOnce;
     applyEmphasisRef.current = applyEmphasis;
 
+    // isVisible tracks whether the canvas panel is in the viewport (via
+    // IntersectionObserver). When false we skip RAF scheduling entirely.
+    let isVisible = true;
+
     const loop = () => {
+      // Hard-stop: tab is hidden or panel scrolled off-screen.
+      if (document.hidden || !isVisible) {
+        rafId.current = null;
+        return;
+      }
+
       const sim = simRef.current;
       let changed = false;
 
@@ -567,6 +577,8 @@ export function GraphUniverseCanvas({
     };
     const startLoop = () => {
       if (rafId.current !== null) return;
+      // Do not start if the tab is backgrounded or panel is out of view.
+      if (document.hidden || !isVisible) return;
       rafId.current = requestAnimationFrame(loop);
     };
     const stopLoop = () => {
@@ -575,6 +587,36 @@ export function GraphUniverseCanvas({
         rafId.current = null;
       }
     };
+
+    // Pause RAF when the tab goes to the background; restart on return.
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stopLoop();
+      } else if (!reducedRef.current) {
+        lastInteract.current = performance.now();
+        startLoop();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    // Pause RAF when the canvas panel scrolls out of view (IntersectionObserver).
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (!wasVisible && isVisible && !reducedRef.current) {
+          // Panel came back into view — resume if there is work to do.
+          lastInteract.current = performance.now();
+          startLoop();
+        } else if (!isVisible) {
+          stopLoop();
+        }
+      },
+      { threshold: 0.01 },
+    );
+    observer.observe(mount);
     startLoopRef.current = startLoop;
     stopLoopRef.current = stopLoop;
 
@@ -611,9 +653,13 @@ export function GraphUniverseCanvas({
       lastInteract.current = performance.now();
       if (hoverKeyRef.current) setHover(null);
       canvas.style.cursor = "grabbing";
+      // Interaction restarts the RAF loop if it self-stopped after the sim settled.
+      if (!reducedRef.current) startLoop();
     };
     const onPointerMove = (e: PointerEvent) => {
       lastInteract.current = performance.now();
+      // Interaction restarts the RAF loop if it self-stopped after the sim settled.
+      if (!reducedRef.current && rafId.current === null) startLoop();
       const d = dragging.current;
       const { sx, sy } = localPoint(e);
       if (d?.active) {
@@ -672,7 +718,12 @@ export function GraphUniverseCanvas({
       cam.radius = Math.max(90, Math.min(3200, cam.radius * factor));
       userMovedCam.current = true;
       lastInteract.current = performance.now();
-      if (reducedRef.current) renderOnce();
+      if (reducedRef.current) {
+        renderOnce();
+      } else {
+        // Restart loop in case it self-stopped while sim was settled.
+        startLoop();
+      }
     };
 
     canvas.addEventListener("pointerdown", onPointerDown);
@@ -685,6 +736,8 @@ export function GraphUniverseCanvas({
 
     return () => {
       stopLoop();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      observer.disconnect();
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
