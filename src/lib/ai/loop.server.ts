@@ -313,6 +313,82 @@ function xmlEscape(str: string): string {
 }
 
 /**
+ * Request-scoped workspace context cache (RPT-?) — eliminated duplicate
+ * `workspace_briefs`, `brief_items`, and house-rules queries across the
+ * agent loop. In a 19-agent mesh, each step would re-fetch the same workspace
+ * state; a per-mission cache (keyed by workspaceId) reduces this from O(n)
+ * queries to 1 per step + 1 initial load. Cache is per-function call, not
+ * global, so stale data is impossible.
+ */
+type WorkspaceContext = {
+  brief: Awaited<ReturnType<typeof loadBriefBlock>> | null;
+  items: Awaited<ReturnType<typeof renderBriefItemsBlock>>;
+  houseRules: string;
+};
+
+const workspaceContextCache = new Map<string, WorkspaceContext>();
+
+async function getWorkspaceContext(
+  supabase: SupabaseClient,
+  workspaceId: string | null | undefined,
+  agentSlug: string,
+): Promise<WorkspaceContext | null> {
+  if (!workspaceId) return null;
+
+  // Return from cache if already loaded
+  const cached = workspaceContextCache.get(workspaceId);
+  if (cached) return cached;
+
+  const context: WorkspaceContext = {
+    brief: null,
+    items: "",
+    houseRules: "",
+  };
+
+  // Load brief (non-fatal failure)
+  try {
+    const { data: brief } = await supabase
+      .from("workspace_briefs")
+      .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (brief) {
+      context.brief = await renderBriefBlock(brief as WorkspaceBrief);
+    }
+  } catch (e) {
+    console.error("workspace brief load failed:", e);
+  }
+
+  // Load brief items (non-fatal failure)
+  try {
+    const { data: items } = await supabase
+      .from("brief_items")
+      .select(
+        "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
+      )
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false });
+    if (items && items.length > 0) {
+      context.items = await renderBriefItemsBlock(items as BriefItem[]);
+    }
+  } catch (e) {
+    console.error("brief items load failed:", e);
+  }
+
+  // Load house rules (non-fatal failure)
+  try {
+    const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId, agentSlug);
+    context.houseRules = renderHouseRulesBlock(activeRules);
+  } catch (e) {
+    console.error("house rules load failed:", e);
+  }
+
+  // Cache the result for the duration of this request
+  workspaceContextCache.set(workspaceId, context);
+  return context;
+}
+
+/**
  * Voice anchor (F-V5-LOOP-CLOSE) — operator-set tone/stance from
  * profiles.voice_anchor_text, injected into every agent system prompt
  * between the agent's own prompt and the workspace brief. Empty or
@@ -497,48 +573,11 @@ export async function runAgentLoop(
 
   // Workspace Strategic Brief (Bundle 2 / C5) — shared operating context.
   // Injected into every agent's system prompt so editing the brief visibly
-  // changes downstream agent behavior. Read failures are non-fatal.
-  let briefBlock = "";
-  if (workspaceId) {
-    try {
-      const { data: brief } = await supabase
-        .from("workspace_briefs")
-        .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
-        .eq("workspace_id", workspaceId)
-        .maybeSingle();
-      briefBlock = renderBriefBlock(brief as WorkspaceBrief | null);
-    } catch (e) {
-      console.error("brief load failed:", e);
-    }
-    // JNY-02: the structured brief items (vision/icp/positioning/top_bet)
-    // are a second, additive projection of the same operating context —
-    // appended to the same block, same non-fatal posture.
-    try {
-      const { data: items } = await supabase
-        .from("brief_items")
-        .select(
-          "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
-        )
-        .eq("workspace_id", workspaceId)
-        .eq("status", "standing");
-      briefBlock += renderBriefItemsBlock(items as BriefItem[] | null);
-    } catch (e) {
-      console.error("brief items load failed:", e);
-    }
-  }
-
-  // RF-04 house rules — steward-distilled, approval-gated standing operating
-  // rules, injected right alongside the Strategic Brief. Read failures are
-  // non-fatal (same posture as the brief load above).
-  let houseRulesBlock = "";
-  if (workspaceId) {
-    try {
-      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId, agent.slug);
-      houseRulesBlock = renderHouseRulesBlock(activeRules);
-    } catch (e) {
-      console.error("house rules load failed:", e);
-    }
-  }
+  // changes downstream agent behavior. Uses request-scoped cache to eliminate
+  // duplicate DB reads across the agent loop (RPT-?).
+  const wsContext = await getWorkspaceContext(supabase, workspaceId, agent.slug);
+  const briefBlock = (wsContext?.brief ?? "") + (wsContext?.items ?? "");
+  const houseRulesBlock = wsContext?.houseRules ?? "";
 
   // Inbound A2A handoff (Bundle 4 / E2-E3) — if this run is part of a mission,
   // consume the latest unread message addressed to this agent and inject the
@@ -1373,44 +1412,10 @@ export async function resumeAgentLoop(
     });
     const voiceBlock = await loadVoiceAnchorBlock(supabase, run.user_id);
     // Workspace brief + inbound handoff (Bundle 2 + Bundle 4).
-    let briefBlock = "";
-    if (run.workspace_id) {
-      try {
-        const { data: brief } = await supabase
-          .from("workspace_briefs")
-          .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
-          .eq("workspace_id", run.workspace_id)
-          .maybeSingle();
-        briefBlock = renderBriefBlock(brief as WorkspaceBrief | null);
-      } catch (e) {
-        console.error("brief load failed (resume):", e);
-      }
-      try {
-        const { data: items } = await supabase
-          .from("brief_items")
-          .select(
-            "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
-          )
-          .eq("workspace_id", run.workspace_id)
-          .eq("status", "standing");
-        briefBlock += renderBriefItemsBlock(items as BriefItem[] | null);
-      } catch (e) {
-        console.error("brief items load failed (resume):", e);
-      }
-    }
-    let houseRulesBlock = "";
-    if (run.workspace_id) {
-      try {
-        const activeRules = await getActiveHouseRulesForWorkspace(
-          supabase,
-          run.workspace_id,
-          agent.slug,
-        );
-        houseRulesBlock = renderHouseRulesBlock(activeRules);
-      } catch (e) {
-        console.error("house rules load failed (resume):", e);
-      }
-    }
+    // Uses request-scoped cache to eliminate duplicate DB reads (RPT-?).
+    const wsContextResume = await getWorkspaceContext(supabase, run.workspace_id, agent.slug);
+    const briefBlock = (wsContextResume?.brief ?? "") + (wsContextResume?.items ?? "");
+    const houseRulesBlock = wsContextResume?.houseRules ?? "";
     let handoffBlock = "";
     if (run.mission_id) {
       try {
