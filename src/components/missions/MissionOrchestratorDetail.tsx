@@ -12,7 +12,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, type CSSProperties } from "react";
+import { useState, useMemo, type CSSProperties } from "react";
 import {
   Activity,
   Bot,
@@ -870,14 +870,20 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
 
   // v6 Phase 2 (W2): the honest "what ran unattended" audit — side-effecting
   // tools the loop executed inline with no human gate (the agent's trust arc
-  // had earned auto-mode). Newest first.
-  const unattended = hops
-    .flatMap((h) =>
-      h.tool_calls
-        .filter((tc) => tc.is_unattended)
-        .map((tc) => ({ ...tc, agent_slug: h.agent_slug })),
-    )
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // had earned auto-mode). Newest first. Memoized to avoid recomputing on
+  // every poll (2500-4000ms); the flatMap+filter+sort + Date.getTime() calls
+  // are expensive to repeat.
+  const unattended = useMemo(
+    () =>
+      hops
+        .flatMap((h) =>
+          h.tool_calls
+            .filter((tc) => tc.is_unattended)
+            .map((tc) => ({ ...tc, agent_slug: h.agent_slug })),
+        )
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [hops],
+  );
 
   // An error is not a loading state: the old guard fell through to the
   // skeleton forever when the query failed. Name the cause, offer retry.
