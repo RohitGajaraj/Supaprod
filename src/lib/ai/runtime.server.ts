@@ -503,9 +503,7 @@ async function callAnthropic(
 
   // Compose request signal (if provided) with timeout signal
   const timeoutSignal = AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS);
-  const composedSignal = signal
-    ? AbortSignal.any([timeoutSignal, signal])
-    : timeoutSignal;
+  const composedSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
   const res = await fetch(url, {
     method: "POST",
@@ -2148,6 +2146,7 @@ export async function callModelStream(
               messages: rest,
               stream: true,
             }),
+            signal: opts.signal,
           });
         }
         return fetch(safeUrl, {
@@ -2162,6 +2161,7 @@ export async function callModelStream(
             stream: true,
             ...(opts.responseFormat ? { response_format: { type: opts.responseFormat } } : {}),
           }),
+          signal: opts.signal,
         });
       }
     }
@@ -2178,6 +2178,7 @@ export async function callModelStream(
         stream: true,
         ...(opts.responseFormat ? { response_format: { type: opts.responseFormat } } : {}),
       }),
+      signal: opts.signal,
     });
   };
 
