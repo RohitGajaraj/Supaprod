@@ -43,14 +43,27 @@
 
 ---
 
-### Phase 2 — Design System "Ink" (blocked until Phase 1)
-- [ ] Token system (color/type/space/motion/elevation, dark+light, config-driven)
-- [ ] Core components (buttons, inputs, cards, tables, lists, code surface, previews)
-- [ ] Signature element (agent-activity timeline in Geist Mono on engineering grid)
-- [ ] Responsive foundations (320/768/1280px breakpoints tested)
-- [ ] Dark + Light + System theme implementation
+### Phase 2 — Design System "Ink" (IN PROGRESS ~30% complete)
+**Tokens + Core Components (Committed: c994fecc, 1a1e22b4, cab23950)**
 
-**Deliverable:** Ink tokens in `src/styles.css` + component library in `src/components/ink/`
+**Completed:**
+- [x] Light theme integration (Tempo v5 all --ds-* scales)
+- [x] Button component (6 variants: default/primary/secondary/ghost/destructive/link; 3 sizes; full-width; ember focus ring)
+- [x] Input & Textarea (error states, aria-invalid support, focus ring)
+- [x] Card component (Header/Title/Description/Content/Footer anatomy)
+- [x] Modal (Radix Dialog: backdrop, focus trap, ESC to close, fade-in animation)
+- [x] Badge (6 variants per §2 narrowing: default/primary/success/warning/destructive/info; pill + rectangle shapes)
+- [x] Component exports (src/components/ink/index.ts)
+
+**In Progress / Remaining:**
+- [ ] Additional components (Tabs, Dropdown, Select, Checkbox/Radio, Tooltip, Avatar)
+- [ ] AgentActivityTimeline (signature element: Geist Mono on engineering grid, live/streaming indicator)
+- [ ] CodeSurface (Monaco wrapper)
+- [ ] PreviewPanel (syntax-highlighted output)
+- [ ] Responsive testing (320/768/1280px breakpoints)
+- [ ] Dark + Light + System theme verification (all components tested both)
+
+**Deliverable:** Ink tokens in `src/styles.css` (complete) + component library in `src/components/ink/` (7/12+ components)
 
 ---
 
@@ -151,7 +164,7 @@
 | 2026-07-18 13:18 | Kickoff | Brief received, Phase 0 audit started | — |
 | 2026-07-18 13:48 | Phase 0 | Audit complete, committed (0e2e2962), morning questions ready | Await founder decisions |
 | 2026-07-18 14:15 | Phase 1 | Architecture complete, committed (5ffa9659), 6 assumptions logged | Founder review of assumptions + approve Phase 2 |
-| 2026-07-18 (TBD) | Phase 2 | Blocked until Phase 1 approved | Design System Ink tokens + components |
+| 2026-07-18 ~15:00 | Phase 2a | Tokens + 7 core components done (Button/Input/Card/Modal/Badge + light theme); pushed (c994fecc, 1a1e22b4, cab23950) | Remaining components + AgentActivityTimeline + responsive testing |
 
 ---
 
