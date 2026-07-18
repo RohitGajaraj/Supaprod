@@ -179,13 +179,20 @@ export const SignalCard = memo(function SignalCard({
                 </DropdownMenuItem>
               ) : null}
               {onDraftSpec ? (
-                <DropdownMenuItem onClick={() => id && onDraftSpec(id)}>Draft spec</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => id && onDraftSpec(id)}>
+                  Draft spec
+                </DropdownMenuItem>
               ) : null}
               {onLineage ? (
-                <DropdownMenuItem onClick={() => id && onLineage(id)}>Where this came from</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => id && onLineage(id)}>
+                  Where this came from
+                </DropdownMenuItem>
               ) : null}
               {onDelete ? (
-                <DropdownMenuItem onClick={() => id && onDelete(id)} className="text-[var(--madder)]">
+                <DropdownMenuItem
+                  onClick={() => id && onDelete(id)}
+                  className="text-[var(--madder)]"
+                >
                   Delete
                 </DropdownMenuItem>
               ) : null}

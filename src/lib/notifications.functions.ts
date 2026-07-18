@@ -473,11 +473,7 @@ export async function generateDigest(
       : Promise.resolve({ data: null }),
 
     enabled.drift
-      ? supabase
-          .from("drift_incidents")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("status", "open")
+      ? supabase.from("drift_incidents").select("id").eq("user_id", userId).eq("status", "open")
       : Promise.resolve({ data: null }),
   ]);
 
@@ -499,15 +495,15 @@ export async function generateDigest(
     const dUsed = budget.daily_usd_used ?? 0;
     const dCap = budget.daily_usd_cap ?? 0;
     if (dCap > 0 && dUsed >= dCap * 0.8) {
-      digestItems.push(
-        `- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`,
-      );
+      digestItems.push(`- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`);
     }
   }
 
   // Process drift result
   if (enabled.drift && driftResult.data && driftResult.data.length > 0) {
-    digestItems.push(`- Drift: ${driftResult.data.length} active output drift incident(s) remain open.`);
+    digestItems.push(
+      `- Drift: ${driftResult.data.length} active output drift incident(s) remain open.`,
+    );
   }
 
   // JNY-05: the ambient stakeholder loop. When enabled, the digest also carries the

@@ -141,7 +141,9 @@ export const ThemeRow = memo(function ThemeRow({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onPromote(themeId)}>Promote to opportunity</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onPromote(themeId)}>
+            Promote to opportunity
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onDraftSpec(themeId)}>Draft spec</DropdownMenuItem>
           <DropdownMenuItem onClick={() => onAsk(themeId, title)}>Frame the bet</DropdownMenuItem>
         </DropdownMenuContent>

@@ -144,6 +144,9 @@ async function validateToken(
 
 /**
  * Check if a token has exceeded its rate limit in the current minute.
+ * Fails closed on DB error (security over availability): returns false to
+ * deny access if we cannot verify the rate limit. This prevents DoS or
+ * abuse during database outages.
  */
 async function checkRateLimit(
   supabase: any,
@@ -161,8 +164,8 @@ async function checkRateLimit(
 
     if (error) {
       console.error("Rate limit check failed:", error);
-      // Fail open on error (allow the call to proceed)
-      return { allowed: true, current_count: 0 };
+      // Fail closed: deny the request rather than blindly allowing unlimited access
+      return { allowed: false, current_count: 0 };
     }
 
     const current_count = count || 0;
@@ -172,7 +175,8 @@ async function checkRateLimit(
     };
   } catch (err) {
     console.error("Rate limit check error:", err);
-    return { allowed: true, current_count: 0 };
+    // Fail closed: deny the request on unexpected errors
+    return { allowed: false, current_count: 0 };
   }
 }
 

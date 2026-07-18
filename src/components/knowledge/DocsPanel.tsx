@@ -236,7 +236,9 @@ export function DocsPanel() {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 8 }}>docs · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}>
+        <p
+          style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}
+        >
           {(docs.error as Error).message}
         </p>
         <button className="btn btn-ghost btn-sm" onClick={() => void docs.refetch()}>
@@ -415,7 +417,13 @@ export function DocsPanel() {
         )
       ) : cards.length === 0 ? (
         filter ? (
-          <div style={{ padding: "18px 2px", fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>
+          <div
+            style={{
+              padding: "18px 2px",
+              fontSize: "var(--text-label-13)",
+              color: "var(--ink-faint)",
+            }}
+          >
             No doc matches “{search}” yet.
           </div>
         ) : (
@@ -732,7 +740,12 @@ export function DocsPanel() {
                   disabled={mImportNotion.isPending}
                   onClick={() => mImportNotion.mutate(p.id)}
                   className="cmdk-item"
-                  style={{ fontSize: "var(--text-label-12)", padding: "6px 8px", display: "flex", gap: 8 }}
+                  style={{
+                    fontSize: "var(--text-label-12)",
+                    padding: "6px 8px",
+                    display: "flex",
+                    gap: 8,
+                  }}
                 >
                   <span style={{ width: 18, textAlign: "center" }}>{p.icon ?? "·"}</span>
                   <span

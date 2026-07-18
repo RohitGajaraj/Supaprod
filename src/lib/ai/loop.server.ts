@@ -330,10 +330,7 @@ type WorkspaceContext = {
 // TTL-based (30s) to prevent stale data across requests while caching
 // within a mission's resumeAgentLoop calls. Note: Cloudflare Workers
 // executor lifecycle means this effectively resets per request invocation.
-const workspaceContextCache = new Map<
-  string,
-  { data: WorkspaceContext; expiresAt: number }
->();
+const workspaceContextCache = new Map<string, { data: WorkspaceContext; expiresAt: number }>();
 
 async function getWorkspaceContext(
   supabase: SupabaseClient,
