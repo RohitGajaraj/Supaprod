@@ -326,7 +326,14 @@ type WorkspaceContext = {
   houseRules: string;
 };
 
-const workspaceContextCache = new Map<string, WorkspaceContext>();
+// Request-scoped cache for workspace context (brief, items, house rules)
+// TTL-based (30s) to prevent stale data across requests while caching
+// within a mission's resumeAgentLoop calls. Note: Cloudflare Workers
+// executor lifecycle means this effectively resets per request invocation.
+const workspaceContextCache = new Map<
+  string,
+  { data: WorkspaceContext; expiresAt: number }
+>();
 
 async function getWorkspaceContext(
   supabase: SupabaseClient,
@@ -335,9 +342,9 @@ async function getWorkspaceContext(
 ): Promise<WorkspaceContext | null> {
   if (!workspaceId) return null;
 
-  // Return from cache if already loaded
+  // Return from cache if already loaded and not expired (30s TTL)
   const cached = workspaceContextCache.get(workspaceId);
-  if (cached) return cached;
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
 
   const context: WorkspaceContext = {
     brief: null,
@@ -381,8 +388,12 @@ async function getWorkspaceContext(
     console.error("house rules load failed:", e);
   }
 
-  // Cache the result for the duration of this request
-  workspaceContextCache.set(workspaceId, context);
+  // Cache the result with 30s TTL to prevent stale data across requests
+  // while benefiting caching within a single mission's resumeAgentLoop calls
+  workspaceContextCache.set(workspaceId, {
+    data: context,
+    expiresAt: Date.now() + 30 * 1000,
+  });
   return context;
 }
 
