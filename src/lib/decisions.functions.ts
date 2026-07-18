@@ -34,6 +34,10 @@ export const listDecisions = createServerFn({ method: "GET" })
         status: z.enum(["pending", "approved", "rejected"]).optional(),
         q: z.string().max(200).optional(),
         limit: z.number().int().min(1).max(200).default(100),
+        // The federated approvals queue's workspace scoping (Change 3): when
+        // given, narrows to one workspace's decisions; omitted keeps the
+        // RLS-wide read every other caller of listDecisions already relies on.
+        workspaceId: z.string().uuid().optional(),
       })
       .partial()
       .parse(i ?? {}),
@@ -49,6 +53,7 @@ export const listDecisions = createServerFn({ method: "GET" })
       .limit(data?.limit ?? 100);
     if (data?.source) q = q.eq("source_kind", data.source);
     if (data?.status) q = q.eq("status", data.status);
+    if (data?.workspaceId) q = q.eq("workspace_id", data.workspaceId);
     if (data?.q && data.q.trim()) q = q.ilike("title", `%${data.q.trim()}%`);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);

@@ -21,7 +21,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
-import { getNeedsYou } from "@/lib/today.functions";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { renameWorkspace, deleteWorkspace, leaveWorkspace } from "@/lib/workspaces.functions";
 import { getWorkspacePortfolio } from "@/lib/product-context.functions";
@@ -383,19 +383,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   });
   const isAdmin = !!adminInfo?.isAdmin;
 
-  // The one Today badge — shares the "needs-you" cache key with the Today
-  // page, so no extra fetch when both are mounted. Hidden at zero.
-  const fetchNeedsYou = useServerFn(getNeedsYou);
-  const { data: needsYou } = useQuery({
-    queryKey: ["needs-you"],
-    queryFn: () => fetchNeedsYou(),
-    refetchInterval: pollWhenVisible(60_000),
+  // ONE COUNT, ONE SOURCE (2026-07-18): the rail badge reads the same
+  // federated approvals queue the pill and the Today hero read, scoped to
+  // the active workspace and sharing their exact query key/cache — one
+  // number, everywhere on the screen, never a needs-you re-derivation that
+  // can drift from what /approvals itself shows. Hidden at zero.
+  const fetchApprovalsQueue = useServerFn(getApprovalsQueue);
+  const { data: approvalsQueue } = useQuery({
+    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryFn: () => fetchApprovalsQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+    refetchInterval: pollWhenVisible(30_000),
   });
-  // R2-ATTENTION #1: the badge reads the server-side needs-you truth
-  // (counts.liveCalls) — the same number the Today hero shows. An array-length
-  // sum understates once a display cap bites, and the rail may never disagree
-  // with the hero.
-  const callCount = needsYou?.counts.liveCalls ?? 0;
+  const callCount = approvalsQueue?.items.length ?? 0;
 
   // Profile row identity from the auth session.
   const [userName, setUserName] = useState("Account");

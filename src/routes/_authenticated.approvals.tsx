@@ -12,6 +12,7 @@ import {
 } from "@/lib/approvals-queue.functions";
 import { getLiveActivity } from "@/lib/agents.functions";
 import { toast } from "@/lib/notify";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 /**
  * Surface 3: Approvals. The single pull point (architecture §5): one queue,
@@ -30,6 +31,11 @@ const TOAST_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
   memory_candidate: "Saved to workspace memory.",
   house_rule: "Approved.",
   trust_graduation: "Approved.",
+  spec: "Spec approved. The decision is logged.",
+  opportunity: "Kept. It moves to Now on the roadmap.",
+  assumption_challenge: "Reopened for review.",
+  design_gate: "Design approved. This spec can now dispatch to Build.",
+  playbook_proposal: "Playbook adopted.",
 };
 const TOAST_REJECT = "Rejected. Noted for next time.";
 
@@ -56,6 +62,7 @@ function ApprovalsSkeleton() {
 
 function ApprovalsSurface() {
   const qc = useQueryClient();
+  const { activeWorkspaceId } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchLiveActivity = useServerFn(getLiveActivity);
   const mDecide = useServerFn(decideApprovalItem);
@@ -63,10 +70,23 @@ function ApprovalsSurface() {
   const [filter, setFilter] = useState<ApprovalFilter>("all");
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
+  // ONE COUNT, ONE SOURCE (2026-07-18): the same query key the rail badge,
+  // the Today hero, and the top-bar pill all read, scoped to the active
+  // workspace, so this page's own count can never disagree with theirs.
   const queue = useQuery({
-    queryKey: ["approvals-queue"],
-    queryFn: () => fetchQueue(),
+    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
+  // Unscoped read, this page only, so the quiet "N more in other workspaces"
+  // line can be honest without every other surface paying for it too.
+  const allWorkspacesQueue = useQuery({
+    queryKey: ["approvals", "queue-unscoped"],
+    queryFn: () => fetchQueue({ data: {} }),
+    enabled: !!activeWorkspaceId,
+  });
+  const otherWorkspacesCount = activeWorkspaceId
+    ? Math.max(0, (allWorkspacesQueue.data?.items.length ?? 0) - (queue.data?.items.length ?? 0))
+    : 0;
   const liveActivity = useQuery({
     queryKey: ["approvals-live-activity"],
     queryFn: () => fetchLiveActivity(),
@@ -102,15 +122,16 @@ function ApprovalsSurface() {
     }
   }, [visibleItems, focusedId]);
 
+  const queueKey = ["approvals", "queue", activeWorkspaceId];
   const decide = useMutation({
     mutationFn: (vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" }) =>
       mDecide({
         data: { id: vars.item.sourceId, kind: vars.item.kindKey, verdict: vars.verdict },
       }),
     onMutate: async (vars) => {
-      await qc.cancelQueries({ queryKey: ["approvals-queue"] });
-      const prev = qc.getQueryData<{ items: ApprovalQueueItem[] }>(["approvals-queue"]);
-      qc.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(["approvals-queue"], (old) =>
+      await qc.cancelQueries({ queryKey: queueKey });
+      const prev = qc.getQueryData<{ items: ApprovalQueueItem[] }>(queueKey);
+      qc.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(queueKey, (old) =>
         old ? { items: old.items.filter((i) => i.id !== vars.item.id) } : old,
       );
       return { prev };
@@ -121,11 +142,11 @@ function ApprovalsSurface() {
       });
     },
     onError: (e: Error, _vars, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["approvals-queue"], ctx.prev);
+      if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
       toast.success(e.message);
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["approvals-queue"] });
+      qc.invalidateQueries({ queryKey: ["approvals", "queue"] });
     },
   });
 
@@ -236,6 +257,11 @@ function ApprovalsSurface() {
           ))}
         </div>
       )}
+      {otherWorkspacesCount > 0 ? (
+        <p className="ink-mono mt-8 text-[12px] text-[var(--ink-faint)]">
+          {otherWorkspacesCount} more in other workspaces
+        </p>
+      ) : null}
     </div>
   );
 }

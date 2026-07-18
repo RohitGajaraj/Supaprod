@@ -9,6 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getLiveActivity, type LiveActivity } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { AiPulse } from "@/components/obsidian/AiPulse";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 /** Polls stop while the tab is hidden, resume on the next visible tick. */
 export function pollWhenVisible(ms: number) {
@@ -43,21 +44,26 @@ export function LiveTicker() {
   // Founder ruling 2026-07-18: "Waiting on you" IS the approvals affordance,
   // so it must do the job completely. It stays visible with the live count
   // whenever ANYTHING sits in the federated queue (not only while an agent
-  // run is mid-pause), and clicking it opens the one queue.
+  // run is mid-pause), and clicking it opens the one queue. ONE COUNT, ONE
+  // SOURCE: scoped to the active workspace, same query key the rail badge,
+  // the Today hero, and the /approvals page all read - one shared cache, one
+  // number, everywhere.
+  const { activeWorkspaceId } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const queue = useQuery({
-    queryKey: ["approvals", "queue"],
-    queryFn: () => fetchQueue(),
+    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     refetchInterval: pollWhenVisible(30_000),
     placeholderData: keepPreviousData,
   });
   const waitingCount = queue.data?.items?.length ?? 0;
 
   if (waitingCount > 0 || a.state === "waiting") {
+    // Say WHAT waits (founder 2026-07-18): these are approvals, name them.
     const label =
       waitingCount > 0
-        ? `${waitingCount} waiting on you`
-        : a.action || "Waiting on you";
+        ? `${waitingCount} approval${waitingCount === 1 ? "" : "s"} waiting on you`
+        : a.action || "An approval is waiting on you";
     return (
       <Link
         to="/approvals"

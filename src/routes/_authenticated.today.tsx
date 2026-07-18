@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/supaprod/TopBar";
-import { TodayCommandBlock } from "@/components/today/TodayCommandBlock";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
@@ -33,6 +32,7 @@ import {
   type LoopPulse,
   type NeedsYou,
 } from "@/lib/today.functions";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { getTodayLanes } from "@/lib/today-lanes.functions";
 import { listFanoutBatches } from "@/lib/fanout.functions";
 import { CompositeReviewCard } from "@/components/build/CompositeReviewCard";
@@ -488,6 +488,16 @@ function Dashboard() {
 
   useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const needsYou = useQuery({ queryKey: ["needs-you"], queryFn: () => fetchNeedsYou() });
+  // ONE COUNT, ONE SOURCE (2026-07-18): the hero's pendingCalls and the rail
+  // badge both read this federated queue, scoped to the active workspace and
+  // sharing the exact query key the top-bar pill and /approvals read - one
+  // number everywhere on screen. getNeedsYou above stays the source for
+  // everything else Today renders (the actual call cards, lanes, cold start).
+  const fetchApprovalsQueue = useServerFn(getApprovalsQueue);
+  const approvalsQueue = useQuery({
+    queryKey: ["approvals", "queue", activeWorkspace?.id ?? null],
+    queryFn: () => fetchApprovalsQueue({ data: { workspaceId: activeWorkspace?.id ?? undefined } }),
+  });
   // PC-12: composite fan-out review batches (draft/eval/risks reconciled into
   // one card). Dormant reads: an empty table when AGENT_FANOUT is off, so this
   // never shows anything on a workspace that hasn't turned exploration on.
@@ -563,13 +573,12 @@ function Dashboard() {
   }, []);
 
   const ny = needsYou.data;
-  // R2-ATTENTION #1: the ONE needs-you truth is counts.liveCalls, computed
-  // once server-side (live calls + pushed insights + ready fan-out batches).
-  // The hero, the lane header, and the shell badge all read this number,
-  // never a client-side re-derivation, which display caps and split queries
-  // can understate or double-count. Expired gates are excluded server-side
-  // (they live in the quiet Expired group).
-  const callCount = ny?.counts.liveCalls ?? 0;
+  // ONE COUNT, ONE SOURCE (2026-07-18, founder ruling): the hero and the rail
+  // badge both read the federated approvals queue's item count, the same
+  // number the top-bar pill and /approvals show. This intentionally excludes
+  // pushed Brain insights and ready fan-out batches - attention, not a
+  // yes/no approval - which is why it can differ from counts.liveCalls below.
+  const callCount = approvalsQueue.data?.items.length ?? 0;
   const expiredTotal = ny?.counts.expired ?? 0;
   // The spotlight's zero-call sentence still names pushed insights
   // specifically (copy, not a count surface).
@@ -1117,8 +1126,9 @@ function Dashboard() {
 
   // Never assert "All clear" before the true call count has actually
   // arrived — OBS-04.md §7 "Loading" state: skeleton, no spinner, and the
-  // hero must not flash a false all-clear ahead of real data.
-  const needsYouLoaded = !needsYou.isPending && !needsYou.isError;
+  // hero must not flash a false all-clear ahead of real data. Now also
+  // waits on the approvals queue, since that is where callCount comes from.
+  const needsYouLoaded = !needsYou.isPending && !needsYou.isError && !approvalsQueue.isPending;
 
   return (
     <>
@@ -1165,9 +1175,6 @@ function Dashboard() {
                 onAnswer={featured ? () => setActiveCallId(featured.id) : undefined}
               />
             )}
-            {/* Founder ruling 2026-07-18: the greeting card is the fixed top
-                of Today; the sentence box comes after it. */}
-            <TodayCommandBlock />
           </>
         ) : (
           <>

@@ -19,33 +19,67 @@
  *
  * Gates federated: tool-call confirm/review, what-to-build / plan-sign-off
  * / other pending decisions, memory graduation (memory_candidates and
- * house_rules), trust graduation. Ship gates and spend gates already route
- * through the tool-call gate above when they are agent-executed tools; this
- * module does not invent a separate spend feed (no such read exists yet -
- * see the ledger note in the lane report).
+ * house_rules), trust graduation, specs in review, opportunities carrying a
+ * Critic verdict, open assumption-supersession challenges, undecided design
+ * gates, and proposed playbooks (2026-07-18: ONE COUNT, ONE SOURCE - this
+ * queue now federates every family Today's "needs you" triage counts, so
+ * the rail badge, the Today hero, and the approvals pill can never disagree
+ * again). Ship gates and spend gates already route through the tool-call
+ * gate above when they are agent-executed tools; this module does not
+ * invent a separate spend feed (no such read exists yet - see the ledger
+ * note in the lane report). Pushed Brain insights and ready fan-out batches
+ * are deliberately NOT federated here: they are attention, not a yes/no
+ * approval with an existing decide resolver, so Today keeps owning them.
+ *
+ * Workspace scoping (2026-07-18, Change 3): `workspaceId` is optional. Every
+ * source that carries a `workspace_id` column is filtered to it when given;
+ * sources that don't (agent_approvals/tool-call gates, trust graduation
+ * proposals - both predate workspace tenancy) stay unscoped either way.
+ * Omitting it keeps the original RLS-wide "everything across every
+ * workspace I'm a member of" read this queue has always done.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { listGovernApprovals, resolveApproval } from "@/lib/governance.functions";
-import { listDecisions, updateDecision } from "@/lib/decisions.functions";
+import {
+  listDecisions,
+  updateDecision,
+  resolveAssumptionChallenge,
+} from "@/lib/decisions.functions";
 import { listMemoryCandidates, decideMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { listHouseRules, decideHouseRule } from "@/lib/house-rules.functions";
 import { listTrustGraduationProposals, decideTrustGraduation } from "@/lib/trust.functions";
+import { savePrd, updateOpportunity, type CriticReview } from "@/lib/discovery.functions";
+import { decideDesignGate } from "@/lib/design-scaffold.functions";
+import { decidePlaybookProposal } from "@/lib/playbooks.functions";
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { ApprovalItem } from "@/components/ink/ApprovalCard";
 import type { VerdictTone } from "@/components/ink/chips";
 
-/** The five gate families this queue federates. Used to route the decide
+/** The ten gate families this queue federates. Used to route the decide
  *  call to the right existing resolver - never to brand anything in the UI. */
 export type ApprovalKind =
-  "tool_call" | "decision" | "memory_candidate" | "house_rule" | "trust_graduation";
+  | "tool_call"
+  | "decision"
+  | "memory_candidate"
+  | "house_rule"
+  | "trust_graduation"
+  | "spec"
+  | "opportunity"
+  | "assumption_challenge"
+  | "design_gate"
+  | "playbook_proposal";
 
 /** The filter row's buckets (architecture §5 / the taste doc's restraint
  *  law: text tabs, not a facet explosion). "spend" exists as a bucket so the
  *  row matches the copy deck's shape; nothing routes into it yet because no
- *  spend-gate READ exists in the codebase today (see the ledger note). */
+ *  spend-gate READ exists in the codebase today (see the ledger note). Specs,
+ *  opportunities, design gates, and playbook proposals all read as sensible
+ *  "proposals"; an assumption challenge is a "gate" (it reopens a standing
+ *  decision, the same shape as a tool-call gate). */
 export type ApprovalFilter = "all" | "proposals" | "gates" | "memory" | "spend";
 
 export type ApprovalQueueItem = ApprovalItem & {
@@ -63,15 +97,53 @@ export type ApprovalsQueueResult = {
   items: ApprovalQueueItem[];
 };
 
+/** Tolerant critic_review reader: jsonb object or a stringified copy (mirrors
+ *  today.functions.ts's private helper of the same name). */
+function parseCriticReview(raw: unknown): CriticReview | null {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as CriticReview;
+    } catch {
+      return null;
+    }
+  }
+  return raw as CriticReview;
+}
+
+/** A short "why" line from a Critic verdict, honest when there isn't one yet. */
+function criticEvidenceLine(cr: CriticReview | null): string {
+  if (!cr) return "Waiting on your call. No Critic review yet.";
+  if (cr.risks?.length) return cr.risks[0];
+  if (cr.summary) return cr.summary;
+  return "Waiting on your call.";
+}
+
+const GetQueueSchema = z.object({ workspaceId: z.string().uuid().optional() });
+
 export const getApprovalsQueue = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<ApprovalsQueueResult> => {
+  .inputValidator((d: z.input<typeof GetQueueSchema>) => GetQueueSchema.parse(d ?? {}))
+  .handler(async ({ context, data }): Promise<ApprovalsQueueResult> => {
     const { supabase } = context;
+    const wsId = data.workspaceId ?? null;
 
-    const [govern, decisionsRes, memCandidates, houseRules, trustProposals] = await Promise.all([
+    const [
+      govern,
+      decisionsRes,
+      memCandidates,
+      houseRules,
+      trustProposals,
+      specRows,
+      oppRows,
+      challengeRows,
+      playbookRows,
+      designWsRows,
+    ] = await Promise.all([
       // listGovernApprovals takes no filter and returns every status (the
       // Govern surface needs the decided history for the track record) - the
-      // pending filter below narrows it to the queue.
+      // pending filter below narrows it to the queue. agent_approvals predates
+      // workspace tenancy (no workspace_id column), so this stays unscoped.
       listGovernApprovals().catch(() => ({
         approvals: [],
         trackByAgent: {},
@@ -79,17 +151,21 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         rejectionsByKey: {},
         medianResponseMs: null,
       })),
-      listDecisions({ data: { status: "pending" } }).catch(() => ({ decisions: [] })),
+      listDecisions({ data: { status: "pending", workspaceId: wsId ?? undefined } }).catch(() => ({
+        decisions: [],
+      })),
       // Direct RLS-wide read, not the workspace-scoped list function: the
       // queue is the single pull point (law 4.4), so a pending candidate in
-      // ANY of the caller's workspaces must surface here.
-      context.supabase
-        .from("memory_candidates")
-        .select("id, content, status, importance, source_kind, created_at")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(100)
-        .then(({ data: rows }) => ({
+      // ANY of the caller's workspaces must surface here, unless scoped.
+      (() => {
+        let q = context.supabase
+          .from("memory_candidates")
+          .select("id, content, status, importance, source_kind, created_at")
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q.then(({ data: rows }) => ({
           items: (
             (rows ?? []) as Array<{
               id: string;
@@ -100,47 +176,159 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
               created_at: string;
             }>
           ).map((r) => ({ ...r, supersedes_content: null as string | null })),
-        }))
-        .catch(() => ({ items: [] })),
-      listHouseRules({ data: {} }).catch(() => ({ rules: [] })),
+        }));
+      })().catch(() => ({ items: [] })),
+      listHouseRules({ data: { workspaceId: wsId } }).catch(() => ({ rules: [] })),
       listTrustGraduationProposals().catch(
         () => [] as Awaited<ReturnType<typeof listTrustGraduationProposals>>,
       ),
+      // Specs in review (mirrors today.functions.ts getNeedsYou's prdCalls read).
+      (() => {
+        let q = supabase
+          .from("prds")
+          .select("id,title,status,critic_review,updated_at,project_id")
+          .eq("status", "review")
+          .order("updated_at", { ascending: false })
+          .limit(100);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+      // Opportunities the Critic said revise/kill on, still in backlog
+      // (mirrors today.functions.ts getNeedsYou's oppCalls read).
+      (() => {
+        let q = supabase
+          .from("opportunities")
+          .select("id,title,critic_review,created_at,project_id")
+          .filter("critic_review->>verdict", "in", '("revise","kill")')
+          .eq("status", "backlog")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+      // Open assumption-supersession challenges (mirrors getNeedsYou's
+      // assumptionCalls read).
+      (() => {
+        let q = supabase
+          .from("assumption_challenges")
+          .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+          .eq("status", "open")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+      // Proposed playbooks from the compounding pass (mirrors getNeedsYou's
+      // playbookCalls read). playbook_proposals postdates the generated
+      // types, so the client is structurally cast (the house idiom).
+      (() => {
+        let q = (supabase as unknown as SupabaseClient)
+          .from("playbook_proposals")
+          .select("id,title,body,created_at,source_learning_ids")
+          .eq("status", "proposed")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        if (wsId) q = q.eq("workspace_id", wsId);
+        return q;
+      })(),
+      // Which workspaces have the design stage on - the design-gate family
+      // only exists there (mirrors getNeedsYou's own designStageEnabled
+      // lookup, generalized across every workspace the caller can read).
+      (() => {
+        let q = supabase
+          .from("workspaces")
+          .select("id,design_stage_enabled")
+          .eq("design_stage_enabled", true);
+        if (wsId) q = q.eq("id", wsId);
+        return q;
+      })(),
     ]);
 
-    // Project resolution: only decisions carry a resolvable project today,
-    // via prd_id -> prds.project_id -> projects.name (missions and
-    // agent_approvals carry no project_id in the current schema - flagged
-    // in the ledger). Batched in one pass over the pending decisions.
+    // Design gates: specs with an undecided design_gate_status, scoped to the
+    // workspaces just resolved to have the design stage on. A dependent read
+    // (the workspace ids aren't known until designWsRows lands above).
+    const designWsIds = ((designWsRows.data ?? []) as { id: string }[]).map((w) => w.id);
+    const designGateRes = designWsIds.length
+      ? await supabase
+          .from("prds")
+          .select("id,title,updated_at,project_id")
+          .in("workspace_id", designWsIds)
+          .is("design_gate_status", null)
+          .order("updated_at", { ascending: false })
+          .limit(100)
+      : {
+          data: [] as {
+            id: string;
+            title: string;
+            updated_at: string;
+            project_id: string | null;
+          }[],
+        };
+
+    // Project resolution, one batched pass for every family that carries a
+    // project_id (specs, opportunities, design gates directly; decisions only
+    // indirectly via their prd_id -> prds.project_id).
     const pendingDecisions = (decisionsRes.decisions ?? []).filter((d) => d.status === "pending");
-    const prdIds = [
+    const decisionPrdIds = [
       ...new Set(pendingDecisions.map((d) => d.prd_id).filter((x): x is string => !!x)),
     ];
-    const projectByPrd = new Map<string, { id: string; name: string }>();
-    if (prdIds.length) {
-      const { data: prds } = await supabase.from("prds").select("id,project_id").in("id", prdIds);
-      const projectIds = [
-        ...new Set(
-          (prds ?? [])
-            .map((p) => (p as { project_id: string | null }).project_id)
-            .filter((x): x is string => !!x),
-        ),
-      ];
-      if (projectIds.length) {
-        const { data: projects } = await supabase
-          .from("projects")
-          .select("id,name")
-          .in("id", projectIds);
-        const nameById = new Map<string, string>(
-          (projects ?? []).map((p) => [p.id as string, (p.name as string) ?? "Untitled"]),
-        );
-        for (const p of (prds ?? []) as { id: string; project_id: string | null }[]) {
-          if (p.project_id && nameById.has(p.project_id)) {
-            projectByPrd.set(p.id, { id: p.project_id, name: nameById.get(p.project_id)! });
-          }
-        }
+    const projectIdByPrd = new Map<string, string>();
+    if (decisionPrdIds.length) {
+      const { data: prds } = await supabase
+        .from("prds")
+        .select("id,project_id")
+        .in("id", decisionPrdIds);
+      for (const p of (prds ?? []) as { id: string; project_id: string | null }[]) {
+        if (p.project_id) projectIdByPrd.set(p.id, p.project_id);
       }
     }
+    const specRowsData = (specRows.data ?? []) as {
+      id: string;
+      title: string;
+      status: string;
+      critic_review: unknown;
+      updated_at: string;
+      project_id: string | null;
+    }[];
+    const oppRowsData = (oppRows.data ?? []) as {
+      id: string;
+      title: string;
+      critic_review: unknown;
+      created_at: string;
+      project_id: string | null;
+    }[];
+    const designGateRows = (designGateRes.data ?? []) as {
+      id: string;
+      title: string;
+      updated_at: string;
+      project_id: string | null;
+    }[];
+    const allProjectIds = new Set<string>([
+      ...projectIdByPrd.values(),
+      ...specRowsData.map((s) => s.project_id).filter((x): x is string => !!x),
+      ...oppRowsData.map((o) => o.project_id).filter((x): x is string => !!x),
+      ...designGateRows.map((p) => p.project_id).filter((x): x is string => !!x),
+    ]);
+    const projectNameById = new Map<string, string>();
+    if (allProjectIds.size) {
+      const { data: projects } = await supabase
+        .from("projects")
+        .select("id,name")
+        .in("id", [...allProjectIds]);
+      for (const p of (projects ?? []) as { id: string; name: string | null }[]) {
+        projectNameById.set(p.id, p.name ?? "Untitled");
+      }
+    }
+    const projectByPrd = new Map<string, { id: string; name: string }>();
+    for (const [prdId, projId] of projectIdByPrd) {
+      if (projectNameById.has(projId)) {
+        projectByPrd.set(prdId, { id: projId, name: projectNameById.get(projId)! });
+      }
+    }
+    const projectOf = (projectId: string | null): { id: string | null; name: string | null } =>
+      projectId && projectNameById.has(projectId)
+        ? { id: projectId, name: projectNameById.get(projectId)! }
+        : { id: null, name: null };
 
     const items: ApprovalQueueItem[] = [];
 
@@ -273,13 +461,202 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       });
     }
 
+    // --- Specs in review (worth building?) ----------------------------------
+    for (const p of specRowsData) {
+      const cr = parseCriticReview(p.critic_review);
+      const proj = projectOf(p.project_id);
+      items.push({
+        id: `spec:${p.id}`,
+        kindKey: "spec",
+        sourceId: p.id,
+        filterBucket: "proposals",
+        kind: "SPEC",
+        kindTone: "human",
+        project: proj.name ?? undefined,
+        title: p.title,
+        evidence: [criticEvidenceLine(cr)],
+        impact: "spec in review",
+        approveConsequence: "Approve · marks the spec approved and logs the decision",
+        rejectConsequence: "Reject · sends it back to draft",
+        timestamp: p.updated_at,
+        projectId: proj.id,
+        projectName: proj.name,
+      });
+    }
+
+    // --- Opportunities the Critic flagged (worth building?) -----------------
+    for (const o of oppRowsData) {
+      const cr = parseCriticReview(o.critic_review);
+      const proj = projectOf(o.project_id);
+      items.push({
+        id: `opportunity:${o.id}`,
+        kindKey: "opportunity",
+        sourceId: o.id,
+        filterBucket: "proposals",
+        kind: "PROPOSAL",
+        kindTone: "human",
+        project: proj.name ?? undefined,
+        title: o.title,
+        evidence: [criticEvidenceLine(cr)],
+        impact: cr?.verdict ? `Critic said ${cr.verdict}` : undefined,
+        approveConsequence: "Approve · keeps it and moves it to Now on the roadmap",
+        rejectConsequence: "Reject · drops it from the backlog",
+        timestamp: o.created_at,
+        projectId: proj.id,
+        projectName: proj.name,
+      });
+    }
+
+    // --- Open assumption-supersession challenges (worth re-examining?) ------
+    if (challengeRows.data && challengeRows.data.length > 0) {
+      const rows = challengeRows.data as {
+        id: string;
+        assumption_id: string;
+        signal_id: string | null;
+        learning_id: string | null;
+        rationale: string;
+        created_at: string;
+      }[];
+      const assumptionIds = [...new Set(rows.map((c) => c.assumption_id))];
+      const { data: assumptionRows } = await supabase
+        .from("assumptions")
+        .select("id,statement,decision_id,prd_id")
+        .in("id", assumptionIds);
+      const assumptionById = new Map(
+        (
+          (assumptionRows ?? []) as {
+            id: string;
+            statement: string;
+            decision_id: string | null;
+            prd_id: string | null;
+          }[]
+        ).map((a) => [a.id, a]),
+      );
+      const decisionIds = [
+        ...new Set(
+          [...assumptionById.values()].map((a) => a.decision_id).filter((x): x is string => !!x),
+        ),
+      ];
+      const prdIds = [
+        ...new Set(
+          [...assumptionById.values()].map((a) => a.prd_id).filter((x): x is string => !!x),
+        ),
+      ];
+      const [decisionRows, prdRows] = await Promise.all([
+        decisionIds.length
+          ? supabase.from("decisions").select("id,title").in("id", decisionIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        prdIds.length
+          ? supabase.from("prds").select("id,title").in("id", prdIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      ]);
+      const decisionTitleById = new Map(
+        ((decisionRows.data ?? []) as { id: string; title: string }[]).map((d) => [d.id, d.title]),
+      );
+      const prdTitleById = new Map(
+        ((prdRows.data ?? []) as { id: string; title: string }[]).map((p) => [p.id, p.title]),
+      );
+
+      for (const c of rows) {
+        const assumption = assumptionById.get(c.assumption_id);
+        if (!assumption) continue;
+        const decisionTitle = assumption.decision_id
+          ? (decisionTitleById.get(assumption.decision_id) ?? "A past decision")
+          : assumption.prd_id
+            ? `Spec: ${prdTitleById.get(assumption.prd_id) ?? "a spec"}`
+            : "A past decision";
+        items.push({
+          id: `assumption_challenge:${c.id}`,
+          kindKey: "assumption_challenge",
+          sourceId: c.id,
+          filterBucket: "gates",
+          kind: "CHALLENGE",
+          kindTone: "human",
+          title: decisionTitle,
+          evidence: [`${assumption.statement}. ${c.rationale}`],
+          impact: undefined,
+          approveConsequence: "Approve · reopens the decision for review",
+          rejectConsequence: "Reject · keeps it standing as decided",
+          timestamp: c.created_at,
+          projectId: null,
+          projectName: null,
+        });
+      }
+    }
+
+    // --- Design gates (design ready?) ---------------------------------------
+    for (const p of designGateRows) {
+      const proj = projectOf(p.project_id);
+      items.push({
+        id: `design_gate:${p.id}`,
+        kindKey: "design_gate",
+        sourceId: p.id,
+        filterBucket: "proposals",
+        kind: "DESIGN",
+        kindTone: "human",
+        project: proj.name ?? undefined,
+        title: p.title,
+        evidence: [
+          "The generated mockup is waiting on your call before this spec can dispatch to Build.",
+        ],
+        impact: undefined,
+        approveConsequence: "Approve · unblocks Build for this spec",
+        rejectConsequence: "Reject · keeps the gate closed",
+        timestamp: p.updated_at,
+        projectId: proj.id,
+        projectName: proj.name,
+      });
+    }
+
+    // --- Playbook proposals (make it a method?) ------------------------------
+    if (playbookRows.data && playbookRows.data.length > 0) {
+      for (const p of playbookRows.data as {
+        id: string;
+        title: string;
+        body: string;
+        created_at: string;
+        source_learning_ids: string[] | null;
+      }[]) {
+        const sourceCount = p.source_learning_ids?.length ?? 0;
+        const evidence: string[] = [p.body.length > 200 ? `${p.body.slice(0, 200)}…` : p.body];
+        if (sourceCount > 0) evidence.push(`${sourceCount} same-shaped learnings behind this`);
+        items.push({
+          id: `playbook_proposal:${p.id}`,
+          kindKey: "playbook_proposal",
+          sourceId: p.id,
+          filterBucket: "proposals",
+          kind: "PLAYBOOK",
+          kindTone: "neutral",
+          title: p.title,
+          evidence,
+          impact: undefined,
+          approveConsequence: "Approve · adopts the method on the record",
+          rejectConsequence: "Reject · retires this proposal for good",
+          timestamp: p.created_at,
+          projectId: null,
+          projectName: null,
+        });
+      }
+    }
+
     items.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
     return { items };
   });
 
 const DecideSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(["tool_call", "decision", "memory_candidate", "house_rule", "trust_graduation"]),
+  kind: z.enum([
+    "tool_call",
+    "decision",
+    "memory_candidate",
+    "house_rule",
+    "trust_graduation",
+    "spec",
+    "opportunity",
+    "assumption_challenge",
+    "design_gate",
+    "playbook_proposal",
+  ]),
   verdict: z.enum(["approve", "reject"]),
 });
 
@@ -318,6 +695,39 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
       case "trust_graduation": {
         await decideTrustGraduation({
           data: { proposalId: data.id, accept: data.verdict === "approve" },
+        });
+        return { ok: true };
+      }
+      case "spec": {
+        await savePrd({
+          data: { id: data.id, status: data.verdict === "approve" ? "approved" : "draft" },
+        });
+        return { ok: true };
+      }
+      case "opportunity": {
+        await updateOpportunity({
+          data: { id: data.id, status: data.verdict === "approve" ? "now" : "dropped" },
+        });
+        return { ok: true };
+      }
+      case "assumption_challenge": {
+        await resolveAssumptionChallenge({
+          data: { id: data.id, action: data.verdict === "approve" ? "confirm" : "dismiss" },
+        });
+        return { ok: true };
+      }
+      case "design_gate": {
+        await decideDesignGate({
+          data: { prdId: data.id, decision: data.verdict === "approve" ? "approve" : "reject" },
+        });
+        return { ok: true };
+      }
+      case "playbook_proposal": {
+        await decidePlaybookProposal({
+          data: {
+            proposalId: data.id,
+            decision: data.verdict === "approve" ? "confirm" : "dismiss",
+          },
         });
         return { ok: true };
       }

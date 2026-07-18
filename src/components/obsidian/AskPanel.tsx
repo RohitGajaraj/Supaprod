@@ -16,6 +16,8 @@ import { createConversation, getConversation } from "@/lib/conversations.functio
 import { createDecision } from "@/lib/decisions.functions";
 import { createTask } from "@/lib/tasks.functions";
 import { createNoteFromAsk, markMessagePromoted } from "@/lib/ask-promote.functions";
+import { createProject } from "@/lib/projects.functions";
+import { nameFromIntent } from "@/lib/intent-name";
 import { toast } from "@/lib/notify";
 import { useDictation, useReadAloud, type ReadAloudState } from "@/hooks/use-voice";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -495,6 +497,44 @@ function AskComposer({
     textareaRef.current?.focus();
   };
 
+  // THE SENTENCE BOX FOLDS INTO ASK (founder ruling 2026-07-18): Today's
+  // retired TodayCommandBlock rescued as one quiet secondary action here -
+  // typing an idea can still start a real project, without leaving the
+  // conversation. nameFromIntent is the exact rescued helper, unchanged.
+  const queryClient = useQueryClient();
+  const doCreateProject = useServerFn(createProject);
+  const { activeWorkspaceId } = useWorkspace();
+  const [startingProject, setStartingProject] = React.useState(false);
+  const startProject = async () => {
+    const intent = value.trim();
+    if (!intent || startingProject) return;
+    setStartingProject(true);
+    try {
+      // The project lands in the workspace the user is standing in, never
+      // the account default (caught live: it created into the wrong one).
+      const created = await doCreateProject({
+        data: {
+          name: nameFromIntent(intent),
+          status: "active" as const,
+          ...(activeWorkspaceId ? { workspaceId: activeWorkspaceId } : {}),
+        },
+      });
+      const name = created.project?.name ?? "Your project";
+      toast.success(`${name} created. The plan starts from your sentence.`);
+      // Both caches that list products: the projects screens AND the
+      // workspace switcher menu (its own ["products", workspaceId] key).
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        queryClient.invalidateQueries({ queryKey: ["products"] }),
+      ]);
+      setValue("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start the project. Try again.");
+    } finally {
+      setStartingProject(false);
+    }
+  };
+
   return (
     <div style={{ position: "relative" }}>
       {paletteOpen ? (
@@ -631,55 +671,81 @@ function AskComposer({
               ? dictation.interim || "Listening"
               : "/ for commands · Enter to send"}
           </span>
-          {dictation.supported ? (
+          {/* THE SENTENCE BOX FOLDS INTO ASK: chip + mic + send cluster
+              together at the trailing edge, one shared auto margin instead
+              of each control claiming its own. */}
+          <div className="flex items-center" style={{ gap: 8, marginLeft: "auto" }}>
+            {value.trim() ? (
+              <button
+                type="button"
+                onClick={() => void startProject()}
+                disabled={startingProject}
+                className="loom-press whitespace-nowrap transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)] disabled:opacity-60"
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 11,
+                  padding: "3px 9px",
+                  borderRadius: 999,
+                  border: "1px solid var(--hairline)",
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  cursor: startingProject ? "default" : "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                {startingProject ? "Starting…" : "Start a project from this"}
+              </button>
+            ) : null}
+            {dictation.supported ? (
+              <button
+                type="button"
+                onClick={dictation.listening ? dictation.stop : dictation.start}
+                aria-label={dictation.listening ? "Stop dictation" : "Dictate your question"}
+                aria-pressed={dictation.listening}
+                className={`inline-flex items-center justify-center outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] ${dictation.listening ? "flow-pulse" : ""}`}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  flexShrink: 0,
+                  border: dictation.listening
+                    ? "1px solid var(--glacier)"
+                    : "1px solid var(--hairline)",
+                  background: dictation.listening
+                    ? "color-mix(in oklab, var(--glacier) 12%, transparent)"
+                    : "transparent",
+                  color: dictation.listening ? "var(--glacier)" : "var(--text-subtle)",
+                  cursor: "pointer",
+                }}
+              >
+                <Mic size={14} strokeWidth={1.5} />
+              </button>
+            ) : null}
             <button
               type="button"
-              onClick={dictation.listening ? dictation.stop : dictation.start}
-              aria-label={dictation.listening ? "Stop dictation" : "Dictate your question"}
-              aria-pressed={dictation.listening}
-              className={`inline-flex items-center justify-center outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] ${dictation.listening ? "flow-pulse" : ""}`}
+              onClick={submit}
+              disabled={disabled || !value.trim()}
+              aria-label="Send"
+              className="loom-press inline-flex items-center justify-center outline-none transition-[background,transform,opacity] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
               style={{
                 width: 28,
                 height: 28,
                 borderRadius: 999,
+                border: "none",
+                background: value.trim() && !disabled ? "var(--ember)" : "var(--hover)",
+                color: value.trim() && !disabled ? "#fff" : "var(--text-faint)",
+                cursor: value.trim() && !disabled ? "pointer" : "default",
+                opacity: value.trim() && !disabled ? 1 : 0.7,
+                boxShadow:
+                  value.trim() && !disabled
+                    ? "0 4px 12px -4px color-mix(in oklab, var(--ember) 70%, transparent)"
+                    : "none",
                 flexShrink: 0,
-                marginLeft: "auto",
-                border: dictation.listening
-                  ? "1px solid var(--glacier)"
-                  : "1px solid var(--hairline)",
-                background: dictation.listening
-                  ? "color-mix(in oklab, var(--glacier) 12%, transparent)"
-                  : "transparent",
-                color: dictation.listening ? "var(--glacier)" : "var(--text-subtle)",
-                cursor: "pointer",
               }}
             >
-              <Mic size={14} strokeWidth={1.5} />
+              <ArrowUp size={16} strokeWidth={2.4} />
             </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={submit}
-            disabled={disabled || !value.trim()}
-            aria-label="Send"
-            className="loom-press inline-flex items-center justify-center outline-none transition-[background,transform,opacity] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 999,
-              border: "none",
-              background: value.trim() && !disabled ? "var(--ember)" : "var(--hover)",
-              color: value.trim() && !disabled ? "#fff" : "var(--text-faint)",
-              cursor: value.trim() && !disabled ? "pointer" : "default",
-              opacity: value.trim() && !disabled ? 1 : 0.7,
-              boxShadow:
-                value.trim() && !disabled
-                  ? "0 4px 12px -4px color-mix(in oklab, var(--ember) 70%, transparent)"
-                  : "none",
-            }}
-          >
-            <ArrowUp size={16} strokeWidth={2.4} />
-          </button>
+          </div>
         </div>
       </div>
     </div>
