@@ -6,6 +6,26 @@ import { cn } from "@/lib/utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
+/**
+ * Validate that a color value is safe to inject into CSS.
+ * Accepts hex (#RGB, #RRGGBB, #RRGGBBAA), rgb/rgba, hsl/hsla, named colors.
+ * Rejects values containing semicolons, newlines, or other CSS injection vectors.
+ */
+function isSafeColorValue(color: unknown): boolean {
+  if (typeof color !== "string") return false;
+  const trimmed = color.trim();
+  if (trimmed.length === 0) return false;
+  // Reject anything with CSS metacharacters that could break out of the property value
+  if (/[;{}()[\]\\]/.test(trimmed)) return false;
+  // Reject common CSS injection patterns
+  if (/^javascript:|import |@import|behavior:/i.test(trimmed)) return false;
+  // Require valid color format: hex, rgb, hsl, or CSS named color (word characters + -)
+  if (!/^(#[0-9a-f]{3,8}|rgb[a]?\(|hsl[a]?\(|[a-z][a-z0-9-]*|currentColor|transparent|inherit)$/i.test(trimmed.split(/\s/)[0])) {
+    return false;
+  }
+  return true;
+}
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -78,7 +98,11 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    // Sanitize color values to prevent CSS injection attacks
+    if (!color || !isSafeColorValue(color)) {
+      return null;
+    }
+    return `  --color-${key}: ${color};`;
   })
   .join("\n")}
 }
