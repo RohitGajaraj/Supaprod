@@ -1647,53 +1647,136 @@
  * Re-keyed 2026-07-11: was `html:not(.dark)`, which fired whenever the .dark
  * class was missing even while the page rendered Tempo dark (:root IS dark).
  * Keyed to [data-theme='light'] per the theme contract: dark default = .dark
- * class + NO data-theme; light = data-theme='light' set AND .dark removed. */
-[data-theme="light"] {
-  /* Amber / Yellow — warnings, queued states */
-  --color-amber-200: oklch(0.58 0.13 72);
-  --color-amber-300: oklch(0.54 0.14 70);
-  --color-amber-400: oklch(0.5 0.14 68);
-  --color-yellow-200: oklch(0.58 0.13 90);
-  --color-yellow-300: oklch(0.54 0.14 88);
-  --color-yellow-400: oklch(0.5 0.14 86);
+ * class + NO data-theme; light = data-theme='light' set AND .dark removed.
+ * TEMPO v5: light theme derived from the same 10×10 scale model as dark. */
+[data-theme="light"],
+.light-theme {
+  color-scheme: light;
 
-  /* Emerald / Lime / Teal — success, completed */
-  --color-emerald-200: oklch(0.52 0.13 158);
-  --color-emerald-300: oklch(0.48 0.14 156);
-  --color-emerald-400: oklch(0.46 0.14 154);
-  --color-lime-200: oklch(0.52 0.14 140);
-  --color-lime-300: oklch(0.48 0.15 138);
-  --color-lime-400: oklch(0.46 0.15 136);
-  --color-teal-200: oklch(0.52 0.1 190);
-  --color-teal-300: oklch(0.48 0.11 188);
-  --color-teal-400: oklch(0.46 0.11 186);
+  /* Backgrounds — 100 for pages/components, 200 sparingly for subtle differentiation */
+  --ds-background-100: #fff;
+  --ds-background-200: #fafafa;
 
-  /* Cyan / Sky — in-flight, info */
-  --color-cyan-200: oklch(0.52 0.11 220);
-  --color-cyan-300: oklch(0.48 0.12 222);
-  --color-cyan-400: oklch(0.46 0.13 224);
-  --color-sky-200: oklch(0.52 0.13 240);
-  --color-sky-300: oklch(0.48 0.14 242);
-  --color-sky-400: oklch(0.46 0.15 244);
+  /* Gray — same role model as dark: 100-300 component bg, 400-600 borders,
+     700-800 high-contrast bg, 900-1000 text */
+  --ds-gray-100: #f2f2f2;
+  --ds-gray-200: #ebebeb;
+  --ds-gray-300: #e6e6e6;
+  --ds-gray-400: #eaeaea;
+  --ds-gray-500: #c9c9c9;
+  --ds-gray-600: #a8a8a8;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #4d4d4d;
+  --ds-gray-1000: #171717;
 
-  /* Rose / Pink / Fuchsia — errors, halted, blocked */
-  --color-rose-200: oklch(0.55 0.17 22);
-  --color-rose-300: oklch(0.5 0.18 20);
-  --color-rose-400: oklch(0.48 0.2 20);
-  --color-pink-200: oklch(0.55 0.16 0);
-  --color-pink-300: oklch(0.5 0.18 0);
-  --color-pink-400: oklch(0.48 0.2 0);
-  --color-fuchsia-200: oklch(0.52 0.2 330);
-  --color-fuchsia-300: oklch(0.48 0.22 328);
-  --color-fuchsia-400: oklch(0.46 0.23 326);
+  --ds-gray-alpha-100: #0000000d;
+  --ds-gray-alpha-200: #00000015;
+  --ds-gray-alpha-300: #0000001a;
+  --ds-gray-alpha-400: #00000014;
+  --ds-gray-alpha-500: #00000036;
+  --ds-gray-alpha-600: #0000003d;
+  --ds-gray-alpha-700: #00000070;
+  --ds-gray-alpha-800: #00000082;
+  --ds-gray-alpha-900: #000000b3;
+  --ds-gray-alpha-1000: #000000e8;
 
-  /* Violet / Indigo — deep-work, intel, agent chips */
-  --color-violet-200: oklch(0.5 0.18 295);
-  --color-violet-300: oklch(0.46 0.2 293);
-  --color-violet-400: oklch(0.44 0.21 291);
-  --color-indigo-200: oklch(0.5 0.17 268);
-  --color-indigo-300: oklch(0.46 0.18 266);
-  --color-indigo-400: oklch(0.44 0.19 264);
+  /* Ember — same scale, light values */
+  --ds-ember-100: #fff1e9;
+  --ds-ember-200: #ffece2;
+  --ds-ember-300: #ffe3d3;
+  --ds-ember-400: #ffd3bb;
+  --ds-ember-500: #ffb28a;
+  --ds-ember-600: #ff8c52;
+  --ds-ember-700: #f05a1a;
+  --ds-ember-800: #d1440e;
+  --ds-ember-900: #a63508;
+  --ds-ember-1000: #431704;
+
+  /* Blue — same hue (~215) darkened for AA contrast on white */
+  --ds-blue-100: #f0f6fe;
+  --ds-blue-200: #e2edfc;
+  --ds-blue-300: #cfe2fa;
+  --ds-blue-400: #a9ccf6;
+  --ds-blue-500: #74a8ef;
+  --ds-blue-600: #2e6ed6;
+  --ds-blue-700: #2560c4;
+  --ds-blue-800: #1d51ad;
+  --ds-blue-900: #1a478f;
+  --ds-blue-1000: #143463;
+
+  --ds-red-100: #ffeef0;
+  --ds-red-200: #ffe9ea;
+  --ds-red-300: #ffe4e5;
+  --ds-red-400: #ffd8d7;
+  --ds-red-500: #ffb5b6;
+  --ds-red-600: #ff6a6e;
+  --ds-red-700: #fc0035;
+  --ds-red-800: #e70022;
+  --ds-red-900: #d60020;
+  --ds-red-1000: #46000c;
+
+  --ds-amber-100: #fff6e1;
+  --ds-amber-200: #fff4d4;
+  --ds-amber-300: #fff1c8;
+  --ds-amber-400: #ffdd84;
+  --ds-amber-500: #ffc85e;
+  --ds-amber-600: #fa0;
+  --ds-amber-700: #ffb200;
+  --ds-amber-800: #f90;
+  --ds-amber-900: #a64f00;
+  --ds-amber-1000: #541c00;
+
+  --ds-green-100: #ecfdec;
+  --ds-green-200: #e5fce7;
+  --ds-green-300: #d3fad1;
+  --ds-green-400: #b9f5bc;
+  --ds-green-500: #82eb8d;
+  --ds-green-600: #4ce15e;
+  --ds-green-700: #28a948;
+  --ds-green-800: #279141;
+  --ds-green-900: #107d32;
+  --ds-green-1000: #00370d;
+
+  --ds-teal-100: #dffffb;
+  --ds-teal-200: #ddfef6;
+  --ds-teal-300: #ccf9f1;
+  --ds-teal-400: #b1f7ec;
+  --ds-teal-500: #52f0db;
+  --ds-teal-600: #00e2c4;
+  --ds-teal-700: #00a694;
+  --ds-teal-800: #008d7d;
+  --ds-teal-900: #007a6e;
+  --ds-teal-1000: #003d34;
+
+  --ds-purple-100: #f9f0ff;
+  --ds-purple-200: #f9f1ff;
+  --ds-purple-300: #f5e8ff;
+  --ds-purple-400: #f1d9ff;
+  --ds-purple-500: #dda9ff;
+  --ds-purple-600: #c77dff;
+  --ds-purple-700: #9f00f4;
+  --ds-purple-800: #8400cd;
+  --ds-purple-900: #7c00c9;
+  --ds-purple-1000: #2e004d;
+
+  --ds-pink-100: #ffeaf5;
+  --ds-pink-200: #ffeaf2;
+  --ds-pink-300: #ffe0eb;
+  --ds-pink-400: #ffd5e1;
+  --ds-pink-500: #fdb3cc;
+  --ds-pink-600: #f97ea7;
+  --ds-pink-700: #f22782;
+  --ds-pink-800: #e4106e;
+  --ds-pink-900: #c41562;
+  --ds-pink-1000: #460523;
+
+  --ds-contrast-fg: #000;
+
+  /* Focus ring for light theme — same ember ember, adjusted for light BG contrast */
+  --ds-focus-color: var(--ds-ember-600);
+  --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
 }
 
 /* === Flow mode — the calm front (OPS-01) ===
