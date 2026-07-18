@@ -722,8 +722,18 @@ You must output a JSON object EXACTLY in this format:
         // chunks → meta → [DONE]. Research runs INSIDE the stream so every
         // status event flushes to the client the moment it happens.
         const encoder = new TextEncoder();
+        // Abort controller that mirrors request cancellation into the stream
+        // body. When the client closes the connection mid-stream (e.g. closing
+        // the Ask panel), the cancel() hook fires and sets this controller's
+        // signal so every downstream await can bail out early instead of
+        // burning tokens on an answer nobody will read.
+        const streamAbort = new AbortController();
         const stream = new ReadableStream<Uint8Array>({
+          cancel() {
+            streamAbort.abort();
+          },
           async start(controller) {
+            const aborted = () => streamAbort.signal.aborted || request.signal.aborted;
             const send = (obj: unknown) =>
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
 
@@ -732,6 +742,12 @@ You must output a JSON object EXACTLY in this format:
             let workspaceBlock = "";
             let ragBlock = "";
             let chunkRefs: ChunkRef[] = [];
+            // Bail early if the client already closed the connection before we
+            // even start the expensive research / retrieval phase.
+            if (aborted()) {
+              controller.close();
+              return;
+            }
             if (researchMode !== "chat") {
               try {
                 const r = await runResearch({
@@ -866,13 +882,22 @@ ${grounding}`,
             // friendly sentence + meta + [DONE] in-stream (same client shape
             // as streamFriendly) — never a raw error.
             let result: Awaited<ReturnType<typeof callModelStream>>;
+            // Skip synthesis entirely if the client closed the connection
+            // before we started — avoids a full LLM call billing hit.
+            if (aborted()) {
+              controller.close();
+              return;
+            }
             try {
               result = await callModelStream(supabase, userId, {
                 surface: "chat",
                 surface_ref: body.conversationId,
                 model,
                 messages: chatMessages,
-                signal: request.signal,
+                // Thread both the HTTP request signal and our stream-cancel
+                // signal so the runtime can abort the upstream fetch when
+                // either the client disconnects or the panel closes.
+                signal: streamAbort.signal.aborted ? streamAbort.signal : request.signal,
               });
             } catch (e) {
               const errMsg = e instanceof Error ? e.message : String(e);
@@ -912,6 +937,8 @@ ${grounding}`,
 
             try {
               while (true) {
+                // Stop forwarding chunks the moment the client is gone.
+                if (aborted()) break;
                 const { done, value } = await reader.read();
                 if (done) break;
                 buffer += decoder.decode(value, { stream: true });

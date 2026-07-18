@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -29,6 +29,91 @@ import { SkeletonBar } from "./SkeletonBar";
 
 const CHALLENGE_TOAST_ID = "obs-discover-challenge";
 const CHALLENGE_TOAST_MS = 3600;
+
+/**
+ * Thin memo wrapper that binds a row's id to the parent's stable
+ * (id: string) => void handlers, producing stable zero-arg closures once
+ * per mount. This keeps OpportunityRow's React.memo effective: the parent
+ * .map no longer recreates a new closure object on every render.
+ */
+const BoundOpportunityRow = memo(function BoundOpportunityRow({
+  id,
+  title,
+  ice,
+  rank,
+  designation,
+  sub,
+  verdict,
+  status,
+  updatedAt,
+  precedentNote,
+  criticConfidence,
+  rowBusy,
+  challengeIsPending,
+  draftSpecIsPending,
+  onOpen,
+  onChallenge,
+  onDraftSpec,
+  onLineage,
+  onSetStatus,
+  onDelete,
+}: {
+  id: string;
+  title: string;
+  ice: number;
+  rank?: number;
+  designation?: import("./ranking").Designation;
+  sub: string;
+  verdict: import("./format").VerdictWord;
+  status?: string;
+  updatedAt?: string;
+  precedentNote?: string | null;
+  criticConfidence?: number | null;
+  rowBusy: boolean;
+  challengeIsPending: boolean;
+  draftSpecIsPending: boolean;
+  onOpen: (id: string) => void;
+  onChallenge: (id: string) => void;
+  onDraftSpec: (id: string) => void;
+  onLineage: (id: string) => void;
+  onSetStatus: (id: string, status: OpportunityStatus) => void;
+  onDelete: (id: string, title: string) => void;
+}) {
+  const handleOpen = useCallback(() => onOpen(id), [onOpen, id]);
+  const handleChallenge = useCallback(() => onChallenge(id), [onChallenge, id]);
+  const handleDraftSpec = useCallback(() => onDraftSpec(id), [onDraftSpec, id]);
+  const handleLineage = useCallback(() => onLineage(id), [onLineage, id]);
+  const handleSetStatus = useCallback(
+    (s: OpportunityStatus) => onSetStatus(id, s),
+    [onSetStatus, id],
+  );
+  const handleDelete = useCallback(() => onDelete(id, title), [onDelete, id, title]);
+  return (
+    <OpportunityRow
+      key={id}
+      id={id}
+      ice={ice}
+      rank={rank}
+      designation={designation}
+      title={title}
+      sub={sub}
+      verdict={verdict}
+      status={status}
+      updatedAt={updatedAt}
+      precedentNote={precedentNote}
+      criticConfidence={criticConfidence}
+      actionsPending={rowBusy}
+      onOpen={handleOpen}
+      onChallenge={handleChallenge}
+      challengePending={rowBusy && challengeIsPending}
+      onDraftSpec={handleDraftSpec}
+      draftPending={rowBusy && draftSpecIsPending}
+      onLineage={handleLineage}
+      onSetStatus={handleSetStatus}
+      onDelete={handleDelete}
+    />
+  );
+});
 
 export function OpportunityQueue() {
   const navigate = useNavigate();
@@ -243,7 +328,7 @@ export function OpportunityQueue() {
   const handleDraftSpec = useCallback((id: string) => draftSpec.mutate(id), [draftSpec]);
   const handleLineage = useCallback((id: string) => setLineageId(id), []);
   const handleSetStatus = useCallback(
-    (id: string, status: OpportunityStatus) => setStatus.mutate({ id, status }),
+    (id: string, s: OpportunityStatus) => setStatus.mutate({ id, status: s }),
     [setStatus],
   );
   const handleDelete = useCallback(
@@ -360,28 +445,28 @@ export function OpportunityQueue() {
             .join(" · ");
           const rowBusy = busyIds.has(o.id);
           return (
-            <OpportunityRow
+            <BoundOpportunityRow
               key={o.id}
+              id={o.id}
               ice={iceNum(o.ice_score) ?? 0}
               rank={r.rank}
               designation={r.designation}
               title={o.title}
               sub={sub}
               verdict={verdict}
-              onOpen={() => handleOpen(o.id)}
               status={o.status}
-              id={o.id}
               updatedAt={o.updated_at}
               precedentNote={citations.data?.citations[o.id] ?? null}
               criticConfidence={o.critic_review?.confidence ?? null}
-              onChallenge={() => handleChallenge(o.id)}
-              challengePending={rowBusy && challenge.isPending}
-              actionsPending={rowBusy}
-              onDraftSpec={() => handleDraftSpec(o.id)}
-              draftPending={rowBusy && draftSpec.isPending}
-              onLineage={() => handleLineage(o.id)}
-              onSetStatus={(status) => handleSetStatus(o.id, status)}
-              onDelete={() => handleDelete(o.id, o.title)}
+              rowBusy={rowBusy}
+              challengeIsPending={challenge.isPending}
+              draftSpecIsPending={draftSpec.isPending}
+              onOpen={handleOpen}
+              onChallenge={handleChallenge}
+              onDraftSpec={handleDraftSpec}
+              onLineage={handleLineage}
+              onSetStatus={handleSetStatus}
+              onDelete={handleDelete}
             />
           );
         })
