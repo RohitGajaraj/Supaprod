@@ -417,12 +417,22 @@ export async function generateDigest(
   supabase: SupabaseClient,
   userId: string,
   frequency: "daily" | "weekly",
+  prefetched?: DigestPrefetched,
 ): Promise<{ generated: boolean; reason: string; subject?: string; content?: string }> {
-  const { data: prefs } = await supabase
-    .from("user_notification_preferences")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+  // When called from sendDueDigests the caller pre-fetches all prefs and per-category data
+  // in batched queries across all users. Use the pre-fetched data to skip N per-user DB round trips.
+  // When called standalone (no prefetched), fall back to the original per-user queries.
+  let prefs: DigestPrefs | null;
+  if (prefetched) {
+    prefs = prefetched.prefs;
+  } else {
+    const { data } = await supabase
+      .from("user_notification_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    prefs = data as DigestPrefs | null;
+  }
 
   const actualFrequency = prefs?.digest_frequency ?? "daily";
   if (actualFrequency !== frequency) {
@@ -441,69 +451,89 @@ export async function generateDigest(
 
   const digestItems: string[] = [];
 
-  // Parallelize all independent digest item queries using Promise.all
-  // to avoid O(N) serial round trips per digest generation
-  const [approvalsResult, healthResult, budgetResult, driftResult] = await Promise.all([
-    enabled.approval
-      ? supabase
-          .from("agent_approvals")
-          .select("tool_name,agent_slug")
-          .eq("user_id", userId)
-          .eq("status", "pending")
-      : Promise.resolve({ data: null }),
-
-    enabled.health
-      ? (() => {
-          const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
-          return supabase
-            .from("agent_runs")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", userId)
-            .in("status", ["running", "queued"])
-            .lt("created_at", cutoff);
-        })()
-      : Promise.resolve({ count: null }),
-
-    enabled.budget
-      ? supabase
-          .from("ai_budgets")
-          .select("daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
-          .eq("user_id", userId)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-
-    enabled.drift
-      ? supabase.from("drift_incidents").select("id").eq("user_id", userId).eq("status", "open")
-      : Promise.resolve({ data: null }),
-  ]);
-
-  // Process approvals result
-  if (enabled.approval && approvalsResult.data && approvalsResult.data.length > 0) {
-    digestItems.push(
-      `- Approvals: ${approvalsResult.data.length} pending tool execution approval(s).`,
-    );
-  }
-
-  // Process health result
-  if (enabled.health && healthResult.count && healthResult.count > 0) {
-    digestItems.push(`- Health: ${healthResult.count} agent run(s) are stalled or inactive.`);
-  }
-
-  // Process budget result
-  if (enabled.budget && budgetResult.data) {
-    const budget = budgetResult.data;
-    const dUsed = budget.daily_usd_used ?? 0;
-    const dCap = budget.daily_usd_cap ?? 0;
-    if (dCap > 0 && dUsed >= dCap * 0.8) {
-      digestItems.push(`- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`);
+  if (prefetched) {
+    // Use pre-fetched Maps — zero additional DB queries for these four categories
+    if (enabled.approval && prefetched.approvals.length > 0) {
+      digestItems.push(
+        `- Approvals: ${prefetched.approvals.length} pending tool execution approval(s).`,
+      );
     }
-  }
+    if (enabled.health && prefetched.stalledCount > 0) {
+      digestItems.push(`- Health: ${prefetched.stalledCount} agent run(s) are stalled or inactive.`);
+    }
+    if (enabled.budget && prefetched.budget) {
+      const dUsed = prefetched.budget.daily_usd_used ?? 0;
+      const dCap = prefetched.budget.daily_usd_cap ?? 0;
+      if (dCap > 0 && dUsed >= dCap * 0.8) {
+        digestItems.push(
+          `- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`,
+        );
+      }
+    }
+    if (enabled.drift && prefetched.driftCount > 0) {
+      digestItems.push(
+        `- Drift: ${prefetched.driftCount} active output drift incident(s) remain open.`,
+      );
+    }
+  } else {
+    // Standalone path: parallelize the 4 per-user queries
+    const [approvalsResult, healthResult, budgetResult, driftResult] = await Promise.all([
+      enabled.approval
+        ? supabase
+            .from("agent_approvals")
+            .select("tool_name,agent_slug")
+            .eq("user_id", userId)
+            .eq("status", "pending")
+        : Promise.resolve({ data: null }),
 
-  // Process drift result
-  if (enabled.drift && driftResult.data && driftResult.data.length > 0) {
-    digestItems.push(
-      `- Drift: ${driftResult.data.length} active output drift incident(s) remain open.`,
-    );
+      enabled.health
+        ? (() => {
+            const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
+            return supabase
+              .from("agent_runs")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", userId)
+              .in("status", ["running", "queued"])
+              .lt("created_at", cutoff);
+          })()
+        : Promise.resolve({ count: null }),
+
+      enabled.budget
+        ? supabase
+            .from("ai_budgets")
+            .select("daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
+            .eq("user_id", userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+
+      enabled.drift
+        ? supabase.from("drift_incidents").select("id").eq("user_id", userId).eq("status", "open")
+        : Promise.resolve({ data: null }),
+    ]);
+
+    if (enabled.approval && approvalsResult.data && approvalsResult.data.length > 0) {
+      digestItems.push(
+        `- Approvals: ${approvalsResult.data.length} pending tool execution approval(s).`,
+      );
+    }
+    if (enabled.health && (healthResult as { count: number | null }).count) {
+      const c = (healthResult as { count: number | null }).count!;
+      digestItems.push(`- Health: ${c} agent run(s) are stalled or inactive.`);
+    }
+    if (enabled.budget && (budgetResult as { data: unknown }).data) {
+      const budget = (budgetResult as { data: { daily_usd_used?: number; daily_usd_cap?: number } }).data!;
+      const dUsed = budget.daily_usd_used ?? 0;
+      const dCap = budget.daily_usd_cap ?? 0;
+      if (dCap > 0 && dUsed >= dCap * 0.8) {
+        digestItems.push(
+          `- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`,
+        );
+      }
+    }
+    if (enabled.drift && (driftResult as { data: unknown[] | null }).data?.length) {
+      const len = (driftResult as { data: unknown[] }).data.length;
+      digestItems.push(`- Drift: ${len} active output drift incident(s) remain open.`);
+    }
   }
 
   // JNY-05: the ambient stakeholder loop. When enabled, the digest also carries the
@@ -609,20 +639,47 @@ async function sendDueSlackDigests(supabase: SupabaseClient): Promise<number> {
   return posted;
 }
 
+// --- Batch-prefetch types used by sendDueDigests → generateDigest ---
+
+type DigestPrefs = {
+  user_id: string;
+  digest_frequency: "daily" | "weekly";
+  last_digest_sent_at: string | null;
+  digest_approvals: boolean;
+  digest_health: boolean;
+  digest_budget: boolean;
+  digest_drift: boolean;
+  digest_stakeholder_update: boolean;
+  digest_stakeholder_audience: string | null;
+};
+
+type DigestPrefetched = {
+  prefs: DigestPrefs;
+  approvals: { tool_name: string | null; agent_slug: string | null }[];
+  stalledCount: number;
+  budget: {
+    daily_usd_cap: number | null;
+    monthly_usd_cap: number | null;
+    daily_usd_used: number | null;
+    monthly_usd_used: number | null;
+  } | null;
+  driftCount: number;
+};
+
 export async function sendDueDigests(
   supabase: SupabaseClient,
 ): Promise<{ scanned: number; sent: number; slackPosted: number }> {
   const slackPosted = await sendDueSlackDigests(supabase);
 
+  // Single query fetches all columns needed for both due-check and generateDigest, eliminating
+  // the per-user re-fetch inside generateDigest (was 1 extra query per user = N extra round trips).
   const { data: prefRows } = await supabase
     .from("user_notification_preferences")
-    .select("user_id,digest_frequency,last_digest_sent_at")
+    .select(
+      "user_id,digest_frequency,last_digest_sent_at,digest_approvals,digest_health,digest_budget,digest_drift,digest_stakeholder_update,digest_stakeholder_audience",
+    )
     .limit(200);
-  const rows = (prefRows ?? []) as {
-    user_id: string;
-    digest_frequency: "daily" | "weekly";
-    last_digest_sent_at: string | null;
-  }[];
+  const rows = (prefRows ?? []) as DigestPrefs[];
   if (rows.length === 0) return { scanned: 0, sent: 0, slackPosted };
 
   const now = Date.now();
@@ -634,13 +691,44 @@ export async function sendDueDigests(
   if (due.length === 0) return { scanned: rows.length, sent: 0, slackPosted };
 
   const userIds = due.map((r) => r.user_id);
-  const { data: profileRows } = await supabase
-    .from("profiles")
-    .select("id,timezone,working_hours_start,working_hours_end")
-    .in("id", userIds);
+  const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
+
+  // Batch all per-category queries across ALL due users in parallel — 5 queries total regardless
+  // of user count (was 4N queries: 4 per user, per tick). Build per-user lookup Maps from results.
+  const [profileRows, approvalsRows, stalledRows, budgetRows, driftRows] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id,timezone,working_hours_start,working_hours_end")
+      .in("id", userIds),
+
+    supabase
+      .from("agent_approvals")
+      .select("user_id,tool_name,agent_slug")
+      .in("user_id", userIds)
+      .eq("status", "pending"),
+
+    supabase
+      .from("agent_runs")
+      .select("user_id")
+      .in("user_id", userIds)
+      .in("status", ["running", "queued"])
+      .lt("created_at", cutoff),
+
+    supabase
+      .from("ai_budgets")
+      .select("user_id,daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
+      .in("user_id", userIds),
+
+    supabase
+      .from("drift_incidents")
+      .select("user_id")
+      .in("user_id", userIds)
+      .eq("status", "open"),
+  ]);
+
   const profileById = new Map(
     (
-      (profileRows ?? []) as {
+      (profileRows.data ?? []) as {
         id: string;
         timezone: string | null;
         working_hours_start: number;
@@ -648,6 +736,36 @@ export async function sendDueDigests(
       }[]
     ).map((p) => [p.id, p]),
   );
+
+  // Build per-user Maps from the batched results
+  type ApprovalRow = { user_id: string; tool_name: string | null; agent_slug: string | null };
+  const approvalsByUser = new Map<string, ApprovalRow[]>();
+  for (const row of (approvalsRows.data ?? []) as ApprovalRow[]) {
+    const list = approvalsByUser.get(row.user_id) ?? [];
+    list.push(row);
+    approvalsByUser.set(row.user_id, list);
+  }
+
+  const stalledCountByUser = new Map<string, number>();
+  for (const row of (stalledRows.data ?? []) as { user_id: string }[]) {
+    stalledCountByUser.set(row.user_id, (stalledCountByUser.get(row.user_id) ?? 0) + 1);
+  }
+
+  type BudgetRow = {
+    user_id: string;
+    daily_usd_cap: number | null;
+    monthly_usd_cap: number | null;
+    daily_usd_used: number | null;
+    monthly_usd_used: number | null;
+  };
+  const budgetByUser = new Map<string, BudgetRow>(
+    (budgetRows.data ?? []).map((b: BudgetRow) => [b.user_id, b]),
+  );
+
+  const driftCountByUser = new Map<string, number>();
+  for (const row of (driftRows.data ?? []) as { user_id: string }[]) {
+    driftCountByUser.set(row.user_id, (driftCountByUser.get(row.user_id) ?? 0) + 1);
+  }
 
   let sent = 0;
   const nowUtc = new Date(now);
@@ -662,7 +780,14 @@ export async function sendDueDigests(
       const localHour = localHourInTimezone(nowUtc, timezone);
       if (isQuietHours(localHour, start, end)) return false; // defer to the next tick after quiet hours
 
-      const result = await generateDigest(supabase, r.user_id, r.digest_frequency);
+      const prefetched: DigestPrefetched = {
+        prefs: r,
+        approvals: approvalsByUser.get(r.user_id) ?? [],
+        stalledCount: stalledCountByUser.get(r.user_id) ?? 0,
+        budget: budgetByUser.get(r.user_id) ?? null,
+        driftCount: driftCountByUser.get(r.user_id) ?? 0,
+      };
+      const result = await generateDigest(supabase, r.user_id, r.digest_frequency, prefetched);
       return result.generated && result.reason === "sent";
     }),
   );
