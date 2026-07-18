@@ -27,14 +27,33 @@ export {
   CardFooter,
 } from "./Card";
 
+// Overlay components
+export {
+  Modal,
+  ModalPortal,
+  ModalOverlay,
+  ModalTrigger,
+  ModalClose,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+} from "./Modal";
+
+// Status / Category components
+export { Badge, badgeVariants } from "./Badge";
+
 // TODO: Additional components coming in Phase 2b
-// - Modal (Radix Dialog wrapper)
 // - Tabs (Radix Tabs wrapper)
 // - Dropdown (Radix DropdownMenu wrapper)
-// - Badge / Status chips
 // - AgentActivityTimeline (Geist Mono signature element)
 // - CodeSurface (Monaco editor wrapper)
 // - PreviewPanel (syntax-highlighted output)
 // - Select (Radix Select wrapper)
 // - Checkbox / Radio (Radix wrapper)
 // - Tooltip (Radix Tooltip wrapper)
+// - Avatar / Initials
+// - Spinner / Loading states
