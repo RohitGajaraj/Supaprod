@@ -31,6 +31,31 @@ export const EMB_DIMS = 1536; // unchanged — Cohere embed-v4 native max is als
 const BATCH = 64;
 const MAX_INPUT_CHARS = 32_000;
 
+// In-process embedding cache: keyed by "<model>:<sha256-hex>" so a BYO model switch
+// never serves a vector from a different model. TTL is 24h (model weights are stable
+// within a Worker isolate lifetime; Cloudflare Workers restart frequently enough that
+// the Map never grows unbounded). Eviction is opportunistic on every cache write.
+const EMBED_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const embedCache = new Map<string, { vector: number[]; expiresAt: number }>();
+
+/** Compute a short deterministic cache key for a single input string + model. */
+async function embedCacheKey(model: string, text: string): Promise<string> {
+  const encoded = new TextEncoder().encode(text);
+  const hashBuf = await crypto.subtle.digest("SHA-256", encoded);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  const hex = hashArr.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${model}:${hex}`;
+}
+
+/** Opportunistically evict expired entries. Called on every cache write to keep
+ *  the Map bounded without a dedicated background timer (not available in Workers). */
+function evictExpiredEmbedCache(): void {
+  const now = Date.now();
+  for (const [k, v] of embedCache) {
+    if (v.expiresAt <= now) embedCache.delete(k);
+  }
+}
+
 export type EmbedContext = {
   /** User-scoped or service client used to write the ai_events telemetry row + load a BYO key. */
   supabase?: SupabaseClient;
@@ -162,30 +187,63 @@ export async function embedThroughChokepoint(
   if (inputs.length === 0) return [];
   const route = await resolveEmbedRoute(opts);
   const started = Date.now();
-  const out: number[][] = [];
-  let usageTokens = 0;
-  // Batch in chunks of 64 to stay well under the 256 limit.
-  for (let i = 0; i < inputs.length; i += BATCH) {
-    const slice = inputs.slice(i, i + BATCH).map((s) => s.slice(0, MAX_INPUT_CHARS));
-    const res = await fetch(route.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${route.key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: route.model, input: slice, dimensions: EMB_DIMS }),
-    });
-    if (!res.ok) {
-      // Redact any echoed key material before the body reaches an error / log (defense in depth).
-      const body = (await res.text()).slice(0, 200).replace(/sk-[A-Za-z0-9_-]{8,}/g, "sk-***");
-      throw new Error(`embeddings ${res.status}: ${body}`);
+  const out: number[][] = new Array(inputs.length);
+  const now = Date.now();
+
+  // Check the in-process cache first. Collect indices that are cache misses.
+  const missIndices: number[] = [];
+  const missTexts: string[] = [];
+  const cacheKeys: string[] = await Promise.all(
+    inputs.map((text) => embedCacheKey(route.logModel, text.slice(0, MAX_INPUT_CHARS))),
+  );
+  for (let i = 0; i < inputs.length; i++) {
+    const entry = embedCache.get(cacheKeys[i]);
+    if (entry && entry.expiresAt > now) {
+      out[i] = entry.vector;
+    } else {
+      missIndices.push(i);
+      missTexts.push(inputs[i]);
     }
-    const j = (await res.json()) as {
-      data: { embedding: number[]; index: number }[];
-      usage?: { prompt_tokens?: number; total_tokens?: number };
-    };
-    for (const row of j.data) out[i + row.index] = row.embedding;
-    usageTokens += j.usage?.prompt_tokens ?? j.usage?.total_tokens ?? 0;
   }
-  const inTok = usageTokens > 0 ? usageTokens : estimateEmbedTokens(inputs);
-  await logEmbedEvent(opts, route, inTok, Date.now() - started);
+
+  let usageTokens = 0;
+  if (missTexts.length > 0) {
+    // Batch in chunks of 64 to stay well under the 256 limit.
+    for (let b = 0; b < missTexts.length; b += BATCH) {
+      const slice = missTexts.slice(b, b + BATCH).map((s) => s.slice(0, MAX_INPUT_CHARS));
+      const res = await fetch(route.url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${route.key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: route.model, input: slice, dimensions: EMB_DIMS }),
+      });
+      if (!res.ok) {
+        // Redact any echoed key material before the body reaches an error / log (defense in depth).
+        const body = (await res.text()).slice(0, 200).replace(/sk-[A-Za-z0-9_-]{8,}/g, "sk-***");
+        throw new Error(`embeddings ${res.status}: ${body}`);
+      }
+      const j = (await res.json()) as {
+        data: { embedding: number[]; index: number }[];
+        usage?: { prompt_tokens?: number; total_tokens?: number };
+      };
+      for (const row of j.data) {
+        const globalIdx = missIndices[b + row.index];
+        out[globalIdx] = row.embedding;
+        // Populate cache; evict expired entries on every write to keep Map bounded.
+        embedCache.set(cacheKeys[globalIdx], {
+          vector: row.embedding,
+          expiresAt: Date.now() + EMBED_CACHE_TTL_MS,
+        });
+      }
+      evictExpiredEmbedCache();
+      usageTokens += j.usage?.prompt_tokens ?? j.usage?.total_tokens ?? 0;
+    }
+  }
+
+  // Log only the tokens actually sent to the API (cache hits are free).
+  if (missTexts.length > 0) {
+    const inTok = usageTokens > 0 ? usageTokens : estimateEmbedTokens(missTexts);
+    await logEmbedEvent(opts, route, inTok, Date.now() - started);
+  }
   return out;
 }
 
