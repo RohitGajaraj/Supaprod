@@ -64,12 +64,19 @@ export {
 // Loading states
 export { Spinner } from "./Spinner";
 
-// TODO: Additional components coming in Phase 2c
+// Form controls
+export { Checkbox } from "./Checkbox";
+
+// Supaprod signature element
+export { AgentActivityTimeline, TimelineEntry } from "./AgentActivityTimeline";
+
+// TODO: Additional components for Phase 3+ (lower priority for MVP)
 // - Dropdown (Radix DropdownMenu wrapper)
-// - AgentActivityTimeline (Geist Mono signature element)
 // - CodeSurface (Monaco editor wrapper)
 // - PreviewPanel (syntax-highlighted output)
-// - Checkbox / Radio (Radix wrapper)
+// - Radio (Radix wrapper)
 // - Tooltip (Radix Tooltip wrapper)
 // - Avatar / Initials
 // - Pagination
+// - Breadcrumb
+// - Collapsible / Accordion
