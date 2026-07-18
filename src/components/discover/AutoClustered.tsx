@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -390,6 +390,21 @@ export function AutoClustered() {
 
   const shown = showAll ? themeList : themeList.slice(0, VISIBLE);
 
+  // Memoize handlers to prevent ThemeRow memo defeat
+  const handleOpenDetail = useCallback((id: string) => setOpenThemeId(id), []);
+  const handlePromote = useCallback(
+    (id: string) => promoteTheme.mutate(id),
+    [promoteTheme],
+  );
+  const handleDraftSpec = useCallback(
+    (id: string) => draftThemeSpec.mutate(id),
+    [draftThemeSpec],
+  );
+  const handleAsk = useCallback(
+    (themeId: string, title: string) => askTheme.mutate({ themeId, title }),
+    [askTheme],
+  );
+
   return (
     <div className="grid gap-3">
       <HeaderRow count={themeList.length} />
@@ -429,10 +444,10 @@ export function AutoClustered() {
               signalCount={t.frequency}
               sourceCount={sourceCount}
               actionsPending={busyIds.has(t.id)}
-              onOpenDetail={(id) => setOpenThemeId(id)}
-              onPromote={() => promoteTheme.mutate(t.id)}
-              onDraftSpec={() => draftThemeSpec.mutate(t.id)}
-              onAsk={() => askTheme.mutate({ themeId: t.id, title: t.title })}
+              onOpenDetail={handleOpenDetail}
+              onPromote={() => handlePromote(t.id)}
+              onDraftSpec={() => handleDraftSpec(t.id)}
+              onAsk={() => handleAsk(t.id, t.title)}
             />
           );
         })

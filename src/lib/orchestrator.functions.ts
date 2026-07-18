@@ -11,6 +11,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import pLimit from "p-limit";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
@@ -286,55 +287,84 @@ export const dispatchPRDToLinear = createServerFn({ method: "POST" })
 
     const dispatched: DispatchResult["dispatched"] = [];
     const skipped: string[] = [...dangling.map((t) => t.id)];
+    const syncMappingsToInsert: Array<{
+      user_id: string;
+      provider: string;
+      local_kind: string;
+      local_id: string;
+      external_id: string;
+      external_url: string;
+      last_pushed_at: string;
+      version_local: number;
+    }> = [];
 
-    for (const t of toDispatch) {
-      try {
-        const r = await linearGql<{
-          issueCreate: { success: boolean; issue: { id: string; url: string } };
-        }>(
-          `mutation($input: IssueCreateInput!) {
-            issueCreate(input: $input) { success issue { id url } }
-          }`,
-          {
-            input: {
-              teamId: data.teamId,
-              title: t.title,
-              priority: toLinearPriority(t.priority),
+    // Parallelize Linear API calls with concurrency limit of 4
+    const limit = pLimit(4);
+    const dispatchPromises = toDispatch.map((t) =>
+      limit(async () => {
+        try {
+          const r = await linearGql<{
+            issueCreate: { success: boolean; issue: { id: string; url: string } };
+          }>(
+            `mutation($input: IssueCreateInput!) {
+              issueCreate(input: $input) { success issue { id url } }
+            }`,
+            {
+              input: {
+                teamId: data.teamId,
+                title: t.title,
+                priority: toLinearPriority(t.priority),
+              },
             },
-          },
-        );
+          );
 
-        if (r.issueCreate.success) {
-          const { error: insertErr } = await supabase.from("sync_mappings").insert({
-            user_id: userId,
-            provider: "linear",
-            local_kind: "task",
-            local_id: t.id,
-            external_id: r.issueCreate.issue.id,
-            external_url: r.issueCreate.issue.url,
-            last_pushed_at: new Date().toISOString(),
-            version_local: 1,
-          } as never);
-          if (insertErr) {
-            // Issue was created in Linear but idempotency record failed.
-            // Push to skipped so the caller retries (may create a duplicate issue in Linear,
-            // but that is preferable to silently losing the tracking record).
-            console.error("[dispatchPRDToLinear] sync_mappings insert failed:", insertErr.message);
-            skipped.push(t.id);
-          } else {
+          if (r.issueCreate.success) {
+            syncMappingsToInsert.push({
+              user_id: userId,
+              provider: "linear",
+              local_kind: "task",
+              local_id: t.id,
+              external_id: r.issueCreate.issue.id,
+              external_url: r.issueCreate.issue.url,
+              last_pushed_at: new Date().toISOString(),
+              version_local: 1,
+            });
             dispatched.push({
               taskId: t.id,
               issueId: r.issueCreate.issue.id,
               url: r.issueCreate.issue.url,
               title: t.title,
             });
+          } else {
+            skipped.push(t.id);
           }
-        } else {
+        } catch (e) {
+          // One issue failing must not abort the rest; caller sees skipped list
+          console.error(`[dispatchPRDToLinear] Task ${t.id} dispatch failed:`, e);
           skipped.push(t.id);
         }
-      } catch {
-        // One issue failing must not abort the rest; caller sees skipped list
-        skipped.push(t.id);
+      }),
+    );
+
+    // Wait for all parallel Linear API calls to complete
+    await Promise.all(dispatchPromises);
+
+    // Batch insert all sync_mappings records at once
+    if (syncMappingsToInsert.length > 0) {
+      const { error: batchErr } = await supabase
+        .from("sync_mappings")
+        .insert(syncMappingsToInsert as never);
+      if (batchErr) {
+        // Batch insert failed; remove those tasks from dispatched list
+        console.error("[dispatchPRDToLinear] Batch sync_mappings insert failed:", batchErr.message);
+        const failedIds = new Set(syncMappingsToInsert.map((m) => m.local_id));
+        const stillDispatched = dispatched.filter((d) => !failedIds.has(d.taskId));
+        const newlySkipped = dispatched
+          .filter((d) => failedIds.has(d.taskId))
+          .map((d) => d.taskId);
+        dispatched.length = 0;
+        dispatched.push(...stillDispatched);
+        skipped.push(...newlySkipped);
       }
     }
 

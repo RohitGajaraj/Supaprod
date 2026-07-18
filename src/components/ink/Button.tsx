@@ -38,42 +38,36 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          cn(
-            "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]",
-            "hover:bg-[var(--ds-gray-900)]",
-            "active:bg-[var(--ds-gray-800)]",
-          ),
-        primary:
-          cn(
-            "bg-[var(--ds-ember-600)] text-[var(--ds-background-100)]",
-            "hover:bg-[var(--ds-ember-700)]",
-            "active:bg-[var(--ds-ember-800)]",
-          ),
-        secondary:
-          cn(
-            "border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)]",
-            "bg-transparent hover:bg-[var(--ds-gray-100)]",
-            "active:bg-[var(--ds-gray-200)]",
-          ),
-        ghost:
-          cn(
-            "text-[var(--ds-gray-1000)] bg-transparent",
-            "hover:bg-[var(--ds-gray-100)]",
-            "active:bg-[var(--ds-gray-200)]",
-          ),
-        destructive:
-          cn(
-            "bg-[var(--ds-red-600)] text-[var(--ds-background-100)]",
-            "hover:bg-[var(--ds-red-700)]",
-            "active:bg-[var(--ds-red-800)]",
-          ),
-        link:
-          cn(
-            "text-[var(--ds-blue-600)] bg-transparent underline underline-offset-4",
-            "hover:text-[var(--ds-blue-700)]",
-            "active:text-[var(--ds-blue-800)]",
-          ),
+        default: cn(
+          "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]",
+          "hover:bg-[var(--ds-gray-900)]",
+          "active:bg-[var(--ds-gray-800)]",
+        ),
+        primary: cn(
+          "bg-[var(--ds-ember-600)] text-[var(--ds-background-100)]",
+          "hover:bg-[var(--ds-ember-700)]",
+          "active:bg-[var(--ds-ember-800)]",
+        ),
+        secondary: cn(
+          "border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)]",
+          "bg-transparent hover:bg-[var(--ds-gray-100)]",
+          "active:bg-[var(--ds-gray-200)]",
+        ),
+        ghost: cn(
+          "text-[var(--ds-gray-1000)] bg-transparent",
+          "hover:bg-[var(--ds-gray-100)]",
+          "active:bg-[var(--ds-gray-200)]",
+        ),
+        destructive: cn(
+          "bg-[var(--ds-red-600)] text-[var(--ds-background-100)]",
+          "hover:bg-[var(--ds-red-700)]",
+          "active:bg-[var(--ds-red-800)]",
+        ),
+        link: cn(
+          "text-[var(--ds-blue-600)] bg-transparent underline underline-offset-4",
+          "hover:text-[var(--ds-blue-700)]",
+          "active:text-[var(--ds-blue-800)]",
+        ),
       },
       size: {
         sm: "px-3 py-2 text-button-12",
@@ -94,8 +88,7 @@ const buttonVariants = cva(
 );
 
 interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

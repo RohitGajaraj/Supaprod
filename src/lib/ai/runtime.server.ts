@@ -385,6 +385,8 @@ export type CallOpts = {
    * by their default capability even without this. Ignored for eval/judge.
    */
   task?: Capability;
+  /** Optional AbortSignal for cancelling the request (e.g., when client disconnects) */
+  signal?: AbortSignal;
 };
 
 export type CallResult = {
@@ -493,13 +495,21 @@ async function callAnthropic(
   msgs: { role: string; content: string }[],
   url = "https://api.anthropic.com/v1/messages",
   tools?: CallOpts["tools"],
+  signal?: AbortSignal,
 ) {
   const system = msgs.find((m) => m.role === "system")?.content ?? "";
   const rest = msgs.filter((m) => m.role !== "system");
   const t0 = Date.now();
+
+  // Compose request signal (if provided) with timeout signal
+  const timeoutSignal = AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS);
+  const composedSignal = signal
+    ? AbortSignal.any([timeoutSignal, signal])
+    : timeoutSignal;
+
   const res = await fetch(url, {
     method: "POST",
-    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
+    signal: composedSignal,
     headers: {
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
@@ -598,11 +608,17 @@ async function callOpenAICompat(
   msgs: { role: string; content: string }[],
   responseFormat?: "json_object",
   tools?: CallOpts["tools"],
+  signal?: AbortSignal,
 ) {
   const t0 = Date.now();
+
+  // Compose request signal (if provided) with timeout signal
+  const timeoutSignal = AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS);
+  const composedSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+
   const res = await fetch(url, {
     method: "POST",
-    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
+    signal: composedSignal,
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model,
@@ -637,12 +653,18 @@ async function callGateway(
   msgs: { role: string; content: string }[],
   responseFormat?: "json_object",
   tools?: CallOpts["tools"],
+  signal?: AbortSignal,
 ) {
   const gw = resolveGateway(model);
   const t0 = Date.now();
+
+  // Compose request signal (if provided) with timeout signal
+  const timeoutSignal = AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS);
+  const composedSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+
   const res = await fetch(gw.url, {
     method: "POST",
-    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
+    signal: composedSignal,
     headers: { Authorization: `Bearer ${gw.key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: gw.model,
@@ -1618,7 +1640,7 @@ export async function callModel(
         provider = route.provider;
         const safeUrl = assertSafeBaseUrl(route.url);
         return route.style === "anthropic_messages"
-          ? callAnthropic(keyInfo.apiKey, route.model, messages, safeUrl, opts.tools)
+          ? callAnthropic(keyInfo.apiKey, route.model, messages, safeUrl, opts.tools, opts.signal)
           : callOpenAICompat(
               safeUrl,
               keyInfo.apiKey,
@@ -1626,12 +1648,13 @@ export async function callModel(
               messages,
               opts.responseFormat,
               opts.tools,
+              opts.signal,
             );
       }
     }
     via = "gateway";
     provider = "lovable";
-    return callGateway(model, messages, opts.responseFormat, opts.tools);
+    return callGateway(model, messages, opts.responseFormat, opts.tools, opts.signal);
   };
 
   let lastErr: unknown = null;

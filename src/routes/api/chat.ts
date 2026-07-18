@@ -838,6 +838,7 @@ ${grounding}`,
                 surface_ref: body.conversationId,
                 model,
                 messages: chatMessages,
+                signal: request.signal,
               });
             } catch (e) {
               const errMsg = e instanceof Error ? e.message : String(e);

@@ -18,14 +18,7 @@ export { Button, buttonVariants } from "./Button";
 export { Input, Textarea } from "./Input";
 
 // Surface components
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "./Card";
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./Card";
 
 // Overlay components
 export {

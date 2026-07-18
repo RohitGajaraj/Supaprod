@@ -67,13 +67,7 @@ const AgentActivityTimeline = React.forwardRef<
 ));
 AgentActivityTimeline.displayName = "AgentActivityTimeline";
 
-const TimelineEntry = ({
-  timestamp,
-  agent,
-  status,
-  action,
-  result,
-}: TimelineEntryProps) => {
+const TimelineEntry = ({ timestamp, agent, status, action, result }: TimelineEntryProps) => {
   const statusIcons = {
     pending: "○",
     running: "◐", // half-filled circle for in-progress
@@ -92,26 +86,18 @@ const TimelineEntry = ({
     <div className="mb-2 space-y-1 last:mb-0">
       {/* Timestamp + Agent + Status line */}
       <div className="flex items-center gap-3 text-[var(--ds-gray-900)]">
-        <span className="w-12 flex-shrink-0 text-[var(--ds-gray-600)]">
-          {timestamp}
-        </span>
-        <span className="w-12 flex-shrink-0 text-[var(--ds-gray-700)]">
-          {agent}
-        </span>
+        <span className="w-12 flex-shrink-0 text-[var(--ds-gray-600)]">{timestamp}</span>
+        <span className="w-12 flex-shrink-0 text-[var(--ds-gray-700)]">{agent}</span>
         <span className={cn("flex h-4 w-4 items-center justify-center", statusColors[status])}>
           {statusIcons[status]}
         </span>
-        <span className="flex-1 break-words text-[var(--ds-gray-1000)]">
-          {action}
-        </span>
+        <span className="flex-1 break-words text-[var(--ds-gray-1000)]">{action}</span>
       </div>
 
       {/* Result line (indented) */}
       {result && (
         <div className="flex items-center gap-3 pl-[calc(12rem+0.75rem)]">
-          <span className="flex-1 break-words text-[var(--ds-gray-600)]">
-            → {result}
-          </span>
+          <span className="flex-1 break-words text-[var(--ds-gray-600)]">→ {result}</span>
         </div>
       )}
     </div>

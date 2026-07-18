@@ -36,36 +36,30 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          cn(
-            "bg-[var(--ds-gray-100)] border-[var(--ds-gray-400)]",
-            "text-[var(--ds-gray-1000)]",
-          ),
-        primary:
-          cn(
-            "bg-[var(--ds-ember-100)] border-[var(--ds-ember-400)]",
-            "text-[var(--ds-ember-900)]",
-          ),
-        success:
-          cn(
-            "bg-[var(--ds-green-100)] border-[var(--ds-green-400)]",
-            "text-[var(--ds-green-900)]",
-          ),
-        warning:
-          cn(
-            "bg-[var(--ds-amber-100)] border-[var(--ds-amber-400)]",
-            "text-[var(--ds-amber-900)]",
-          ),
-        destructive:
-          cn(
-            "bg-[var(--ds-red-100)] border-[var(--ds-red-400)]",
-            "text-[var(--ds-red-900)]",
-          ),
-        info:
-          cn(
-            "bg-[var(--ds-blue-100)] border-[var(--ds-blue-400)]",
-            "text-[var(--ds-blue-900)]",
-          ),
+        default: cn(
+          "bg-[var(--ds-gray-100)] border-[var(--ds-gray-400)]",
+          "text-[var(--ds-gray-1000)]",
+        ),
+        primary: cn(
+          "bg-[var(--ds-ember-100)] border-[var(--ds-ember-400)]",
+          "text-[var(--ds-ember-900)]",
+        ),
+        success: cn(
+          "bg-[var(--ds-green-100)] border-[var(--ds-green-400)]",
+          "text-[var(--ds-green-900)]",
+        ),
+        warning: cn(
+          "bg-[var(--ds-amber-100)] border-[var(--ds-amber-400)]",
+          "text-[var(--ds-amber-900)]",
+        ),
+        destructive: cn(
+          "bg-[var(--ds-red-100)] border-[var(--ds-red-400)]",
+          "text-[var(--ds-red-900)]",
+        ),
+        info: cn(
+          "bg-[var(--ds-blue-100)] border-[var(--ds-blue-400)]",
+          "text-[var(--ds-blue-900)]",
+        ),
       },
       size: {
         sm: "px-2 py-1 text-label-12",
@@ -85,8 +79,7 @@ const badgeVariants = cva(
 );
 
 interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
   /**
    * Optional icon component (e.g., a lucide icon).
    * Rendered before text content.
@@ -96,11 +89,7 @@ interface BadgeProps
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant, size, shape, icon, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(badgeVariants({ variant, size, shape }), className)}
-      {...props}
-    >
+    <div ref={ref} className={cn(badgeVariants({ variant, size, shape }), className)} {...props}>
       {icon && <span className="flex-shrink-0">{icon}</span>}
       {children}
     </div>
