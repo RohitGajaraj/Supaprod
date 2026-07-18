@@ -1,0 +1,213 @@
+/*
+ * Ink - design system v6 (final sweep).
+ * Semantic layer inherited from the public landing (the loved baseline):
+ * ink surfaces, zinc text ramp, hairlines, and the three-voice grammar
+ * (ember = human, machine blue = agent, memory gold = memory moments only).
+ * Dark is the design target and lives on :root; light is a first-class
+ * sibling under [data-theme="light"]. System tracking is handled by
+ * use-theme.tsx. Never invent a hex outside this file.
+ */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* The three voices (color = who is speaking, never decoration) */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-machine: #6cb0f5;
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-memory: #e8b44c; /* memory moments ONLY; the gold ban holds everywhere else */
+
+  /* Verdicts (outcomes only) */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+  --verdict-working: #d9a13c;
+
+  /* Focus (landing grammar: double ring for gates, calm ring for typing) */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-machine: #2e6ed6;
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-memory: #b8860b;
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+  --verdict-working: #9a6700;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Shared crafted pieces ---------------------------------------- */
+
+/* Gate focus: the double ring (ink forms the gap). Buttons, links, gates. */
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+
+/* Typing focus: calm single ring. Inputs are not gates. */
+.ink-input-focus:focus-visible,
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+/* The container carries the ring; inner fields never double-ring. Overrides
+   the legacy app-wide focus styles until the Phase 4 purge removes them. */
+.ink-input-focus textarea:focus,
+.ink-input-focus textarea:focus-visible,
+.ink-input-focus input:focus,
+.ink-input-focus input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ink-panel {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+}
+
+.ink-hairline-b {
+  border-bottom: 1px solid var(--ink-hairline);
+}
+
+/* Mono machine voice: kickers, trace rows, timestamps, counts. */
+.ink-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.ink-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Streaming text caret for agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}

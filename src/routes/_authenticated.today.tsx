@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/supaprod/TopBar";
+import { TodayCommandBlock } from "@/components/today/TodayCommandBlock";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
@@ -1148,6 +1149,9 @@ function Dashboard() {
             data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
           />
         ) : null}
+        {/* Rescued from the archived rebuild (founder keep-list, 2026-07-18):
+            the working sentence box + the one door to the approvals queue. */}
+        <TodayCommandBlock />
         {needsYouLoaded ? (
           <>
             {/* Cold workspace: the on-ramp IS the hero (never co-renders with

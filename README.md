@@ -111,7 +111,7 @@ Positioning rule: **"Supaprod orchestrates the models; it does not compete with 
 
 ## Six stations, one loop (the platform offering)
 
-Supaprod delivers all six stations end to end. The engine runs a 12-stage loop internally; the operator sees **six stations**, each run by named specialist agents (full mesh: 19 agents, sub-agents, handoff contract, HITL gates, in [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md)). **BUILD is a governed station** (own engine, or dispatched to Lovable / Cursor / Devin under the same governance); the un-commoditizable ends (SENSE, DECIDE, LEARN) are where the moat lives:
+Supaprod delivers all six stations end to end. The engine runs a 12-stage loop internally; the operator sees **six stations**, each run by named specialist agents (the concrete 13-agent roster: 12 specialists + the Chief of Staff conductor (registry: docs/planning/Supaprod Final Sweep/agent-roster.md), sub-agents, handoff contract, HITL gates, in [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md)). **BUILD is a governed station** (own engine, or dispatched to Lovable / Cursor / Devin under the same governance); the un-commoditizable ends (SENSE, DECIDE, LEARN) are where the moat lives:
 
 1. **SENSE:** Scout, Listener, Researcher, Quant ingest everything users feel, say, and do (support, meetings, reviews, analytics, competitor moves) into one cited signal stream.
 2. **DECIDE:** Strategist keeps a living, re-scored opportunity queue; Critic red-teams every candidate before the human ever sees it.

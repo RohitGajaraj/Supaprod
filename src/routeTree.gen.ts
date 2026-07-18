@@ -79,6 +79,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated.budgets'
 import { Route as AuthenticatedBriefingRouteImport } from './routes/_authenticated.briefing'
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
+import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated.approvals'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated.agents'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
@@ -101,6 +102,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
 import { Route as AuthenticatedBuildMissionIdRouteImport } from './routes/_authenticated.build.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
+import { Route as AuthenticatedAdminRoutingRouteImport } from './routes/_authenticated.admin.routing'
 import { Route as AuthenticatedAdminProofRouteImport } from './routes/_authenticated.admin.proof'
 import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authenticated.admin.pricing'
 import { Route as AuthenticatedAdminPlatformRouteImport } from './routes/_authenticated.admin.platform'
@@ -524,6 +526,11 @@ const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
   path: '/brain',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -641,6 +648,12 @@ const AuthenticatedAdminWorkspacesRoute =
   AuthenticatedAdminWorkspacesRouteImport.update({
     id: '/workspaces',
     path: '/workspaces',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminRoutingRoute =
+  AuthenticatedAdminRoutingRouteImport.update({
+    id: '/routing',
+    path: '/routing',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminProofRoute = AuthenticatedAdminProofRouteImport.update({
@@ -1062,6 +1075,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1122,6 +1136,7 @@ export interface FileRoutesByFullPath {
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/admin/proof': typeof AuthenticatedAdminProofRoute
+  '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -1222,6 +1237,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1281,6 +1297,7 @@ export interface FileRoutesByTo {
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/admin/proof': typeof AuthenticatedAdminProofRoute
+  '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -1384,6 +1401,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/agents': typeof AuthenticatedAgentsRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/briefing': typeof AuthenticatedBriefingRoute
   '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
@@ -1444,6 +1462,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/_authenticated/admin/pricing': typeof AuthenticatedAdminPricingRoute
   '/_authenticated/admin/proof': typeof AuthenticatedAdminProofRoute
+  '/_authenticated/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/_authenticated/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -1547,6 +1566,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/analytics'
+    | '/approvals'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -1607,6 +1627,7 @@ export interface FileRouteTypes {
     | '/admin/platform'
     | '/admin/pricing'
     | '/admin/proof'
+    | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
     | '/meetings/$id'
@@ -1707,6 +1728,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/agents'
     | '/analytics'
+    | '/approvals'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -1766,6 +1788,7 @@ export interface FileRouteTypes {
     | '/admin/platform'
     | '/admin/pricing'
     | '/admin/proof'
+    | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
     | '/meetings/$id'
@@ -1868,6 +1891,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/agents'
     | '/_authenticated/analytics'
+    | '/_authenticated/approvals'
     | '/_authenticated/brain'
     | '/_authenticated/briefing'
     | '/_authenticated/budgets'
@@ -1928,6 +1952,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/platform'
     | '/_authenticated/admin/pricing'
     | '/_authenticated/admin/proof'
+    | '/_authenticated/admin/routing'
     | '/_authenticated/admin/workspaces'
     | '/_authenticated/build/$missionId'
     | '/_authenticated/meetings/$id'
@@ -2595,6 +2620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/approvals': {
+      id: '/_authenticated/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
@@ -2747,6 +2779,13 @@ declare module '@tanstack/react-router' {
       path: '/workspaces'
       fullPath: '/admin/workspaces'
       preLoaderRoute: typeof AuthenticatedAdminWorkspacesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/routing': {
+      id: '/_authenticated/admin/routing'
+      path: '/routing'
+      fullPath: '/admin/routing'
+      preLoaderRoute: typeof AuthenticatedAdminRoutingRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/proof': {
@@ -3235,6 +3274,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPlatformRoute: typeof AuthenticatedAdminPlatformRoute
   AuthenticatedAdminPricingRoute: typeof AuthenticatedAdminPricingRoute
   AuthenticatedAdminProofRoute: typeof AuthenticatedAdminProofRoute
+  AuthenticatedAdminRoutingRoute: typeof AuthenticatedAdminRoutingRoute
   AuthenticatedAdminWorkspacesRoute: typeof AuthenticatedAdminWorkspacesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -3246,6 +3286,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPlatformRoute: AuthenticatedAdminPlatformRoute,
   AuthenticatedAdminPricingRoute: AuthenticatedAdminPricingRoute,
   AuthenticatedAdminProofRoute: AuthenticatedAdminProofRoute,
+  AuthenticatedAdminRoutingRoute: AuthenticatedAdminRoutingRoute,
   AuthenticatedAdminWorkspacesRoute: AuthenticatedAdminWorkspacesRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
@@ -3294,6 +3335,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedBriefingRoute: typeof AuthenticatedBriefingRoute
   AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
@@ -3352,6 +3394,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedBriefingRoute: AuthenticatedBriefingRoute,
   AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,

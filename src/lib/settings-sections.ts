@@ -24,7 +24,8 @@ export type SectionId =
   | "profile"
   | "health"
   | "data"
-  | "notifications";
+  | "notifications"
+  | "memory";
 
 export type GroupId = "you" | "workspace" | "connections" | "plan";
 
@@ -60,6 +61,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       { id: "staff", label: "AI staff" },
       { id: "products", label: "Products" },
       { id: "ai", label: "AI & keys" },
+      { id: "memory", label: "Memory" },
     ],
   },
   {
