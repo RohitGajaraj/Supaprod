@@ -46,14 +46,30 @@ export {
 // Status / Category components
 export { Badge, badgeVariants } from "./Badge";
 
-// TODO: Additional components coming in Phase 2b
-// - Tabs (Radix Tabs wrapper)
+// Tab navigation
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "./Tabs";
+
+// Dropdowns / Selection
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+} from "./Select";
+
+// Loading states
+export { Spinner } from "./Spinner";
+
+// TODO: Additional components coming in Phase 2c
 // - Dropdown (Radix DropdownMenu wrapper)
 // - AgentActivityTimeline (Geist Mono signature element)
 // - CodeSurface (Monaco editor wrapper)
 // - PreviewPanel (syntax-highlighted output)
-// - Select (Radix Select wrapper)
 // - Checkbox / Radio (Radix wrapper)
 // - Tooltip (Radix Tooltip wrapper)
 // - Avatar / Initials
-// - Spinner / Loading states
+// - Pagination
