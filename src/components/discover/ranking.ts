@@ -266,6 +266,12 @@ export function deriveDesignation(input: {
  * Rank a list of opportunities into a deterministic total order. Returns a new
  * array (does not mutate the input) of ranked entries, 1-based and contiguous,
  * with exactly one `isBestBet` (rank 1) whenever the list is non-empty.
+ *
+ * Implemented via Schwartzian transform (decorate-sort-undecorate) to eliminate
+ * O(n log n) redundant function calls: verdictFor, scoreOf, timeOf, and the
+ * callback functions (corroborationOf, etc.) are computed once per item (O(n)),
+ * then the sort operates on cached values. This is critical for large
+ * opportunity lists where the callbacks are expensive.
  */
 export function rankOpportunities<T extends RankableOpportunity>(
   opps: readonly T[],
@@ -273,29 +279,74 @@ export function rankOpportunities<T extends RankableOpportunity>(
   outcomeSupportOf: (opp: T) => number = () => 0,
   briefAlignmentOf: (opp: T) => number = () => 0,
 ): RankedOpportunity<T>[] {
-  const sorted = [...opps].sort((a, b) =>
-    compareOpportunities(a, b, corroborationOf, outcomeSupportOf, briefAlignmentOf),
-  );
-  return sorted.map((opp, index) => {
+  // Decorate: precompute all derived values once per item (O(n))
+  type Decorated = {
+    opp: T;
+    ice: number;
+    verdict: VerdictWord;
+    verdictRank: number;
+    briefAlignment: number;
+    outcomeSupport: number;
+    corroboration: number;
+    confidence: number;
+    impact: number;
+    createdMs: number;
+    id: string;
+  };
+
+  const decorated: Decorated[] = opps.map((opp) => ({
+    opp,
+    ice: scoreOf(opp),
+    verdict: verdictFor(opp),
+    verdictRank: verdictRankOf(verdictFor(opp)),
+    briefAlignment: briefAlignmentOf(opp),
+    outcomeSupport: outcomeSupportOf(opp),
+    corroboration: corroborationOf(opp),
+    confidence: opp.confidence ?? 0,
+    impact: opp.impact ?? 0,
+    createdMs: timeOf(opp.created_at),
+    id: opp.id,
+  }));
+
+  // Sort: compare using only precomputed values (O(n log n), no callback overhead)
+  const sorted = decorated.sort((a, b) => {
+    if (b.ice !== a.ice) return b.ice - a.ice;
+    if (b.verdictRank !== a.verdictRank) return b.verdictRank - a.verdictRank;
+    if (b.briefAlignment !== a.briefAlignment) return b.briefAlignment - a.briefAlignment;
+    if (b.outcomeSupport !== a.outcomeSupport) return b.outcomeSupport - a.outcomeSupport;
+    if (b.corroboration !== a.corroboration) return b.corroboration - a.corroboration;
+    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
+    if (b.impact !== a.impact) return b.impact - a.impact;
+    if (a.createdMs !== b.createdMs) return a.createdMs - b.createdMs;
+    if (a.id < b.id) return -1;
+    if (a.id > b.id) return 1;
+    return 0;
+  });
+
+  // Undecorate: map back to final shape (O(n))
+  return sorted.map((decorated, index) => {
     const rank = index + 1;
-    const corroboration = corroborationOf(opp);
-    const outcomeSupport = outcomeSupportOf(opp);
-    const briefAlignment = briefAlignmentOf(opp);
     return {
-      opp,
+      opp: decorated.opp,
       rank,
       isBestBet: rank === 1,
       designation: deriveDesignation({
         rank,
-        verdict: verdictFor(opp),
-        impact: opp.impact,
-        ease: opp.ease,
-        corroboration,
+        verdict: decorated.verdict,
+        impact: decorated.impact,
+        ease: decorated.opp.ease,
+        corroboration: decorated.corroboration,
       }),
-      rationale: rationaleFor(opp, rank, corroboration, outcomeSupport, briefAlignment),
-      nextAction: nextActionFor(opp),
-      outcomeSupport,
-      briefAlignment,
+      rationale: rationaleFor(
+        decorated.opp,
+        rank,
+        decorated.corroboration,
+        decorated.outcomeSupport,
+        decorated.briefAlignment,
+      ),
+      nextAction: nextActionFor(decorated.opp),
+      outcomeSupport: decorated.outcomeSupport,
+      briefAlignment: decorated.briefAlignment,
     };
   });
 }
