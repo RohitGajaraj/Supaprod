@@ -88,9 +88,22 @@ export async function appJwt(): Promise<string> {
 
 const installTokenCache = new Map<string, { token: string; expiresAt: number }>();
 
+/** Evict all expired entries from installTokenCache. Called on every write so the Map
+ *  never accumulates stale entries for the Worker isolate's lifetime in multi-tenant use. */
+function evictExpiredInstallTokens(): void {
+  const now = Date.now();
+  for (const [k, v] of installTokenCache) {
+    if (v.expiresAt <= now) installTokenCache.delete(k);
+  }
+}
+
 export async function mintInstallationToken(installationId: string): Promise<string> {
   const cached = installTokenCache.get(installationId);
-  if (cached && cached.expiresAt > Date.now()) return cached.token;
+  // Delete and skip the entry if it is expired; fall through to mint a fresh token.
+  if (cached) {
+    if (cached.expiresAt > Date.now()) return cached.token;
+    installTokenCache.delete(installationId);
+  }
   const jwt = await appJwt();
   const res = await fetch(`${GH_API}/app/installations/${installationId}/access_tokens`, {
     method: "POST",
@@ -103,6 +116,8 @@ export async function mintInstallationToken(installationId: string): Promise<str
   }
   const body = (await res.json()) as { token?: string };
   if (!body.token) throw new Error("GitHub installation token response missing token");
+  // Evict stale entries before inserting so the Map stays bounded across many installations.
+  evictExpiredInstallTokens();
   installTokenCache.set(installationId, {
     token: body.token,
     expiresAt: Date.now() + 50 * 60 * 1000,
