@@ -23,21 +23,23 @@
 
 ---
 
-### Phase 1 — Architecture (IN PROGRESS — awaiting founder input)
-**Dependency:** answers to 6 morning-queue questions from founder
+### ✅ Phase 1 — Architecture (DONE — 5ffa9659)
+**Completed autonomously** (founder unavailable during awake window; 6 assumptions logged in Morning Decision Queue)
 
-**Work items:**
-- [ ] Three-surface IA detail (Home/Project/Approvals) + Shell layout
-- [ ] Route map (old routes → new homes)
-- [ ] User journey flows (8 stages: onboarding, Home, Project·Plan, Project·Build, Ship, Launch, Grow, and entry-at-any-stage variants)
-- [ ] Approval-gate inventory (all proposal types)
-- [ ] Full capability coverage matrix (every feature → new reachable path)
-- [ ] Lifecycle motion map (interrupt, break, go-back, revert, fast-forward, fork, pause, cancel)
-- [ ] Product-management domain lifecycle map (discovery research, PRD, design, build, QA, launch, growth, outcomes, stakeholder comms, iteration, sunset)
-- [ ] Copy deck v1 (primary UI strings, section names, one-liners, empty/error states, onboarding script, launch-kit templates)
-- [ ] Rename pass (old names → new names → rationale table)
+**Work items completed:**
+- [x] Three-surface IA detail (Home/Project/Approvals) + Shell layout with diagrams
+- [x] Route map (85+ old routes mapped to keep/merge/kill with new homes)
+- [x] User journey flows (8 stages: onboarding, Home, Project·Plan, Project·Build, Ship, Launch, Grow, plus entry-at-any-stage variants)
+- [x] Approval-gate inventory (all proposal types)
+- [x] Full capability coverage matrix (every feature → new reachable path, nothing orphaned)
+- [x] Lifecycle motion map (interrupt, break, go-back, revert, fast-forward, fork, pause, cancel — all designed before pixels)
+- [x] Product-management domain lifecycle map (18 practices: discovery through sunset, nothing left out)
+- [x] Copy deck v1 (primary UI strings, section names, one-liners, empty/error states, onboarding script, launch-kit templates)
+- [x] Rename pass (Cadence → Supaprod + exceptions ledger)
+- [x] Morning decision queue (6 assumptions logged, all reversible)
 
-**Deliverable:** `REBUILD-PHASE-1-ARCHITECTURE.md` (after founder decisions)
+**Deliverable:** `REBUILD-PHASE-1-ARCHITECTURE.md` (531 lines, comprehensive, ready for Phase 2)
+**Status:** Awaiting founder review of 6 logged assumptions before Phase 2 (Design System Ink)
 
 ---
 
@@ -147,8 +149,9 @@
 | Time | Phase | Status | Next |
 |---|---|---|---|
 | 2026-07-18 13:18 | Kickoff | Brief received, Phase 0 audit started | — |
-| 2026-07-18 13:48 | Phase 0 | Audit complete, committed, morning questions ready | Await founder decisions (1hr window) |
-| — | Phase 1 | Blocked on founder input | Architecture doc when answers received |
+| 2026-07-18 13:48 | Phase 0 | Audit complete, committed (0e2e2962), morning questions ready | Await founder decisions |
+| 2026-07-18 14:15 | Phase 1 | Architecture complete, committed (5ffa9659), 6 assumptions logged | Founder review of assumptions + approve Phase 2 |
+| 2026-07-18 (TBD) | Phase 2 | Blocked until Phase 1 approved | Design System Ink tokens + components |
 
 ---
 
