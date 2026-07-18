@@ -1149,9 +1149,6 @@ function Dashboard() {
             data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
           />
         ) : null}
-        {/* Rescued from the archived rebuild (founder keep-list, 2026-07-18):
-            the working sentence box + the one door to the approvals queue. */}
-        <TodayCommandBlock />
         {needsYouLoaded ? (
           <>
             {/* Cold workspace: the on-ramp IS the hero (never co-renders with
@@ -1168,6 +1165,9 @@ function Dashboard() {
                 onAnswer={featured ? () => setActiveCallId(featured.id) : undefined}
               />
             )}
+            {/* Founder ruling 2026-07-18: the greeting card is the fixed top
+                of Today; the sentence box comes after it. */}
+            <TodayCommandBlock />
           </>
         ) : (
           <>

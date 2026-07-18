@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLiveActivity, type LiveActivity } from "@/lib/agents.functions";
+import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { AiPulse } from "@/components/obsidian/AiPulse";
 
 /** Polls stop while the tab is hidden, resume on the next visible tick. */
@@ -39,14 +40,37 @@ export function useLiveActivity(): LiveActivity {
  */
 export function LiveTicker() {
   const a = useLiveActivity();
+  // Founder ruling 2026-07-18: "Waiting on you" IS the approvals affordance,
+  // so it must do the job completely. It stays visible with the live count
+  // whenever ANYTHING sits in the federated queue (not only while an agent
+  // run is mid-pause), and clicking it opens the one queue.
+  const fetchQueue = useServerFn(getApprovalsQueue);
+  const queue = useQuery({
+    queryKey: ["approvals", "queue"],
+    queryFn: () => fetchQueue(),
+    refetchInterval: pollWhenVisible(30_000),
+    placeholderData: keepPreviousData,
+  });
+  const waitingCount = queue.data?.items?.length ?? 0;
+
+  if (waitingCount > 0 || a.state === "waiting") {
+    const label =
+      waitingCount > 0
+        ? `${waitingCount} waiting on you`
+        : a.action || "Waiting on you";
+    return (
+      <Link
+        to="/approvals"
+        style={{ textDecoration: "none", minWidth: 0 }}
+        aria-label={`Open the approvals queue (${label})`}
+      >
+        <AiPulse label={label} state="waiting" style={{ maxWidth: 260 }} />
+      </Link>
+    );
+  }
+
   if (a.state === "idle" || !a.action) return null;
-  const inner = (
-    <AiPulse
-      label={a.action}
-      state={a.state === "waiting" ? "waiting" : "working"}
-      style={{ maxWidth: 260 }}
-    />
-  );
+  const inner = <AiPulse label={a.action} state="working" style={{ maxWidth: 260 }} />;
   return a.missionId ? (
     <Link
       to="/build/$missionId"
