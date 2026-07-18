@@ -1,0 +1,192 @@
+# Supaprod Front-End Rebuild — Progress Tracker
+
+**Rebuild kickoff:** 2026-07-18 13:18 IST  
+**Founder awake window:** ~14:18 (1 hour from kickoff)  
+**Target completion:** 2026-07-20 (2-3 days, phase-gated)  
+**Build mode:** Full code, terse docs, zero prose overhead
+
+---
+
+## PHASES
+
+### ✅ Phase 0 — Audit (DONE)
+- [x] Taste document extracted (Vercel-grade premium/minimal)
+- [x] Token extraction from landing page
+- [x] Route inventory: 85+ routes → keep/merge/kill (40+ decisions logged)
+- [x] Backend API scan (existing functions reusable)
+- [x] Current IA assessment + cognitive-load diagnosis
+- [x] Capability coverage matrix outline
+- [x] Installed skills + design tools cataloged
+- [x] Founder questions identified (6 items for morning queue)
+
+**Deliverable:** `REBUILD-AUDIT-PHASE-0.md` (committed 0e2e2962)
+
+---
+
+### Phase 1 — Architecture (IN PROGRESS — awaiting founder input)
+**Dependency:** answers to 6 morning-queue questions from founder
+
+**Work items:**
+- [ ] Three-surface IA detail (Home/Project/Approvals) + Shell layout
+- [ ] Route map (old routes → new homes)
+- [ ] User journey flows (8 stages: onboarding, Home, Project·Plan, Project·Build, Ship, Launch, Grow, and entry-at-any-stage variants)
+- [ ] Approval-gate inventory (all proposal types)
+- [ ] Full capability coverage matrix (every feature → new reachable path)
+- [ ] Lifecycle motion map (interrupt, break, go-back, revert, fast-forward, fork, pause, cancel)
+- [ ] Product-management domain lifecycle map (discovery research, PRD, design, build, QA, launch, growth, outcomes, stakeholder comms, iteration, sunset)
+- [ ] Copy deck v1 (primary UI strings, section names, one-liners, empty/error states, onboarding script, launch-kit templates)
+- [ ] Rename pass (old names → new names → rationale table)
+
+**Deliverable:** `REBUILD-PHASE-1-ARCHITECTURE.md` (after founder decisions)
+
+---
+
+### Phase 2 — Design System "Ink" (blocked until Phase 1)
+- [ ] Token system (color/type/space/motion/elevation, dark+light, config-driven)
+- [ ] Core components (buttons, inputs, cards, tables, lists, code surface, previews)
+- [ ] Signature element (agent-activity timeline in Geist Mono on engineering grid)
+- [ ] Responsive foundations (320/768/1280px breakpoints tested)
+- [ ] Dark + Light + System theme implementation
+
+**Deliverable:** Ink tokens in `src/styles.css` + component library in `src/components/ink/`
+
+---
+
+### Phase 3 — Screens (blocked until Phase 2)
+**Workstreams (can parallelize):**
+- [ ] Auth doorway (landing → login/signup, inherit landing starfield, one sentence)
+- [ ] Onboarding (≤3 conversational steps, agent drafts first plan immediately)
+- [ ] Home surface (command bar hero, recent projects, one quiet suggestion, no dashboards)
+- [ ] Project surface — adaptive canvas (code face / design face / plan face / shipping face)
+- [ ] Project surface — lifecycle spine (6 stages: Plan/Design/Build/Ship/Launch/Grow as progress bar + stage selector)
+- [ ] Project surface — agent-activity timeline (streamed, Geist Mono, who did what when)
+- [ ] Approvals surface (queue of all pending decisions with approve/reject/edit one-tap)
+- [ ] Settings shell (Account/Workspace/Connections/AI/Billing/Advanced, progressive disclosure)
+- [ ] Settings > Connections (workspace integrations + source bindings)
+- [ ] Settings > Memory (workspace-learned conventions + fixture timeline, searchable/curate)
+- [ ] Settings > Advanced > Model Routing Console (per-surface Auto/pin controls, recommendations, operator policies)
+- [ ] Settings > Advanced > Engine Room (traces, evals, guardrails, drift — power users only)
+- [ ] Empty/loading/error states (every screen designed, not assumed)
+
+**Deliverable:** Screens in sandbox branch, journey walkthrough functional end-to-end
+
+---
+
+### Phase 4 — Integration & Purge (blocked until Phase 3)
+- [ ] Wire screens to tested backend (read-safe operations only)
+- [ ] Migrate user/workspace/project data from old routes' localStorage/state
+- [ ] Remove dead routes (85+ old ones identified in Phase 0)
+- [ ] Purge v1–v5 design remnants (liquid-glass, widgets, Tempo skins)
+- [ ] Run stray-brand sweep (grep clean of "Cadence" brand uses, per Prime Directive 1)
+- [ ] Add redirects from legacy URLs (for any users on old links)
+- [ ] Test suite: existing backend tests still green, new screen-integration tests added
+
+**Deliverable:** Sandbox branch ready to merge to production, all live tests passing
+
+---
+
+### Phase 5 — Demo Data Seed
+- [ ] Helio Labs workspace (1 owner, 2 team members)
+- [ ] Atlas project (complete: idea → launch, launch kit sent, Grow traction digest)
+- [ ] Relay project (mid-build: agents active, timeline, 2 Approvals pending)
+- [ ] Comet project (fresh: one-sentence idea, draft plan awaiting approval)
+- [ ] Beacon project (imported: existing product mid-lifecycle, one feature in Build)
+- [ ] Seed deterministic, idempotent, realistic, clearly fictional
+- [ ] No lorem ipsum anywhere; believable timestamps
+
+**Deliverable:** Seed script runs once, produces full demo narrative ready for founder demo
+
+---
+
+### Phase 6 — Review Gauntlet (final quality)
+**Six judges:**
+1. Outsider power user (Vercel-grade craft, allergic to clutter)
+2. Brand-new founder user (ten-second comprehension, five-minute value)
+3. Enterprise buyer (trust: approvals, audit, roles, honest claims)
+4. Investor (YC application reviewer — five-minute idea→launch narrative)
+5. Serial founder (delight, care in details, users brag about it)
+6. Rohit (would he sign up if this weren't his product?)
+
+**Verification:**
+- [ ] Ten-second comprehension test (show Home to outsider, they state what it does unprompted)
+- [ ] Five-minute walkthrough (signup → first artifact in ≤5 min, ≤3 decisions)
+- [ ] Both themes tested (dark/light/System setting)
+- [ ] Responsive at 320/768/1280px, keyboard-navigable, WCAG AA contrast
+- [ ] Empty/loading/error states present + designed
+- [ ] Perf: p75 interactive < 2s on mid-tier hardware
+- [ ] Playwright E2E: full journey → login → Relay approvals → ship → launch kit → end
+- [ ] Five-minute founder demo script written and rehearsable
+
+**Deliverable:** Screenshots of each judge-relevant state, Playwright run results, demo script, gap report, decision ledger
+
+---
+
+## MORNING QUESTIONS FOR FOUNDER
+
+**Deadline to answer: ~14:18 (1 hour from audit completion)**
+
+1. **Logo/wordmark timeline:** When ready? Until then, use Geist Pixel wordmark as placeholder (structured for drop-in).
+2. **Existing-product import:** What does backend support today (repo URL, docs upload)? Scope for phase 1 vs. 1b.
+3. **Auth providers:** Google + GitHub + email? SSO/SAML for enterprises?
+4. **Deploy targets:** Custom domains? Which infrastructure (Vercel, Netlify, self-hosted)?
+5. **Retire confirmation:** Today's weather widget, focus-dock widgets — confirmed kill? (Brief suggests yes.)
+6. **Cadence user migration:** How handle existing Cadence accounts + URL continuity?
+
+---
+
+## ACTIVE DECISION LEDGER
+
+(Decisions made during build, logged here)
+
+*TBD as work progresses*
+
+---
+
+## CHECKPOINT LOG
+
+| Time | Phase | Status | Next |
+|---|---|---|---|
+| 2026-07-18 13:18 | Kickoff | Brief received, Phase 0 audit started | — |
+| 2026-07-18 13:48 | Phase 0 | Audit complete, committed, morning questions ready | Await founder decisions (1hr window) |
+| — | Phase 1 | Blocked on founder input | Architecture doc when answers received |
+
+---
+
+## TOKEN BUDGET & SPEND TRACKING
+
+*For build-time model routing (Haiku/Sonnet for mechanical work, Opus/Fable for judgment)*
+
+- **Mechanical:** Route generation, component templates, boilerplate
+- **Judgment:** IA decisions, motion timing, copy refinement, final polish
+
+*Update as spending occurs*
+
+---
+
+## WORK PRESERVATION RULE
+
+**Commit every 30-45 min or at every coherent checkpoint.** Checkpoint examples:
+- Design-system foundations (tokens, dark/light)
+- One complete screen (Home, Project, Approvals, Settings)
+- A workstream fully done (e.g., Settings shell + all 5 sections)
+- Integration of a backend service
+- A test suite added/updated
+
+*Zero tolerance for lost work.*
+
+---
+
+## REFERENCE MATERIALS
+
+- Master Brief: `docs/planning/Supaprod Final Sweep/Supaprod Front-End Rebuild.md`
+- Goal prompt: `docs/planning/Supaprod Final Sweep/Goal Prompt for Supaprod Rebuild.md`
+- Audit: `REBUILD-AUDIT-PHASE-0.md`
+- Vercel study: `docs/planning/vercel-dissection-study-2026-07-17.md`
+- Landing page tokens: extracted in Audit section 1
+- Taste document: Audit section 0
+
+---
+
+**Build started:** 2026-07-18 13:48 IST  
+**Estimated ship date:** 2026-07-20  
+**YC application deadline:** Phase 6 review complete → ready for founder's deck work
