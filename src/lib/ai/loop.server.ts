@@ -363,9 +363,7 @@ async function getWorkspaceContext(
   try {
     const { data: items } = await supabase
       .from("brief_items")
-      .select(
-        "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
-      )
+      .select("id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false });
     if (items && items.length > 0) {

@@ -32,14 +32,14 @@ export interface SignalCardProps {
   /** Click-to-open (platform principle): opens this signal's rich detail
    * directly. When present the whole card becomes a button; the `⋯` menu
    * stops propagation so a menu press never also opens the detail. */
-  onOpen?: () => void;
+  onOpen?: (id: string) => void;
   /** OBS-10: the write actions ported from the retired /product Signals tab.
    * Omit any handler to hide that menu item entirely (e.g. no promote/draft-
    * spec once a signal already has an opportunity) rather than disabling it. */
-  onPromote?: () => void;
-  onDraftSpec?: () => void;
-  onLineage?: () => void;
-  onDelete?: () => void;
+  onPromote?: (id: string) => void;
+  onDraftSpec?: (id: string) => void;
+  onLineage?: (id: string) => void;
+  onDelete?: (id: string) => void;
   actionsPending?: boolean;
 }
 
@@ -75,7 +75,7 @@ export const SignalCard = memo(function SignalCard({
       role={clickable ? "button" : undefined}
       tabIndex={clickable ? 0 : undefined}
       aria-label={clickable ? "Open signal detail" : undefined}
-      onClick={clickable ? onOpen : undefined}
+      onClick={clickable && id ? () => onOpen?.(id) : undefined}
       onKeyDown={
         clickable
           ? (event) => {
@@ -84,7 +84,7 @@ export const SignalCard = memo(function SignalCard({
                 event.target === event.currentTarget
               ) {
                 event.preventDefault();
-                onOpen?.();
+                id && onOpen?.(id);
               }
             }
           : undefined
@@ -174,18 +174,18 @@ export const SignalCard = memo(function SignalCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onPromote ? (
-                <DropdownMenuItem onClick={onPromote}>
+                <DropdownMenuItem onClick={() => id && onPromote(id)}>
                   Promote · becomes an opportunity
                 </DropdownMenuItem>
               ) : null}
               {onDraftSpec ? (
-                <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => id && onDraftSpec(id)}>Draft spec</DropdownMenuItem>
               ) : null}
               {onLineage ? (
-                <DropdownMenuItem onClick={onLineage}>Where this came from</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => id && onLineage(id)}>Where this came from</DropdownMenuItem>
               ) : null}
               {onDelete ? (
-                <DropdownMenuItem onClick={onDelete} className="text-[var(--madder)]">
+                <DropdownMenuItem onClick={() => id && onDelete(id)} className="text-[var(--madder)]">
                   Delete
                 </DropdownMenuItem>
               ) : null}

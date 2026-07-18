@@ -9,7 +9,7 @@
 // no production capability yet — see unported.
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/lib/notify";
 import { ChevronDown, ChevronRight, FileText, Search, X } from "lucide-react";
 import { DocEditor } from "@/components/supaprod/DocEditor";
@@ -83,7 +83,16 @@ export function DocsPanel() {
   const [search, setSearch] = useState("");
   const [notionOpen, setNotionOpen] = useState(false);
   const [notionQuery, setNotionQuery] = useState("");
+  const [debouncedNotionQuery, setDebouncedNotionQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
+
+  // Debounce Notion search: 300ms delay to reduce API calls during typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNotionQuery(notionQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [notionQuery]);
 
   const selected = useQuery({
     queryKey: ["doc", selectedId],
@@ -169,9 +178,9 @@ export function DocsPanel() {
   });
 
   const notionSearch = useQuery({
-    queryKey: ["notion-search", notionQuery],
-    queryFn: () => fSearchNotion({ data: { query: notionQuery } }),
-    enabled: notionOpen,
+    queryKey: ["notion-search", debouncedNotionQuery],
+    queryFn: () => fSearchNotion({ data: { query: debouncedNotionQuery } }),
+    enabled: notionOpen && debouncedNotionQuery.length > 0,
   });
 
   function handleImportGDoc() {

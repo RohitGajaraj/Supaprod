@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -241,6 +241,23 @@ export function SignalFeed() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
+  // Memoize handlers to prevent SignalCard memo defeat
+  const handleOpenSignal = useCallback((id: string) => setOpenSignalId(id), []);
+  const handlePromote = useCallback((id: string) => promote.mutate(id), [promote]);
+  const handleDraftSpec = useCallback((id: string) => draftSpec.mutate(id), [draftSpec]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const ok = await confirm({
+        title: "Delete this signal?",
+        body: "This removes the signal permanently. Its theme membership and any lineage referencing it stay, but the quote itself is gone.",
+        destructive: true,
+        confirmLabel: "Delete signal",
+      });
+      if (ok) del.mutate(id);
+    },
+    [confirm, del],
+  );
+
   if (signals.isLoading) {
     return (
       <PanelShell>
@@ -315,18 +332,10 @@ export function SignalFeed() {
                 theme={theme ? `→ ${theme.title.toUpperCase()} · ${theme.frequency} SIGNALS` : null}
                 isLast={i === shown.length - 1}
                 actionsPending={busyIds.has(s.id)}
-                onOpen={() => setOpenSignalId(s.id)}
-                onPromote={() => promote.mutate(s.id)}
-                onDraftSpec={() => draftSpec.mutate(s.id)}
-                onDelete={async () => {
-                  const ok = await confirm({
-                    title: "Delete this signal?",
-                    body: "This removes the signal permanently. Its theme membership and any lineage referencing it stay, but the quote itself is gone.",
-                    destructive: true,
-                    confirmLabel: "Delete signal",
-                  });
-                  if (ok) del.mutate(s.id);
-                }}
+                onOpen={handleOpenSignal}
+                onPromote={handlePromote}
+                onDraftSpec={handleDraftSpec}
+                onDelete={handleDelete}
               />
             );
           })}

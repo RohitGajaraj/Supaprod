@@ -45,10 +45,7 @@ function getValidatedCorsOrigin(request: Request): string {
  * Logs detailed errors server-side and returns a generic message with an error ID
  * for support correlation. Prevents information disclosure via error messages.
  */
-function sanitizeError(
-  error: unknown,
-  context: string,
-): { message: string; errorId: string } {
+function sanitizeError(error: unknown, context: string): { message: string; errorId: string } {
   const errorId = `err_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   const errorMsg = error instanceof Error ? error.message : String(error);
   console.error(`[${errorId}] ${context}: ${errorMsg}`, error);
@@ -193,14 +190,16 @@ export const Route = createFileRoute("/api/chat")({
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY)
           return json({ error: "Backend not configured" }, 500, corsOrigin);
         const authHeader = request.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401, corsOrigin);
+        if (!authHeader?.startsWith("Bearer "))
+          return json({ error: "Unauthorized" }, 401, corsOrigin);
         const token = authHeader.slice(7);
         const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
           global: { headers: { Authorization: `Bearer ${token}` } },
           auth: { persistSession: false, autoRefreshToken: false },
         });
         const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-        if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401, corsOrigin);
+        if (claimsErr || !claimsData?.claims?.sub)
+          return json({ error: "Unauthorized" }, 401, corsOrigin);
         const userId = claimsData.claims.sub as string;
 
         // SW-6 tenant safety: per-user burst limiter for the AI surface.
@@ -491,7 +490,11 @@ You must output a JSON object EXACTLY in this format:
             });
             if (userInsErr) {
               const sanitized = sanitizeError(userInsErr, "Failed to insert user message");
-              return json({ error: sanitized.message, errorId: sanitized.errorId }, 500, corsOrigin);
+              return json(
+                { error: sanitized.message, errorId: sanitized.errorId },
+                500,
+                corsOrigin,
+              );
             }
 
             if (mentionedAgent) {
@@ -513,7 +516,11 @@ You must output a JSON object EXACTLY in this format:
               });
               if (stepErr) {
                 const sanitized = sanitizeError(stepErr, "Failed to insert step");
-                return json({ error: sanitized.message, errorId: sanitized.errorId }, 500, corsOrigin);
+                return json(
+                  { error: sanitized.message, errorId: sanitized.errorId },
+                  500,
+                  corsOrigin,
+                );
               }
               // Dispatch the ready step now (idempotent; the resume-runs cron also
               // advances it). Fire-and-forget, so it never blocks the reply.

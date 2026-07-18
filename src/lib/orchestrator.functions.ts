@@ -359,9 +359,7 @@ export const dispatchPRDToLinear = createServerFn({ method: "POST" })
         console.error("[dispatchPRDToLinear] Batch sync_mappings insert failed:", batchErr.message);
         const failedIds = new Set(syncMappingsToInsert.map((m) => m.local_id));
         const stillDispatched = dispatched.filter((d) => !failedIds.has(d.taskId));
-        const newlySkipped = dispatched
-          .filter((d) => failedIds.has(d.taskId))
-          .map((d) => d.taskId);
+        const newlySkipped = dispatched.filter((d) => failedIds.has(d.taskId)).map((d) => d.taskId);
         dispatched.length = 0;
         dispatched.push(...stillDispatched);
         skipped.push(...newlySkipped);

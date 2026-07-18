@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import pLimit from "p-limit";
 import { sendEmail } from "@/lib/email.server";
 import { loadNewestDecisionBrief } from "@/lib/stakeholder-pack.functions";
 import { loadOutcomeReceiptSnapshot } from "@/lib/stakeholder-update.functions";
@@ -440,60 +441,73 @@ export async function generateDigest(
 
   const digestItems: string[] = [];
 
-  // approvals query
-  if (enabled.approval) {
-    const { data: approvals } = await supabase
-      .from("agent_approvals")
-      .select("tool_name,agent_slug")
-      .eq("user_id", userId)
-      .eq("status", "pending");
-    if (approvals && approvals.length > 0) {
-      digestItems.push(`- Approvals: ${approvals.length} pending tool execution approval(s).`);
+  // Parallelize all independent digest item queries using Promise.all
+  // to avoid O(N) serial round trips per digest generation
+  const [approvalsResult, healthResult, budgetResult, driftResult] = await Promise.all([
+    enabled.approval
+      ? supabase
+          .from("agent_approvals")
+          .select("tool_name,agent_slug")
+          .eq("user_id", userId)
+          .eq("status", "pending")
+      : Promise.resolve({ data: null }),
+
+    enabled.health
+      ? (() => {
+          const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
+          return supabase
+            .from("agent_runs")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .in("status", ["running", "queued"])
+            .lt("created_at", cutoff);
+        })()
+      : Promise.resolve({ count: null }),
+
+    enabled.budget
+      ? supabase
+          .from("ai_budgets")
+          .select("daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
+          .eq("user_id", userId)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+
+    enabled.drift
+      ? supabase
+          .from("drift_incidents")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "open")
+      : Promise.resolve({ data: null }),
+  ]);
+
+  // Process approvals result
+  if (enabled.approval && approvalsResult.data && approvalsResult.data.length > 0) {
+    digestItems.push(
+      `- Approvals: ${approvalsResult.data.length} pending tool execution approval(s).`,
+    );
+  }
+
+  // Process health result
+  if (enabled.health && healthResult.count && healthResult.count > 0) {
+    digestItems.push(`- Health: ${healthResult.count} agent run(s) are stalled or inactive.`);
+  }
+
+  // Process budget result
+  if (enabled.budget && budgetResult.data) {
+    const budget = budgetResult.data;
+    const dUsed = budget.daily_usd_used ?? 0;
+    const dCap = budget.daily_usd_cap ?? 0;
+    if (dCap > 0 && dUsed >= dCap * 0.8) {
+      digestItems.push(
+        `- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`,
+      );
     }
   }
 
-  // stalled runs query
-  if (enabled.health) {
-    const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
-    const { count: stalled } = await supabase
-      .from("agent_runs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .in("status", ["running", "queued"])
-      .lt("created_at", cutoff);
-    if (stalled && stalled > 0) {
-      digestItems.push(`- Health: ${stalled} agent run(s) are stalled or inactive.`);
-    }
-  }
-
-  // budgets
-  if (enabled.budget) {
-    const { data: budget } = await supabase
-      .from("ai_budgets")
-      .select("daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (budget) {
-      const dUsed = budget.daily_usd_used ?? 0;
-      const dCap = budget.daily_usd_cap ?? 0;
-      if (dCap > 0 && dUsed >= dCap * 0.8) {
-        digestItems.push(
-          `- Budget: Daily spend is at $${dUsed.toFixed(2)} of $${dCap.toFixed(2)}.`,
-        );
-      }
-    }
-  }
-
-  // drift
-  if (enabled.drift) {
-    const { data: drift } = await supabase
-      .from("drift_incidents")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "open");
-    if (drift && drift.length > 0) {
-      digestItems.push(`- Drift: ${drift.length} active output drift incident(s) remain open.`);
-    }
+  // Process drift result
+  if (enabled.drift && driftResult.data && driftResult.data.length > 0) {
+    digestItems.push(`- Drift: ${driftResult.data.length} active output drift incident(s) remain open.`);
   }
 
   // JNY-05: the ambient stakeholder loop. When enabled, the digest also carries the
@@ -641,16 +655,24 @@ export async function sendDueDigests(
 
   let sent = 0;
   const nowUtc = new Date(now);
-  for (const r of due) {
-    const profile = profileById.get(r.user_id);
-    const timezone = profile?.timezone || "UTC";
-    const start = profile?.working_hours_start ?? 9;
-    const end = profile?.working_hours_end ?? 18;
-    const localHour = localHourInTimezone(nowUtc, timezone);
-    if (isQuietHours(localHour, start, end)) continue; // defer to the next tick after quiet hours
+  const limit = pLimit(8); // parallelize up to 8 digest generations concurrently
 
-    const result = await generateDigest(supabase, r.user_id, r.digest_frequency);
-    if (result.generated && result.reason === "sent") sent++;
-  }
+  const digestPromises = due.map((r) =>
+    limit(async () => {
+      const profile = profileById.get(r.user_id);
+      const timezone = profile?.timezone || "UTC";
+      const start = profile?.working_hours_start ?? 9;
+      const end = profile?.working_hours_end ?? 18;
+      const localHour = localHourInTimezone(nowUtc, timezone);
+      if (isQuietHours(localHour, start, end)) return false; // defer to the next tick after quiet hours
+
+      const result = await generateDigest(supabase, r.user_id, r.digest_frequency);
+      return result.generated && result.reason === "sent";
+    }),
+  );
+
+  const results = await Promise.all(digestPromises);
+  sent = results.filter((s) => s).length;
+
   return { scanned: rows.length, sent, slackPosted };
 }

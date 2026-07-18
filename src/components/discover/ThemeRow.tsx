@@ -16,11 +16,11 @@ export interface ThemeRowProps {
   /** Distinct sources among the member signals. */
   sourceCount: number;
   onOpenDetail: (themeId: string) => void;
-  onPromote: () => void;
-  onDraftSpec: () => void;
+  onPromote: (themeId: string) => void;
+  onDraftSpec: (themeId: string) => void;
   /** PC-29 layer 6: the theme's one delegation verb ("Frame the bet"), now a
    * menu item instead of an inline trigger so the row stays quiet. */
-  onAsk: () => void;
+  onAsk: (themeId: string, title: string) => void;
   /** Mirrors OpportunityRow: any in-flight mutation disables the row actions. */
   actionsPending?: boolean;
 }
@@ -141,9 +141,9 @@ export const ThemeRow = memo(function ThemeRow({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onPromote}>Promote to opportunity</DropdownMenuItem>
-          <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
-          <DropdownMenuItem onClick={onAsk}>Frame the bet</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onPromote(themeId)}>Promote to opportunity</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDraftSpec(themeId)}>Draft spec</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onAsk(themeId, title)}>Frame the bet</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

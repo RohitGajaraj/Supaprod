@@ -260,7 +260,11 @@ function GatePanel({
               {agentName ?? "The agent"} wants{" "}
               <span
                 className="mono-label"
-                style={{ color: "var(--text-primary)", fontSize: "var(--text-label-12)", display: "inline-flex" }}
+                style={{
+                  color: "var(--text-primary)",
+                  fontSize: "var(--text-label-12)",
+                  display: "inline-flex",
+                }}
               >
                 {appr.tool_name}
               </span>
@@ -495,7 +499,11 @@ function TraceHop({
                   {h.recalled_memories.map((mem, mi) => (
                     <div
                       key={mi}
-                      style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", lineHeight: 1.7 }}
+                      style={{
+                        fontSize: "var(--text-label-12)",
+                        color: "var(--text-subtle)",
+                        lineHeight: 1.7,
+                      }}
                     >
                       · {mem}
                     </div>
@@ -1316,7 +1324,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         {view === "plan" ? (
           <div style={{ display: "flex", flexDirection: "column" }}>
             {planRows.length === 0 ? (
-              <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", fontStyle: "italic" }}>
+              <div
+                style={{
+                  fontSize: "var(--text-label-13)",
+                  color: "var(--text-subtle)",
+                  fontStyle: "italic",
+                }}
+              >
                 No steps yet. The plan lands with the first hop.
               </div>
             ) : (
@@ -1417,7 +1431,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               {unattended.length} action{unattended.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: "var(--text-label-13)",
+              color: "var(--text-subtle)",
+              marginBottom: 12,
+            }}
+          >
             {/* RPT-09 (amplifier voice): the operator set the trust bar these ran under
                 -- frame it as their call, not as the operator being cut out of the loop. */}
             You set the agent&apos;s trust high enough to run these on its own, so they went ahead
@@ -1482,7 +1502,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </span>
         </div>
         {hops.length === 0 ? (
-          <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", fontStyle: "italic" }}>
+          <div
+            style={{
+              fontSize: "var(--text-label-13)",
+              color: "var(--text-subtle)",
+              fontStyle: "italic",
+            }}
+          >
             No hops yet. The mission is queued.
           </div>
         ) : (
@@ -1527,12 +1553,24 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             {failedStep?.error ?? "see the trace below"}
           </div>
           {failedStep ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "6px 0 10px" }}>
+            <p
+              style={{
+                fontSize: "var(--text-label-13)",
+                color: "var(--text-body)",
+                margin: "6px 0 10px",
+              }}
+            >
               {agentDisplayName(failedStep.agent_slug)} could not finish "{failedStep.sub_goal}"
               {failedStep.error ? `: ${failedStep.error}` : ""}.
             </p>
           ) : (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "6px 0 10px" }}>
+            <p
+              style={{
+                fontSize: "var(--text-label-13)",
+                color: "var(--text-body)",
+                margin: "6px 0 10px",
+              }}
+            >
               The mission stopped before completing. The execution trace above carries the details.
             </p>
           )}

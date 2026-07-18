@@ -392,14 +392,8 @@ export function AutoClustered() {
 
   // Memoize handlers to prevent ThemeRow memo defeat
   const handleOpenDetail = useCallback((id: string) => setOpenThemeId(id), []);
-  const handlePromote = useCallback(
-    (id: string) => promoteTheme.mutate(id),
-    [promoteTheme],
-  );
-  const handleDraftSpec = useCallback(
-    (id: string) => draftThemeSpec.mutate(id),
-    [draftThemeSpec],
-  );
+  const handlePromote = useCallback((id: string) => promoteTheme.mutate(id), [promoteTheme]);
+  const handleDraftSpec = useCallback((id: string) => draftThemeSpec.mutate(id), [draftThemeSpec]);
   const handleAsk = useCallback(
     (themeId: string, title: string) => askTheme.mutate({ themeId, title }),
     [askTheme],
@@ -445,9 +439,9 @@ export function AutoClustered() {
               sourceCount={sourceCount}
               actionsPending={busyIds.has(t.id)}
               onOpenDetail={handleOpenDetail}
-              onPromote={() => handlePromote(t.id)}
-              onDraftSpec={() => handleDraftSpec(t.id)}
-              onAsk={() => handleAsk(t.id, t.title)}
+              onPromote={handlePromote}
+              onDraftSpec={handleDraftSpec}
+              onAsk={handleAsk}
             />
           );
         })
