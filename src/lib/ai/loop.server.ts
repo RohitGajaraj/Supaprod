@@ -321,7 +321,7 @@ function xmlEscape(str: string): string {
  * global, so stale data is impossible.
  */
 type WorkspaceContext = {
-  brief: Awaited<ReturnType<typeof loadBriefBlock>> | null;
+  brief: Awaited<ReturnType<typeof renderBriefBlock>> | null;
   items: Awaited<ReturnType<typeof renderBriefItemsBlock>>;
   houseRules: string;
 };

@@ -44,3 +44,24 @@ fi
 EOF
 chmod +x "$PRECOMMIT"
 echo "[git-hooks] pre-commit hook installed (humanized-output check)"
+# F6 MERGE LOCK (founder ruling 2026-07-18): the archived front-end rebuild
+# (archive/final-sweep-2026-07-18) must never merge into main without the
+# founder's explicit, per-merge approval. Any merge whose message references
+# an archive/ branch is blocked unless FOUNDER_APPROVED=1 is set for that
+# one command. Applies to every session, human or agent.
+PREMERGE=".git/hooks/pre-merge-commit"
+cat > "$PREMERGE" <<'INNER'
+#!/usr/bin/env bash
+if [ -f .git/MERGE_MSG ] && grep -qE "archive/" .git/MERGE_MSG; then
+  if [ "${FOUNDER_APPROVED:-0}" != "1" ]; then
+    echo ""
+    echo "BLOCKED: merging an archive/ branch needs the founder's explicit approval."
+    echo "Ruling F6 (2026-07-18): the archived rebuild never lands on main without it."
+    echo "If Rohit approved THIS merge in his own words, re-run with FOUNDER_APPROVED=1."
+    exit 1
+  fi
+fi
+exit 0
+INNER
+chmod +x "$PREMERGE"
+echo "[git-hooks] pre-merge-commit archive lock installed"

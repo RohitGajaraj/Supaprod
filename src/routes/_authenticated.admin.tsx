@@ -31,6 +31,7 @@ const TABS = [
   { id: "/admin/people", label: "People" },
   { id: "/admin/workspaces", label: "Workspaces" },
   { id: "/admin/platform", label: "Platform" },
+  { id: "/admin/routing", label: "Routing" },
   { id: "/admin/observability", label: "Health" },
   { id: "/admin/ai-costs", label: "Spend" },
   { id: "/admin/proof", label: "Proof" },

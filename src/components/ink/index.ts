@@ -1,75 +1,16 @@
 /**
- * Ink — Supaprod's Tempo v5 design system component library.
- *
- * All components resolve their colors from --ds-* CSS custom properties,
- * which adapt to dark (default) and light themes via [data-theme='light'].
- * No hardcoded hex values in component code.
- *
- * Responsive breakpoints: 320px (mobile), 768px (tablet), 1280px (desktop).
- * Typography: Geist Sans (all UI) / Geist Mono (code) / Geist Pixel (brand only).
- * Focus management: ember ring via --ds-focus-ring, never outline: none.
- * Motion: respects prefers-reduced-motion and data-motion="off".
- *
- * Composition: built with Radix UI for accessibility + Tailwind v4 for styling.
+ * Ink - design system v6. The component kit for the three-surface rebuild.
+ * Tokens: src/styles/ink.css. Taste law: docs/planning/Supaprod Final Sweep/
+ * taste-document.md. Never restyle these per-screen; extend the kit.
  */
-
-// Core interactive components
-export { Button, buttonVariants } from "./Button";
-export { Input, Textarea } from "./Input";
-
-// Surface components
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./Card";
-
-// Overlay components
-export {
-  Modal,
-  ModalPortal,
-  ModalOverlay,
-  ModalTrigger,
-  ModalClose,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalTitle,
-  ModalDescription,
-  ModalBody,
-} from "./Modal";
-
-// Status / Category components
-export { Badge, badgeVariants } from "./Badge";
-
-// Tab navigation
-export { Tabs, TabsList, TabsTrigger, TabsContent } from "./Tabs";
-
-// Dropdowns / Selection
-export {
-  Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
-  SelectContent,
-  SelectLabel,
-  SelectItem,
-  SelectSeparator,
-} from "./Select";
-
-// Loading states
-export { Spinner } from "./Spinner";
-
-// Form controls
-export { Checkbox } from "./Checkbox";
-
-// Supaprod signature element
-export { AgentActivityTimeline, TimelineEntry } from "./AgentActivityTimeline";
-
-// TODO: Additional components for Phase 3+ (lower priority for MVP)
-// - Dropdown (Radix DropdownMenu wrapper)
-// - CodeSurface (Monaco editor wrapper)
-// - PreviewPanel (syntax-highlighted output)
-// - Radio (Radix wrapper)
-// - Tooltip (Radix Tooltip wrapper)
-// - Avatar / Initials
-// - Pagination
-// - Breadcrumb
-// - Collapsible / Accordion
+export { Spine, SPINE_STAGES } from "./Spine";
+export type { SpineStage, SpineStageId, SpineStageState } from "./Spine";
+export { CommandBar } from "./CommandBar";
+export { VerdictChip, StatusGlyph } from "./chips";
+export type { VerdictTone, LiveState } from "./chips";
+export { ApprovalCard } from "./ApprovalCard";
+export type { ApprovalItem } from "./ApprovalCard";
+export { ModeToggle } from "./ModeToggle";
+export type { WorkMode } from "./ModeToggle";
+export { ActivityTrace, ActivitySummaryLine } from "./ActivityTrace";
+export type { TraceRow, TraceVoice } from "./ActivityTrace";

@@ -23,7 +23,9 @@ import {
  * PortfolioBoard, OBS-10) joined the Workspace pane after the original 11.
  */
 
-// The 12 section ids the route ships with - the routing contract that must hold.
+// The 13 section ids the route ships with - the routing contract that must
+// hold. "memory" joined in the final sweep (the Memory view, architecture
+// section on Settings; ledger phase 3).
 const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
@@ -37,10 +39,11 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
   "health",
   "data",
   "notifications",
+  "memory",
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 12 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 13 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 

@@ -1022,7 +1022,7 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
         gateType: "edit",
         subjectType: "contract_clause",
         subjectRef: data.clause_id,
-        agentSlug: "contract-analyst",
+        agentSlug: "metric:contract-clause",
         verdict: "edited",
         diffSummary: `${data.section}: ${data.new_text}`.slice(0, 500),
       });
@@ -1394,7 +1394,7 @@ export const savePrd = createServerFn({ method: "POST" })
         gateType: "edit",
         subjectType: "spec",
         subjectRef: id,
-        agentSlug: "spec-drafter",
+        agentSlug: "metric:spec-body",
         verdict: "edited",
         diffSummary: `spec body edited before ${rest.status}`,
         workspaceId: (prior as { workspace_id?: string | null } | null)?.workspace_id ?? null,

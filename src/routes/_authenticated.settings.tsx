@@ -10,6 +10,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { agentBlurb, agentDisplayName, catalogEntry } from "@/lib/agent-vocabulary";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/supaprod/TopBar";
@@ -73,6 +74,7 @@ import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
 import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
 import { HealthCard } from "@/components/settings/HealthCard";
 import { NotificationsTab } from "@/components/settings/NotificationsTab";
+import { MemoryView } from "@/components/settings/memory/MemoryView";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
@@ -518,6 +520,7 @@ function SettingsPage() {
               </>
             )}
             {active === "notifications" && <NotificationsTab />}
+            {active === "memory" && <MemoryView />}
             {active === "health" && <HealthCard />}
             {active === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -2499,7 +2502,13 @@ function StaffTab() {
     );
   }
 
-  const agents = (agentsQ.data?.agents ?? []) as AgentRow[];
+  // Roster ruling A8: the concrete set is the 13 catalog-active agents.
+  // Deprecated alias rows (engineer/stakeholder/copilot and older) are live
+  // duplicates from seeding history; they stay in the DB for run history but
+  // never render as staff, so every card is one recognizable specialist.
+  const agents = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
+    (a) => catalogEntry(a.slug)?.status !== "deprecated",
+  );
   if (agents.length === 0) {
     return (
       <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
@@ -2527,10 +2536,10 @@ function StaffTab() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="font-display" style={{ fontSize: 15 }}>
-                {a.name}
+                {agentDisplayName(a.slug, a.name)}
               </div>
               <div className="mono-label" style={{ fontSize: 8.5 }}>
-                {a.role}
+                {agentBlurb(a.slug) ?? a.role}
               </div>
             </div>
             <button
@@ -3163,9 +3172,7 @@ function Field({
       >
         {label}
       </label>
-      {isValidElement(children)
-        ? cloneElement(children, { id: fieldId } as any)
-        : children}
+      {isValidElement(children) ? cloneElement(children, { id: fieldId } as any) : children}
       {hint ? (
         <div style={{ marginTop: 4, fontSize: 11, color: "var(--ink-faint)" }}>{hint}</div>
       ) : null}
