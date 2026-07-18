@@ -529,22 +529,39 @@ export function GraphUniverseCanvas({
     applyEmphasisRef.current = applyEmphasis;
 
     const loop = () => {
-      rafId.current = requestAnimationFrame(loop);
       const sim = simRef.current;
+      let shouldContinue = false;
+
+      // Check if physics simulation is running
       if (sim && !reducedRef.current) {
-        if (sim.alpha() > sim.alphaMin() || sim.alphaTarget() > 0) sim.tick();
+        if (sim.alpha() > sim.alphaMin() || sim.alphaTarget() > 0) {
+          sim.tick();
+          shouldContinue = true;
+        }
       }
+
+      // Check if auto-rotation should be active (not dragging and past idle timeout)
       if (
         !reducedRef.current &&
         !(dragging.current?.active ?? false) &&
         performance.now() - lastInteract.current > IDLE_MS
       ) {
         camStateRef.current.theta += AUTO_ROTATE;
+        shouldContinue = true;
       }
+
+      // Always render once per frame if requested
       syncPositions();
       updateCamera();
       renderer.render(scene, camera);
       if (hoverKeyRef.current) positionLabel();
+
+      // Only reschedule RAF if there's active animation or user interaction pending
+      if (shouldContinue) {
+        rafId.current = requestAnimationFrame(loop);
+      } else {
+        rafId.current = null;
+      }
     };
     const startLoop = () => {
       if (rafId.current !== null) return;
