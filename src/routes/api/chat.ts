@@ -173,16 +173,16 @@ export const Route = createFileRoute("/api/chat")({
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY)
-          return json({ error: "Backend not configured" }, 500);
+          return json({ error: "Backend not configured" }, 500, corsOrigin);
         const authHeader = request.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+        if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401, corsOrigin);
         const token = authHeader.slice(7);
         const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
           global: { headers: { Authorization: `Bearer ${token}` } },
           auth: { persistSession: false, autoRefreshToken: false },
         });
         const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-        if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+        if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401, corsOrigin);
         const userId = claimsData.claims.sub as string;
 
         // SW-6 tenant safety: per-user burst limiter for the AI surface.
@@ -221,10 +221,10 @@ export const Route = createFileRoute("/api/chat")({
         try {
           body = await request.json();
         } catch {
-          return json({ error: "Invalid JSON" }, 400);
+          return json({ error: "Invalid JSON" }, 400, corsOrigin);
         }
         if (!body.conversationId || !body.content || body.content.length > 8000)
-          return json({ error: "Invalid input" }, 400);
+          return json({ error: "Invalid input" }, 400, corsOrigin);
 
         const t0 = Date.now();
 
@@ -234,7 +234,7 @@ export const Route = createFileRoute("/api/chat")({
           .select("*")
           .eq("id", body.conversationId)
           .single();
-        if (convErr || !conv) return json({ error: "Conversation not found" }, 404);
+        if (convErr || !conv) return json({ error: "Conversation not found" }, 404, corsOrigin);
 
         const model = body.model || conv.model || "google/gemini-3-flash-preview";
 
@@ -471,7 +471,7 @@ You must output a JSON object EXACTLY in this format:
               role: "user",
               content: body.content,
             });
-            if (userInsErr) return json({ error: userInsErr.message }, 500);
+            if (userInsErr) return json({ error: userInsErr.message }, 500, corsOrigin);
 
             if (mentionedAgent) {
               // F-AGENTS-MENTIONABLE: pre-plan a single-step DAG for the named
@@ -490,7 +490,7 @@ You must output a JSON object EXACTLY in this format:
                 rationale: `Directly invoked by @${mentionedAgent.slug} in chat.`,
                 status: "planned",
               });
-              if (stepErr) return json({ error: stepErr.message }, 500);
+              if (stepErr) return json({ error: stepErr.message }, 500, corsOrigin);
               // Dispatch the ready step now (idempotent; the resume-runs cron also
               // advances it). Fire-and-forget, so it never blocks the reply.
               advanceMissionCore(supabase, {
@@ -625,7 +625,7 @@ You must output a JSON object EXACTLY in this format:
           role: "user",
           content: body.content,
         });
-        if (insErr) return json({ error: insErr.message }, 500);
+        if (insErr) return json({ error: insErr.message }, 500, corsOrigin);
 
         const baseMeta = (over: Partial<ChatMeta> = {}): ChatMeta => ({
           model,
@@ -1072,9 +1072,9 @@ ${grounding}`,
   },
 });
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200, origin = "*") {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": origin },
   });
 }
