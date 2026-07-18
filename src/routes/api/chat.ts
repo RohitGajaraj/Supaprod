@@ -883,7 +883,7 @@ ${grounding}`,
             // as streamFriendly) — never a raw error.
             let result: Awaited<ReturnType<typeof callModelStream>>;
             // Skip synthesis entirely if the client closed the connection
-            // before we started — avoids a full LLM call billing hit.
+            // before we started: avoids a full LLM call billing hit.
             if (aborted()) {
               controller.close();
               return;
