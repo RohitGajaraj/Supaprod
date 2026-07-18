@@ -41,6 +41,24 @@ function getValidatedCorsOrigin(request: Request): string {
 }
 
 /**
+ * SECURITY: Sanitize server errors for client consumption.
+ * Logs detailed errors server-side and returns a generic message with an error ID
+ * for support correlation. Prevents information disclosure via error messages.
+ */
+function sanitizeError(
+  error: unknown,
+  context: string,
+): { message: string; errorId: string } {
+  const errorId = `err_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  console.error(`[${errorId}] ${context}: ${errorMsg}`, error);
+  return {
+    message: "An error occurred processing your request. Contact support if it persists.",
+    errorId,
+  };
+}
+
+/**
  * Shared SSE protocol v2 with the chat UI (see MessageMeta.tsx):
  * - zero or more `{"status":{phase,label}}` research-progress events first,
  * - token chunks (choices[0].delta.content),
@@ -471,7 +489,10 @@ You must output a JSON object EXACTLY in this format:
               role: "user",
               content: body.content,
             });
-            if (userInsErr) return json({ error: userInsErr.message }, 500, corsOrigin);
+            if (userInsErr) {
+              const sanitized = sanitizeError(userInsErr, "Failed to insert user message");
+              return json({ error: sanitized.message, errorId: sanitized.errorId }, 500, corsOrigin);
+            }
 
             if (mentionedAgent) {
               // F-AGENTS-MENTIONABLE: pre-plan a single-step DAG for the named
@@ -490,7 +511,10 @@ You must output a JSON object EXACTLY in this format:
                 rationale: `Directly invoked by @${mentionedAgent.slug} in chat.`,
                 status: "planned",
               });
-              if (stepErr) return json({ error: stepErr.message }, 500, corsOrigin);
+              if (stepErr) {
+                const sanitized = sanitizeError(stepErr, "Failed to insert step");
+                return json({ error: sanitized.message, errorId: sanitized.errorId }, 500, corsOrigin);
+              }
               // Dispatch the ready step now (idempotent; the resume-runs cron also
               // advances it). Fire-and-forget, so it never blocks the reply.
               advanceMissionCore(supabase, {
@@ -625,7 +649,10 @@ You must output a JSON object EXACTLY in this format:
           role: "user",
           content: body.content,
         });
-        if (insErr) return json({ error: insErr.message }, 500, corsOrigin);
+        if (insErr) {
+          const sanitized = sanitizeError(insErr, "Failed to insert message");
+          return json({ error: sanitized.message, errorId: sanitized.errorId }, 500, corsOrigin);
+        }
 
         const baseMeta = (over: Partial<ChatMeta> = {}): ChatMeta => ({
           model,
