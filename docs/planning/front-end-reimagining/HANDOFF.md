@@ -19,10 +19,12 @@
 - Cards: NO colored edge strips ever. Craft grid: chip row (label left, mono timestamp right), body, evidence chips, action row.
 
 ## Founder items still OPEN (present, do not decide for him)
-1. **Card source-recognition treatment** (Addendum 1.2): the current faint-wash is INTERIM (marked with code comments). Render 2-3 replacement options (incl. the distinct memory/Vellum tone) across all card types, both themes; he picks.
-2. **Threads home**: concept + mockup exist (research/threads-and-artifacts.md, mockups/screen-9-threads-home.html); he has not signed it. Present before building the surface.
-3. **Artifacts**: naming (Library / Shelf / Made here) + placement; his pick pending.
-4. Gate #2 itself: the live dev-server review; merge only on his words.
+## Founder items RULED (2026-07-19 night, his words) + what is left
+1. **Card source-recognition treatment**: his ONLY red-line was the colored edge strip ("big NO"); it is already gone everywhere. He will pick a treatment if shown options. **Options rendered** in `mockups/card-source-recognition-options.html` (Option A chip-only, B faint voice wash, C corner source mark; memory = Vellum in all, both themes). **AWAITING his pick (A/B/C).** Until he picks, cards stay chip-only (no strip, no interim wash claim).
+2. **Threads home**: **APPROVED** ("green with it"). Build the surface per `mockups/screen-9-threads-home.html`. Backend (folders, search, threads view = gap register K1-K5) is migration work; he authorized building it (writes on sandbox, applies at his Gate-2 merge).
+3. **Artifacts**: name is **"Artifacts"** (not Library/Shelf); placement = the recommendation (a per-product Artifacts tab on the Canvas rest face, extended to `/artifacts` for the workspace view). Backend = gap register K6-K9 migrations, authorized, applies at Gate-2 merge.
+4. **Tray verbs**: **option (a) AUTHORIZED - build the send-back + snooze backend.** Snooze needs an `approval_snoozes` add + a tolerant queue filter; send-back needs a return-with-notes path per revisable family. Migrations apply at his Gate-2 merge; the queue read must degrade gracefully until then.
+5. Gate #2 itself: the live dev-server review; merge only on his words.
 
 ## DONE and pushed (verify with git log --oneline on the branch)
 - Charter, research dossier (research/), 15 swept mockups + exhibits, gate sheets, gap register (64), agent-roster canon.

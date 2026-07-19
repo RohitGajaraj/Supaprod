@@ -1,0 +1,237 @@
+<!--
+  EXHIBIT: card-source-recognition-options.html
+
+  FOR THE FOUNDER'S PICK (2026-07-19 ruling). His only red-line was the
+  COLORED EDGE STRIP ("big NO"), nothing else. The strip is already gone
+  everywhere. This exhibit shows three ways a card can still answer "who is
+  this from" at a glance WITHOUT an edge strip, so he can select one.
+
+  All three obey the card law: plain ink surface, hairline border, token
+  radius, one internal grid (chip row / body / evidence / action). None uses
+  an edge strip or highlighter bar. Voice rides the chip and (optionally) a
+  whole-card faint wash or a corner mark, never a stripe.
+
+  Memory/Brain cards carry a DISTINCT Vellum tone in every option (founder
+  pick: memory speaks Vellum #d3c39c), stronger than ordinary attribution, so
+  "the product remembering" is instantly recognizable.
+
+  HOW TO PICK: scan the three columns at 20-card scale. Say "Option A", "B",
+  or "C" (and any tweak). Dark is primary; a light-mode row of the memory
+  card is at the bottom so the Vellum tone is judged in both themes.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Supaprod : card source recognition, three options</title>
+<style>
+  :root {
+    --ink-bg: #0a0a0a;
+    --ink-panel: #0d0d0e;
+    --ink-raised: #18181b;
+    --ink-text: #f4f4f5;
+    --ink-body: #a1a1aa;
+    --ink-subtle: #71717a;
+    --ink-faint: #52525b;
+    --ink-hairline: rgba(255, 255, 255, 0.09);
+    --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+    --voice-human: #ff6b2c;
+    --voice-human-faint: rgba(255, 107, 44, 0.06);
+    --voice-machine: #6cb0f5;
+    --voice-machine-dim: #4d7fb3;
+    --voice-machine-faint: rgba(108, 176, 245, 0.07);
+    --chip-fg: #b9c4d4;
+    --chip-border: rgba(185, 196, 212, 0.28);
+    --chip-faint: #101317;
+    --voice-memory: #d3c39c;
+    --voice-memory-dim: #8f8060;
+    --voice-memory-border: rgba(211, 195, 156, 0.32);
+    --voice-memory-faint: rgba(211, 195, 156, 0.06);
+    --verdict-pass: #4ac26b;
+    --radius-card: 12px;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  }
+  .light {
+    --ink-bg: #f7f7f8;
+    --ink-panel: #ffffff;
+    --ink-raised: #f1f1f3;
+    --ink-text: #18181b;
+    --ink-body: #52525b;
+    --ink-subtle: #71717a;
+    --ink-faint: #a1a1aa;
+    --ink-hairline: rgba(0, 0, 0, 0.1);
+    --voice-memory: #7d6c42;
+    --voice-memory-dim: #a8996f;
+    --voice-memory-border: rgba(125, 108, 66, 0.35);
+    --voice-memory-faint: rgba(125, 108, 66, 0.07);
+    --chip-fg: #3f4c60;
+    --chip-border: rgba(63, 76, 96, 0.28);
+    --chip-faint: #f5f7fa;
+    --voice-machine-faint: rgba(46, 110, 214, 0.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink-bg);
+    color: var(--ink-body);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 32px 80px;
+  }
+  h1 { color: var(--ink-text); font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .lede { font-size: 13.5px; color: var(--ink-subtle); max-width: 760px; margin: 0 0 8px; line-height: 1.55; }
+  .rule { color: var(--voice-human); font-weight: 600; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(300px, 1fr)); gap: 22px; margin-top: 28px; }
+  .col > h2 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-subtle); margin: 0 0 4px; }
+  .col > .desc { font-size: 12px; color: var(--ink-faint); margin: 0 0 14px; line-height: 1.5; min-height: 48px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+
+  /* The card law: plain ink surface, hairline border, token radius. */
+  .card {
+    position: relative;
+    background: var(--ink-panel);
+    border: 1px solid var(--ink-hairline);
+    border-radius: var(--radius-card);
+    padding: 14px;
+    overflow: hidden;
+  }
+  .chiprow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .chip {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 5px;
+    color: var(--voice-machine-dim); background: var(--voice-machine-faint);
+  }
+  .chip.human { color: var(--voice-human); background: var(--voice-human-faint); }
+  .chip.mem { color: var(--voice-memory-dim); background: var(--voice-memory-faint); }
+  .time { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .title { color: var(--ink-text); font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+  .bodytext { color: var(--ink-body); font-size: 12.5px; line-height: 1.5; margin-top: 4px; }
+  .actions { margin-top: 12px; display: flex; gap: 8px; }
+  .btn { font-size: 12px; font-weight: 500; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ink-hairline); background: var(--ink-raised); color: var(--ink-text); }
+  .btn.primary { background: var(--voice-human); color: #0a0a0a; border-color: transparent; }
+  .check { color: var(--verdict-pass); }
+
+  /* OPTION B : whole-card faint voice wash (a tint, not a stripe). */
+  .b .card.agent { background: linear-gradient(0deg, var(--voice-machine-faint), transparent 60%), var(--ink-panel); }
+  .b .card.gate { background: linear-gradient(0deg, var(--voice-human-faint), transparent 60%), var(--ink-panel); }
+  .b .card.mem { background: linear-gradient(0deg, var(--voice-memory-faint), transparent 55%), var(--ink-panel); }
+
+  /* OPTION C : a small corner source mark (a dot, clearly not an edge strip). */
+  .c .card::after {
+    content: ""; position: absolute; top: 12px; right: 12px; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--voice-machine-dim);
+  }
+  .c .card.gate::after { background: var(--voice-human); }
+  .c .card.mem::after { background: var(--voice-memory); }
+  .c .time { margin-right: 14px; }
+
+  /* Memory distinction (all options): a Vellum hairline + Vellum chip so the
+     "product remembering" reads instantly, stronger than agent attribution. */
+  .card.mem { border-color: var(--voice-memory-border); }
+
+  .themelabel { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin: 40px 0 12px; }
+  .lightwrap { background: var(--ink-bg); border-radius: 14px; padding: 22px; }
+  .memrow { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 22px; }
+</style>
+</head>
+<body>
+  <h1>Card source recognition, three options</h1>
+  <p class="lede">
+    Your only red-line was the <span class="rule">colored edge strip</span>: it is gone everywhere. These
+    three keep the card answering "who is this from" at a glance without a strip. All obey the card law
+    (plain ink, hairline border, one grid). Pick A, B, or C. Memory cards carry a distinct Vellum tone in every option.
+  </p>
+
+  <div class="cols">
+    <!-- OPTION A -->
+    <div class="col a">
+      <h2>Option A : Chip only</h2>
+      <p class="desc">The calmest. Attribution is the mono agent chip, nothing on the surface. Reads cleanest at 20-card scale; relies on the chip alone.</p>
+      <div class="stack">
+        <div class="card agent">
+          <div class="chiprow"><span class="chip">Engineer</span><span class="time">11:24am</span></div>
+          <div class="bodytext">Writing the checkout change from SPEC-47.</div>
+        </div>
+        <div class="card gate">
+          <div class="chiprow"><span class="chip human">Your call</span><span class="time">9:41am</span></div>
+          <div class="title">The pricing spec is ready for you.</div>
+          <div class="bodytext">Draft recommends approving. 7 requirements, 1 open question.</div>
+          <div class="actions"><span class="btn primary">Approve and run</span><span class="btn">Decline</span></div>
+        </div>
+        <div class="card mem">
+          <div class="chiprow"><span class="chip mem">Memory</span><span class="time">Apr 3</span></div>
+          <div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div>
+        </div>
+        <div class="card">
+          <div class="chiprow"><span class="chip" style="color:var(--ink-subtle);background:var(--chip-faint);border:1px solid var(--chip-border)">Spec</span><span class="time">11:02am</span></div>
+          <div class="bodytext"><span class="check">&#10003;</span> Spec approved. 9 requirements, 2 open questions.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION B -->
+    <div class="col b">
+      <h2>Option B : Faint voice wash</h2>
+      <p class="desc">A whole-card tint in the voice's faintest tier (machine blue, ember, Vellum), fading to nothing. A tint across the card, never a bar on one edge. Recognizable at a glance, calm at scale.</p>
+      <div class="stack">
+        <div class="card agent">
+          <div class="chiprow"><span class="chip">Engineer</span><span class="time">11:24am</span></div>
+          <div class="bodytext">Writing the checkout change from SPEC-47.</div>
+        </div>
+        <div class="card gate">
+          <div class="chiprow"><span class="chip human">Your call</span><span class="time">9:41am</span></div>
+          <div class="title">The pricing spec is ready for you.</div>
+          <div class="bodytext">Draft recommends approving. 7 requirements, 1 open question.</div>
+          <div class="actions"><span class="btn primary">Approve and run</span><span class="btn">Decline</span></div>
+        </div>
+        <div class="card mem">
+          <div class="chiprow"><span class="chip mem">Memory</span><span class="time">Apr 3</span></div>
+          <div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div>
+        </div>
+        <div class="card">
+          <div class="chiprow"><span class="chip" style="color:var(--ink-subtle);background:var(--chip-faint);border:1px solid var(--chip-border)">Spec</span><span class="time">11:02am</span></div>
+          <div class="bodytext"><span class="check">&#10003;</span> Spec approved. 9 requirements, 2 open questions.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION C -->
+    <div class="col c">
+      <h2>Option C : Corner source mark</h2>
+      <p class="desc">A single small voice-colored dot in the top corner plus the chip. A point, not a line, so it can never read as a stripe. The lightest visual add on top of the chip.</p>
+      <div class="stack">
+        <div class="card agent">
+          <div class="chiprow"><span class="chip">Engineer</span><span class="time">11:24am</span></div>
+          <div class="bodytext">Writing the checkout change from SPEC-47.</div>
+        </div>
+        <div class="card gate">
+          <div class="chiprow"><span class="chip human">Your call</span><span class="time">9:41am</span></div>
+          <div class="title">The pricing spec is ready for you.</div>
+          <div class="bodytext">Draft recommends approving. 7 requirements, 1 open question.</div>
+          <div class="actions"><span class="btn primary">Approve and run</span><span class="btn">Decline</span></div>
+        </div>
+        <div class="card mem">
+          <div class="chiprow"><span class="chip mem">Memory</span><span class="time">Apr 3</span></div>
+          <div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div>
+        </div>
+        <div class="card">
+          <div class="chiprow"><span class="chip" style="color:var(--ink-subtle);background:var(--chip-faint);border:1px solid var(--chip-border)">Spec</span><span class="time">11:02am</span></div>
+          <div class="bodytext"><span class="check">&#10003;</span> Spec approved. 9 requirements, 2 open questions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHT MODE : the memory card in each option, so Vellum is judged in both themes. -->
+  <div class="themelabel">Light mode : the memory card (Vellum in both themes)</div>
+  <div class="light lightwrap">
+    <div class="memrow">
+      <div class="col a"><div class="card mem"><div class="chiprow"><span class="chip mem">Memory</span><span class="time">Apr 3</span></div><div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div></div></div>
+      <div class="col b"><div class="card mem" style="background:linear-gradient(0deg,var(--voice-memory-faint),transparent 55%),var(--ink-panel)"><div class="chiprow"><span class="chip mem">Memory</span><span class="time">Apr 3</span></div><div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div></div></div>
+      <div class="col c" style="position:relative"><div class="card mem" style="position:relative"><span style="position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--voice-memory)"></span><div class="chiprow"><span class="chip mem">Memory</span><span class="time" style="margin-right:14px">Apr 3</span></div><div class="bodytext">Bulk actions ranked second in April; the evidence has moved since.</div></div></div>
+    </div>
+  </div>
+</body>
+</html>
