@@ -76,3 +76,5 @@ The build proceeds on token-decoupled components: every surface consumes ramp va
 **DECIDED by the founder (2026-07-19 late, in his words):** ember stays the V1 tone as finalized earlier (no retune; dark #ff6b2c, light sibling #f05a1a unchanged) · memory speaks VELLUM (applied to ink.css, both themes) · machine voice stays BLUE · chips wear slate silver (applied earlier, Addendum 1.3) · Pick 1 tier retune locked (applied earlier). Light mode resolves as the dual-mode siblings of the decided set. STILL OPEN: starfield yes/no, threads-home approve/adjust, artifacts naming + placement, card language sign-off.
 
 **Sequencing order from the founder: after Phase 2 completes, HOLD. Phase 3 does not start until he says so.**
+
+**STARFIELD DECIDED (2026-07-19 night, founder's words):** the recommended scoped app-idle variant is approved. Implementation lands with the surfaces it is scoped to (Phase 3/4); never on working surfaces.

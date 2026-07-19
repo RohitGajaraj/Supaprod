@@ -1,39 +1,63 @@
-# Reimagining HANDOFF — live state (2026-07-19, updated at session-limit cutoff)
+# Reimagining HANDOFF — live state + continuation spec (updated 2026-07-19 night)
 
-> For ANY tool or session continuing this work (Claude Code, Kiro, anything else). Branch: `sandbox/mission-control-v2` (pushed to origin). Production, main, and the public landing are untouched and must stay untouched. NO merge to main without the founder's explicit approval in his own words.
+> For ANY tool continuing this work (Amazon Kiro, Claude Code, anything else). Branch: `sandbox/mission-control-v2` (pushed to origin). Production, main, and the public landing are untouched and MUST stay untouched. NO merge to main without the founder's explicit approval in his own words. Commit + push after every verified chunk, with a one-line WHY in the message.
 
-## Read order
-1. [problem-statement.md](./problem-statement.md) — the founder-approved charter (v3).
-2. [design-language-spec.md](./design-language-spec.md) — the governing design doc. **Addendum 1.1 at the bottom overrides the body** (founder red-lines: edge-strip ban, craft bar, color revision pending, Threads + Artifacts homes, top Ask affordance, landing clarity).
-3. [execution-plan.md](./execution-plan.md) — the full phased plan (R, M, 0-5, two founder gates).
-4. [journey-catalog.md](./journey-catalog.md) · [build-engine-strategy.md](./build-engine-strategy.md) · [gap-register.md](./gap-register.md) · [research/](./research/) · [mockups/](./mockups/) with [GATE-1-DECISIONS.md](./mockups/GATE-1-DECISIONS.md).
+## Read order (before any work)
+1. This file, fully.
+2. [problem-statement.md](./problem-statement.md) — the founder-approved charter.
+3. [design-language-spec.md](./design-language-spec.md) — the governing design doc. **Addenda 1.1, 1.2, 1.3 at the bottom override the body.**
+4. [execution-plan.md](./execution-plan.md) — the phase plan. [journey-catalog.md](./journey-catalog.md) — the journeys. [gap-register.md](./gap-register.md) — 64 tracked gaps with dispositions.
+5. [mockups/GATE-1-DECISIONS.md](./mockups/GATE-1-DECISIONS.md) + [mockups/GATE-1B-REVIEW.md](./mockups/GATE-1B-REVIEW.md) — what the founder decided, verbatim record.
+6. [build-engine-strategy.md](./build-engine-strategy.md) — before touching the Build face.
 
-## Founder decision state
-- Gate #1: opened with "pls continue" — build proceeds on the RECOMMENDED option for every open item (see the Provisional record inside GATE-1-DECISIONS.md). All overridable at his live review.
-- In his own words: Settings five-group recluster approved; standalone Ask panel stays retired (may return only on his ask); ember stays.
-- PENDING his picks (Gate 1b, exhibits partly built): color v2 (retuned soft/faint tiers; memory gold REPLACED by a new hue; machine blue vs one challenger; light-mode strategy), starfield app-idle yes/no after seeing a rendered variant, Threads home concept, Artifacts naming + placement.
-- B5 dry run (real credits, patch driver, test repo, small budget): authorized-by-continue, deferred until Build-face integration.
+## Founder decisions: LOCKED (do not reopen)
+- Mission Control IA (room: TopBar / Spine / Thread / Canvas / Composer; nav 4: Mission Control, Approvals, Brain, Settings). Journey-first.
+- Settings five-group recluster. Standalone Ask panel retired (returns only on his ask). Retirements: weather widget, focus dock, liquid glass.
+- Color system: ember stays the V1 tone (dark #ff6b2c, light #f05a1a) · machine voice BLUE (#6cb0f5 / #2e6ed6) · memory speaks VELLUM (applied in ink.css both themes) · Pick 1 tier retune applied · **chips wear slate silver** (`--chip-*` tokens; ember NEVER on chips, only on primary actions).
+- **Starfield: the scoped app-idle variant is APPROVED** (2026-07-19 night): roughly half landing density, far layer only, ONLY on workspace/product empty states, onboarding/tour frames, and Brain at idle; removed (not dimmed) the moment a surface holds content; never on working surfaces; reduced-motion gated. Implement in Phase 3/4 where those surfaces get built.
+- Cost-quiet everywhere: no per-action figures inline; credits behind a details/kebab click only.
+- Cards: NO colored edge strips ever. Craft grid: chip row (label left, mono timestamp right), body, evidence chips, action row.
 
-## DONE on this branch (verified: `bunx tsc --noEmit` clean, 78/78 new tests pass)
-- Charter + research dossier + 8 swept mockups + gate sheets (commits 490f7909, 97c64d64, 2a98094b, 8f7e48a1, 6b4e0a62).
-- `src/styles/ink.css`: five-tier voice ramps (ember/machine/memory), amber `--verdict-working` deleted and usages migrated.
-- `src/lib/surface-registry.ts` + `src/lib/__tests__/surface-registry.test.ts`: every server-fn domain registered {kind, home, opensFrom, status}; the CI no-orphan gate.
-- `src/lib/loop-state.functions.ts` + test: getLoopState per-stage spine states (done/active/gate/quiet/inferred) composing existing approvals/loop-health/stage-events/today-lanes modules; pure mapper unit-tested.
-- `src/components/mission/Spine.tsx` + tests: the live 7-node spine (states, slice highlight, start/end annotations, onStageSelect).
-- `src/components/mission/primitives/`: SurfaceHeader, PulseLine, GateChip, ReceiptLine (cost NEVER inline; kebab details only), NextLine, WarmSlot (no empty render path) + barrel.
-- `src/lib/mission-vocabulary.ts` + test: working-state decks as data, drawWorkingLine(stage, slug, seed), no-repeat shuffle.
-- Breadcrumb dedupe (founder bug): PageHeader eyebrow now optional/omitted where the TopBar crumb already names the surface; 9 surfaces edited.
-- `research/threads-and-artifacts.md`: the Threads + Artifacts concept research (landed before the session limit).
+## Founder items still OPEN (present, do not decide for him)
+1. **Card source-recognition treatment** (Addendum 1.2): the current faint-wash is INTERIM (marked with code comments). Render 2-3 replacement options (incl. the distinct memory/Vellum tone) across all card types, both themes; he picks.
+2. **Threads home**: concept + mockup exist (research/threads-and-artifacts.md, mockups/screen-9-threads-home.html); he has not signed it. Present before building the surface.
+3. **Artifacts**: naming (Library / Shelf / Made here) + placement; his pick pending.
+4. Gate #2 itself: the live dev-server review; merge only on his words.
 
-## NEXT, in order (exact specs)
-1. **Integrate (Phase 1 finish)**: `src/routes/_authenticated.m.$productId.tsx` + `_authenticated.m.index.tsx` (index resolves last-active product; empty workspace = prospect state via WarmSlot, never blank). `src/components/mission/MissionShell.tsx`: five regions per mockups (_shell-template.html): mission TopBar (mark, product switcher reusing AppShell workspace data, 4-door nav Mission Control/Approvals/Brain/Settings, needs-you ember pill on the SAME `["approvals","queue",workspaceId]` query key: ONE COUNT ONE SOURCE, plus the always-visible Ask button with its shortcut), Spine fed by getLoopState, Thread column (honest placeholder: day label + ReceiptLine receipts; real Composer is Phase 2), Canvas rendering the EXISTING stage surface component per `?stage=` param (temp faces; where not extractable, an honest "Open the full workbench" card linking to the old route), docked composer strip that dispatches `supaprod:open-ask` (no second input box). Keys 1-7 shell-local. Regenerate routeTree the repo way (never hand-edit). Old app untouched.
-2. **Verify**: tsc, scoped tests, logged-in Playwright smoke of /m (demo creds in docs/operations/demo-credentials.md; dev server needs default Node 26; `bun run build` needs Node 20.20.2), adversarial diff review (five failure verdicts, one-count-one-source, cost-quiet, no purple, no strips).
-3. **Gate 1b exhibits** (design round): color-v2-board.html (options on dark AND light, token diffs in details blocks), starfield-variant.html (3 stacked frames), card-craft sweep (_shared.css edge strips removed + propagate to ALL mockups' inline copies + card-spec.html), screen-9-threads-home.html (from the research doc), landing-when-you-login.html (annotated returning-user + first-run), then GATE-1B-REVIEW.md decision sheet + gap-register additions.
-4. **Phases 2-5** per execution-plan.md (conversation+journeys; faces+tray+strip; depth+settings+agents; seed+verify+Gate #2).
+## DONE and pushed (verify with git log --oneline on the branch)
+- Charter, research dossier (research/), 15 swept mockups + exhibits, gate sheets, gap register (64), agent-roster canon.
+- `src/styles/ink.css`: voice ramps + all color locks above + `--chip-*` slate ramp.
+- `src/lib/surface-registry.ts` (+CI test): every server-fn domain registered {kind, home, opensFrom, status}; the no-orphan gate. 'threads' and 'artifacts' entries planned.
+- `src/lib/loop-state.functions.ts`: getLoopState per-stage spine states. `src/lib/mission-vocabulary.ts`: working-state decks + drawWorkingLine.
+- `src/components/mission/`: Spine.tsx; primitives/ (SurfaceHeader, PulseLine, GateChip [chip=slate, card actions=ember], ReceiptLine [no inline cost], NextLine, WarmSlot [no empty render path]); MissionShell + MissionShellView; tests.
+- Routes `/m` + `/m/$productId` (?stage= drives the canvas; existing surfaces render as temp faces; keys 1-7; one-source needs-you pill). Verified live: build-evidence/*.png.
+- Breadcrumb dedupe across 9 surfaces (one wayfinding source). Two crash fixes (DiscoverSurface useSearch strict:false; AutoClustered hooks order).
 
-## Binding rules (grep-able summary; full text in the spec + addendum)
-Supaprod naming · sandbox only · claim never outruns wiring · humanized strings (no em dashes in code/UI; docs tolerated) · cards: NO colored edge strips, craft grid (chip left / mono timestamp right / body / actions) · costs never inline (credits behind a details click) · one ember locus per screen · machine blue full-hue only on the single live locus · no purple · components consume token vars only · registry entry required for every domain (CI-enforced) · Today's jobs live in the room (pill/Briefing/spine) · keys 1-7 = stages.
+## CONTINUATION — do this, in order
 
-## Session/orchestration notes (Claude Code specific; ignore in other tools)
-- Workflow scripts + run IDs for cache resume live under the session dir; see git history of this file for IDs. Fresh runs are equally fine: the specs above are self-sufficient.
-- This branch's work was produced by parallel agent workflows; commits are chunked by phase with WHY messages. Continue that discipline.
+### Step 0: state check (Phase 2 may or may not have finished)
+Phase 2 (conversation + journeys) was running at cutoff. Check: does `git log --oneline -5` show a phase-2 commit? Do these exist and pass: `src/hooks/use-ask-stream.ts`, `src/lib/briefing.functions.ts`, `src/lib/journeys.ts`, `src/components/mission/composer/` (Composer, ComposerOverlay, SuggestionPopover, JourneyChips, Thread)? Run `bunx tsc --noEmit` and `bun test src/components/mission src/lib src/hooks`. If files exist uncommitted: verify, fix, commit. If absent or partial, FINISH Phase 2 per execution-plan.md Phase 2 + these binding details: extract (never rewrite) the SSE client from `src/components/obsidian/AskPanel.tsx` (the /api/chat protocol is contract-locked); keep dictation + read-aloud (use-voice.ts) alive in the Composer; per-product thread keying client-side (NO schema migrations); journey chips only for journeys whose `wiredVia` server functions actually exist; global shortcut keys summon the ONE ComposerOverlay everywhere (palette/AskPanel unmounted, files kept); Briefing = machine-authored receipts prose from existing today-lanes/receipts/greeting/approvals data, honest zero state, no costs.
+
+### Phase 3 (was held by the founder; he releases it in the new session by giving you these instructions)
+1. Seven CanvasFace implementations on the CanvasFace contract (state-sentence header + ONE primary action + designed empty/loading/error; WarmSlot for empties). Strangler rule per stage: the legacy route keeps serving until its face passes review; then it redirects. Known debt: the Discover temp face still renders its old in-page chrome inside the canvas; faces shed legacy PageHeader/TopBar chrome.
+2. ApprovalsTray: right slide-over; GateChip cards; keys J/K traverse, 1 approve, 2 send back, 3 decline, H snooze, Enter opens evidence; `/approvals` deep-links to room + tray open; deciding visibly advances the room.
+3. WorkingStrip: always-on agent activity line (actor + drawWorkingLine verb + object + time), receipts/trace one click in, NO cost figures; reuse useLiveActivity (src/components/supaprod/LivePulse.tsx).
+4. The signature moment: approve → gate resolves, receipt lands, spine node flips to machine blue within 1s, strip verb changes; 700-900ms total, optimistic, reduced-motion gated. This is the ONE big motion.
+5. Starfield app-idle variant lands on the surfaces it is scoped to (see LOCKED).
+6. Cost-quiet pass over everything Phase 3 touches.
+
+### Phase 4
+Drawers (Under-the-hood: tabs reuse src/components/engine-room/rooms/* verbatim; Crew drawer: the 13-agent roster in-context); Brain canvas (knows + runs); Settings rebuilt to the five approved groups (all 17 legacy sections' functionality mapped via surface-registry, nothing orphaned; brand/design config relocated as a one-time feed); agent management (roster rows with plain-words approval modes reusing resolveApprovalMode/updateToolMode wiring, tool/MCP grants, workspace + per-product knowledge/instructions per research/threads-and-artifacts.md and ia-reclustering.md; anything needing new backend is a flagged gap, never silent); analytics homes; tooltip layer + opt-in skippable guided tour; Build face wired per build-engine-strategy.md (FIRST the B3 naming-honesty fix: the driver id claims claude-sdk but is a single-shot patch driver; receipt must name what actually ran; B5 dry run is authorized: test repo, small real-credit budget); Design face interactive prototypes (prototypes/design-scaffold/PreviewPanel seams); Threads + Artifacts surfaces ONLY after the founder signs their concepts (open items above).
+
+### Phase 5
+Parameterize the Helio Labs seed into a per-account `seed_sample_workspace(p_owner)` (SAMPLE badged, never mixed into real counts); fill seed gaps (all 10 approval kinds, orchestrator runs, one failed-then-recovered run, stage_events receipts, credible credit numbers); clean stale demo data LAST; one-question onboarding ("What are you building?") replacing the five-screen flow; retarget legacy redirects (no chains); copy pass (humanized, sharp-PM); generate the coverage matrix from surface-registry for the founder; demo script for his video covering EVERY journey; then the Love-Gate walkthrough on a fresh account, timer running, any FAIL blocks:
+- 10-second test: a cold viewer states "you tell it what to build, agents do it, you approve" from screen 1; ember in exactly one zone; no empty panel anywhere.
+- 5-minute test: signup → one question → first run streaming < 60s; first real gate < 3 min; approving visibly starts the next pass; 3 or fewer human decisions to first felt value; sample always badged.
+- Every surface: purpose line present; what's-happening answerable without clicking; needs-me is a GateChip or an honest who-acts-next line; NextLine wherever work is in flight; no unbounded lists.
+- Depth/honesty: every count/receipt opens a peek; every peek offers one door; traces/evals/rooms reachable without shortcut keys; no string claims unwired behavior; zero em dashes; buttons verb+object.
+- Enterprise scan: receipt → immutable trace in 2 clicks; approvals purpose line states the governance guarantee; memory view shows correct/delete controls.
+- Mechanical: dark + light + system live-switch on every touched route; keyboard path through queue and gates; reduced motion; AA contrast.
+Then STOP: present the live dev server to the founder for Gate #2. He approves merges in his own words only.
+
+## Environment + verification
+`bunx tsc --noEmit` (must stay clean) · `bun test <scopes>` (5 pre-existing SignalCard failures in src/components/discover are known, not yours) · dev server `bun run dev` needs default Node 26 (predev guard) · production build `bun run build` needs Node 20.20.2 · demo login: docs/operations/demo-credentials.md · never edit src/routeTree.gen.ts by hand (regenerate via dev/tsr) · never commit .claude-flow/* churn · Supabase facts via the Lovable/Supabase MCPs where available, never guessed.
