@@ -45,11 +45,11 @@
   --chip-border: rgba(185, 196, 212, 0.28);
   --chip-soft: #171b21;
   --chip-faint: #101317;
-  --voice-memory: #e8b44c; /* memory moments ONLY; the gold ban holds everywhere else */
-  --voice-memory-dim: #a8842f;
-  --voice-memory-border: rgba(232, 180, 76, 0.35);
-  --voice-memory-soft: rgba(232, 180, 76, 0.12);
-  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+  --voice-memory: #d3c39c; /* Vellum, founder pick 2026-07-19; memory moments ONLY */
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
 
   /* Verdicts (outcomes only; working IS the machine speaking, so it uses the machine ramp) */
   --verdict-pass: #4ac26b;
@@ -106,11 +106,11 @@
   --chip-border: rgba(63, 76, 96, 0.28);
   --chip-soft: #edf0f4;
   --chip-faint: #f5f7fa;
-  --voice-memory: #b8860b;
-  --voice-memory-dim: #96700a;
-  --voice-memory-border: rgba(184, 134, 11, 0.4);
-  --voice-memory-soft: rgba(184, 134, 11, 0.12);
-  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
 
   --verdict-pass: #1a7f37;
   --verdict-fail: #cf222e;
