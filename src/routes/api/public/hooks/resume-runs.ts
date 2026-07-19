@@ -55,23 +55,31 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
           try {
             const cutoff = new Date(Date.now() - STALE_MS).toISOString();
 
-            // BLD-GATE-SYNC helpers: a mission's run statuses + its count of genuinely-pending
-            // human gates (status='pending' only; an 'approved'-but-unexecuted gate is the
-            // system's turn, not the operator's, so it does not count as needs-you).
-            const runStatusesOf = async (missionId: string): Promise<string[]> => {
-              const { data } = await admin
+            // BLD-GATE-SYNC batch helpers: fetch all runs + pending gates once per pass,
+            // then classify in memory via Maps. Perf fix: avoids ~200 sequential queries.
+            const buildGateMaps = async (missionIds: string[]) => {
+              if (!missionIds.length) return { runsByMission: new Map(), pendingByMission: new Map() };
+              const { data: allRuns } = await admin
                 .from("agent_runs")
-                .select("status")
-                .eq("mission_id", missionId);
-              return ((data ?? []) as { status: string }[]).map((r) => r.status);
-            };
-            const pendingGatesOf = async (missionId: string): Promise<number> => {
-              const { count } = await admin
+                .select("mission_id,status")
+                .in("mission_id", missionIds);
+              const runsByMission = new Map<string, string[]>();
+              for (const r of (allRuns ?? []) as { mission_id: string; status: string }[]) {
+                const key = r.mission_id;
+                runsByMission.set(key, [...(runsByMission.get(key) ?? []), r.status]);
+              }
+
+              const { data: allGates } = await admin
                 .from("agent_approvals")
-                .select("id", { count: "exact", head: true })
-                .eq("mission_id", missionId)
+                .select("mission_id")
+                .in("mission_id", missionIds)
                 .eq("status", "pending");
-              return count ?? 0;
+              const pendingByMission = new Map<string, number>();
+              for (const g of (allGates ?? []) as { mission_id: string }[]) {
+                const key = g.mission_id;
+                pendingByMission.set(key, (pendingByMission.get(key) ?? 0) + 1);
+              }
+              return { runsByMission, pendingByMission };
             };
 
             // BLD-GATE-SYNC un-block pass — run FIRST so a mission whose gate was just decided is
@@ -84,34 +92,38 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               .eq("status", "blocked")
               .order("updated_at", { ascending: true })
               .limit(MISSION_BATCH);
-            for (const bm of (blockedMissions ?? []) as {
-              id: string;
-              workspace_id: string | null;
-              user_id: string | null;
-            }[]) {
-              const runStatuses = await runStatusesOf(bm.id);
-              const pendingGateCount = await pendingGatesOf(bm.id);
-              if (
-                classifyMissionGate({ status: "blocked", runStatuses, pendingGateCount }) ===
-                "unblock"
-              ) {
-                const { data: upd } = await admin
-                  .from("missions")
-                  .update({ status: "running", updated_at: new Date().toISOString() })
-                  .eq("id", bm.id)
-                  .eq("status", "blocked")
-                  .select("id");
-                if (upd && upd.length) {
-                  unblocked.push(bm.id);
-                  await recordStageEvent(admin, {
-                    entityType: "mission",
-                    entityId: bm.id,
-                    from: "blocked",
-                    to: "running",
-                    actor: "system",
-                    workspaceId: bm.workspace_id,
-                    userId: bm.user_id,
-                  });
+            if (blockedMissions && blockedMissions.length > 0) {
+              const blockedIds = (blockedMissions as { id: string }[]).map((m) => m.id);
+              const { runsByMission, pendingByMission } = await buildGateMaps(blockedIds);
+              for (const bm of (blockedMissions ?? []) as {
+                id: string;
+                workspace_id: string | null;
+                user_id: string | null;
+              }[]) {
+                const runStatuses = runsByMission.get(bm.id) ?? [];
+                const pendingGateCount = pendingByMission.get(bm.id) ?? 0;
+                if (
+                  classifyMissionGate({ status: "blocked", runStatuses, pendingGateCount }) ===
+                  "unblock"
+                ) {
+                  const { data: upd } = await admin
+                    .from("missions")
+                    .update({ status: "running", updated_at: new Date().toISOString() })
+                    .eq("id", bm.id)
+                    .eq("status", "blocked")
+                    .select("id");
+                  if (upd && upd.length) {
+                    unblocked.push(bm.id);
+                    await recordStageEvent(admin, {
+                      entityType: "mission",
+                      entityId: bm.id,
+                      from: "blocked",
+                      to: "running",
+                      actor: "system",
+                      workspaceId: bm.workspace_id,
+                      userId: bm.user_id,
+                    });
+                  }
                 }
               }
             }
@@ -255,36 +267,40 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               .in("status", ["running", "in_progress"])
               .order("updated_at", { ascending: true })
               .limit(MISSION_BATCH);
-            for (const cm of (blockCandidates ?? []) as {
-              id: string;
-              status: string;
-              workspace_id: string | null;
-              user_id: string | null;
-            }[]) {
-              const runStatuses = await runStatusesOf(cm.id);
-              if (!runStatuses.includes("waiting_approval")) continue; // cheap short-circuit
-              const pendingGateCount = await pendingGatesOf(cm.id);
-              if (
-                classifyMissionGate({ status: cm.status, runStatuses, pendingGateCount }) ===
-                "block"
-              ) {
-                const { data: upd } = await admin
-                  .from("missions")
-                  .update({ status: "blocked", updated_at: new Date().toISOString() })
-                  .eq("id", cm.id)
-                  .in("status", ["running", "in_progress"])
-                  .select("id");
-                if (upd && upd.length) {
-                  blocked.push(cm.id);
-                  await recordStageEvent(admin, {
-                    entityType: "mission",
-                    entityId: cm.id,
-                    from: cm.status,
-                    to: "blocked",
-                    actor: "system",
-                    workspaceId: cm.workspace_id,
-                    userId: cm.user_id,
-                  });
+            if (blockCandidates && blockCandidates.length > 0) {
+              const blockIds = (blockCandidates as { id: string }[]).map((m) => m.id);
+              const { runsByMission, pendingByMission } = await buildGateMaps(blockIds);
+              for (const cm of (blockCandidates ?? []) as {
+                id: string;
+                status: string;
+                workspace_id: string | null;
+                user_id: string | null;
+              }[]) {
+                const runStatuses = runsByMission.get(cm.id) ?? [];
+                if (!runStatuses.includes("waiting_approval")) continue; // cheap short-circuit
+                const pendingGateCount = pendingByMission.get(cm.id) ?? 0;
+                if (
+                  classifyMissionGate({ status: cm.status, runStatuses, pendingGateCount }) ===
+                  "block"
+                ) {
+                  const { data: upd } = await admin
+                    .from("missions")
+                    .update({ status: "blocked", updated_at: new Date().toISOString() })
+                    .eq("id", cm.id)
+                    .in("status", ["running", "in_progress"])
+                    .select("id");
+                  if (upd && upd.length) {
+                    blocked.push(cm.id);
+                    await recordStageEvent(admin, {
+                      entityType: "mission",
+                      entityId: cm.id,
+                      from: cm.status,
+                      to: "blocked",
+                      actor: "system",
+                      workspaceId: cm.workspace_id,
+                      userId: cm.user_id,
+                    });
+                  }
                 }
               }
             }

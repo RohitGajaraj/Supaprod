@@ -134,7 +134,6 @@ describe("DiscoverSurface (integration)", () => {
     // 3. Use userEvent to interact (if needed)
     // 4. Wait for async query to settle
     // 5. Assert on rendered content
-
     // Pseudo-code (requires actual DiscoverSurface component import):
     /*
     const mockRankOpp = mock(() => Promise.resolve(mockOpportunitiesFixture));
@@ -159,7 +158,6 @@ describe("DiscoverSurface (integration)", () => {
     // Verify the mock was called
     expect(mockRankOpp).toHaveBeenCalledTimes(1);
     */
-
     // PLACEHOLDER: To activate this test, uncomment the above after:
     // - Exporting DiscoverSurface from the routes file
     // - Mocking rankOpportunitiesByIce in the test module scope

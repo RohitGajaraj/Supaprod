@@ -53,7 +53,8 @@ function createMockSupabase(fixture: {
         if (table === "prds") result = { error: null, data: null, count: fixture.specsCount };
         else if (table === "decisions")
           result = { error: null, data: null, count: fixture.decisionsCount };
-        else if (table === "missions") result = { error: null, data: null, count: fixture.missionsCount };
+        else if (table === "missions")
+          result = { error: null, data: null, count: fixture.missionsCount };
         else if (table === "agent_runs") result = { error: null, data: fixture.runs };
         else result = { error: null, data: null };
         return Promise.resolve(result).then(onFulfilled);
