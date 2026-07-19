@@ -115,14 +115,23 @@ export function GateChip(props: GateChipProps) {
 
   return (
     <div
-      className={cn("rounded-xl border p-3", className)}
+      className={cn("relative rounded-xl border p-3", className)}
       style={{
         background:
           "linear-gradient(180deg, var(--voice-human-faint), transparent 70%), var(--ink-panel)",
         borderColor: "var(--voice-human-border)",
       }}
     >
-      <div className="mb-1.5 flex items-center gap-2">
+      {/* Source recognition (founder pick 2026-07-19: Option B faint voice wash
+          + Option C corner mark). The wash above tints the whole card in the
+          voice's faint tier; this dot marks the voice at a glance. A gate is the
+          human's move, so both are ember. Never an edge strip. */}
+      <span
+        aria-hidden
+        className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full"
+        style={{ background: "var(--voice-human)" }}
+      />
+      <div className="mb-1.5 flex items-center gap-2 pr-3">
         <div className="text-[13.5px] font-semibold" style={{ color: "var(--ink-text)" }}>
           {headline}
         </div>
