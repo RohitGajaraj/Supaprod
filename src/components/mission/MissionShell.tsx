@@ -52,6 +52,7 @@ import { StageCanvasFace } from "./faces";
 import { ApprovalsTray } from "./ApprovalsTray";
 import { WorkingStrip } from "./WorkingStrip";
 import { CrewDrawer } from "./CrewDrawer";
+import { RoomTour } from "./RoomTour";
 import { AppIdleBackdrop } from "./AppIdleBackdrop";
 import { useLiveActivity } from "@/components/supaprod/LivePulse";
 
@@ -89,6 +90,7 @@ const OPTIMISTIC_VERB: Record<StageId, string> = {
 };
 
 const FIRST_APPROVAL_KEY = "supaprod:mc:first-approval-seen";
+const TOUR_SEEN_KEY = "supaprod:mc:tour-seen";
 
 export function MissionShell({
   productId,
@@ -221,6 +223,23 @@ export function MissionShell({
 
   // The Crew drawer (the roster in-context); the engine room is a route.
   const [crewOpen, setCrewOpen] = useState(false);
+
+  // The opt-in guided tour of the room anatomy (charter #10). First-run offers
+  // it once, remembered in localStorage; it never nags and is skippable.
+  const [tourOpen, setTourOpen] = useState(false);
+  const [offerTour, setOfferTour] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.localStorage.getItem(TOUR_SEEN_KEY)) setOfferTour(true);
+  }, []);
+  const dismissTourOffer = () => {
+    setOfferTour(false);
+    try {
+      window.localStorage.setItem(TOUR_SEEN_KEY, "1");
+    } catch {
+      // localStorage unavailable (private mode): the offer just won't persist.
+    }
+  };
 
   // The app-idle starfield is scoped to a genuinely empty/idle room only
   // (LOCKED): every stage quiet or inferred, nothing active, nothing waiting.
@@ -500,6 +519,39 @@ export function MissionShell({
         }}
       />
       <CrewDrawer open={crewOpen} onClose={() => setCrewOpen(false)} />
+      {offerTour && !tourOpen ? (
+        <div
+          data-testid="tour-offer"
+          className="fixed bottom-5 left-5 z-40 w-[300px] rounded-xl border p-3.5 shadow-2xl"
+          style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)" }}
+        >
+          <p className="text-[12.5px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+            New here? Take a 20-second tour of the room.
+          </p>
+          <div className="mt-2.5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                dismissTourOffer();
+                setTourOpen(true);
+              }}
+              className="ink-focus inline-flex h-8 items-center rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+              style={{ background: "var(--ink-panel)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+            >
+              Start tour
+            </button>
+            <button
+              type="button"
+              onClick={dismissTourOffer}
+              className="ink-focus inline-flex h-8 items-center rounded-lg px-3 text-[12.5px] transition-colors hover:bg-[var(--ink-panel)]"
+              style={{ color: "var(--ink-subtle)" }}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <RoomTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </>
   );
 }
