@@ -14,6 +14,19 @@ Before doing ANYTHING, open `docs/planning/front-end-reimagining/CONTINUATION-BO
 
 Then start with HANDOFF Step 0 (the Phase 2 state check), finish Phase 2 if needed, and proceed Phase 3, then 4, then 5, exactly as the HANDOFF specifies. I am releasing the Phase 3 hold by giving you this prompt.
 
+Visual references: the approved mockups in `docs/planning/front-end-reimagining/mockups/` are what each surface must look like. Open them in a browser as you build (start with `index.html`, the gallery with per-screen notes):
+- `_shell-template.html` + `_shared.css` - the shell DOM and style contract (the committed MissionShell follows it).
+- `screen-2-room-rest.html` - the room at rest: rest face, Briefing in the thread, receipts. Target for Phase 2/3.
+- `screen-4-room-gated-tray.html` - the Approvals tray open, gate cards, keyed verdicts. Target for Phase 3.
+- `screen-3-room-building.html` - the Build face (code + terminal). Target for Phase 3/4.
+- `screen-5-journey-flow.html` - a journey's start and done states on the spine. Target for Phase 2/3.
+- `screen-6-design-face.html` - the Design face (interactive prototype). Target for Phase 4.
+- `screen-7-agents-settings.html` - the reclustered Settings + Agents group. Target for Phase 4.
+- `screen-9-threads-home.html` - the Threads home. Phase 4, ONLY after I sign the concept.
+- `screen-1-first-run.html` + `landing-when-you-login.html` - first-run and post-login orientation. Target for Phase 5 onboarding and the prospect state.
+- `card-spec.html` - the corrected card anatomy for every card type. `starfield-variant.html` - the approved app-idle treatment. `color-v2-board.html` + `screen-8-decision-board.html` - decision records.
+IMPORTANT: some rulings postdate the mockups. Where a mockup conflicts with the spec Addenda 1.1-1.3 or the committed code, the addenda and code win: chips are slate silver now (mockups still show ember chips), memory is Vellum (mockups show gold), and the card source-recognition wash is interim pending my pick.
+
 Hard rules, non-negotiable:
 - Sandbox branch only. Never touch main, production, Supabase migrations (except the Phase 5 seed function, which you show me first), or any public landing/marketing page.
 - No merge to main, ever, without my explicit approval in my own words. A question is never approval.
