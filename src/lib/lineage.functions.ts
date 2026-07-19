@@ -350,15 +350,26 @@ Each title must be a concrete verb-led action under 80 chars. Order by build seq
       .select("id, title");
     if (tErr) throw new Error(tErr.message);
 
-    for (const t of tasks ?? []) {
-      await recordLineage(supabase, userId, {
-        parent_kind: "prd",
+    // Batch-upsert all lineage edges using the same onConflict target as recordLineage.
+    // Runs after the real write succeeds, so we log-not-throw on error (fail-soft).
+    if (tasks && tasks.length > 0) {
+      const lineageEdges = (tasks ?? []).map((t) => ({
+        user_id: userId,
+        parent_kind: "prd" as const,
         parent_id: prd.id,
-        child_kind: "task",
+        child_kind: "task" as const,
         child_id: t.id,
+        relation: "promoted" as const,
         rationale: "Generated from PRD by promotePrdToTasks",
         created_by_agent: "prd-writer",
-      });
+        ai_event_id: null,
+      }));
+      const { error: lineageErr } = await supabase
+        .from("artifact_lineage")
+        .upsert(lineageEdges, { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" });
+      if (lineageErr) {
+        console.error("promotePrdToTasks: batch lineage upsert failed:", lineageErr.message);
+      }
     }
 
     return { tasks: tasks ?? [], count: tasks?.length ?? 0 };

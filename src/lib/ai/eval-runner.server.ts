@@ -141,6 +141,10 @@ export async function runEvalSuite(
   let totalCost = 0,
     totalLatency = 0;
 
+  // Batch-insert all results after the loop to eliminate N sequential inserts
+  type ResultRow = Parameters<typeof supabase.from<"eval_case_results">["insert"]>[0];
+  const resultRows: ResultRow[] = [];
+
   for (const c of cases) {
     try {
       // 1. Subject call — uses prompt template via promptKey
@@ -155,7 +159,7 @@ export async function runEvalSuite(
       });
 
       if (subject.status !== "ok") {
-        await supabase.from("eval_case_results").insert({
+        resultRows.push({
           run_id: runId,
           case_id: c.id,
           user_id: userId,
@@ -167,7 +171,7 @@ export async function runEvalSuite(
           completion_tokens: subject.completion_tokens,
           cost_usd: subject.est_cost_usd,
           latency_ms: subject.latency_ms,
-        });
+        } as ResultRow);
         errored++;
         totalCost += subject.est_cost_usd || 0;
         totalLatency += subject.latency_ms || 0;
@@ -199,7 +203,7 @@ export async function runEvalSuite(
       totalCost += caseCost;
       totalLatency += caseLatency;
 
-      await supabase.from("eval_case_results").insert({
+      resultRows.push({
         run_id: runId,
         case_id: c.id,
         user_id: userId,
@@ -214,17 +218,23 @@ export async function runEvalSuite(
         completion_tokens: subject.completion_tokens,
         cost_usd: caseCost,
         latency_ms: caseLatency,
-      });
+      } as ResultRow);
     } catch (e: unknown) {
       errored++;
-      await supabase.from("eval_case_results").insert({
+      resultRows.push({
         run_id: runId,
         case_id: c.id,
         user_id: userId,
         status: "error",
         error: e instanceof Error ? e.message : String(e),
-      });
+      } as ResultRow);
     }
+  }
+
+  // Batch-insert all collected results
+  if (resultRows.length > 0) {
+    const { error: insertErr } = await supabase.from("eval_case_results").insert(resultRows);
+    if (insertErr) throw new Error(`Failed to batch-insert eval results: ${insertErr.message}`);
   }
 
   const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
