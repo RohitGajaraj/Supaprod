@@ -139,8 +139,11 @@ function AuthedLayout() {
   // Onboarding is documented full-viewport, no-shell (_authenticated.onboarding.tsx)
   // and must stay that way after the OBS-02 hoist: wrapping it in <AppShell>
   // would expose all five nav destinations + the 1-5/g shortcuts before the
-  // account has finished onboarding.
-  const isOnboarding = pathname.startsWith("/onboarding");
+  // account has finished onboarding. The reimagined one-question first run at
+  // /start (front-end reimagining Phase 5) is the same kind of moment, so it
+  // gets the same clean, chromeless full-viewport treatment (no shell, no
+  // shortcuts, no composer, no focus dock, no sample banner).
+  const isOnboarding = pathname.startsWith("/onboarding") || pathname === "/start";
   // Mission Control sandbox (/m, front-end reimagining Phase 1): the room
   // carries its own five-region shell (TopBar, Spine, Thread, Canvas,
   // Composer), so the old AppShell must not wrap it. GotoShortcuts also stays
