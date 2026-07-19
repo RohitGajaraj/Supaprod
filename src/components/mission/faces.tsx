@@ -170,6 +170,39 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 type SignalRow = { id: string; title?: string | null; content: string; source?: string | null; created_at?: string };
 
+// A signal's body is whatever a source sent, which can be a raw MCP/JSON payload
+// or markdown with image tags and URLs. The Evidence face reads, not dumps: prefer
+// the title, else pull a human field out of a JSON payload, else clean the prose.
+function signalPreview(s: SignalRow): string {
+  if (s.title && s.title.trim()) return s.title.trim();
+  const raw = (s.content ?? "").trim();
+  if (!raw) return "Imported signal.";
+  if (raw.startsWith("{") || raw.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      const first = (Array.isArray(parsed) ? parsed[0] : parsed) as Record<string, unknown> | undefined;
+      const nestedArr =
+        (first?.issues as unknown[] | undefined) ?? (first?.items as unknown[] | undefined);
+      const node = (Array.isArray(nestedArr) ? nestedArr[0] : first) as
+        | Record<string, unknown>
+        | undefined;
+      for (const key of ["title", "description", "name", "text", "body", "summary"]) {
+        const v = node?.[key];
+        if (typeof v === "string" && v.trim()) return v.trim().replace(/\s+/g, " ").slice(0, 160);
+      }
+    } catch {
+      // not valid JSON; fall through to the label
+    }
+    return `Imported from ${s.source ?? "a source"}.`;
+  }
+  const cleaned = raw
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // markdown images
+    .replace(/https?:\/\/\S+/g, "") // bare URLs
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || raw).slice(0, 160);
+}
+
 export function EvidenceFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchSignals = useServerFn(listSignals);
   const q = useQuery({
@@ -207,7 +240,7 @@ export function EvidenceFace({ productId, loop, onActivateJourney }: FaceProps) 
           {signals.slice(0, 40).map((s) => (
             <FaceCard key={s.id} chip={<Chip>{s.source ?? "signal"}</Chip>} time={relTime(s.created_at)}>
               <p className="text-[13px] leading-[1.5]" style={{ color: "var(--ink-text)" }}>
-                {s.title || s.content.slice(0, 160)}
+                {signalPreview(s)}
               </p>
             </FaceCard>
           ))}

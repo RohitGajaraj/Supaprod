@@ -150,6 +150,18 @@ function AuthedLayout() {
   // off there: it binds bare digits 1-7 to old-app surfaces, and in the room
   // those keys walk the Spine (shell-local listener in MissionShell).
   const isMissionControl = pathname === "/m" || pathname.startsWith("/m/");
+  // The reimagined standalone surfaces (Threads, Artifacts) are part of the
+  // Mission Control world, reached from the room's top-bar doors. They carry
+  // their own ink header, so the old Obsidian AppShell (nav rail + banners)
+  // must not wrap them (Love-Gate consumer-grade finding, 2026-07-20). Kept
+  // chromeless like the room until the app-wide reimagined shell adoption gives
+  // them the room top bar.
+  const isReimaginedSurface =
+    isMissionControl ||
+    pathname === "/threads" ||
+    pathname.startsWith("/threads/") ||
+    pathname === "/artifacts" ||
+    pathname.startsWith("/artifacts/");
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the
@@ -162,8 +174,8 @@ function AuthedLayout() {
             {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
             <BackendHealthBanner />
             <BillingBanner />
-            {!isOnboarding && !isMissionControl && <GotoShortcuts />}
-            {isOnboarding || isMissionControl ? (
+            {!isOnboarding && !isReimaginedSurface && <GotoShortcuts />}
+            {isOnboarding || isReimaginedSurface ? (
               <Outlet />
             ) : (
               <AppShell>
@@ -185,7 +197,7 @@ function AuthedLayout() {
                   of the room's docked Composer and intercepts its clicks (found
                   in live smoke 2026-07-19), and the founder's Gate 1 retirements
                   already drop the dock from the reimagined room. */}
-            {!isOnboarding && !isMissionControl && <FocusDock />}
+            {!isOnboarding && !isReimaginedSurface && <FocusDock />}
           </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>
