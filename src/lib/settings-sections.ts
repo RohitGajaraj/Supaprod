@@ -17,6 +17,7 @@ export type SectionId =
   | "connections"
   | "ai"
   | "staff"
+  | "autonomy"
   | "workspace"
   | "products"
   | "billing"
@@ -75,9 +76,10 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "agents",
     label: "Agents",
-    desc: "Your AI staff: what they may do, and which models do the work.",
+    desc: "Your AI staff: what they may do, on whose approval, and which models.",
     sections: [
       { id: "staff", label: "Roster" },
+      { id: "autonomy", label: "Autonomy & approvals" },
       { id: "ai", label: "Models & keys" },
     ],
   },

@@ -30,6 +30,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
   "staff",
+  "autonomy",
   "workspace",
   "products",
   "billing",
@@ -43,7 +44,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 13 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 14 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 
@@ -94,8 +95,9 @@ describe("settings-sections - five-group shape", () => {
     expect(groupForSection("health")).toBe("plan");
   });
 
-  it("Agents is its own group: Roster (staff) and Models & keys (ai) live there", () => {
+  it("Agents is its own group: Roster (staff), Autonomy & approvals, and Models & keys (ai) live there", () => {
     expect(groupForSection("staff")).toBe("agents");
+    expect(groupForSection("autonomy")).toBe("agents");
     expect(groupForSection("ai")).toBe("agents");
   });
 

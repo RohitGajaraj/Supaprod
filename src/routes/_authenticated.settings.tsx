@@ -78,6 +78,7 @@ import { MemoryView } from "@/components/settings/memory/MemoryView";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
+import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import {
   PRIMARY_GROUPS,
   RECESSED_GROUPS,
@@ -477,6 +478,9 @@ function SettingsPage() {
             )}
             {active === "ai" && <ModelsTab />}
             {active === "staff" && <StaffTab />}
+            {active === "autonomy" && (
+              <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
+            )}
             {active === "products" && <ProductsTab />}
             {active === "workspace" && (
               <>
