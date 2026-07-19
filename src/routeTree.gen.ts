@@ -42,6 +42,7 @@ import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
 import { Route as AuthenticatedSyncRouteImport } from './routes/_authenticated.sync'
 import { Route as AuthenticatedSwarmRouteImport } from './routes/_authenticated.swarm'
+import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.start'
 import { Route as AuthenticatedStakeholderRouteImport } from './routes/_authenticated.stakeholder'
 import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
@@ -339,6 +340,11 @@ const AuthenticatedSyncRoute = AuthenticatedSyncRouteImport.update({
 const AuthenticatedSwarmRoute = AuthenticatedSwarmRouteImport.update({
   id: '/swarm',
   path: '/swarm',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedStartRoute = AuthenticatedStartRouteImport.update({
+  id: '/start',
+  path: '/start',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStakeholderRoute =
@@ -1139,6 +1145,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/start': typeof AuthenticatedStartRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -1304,6 +1311,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/start': typeof AuthenticatedStartRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -1473,6 +1481,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/ship': typeof AuthenticatedShipRoute
   '/_authenticated/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/_authenticated/start': typeof AuthenticatedStartRoute
   '/_authenticated/swarm': typeof AuthenticatedSwarmRoute
   '/_authenticated/sync': typeof AuthenticatedSyncRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -1642,6 +1651,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ship'
     | '/stakeholder'
+    | '/start'
     | '/swarm'
     | '/sync'
     | '/tasks'
@@ -1807,6 +1817,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ship'
     | '/stakeholder'
+    | '/start'
     | '/swarm'
     | '/sync'
     | '/tasks'
@@ -1975,6 +1986,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/ship'
     | '/_authenticated/stakeholder'
+    | '/_authenticated/start'
     | '/_authenticated/swarm'
     | '/_authenticated/sync'
     | '/_authenticated/tasks'
@@ -2407,6 +2419,13 @@ declare module '@tanstack/react-router' {
       path: '/swarm'
       fullPath: '/swarm'
       preLoaderRoute: typeof AuthenticatedSwarmRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/start': {
+      id: '/_authenticated/start'
+      path: '/start'
+      fullPath: '/start'
+      preLoaderRoute: typeof AuthenticatedStartRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/stakeholder': {
@@ -3451,6 +3470,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipRoute: typeof AuthenticatedShipRoute
   AuthenticatedStakeholderRoute: typeof AuthenticatedStakeholderRoute
+  AuthenticatedStartRoute: typeof AuthenticatedStartRoute
   AuthenticatedSwarmRoute: typeof AuthenticatedSwarmRoute
   AuthenticatedSyncRoute: typeof AuthenticatedSyncRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -3514,6 +3534,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipRoute: AuthenticatedShipRoute,
   AuthenticatedStakeholderRoute: AuthenticatedStakeholderRoute,
+  AuthenticatedStartRoute: AuthenticatedStartRoute,
   AuthenticatedSwarmRoute: AuthenticatedSwarmRoute,
   AuthenticatedSyncRoute: AuthenticatedSyncRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
