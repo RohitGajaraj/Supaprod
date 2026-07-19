@@ -367,7 +367,7 @@ describe("ApprovalGateRow", () => {
       agent_slug: "builder",
     };
     const { container } = render(
-      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />
+      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />,
     );
     expect(container.textContent).toContain("builder");
     expect(container.textContent).toContain("deploy_service");
@@ -381,7 +381,7 @@ describe("ApprovalGateRow", () => {
       agent_slug: "agent",
     };
     const { container } = render(
-      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />
+      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />,
     );
     expect(container.textContent).toContain("This is why approval is needed");
   });
@@ -394,7 +394,7 @@ describe("ApprovalGateRow", () => {
       agent_slug: undefined,
     };
     const { container } = render(
-      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />
+      <ApprovalGateRow approval={approval} deciding={false} onDecide={() => {}} />,
     );
     expect(container.textContent).toContain("tool");
     expect(container.textContent).not.toContain(" · ");
@@ -444,7 +444,7 @@ describe("ApprovalGateRow", () => {
       agent_slug: "agent",
     };
     const { container } = render(
-      <ApprovalGateRow approval={approval} deciding={true} onDecide={() => {}} />
+      <ApprovalGateRow approval={approval} deciding={true} onDecide={() => {}} />,
     );
 
     const buttons = container.querySelectorAll("button");
@@ -485,7 +485,7 @@ describe("ApprovalGateBlock", () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
         <ApprovalGateBlock approvals={approvals} missionId="m1" />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
     expect(container.textContent).toContain("WAITING ON YOU");
   });
@@ -508,7 +508,7 @@ describe("ApprovalGateBlock", () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
         <ApprovalGateBlock approvals={approvals} missionId="m1" />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
     expect(container.textContent).toContain("tool1");
     expect(container.textContent).toContain("tool2");
@@ -523,7 +523,7 @@ describe("ApprovalGateBlock", () => {
     const { container } = render(
       <QueryClientProvider client={queryClient}>
         <ApprovalGateBlock approvals={approvals} missionId="m1" />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
     expect(container.textContent).toContain("tool1");
     expect(container.textContent).not.toContain("tool2");

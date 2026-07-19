@@ -367,7 +367,13 @@ async function buildCapabilityForAgent(
   let skills: SkillInfo[];
   if (disabledSkillsByAgent) {
     const disabled = disabledSkillsByAgent.get(agent.slug) ?? new Set();
-    skills = await getStationSkillsWithDisabled(supabase, workspaceId, agent.slug, agent.station, disabled);
+    skills = await getStationSkillsWithDisabled(
+      supabase,
+      workspaceId,
+      agent.slug,
+      agent.station,
+      disabled,
+    );
   } else {
     skills = await getStationSkills(supabase, workspaceId, agent.slug, agent.station);
   }
@@ -375,8 +381,12 @@ async function buildCapabilityForAgent(
   // Autonomy: the trust-ramp arc/score (computed once for all agents, above)
   // plus this agent's graduated tool modes and decided graduation history.
   const trust = agentId ? trustByAgentId.get(agentId) : undefined;
-  const toolModes = toolModesByAgent?.get(agent.slug) ?? await getGraduatedToolModes(supabase, userId, agent.slug);
-  const graduationHistory = graduationHistoryByAgent?.get(agent.slug) ?? await getGraduationHistory(supabase, userId, agent.slug);
+  const toolModes =
+    toolModesByAgent?.get(agent.slug) ??
+    (await getGraduatedToolModes(supabase, userId, agent.slug));
+  const graduationHistory =
+    graduationHistoryByAgent?.get(agent.slug) ??
+    (await getGraduationHistory(supabase, userId, agent.slug));
   const autonomy: AutonomyInfo = {
     station: agent.station,
     tier: agent.tier,
@@ -390,7 +400,9 @@ async function buildCapabilityForAgent(
 
   // History: capability changes recorded via human edits and RPT-50 self-tuned fixes.
   // PC-18 distillation is deferred (G-LEARN gate not earned) per the dashboard's own ruling.
-  const history = capabilityHistoryByAgent?.get(agent.slug) ?? await getCapabilityHistory(supabase, workspaceId, agent.slug);
+  const history =
+    capabilityHistoryByAgent?.get(agent.slug) ??
+    (await getCapabilityHistory(supabase, workspaceId, agent.slug));
 
   return {
     slug: agent.slug,

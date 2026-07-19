@@ -9,6 +9,7 @@
  * scheduled eval-suite-tick hook.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import pLimit from "p-limit";
 import { callModel } from "./runtime.server";
 
 type Suite = {
@@ -137,98 +138,128 @@ export async function runEvalSuite(
   let passed = 0,
     failed = 0,
     errored = 0;
-  const scores: number[] = [];
-  let totalCost = 0,
-    totalLatency = 0;
-
   // Batch-insert all results after the loop to eliminate N sequential inserts
   type ResultRow = Parameters<(typeof supabase.from<"eval_case_results">)["insert"]>[0];
   const resultRows: ResultRow[] = [];
 
-  for (const c of cases) {
-    try {
-      // 1. Subject call — uses prompt template via promptKey
-      const subject = await callModel(supabase, userId, {
-        surface: "eval",
-        surface_ref: c.id,
-        model,
-        messages: [{ role: "user", content: c.input }],
-        promptKey: suite.prompt_key ?? undefined,
-        guardrails: false,
-        maxRetries: 1,
-      });
+  // Parallelize case processing with bounded concurrency (4 concurrent cases)
+  // to avoid serial AI call bottleneck: each case does subject + judge = 2 sequential calls,
+  // but 4 cases can proceed in parallel, yielding ~4x speedup for typical suites.
+  const limit = pLimit(4);
+  const casePromises = cases.map((c) =>
+    limit(async () => {
+      try {
+        // 1. Subject call — uses prompt template via promptKey
+        const subject = await callModel(supabase, userId, {
+          surface: "eval",
+          surface_ref: c.id,
+          model,
+          messages: [{ role: "user", content: c.input }],
+          promptKey: suite.prompt_key ?? undefined,
+          guardrails: false,
+          maxRetries: 1,
+        });
 
-      if (subject.status !== "ok") {
-        resultRows.push({
-          run_id: runId,
-          case_id: c.id,
-          user_id: userId,
-          status: "error",
-          actual: subject.output ?? null,
-          ai_event_id: subject.eventId,
-          error: subject.error ?? "Subject call failed",
-          prompt_tokens: subject.prompt_tokens,
-          completion_tokens: subject.completion_tokens,
-          cost_usd: subject.est_cost_usd,
-          latency_ms: subject.latency_ms,
-        } as ResultRow);
-        errored++;
-        totalCost += subject.est_cost_usd || 0;
-        totalLatency += subject.latency_ms || 0;
-        continue;
+        if (subject.status !== "ok") {
+          return {
+            resultRow: {
+              run_id: runId,
+              case_id: c.id,
+              user_id: userId,
+              status: "error" as const,
+              actual: subject.output ?? null,
+              ai_event_id: subject.eventId,
+              error: subject.error ?? "Subject call failed",
+              prompt_tokens: subject.prompt_tokens,
+              completion_tokens: subject.completion_tokens,
+              cost_usd: subject.est_cost_usd,
+              latency_ms: subject.latency_ms,
+            } as ResultRow,
+            score: null as number | null,
+            isPassed: false,
+            caseCost: subject.est_cost_usd || 0,
+            caseLatency: subject.latency_ms || 0,
+            didError: true,
+          };
+        }
+
+        // 2. Judge call
+        const judge = await callModel(supabase, userId, {
+          surface: "judge",
+          surface_ref: c.id,
+          model: judgeModel,
+          messages: [
+            { role: "system", content: JUDGE_SYSTEM },
+            { role: "user", content: buildJudgePrompt(c, subject.output, suite.pass_threshold) },
+          ],
+          responseFormat: "json_object",
+          guardrails: false,
+          maxRetries: 1,
+        });
+
+        const verdict = parseJudge(judge.output);
+        const isPassed = verdict.score >= suite.pass_threshold;
+
+        const caseCost = (subject.est_cost_usd || 0) + (judge.est_cost_usd || 0);
+        const caseLatency = (subject.latency_ms || 0) + (judge.latency_ms || 0);
+
+        return {
+          resultRow: {
+            run_id: runId,
+            case_id: c.id,
+            user_id: userId,
+            status: isPassed ? ("passed" as const) : ("failed" as const),
+            actual: subject.output,
+            score: verdict.score,
+            passed: isPassed,
+            judge_reasoning: verdict.reasoning,
+            ai_event_id: subject.eventId,
+            judge_event_id: judge.eventId,
+            prompt_tokens: subject.prompt_tokens,
+            completion_tokens: subject.completion_tokens,
+            cost_usd: caseCost,
+            latency_ms: caseLatency,
+          } as ResultRow,
+          score: verdict.score,
+          isPassed,
+          caseCost,
+          caseLatency,
+          didError: false,
+        };
+      } catch (e: unknown) {
+        return {
+          resultRow: {
+            run_id: runId,
+            case_id: c.id,
+            user_id: userId,
+            status: "error" as const,
+            error: e instanceof Error ? e.message : String(e),
+          } as ResultRow,
+          score: null as number | null,
+          isPassed: false,
+          caseCost: 0,
+          caseLatency: 0,
+          didError: true,
+        };
       }
+    }),
+  );
 
-      // 2. Judge call
-      const judge = await callModel(supabase, userId, {
-        surface: "judge",
-        surface_ref: c.id,
-        model: judgeModel,
-        messages: [
-          { role: "system", content: JUDGE_SYSTEM },
-          { role: "user", content: buildJudgePrompt(c, subject.output, suite.pass_threshold) },
-        ],
-        responseFormat: "json_object",
-        guardrails: false,
-        maxRetries: 1,
-      });
+  // Await all case processing in parallel
+  const caseResults = await Promise.all(casePromises);
 
-      const verdict = parseJudge(judge.output);
-      const isPassed = verdict.score >= suite.pass_threshold;
-      if (isPassed) passed++;
-      else failed++;
-      scores.push(verdict.score);
-
-      const caseCost = (subject.est_cost_usd || 0) + (judge.est_cost_usd || 0);
-      const caseLatency = (subject.latency_ms || 0) + (judge.latency_ms || 0);
-      totalCost += caseCost;
-      totalLatency += caseLatency;
-
-      resultRows.push({
-        run_id: runId,
-        case_id: c.id,
-        user_id: userId,
-        status: isPassed ? "passed" : "failed",
-        actual: subject.output,
-        score: verdict.score,
-        passed: isPassed,
-        judge_reasoning: verdict.reasoning,
-        ai_event_id: subject.eventId,
-        judge_event_id: judge.eventId,
-        prompt_tokens: subject.prompt_tokens,
-        completion_tokens: subject.completion_tokens,
-        cost_usd: caseCost,
-        latency_ms: caseLatency,
-      } as ResultRow);
-    } catch (e: unknown) {
+  // Aggregate results
+  for (const caseResult of caseResults) {
+    resultRows.push(caseResult.resultRow);
+    if (caseResult.didError) {
       errored++;
-      resultRows.push({
-        run_id: runId,
-        case_id: c.id,
-        user_id: userId,
-        status: "error",
-        error: e instanceof Error ? e.message : String(e),
-      } as ResultRow);
+    } else {
+      if (caseResult.isPassed) passed++;
+      else failed++;
+      if (caseResult.score !== null) scores.push(caseResult.score);
     }
+    totalCost += caseResult.caseCost;
+    totalLatency += caseResult.caseLatency;
   }
 
   // Batch-insert all collected results

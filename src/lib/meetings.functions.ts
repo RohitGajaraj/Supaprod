@@ -4,7 +4,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { asPlainObject } from "@/lib/ai/json-shape";
 import { applyWorkspaceScope } from "@/lib/workspace-scope";
-import { recordStageEvent } from "@/lib/stage-events.server";
 
 export const listMeetings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -190,17 +189,21 @@ Rules: be terse, no markdown fences, no prose outside JSON.`;
         .from("decisions")
         .insert(decRows)
         .select("id,workspace_id");
-      // SEAM-1: stage history for each committed decision.
-      for (const d of insertedDecisions ?? []) {
-        await recordStageEvent(supabase, {
-          entityType: "decision",
-          entityId: d.id,
-          from: null,
-          to: "pending",
-          actor: "human",
-          workspaceId: d.workspace_id,
-          userId,
-        });
+      // SEAM-1: batch-insert stage history for all committed decisions (avoid N sequential inserts).
+      const stageEventRows = (insertedDecisions ?? []).map((d) => ({
+        entity_type: "decision",
+        entity_id: d.id,
+        from_stage: null,
+        to_stage: "pending",
+        actor: "human",
+        workspace_id: d.workspace_id,
+        user_id: userId,
+      }));
+      if (stageEventRows.length > 0) {
+        const { error: stageErr } = await supabase.from("stage_events").insert(stageEventRows);
+        if (stageErr) {
+          console.error(`batch stage_events insert failed: ${stageErr.message}`);
+        }
       }
     }
 

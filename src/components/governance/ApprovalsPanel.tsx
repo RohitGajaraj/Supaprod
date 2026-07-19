@@ -27,53 +27,12 @@ import {
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
 import { TrustGraduationsBlock } from "./TrustGraduations";
+import { relExpiry, fmtMedian, RESOLVED_LINE, toneForRisk } from "./governance-shared";
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
-/** "expires in 2h" / "expired 3h ago" from the real expires_at. */
-function relExpiry(iso: string | null): { text: string; expired: boolean } | null {
-  if (!iso) return null;
-  const ms = new Date(iso).getTime() - Date.now();
-  const abs = Math.abs(ms);
-  const m = Math.max(1, Math.round(abs / 60_000));
-  const h = Math.round(abs / 3_600_000);
-  const d = Math.round(abs / 86_400_000);
-  const v = d >= 1 ? `${d}d` : h >= 1 ? `${h}h` : `${m}m`;
-  return ms >= 0
-    ? { text: `expires in ${v}`, expired: false }
-    : { text: `expired ${v} ago`, expired: true };
-}
-
-function fmtMedian(ms: number): string {
-  const m = Math.round(ms / 60_000);
-  if (m < 1) return "<1m";
-  if (m < 90) return `${m}m`;
-  return `${Math.round(ms / 3_600_000)}h`;
-}
-
-/* Resolved mono line per the reference; production's extra terminal states
-   (failed / cancelled / expired) get honest equivalents. */
-const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · agent resumed", color: "var(--moss)" },
-  executed: { text: "approved · agent resumed", color: "var(--moss)" },
-  rejected: { text: "rejected · nothing ran", color: "var(--text-muted)" },
-  failed: { text: "failed · the tool errored", color: "var(--madder)" },
-  cancelled: { text: "cancelled · nothing ran", color: "var(--text-faint)" },
-  expired: { text: "expired · nothing ran", color: "var(--text-faint)" },
-};
-
-/** Risk grade as a semantic tone (design-anatomy): low is a safe outcome
- * (moss), medium is caution (marigold, never the reserved ember), high is the
- * alert role (madder). Inline so the panel owns its Obsidian tones rather than
- * the parchment RiskTag. */
-const RISK_TONE: Record<string, string> = {
-  low: "var(--moss)",
-  medium: "var(--marigold)",
-  high: "var(--madder)",
-};
-
 function RiskChip({ risk }: { risk: string }) {
-  const tone = RISK_TONE[risk] ?? "var(--marigold)";
+  const tone = toneForRisk(risk);
   return (
     <span
       className="uppercase"

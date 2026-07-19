@@ -109,8 +109,10 @@ export async function inferSupersession(
 
     const now = new Date().toISOString();
 
-    for (const s of selected) {
-      const edge = buildSupersessionEdge({
+    // 1) Batch-upsert all typed edges. Idempotent on unique key (incl. relation), so
+    //    re-recorded outcomes upsert the same rows rather than duplicating.
+    const edges = selected.map((s) =>
+      buildSupersessionEdge({
         userId: args.userId,
         workspaceId: args.workspaceId ?? null,
         parent: s.parent,
@@ -120,24 +122,20 @@ export async function inferSupersession(
         score: s.score,
         summary: args.summary ?? null,
         aiEventId: args.aiEventId ?? null,
-        // Persist the confidence provenance so the read side (Critic, canvas) can prefer
-        // strong edges and a future tuning pass can audit precision on real data.
         confidence: s.confidence,
         tier: s.tier,
         reasons: s.reasons,
-      });
+      }),
+    );
+    await supabase.from("artifact_lineage").upsert(edges, {
+      onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+    });
 
-      // 1) Write the typed edge. Idempotent on the unique key (incl. relation), so a
-      //    re-recorded outcome upserts the same row rather than duplicating.
-      await supabase.from("artifact_lineage").upsert(edge, {
-        onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
-      });
-
-      // 2) Invalidate-don't-delete: retire any still-valid supersession-engine edge for
-      //    the REVERSE pair (prior --rel--> new) — the prior assertion this new verdict
-      //    overturns. Scoped to our OWN agent's edges + valid_to IS NULL, so it can never
-      //    mutate a promoted/human edge and re-running it no-ops (idempotent).
-      await supabase
+    // 2) Invalidate-don't-delete: retire any still-valid supersession-engine edges for
+    //    the REVERSE pairs (prior --rel--> new). Scoped to our OWN agent's edges + valid_to IS NULL.
+    //    Parallelize the invalidation updates since each is independent and scoped to a single edge.
+    const invalidatePromises = selected.map((s) =>
+      supabase
         .from("artifact_lineage")
         .update({ valid_to: now, invalidated_by: args.learningId ?? null })
         .eq("user_id", args.userId)
@@ -146,8 +144,9 @@ export async function inferSupersession(
         .eq("child_kind", s.parent.kind)
         .eq("child_id", s.parent.id)
         .eq("created_by_agent", SUPERSESSION_AGENT)
-        .is("valid_to", null);
-    }
+        .is("valid_to", null),
+    );
+    await Promise.all(invalidatePromises);
   } catch (e) {
     // Belt-and-suspenders: never let edge inference break the recorded outcome.
     console.error("inferSupersession failed (non-fatal):", e);

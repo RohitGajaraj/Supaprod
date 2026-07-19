@@ -82,7 +82,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     // Find the textarea and send a message
@@ -139,7 +139,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
@@ -195,7 +195,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
@@ -255,7 +255,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
@@ -321,7 +321,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
@@ -384,7 +384,7 @@ describe("AskPanel (integration: SSE → state → component)", () => {
     render(
       <QueryClientProvider client={queryClient}>
         <AskPanel />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);

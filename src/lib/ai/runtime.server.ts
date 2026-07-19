@@ -471,7 +471,10 @@ async function byokAllowedForCall(
  */
 type KeyResolutionCache = {
   byokEligible?: boolean;
-  keysByProvider?: Map<string, { apiKey: string; baseUrl: string | null; source: "vault" | "platform" }>;
+  keysByProvider?: Map<
+    string,
+    { apiKey: string; baseUrl: string | null; source: "vault" | "platform" }
+  >;
 };
 
 async function resolveCallKey(

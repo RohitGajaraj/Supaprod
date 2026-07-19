@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import pLimit from "p-limit";
 import { callModel } from "./runtime.server";
 
 // FS-02: the watcher half. Matches standing assumptions against recent
@@ -131,28 +132,61 @@ export async function watchAssumptions(
 
   const evidence = await fetchRecentEvidence(supabase, workspaceId);
   const nowIso = new Date().toISOString();
-  let challenged = 0;
 
-  for (const a of rows) {
-    const verdict = await judgeAssumption(supabase, userId, workspaceId, a.statement, evidence);
-    await supabase.from("assumptions").update({ last_watched_at: nowIso }).eq("id", a.id);
+  // Parallelize AI judgment calls (judgeAssumption is pure per inputs, independent per assumption).
+  // Use bounded concurrency (4 concurrent) to avoid overwhelming the AI runtime.
+  const limit = pLimit(4);
+  const verdictPromises = rows.map((a) =>
+    limit(() => judgeAssumption(supabase, userId, workspaceId, a.statement, evidence)),
+  );
+  const verdicts = await Promise.all(verdictPromises);
+
+  // Batch updates: collect assumption IDs for last_watched_at update and challenged status update.
+  const watchedIds: string[] = [];
+  const challengedIds: string[] = [];
+  const challengeInserts: Array<{
+    workspace_id: string;
+    assumption_id: string;
+    signal_id: string | null;
+    learning_id: string | null;
+    rationale: string;
+  }> = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const a = rows[i];
+    const verdict = verdicts[i];
+
+    watchedIds.push(a.id);
     if (!verdict.contradicted || verdict.evidenceIndex === null) continue;
 
     const hit = evidence[verdict.evidenceIndex];
-    const { error } = await supabase.from("assumption_challenges").insert({
+    challengeInserts.push({
       workspace_id: workspaceId,
       assumption_id: a.id,
       signal_id: hit.kind === "signal" ? hit.id : null,
       learning_id: hit.kind === "learning" ? hit.id : null,
       rationale: verdict.rationale || "A recent signal appears to contradict this assumption.",
     });
-    // A conflict here means an open challenge already exists for this assumption
-    // (uq_assumption_challenges_open) — not a failure, just already flagged.
-    if (error) continue;
-
-    await supabase.from("assumptions").update({ status: "challenged" }).eq("id", a.id);
-    challenged++;
+    challengedIds.push(a.id);
   }
 
-  return { scanned: rows.length, challenged };
+  // Batch update last_watched_at for all scanned assumptions.
+  if (watchedIds.length > 0) {
+    await supabase
+      .from("assumptions")
+      .update({ last_watched_at: nowIso })
+      .in("id", watchedIds);
+  }
+
+  // Batch insert challenges; ignore conflicts (uq_assumption_challenges_open already flagged).
+  if (challengeInserts.length > 0) {
+    await supabase.from("assumption_challenges").insert(challengeInserts);
+  }
+
+  // Update challenged assumptions to status='challenged'.
+  if (challengedIds.length > 0) {
+    await supabase.from("assumptions").update({ status: "challenged" }).in("id", challengedIds);
+  }
+
+  return { scanned: rows.length, challenged: challengedIds.length };
 }

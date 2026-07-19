@@ -1,12 +1,84 @@
 {
-  "timestamp": "2026-07-19T10:03:38.336Z",
-  "mode": "local",
-  "checks": {
-    "envFilesProtected": true,
-    "gitIgnoreExists": true,
-    "noHardcodedSecrets": true
+  "timestamp": "2026-07-19T14:54:09.273Z",
+  "mode": "headless",
+  "workerType": "audit",
+  "model": "haiku",
+  "durationMs": 106561,
+  "executionId": "audit_1784472742712_c91sqa",
+  "success": true,
+  "findings": {
+    "vulnerabilities": [
+      {
+        "severity": "high",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 95,
+        "description": "Hardcoded authentication tokens exposed in global window scope (window.__IMPECCABLE_TOKEN__, window.__IMPECCABLE_PORT__, window.__IMPECCABLE_TOKEN_SIGNATURE__). These globals are injectable via XSS and can be stolen by any malicious script on the page. Session state is not protected from access by page scripts."
+      },
+      {
+        "severity": "high",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 162,
+        "description": "Client-side token signature validation only. Code explicitly documents 'Server-side verification is REQUIRED - this is only XSS mitigation.' Without server-side validation, a MITM attacker or XSS payload can forge tokens that pass client-side checks."
+      },
+      {
+        "severity": "high",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 155,
+        "description": "Token signature validation is incomplete. The function attempts HMAC verification but the server secret is never transmitted to client - this design is inherently broken and provides no real cryptographic protection against tampering."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+        "line": 45,
+        "description": "Unencrypted storage fallback: if WebCrypto is unavailable, plaintext fallback storage is used. While WebCrypto is available in all modern browsers, this creates a security degradation path where sensitive data could be stored unencrypted in localStorage."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+        "line": 35,
+        "description": "Plaintext encryption fallback: if encryption fails, the function returns null and processing continues with plaintext data. This silent fallback could leave sensitive data unencrypted without user awareness."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+        "line": 78,
+        "description": "PBKDF2 iteration count of 100,000. While acceptable for 2026, consider increasing to 310,000+ to match current OWASP recommendations for better resistance against GPU-accelerated brute force attacks."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 73,
+        "description": "HTTP script injection vulnerability mentioned in design tokens comment. Live mode injects scripts from localhost HTTP endpoints, vulnerable to MITM attacks on unencrypted networks. Should enforce HTTPS-only in production."
+      },
+      {
+        "severity": "low",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 126,
+        "description": "Basic token format validation using regex. While this provides some validation, it could be more strict. Current regex /^[a-f0-9-]{36,}$/ accepts overly broad formats (36+ characters of hex/hyphen)."
+      },
+      {
+        "severity": "low",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 131,
+        "description": "Port number validation regex /^[0-9]{4,5}$/ is overly permissive, allowing invalid port numbers like 99999. Should validate 1-65535 range explicitly."
+      }
+    ],
+    "riskScore": 62,
+    "recommendations": [
+      "CRITICAL: Move token storage from window globals to private scope or Web Workers to prevent XSS access. Use postMessage for communication instead of shared globals.",
+      "CRITICAL: Implement server-side token signature verification with a proper HMAC secret that is NEVER transmitted to the client. Client-side validation alone is insufficient.",
+      "HIGH: Replace client-side token validation with server-side session validation. Each API call should verify the token's authenticity on the backend.",
+      "HIGH: Enforce HTTPS-only for script injection endpoints in production. Current HTTP listener is vulnerable to MITM attacks.",
+      "HIGH: Separate authentication concerns from XSS-vulnerable global scope. Use Content Security Policy (CSP) headers with strict-dynamic to prevent inline script injection.",
+      "MEDIUM: Remove plaintext encryption fallback. Throw error if encryption fails rather than silently using plaintext. Log encryption failures for debugging.",
+      "MEDIUM: Increase PBKDF2 iterations from 100,000 to 310,000 or use Argon2 if available via WebCrypto.",
+      "MEDIUM: Implement CSP headers to restrict script sources, especially for the Impeccable live mode overlay which injects scripts dynamically.",
+      "MEDIUM: Use SecurityHeaders or OWASP ZAP to verify your CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy headers are correctly configured.",
+      "LOW: Tighten port validation regex to strictly validate 1-65535 range instead of accepting any 4-5 digit number.",
+      "LOW: Audit and validate the browser-inject code (live-browser*.js files) with a security-focused code review tool like Semgrep or SonarQube.",
+      "POSITIVE: Correct implementation in live-browser-session.js - properly throws error if crypto.randomUUID() is unavailable rather than using weak Math.random() fallback."
+    ]
   },
-  "riskLevel": "low",
-  "recommendations": [],
-  "note": "Install Claude Code CLI for AI-powered security analysis"
+  "rawOutputPreview": "Based on my analysis of your codebase, here is the comprehensive security audit report:\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 95,\n      \"description\": \"Hardcoded authentication tokens exposed in global window scope (window.__IMPECCABLE_TOKEN__, window.__IMPECCABLE_PORT__, window.__IMPECCABLE_TOKEN_SIGNATURE__). These globals are injectable via XSS and can be stolen by any malicious script on the page. Session state is not protected from access by page scripts.\"\n    },\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 162,\n      \"description\": \"Client-side token signature validation only. Code explicitly documents 'Server-side verification is REQUIRED - this is only XSS mitigation.' Without server-side validation, a MITM attacker or XSS payload can forge tokens that pass client-side checks.\"\n    },\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 155,\n      \"description\": \"Token signature validation is incomplete. The function attempts HMAC verification but the server secret is never transmitted to client - this design is inherently broken and provides no real cryptographic protection against tampering.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-crypto.js\",\n      \"line\": 45,\n      \"description\": \"Unencrypted storage fallback: if WebCrypto is unavailable, plaintext fallback storage is used. While WebCrypto is available in all modern browsers, this creates a security degradation path where sensitive data could be stored unencrypted in localStorage.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-crypto.js\",\n      \"line\": 35,\n      \"description\": \"Plaintext encryption fallback: if encryption fails, the function returns null and proce",
+  "rawOutputLength": 6308
 }
