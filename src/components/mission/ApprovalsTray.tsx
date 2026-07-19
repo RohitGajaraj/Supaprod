@@ -8,22 +8,25 @@
 // read, and decides through the SAME decideApprovalItem seam.
 //
 // Keyboard (Linear-trained, so PMs arrive knowing it): J/K (or arrows)
-// traverse, 1 approves, 3 declines, Enter opens the evidence, Escape closes.
+// traverse, 1 approves, 2 sends back (revisable families only), 3 declines,
+// H snoozes, Enter opens the evidence, Escape closes.
 //
-// Verb honesty (claim never outruns wiring): decideApprovalItem performs
-// exactly two verdicts, approve and reject, and reject's meaning is per
-// family (a spec returns to draft, an opportunity drops). The tray renders
-// only those two wired verbs, with the queue item's own honest consequence
-// copy. "Send back with notes" (a distinct resolver) and "Snooze" (a
-// snoozed_until column, gap register D1) need backend that does not exist on
-// this branch; they are deliberately not rendered rather than faked. The
-// signature moment (deciding visibly advances the room) is choreographed by
-// the shell that owns the optimistic mutation, not here.
+// Verb honesty (claim never outruns wiring): decideApprovalItem performs the
+// two per-family verdicts, approve and decline (decline's meaning is per
+// family: a spec returns to draft, an opportunity drops). "Send back" (verb 2)
+// is a DISTINCT resolver (sendBackApprovalItem): it returns a revisable gate -
+// a spec, a design gate - to its draft/revision state WITH the operator's note,
+// so it renders only on those families, never on binary gates. "Send back" and
+// "Snooze" (verb H) both persist through tables that land at the Gate-2 merge;
+// until then the shell's mutation surfaces an honest "turns on with the next
+// release" message rather than faking success. The signature moment (deciding
+// visibly advances the room) is choreographed by the shell that owns the
+// optimistic mutation, not here.
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { GateChip, Kbd } from "@/components/mission/primitives";
-import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
+import { isRevisableKind, type ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 
 export interface ApprovalsTrayProps {
   open: boolean;
@@ -38,6 +41,9 @@ export interface ApprovalsTrayProps {
   onDecide: (item: ApprovalQueueItem, verdict: "approve" | "reject") => void;
   /** Opens the item's evidence: expands it into the Canvas (spec 6.3). */
   onOpenEvidence?: (item: ApprovalQueueItem) => void;
+  /** Send back (2): returns a REVISABLE gate (spec, design gate) to draft with
+   *  a note. Renders only on revisable items; the backend lands at Gate-2. */
+  onSendBack?: (item: ApprovalQueueItem) => void;
   /** Snooze (H): defers the item with a resurface time. Founder-authorized;
    *  the backend lands at the Gate-2 merge. Omitted, the verb does not render. */
   onSnooze?: (item: ApprovalQueueItem) => void;
@@ -59,6 +65,7 @@ export function ApprovalsTray({
   onFocusChange,
   onDecide,
   onOpenEvidence,
+  onSendBack,
   onSnooze,
   loading,
 }: ApprovalsTrayProps) {
@@ -99,6 +106,9 @@ export function ApprovalsTray({
       } else if (key === "1") {
         e.preventDefault();
         if (items[cur]) onDecide(items[cur], "approve");
+      } else if (key === "2" && onSendBack) {
+        e.preventDefault();
+        if (items[cur] && isRevisableKind(items[cur].kindKey)) onSendBack(items[cur]);
       } else if (key === "3") {
         e.preventDefault();
         if (items[cur]) onDecide(items[cur], "reject");
@@ -112,7 +122,7 @@ export function ApprovalsTray({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, items, focusedId, onFocusChange, onDecide, onOpenEvidence, onSnooze, onClose]);
+  }, [open, items, focusedId, onFocusChange, onDecide, onOpenEvidence, onSendBack, onSnooze, onClose]);
 
   // Scroll the focused card into view as J/K walks the list.
   useEffect(() => {
@@ -225,6 +235,11 @@ export function ApprovalsTray({
                       consequence={item.approveConsequence}
                       onApprove={() => onDecide(item, "approve")}
                       onDecline={() => onDecide(item, "reject")}
+                      onSendBack={
+                        onSendBack && isRevisableKind(item.kindKey)
+                          ? () => onSendBack(item)
+                          : undefined
+                      }
                       onSnooze={onSnooze ? () => onSnooze(item) : undefined}
                       onOpenEvidence={onOpenEvidence ? () => onOpenEvidence(item) : undefined}
                     />
@@ -244,6 +259,14 @@ export function ApprovalsTray({
                 >
                   <Kbd>1</Kbd> Approve
                 </span>
+                {onSendBack && focusedIndex >= 0 && isRevisableKind(items[focusedIndex].kindKey) ? (
+                  <span
+                    className="flex items-center gap-1 text-[11px]"
+                    style={{ color: "var(--ink-subtle)" }}
+                  >
+                    <Kbd>2</Kbd> Send back
+                  </span>
+                ) : null}
                 <span
                   className="flex items-center gap-1 text-[11px]"
                   style={{ color: "var(--ink-subtle)" }}

@@ -35,10 +35,12 @@ import { useAskStream } from "@/hooks/use-ask-stream";
 import {
   decideApprovalItem,
   getApprovalsQueue,
+  sendBackApprovalItem,
   snoozeApprovalItem,
   type ApprovalKind,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
+import { usePrompt } from "@/hooks/use-confirm";
 import { getLoopState } from "@/lib/loop-state.functions";
 import { getBriefing } from "@/lib/briefing.functions";
 import type { JourneyId } from "@/lib/journeys";
@@ -232,6 +234,45 @@ export function MissionShell({
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
     },
   });
+
+  // Send back (tray 2): return a revisable gate (spec, design gate) to draft
+  // WITH the operator's note, so the agent continues the same thread knowing
+  // what to fix. Optimistically leaves the queue; the note table lands at the
+  // Gate-2 merge, so a real error surfaces honestly (never a faked success).
+  const prompt = usePrompt();
+  const sendBackFn = useServerFn(sendBackApprovalItem);
+  const sendBackMutation = useMutation({
+    mutationFn: (vars: { item: ApprovalQueueItem; note: string }) =>
+      sendBackFn({ data: { id: vars.item.sourceId, kind: vars.item.kindKey, note: vars.note } }),
+    onMutate: async (vars) => {
+      await queryClient.cancelQueries({ queryKey: queueKey });
+      const prevQueue = queryClient.getQueryData(queueKey);
+      queryClient.setQueryData<{ items: ApprovalQueueItem[] }>(queueKey, (old) =>
+        old ? { items: old.items.filter((i) => i.id !== vars.item.id) } : old,
+      );
+      return { prevQueue };
+    },
+    onError: (_e, _vars, ctx) => {
+      const c = ctx as { prevQueue?: unknown } | undefined;
+      if (c?.prevQueue !== undefined) queryClient.setQueryData(queueKey, c.prevQueue);
+      toast("Send back turns on with the next release.");
+    },
+    onSuccess: () => toast("Sent back with your note. The agent will revise it."),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
+    },
+  });
+
+  const handleSendBack = async (item: ApprovalQueueItem) => {
+    const note = await prompt({
+      title: "Send back with a note",
+      body: "Tell the agent what to change. The spec returns to draft and picks up your note.",
+      placeholder: "What should change before this comes back?",
+      confirmLabel: "Send back",
+    });
+    if (note && note.trim()) sendBackMutation.mutate({ item, note: note.trim() });
+  };
 
   const fetchLoop = useServerFn(getLoopState);
   const { data: loopState } = useQuery({
@@ -548,6 +589,7 @@ export function MissionShell({
           onTrayChange(false);
         }}
         onSnooze={(item) => snoozeMutation.mutate(item)}
+        onSendBack={(item) => void handleSendBack(item)}
       />
       <CrewDrawer open={crewOpen} onClose={() => setCrewOpen(false)} />
       {offerTour && !tourOpen ? (

@@ -176,6 +176,42 @@ describe("ApprovalsTray: keyed verdicts, one source", () => {
     expect(onSnooze).toHaveBeenCalledWith(items[1]);
   });
 
+  test("when onSendBack is wired, verb 2 sends back the focused revisable (spec) item", () => {
+    const onSendBack = mock(() => {});
+    render(
+      <ApprovalsTray
+        open
+        onClose={mock(() => {})}
+        items={items}
+        focusedId="q-1"
+        onFocusChange={mock(() => {})}
+        onDecide={mock(() => {})}
+        onSendBack={onSendBack}
+      />,
+    );
+    expect(screen.getAllByText("Send back").length).toBeGreaterThan(0);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "2" }));
+    expect(onSendBack).toHaveBeenCalledWith(items[0]);
+  });
+
+  test("Send back never renders on a non-revisable (tool_call) item, even when wired", () => {
+    const nonRevisable = [
+      makeItem({ id: "q-3", sourceId: "s-3", title: "Tool gate", kindKey: "tool_call" }),
+    ];
+    render(
+      <ApprovalsTray
+        open
+        onClose={mock(() => {})}
+        items={nonRevisable}
+        focusedId="q-3"
+        onFocusChange={mock(() => {})}
+        onDecide={mock(() => {})}
+        onSendBack={mock(() => {})}
+      />,
+    );
+    expect(screen.queryByText("Send back")).toBe(null);
+  });
+
   test("Enter opens the focused item's evidence", () => {
     const onOpenEvidence = mock(() => {});
     render(
