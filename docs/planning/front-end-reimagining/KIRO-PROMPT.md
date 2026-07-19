@@ -4,15 +4,17 @@ Copy everything between the lines into the new session, from the repo root.
 
 ---
 
-You are continuing a founder-approved, mid-flight front-end rebuild of Supaprod called Mission Control. The work lives on branch `sandbox/mission-control-v2` (already pushed to origin). Check out that branch and never work on main.
+You are continuing a founder-approved, mid-flight front-end rebuild of Supaprod called Mission Control. The work lives on branch `sandbox/mission-control-v2` (already pushed to origin, HEAD at commit `5b26cfc4`). Check out that branch and never work on main.
 
-Before doing ANYTHING, open `docs/planning/front-end-reimagining/CONTINUATION-BOARD.html` in a browser for the visual phase map (what is done, where the stop line is, where you start), then read these in order:
+Before doing ANYTHING, open `docs/planning/front-end-reimagining/CONTINUATION-BOARD.html` in a browser for the visual phase map (what is done, where you start), then read these in order:
 1. `docs/planning/front-end-reimagining/HANDOFF.md` - the live state and your complete task list (its CONTINUATION section is your work order).
 2. `docs/planning/front-end-reimagining/problem-statement.md` - the charter.
 3. `docs/planning/front-end-reimagining/design-language-spec.md` - the design law. The Addenda 1.1, 1.2, 1.3 at the bottom override the body.
 4. `docs/planning/front-end-reimagining/execution-plan.md`, `journey-catalog.md`, `gap-register.md`, and the two decision records `mockups/GATE-1-DECISIONS.md` and `mockups/GATE-1B-REVIEW.md`.
 
-Then start with HANDOFF Step 0 (the Phase 2 state check), finish Phase 2 if needed, and proceed Phase 3, then 4, then 5, exactly as the HANDOFF specifies. I am releasing the Phase 3 hold by giving you this prompt.
+Phases R, M, 0, 1, and 2 are DONE, verified live, committed, and pushed. Do not redo them. Specifically, Phase 2 (the conversation layer: use-ask-stream, the Briefing, journeys-as-data, the Composer/Thread/journey chips, the single ComposerOverlay everywhere) is closed: tsc clean, 3536/3536 tests passing, and a live logged-in smoke test confirmed the Briefing renders, a typed question streams a real answer, the "Just write the PRD" journey chip lights only the Plan slice on the spine, and both shortcut keys open the same one input box on old AND new surfaces. Evidence screenshots are in `docs/planning/front-end-reimagining/build-evidence/phase2-*.png`.
+
+**You start at Phase 3.** Read the Phase 3 section of HANDOFF.md and build exactly that: the seven CanvasFace implementations, the ApprovalsTray, the WorkingStrip, the ember-to-done signature moment, the approved app-idle starfield on its scoped surfaces, and the cost-quiet pass. I am releasing the Phase 3 hold by giving you this prompt. Then continue to Phase 4, then Phase 5, exactly as the HANDOFF specifies.
 
 Visual references: the approved mockups in `docs/planning/front-end-reimagining/mockups/` are what each surface must look like. Open them in a browser as you build (start with `index.html`, the gallery with per-screen notes):
 - `_shell-template.html` + `_shared.css` - the shell DOM and style contract (the committed MissionShell follows it).
@@ -30,7 +32,7 @@ IMPORTANT: some rulings postdate the mockups. Where a mockup conflicts with the 
 Hard rules, non-negotiable:
 - Sandbox branch only. Never touch main, production, Supabase migrations (except the Phase 5 seed function, which you show me first), or any public landing/marketing page.
 - No merge to main, ever, without my explicit approval in my own words. A question is never approval.
-- Commit and push to `sandbox/mission-control-v2` after every verified chunk, with a one-line WHY in the commit message.
+- **Commit and push after EVERY phase before starting the next one, no exceptions.** Before moving from Phase 3 to Phase 4, and from Phase 4 to Phase 5: `bunx tsc --noEmit` clean, the relevant `bun test` scopes green, a live smoke check on what you built, then commit with a one-line WHY, push to `sandbox/mission-control-v2`, and confirm `git rev-parse HEAD` equals `git rev-parse origin/sandbox/mission-control-v2` before touching the next phase. If a phase takes a while, checkpoint-commit verified partial progress rather than sitting on uncommitted work. I need to be able to close this session at any point without losing anything.
 - Before every commit: `bunx tsc --noEmit` clean and the relevant `bun test` scopes green. Dev server needs default Node 26; `bun run build` needs Node 20.20.2.
 - Design law: no colored edge strips on cards, chips wear the slate `--chip-*` tokens (never ember), ember only on primary actions, memory is Vellum, machine is blue, no purple anywhere, one input box per screen, costs never shown inline (credits behind a details click only), humanized UI strings (no em dashes, no AI-sounding phrasing), every screen has exactly one primary action.
 - Honesty: no UI string may claim behavior the backend does not actually perform. No feature is ever cut silently; flag anything you think should be dropped and ask me.
