@@ -91,3 +91,9 @@ Screen 7 replaces the 17-section Settings with five named groups: You, Workspace
 **Gate 1 approval means app code starts.**
 
 Signed (in your own words): ____________________  Date: ____________
+
+---
+
+## Provisional record (2026-07-19)
+
+The founder replied "pls continue" after reviewing the package. The build proceeds on the RECOMMENDED option for every item above: A1 app-idle starfield scoped as described, A2 color law adopted, A3 choreography approved with the star-drift beat kept only on backdrop surfaces, A4 all four retirements (matching the founder's earlier F3 pre-approval in the archived ledger), B1 two-rung owned ladder, B2 capability-class routing in sprint, B3 naming honesty fixed before any UI string names the driver (implementation picks the less invasive of the two options), B4 BYO in Settings only, C the five-group recluster. B5 (the real-credit dry run) is deferred until Build-face integration and runs on a test repo with a small budget. Every choice here is provisional and overridable at the founder's live review; none of this constitutes his sign-off on specifics he did not mark.
