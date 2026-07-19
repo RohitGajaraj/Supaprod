@@ -252,6 +252,21 @@ export async function seedSampleWorkspace(userId: string): Promise<string | null
     // The DB function RETURNS the sample workspace uuid so the caller can switch
     // the user straight into it.
     const workspaceId = typeof data === "string" ? data : null;
+
+    // SAMPLE-SEED v2 (Mission Control augment): additive + idempotent, adds the
+    // review-status spec so the reimagined Approvals tray + Send back + the
+    // signature moment are experienceable on the sample data. Guarded: a failure
+    // here never undoes the v1 seed or blocks signup.
+    try {
+      const { error: v2Error } = await (supabaseAdmin as unknown as RpcClient).rpc(
+        "seed_sample_workspace_v2",
+        { _user_id: userId },
+      );
+      if (v2Error) console.error("[SAMPLE-SEED] v2 augment failed:", v2Error.message);
+    } catch (v2Err) {
+      console.error("[SAMPLE-SEED] v2 augment threw:", v2Err);
+    }
+
     // Flag it as sample data so the shell labels it (banner + badge). Keyed on
     // the exact workspace the seed created/returned, not its name, so it is
     // drift-proof and never mis-flags a real workspace. Service-role write;
