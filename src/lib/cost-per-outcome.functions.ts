@@ -14,6 +14,7 @@
  * Decision: docs/strategy/session-decisions.md (2026-06-17, agent-manager framing).
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type CostPerOutcome = {
@@ -31,57 +32,70 @@ export type CostPerOutcome = {
   monthCapUsd: number | null;
 };
 
+/**
+ * Extracted logic for getCostPerOutcome - testable without TanStack wrappers.
+ *
+ * RATIONALE: Pure function with Supabase as parameter enables unit testing
+ * with mock Supabase instances. All error handling is explicit and testable.
+ */
+export async function getCostPerOutcomeImpl(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<CostPerOutcome> {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [specsRes, decisionsRes, missionsRes, runsRes, budgetRes] = await Promise.all([
+    supabase
+      .from("prds")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", weekAgo),
+    supabase
+      .from("decisions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", weekAgo),
+    supabase
+      .from("missions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "completed")
+      .gte("completed_at", weekAgo),
+    supabase
+      .from("agent_runs")
+      .select("spend_used_usd")
+      .eq("user_id", userId)
+      .gte("created_at", weekAgo),
+    supabase
+      .from("ai_budgets")
+      .select("monthly_usd_used, monthly_usd_cap")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+
+  if (specsRes.error) throw new Error(specsRes.error.message);
+  if (decisionsRes.error) throw new Error(decisionsRes.error.message);
+  if (missionsRes.error) throw new Error(missionsRes.error.message);
+  if (runsRes.error) throw new Error(runsRes.error.message);
+  // A missing ai_budgets row is expected (no budget set); only a hard error throws.
+  if (budgetRes.error) throw new Error(budgetRes.error.message);
+
+  const weekSpendUsd = (runsRes.data ?? []).reduce((sum, r) => sum + Number(r.spend_used_usd), 0);
+
+  return {
+    specs: specsRes.count ?? 0,
+    decisions: decisionsRes.count ?? 0,
+    missions: missionsRes.count ?? 0,
+    weekSpendUsd,
+    monthUsedUsd: Number(budgetRes.data?.monthly_usd_used ?? 0),
+    monthCapUsd:
+      budgetRes.data?.monthly_usd_cap != null ? Number(budgetRes.data.monthly_usd_cap) : null,
+  };
+}
+
 export const getCostPerOutcome = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CostPerOutcome> => {
     const { supabase, userId } = context;
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const [specsRes, decisionsRes, missionsRes, runsRes, budgetRes] = await Promise.all([
-      supabase
-        .from("prds")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .gte("created_at", weekAgo),
-      supabase
-        .from("decisions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .gte("created_at", weekAgo),
-      supabase
-        .from("missions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "completed")
-        .gte("completed_at", weekAgo),
-      supabase
-        .from("agent_runs")
-        .select("spend_used_usd")
-        .eq("user_id", userId)
-        .gte("created_at", weekAgo),
-      supabase
-        .from("ai_budgets")
-        .select("monthly_usd_used, monthly_usd_cap")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
-
-    if (specsRes.error) throw new Error(specsRes.error.message);
-    if (decisionsRes.error) throw new Error(decisionsRes.error.message);
-    if (missionsRes.error) throw new Error(missionsRes.error.message);
-    if (runsRes.error) throw new Error(runsRes.error.message);
-    // A missing ai_budgets row is expected (no budget set); only a hard error throws.
-    if (budgetRes.error) throw new Error(budgetRes.error.message);
-
-    const weekSpendUsd = (runsRes.data ?? []).reduce((sum, r) => sum + Number(r.spend_used_usd), 0);
-
-    return {
-      specs: specsRes.count ?? 0,
-      decisions: decisionsRes.count ?? 0,
-      missions: missionsRes.count ?? 0,
-      weekSpendUsd,
-      monthUsedUsd: Number(budgetRes.data?.monthly_usd_used ?? 0),
-      monthCapUsd:
-        budgetRes.data?.monthly_usd_cap != null ? Number(budgetRes.data.monthly_usd_cap) : null,
-    };
+    return getCostPerOutcomeImpl(supabase, userId);
   });
