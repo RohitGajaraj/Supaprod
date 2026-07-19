@@ -35,7 +35,9 @@
 
 ## CONTINUATION — do this, in order
 
-### Step 0: state check (Phase 2 may or may not have finished)
+### Step 0: RESOLVED, Phase 2 is COMPLETE and committed (2026-07-19 night). tsc clean, 3536/3536 tests, live smoke passed (briefing, streamed answer, journey slice highlight, one overlay on both shortcut keys, mic). Evidence: build-evidence/phase2-*.png. Skip to Phase 3.
+
+### The original Step 0 text, kept for reference only
 Phase 2 (conversation + journeys) was running at cutoff. Check: does `git log --oneline -5` show a phase-2 commit? Do these exist and pass: `src/hooks/use-ask-stream.ts`, `src/lib/briefing.functions.ts`, `src/lib/journeys.ts`, `src/components/mission/composer/` (Composer, ComposerOverlay, SuggestionPopover, JourneyChips, Thread)? Run `bunx tsc --noEmit` and `bun test src/components/mission src/lib src/hooks`. If files exist uncommitted: verify, fix, commit. If absent or partial, FINISH Phase 2 per execution-plan.md Phase 2 + these binding details: extract (never rewrite) the SSE client from `src/components/obsidian/AskPanel.tsx` (the /api/chat protocol is contract-locked); keep dictation + read-aloud (use-voice.ts) alive in the Composer; per-product thread keying client-side (NO schema migrations); journey chips only for journeys whose `wiredVia` server functions actually exist; global shortcut keys summon the ONE ComposerOverlay everywhere (palette/AskPanel unmounted, files kept); Briefing = machine-authored receipts prose from existing today-lanes/receipts/greeting/approvals data, honest zero state, no costs.
 
 ### Phase 3 (was held by the founder; he releases it in the new session by giving you these instructions)

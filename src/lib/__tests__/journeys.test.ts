@@ -35,7 +35,7 @@ describe("journeys catalog shape", () => {
     for (const j of JOURNEYS) {
       expect(j.label.trim().length).toBeGreaterThan(0);
       for (const text of [j.label, j.startState, j.doneState]) {
-        expect(text, `em/en dash in ${j.id}: ${text}`).not.toMatch(/[–—]/);
+        expect(text, `em/en dash in ${j.id}: ${text}`).not.toMatch(/[ to , ]/);
       }
     }
   });

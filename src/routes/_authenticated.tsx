@@ -177,8 +177,12 @@ function AuthedLayout() {
                   GlobalComposer stands down there (it self-excludes). */}
             {!isOnboarding && <GlobalComposer />}
             {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
-                  page, the cross-surface countdown while a block runs (Option F). */}
-            {!isOnboarding && <FocusDock />}
+                  page, the cross-surface countdown while a block runs (Option F).
+                  Off Mission Control: its fixed bottom-center sliver sits on top
+                  of the room's docked Composer and intercepts its clicks (found
+                  in live smoke 2026-07-19), and the founder's Gate 1 retirements
+                  already drop the dock from the reimagined room. */}
+            {!isOnboarding && !isMissionControl && <FocusDock />}
           </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>
