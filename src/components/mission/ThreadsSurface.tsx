@@ -228,19 +228,43 @@ export function ThreadsSurface({
   const threads = useMemo(() => q.data?.threads ?? [], [q.data]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(initialThreadId ?? null);
+  const [view, setView] = useState<"all" | "today" | "week">("all");
 
   // Default the selection to the newest thread once loaded.
   useEffect(() => {
     if (!selected && threads.length > 0) setSelected(threads[0].id);
   }, [threads, selected]);
 
+  // View counts (computed client-side from the loaded threads, honest).
+  const counts = useMemo(() => {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayMs = startOfToday.getTime();
+    const weekMs = Date.now() - 7 * 86400000;
+    const ts = (t: ThreadSummary) => (t.updatedAt ? new Date(t.updatedAt).getTime() : 0);
+    return {
+      all: threads.length,
+      today: threads.filter((t) => ts(t) >= todayMs).length,
+      week: threads.filter((t) => ts(t) >= weekMs).length,
+    };
+  }, [threads]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return threads;
-    return threads.filter(
-      (t) => t.title.toLowerCase().includes(needle) || t.snippet.toLowerCase().includes(needle),
-    );
-  }, [threads, query]);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayMs = startOfToday.getTime();
+    const weekMs = Date.now() - 7 * 86400000;
+    return threads.filter((t) => {
+      const ts = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
+      if (view === "today" && ts < todayMs) return false;
+      if (view === "week" && ts < weekMs) return false;
+      if (needle) {
+        return t.title.toLowerCase().includes(needle) || t.snippet.toLowerCase().includes(needle);
+      }
+      return true;
+    });
+  }, [threads, query, view]);
 
   const groups = useMemo(() => {
     const out: { label: string; items: ThreadSummary[] }[] = [];
@@ -260,11 +284,54 @@ export function ThreadsSurface({
 
   return (
     <div className="flex min-h-dvh" style={{ background: "var(--ink-bg)", color: "var(--ink-body)" }}>
+      {/* Rail: scope + views (the third pane, screen-9 baseline). Folders and
+          cross-scope + save-to-brain views arrive with their migration. */}
+      <aside
+        className="hidden w-[220px] flex-none flex-col gap-5 border-r px-3 py-6 md:flex"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+      >
+        <div>
+          <h1 className="px-2 text-[16px] font-medium" style={{ color: "var(--ink-text)" }}>
+            Threads
+          </h1>
+          <p className="mt-0.5 px-2 text-[11.5px]" style={{ color: "var(--ink-subtle)" }}>
+            Everything asked and answered.
+          </p>
+        </div>
+        <div>
+          <div className="px-2 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--ink-faint)" }}>
+            Views
+          </div>
+          {([
+            { id: "all", label: "All threads", n: counts.all },
+            { id: "today", label: "Today", n: counts.today },
+            { id: "week", label: "This week", n: counts.week },
+          ] as const).map((v) => {
+            const on = view === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setView(v.id)}
+                aria-current={on ? "true" : undefined}
+                className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+                style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
+              >
+                <span className="min-w-0 flex-1 truncate">{v.label}</span>
+                <span className="flex-none font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+                  {v.n}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
       <section
         className="flex w-full max-w-[400px] flex-none flex-col border-r"
         style={{ borderColor: "var(--ink-hairline)" }}
       >
-        <div className="flex-none px-4 pb-2 pt-6">
+        <div className="flex-none px-4 pb-2 pt-6 md:hidden">
           <h1 className="text-[18px] font-medium" style={{ color: "var(--ink-text)" }}>
             Threads
           </h1>
@@ -272,7 +339,7 @@ export function ThreadsSurface({
             Everything asked and answered, saved.
           </p>
         </div>
-        <div className="flex-none px-4 pb-2">
+        <div className="flex-none px-4 pb-2 pt-6 md:pt-6">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
