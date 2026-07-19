@@ -31,6 +31,7 @@ import { listSignals, listOpportunities, listSpecs } from "@/lib/discovery.funct
 import { listPrototypes } from "@/lib/prototypes.functions";
 import { getPersistedScaffold } from "@/lib/design-scaffold.functions";
 import { listMissions } from "@/lib/missions.functions";
+import { buildDriverLabel } from "@/lib/build/driver";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getOutcomeData } from "@/lib/outcome.functions";
 
@@ -510,6 +511,7 @@ type MissionRow = {
   status?: string | null;
   hop_count?: number | null;
   updated_at?: string;
+  build_driver?: string | null;
 };
 
 const MISSION_DONE = ["done", "complete", "completed", "succeeded", "shipped"];
@@ -565,7 +567,10 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
                   {m.title ?? m.goal ?? "Build mission"}
                 </p>
                 {done ? (
-                  <ReceiptLine className="mt-2">Build finished. Open it to review the diff.</ReceiptLine>
+                  <ReceiptLine className="mt-2">
+                    Build finished{m.build_driver ? ` by ${buildDriverLabel(m.build_driver)}` : ""}.
+                    Open it to review the diff.
+                  </ReceiptLine>
                 ) : null}
                 <Link
                   to="/build/$missionId"

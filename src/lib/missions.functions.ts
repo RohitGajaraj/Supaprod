@@ -130,6 +130,9 @@ export type MissionListRow = {
   /** Summed ai_events est_cost_usd over the mission's traces; null = unknown
    * (no checkpointed traces yet) — render "—", never a fake $0.00. */
   cost_usd: number | null;
+  /** Which build engine ran this mission (missions.build_driver), or null.
+   * Named honestly for the user via buildDriverLabel (Gate #1 B3). */
+  build_driver: string | null;
 };
 
 export const listMissions = createServerFn({ method: "GET" })
@@ -138,7 +141,9 @@ export const listMissions = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("missions")
-      .select("id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at")
+      .select(
+        "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
+      )
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);

@@ -42,6 +42,33 @@ export const RESERVED_BUILD_DRIVER_IDS: readonly BuildDriverId[] = [
 ];
 
 /**
+ * The user-facing, ENGINE-HONEST label for a driver id (Gate #1 decision B3,
+ * gap register I1). The one place a driver is named for a person, so a receipt
+ * can "name what actually ran" without a surface inventing its own string.
+ *
+ * Honesty rule (claim never outruns wiring): the shipped `claude-sdk` adapter
+ * is a SINGLE-SHOT PATCH generator, not the Claude Agent SDK, so it is labeled
+ * "single-shot patch" and NEVER "Claude Agent SDK". When a real iterative Agent
+ * SDK driver lands in the PC-35 lane it gets its own id and its own honest
+ * label; until then no surface may imply the agentic harness exists.
+ */
+export const BUILD_DRIVER_LABEL: Record<BuildDriverId, string> = {
+  native: "Supaprod native",
+  openhands: "OpenHands",
+  "claude-sdk": "single-shot patch",
+  devin: "Devin",
+  codex: "Codex",
+  cursor: "Cursor",
+};
+
+/** The engine-honest label for whatever a `missions.build_driver` cell holds,
+ *  falling back to a neutral phrase (never a guessed engine name). */
+export function buildDriverLabel(value: string | null | undefined): string {
+  const id = normalizeBuildDriverId(value);
+  return id ? BUILD_DRIVER_LABEL[id] : "the build engine";
+}
+
+/**
  * PURE. Normalize an arbitrary string (a `preferred` param, the `BUILD_DRIVER`
  * env var, a `missions.build_driver` cell) to a known {@link BuildDriverId},
  * or null when it names no known engine.
