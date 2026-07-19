@@ -31,7 +31,6 @@ function DecideSurface() {
         }}
       >
         <PageHeader
-          eyebrow="The Loop · 02 Decide"
           title="Keep it, or"
           accent="kill it."
           subtitle="Every ranked bet Supaprod surfaced, waiting on the one thing it will never do for you: the call. Approve to move it into Plan, send it back, or drop it."

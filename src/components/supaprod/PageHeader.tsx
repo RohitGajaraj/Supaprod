@@ -18,8 +18,11 @@ import type { ReactNode } from "react";
 
 export type PageHeaderProps = {
   /** Mono kicker naming the lifecycle position, e.g. "The Loop · 01 Discover"
-   *  or "Intelligence · Memory". Renders uppercase in the mono voice. */
-  eyebrow: string;
+   *  or "Intelligence · Memory". Renders uppercase in the mono voice.
+   *  Wayfinding fix 2026-07-19: OPTIONAL, and omitted wherever the TopBar
+   *  crumb already names the surface — one wayfinding source per screen.
+   *  Pass it only when it adds location the crumb does not carry. */
+  eyebrow?: string;
   /** Outcome-first surface title, Geist Sans 600. Plain string; use `accent`
    *  for the one ember-emphasized word. */
   title: string;
@@ -56,18 +59,20 @@ export function PageHeader({
     <header style={{ marginBottom: 24 }}>
       <div className="flex items-start justify-between" style={{ gap: 20, flexWrap: "wrap" }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
-              letterSpacing: "0.14em",
-              color: "var(--text-subtle)",
-              textTransform: "uppercase",
-              marginBottom: 10,
-            }}
-          >
-            {eyebrow}
-          </div>
+          {eyebrow ? (
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-floor)",
+                letterSpacing: "0.14em",
+                color: "var(--text-subtle)",
+                textTransform: "uppercase",
+                marginBottom: 10,
+              }}
+            >
+              {eyebrow}
+            </div>
+          ) : null}
           <h1
             style={{
               fontFamily: "var(--font-pixel)",
@@ -138,7 +143,15 @@ export function PageHeader({
               boxShadow: "0 0 8px color-mix(in srgb, var(--ember) 55%, transparent)",
             }}
           />
-          <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", lineHeight: 1.35 }}>{usp}</span>
+          <span
+            style={{
+              fontSize: "var(--text-label-13)",
+              color: "var(--text-body)",
+              lineHeight: 1.35,
+            }}
+          >
+            {usp}
+          </span>
         </div>
       ) : null}
 

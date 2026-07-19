@@ -424,37 +424,12 @@ function SettingsPage() {
           margin: "0 auto",
         }}
       >
-        {/* v4 surface header: real h1 (AT-navigable outline) + the maker's-mark
-            thread underline (DESIGN-LOOM §6, static). */}
-        <header style={{ marginBottom: 28 }}>
-          <ObsidianMonoLabel style={{ display: "block", marginBottom: 6 }}>
-            {workspaceName ?? "Workspace"}
-          </ObsidianMonoLabel>
-          <h1
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontWeight: 400,
-              fontSize: 28,
-              lineHeight: 1.15,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            Settings
-          </h1>
-          <span
-            aria-hidden="true"
-            style={{
-              display: "block",
-              width: 24,
-              height: 2,
-              marginTop: 10,
-              borderRadius: 2,
-              background: "var(--thread-gradient)",
-              opacity: 0.4,
-            }}
-          />
-        </header>
+        {/* Wayfinding fix 2026-07-19: the TopBar crumb already reads
+            "[workspace] / Settings", so the visible workspace eyebrow and
+            page-name heading merely repeated it. One wayfinding source per
+            screen: the crumb keeps the location; the h1 stays sr-only for the
+            AT-navigable outline (same pattern as Today). */}
+        <h1 className="sr-only">Settings</h1>
 
         <div className="flex flex-col md:flex-row" style={{ gap: 44 }}>
           <div className="md:w-48">

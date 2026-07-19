@@ -535,7 +535,6 @@ function MemoryPage() {
       <MemorySurface>
         {/* The hero: Tempo PageHeader (retires the Loom serif/italic hero). */}
         <PageHeader
-          eyebrow="Intelligence · Brain"
           title="Your product's"
           accent="brain."
           subtitle="Every call you made, what it became, and how belief moved, on one substrate the whole loop reads from and reasons over."

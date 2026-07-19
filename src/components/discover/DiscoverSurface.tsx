@@ -241,7 +241,6 @@ export function DiscoverSurface() {
           glacier, the machine surface light). */}
         <div aria-hidden="true" className="loom-glow-field" />
         <PageHeader
-          eyebrow="The Loop · 01 Discover"
           title="Raw signal in,"
           accent="ranked bets out."
           subtitle="The evidence desk: every opportunity ranked and cited back to the signals behind it."

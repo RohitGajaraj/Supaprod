@@ -30,16 +30,24 @@
   /* The three voices (color = who is speaking, never decoration) */
   --voice-human: #ff6b2c;
   --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
   --voice-human-border: rgba(255, 107, 44, 0.4);
   --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
   --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
   --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
   --voice-memory: #e8b44c; /* memory moments ONLY; the gold ban holds everywhere else */
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
 
-  /* Verdicts (outcomes only) */
+  /* Verdicts (outcomes only; working IS the machine speaking, so it uses the machine ramp) */
   --verdict-pass: #4ac26b;
   --verdict-fail: #e5534b;
-  --verdict-working: #d9a13c;
 
   /* Focus (landing grammar: double ring for gates, calm ring for typing) */
   --ink-focus-gap: var(--ink-bg);
@@ -78,15 +86,23 @@
 
   --voice-human: #f05a1a;
   --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
   --voice-human-border: rgba(240, 90, 26, 0.45);
   --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
   --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
   --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
   --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
 
   --verdict-pass: #1a7f37;
   --verdict-fail: #cf222e;
-  --verdict-working: #9a6700;
 
   --ink-focus-gap: var(--ink-bg);
   --ink-input-ring: rgba(0, 0, 0, 0.3);

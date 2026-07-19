@@ -85,7 +85,6 @@ function ShipSurface() {
         }}
       >
         <PageHeader
-          eyebrow="The Loop · 06 Ship"
           title="From preview to"
           accent="production."
           subtitle="Every merged change gets a preview, a promote, and a receipt. This is the record of what reached your users and the story you told them about it."
