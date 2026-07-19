@@ -31,7 +31,11 @@ describe("WarmSlot rendering", () => {
 
   test("renders the user's own work plainly, no badge, no dashed frame", () => {
     render(
-      <WarmSlot ownWork={<div>3 signals from this week</div>} sample={<div>seeded</div>} line={line} />,
+      <WarmSlot
+        ownWork={<div>3 signals from this week</div>}
+        sample={<div>seeded</div>}
+        line={line}
+      />,
     );
     expect(screen.getByText("3 signals from this week")).toBeTruthy();
     expect(screen.queryByText("Sample")).toBe(null);
@@ -69,7 +73,9 @@ describe("WarmSlot rendering", () => {
   });
 
   test("never renders empty: even with every prop absent but line, content exists", () => {
-    const { container } = render(<WarmSlot line={{ text: "Memory starts empty and fills as you decide." }} />);
+    const { container } = render(
+      <WarmSlot line={{ text: "Memory starts empty and fills as you decide." }} />,
+    );
     expect(container.textContent?.trim().length).toBeGreaterThan(0);
   });
 

@@ -141,6 +141,14 @@ function AuthedLayout() {
   // would expose all five nav destinations + the 1-5/g shortcuts before the
   // account has finished onboarding.
   const isOnboarding = pathname.startsWith("/onboarding");
+  // Mission Control sandbox (/m, front-end reimagining Phase 1): the room
+  // carries its own five-region shell (TopBar, Spine, Thread, Canvas,
+  // Composer), so the old AppShell must not wrap it. GotoShortcuts also stays
+  // off there: it binds bare digits 1-7 to old-app surfaces, and in the room
+  // those keys walk the Spine (shell-local listener in MissionShell). Ask
+  // (Cmd+J / supaprod:open-ask) stays mounted - the room's composer strip and
+  // Ask button open the same panel. The old app is otherwise untouched.
+  const isMissionControl = pathname === "/m" || pathname.startsWith("/m/");
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the
@@ -154,8 +162,8 @@ function AuthedLayout() {
             <BackendHealthBanner />
             <BillingBanner />
             <CommandPalette />
-            {!isOnboarding && <GotoShortcuts />}
-            {isOnboarding ? (
+            {!isOnboarding && !isMissionControl && <GotoShortcuts />}
+            {isOnboarding || isMissionControl ? (
               <Outlet />
             ) : (
               <AppShell>

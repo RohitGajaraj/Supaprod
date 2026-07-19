@@ -1,0 +1,390 @@
+// MissionShellView (front-end reimagining, Phase 1): the room's five regions
+// as a pure view, per mockups/_shell-template.html and screen-2.
+//
+//   1. TopBar     - mark, product switcher, the 4 doors, the needs-you ember
+//                   pill (ONE COUNT ONE SOURCE: the caller feeds it from the
+//                   shared ["approvals","queue",workspaceId] query), and the
+//                   always-visible Ask button with its shortcut.
+//   2. Spine      - the whole loop, always (primitive 6.6).
+//   3. Thread     - honest Phase 1 placeholder: day label + recent receipts +
+//                   a WarmSlot. No fake briefing; the real Composer thread is
+//                   Phase 2.
+//   4. Canvas     - the stage's face, provided by the caller.
+//   5. Composer   - the docked strip: ONE affordance that opens Ask. It is a
+//                   button, never a second input box (Addendum 1.1 rule 4).
+//
+// Pure on purpose: no router, no queries, no providers - the connected
+// MissionShell wires those. This is what the component test renders.
+// Ink token vars only; cards are plain ink surfaces (no edge strips).
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { Spine, type StageId, type StageLoopState } from "@/components/mission/Spine";
+import {
+  AgentChip,
+  Kbd,
+  ReceiptLine,
+  SurfaceHeader,
+  WarmSlot,
+} from "@/components/mission/primitives";
+
+export type MissionDoorId = "mission" | "approvals" | "brain" | "settings";
+
+const DOORS: { id: MissionDoorId; label: string }[] = [
+  { id: "mission", label: "Mission Control" },
+  { id: "approvals", label: "Approvals" },
+  { id: "brain", label: "Brain" },
+  { id: "settings", label: "Settings" },
+];
+
+export interface ThreadReceipt {
+  id: string;
+  /** Past-tense receipt sentence ("Saved replies spec moved to approved"). */
+  text: string;
+  /** stage_events.actor: 'human', an agent slug, 'system', or null. */
+  actor: string | null;
+  /** Clock time for the craft-bar meta row (right-aligned, mono). */
+  time: string;
+}
+
+export interface MissionShellViewProps {
+  workspaceName: string | null;
+  productName: string | null;
+  products: { id: string; name: string }[];
+  activeProductId: string | null;
+  onSelectProduct: (id: string) => void;
+  /** The approvals queue length. ONE COUNT ONE SOURCE - never re-derived. */
+  queueCount: number;
+  onOpenDoor: (door: MissionDoorId) => void;
+  stage: StageId;
+  onStageSelect: (stage: StageId) => void;
+  loopStages: StageLoopState[];
+  /** "Saturday, July 19" - the Thread's day divider. */
+  dayLabel: string;
+  receipts: ThreadReceipt[];
+  /** True once the receipts read settled, so the WarmSlot line is honest. */
+  receiptsLoaded: boolean;
+  onAsk: () => void;
+  /** Mono stage marker for the Canvas header ("01 Discover"). */
+  canvasMarker: string;
+  canvasTitle: string;
+  canvas: ReactNode;
+  className?: string;
+}
+
+/** The needs-you ember pill: the gate object's TopBar rendering. Hidden at zero. */
+function NeedsYouPill({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      data-testid="needs-you-pill"
+      className="inline-flex h-4 min-w-4 items-center justify-center rounded-lg border px-1 font-mono text-[10px] tabular-nums"
+      style={{
+        color: "var(--voice-human)",
+        background: "var(--voice-human-faint)",
+        borderColor: "var(--voice-human-border)",
+      }}
+    >
+      {count}
+    </span>
+  );
+}
+
+/** The product switcher: workspace / product, reusing the caller's workspace
+ *  data. A plain popover list - no Radix, so the pure view stays test-light. */
+function ProductSwitcher({
+  workspaceName,
+  productName,
+  products,
+  activeProductId,
+  onSelectProduct,
+}: Pick<
+  MissionShellViewProps,
+  "workspaceName" | "productName" | "products" | "activeProductId" | "onSelectProduct"
+>) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const label = [workspaceName, productName].filter(Boolean).join(" / ") || "Pick a product";
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="ink-focus flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs transition-colors hover:bg-[var(--ink-raised)]"
+        style={{ color: "var(--ink-body)" }}
+      >
+        {label}
+        <span aria-hidden className="text-[9px]" style={{ color: "var(--ink-faint)" }}>
+          {"▾"}
+        </span>
+      </button>
+      {open ? (
+        <div
+          role="listbox"
+          aria-label="Products"
+          className="absolute left-0 top-8 z-50 min-w-[200px] rounded-lg border p-1"
+          style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)" }}
+        >
+          {products.length === 0 ? (
+            <div className="px-2.5 py-1.5 text-xs" style={{ color: "var(--ink-subtle)" }}>
+              No products here yet.
+            </div>
+          ) : (
+            products.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                role="option"
+                aria-selected={p.id === activeProductId}
+                onClick={() => {
+                  setOpen(false);
+                  onSelectProduct(p.id);
+                }}
+                className="flex h-7 w-full items-center gap-2 rounded-md px-2.5 text-left text-xs transition-colors hover:bg-[var(--ink-panel)]"
+                style={{
+                  color: p.id === activeProductId ? "var(--ink-text)" : "var(--ink-body)",
+                }}
+              >
+                {p.name}
+                {p.id === activeProductId ? (
+                  <span aria-hidden className="ml-auto text-[10px]">
+                    {"✓"}
+                  </span>
+                ) : null}
+              </button>
+            ))
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** One Thread item on the craft grid: chip row (actor left, mono time right),
+ *  then the receipt body. Plain ink surfaces, no edge strips. */
+function ThreadReceiptItem({ receipt }: { receipt: ThreadReceipt }) {
+  const isHuman = receipt.actor === "human";
+  const isMachine =
+    receipt.actor != null && receipt.actor !== "human" && receipt.actor !== "system";
+  return (
+    <div
+      className="rounded-[10px] px-3 py-2.5"
+      style={
+        isHuman
+          ? { background: "var(--ink-raised)", border: "1px solid var(--ink-hairline-soft)" }
+          : { background: "var(--voice-machine-faint)" }
+      }
+    >
+      <div className="mb-1.5 flex items-center gap-2">
+        {isMachine ? (
+          <AgentChip slug={receipt.actor as string} />
+        ) : (
+          <span
+            className="font-mono text-[9.5px] uppercase tracking-[0.12em]"
+            style={{ color: "var(--ink-subtle)" }}
+          >
+            {isHuman ? "You" : "System"}
+          </span>
+        )}
+        <span
+          className="ml-auto font-mono text-[10px] tabular-nums"
+          style={{ color: "var(--ink-faint)" }}
+        >
+          {receipt.time}
+        </span>
+      </div>
+      <ReceiptLine>{receipt.text}</ReceiptLine>
+    </div>
+  );
+}
+
+export function MissionShellView({
+  workspaceName,
+  productName,
+  products,
+  activeProductId,
+  onSelectProduct,
+  queueCount,
+  onOpenDoor,
+  stage,
+  onStageSelect,
+  loopStages,
+  dayLabel,
+  receipts,
+  receiptsLoaded,
+  onAsk,
+  canvasMarker,
+  canvasTitle,
+  canvas,
+  className,
+}: MissionShellViewProps) {
+  return (
+    <div
+      className={cn("flex h-dvh flex-col", className)}
+      style={{ background: "var(--ink-bg)", color: "var(--ink-body)" }}
+    >
+      {/* Region 1: TopBar. Chrome recedes; exactly 4 destinations. */}
+      <header
+        data-region="topbar"
+        className="flex h-[52px] flex-none items-center gap-4 border-b px-5"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <SupaprodMark size={18} />
+          <span className="text-[13px] font-semibold" style={{ color: "var(--ink-text)" }}>
+            Supaprod
+          </span>
+        </div>
+        <span aria-hidden className="h-[18px] w-px" style={{ background: "var(--ink-hairline)" }} />
+        <ProductSwitcher
+          workspaceName={workspaceName}
+          productName={productName}
+          products={products}
+          activeProductId={activeProductId}
+          onSelectProduct={onSelectProduct}
+        />
+        <nav aria-label="Rooms" className="ml-2 flex items-center gap-0.5">
+          {DOORS.map((door) => {
+            const isActive = door.id === "mission";
+            return (
+              <button
+                key={door.id}
+                type="button"
+                data-door={door.id}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => onOpenDoor(door.id)}
+                className={cn(
+                  "ink-focus flex h-[30px] items-center gap-1.5 rounded-lg px-3 text-[12.5px] transition-colors",
+                  isActive
+                    ? "bg-[var(--ink-raised)] text-[var(--ink-text)]"
+                    : "text-[var(--ink-subtle)] hover:bg-[var(--ink-raised)] hover:text-[var(--ink-body)]",
+                )}
+              >
+                {door.label}
+                {door.id === "approvals" ? <NeedsYouPill count={queueCount} /> : null}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="ml-auto flex items-center gap-2">
+          {/* The always-visible Ask affordance: same panel as the docked strip. */}
+          <button
+            type="button"
+            aria-label="Ask Supaprod"
+            onClick={onAsk}
+            className="ink-focus flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors hover:bg-[#202024]"
+            style={{
+              background: "var(--ink-raised)",
+              borderColor: "var(--ink-hairline)",
+              color: "var(--ink-text)",
+            }}
+          >
+            Ask <Kbd>{"⌘J"}</Kbd>
+          </button>
+        </div>
+      </header>
+
+      {/* Region 2: the Spine. The whole loop, always. */}
+      <div data-region="spine" className="flex-none">
+        <Spine states={loopStages} onStageSelect={onStageSelect} />
+      </div>
+
+      <div className="grid min-h-0 flex-1" style={{ gridTemplateColumns: "380px minmax(0, 1fr)" }}>
+        {/* Region 3: the Thread. Day label + receipts + a WarmSlot; the real
+            conversation lands in Phase 2, so nothing here pretends to chat. */}
+        <aside
+          data-region="thread"
+          className="flex min-h-0 flex-col border-r"
+          style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+        >
+          <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+            <div
+              className="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.1em]"
+              style={{ color: "var(--ink-faint)" }}
+            >
+              <span
+                aria-hidden
+                className="h-px flex-1"
+                style={{ background: "var(--ink-hairline-soft)" }}
+              />
+              {dayLabel}
+              <span
+                aria-hidden
+                className="h-px flex-1"
+                style={{ background: "var(--ink-hairline-soft)" }}
+              />
+            </div>
+            {receipts.map((receipt) => (
+              <ThreadReceiptItem key={receipt.id} receipt={receipt} />
+            ))}
+            <WarmSlot
+              line={
+                receipts.length > 0
+                  ? {
+                      text: "That is everything from the last 24 hours. New receipts land here as agents finish work.",
+                    }
+                  : receiptsLoaded
+                    ? {
+                        text: "Nothing has moved in the last 24 hours. Ask for work and the receipts land here.",
+                        actionLabel: "Ask Supaprod",
+                        onAction: onAsk,
+                      }
+                    : { text: "Reading the last 24 hours of receipts." }
+              }
+            />
+          </div>
+        </aside>
+
+        {/* Region 4: the Canvas. One step brighter than chrome. */}
+        <section
+          data-region="canvas"
+          className="flex min-h-0 min-w-0 flex-col"
+          style={{ background: "var(--ink-panel)" }}
+        >
+          <SurfaceHeader stageMarker={canvasMarker} title={canvasTitle} />
+          <div className="min-h-0 flex-1 overflow-y-auto">{canvas}</div>
+        </section>
+      </div>
+
+      {/* Region 5: the docked composer strip. One affordance, one input model:
+          it opens Ask. Never a second input box on the screen. */}
+      <div
+        data-region="composer"
+        className="flex-none border-t px-5 pb-4 pt-3"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+      >
+        <button
+          type="button"
+          aria-label="Ask Supaprod"
+          onClick={onAsk}
+          className="ink-focus flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors hover:border-[var(--ink-subtle)]"
+          style={{ background: "var(--ink-panel)", borderColor: "var(--ink-hairline)" }}
+        >
+          <span className="flex-1 text-[13.5px] font-medium" style={{ color: "var(--ink-faint)" }}>
+            Ask anything, or name the work.
+          </span>
+          <span
+            className="flex flex-none items-center gap-1.5 text-xs font-medium"
+            style={{ color: "var(--ink-text)" }}
+          >
+            Ask <Kbd>{"⌘J"}</Kbd>
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}

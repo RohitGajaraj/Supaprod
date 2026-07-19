@@ -152,7 +152,10 @@ function TabBar({
  */
 export function DiscoverSurface() {
   const navigate = useNavigate();
-  const { tab } = useSearch({ from: "/_authenticated/discover" });
+  // strict:false so the surface renders both at /discover and as the
+  // Discover face inside Mission Control (/m); a from-bound read throws an
+  // invariant when no /discover match is active. The value stays unused.
+  const { tab } = useSearch({ strict: false }) as { tab?: DiscoverTab };
   // Decide (Option B, 2026-07-13) is the home of the ranked judgment queue.
   // Discover is now the sense + cluster surface only; a stale ?tab=queue link
   // simply lands on Signals. The queue lives at /decide.
@@ -414,9 +417,15 @@ export function DiscoverSurface() {
                   >
                     Market watch
                   </h2>
-                  <p style={{ margin: "3px 0 16px", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
-                    Competitors and platforms you track. Supaprod writes you a brief the first Monday
-                    after one of them actually moves.
+                  <p
+                    style={{
+                      margin: "3px 0 16px",
+                      fontSize: "var(--text-label-13)",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    Competitors and platforms you track. Supaprod writes you a brief the first
+                    Monday after one of them actually moves.
                   </p>
                   <StrategySection />
                 </div>

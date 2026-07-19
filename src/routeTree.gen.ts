@@ -89,6 +89,7 @@ import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated.missions.index'
+import { Route as AuthenticatedMIndexRouteImport } from './routes/_authenticated.m.index'
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
@@ -100,6 +101,7 @@ import { Route as AuthenticatedStudioMissionIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedPrdsIdRouteImport } from './routes/_authenticated.prds.$id'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated.missions.$missionId'
 import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
+import { Route as AuthenticatedMProductIdRouteImport } from './routes/_authenticated.m.$productId'
 import { Route as AuthenticatedBuildMissionIdRouteImport } from './routes/_authenticated.build.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
 import { Route as AuthenticatedAdminRoutingRouteImport } from './routes/_authenticated.admin.routing'
@@ -580,6 +582,11 @@ const AuthenticatedMissionsIndexRoute =
     path: '/missions/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMIndexRoute = AuthenticatedMIndexRouteImport.update({
+  id: '/m/',
+  path: '/m/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedBuildIndexRoute = AuthenticatedBuildIndexRouteImport.update({
   id: '/build/',
   path: '/build/',
@@ -637,6 +644,11 @@ const AuthenticatedMeetingsIdRoute = AuthenticatedMeetingsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedMeetingsRoute,
+} as any)
+const AuthenticatedMProductIdRoute = AuthenticatedMProductIdRouteImport.update({
+  id: '/m/$productId',
+  path: '/m/$productId',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBuildMissionIdRoute =
   AuthenticatedBuildMissionIdRouteImport.update({
@@ -1139,6 +1151,7 @@ export interface FileRoutesByFullPath {
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/m/$productId': typeof AuthenticatedMProductIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1150,6 +1163,7 @@ export interface FileRoutesByFullPath {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
+  '/m/': typeof AuthenticatedMIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/plan/': typeof AuthenticatedPlanIndexRoute
   '/prds/': typeof AuthenticatedPrdsIndexRoute
@@ -1300,6 +1314,7 @@ export interface FileRoutesByTo {
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/m/$productId': typeof AuthenticatedMProductIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1311,6 +1326,7 @@ export interface FileRoutesByTo {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
+  '/m': typeof AuthenticatedMIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/plan': typeof AuthenticatedPlanIndexRoute
   '/prds': typeof AuthenticatedPrdsIndexRoute
@@ -1465,6 +1481,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/_authenticated/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/_authenticated/m/$productId': typeof AuthenticatedMProductIdRoute
   '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1476,6 +1493,7 @@ export interface FileRoutesById {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
+  '/_authenticated/m/': typeof AuthenticatedMIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
   '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
@@ -1630,6 +1648,7 @@ export interface FileRouteTypes {
     | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
+    | '/m/$productId'
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
@@ -1641,6 +1660,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin/'
     | '/build/'
+    | '/m/'
     | '/missions/'
     | '/plan/'
     | '/prds/'
@@ -1791,6 +1811,7 @@ export interface FileRouteTypes {
     | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
+    | '/m/$productId'
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
@@ -1802,6 +1823,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin'
     | '/build'
+    | '/m'
     | '/missions'
     | '/plan'
     | '/prds'
@@ -1955,6 +1977,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/routing'
     | '/_authenticated/admin/workspaces'
     | '/_authenticated/build/$missionId'
+    | '/_authenticated/m/$productId'
     | '/_authenticated/meetings/$id'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/prds/$id'
@@ -1966,6 +1989,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
+    | '/_authenticated/m/'
     | '/_authenticated/missions/'
     | '/_authenticated/plan/'
     | '/_authenticated/prds/'
@@ -2690,6 +2714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/m/': {
+      id: '/_authenticated/m/'
+      path: '/m'
+      fullPath: '/m/'
+      preLoaderRoute: typeof AuthenticatedMIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/build/': {
       id: '/_authenticated/build/'
       path: '/build'
@@ -2766,6 +2797,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/meetings/$id'
       preLoaderRoute: typeof AuthenticatedMeetingsIdRouteImport
       parentRoute: typeof AuthenticatedMeetingsRoute
+    }
+    '/_authenticated/m/$productId': {
+      id: '/_authenticated/m/$productId'
+      path: '/m/$productId'
+      fullPath: '/m/$productId'
+      preLoaderRoute: typeof AuthenticatedMProductIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/build/$missionId': {
       id: '/_authenticated/build/$missionId'
@@ -3381,9 +3419,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
   AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
   AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
+  AuthenticatedMProductIdRoute: typeof AuthenticatedMProductIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
+  AuthenticatedMIndexRoute: typeof AuthenticatedMIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
@@ -3440,9 +3480,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
   AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
   AuthenticatedBuildMissionIdRoute: AuthenticatedBuildMissionIdRoute,
+  AuthenticatedMProductIdRoute: AuthenticatedMProductIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
+  AuthenticatedMIndexRoute: AuthenticatedMIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
