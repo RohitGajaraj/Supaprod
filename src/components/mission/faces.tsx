@@ -22,6 +22,7 @@ import { CanvasFace, type FaceWorking } from "@/components/mission/CanvasFace";
 import { ReceiptLine, ReceiptCount, NextLine } from "@/components/mission/primitives";
 import type { JourneyDoor } from "@/components/mission/primitives";
 import type { StageId, StageLoopState } from "@/components/mission/Spine";
+import { SPINE_STAGES, stageStateWord } from "@/components/mission/Spine";
 import type { SurfaceHeaderState } from "@/components/mission/primitives/SurfaceHeader";
 import type { MissionStateId } from "@/lib/mission-vocabulary";
 import { drawWorkingLine } from "@/lib/mission-vocabulary";
@@ -1276,6 +1277,156 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
         </div>
       ) : null}
     </CanvasFace>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The room at rest: the product-at-rest Canvas (screen-2). Shown when no stage
+// is chosen: what stage the loop is at, what shipped, and the one next move.
+// ---------------------------------------------------------------------------
+
+export function RestFace({
+  productId,
+  workspaceId,
+  productName,
+  loopStages,
+  onActivateJourney,
+  onOpenStage,
+}: {
+  productId: string;
+  workspaceId: string | null;
+  productName?: string | null;
+  loopStages: StageLoopState[];
+  onActivateJourney?: (j: JourneyId) => void;
+  onOpenStage?: (stage: StageId) => void;
+}) {
+  const fetchDeploys = useServerFn(listDeployments);
+  const dq = useQuery({
+    queryKey: ["rest-deployments", workspaceId, productId],
+    queryFn: () => fetchDeploys({ data: { workspaceId: workspaceId ?? undefined, productId } }),
+    refetchInterval: pollWhenVisible(60_000),
+  });
+  const deployments = (dq.data?.deployments ?? []) as DeploymentRow[];
+
+  const byStage = new Map(loopStages.map((s) => [s.stage, s]));
+  const doneCount = loopStages.filter((s) => s.state === "done").length;
+  const gateCount = loopStages
+    .filter((s) => s.state === "gate")
+    .reduce((a, s) => a + (s.gateCount ?? 1), 0);
+  const activeCount = loopStages.filter((s) => s.state === "active").length;
+  const headline =
+    gateCount > 0
+      ? `${gateCount} ${gateCount === 1 ? "call waits" : "calls wait"} on you.`
+      : activeCount > 0
+        ? `${activeCount} ${activeCount === 1 ? "agent is" : "agents are"} at work.`
+        : "Quiet. The next loop starts on your word.";
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="mx-auto w-full max-w-[760px] px-8 py-8">
+        <p className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-subtle)" }}>
+          {productName ?? "This product"}
+        </p>
+        <h1 className="mt-2 text-[22px] font-medium leading-tight" style={{ color: "var(--ink-text)" }}>
+          {headline}
+        </h1>
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+          <span>
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{doneCount}</span> of 7 stages done
+          </span>
+          <span style={{ color: "var(--ink-faint)" }}>·</span>
+          <span>
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{deployments.length}</span> shipped
+          </span>
+          {gateCount > 0 ? (
+            <>
+              <span style={{ color: "var(--ink-faint)" }}>·</span>
+              <span style={{ color: "var(--voice-human)" }}>
+                <span className="font-mono">{gateCount}</span> waiting on you
+              </span>
+            </>
+          ) : null}
+        </div>
+
+        <div className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+          The loop, stage by stage
+        </div>
+        <div className="mt-2 flex flex-col">
+          {SPINE_STAGES.map(({ id, num, label }) => {
+            const st = byStage.get(id) ?? { stage: id, state: "quiet" as const };
+            const word = stageStateWord(st) ?? (st.state === "done" ? "done" : "quiet");
+            const isGate = st.state === "gate";
+            const isDone = st.state === "done";
+            const isActive = st.state === "active";
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onOpenStage?.(id)}
+                className="ink-focus flex items-center gap-3 border-b py-2.5 text-left transition-colors hover:bg-[var(--ink-panel)]"
+                style={{ borderColor: "var(--ink-hairline-soft)" }}
+              >
+                <span className="w-6 flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{num}</span>
+                <span
+                  className="w-16 flex-none text-[13px]"
+                  style={{ color: isGate ? "var(--voice-human)" : isActive ? "var(--voice-machine)" : "var(--ink-text)" }}
+                >
+                  {label}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[12.5px]" style={{ color: "var(--ink-body)" }}>
+                  {st.receipt ?? word}
+                </span>
+                {isDone ? (
+                  <span className="flex-none text-[11px]" style={{ color: "var(--verdict-pass)" }}>{"✓"}</span>
+                ) : isGate ? (
+                  <span className="flex-none font-mono text-[10px]" style={{ color: "var(--voice-human)" }}>your call</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        {deployments.length > 0 ? (
+          <>
+            <div className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+              Shipped
+            </div>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {deployments.slice(0, 5).map((d) => (
+                <div key={d.id} className="flex items-center gap-2 text-[12.5px]">
+                  {d.environment ? (
+                    <span
+                      className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]"
+                      style={{ color: "var(--ink-subtle)" }}
+                    >
+                      {d.environment}
+                    </span>
+                  ) : null}
+                  <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink-body)" }}>
+                    {d.status ?? "release"}
+                    {d.commit_sha ? ` · ${d.commit_sha.slice(0, 7)}` : ""}
+                  </span>
+                  <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
+                    {relTime(d.deployed_at ?? d.created_at)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        <div className="mt-8 flex flex-wrap items-center gap-3 border-t pt-5" style={{ borderColor: "var(--ink-hairline)" }}>
+          <p className="text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+            {gateCount > 0
+              ? "A call waits on you. Open the Spine stage, or ask below."
+              : "Nothing needs you. The next loop starts on your word."}
+          </p>
+          <div className="ml-auto">
+            <NextLine doors={[journeyDoor("j1", onActivateJourney)]} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

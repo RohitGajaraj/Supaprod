@@ -51,7 +51,7 @@ import { SPINE_STAGES, type StageId, type StageLoopState } from "@/components/mi
 import { MissionShellView, type MissionDoorId } from "./MissionShellView";
 import { journeyActivation, journeyHandoffFor } from "./journey-wiring";
 import { ComposerOverlay } from "./composer/ComposerOverlay";
-import { StageCanvasFace } from "./faces";
+import { StageCanvasFace, RestFace } from "./faces";
 import { ApprovalsTray } from "./ApprovalsTray";
 import { WorkingStrip } from "./WorkingStrip";
 import { CrewDrawer } from "./CrewDrawer";
@@ -105,7 +105,7 @@ export function MissionShell({
   onJourneyChange,
 }: {
   productId: string;
-  stage: StageId;
+  stage?: StageId;
   /** The active journey (URL search), or null. */
   journey: JourneyId | null;
   /** The Approvals tray open state (URL search ?panel=approvals). */
@@ -326,7 +326,10 @@ export function MissionShell({
   };
 
   const currentLoop: StageLoopState =
-    loopStages.find((s) => s.stage === stage) ?? { stage, state: "quiet" };
+    loopStages.find((s) => s.stage === (stage ?? "discover")) ?? {
+      stage: stage ?? "discover",
+      state: "quiet",
+    };
 
   // The Briefing: machine-authored receipts prose (composition over the same
   // reads the pill and the Spine use; honest zero state; no cost figures).
@@ -563,13 +566,24 @@ export function MissionShell({
         }
         canvasBackdrop={roomIsIdle ? <AppIdleBackdrop /> : null}
         canvas={
-          <StageCanvasFace
-            stage={stage}
-            productId={productId}
-            workspaceId={activeWorkspaceId ?? null}
-            loop={currentLoop}
-            onActivateJourney={activateJourney}
-          />
+          stage ? (
+            <StageCanvasFace
+              stage={stage}
+              productId={productId}
+              workspaceId={activeWorkspaceId ?? null}
+              loop={currentLoop}
+              onActivateJourney={activateJourney}
+            />
+          ) : (
+            <RestFace
+              productId={productId}
+              workspaceId={activeWorkspaceId ?? null}
+              productName={activeProduct?.name ?? null}
+              loopStages={loopStages}
+              onActivateJourney={activateJourney}
+              onOpenStage={handleStageSelect}
+            />
+          )
         }
       />
       <ComposerOverlay

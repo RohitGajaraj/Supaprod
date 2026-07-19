@@ -57,7 +57,7 @@ export interface MissionShellViewProps {
   /** The approvals queue length. ONE COUNT ONE SOURCE - never re-derived. */
   queueCount: number;
   onOpenDoor: (door: MissionDoorId) => void;
-  stage: StageId;
+  stage?: StageId;
   onStageSelect: (stage: StageId) => void;
   loopStages: StageLoopState[];
   /** The active journey's slice; stages outside it dim but stay present. */

@@ -41,7 +41,7 @@ function MissionRoom() {
   return (
     <MissionShell
       productId={productId}
-      stage={stage ?? "discover"}
+      stage={stage}
       journey={journey ?? null}
       trayOpen={panel === "approvals"}
       onTrayChange={(open) =>
