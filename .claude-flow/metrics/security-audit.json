@@ -1,66 +1,12 @@
 {
-  "timestamp": "2026-07-19T08:46:04.697Z",
-  "mode": "headless",
-  "workerType": "audit",
-  "model": "haiku",
-  "durationMs": 87856,
-  "executionId": "audit_1784450676841_vq5kb6",
-  "success": true,
-  "findings": {
-    "vulnerabilities": [
-      {
-        "severity": "high",
-        "file": "src/server.test.ts",
-        "line": 1,
-        "description": "Content Security Policy header contains 'unsafe-eval' which violates CSP best practices. This allows inline script execution, defeating CSP protection against XSS attacks. Remove 'unsafe-eval' from production CSP policies."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 112,
-        "description": "Token signature validation performed client-side only (HMAC-SHA256). While documented, client-side validation provides only XSS mitigation, not actual security. Server-side validation is required to prevent token forgery. Comment acknowledges this limitation but it remains a security risk."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
-        "line": 70,
-        "description": "Fallback to plaintext storage when WebCrypto is unavailable. Modern browsers support WebCrypto, but the fallback `createPlaintextStorage()` silently downgrades to unencrypted storage of sensitive session data, potentially exposing credentials in localStorage."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 56,
-        "description": "Cryptographic random ID generation has error-throwing behavior only as last resort. If both crypto.randomUUID() and crypto.getRandomValues() fail, it throws an error, but fallback logic could mask transient crypto failures. Consider explicit fallback policy."
-      },
-      {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 120,
-        "description": "Token format validation regex `/^[a-f0-9-]{36,}$/` is very permissive. Allows any hex + dash combination with 36+ chars. While adequate for UUIDs, consider stricter validation for production use."
-      },
-      {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 86,
-        "description": "Double-init guard checks `window.__IMPECCABLE_LIVE_INIT__` but returns silently without logging. Makes troubleshooting difficult and could mask initialization issues in production."
-      }
-    ],
-    "riskScore": 42,
-    "recommendations": [
-      "IMMEDIATE: Remove 'unsafe-eval' from CSP headers in src/server.test.ts and ensure production CSP is strict. CSP should use 'strict-dynamic' with nonces instead.",
-      "Implement server-side token signature validation as a hard requirement. Do not rely on client-side validation alone.",
-      "Replace plaintext storage fallback with explicit error handling. Force HTTPS + WebCrypto or gracefully degrade with user notification instead of silent downgrade.",
-      "Add structured logging for cryptographic failures and init guard hits to improve observability and debugging.",
-      "Implement stricter token format validation; consider UUID v4 validation or a custom format whitelist.",
-      "Review and audit the Supabase auth middleware (src/integrations/supabase/auth-middleware.ts) for proper JWT validation, expiration handling, and CORS configuration.",
-      "Scan dependencies for known vulnerabilities: Run `npm audit` or `bun audit` and address any high/critical findings.",
-      "Ensure all API routes (src/routes/api/*) use proper authentication middleware and validate all user inputs.",
-      "Add HTTP Strict-Transport-Security (HSTS) and X-Content-Type-Options headers to server responses.",
-      "Review encryption key derivation in live-browser-crypto.js; consider using a server-provided salt instead of user-derived salt for better security.",
-      "Enable database RLS (Row-Level Security) for all tables and audit permission grants regularly.",
-      "Implement rate limiting on authentication endpoints to prevent brute-force attacks."
-    ]
+  "timestamp": "2026-07-19T10:03:38.336Z",
+  "mode": "local",
+  "checks": {
+    "envFilesProtected": true,
+    "gitIgnoreExists": true,
+    "noHardcodedSecrets": true
   },
-  "rawOutputPreview": "Based on my analysis of the provided codebase, here's the security audit report:\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"high\",\n      \"file\": \"src/server.test.ts\",\n      \"line\": 1,\n      \"description\": \"Content Security Policy header contains 'unsafe-eval' which violates CSP best practices. This allows inline script execution, defeating CSP protection against XSS attacks. Remove 'unsafe-eval' from production CSP policies.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 112,\n      \"description\": \"Token signature validation performed client-side only (HMAC-SHA256). While documented, client-side validation provides only XSS mitigation, not actual security. Server-side validation is required to prevent token forgery. Comment acknowledges this limitation but it remains a security risk.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-crypto.js\",\n      \"line\": 70,\n      \"description\": \"Fallback to plaintext storage when WebCrypto is unavailable. Modern browsers support WebCrypto, but the fallback `createPlaintextStorage()` silently downgrades to unencrypted storage of sensitive session data, potentially exposing credentials in localStorage.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 56,\n      \"description\": \"Cryptographic random ID generation has error-throwing behavior only as last resort. If both crypto.randomUUID() and crypto.getRandomValues() fail, it throws an error, but fallback logic could mask transient crypto failures. Consider explicit fallback policy.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 120,\n      \"description\": \"Token format validation regex `/^[a-f0-9-]{36,}$/` is very permissive. Allows any hex + dash combination with 36+ chars. While adequate for UUI",
-  "rawOutputLength": 4876
+  "riskLevel": "low",
+  "recommendations": [],
+  "note": "Install Claude Code CLI for AI-powered security analysis"
 }

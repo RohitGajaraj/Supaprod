@@ -58,7 +58,8 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             // BLD-GATE-SYNC batch helpers: fetch all runs + pending gates once per pass,
             // then classify in memory via Maps. Perf fix: avoids ~200 sequential queries.
             const buildGateMaps = async (missionIds: string[]) => {
-              if (!missionIds.length) return { runsByMission: new Map(), pendingByMission: new Map() };
+              if (!missionIds.length)
+                return { runsByMission: new Map(), pendingByMission: new Map() };
               const { data: allRuns } = await admin
                 .from("agent_runs")
                 .select("mission_id,status")

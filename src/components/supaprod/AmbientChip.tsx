@@ -172,9 +172,7 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
       ({ coords }) =>
         settle(() => {
           clearTimeout(timer);
-          loadFromBrowserPosition(coords)
-            .then(applyPayload)
-            .catch(fallback);
+          loadFromBrowserPosition(coords).then(applyPayload).catch(fallback);
         }),
       () =>
         settle(() => {

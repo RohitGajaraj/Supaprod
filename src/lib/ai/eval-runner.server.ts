@@ -142,7 +142,7 @@ export async function runEvalSuite(
     totalLatency = 0;
 
   // Batch-insert all results after the loop to eliminate N sequential inserts
-  type ResultRow = Parameters<typeof supabase.from<"eval_case_results">["insert"]>[0];
+  type ResultRow = Parameters<(typeof supabase.from<"eval_case_results">)["insert"]>[0];
   const resultRows: ResultRow[] = [];
 
   for (const c of cases) {

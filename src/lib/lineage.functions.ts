@@ -366,7 +366,9 @@ Each title must be a concrete verb-led action under 80 chars. Order by build seq
       }));
       const { error: lineageErr } = await supabase
         .from("artifact_lineage")
-        .upsert(lineageEdges, { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" });
+        .upsert(lineageEdges, {
+          onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+        });
       if (lineageErr) {
         console.error("promotePrdToTasks: batch lineage upsert failed:", lineageErr.message);
       }

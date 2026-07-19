@@ -463,6 +463,17 @@ async function byokAllowedForCall(
  * stays on Supaprod's own managed models (pricing-architecture §5's "approved-model
  * lists" default). The byoOverride test path and the platform's own key are unaffected.
  */
+/**
+ * In-call cache for provider key resolution. Populated on first call for a
+ * (userId, workspaceId, surface) tuple and reused for subsequent calls (e.g.,
+ * during retries or fallback chain traversal). Prevents re-deriving BYOK
+ * eligibility and reloading keys from the vault multiple times per callModel.
+ */
+type KeyResolutionCache = {
+  byokEligible?: boolean;
+  keysByProvider?: Map<string, { apiKey: string; baseUrl: string | null; source: "vault" | "platform" }>;
+};
+
 async function resolveCallKey(
   supabase: SupabaseClient,
   userId: string,
@@ -470,6 +481,7 @@ async function resolveCallKey(
   byoOverride?: { provider: string; apiKey: string; baseUrl?: string },
   workspaceId?: string | null,
   surface?: CallSurface,
+  cache?: KeyResolutionCache,
 ): Promise<{
   apiKey: string;
   baseUrl: string | null;
@@ -478,14 +490,42 @@ async function resolveCallKey(
   if (byoOverride) {
     return { apiKey: byoOverride.apiKey, baseUrl: byoOverride.baseUrl ?? null, source: "override" };
   }
-  const vaultEligible = !surface || !isMoatSurfaceLockedToManaged(surface);
-  if (vaultEligible && (await byokAllowedForCall(supabase, userId, workspaceId))) {
+
+  // Check cache for already-resolved keys for this provider
+  if (cache?.keysByProvider?.has(provider)) {
+    const cached = cache.keysByProvider.get(provider)!;
+    return { ...cached };
+  }
+
+  // Determine BYOK eligibility once per call (cached) instead of per provider
+  let byokEligible = cache?.byokEligible;
+  if (byokEligible === undefined) {
+    byokEligible = !surface || !isMoatSurfaceLockedToManaged(surface);
+    if (cache) cache.byokEligible = byokEligible;
+  }
+
+  if (byokEligible && (await byokAllowedForCall(supabase, userId, workspaceId))) {
     const { loadBYOKey } = await import("@/lib/byokeys-vault.server");
     const vault = await loadBYOKey(supabase, userId, provider);
-    if (vault?.api_key) return { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" };
+    if (vault?.api_key) {
+      const result = { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" as const };
+      if (cache) {
+        if (!cache.keysByProvider) cache.keysByProvider = new Map();
+        cache.keysByProvider.set(provider, result);
+      }
+      return { apiKey: result.apiKey, baseUrl: result.baseUrl, source: result.source };
+    }
   }
+
   const plat = resolvePlatformProviderKey(provider);
-  if (plat) return { apiKey: plat.apiKey, baseUrl: plat.baseUrl, source: "platform" };
+  if (plat) {
+    const result = { apiKey: plat.apiKey, baseUrl: plat.baseUrl, source: "platform" as const };
+    if (cache) {
+      if (!cache.keysByProvider) cache.keysByProvider = new Map();
+      cache.keysByProvider.set(provider, result);
+    }
+    return result;
+  }
   return null;
 }
 
@@ -1621,6 +1661,11 @@ export async function callModel(
     }
   }
 
+  // Cache for key resolution across retry attempts and fallback chain traversal.
+  // This avoids re-deriving BYOK eligibility and reloading vault keys if the same
+  // provider appears in retries or multiple fallback models use the same provider.
+  const keyResolutionCache: KeyResolutionCache = {};
+
   const attempt = async (model: string) => {
     const { provider: prov } = splitModelId(model);
     const keyInfo = await resolveCallKey(
@@ -1630,6 +1675,7 @@ export async function callModel(
       opts.byoOverride,
       opts.workspaceId,
       opts.surface,
+      keyResolutionCache,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
@@ -2112,6 +2158,11 @@ export async function callModelStream(
   let fallback = false;
   let modelUsed = effectiveModel;
 
+  // Cache for key resolution across retry attempts and fallback chain traversal.
+  // This avoids re-deriving BYOK eligibility and reloading vault keys if the same
+  // provider appears in multiple fallback models.
+  const keyResolutionCacheStream: KeyResolutionCache = {};
+
   const attemptStream = async (model: string): Promise<Response> => {
     const { provider: prov } = splitModelId(model);
     const keyInfo = await resolveCallKey(
@@ -2121,6 +2172,7 @@ export async function callModelStream(
       opts.byoOverride,
       opts.workspaceId,
       opts.surface,
+      keyResolutionCacheStream,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });

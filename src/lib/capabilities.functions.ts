@@ -178,6 +178,114 @@ export const getCapabilities = createServerFn({ method: "GET" })
       }
     }
 
+    // Batch-load per-agent data (skills, tool modes, graduation history, capability
+    // history) using .in() queries to eliminate 4×N sequential queries (N = cast size).
+    // Each query filters by agent_slug; we batch all slugs in one query per type.
+    const agentSlugs = activeCast.map((a) => a.slug);
+
+    // Load disabled skills for all agents at once
+    const disabledSkillsByAgent = new Map<string, Set<string>>();
+    if (workspaceId) {
+      try {
+        const { data: disabledRows } = await supabase
+          .from("agent_disabled_skills")
+          .select("agent_slug,playbook_id")
+          .eq("workspace_id", workspaceId)
+          .in("agent_slug", agentSlugs);
+        for (const row of disabledRows ?? []) {
+          const key = (row as any).agent_slug;
+          if (!disabledSkillsByAgent.has(key)) {
+            disabledSkillsByAgent.set(key, new Set());
+          }
+          disabledSkillsByAgent.get(key)!.add((row as any).playbook_id);
+        }
+      } catch (e) {
+        console.warn("capabilities: batch load disabled skills failed:", e);
+      }
+    }
+
+    // Load tool modes for all agents at once
+    const toolModesByAgent = new Map<string, ToolModeInfo[]>();
+    try {
+      const { data: toolRows } = await supabase
+        .from("agent_tool_modes")
+        .select("agent_slug,tool_name,mode,source")
+        .eq("user_id", userId)
+        .in("agent_slug", agentSlugs);
+      for (const row of toolRows ?? []) {
+        const key = (row as any).agent_slug;
+        if (!toolModesByAgent.has(key)) {
+          toolModesByAgent.set(key, []);
+        }
+        toolModesByAgent.get(key)!.push({
+          toolName: (row as any).tool_name,
+          mode: (row as any).mode,
+          source: (row as any).source,
+        });
+      }
+    } catch (e) {
+      console.warn("capabilities: batch load tool modes failed:", e);
+    }
+
+    // Load graduation history for all agents at once
+    const graduationHistoryByAgent = new Map<string, GraduationHistoryEntry[]>();
+    try {
+      const { data: gradRows } = await supabase
+        .from("trust_graduation_proposals")
+        .select("agent_slug,id,tool_name,from_mode,to_mode,status,decided_at,rationale")
+        .eq("user_id", userId)
+        .in("agent_slug", agentSlugs)
+        .in("status", ["approved", "rejected"])
+        .order("decided_at", { ascending: false })
+        .limit(10);
+      for (const row of gradRows ?? []) {
+        const key = (row as any).agent_slug;
+        if (!graduationHistoryByAgent.has(key)) {
+          graduationHistoryByAgent.set(key, []);
+        }
+        graduationHistoryByAgent.get(key)!.push({
+          id: (row as any).id,
+          toolName: (row as any).tool_name,
+          fromMode: (row as any).from_mode,
+          toMode: (row as any).to_mode,
+          status: (row as any).status,
+          decidedAt: (row as any).decided_at,
+          rationale: (row as any).rationale,
+        });
+      }
+    } catch (e) {
+      console.warn("capabilities: batch load graduation history failed:", e);
+    }
+
+    // Load capability history for all agents at once
+    const capabilityHistoryByAgent = new Map<string, CapabilityChange[]>();
+    if (workspaceId) {
+      try {
+        const { data: capRows } = await supabase
+          .from("capability_changes")
+          .select("agent_slug,id,change_type,description,created_at,user_id")
+          .eq("workspace_id", workspaceId)
+          .in("agent_slug", agentSlugs)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        for (const row of capRows ?? []) {
+          const key = (row as any).agent_slug;
+          if (!capabilityHistoryByAgent.has(key)) {
+            capabilityHistoryByAgent.set(key, []);
+          }
+          capabilityHistoryByAgent.get(key)!.push({
+            id: (row as any).id,
+            changeType: (row as any).change_type,
+            description: (row as any).description,
+            createdAt: (row as any).created_at,
+            userId: (row as any).user_id,
+          });
+        }
+      } catch (e) {
+        console.warn("capabilities: batch load capability history failed:", e);
+      }
+    }
+
     // Parallelize capability building across all cast members, capping concurrent
     // Supabase connections to prevent connection pool exhaustion (same pattern used
     // in notifications.functions.ts and orchestrator.functions.ts).
@@ -195,6 +303,10 @@ export const getCapabilities = createServerFn({ method: "GET" })
             briefBlock,
             briefItemsBlock,
             allHouseRules,
+            disabledSkillsByAgent,
+            toolModesByAgent,
+            graduationHistoryByAgent,
+            capabilityHistoryByAgent,
           ),
         ),
       ),
@@ -213,6 +325,10 @@ async function buildCapabilityForAgent(
   briefBlock: string = "",
   briefItemsBlock: string = "",
   allHouseRules: HouseRule[] = [],
+  disabledSkillsByAgent?: Map<string, Set<string>>,
+  toolModesByAgent?: Map<string, ToolModeInfo[]>,
+  graduationHistoryByAgent?: Map<string, GraduationHistoryEntry[]>,
+  capabilityHistoryByAgent?: Map<string, CapabilityChange[]>,
 ): Promise<AgentCapability> {
   // Load the agent's own live row, scoped by (user_id, slug) -- the exact
   // scoping the real runtime chokepoint uses (loop.server.ts), since a slug
@@ -246,14 +362,21 @@ async function buildCapabilityForAgent(
   instructionsPreview += renderHouseRulesBlock(agentRules);
 
   // Skills: playbooks bound to this agent's station, with win-rates and
-  // this agent's own enable/disable state.
-  const skills = await getStationSkills(supabase, workspaceId, agent.slug, agent.station);
+  // this agent's own enable/disable state. If pre-loaded batch data is available,
+  // use it; otherwise fall back to individual query (for backward compatibility).
+  let skills: SkillInfo[];
+  if (disabledSkillsByAgent) {
+    const disabled = disabledSkillsByAgent.get(agent.slug) ?? new Set();
+    skills = await getStationSkillsWithDisabled(supabase, workspaceId, agent.slug, agent.station, disabled);
+  } else {
+    skills = await getStationSkills(supabase, workspaceId, agent.slug, agent.station);
+  }
 
   // Autonomy: the trust-ramp arc/score (computed once for all agents, above)
   // plus this agent's graduated tool modes and decided graduation history.
   const trust = agentId ? trustByAgentId.get(agentId) : undefined;
-  const toolModes = await getGraduatedToolModes(supabase, userId, agent.slug);
-  const graduationHistory = await getGraduationHistory(supabase, userId, agent.slug);
+  const toolModes = toolModesByAgent?.get(agent.slug) ?? await getGraduatedToolModes(supabase, userId, agent.slug);
+  const graduationHistory = graduationHistoryByAgent?.get(agent.slug) ?? await getGraduationHistory(supabase, userId, agent.slug);
   const autonomy: AutonomyInfo = {
     station: agent.station,
     tier: agent.tier,
@@ -267,7 +390,7 @@ async function buildCapabilityForAgent(
 
   // History: capability changes recorded via human edits and RPT-50 self-tuned fixes.
   // PC-18 distillation is deferred (G-LEARN gate not earned) per the dashboard's own ruling.
-  const history = await getCapabilityHistory(supabase, workspaceId, agent.slug);
+  const history = capabilityHistoryByAgent?.get(agent.slug) ?? await getCapabilityHistory(supabase, workspaceId, agent.slug);
 
   return {
     slug: agent.slug,
@@ -347,6 +470,41 @@ export async function getStationSkills(
   }
 
   const disabledIds = await getDisabledSkillIds(supabase, workspaceId, agentSlug);
+
+  return buildSkillInfos(bound, byPlaybook, disabledIds);
+}
+
+/**
+ * Variant of getStationSkills that uses a pre-loaded disabled set (from batch query).
+ * Avoids an extra query when disabled skills have already been batch-loaded for all agents.
+ */
+async function getStationSkillsWithDisabled(
+  supabase: SupabaseClient,
+  workspaceId: string | null,
+  agentSlug: string,
+  station: AgentStation,
+  disabledIds: Set<string>,
+): Promise<SkillInfo[]> {
+  const playbookStation = AGENT_TO_PLAYBOOK_STATION[station];
+  if (!playbookStation) return []; // build/ship/design/learn: no PM method bound.
+
+  const bound = selectPlaybooksForStation(playbookStation);
+  if (bound.length === 0 || !workspaceId) return [];
+
+  const byPlaybook = new Map<string, { wins: number; total: number }>();
+  const { data: runs } = await supabase
+    .from("playbook_runs")
+    .select("playbook_id, verdict")
+    .eq("workspace_id", workspaceId)
+    .eq("station", playbookStation);
+  for (const run of runs ?? []) {
+    const current = byPlaybook.get(run.playbook_id) ?? { wins: 0, total: 0 };
+    current.total += 1;
+    if (run.verdict === "won" || run.verdict === "validated") {
+      current.wins += 1;
+    }
+    byPlaybook.set(run.playbook_id, current);
+  }
 
   return buildSkillInfos(bound, byPlaybook, disabledIds);
 }

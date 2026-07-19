@@ -16,7 +16,7 @@ import {
   Link2,
   Plus,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import {
   listCalendarEvents,
@@ -315,49 +315,59 @@ export function CalendarPanel({
 
   const list = (events.data?.events ?? []) as unknown as EventRow[];
 
-  const meetingItems: DayItem[] = (meetings.data?.meetings ?? []).map((m) => ({
-    kind: "meeting" as const,
-    id: m.id,
-    title: m.title,
-    start_at: m.start_at,
-    allDay: false,
-    processed: !!m.processed_at,
-    summary: (m.summary as string | null) ?? null,
-    stakeholder: m.stakeholder ?? null,
-  }));
-  const eventItems: DayItem[] = list.map((e) => ({
-    kind: "event" as const,
-    id: e.id,
-    title: e.title,
-    start_at: e.start_at,
-    allDay: e.all_day,
-    event: e,
-  }));
-  const allItems = [...meetingItems, ...eventItems];
+  // Memoize item aggregation and filtering to avoid expensive filter/sort/groupBy
+  // chains on every render. The component re-renders at data-sync frequency; without
+  // memo, allItems/feed/pastCount/buckets recompute even when data hasn't changed.
+  const { allItems, feed, pastCount, buckets } = useMemo(() => {
+    const meetingItems: DayItem[] = (meetings.data?.meetings ?? []).map((m) => ({
+      kind: "meeting" as const,
+      id: m.id,
+      title: m.title,
+      start_at: m.start_at,
+      allDay: false,
+      processed: !!m.processed_at,
+      summary: (m.summary as string | null) ?? null,
+      stakeholder: m.stakeholder ?? null,
+    }));
+    const eventItems: DayItem[] = list.map((e) => ({
+      kind: "event" as const,
+      id: e.id,
+      title: e.title,
+      start_at: e.start_at,
+      allDay: e.all_day,
+      event: e,
+    }));
+    const all = [...meetingItems, ...eventItems];
 
-  // List view scope: the next 14 days (the synced window).
-  const _now = Date.now();
-  const _end = _now + 14 * 24 * 60 * 60 * 1000;
-  const feed = allItems
-    .filter((it) => {
-      const t = new Date(it.start_at).getTime();
-      return t >= _now - 12 * 60 * 60 * 1000 && t <= _end;
-    })
-    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
+    // List view scope: the next 14 days (the synced window).
+    // Use a stable window boundary based on when this memo runs, not re-computed
+    // on every render. This means during a single component lifetime, the window
+    // is pinned; it will shift only on data changes (meetings/events refetch).
+    const _now = Date.now();
+    const _end = _now + 14 * 24 * 60 * 60 * 1000;
+    const feedItems = all
+      .filter((it) => {
+        const t = new Date(it.start_at).getTime();
+        return t >= _now - 12 * 60 * 60 * 1000 && t <= _end;
+      })
+      .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
-  // Everything loaded that sits before the list window: the strip above
-  // counts every meeting ever logged, so the empty list names where the
-  // rest live instead of claiming an empty calendar.
-  const pastCount = allItems.filter(
-    (it) => new Date(it.start_at).getTime() < _now - 12 * 60 * 60 * 1000,
-  ).length;
+    // Everything loaded that sits before the list window: the strip above
+    // counts every meeting ever logged, so the empty list names where the
+    // rest live instead of claiming an empty calendar.
+    const past = all.filter(
+      (it) => new Date(it.start_at).getTime() < _now - 12 * 60 * 60 * 1000,
+    ).length;
 
-  // Month/year occupancy buckets from everything loaded (events + meetings).
-  const buckets: Record<string, DayItem[]> = {};
-  for (const it of allItems) {
-    const k = new Date(it.start_at).toDateString();
-    (buckets[k] = buckets[k] ?? []).push(it);
-  }
+    // Month/year occupancy buckets from everything loaded (events + meetings).
+    const buck: Record<string, DayItem[]> = {};
+    for (const it of all) {
+      const k = new Date(it.start_at).toDateString();
+      (buck[k] = buck[k] ?? []).push(it);
+    }
+
+    return { allItems: all, feed: feedItems, pastCount: past, buckets: buck };
+  }, [meetings.data?.meetings, list]);
 
   function openItem(it: DayItem) {
     if (it.kind === "meeting") onMeetingChange(it.id);
@@ -650,7 +660,13 @@ export function CalendarPanel({
       ) : loadError ? (
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 8 }}>calendar · failed to load</MonoLabel>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: "var(--text-label-13)",
+              color: "var(--ink-muted)",
+              marginBottom: 12,
+            }}
+          >
             {loadError.message}
           </p>
           <button
@@ -760,7 +776,13 @@ export function CalendarPanel({
                     {whenLabel(it.start_at, it.allDay)}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontWeight: 500, fontSize: "var(--text-label-14)" }}>
+                    <span
+                      style={{
+                        display: "block",
+                        fontWeight: 500,
+                        fontSize: "var(--text-label-14)",
+                      }}
+                    >
                       {it.title}
                     </span>
                     {it.kind === "meeting" ? (
@@ -838,7 +860,13 @@ export function CalendarPanel({
                     >
                       capture · extracted by Historian
                     </div>
-                    <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", lineHeight: 1.6 }}>
+                    <p
+                      style={{
+                        fontSize: "var(--text-label-13)",
+                        color: "var(--ink-muted)",
+                        lineHeight: 1.6,
+                      }}
+                    >
                       {it.summary}
                     </p>
                     <button
@@ -1595,7 +1623,13 @@ function ConnectButton({
           calendar accounts
         </div>
         {connections.length === 0 ? (
-          <p style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", marginBottom: 8 }}>
+          <p
+            style={{
+              fontSize: "var(--text-label-12)",
+              color: "var(--ink-subtle)",
+              marginBottom: 8,
+            }}
+          >
             Connect once and your events flow into Supaprod. You can change this anytime.
           </p>
         ) : null}
