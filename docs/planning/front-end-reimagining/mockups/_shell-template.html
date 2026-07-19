@@ -45,10 +45,17 @@
    comment line. Never modify this block.
    Voice grammar: ember = the human's move (one locus per screen),
    machine blue = agents at work (one full-hue locus, dim/faint for
-   ambience), memory gold = the Brain speaking, nowhere else.
+   ambience), memory = the Brain speaking, nowhere else.
    The one ember locus is the gate OBJECT: its spine node, thread
    card, tray card, and face state chip are the same object with one
    count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
    ================================================================== */
 
 /* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
@@ -260,6 +267,23 @@ ol {
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
   letter-spacing: 0;
 }
 
@@ -746,6 +770,7 @@ ol {
   display: flex;
   gap: var(--sp-2);
   margin-top: 8px;
+  overflow: hidden;
 }
 .sp-lane {
   display: inline-flex;
@@ -759,6 +784,8 @@ ol {
   font-size: 10px;
   color: var(--ink-faint);
   cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
 }
 .sp-lane.is-focused {
   border-color: var(--ink-hairline);
@@ -961,13 +988,15 @@ ol {
   border: 1px solid var(--voice-human-border);
   white-space: nowrap;
 }
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
 .sp-gate-card {
-  background:
-    linear-gradient(180deg, var(--voice-human-faint), transparent 70%),
-    var(--ink-panel);
-  border: 1px solid var(--voice-human-border);
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
   border-radius: var(--ink-radius-panel);
-  padding: 12px;
+  padding: 12px 14px;
 }
 /* Gate verbs compress slightly so all three sit on one row at 380px. */
 .sp-gate-actions .sp-btn {
@@ -1121,6 +1150,54 @@ ol {
   display: inline-flex;
 }
 
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
 /* ---- 14. The Thread ------------------------------------------------ */
 
 .sp-thread {
@@ -1171,11 +1248,21 @@ ol {
   border: 1px solid var(--ink-hairline-soft);
   color: var(--ink-text);
 }
-/* Memory-citing row: the gold left-edge tick plus faint wash. */
-.sp-thread-item.is-memory,
-.sp-memory-tick {
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
   background: var(--voice-memory-faint);
-  box-shadow: inset 2px 0 0 var(--voice-memory-dim);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
 }
 .sp-thread-meta {
   display: flex;
@@ -1248,19 +1335,24 @@ ol {
   gap: 7px;
   margin-top: 6px;
 }
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
 .sp-doc-list li {
-  display: flex;
-  gap: 10px;
+  position: relative;
+  display: block;
+  padding-left: 28px;
   font-size: 13px;
   line-height: 1.55;
   color: var(--ink-body);
 }
 .sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-faint);
-  flex: none;
-  padding-top: 2px;
 }
 .sp-doc-block {
   background: var(--ink-raised);
@@ -1605,7 +1697,7 @@ ol {
            REGION 3: Thread. The conversation, the daily briefing,
            receipts, and gate cards, capped and chronological.
            SCREENS VARY HERE: the items. Item types shown here:
-           day divider, briefing (memory-citing, gold tick), human
+           day divider, briefing (memory-citing, memory chip), human
            message, machine receipt, gate card (rendering 2 of 3),
            live pulse line (ambient dim tier).
            ---------------------------------------------------------- -->
@@ -1614,10 +1706,12 @@ ol {
 
           <div class="sp-day-divider">Sunday, July 19</div>
 
-          <!-- Briefing cites memory, so it carries the gold tick -->
-          <div class="sp-briefing-card sp-memory-tick">
+          <!-- Briefing cites memory: the memory chip carries it in the
+               chip row; the card surface stays plain (Addendum 1.1) -->
+          <div class="sp-briefing-card">
             <div class="sp-thread-meta">
               <span class="sp-agent-chip">Chief of Staff</span>
+              <span class="sp-memory-chip">Memory</span>
               <span class="sp-thread-time">8:30am</span>
             </div>
             <div style="font-size:12.5px;line-height:1.6;color:var(--ink-body)">
@@ -1658,6 +1752,10 @@ ol {
                Copy contract: what waits, why it is your call, what
                approving sets in motion. -->
           <div class="sp-gate-card">
+            <div class="sp-card-chiprow">
+              <span class="sp-gate-chip">Your move</span>
+              <span class="sp-card-time">10:26am</span>
+            </div>
             <div class="sp-gate-headline">The spec is ready for you.</div>
             <div class="sp-gate-reco">
               Draft recommends approving. Grounded in <span class="sp-mono" style="color:var(--ink-text)">214</span> support tickets and the May macros decision.
@@ -1812,6 +1910,10 @@ ol {
     </div>
     <div class="sp-tray-body">
       <div class="sp-gate-card">
+        <div class="sp-card-chiprow">
+          <span class="sp-gate-chip">Your move</span>
+          <span class="sp-card-time">10:26am</span>
+        </div>
         <div class="sp-gate-headline">The spec is ready for you.</div>
         <div class="sp-gate-reco">Approve it and Engineer starts the build. Design is off for this journey.</div>
         <div class="sp-gate-actions">

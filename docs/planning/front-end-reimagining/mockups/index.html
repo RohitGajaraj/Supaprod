@@ -26,10 +26,17 @@
    comment line. Never modify this block.
    Voice grammar: ember = the human's move (one locus per screen),
    machine blue = agents at work (one full-hue locus, dim/faint for
-   ambience), memory gold = the Brain speaking, nowhere else.
+   ambience), memory = the Brain speaking, nowhere else.
    The one ember locus is the gate OBJECT: its spine node, thread
    card, tray card, and face state chip are the same object with one
    count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
    ================================================================== */
 
 /* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
@@ -241,6 +248,23 @@ ol {
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
   letter-spacing: 0;
 }
 
@@ -727,6 +751,7 @@ ol {
   display: flex;
   gap: var(--sp-2);
   margin-top: 8px;
+  overflow: hidden;
 }
 .sp-lane {
   display: inline-flex;
@@ -740,6 +765,8 @@ ol {
   font-size: 10px;
   color: var(--ink-faint);
   cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
 }
 .sp-lane.is-focused {
   border-color: var(--ink-hairline);
@@ -942,13 +969,15 @@ ol {
   border: 1px solid var(--voice-human-border);
   white-space: nowrap;
 }
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
 .sp-gate-card {
-  background:
-    linear-gradient(180deg, var(--voice-human-faint), transparent 70%),
-    var(--ink-panel);
-  border: 1px solid var(--voice-human-border);
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
   border-radius: var(--ink-radius-panel);
-  padding: 12px;
+  padding: 12px 14px;
 }
 /* Gate verbs compress slightly so all three sit on one row at 380px. */
 .sp-gate-actions .sp-btn {
@@ -1102,6 +1131,54 @@ ol {
   display: inline-flex;
 }
 
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
 /* ---- 14. The Thread ------------------------------------------------ */
 
 .sp-thread {
@@ -1152,11 +1229,21 @@ ol {
   border: 1px solid var(--ink-hairline-soft);
   color: var(--ink-text);
 }
-/* Memory-citing row: the gold left-edge tick plus faint wash. */
-.sp-thread-item.is-memory,
-.sp-memory-tick {
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
   background: var(--voice-memory-faint);
-  box-shadow: inset 2px 0 0 var(--voice-memory-dim);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
 }
 .sp-thread-meta {
   display: flex;
@@ -1229,19 +1316,24 @@ ol {
   gap: 7px;
   margin-top: 6px;
 }
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
 .sp-doc-list li {
-  display: flex;
-  gap: 10px;
+  position: relative;
+  display: block;
+  padding-left: 28px;
   font-size: 13px;
   line-height: 1.55;
   color: var(--ink-body);
 }
 .sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-faint);
-  flex: none;
-  padding-top: 2px;
 }
 .sp-doc-block {
   background: var(--ink-raised);
@@ -1461,10 +1553,27 @@ ol {
   color: var(--ink-body);
   max-width: 620px;
 }
-.gal-lede a {
+.gal-lede a,
+.gal-sect-lede a,
+.gal-foot a {
   color: var(--ink-text);
   border-bottom: 1px solid var(--ink-hairline);
   text-decoration: none;
+}
+.gal-sect {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ink-hairline);
+}
+.gal-sect .sp-kicker {
+  margin-bottom: 4px;
+}
+.gal-sect-lede {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-subtle);
+  max-width: 620px;
+  margin: 0;
 }
 .gal-list {
   display: flex;
@@ -1550,7 +1659,7 @@ ol {
   <div class="gal-inner">
 
     <header class="gal-head">
-      <div class="sp-kicker">Founder gate 1 &middot; Mission Control mockups &middot; review order 1 to 8</div>
+      <div class="sp-kicker">Founder gate 1 &middot; Mission Control mockups &middot; round 1 in order 1 to 8, then round 2</div>
       <h1 class="sp-pixel gal-title-hero">Eight screens, one room</h1>
       <p class="gal-lede">
         The front-end reimagining, rendered as it would ship: one persistent room per product (Spine, Thread, Canvas, Composer), the gate as the single pull point, and every screen built from the same seven primitives on the same shared foundation. Review in order; each card names the one question that screen exists to answer. Rulings go on the decision sheet: <a href="GATE-1-DECISIONS.md">GATE-1-DECISIONS.md</a>.
@@ -1624,8 +1733,55 @@ ol {
       </a>
     </div>
 
+    <div class="gal-sect">
+      <div class="sp-kicker">Round 2 &middot; founder red-lines &middot; Addendum 1.1</div>
+      <p class="gal-sect-lede">Five exhibits answering the rejections: edge strips, sloppy craft, the muddy soft and faint tiers, and memory gold. Rulings go on the second decision sheet: <a href="GATE-1B-REVIEW.md">GATE-1B-REVIEW.md</a>. The color calls here supersede screen 08's color section.</p>
+      <div class="gal-list">
+        <a class="gal-card" href="card-spec.html">
+          <span class="gal-num">09</span>
+          <span class="gal-body">
+            <span class="gal-title">The card anatomy, corrected</span>
+            <span class="gal-eval"><span class="gal-eval-label">Evaluate</span>Every card in the product on one internal grid: chip row with the mono time right, body, evidence chips, action row. Plain ink surfaces, no edge strips, at real size.</span>
+          </span>
+          <span class="gal-arrow">&#8594;</span>
+        </a>
+        <a class="gal-card" href="color-v2-board.html">
+          <span class="gal-num">10</span>
+          <span class="gal-body">
+            <span class="gal-title">Color system v2: the four picks</span>
+            <span class="gal-eval"><span class="gal-eval-label">Evaluate</span>Four checkboxes on live specimens: ratify the opaque tier retune, pick the memory voice (Vellum, Recall rose, Sage), keep blue or go slate silver, and set the light-mode strategy.</span>
+          </span>
+          <span class="gal-arrow">&#8594;</span>
+        </a>
+        <a class="gal-card" href="starfield-variant.html">
+          <span class="gal-num">11</span>
+          <span class="gal-body">
+            <span class="gal-title">The app-idle starfield, rendered</span>
+            <span class="gal-eval"><span class="gal-eval-label">Evaluate</span>The deferred call on real frames: the same empty workspace with and without the scoped 18-star field, and proof Mission Control mid-loop stays starless either way.</span>
+          </span>
+          <span class="gal-arrow">&#8594;</span>
+        </a>
+        <a class="gal-card" href="screen-9-threads-home.html">
+          <span class="gal-num">12</span>
+          <span class="gal-body">
+            <span class="gal-title">Threads: every conversation lands somewhere</span>
+            <span class="gal-eval"><span class="gal-eval-label">Evaluate</span>Not a fifth door: the history affordance beside Ask (G T), two scopes, search, folders, and promote-to-memory, so no exchange is ever lost to scrollback.</span>
+          </span>
+          <span class="gal-arrow">&#8594;</span>
+        </a>
+        <a class="gal-card" href="landing-when-you-login.html">
+          <span class="gal-num">13</span>
+          <span class="gal-body">
+            <span class="gal-title">Where you land after login</span>
+            <span class="gal-eval"><span class="gal-eval-label">Evaluate</span>One rule, two states: a returning user lands on Mission Control at rest (pill, Briefing, Spine each answer their question); a brand-new account gets the first-run LoopFrame.</span>
+          </span>
+          <span class="gal-arrow">&#8594;</span>
+        </a>
+      </div>
+    </div>
+
     <footer class="gal-foot">
-      All eight files carry the byte-identical shared stylesheet, the Helio Labs content world (Relay, Comet, Atlas, Beacon), and the three-voice color law: ember is the human's move, machine blue is the agents at work, gold is memory speaking. Consistency swept <span class="sp-mono">2026-07-19</span>. Gate 1 approval means app code starts.
+      All files carry the byte-identical shared stylesheet, the Helio Labs content world (Relay, Comet, Atlas, Beacon), and the three-voice color law: ember is the human's move, machine blue is the agents at work, memory speaks through its own chip. Cards are plain ink surfaces on one internal grid; edge strips are banned (Addendum 1.1). Consistency swept <span class="sp-mono">2026-07-19</span>, round 2 exhibits included. Gate 1 approval means app code starts; round 2 rulings land on <a href="GATE-1B-REVIEW.md">GATE-1B-REVIEW.md</a>.
     </footer>
 
   </div>

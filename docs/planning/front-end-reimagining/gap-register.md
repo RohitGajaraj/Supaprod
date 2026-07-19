@@ -157,6 +157,30 @@
 
 ---
 
+## K. Threads and artifacts homes (9 entries; Round 2, Addendum 1.1 items 5 and 6)
+
+> Source key addition: TA = research/threads-and-artifacts.md (2026-07-19 late). These entries carry the two founder red-line requirements: every conversation lands somewhere revisitable (Threads), and generated resources get a named home (the Library).
+
+**K1. No folders/grouping schema on conversations** (TA). `conversations` carries only `project_id`; no folder table, no `folder_id`, no tags, so the red-line's "grouping/folders" has nothing to stand on. **ADD**: one migration, `conversation_folders` (id, workspace_id, name, position) plus `folder_id` on conversations, RLS-scoped like the parent table. The Threads rail renders system views above user folders so an empty folder list costs nothing.
+
+**K2. No conversation search** (TA). `listConversations` is a bare limit-50 list; no title or content search exists and messages have no FTS index. **ADD**: a messages FTS index plus one `searchConversations` server function (title + message content), consumed by the Threads search box. Search is named in the red-line; it cannot defer.
+
+**K3. No pin or archive on conversations** (TA). Docs have `archived`; conversations do not, so the list can only grow. **CLUB** into K1's migration: `pinned_at` and `archived_at` columns ride the same SQL file, and the Threads list reads them; no separate build item.
+
+**K4. No unified thread listing or scope filter** (TA). The list is user-scoped RLS only; a per-product view needs `project_id` filtering plus a workspace-scope variant, and mission threads (agent runs) are not listable alongside ask conversations. **ADD**: a `threads` view keyed by kind (ask conversation | mission thread) with product and workspace scope parameters; the two-scope rail (This product / All of the workspace) reads one function.
+
+**K5. No source back-link on memory candidates** (TA). `memory_candidates` has no `source_ref`, so an approved memory cannot cite the thread it came from and promote-to-memory loses its provenance. **ADD**: a `source_ref` (conversation/message id) column written by `proposeMemoryCandidate`; the Brain renders the back-link chip wherever it exists.
+
+**K6. No unified artifact index** (TA). Prototypes, docs, specs, launch kits, and reports each live in their own table; the Library has nothing to list. **ADD**: a registry view or union query (id, kind, name, product, updated_at, share state, lineage refs) as the Library's one read function; per-family tables stay untouched.
+
+**K7. No version history on any artifact family** (TA). `publishPrototypeFromPrd` inserts a new row per publish (duplicates rather than versions); docs carry only `updated_at`; no restore, no named stable points. The revisit bar is Lovable Versioning 2.0. **ADD, scoped**: one `artifact_versions` spine (artifact kind + id, version number, snapshot ref, label, created_by) with capture wired on publish/apply paths in the sprint; the restore UI surfaces as a ReceiptLine with Revert behind a dry confirm (spec 6.4) and lands with the Library face.
+
+**K8. Share is prototypes-only** (TA). Docs, specs, launch kits, and reports have no share slug or public toggle; only prototypes have the `/p/$slug` viewer. **DEFER**: the Library links existing prototype shares on day one; extending the slug + private-by-default toggle + viewer pattern to the other families revives on the first non-prototype share ask or when the GTM lane needs shareable launch kits. The mechanism is proven, so the extension is mechanical when pulled.
+
+**K9. No rename or delete on prototypes** (TA). The name is set once from the PRD title and no server functions expose rename/delete, which fails Library table stakes. **ADD**: `renamePrototype` and `deletePrototype` (soft-delete honoring share slugs) beside the existing publish function; the Library kebab consumes them.
+
+---
+
 ## Tally
 
 | Verdict | Count |
@@ -166,5 +190,7 @@
 | DEFER (conscious, with revive trigger) | 17 (C3, C4, C5, D2, E2, E4, E5, F6, G2, G3, G5-G9, I3, I4) |
 
 \* G1 counts under ADD (sprint work even though mostly relocation); G10 and H1 are split entries counted once each under CLUB, with their deferred halves noted inline. 55 entries total.
+
+**Round 2 addendum (2026-07-19 late, section K):** 13 raw GAP lines from TA resolved into 9 entries: ADD 7 (K1, K2, K4-K7, K9), CLUB 1 (K3, into K1's migration), DEFER 1 (K8). Register total: **64 entries**.
 
 The register is closed: every raw GAP line from the research maps to exactly one entry above. New gaps found during the build join this file with a verdict in the same commit.

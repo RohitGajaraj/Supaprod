@@ -1,45 +1,36 @@
 <!--
-  SCREEN: screen-8-decision-board.html : the founder decision board
+  STARFIELD VARIANT EXHIBIT : starfield-variant.html
 
-  NOT an app screen: a review document page on the shared tokens. It
-  gathers every open visual decision from the design-language spec into
-  one page so the founder can rule on each with a checkbox.
+  PURPOSE: the founder deferred the A1 starfield call (Addendum 1.1,
+  red-line 9) until he could SEE a rendered, subtle app-idle variant on
+  real frames. This page renders the three frames that decide it:
 
-  WHAT THE FOUNDER SHOULD EVALUATE
-  A. Starfield in the app: the room header rendered WITH and WITHOUT
-     the app-idle variant, side by side, with the spec's verdict.
-  B. The color system: the three voice ramps as swatch rows, where
-     each tier is used, the verdict layer, and the four bans.
-  C. The approval choreography: the four beats of the signature
-     moment, storyboarded, plus the optional star-drift beat as an
-     explicit yes/no.
-  D. The sanctioned retirements: weather widget, focus dock, liquid
-     glass, standalone Ask panel, each with a one-line recommendation
-     and a keep-or-retire call (the charter's no-silent-scope-cuts
-     invariant, re-confirmed here at the mockup gate).
+  FRAME 1: Helio Labs workspace, Relay selected, no missions yet,
+           WITHOUT stars (the plain-ink baseline).
+  FRAME 2: the identical frame WITH the scoped app-idle variant:
+           18 stars (half the landing's 36-star far layer), far layer
+           only, no near layer, no grid change, CSS-only breathe and a
+           barely-there drift, both gated by prefers-reduced-motion.
+  FRAME 3: Mission Control mid-loop (Relay, guest checkout at
+           05 Build). Never carries stars under either option; shown
+           for contrast so the boundary of the rule is visible.
 
-  CHARTER REQUIREMENTS DEMONSTRATED
-  Hard invariants: no silent scope cuts (section D re-confirms all
-  four retirements in the founder's sight); mockup-gate decisions
-  made ON real frames (section A renders the frames).
-  Spec 2: the ramp system and bans, shown as the swatches themselves.
-  Spec 3: the starfield verdict, judged on frames not principles.
-  Spec 5.3: the signature moment, beat by beat, with the star-drift
-  beat surfaced as the mockup-gate decision it is.
+  Faithfulness to the landing (src/components/landing/LandingBackdrop.tsx):
+  landing = 36 far stars (r 0.5 to 1.5, opacity 0.08 to 0.36, one in
+  five breathing over 6 to 12s) PLUS 22 near stars at 1.5x radius PLUS
+  scroll drift. App-idle here = 18 far stars only, same size range,
+  opacity capped at 0.24, same breathe rhythm, drift slowed to a
+  120s CSS loop, near layer deleted. Removed, not dimmed, the moment
+  a surface holds content.
 
-  RESTRAINT NOTE: this page's own chrome is fully neutral ink; every
-  ember and machine hue on the page sits inside a framed exhibit as
-  the specimen under review. The single live ember locus is the
-  storyboard's step 1 gate card (the needs-you element); machine blue
-  reaches full hue only at step 3's unblocked node. The one Geist
-  Pixel moment is the board title. Costs: none anywhere, kebabs
-  closed inside exhibits. No purple exists in this file.
+  Every exhibit states which state it shows (red-line 7). No edge
+  strips, no purple, no inline costs, one ember locus per app frame.
 -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Supaprod : founder decision board</title>
+<title>Supaprod : the app-idle starfield, rendered</title>
 <style>
 /* ==================================================================
    SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
@@ -1548,903 +1539,559 @@ ol {
 
 /* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
 
-/* ==== SCREEN-SPECIFIC: the decision board (a document, not a room) = */
+/* ---- Starfield exhibit page chrome -------------------------------- */
 
-.db-page {
+.sf-page {
   width: var(--sp-frame-w);
-  background: var(--ink-bg);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-hero);
-  overflow: hidden;
-}
-.db-inner {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 48px 40px 56px;
-}
-.db-head {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--ink-hairline);
-  margin-bottom: 36px;
-}
-.db-title {
-  font-size: 26px;
-  color: var(--ink-text);
-  margin: 10px 0 10px;
-}
-.db-lede {
-  font-size: 13.5px;
-  line-height: 1.65;
-  color: var(--ink-body);
-  max-width: 720px;
-}
-.db-section {
-  margin-bottom: 44px;
-}
-.db-section-head {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 18px;
 }
-.db-section-num {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--ink-faint);
+.sf-exhibit-header {
+  padding: 6px 4px 0;
 }
-.db-section-title {
-  font-size: 16px;
+.sf-exhibit-title {
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink-text);
+  margin-top: 6px;
 }
-.db-section-ref {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--ink-faint);
-}
-.db-section-sub {
+.sf-exhibit-state {
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--ink-subtle);
-  max-width: 760px;
-  margin-bottom: 18px;
+  color: var(--ink-body);
+  margin-top: 4px;
+  max-width: 980px;
+}
+.sf-gap {
+  height: 14px;
 }
 
-/* Minicards and exhibit frames */
-.db-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+/* Empty-state frames are shorter than the full room: the frame ends
+   where the content does, no fake scroll depth. */
+.sf-frame-empty {
+  height: 640px;
 }
-.db-card {
-  background: var(--ink-panel);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-panel);
-  padding: 16px;
+.sf-frame-empty .sp-shell {
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto;
 }
-.db-card-label {
+.sf-empty-center {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  position: relative;
+  z-index: 1;
+}
+.sf-empty-kicker {
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-subtle);
-  margin-bottom: 12px;
 }
-.db-card-note {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--ink-subtle);
+.sf-empty-h {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-text);
   margin-top: 12px;
+  max-width: 560px;
+  line-height: 1.35;
+}
+.sf-empty-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  margin-top: 10px;
+  max-width: 480px;
+}
+.sf-empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
 }
 
-/* The framed room-header preview (exhibit A) */
-.db-preview {
-  position: relative;
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  overflow: hidden;
-  background: var(--ink-bg);
-}
-.db-preview-topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 36px;
-  padding: 0 14px;
-  border-bottom: 1px solid var(--ink-hairline);
-  position: relative;
-  z-index: 2;
-}
-.db-preview-topbar .db-mini-brand {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-text);
-}
-.db-mini-nav {
-  display: flex;
-  gap: 10px;
-  margin-left: 10px;
-  font-size: 10.5px;
-  color: var(--ink-subtle);
-}
-.db-mini-nav .is-on {
-  color: var(--ink-text);
-}
-.db-preview-spine {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--ink-hairline);
-  position: relative;
-  z-index: 2;
-}
-.db-mini-node {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-.db-mini-node .db-mini-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ink-raised);
-  border: 1px solid var(--ink-hairline);
-}
-.db-mini-edge {
-  flex: 1;
-  min-width: 6px;
-  height: 1px;
-  background: var(--ink-hairline-soft);
-}
-.db-preview-body {
-  position: relative;
-  z-index: 2;
-  padding: 22px 20px 24px;
-}
-.db-preview-body .sp-warm-slot {
-  background: transparent;
-}
-/* The app-idle star layer: far layer only, roughly half landing
-   density, tiny fixed dots. Pure specimen, no animation. */
-.db-stars {
+/* ---- The app-idle starfield ---------------------------------------- */
+/* Faithful port of LandingBackdrop's FAR layer at half density:
+   18 stars (landing far = 36), r 0.5 to 1.5 mapped into the same
+   0 to 100 viewBox, opacity 0.08 to 0.24 (landing tops at 0.36),
+   one in five breathing on the landing's 6 to 12s rhythm. The near
+   layer (22 larger stars) and scroll drift are deliberately absent;
+   the only drift is a 120s CSS translate loop, transform-only.
+   Sits under content (z-index 0), pointer-events none, and resolves
+   to a calm static field under prefers-reduced-motion. */
+
+.sf-starfield {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
+  overflow: hidden;
 }
-.db-star {
+.sf-star-layer {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: #f4f4f5;
+  inset: -4%;
+  animation: sf-drift 120s linear infinite alternate;
+  will-change: transform;
+}
+@keyframes sf-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+@keyframes sf-breathe {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.sf-twinkle-a {
+  animation: sf-breathe 8.4s ease-in-out infinite;
+}
+.sf-twinkle-b {
+  animation: sf-breathe 10.2s ease-in-out infinite;
+}
+.sf-twinkle-c {
+  animation: sf-breathe 7.6s ease-in-out infinite;
+}
+.sf-twinkle-d {
+  animation: sf-breathe 11.3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-star-layer {
+    animation: none;
+  }
+  .sf-twinkle-a,
+  .sf-twinkle-b,
+  .sf-twinkle-c,
+  .sf-twinkle-d {
+    animation: none;
+    opacity: 0.16;
+  }
 }
 
-/* Swatch rows (exhibit B) */
-.db-ramp {
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-panel);
-  margin-bottom: 12px;
-  overflow: hidden;
+/* Content layers inside a starred frame sit above the field. */
+.sf-above {
+  position: relative;
+  z-index: 1;
 }
-.db-ramp-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 12px 16px 0;
+
+/* ---- Frame 3: the working room (compact) --------------------------- */
+
+.sf-frame-room {
+  height: 760px;
 }
-.db-ramp-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-text);
-}
-.db-ramp-role {
+.sf-code-line {
+  font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-subtle);
-}
-.db-swatch-row {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  padding: 12px 16px 14px;
-}
-.db-swatch {
-  min-width: 0;
-}
-.db-swatch-chip {
-  height: 34px;
-  border-radius: 6px;
-  border: 1px solid var(--ink-hairline-soft);
-}
-.db-swatch-token {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  color: var(--ink-subtle);
-  margin-top: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.db-swatch-use {
-  font-size: 10.5px;
-  line-height: 1.45;
-  color: var(--ink-faint);
-  margin-top: 2px;
-}
-.db-ban-list li {
-  display: flex;
-  gap: 10px;
-  font-size: 12.5px;
-  line-height: 1.55;
+  line-height: 1.7;
   color: var(--ink-body);
-  padding: 7px 0;
-  border-bottom: 1px solid var(--ink-hairline-soft);
+  white-space: pre;
 }
-.db-ban-list li:last-child {
-  border-bottom: none;
-}
-.db-ban-x {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--verdict-fail);
-  flex: none;
-  padding-top: 1px;
+.sf-code-add {
+  color: var(--verdict-pass);
 }
 
-/* Storyboard (exhibit C) */
-.db-story {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.db-beat {
+/* ---- Recommendation card ------------------------------------------- */
+
+.sf-reco {
   background: var(--ink-panel);
   border: 1px solid var(--ink-hairline);
   border-radius: var(--ink-radius-panel);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
+  padding: 22px 26px;
 }
-.db-beat-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.db-beat-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-}
-.db-beat-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-text);
-}
-.db-beat-time {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-.db-beat-stage {
-  flex: 1;
-  border: 1px solid var(--ink-hairline-soft);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-bg);
-  padding: 12px;
-  margin: 8px 0 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  min-height: 128px;
-}
-.db-beat-caption {
-  font-size: 11.5px;
-  line-height: 1.55;
-  color: var(--ink-subtle);
-}
-.db-toast {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink-raised);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  padding: 8px 11px;
-  font-size: 12px;
-  color: var(--ink-text);
-}
-.db-beat-drift {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px dashed var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  padding: 12px 16px;
-}
-
-/* Retirements (exhibit D) */
-.db-retire-row {
-  display: grid;
-  grid-template-columns: 190px 1fr auto;
-  gap: 18px;
-  align-items: center;
-  padding: 13px 16px;
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-panel);
-  margin-bottom: 10px;
-}
-.db-retire-name {
+.sf-reco-p {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-text);
+  line-height: 1.7;
+  color: var(--ink-body);
+  max-width: 960px;
+  margin-top: 10px;
 }
-.db-retire-was {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  margin-top: 2px;
+.sf-checks {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
-.db-retire-reco {
-  font-size: 12.5px;
+.sf-check {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
   line-height: 1.55;
   color: var(--ink-body);
 }
-.db-reco-tag {
+.sf-check .sf-box {
   font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
-  border: 1px solid var(--ink-hairline);
-  border-radius: 4px;
-  padding: 1px 5px;
-  margin-right: 7px;
-}
-
-/* The founder's-call line: an empty checkbox, always unchecked. */
-.db-call {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 14px;
-  padding: 11px 16px;
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-bg);
-}
-.db-call-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
-  flex: none;
-}
-.db-call-opts {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  flex-wrap: wrap;
-}
-.db-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--ink-body);
-}
-.db-box {
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--ink-subtle);
-  border-radius: 4px;
-  flex: none;
-}
-.db-call-blank {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-}
-.db-call-blank .db-blank-line {
-  display: inline-block;
-  width: 180px;
-  border-bottom: 1px solid var(--ink-hairline);
-  height: 14px;
-}
-.db-footer {
-  border-top: 1px solid var(--ink-hairline);
-  padding-top: 18px;
   font-size: 12px;
   color: var(--ink-subtle);
-  line-height: 1.6;
-  max-width: 760px;
+  flex: none;
+}
+.sf-check strong {
+  color: var(--ink-text);
+  font-weight: 600;
+}
+.sf-notes-line {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-subtle);
 }
 </style>
 </head>
 <body>
+<div class="sf-page">
 
-<div class="db-page">
-  <div class="db-inner">
+  <!-- ============ PAGE HEADER ============ -->
+  <header class="sf-exhibit-header">
+    <div class="sp-kicker">Starfield variant exhibit &middot; A1, deferred by red-line 9</div>
+    <div class="sf-exhibit-title">The app-idle starfield, rendered on real frames</div>
+    <p class="sf-exhibit-state">Three frames. The first two are the same Helio Labs empty-workspace state with and without the scoped variant, so the difference is the only thing that changes. The third is Mission Control mid-loop, which never carries stars under either option. The recommendation and your checkboxes are at the bottom.</p>
+  </header>
 
-    <!-- ============ Board header ============ -->
-    <header class="db-head">
-      <div class="sp-kicker">Founder gate 1 &middot; review document &middot; not an app screen</div>
-      <!-- The one Geist Pixel moment on this page -->
-      <h1 class="db-title sp-pixel">The decision board</h1>
-      <p class="db-lede">
-        Every open visual decision from the design language spec, on one page. Four calls: the starfield in the app, the color law, the approval choreography, and the four retirements. Each section ends with your checkbox; nothing below ships until the box is marked. The colored elements on this page are exhibits under review, not live UI.
-      </p>
-    </header>
+  <!-- ============ FRAME 1: EMPTY STATE, NO STARS ============ -->
+  <section>
+    <div class="sf-exhibit-header">
+      <div class="sp-kicker">Frame 1 of 3 &middot; without stars</div>
+      <div class="sf-exhibit-title">Empty workspace, plain ink (the current baseline)</div>
+      <p class="sf-exhibit-state">State shown: Helio Labs workspace, Relay selected, brand-new product, no missions yet, nothing running, nothing waiting. This is what "no stars anywhere in the app" looks like on the one surface class where stars were ever proposed.</p>
+    </div>
+    <div class="sf-gap"></div>
 
-    <!-- ============ A. Starfield: with vs without ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">A</span>
-        <span class="db-section-title">Starfield in the app: the room at idle, with and without</span>
-        <span class="db-section-ref">spec &sect;3</span>
+    <div class="sp-frame sf-frame-empty">
+      <div class="sp-shell">
+        <!-- TopBar -->
+        <div class="sp-topbar">
+          <div class="sp-topbar-brand"><span class="sp-brand-name">Supaprod</span></div>
+          <div class="sp-topbar-divider"></div>
+          <button class="sp-product-switcher">Helio Labs / Relay <span style="color:var(--ink-faint)">&#9662;</span></button>
+          <nav class="sp-topbar-nav">
+            <a class="sp-nav-item is-active">Mission Control</a>
+            <a class="sp-nav-item">Approvals</a>
+            <a class="sp-nav-item">Brain</a>
+            <a class="sp-nav-item">Settings</a>
+          </nav>
+          <div class="sp-topbar-right">
+            <button class="sp-btn sp-btn-secondary">Ask <span class="sp-kbd">/</span></button>
+            <div class="sp-avatar">RG</div>
+          </div>
+        </div>
+
+        <!-- Spine: whole, all queued, honest -->
+        <div class="sp-spine-strip">
+          <div class="sp-spine">
+            <span class="sp-spine-cap">Starts from: your idea</span>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">01</span><span class="sp-spine-node-label">Discover</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">02</span><span class="sp-spine-node-label">Decide</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">03</span><span class="sp-spine-node-label">Plan</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">04</span><span class="sp-spine-node-label">Design</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">05</span><span class="sp-spine-node-label">Build</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">06</span><span class="sp-spine-node-label">Ship</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">07</span><span class="sp-spine-node-label">Learn</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <span class="sp-spine-cap">Ends with: proof it worked</span>
+          </div>
+          <div class="sp-spine-return"><span class="sp-spine-return-label">what you learn feeds the next loop</span></div>
+        </div>
+
+        <!-- Empty center: WarmSlot as the whole canvas -->
+        <div class="sf-empty-center">
+          <div class="sf-empty-kicker">Relay &middot; new product</div>
+          <h1 class="sf-empty-h">Nothing here yet. Tell Supaprod what Relay is, and the loop starts from your first idea.</h1>
+          <p class="sf-empty-sub">Watch starts reading your connected sources on its first sweep. The Chief of Staff brings the first "what should we build next" call here, and every decision stays yours.</p>
+          <div class="sf-empty-actions">
+            <button class="sp-btn sp-btn-accent sp-btn-md">Start the loop <span class="sp-kbd">&#9166;</span></button>
+            <button class="sp-btn sp-btn-secondary sp-btn-md">Connect a source</button>
+          </div>
+        </div>
+
+        <!-- Composer -->
+        <div class="sp-composer">
+          <div class="sp-composer-box ink-input-focus">
+            <textarea class="sp-composer-input" rows="1" placeholder="Describe Relay, or ask what to build first"></textarea>
+            <div class="sp-composer-row">
+              <div class="sp-composer-chips">
+                <button class="sp-journey-chip">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip">Just write the PRD <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip">Tear this idea down <span class="sp-chip-arrow">&#8594;</span></button>
+              </div>
+              <button class="sp-btn sp-btn-ghost sp-composer-send">Send</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="db-section-sub">
-        Both frames show the same moment: a brand-new Helio Labs workspace, Relay selected, no missions yet. This is the ONLY class of surface where the spec allows stars: workspace and product empty states, onboarding, and the Brain at idle. Working surfaces (Mission Control mid-loop, Thread, Canvas, Approvals) stay starless in both worlds.
-      </p>
+    </div>
+  </section>
 
-      <div class="db-grid-2">
-        <!-- WITHOUT -->
-        <div class="db-card">
-          <div class="db-card-label">A1 &middot; without: plain ink</div>
-          <div class="db-preview">
-            <div class="db-preview-topbar">
-              <span class="db-mini-brand">Supaprod</span>
-              <span class="sp-mono" style="font-size:10px;color:var(--ink-subtle)">Helio Labs / Relay</span>
-              <nav class="db-mini-nav">
-                <span class="is-on">Mission Control</span><span>Approvals</span><span>Brain</span><span>Settings</span>
-              </nav>
+  <!-- ============ FRAME 2: EMPTY STATE, APP-IDLE STARS ============ -->
+  <section>
+    <div class="sf-exhibit-header">
+      <div class="sp-kicker">Frame 2 of 3 &middot; with the scoped app-idle variant</div>
+      <div class="sf-exhibit-title">The identical frame with the app-idle starfield</div>
+      <p class="sf-exhibit-state">State shown: exactly Frame 1, plus 18 far-layer stars (the landing runs 36 far plus 22 near). Opacity tops out at 0.24 against the landing's 0.36; four stars breathe on the landing's 6 to 12 second rhythm; one 120 second transform-only drift; everything stops under prefers-reduced-motion. The field disappears entirely, not dims, the moment this surface holds a mission.</p>
+    </div>
+    <div class="sf-gap"></div>
+
+    <div class="sp-frame sf-frame-empty">
+      <!-- The field: far layer only, behind everything -->
+      <div class="sf-starfield" aria-hidden="true">
+        <div class="sf-star-layer">
+          <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <circle cx="6.2"  cy="12.4" r="0.09" fill="#ffffff" opacity="0.16" />
+            <circle cx="14.8" cy="64.2" r="0.06" fill="#ffffff" class="sf-twinkle-a" />
+            <circle cx="22.1" cy="30.7" r="0.12" fill="#ffffff" opacity="0.20" />
+            <circle cx="29.5" cy="82.3" r="0.07" fill="#ffffff" opacity="0.12" />
+            <circle cx="35.9" cy="18.9" r="0.10" fill="#ffffff" class="sf-twinkle-b" />
+            <circle cx="41.3" cy="51.6" r="0.05" fill="#ffffff" opacity="0.09" />
+            <circle cx="48.7" cy="73.1" r="0.13" fill="#ffffff" opacity="0.22" />
+            <circle cx="53.2" cy="9.5"  r="0.08" fill="#ffffff" opacity="0.13" />
+            <circle cx="58.6" cy="38.4" r="0.06" fill="#ffffff" class="sf-twinkle-c" />
+            <circle cx="63.4" cy="88.7" r="0.11" fill="#ffffff" opacity="0.18" />
+            <circle cx="69.8" cy="24.6" r="0.07" fill="#ffffff" opacity="0.11" />
+            <circle cx="74.2" cy="59.3" r="0.14" fill="#ffffff" opacity="0.24" />
+            <circle cx="79.6" cy="44.1" r="0.05" fill="#ffffff" class="sf-twinkle-d" />
+            <circle cx="84.1" cy="15.2" r="0.09" fill="#ffffff" opacity="0.15" />
+            <circle cx="88.5" cy="70.8" r="0.06" fill="#ffffff" opacity="0.10" />
+            <circle cx="92.9" cy="33.5" r="0.10" fill="#ffffff" opacity="0.17" />
+            <circle cx="96.3" cy="91.2" r="0.08" fill="#ffffff" opacity="0.12" />
+            <circle cx="10.7" cy="46.9" r="0.12" fill="#ffffff" opacity="0.19" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="sp-shell sf-above">
+        <!-- TopBar -->
+        <div class="sp-topbar">
+          <div class="sp-topbar-brand"><span class="sp-brand-name">Supaprod</span></div>
+          <div class="sp-topbar-divider"></div>
+          <button class="sp-product-switcher">Helio Labs / Relay <span style="color:var(--ink-faint)">&#9662;</span></button>
+          <nav class="sp-topbar-nav">
+            <a class="sp-nav-item is-active">Mission Control</a>
+            <a class="sp-nav-item">Approvals</a>
+            <a class="sp-nav-item">Brain</a>
+            <a class="sp-nav-item">Settings</a>
+          </nav>
+          <div class="sp-topbar-right">
+            <button class="sp-btn sp-btn-secondary">Ask <span class="sp-kbd">/</span></button>
+            <div class="sp-avatar">RG</div>
+          </div>
+        </div>
+
+        <!-- Spine -->
+        <div class="sp-spine-strip">
+          <div class="sp-spine">
+            <span class="sp-spine-cap">Starts from: your idea</span>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">01</span><span class="sp-spine-node-label">Discover</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">02</span><span class="sp-spine-node-label">Decide</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">03</span><span class="sp-spine-node-label">Plan</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">04</span><span class="sp-spine-node-label">Design</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">05</span><span class="sp-spine-node-label">Build</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">06</span><span class="sp-spine-node-label">Ship</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">07</span><span class="sp-spine-node-label">Learn</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <span class="sp-spine-cap">Ends with: proof it worked</span>
+          </div>
+          <div class="sp-spine-return"><span class="sp-spine-return-label">what you learn feeds the next loop</span></div>
+        </div>
+
+        <!-- Empty center -->
+        <div class="sf-empty-center">
+          <div class="sf-empty-kicker">Relay &middot; new product</div>
+          <h1 class="sf-empty-h">Nothing here yet. Tell Supaprod what Relay is, and the loop starts from your first idea.</h1>
+          <p class="sf-empty-sub">Watch starts reading your connected sources on its first sweep. The Chief of Staff brings the first "what should we build next" call here, and every decision stays yours.</p>
+          <div class="sf-empty-actions">
+            <button class="sp-btn sp-btn-accent sp-btn-md">Start the loop <span class="sp-kbd">&#9166;</span></button>
+            <button class="sp-btn sp-btn-secondary sp-btn-md">Connect a source</button>
+          </div>
+        </div>
+
+        <!-- Composer -->
+        <div class="sp-composer">
+          <div class="sp-composer-box ink-input-focus">
+            <textarea class="sp-composer-input" rows="1" placeholder="Describe Relay, or ask what to build first"></textarea>
+            <div class="sp-composer-row">
+              <div class="sp-composer-chips">
+                <button class="sp-journey-chip">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip">Just write the PRD <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip">Tear this idea down <span class="sp-chip-arrow">&#8594;</span></button>
+              </div>
+              <button class="sp-btn sp-btn-ghost sp-composer-send">Send</button>
             </div>
-            <div class="db-preview-spine">
-              <span class="db-mini-node"><span class="db-mini-dot"></span>01 Discover</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>02 Decide</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>03 Plan</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>04 Design</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>05 Build</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>06 Ship</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>07 Learn</span>
-            </div>
-            <div class="db-preview-body">
-              <div class="sp-warm-slot">
-                <p class="sp-warm-slot-line">Tell me what you're building, or start with "What should we build next?"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FRAME 3: WORKING ROOM, NEVER STARS ============ -->
+  <section>
+    <div class="sf-exhibit-header">
+      <div class="sp-kicker">Frame 3 of 3 &middot; never carries stars under either option</div>
+      <div class="sf-exhibit-title">Mission Control mid-loop: starless in both worlds</div>
+      <p class="sf-exhibit-state">State shown: Relay, the guest-checkout journey at 05 Build, Engineer writing the change from SPEC-47, no gate pending. Working surfaces (this room, the Thread, the Canvas, Approvals) stay plain ink whichever box you tick; the only ambient signal that may breathe here is the machine-blue working presence.</p>
+    </div>
+    <div class="sf-gap"></div>
+
+    <div class="sp-frame sf-frame-room">
+      <div class="sp-shell">
+        <!-- TopBar -->
+        <div class="sp-topbar">
+          <div class="sp-topbar-brand"><span class="sp-brand-name">Supaprod</span></div>
+          <div class="sp-topbar-divider"></div>
+          <button class="sp-product-switcher">Helio Labs / Relay <span style="color:var(--ink-faint)">&#9662;</span></button>
+          <nav class="sp-topbar-nav">
+            <a class="sp-nav-item is-active">Mission Control</a>
+            <a class="sp-nav-item">Approvals</a>
+            <a class="sp-nav-item">Brain</a>
+            <a class="sp-nav-item">Settings</a>
+          </nav>
+          <div class="sp-topbar-right">
+            <button class="sp-btn sp-btn-secondary">Ask <span class="sp-kbd">/</span></button>
+            <div class="sp-avatar">RG</div>
+          </div>
+        </div>
+
+        <!-- Spine: mid-loop -->
+        <div class="sp-spine-strip">
+          <div class="sp-spine">
+            <span class="sp-spine-cap">Starts from: ticket cluster</span>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-done"><span class="sp-spine-node-num">01</span><span class="sp-spine-node-label">Discover</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-done"><span class="sp-spine-node-num">02</span><span class="sp-spine-node-label">Decide</span><span class="sp-spine-node-dot"></span><span class="sp-artifact-chip">BET-12</span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-done"><span class="sp-spine-node-num">03</span><span class="sp-spine-node-label">Plan</span><span class="sp-spine-node-dot"></span><span class="sp-artifact-chip">SPEC-47</span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-skipped"><span class="sp-spine-node-num">04</span><span class="sp-spine-node-label">Design</span><span class="sp-spine-node-state">off</span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-working ink-working"><span class="sp-spine-node-num">05</span><span class="sp-spine-node-label">Build</span><span class="sp-spine-node-dot"></span><span class="sp-spine-node-state">working</span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">06</span><span class="sp-spine-node-label">Ship</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <div class="sp-spine-node is-queued"><span class="sp-spine-node-num">07</span><span class="sp-spine-node-label">Learn</span><span class="sp-spine-node-dot"></span></div>
+            <span class="sp-spine-edge"></span>
+            <span class="sp-spine-cap">Ends with: checkout live</span>
+          </div>
+          <div class="sp-spine-return"><span class="sp-spine-return-label">what you learn feeds the next loop</span></div>
+        </div>
+
+        <!-- Main: Thread + Canvas -->
+        <div class="sp-main">
+          <aside class="sp-thread">
+            <div class="sp-thread-scroll">
+              <div class="sp-day-divider">Today</div>
+              <div class="sp-thread-item is-machine">
+                <div class="sp-thread-meta"><span class="sp-agent-chip">Plan</span><span class="sp-thread-time">11:02am</span></div>
+                <div class="sp-receipt-line"><span class="sp-receipt-check">&#10003;</span><span class="sp-receipt-text">Spec approved. <span class="sp-mono">SPEC-47</span>, guest checkout: <span class="sp-mono">9</span> requirements, <span class="sp-mono">4</span> tasks handed to Engineer.</span></div>
+              </div>
+              <div class="sp-thread-item is-machine">
+                <div class="sp-thread-meta"><span class="sp-agent-chip">Engineer</span><span class="sp-thread-time">11:24am</span></div>
+                <div class="sp-pulse-line is-live"><span class="sp-pulse-dot ink-working"></span><span>Engineer is writing the checkout change from SPEC-47.</span></div>
+                <div style="margin-top:6px"><span class="sp-pulse-time">Started 9 minutes ago</span></div>
+              </div>
+              <!-- Memory-citing row: red-line 1 bans edge strips, so the
+                   shared is-memory tick is not used; the Brain chip plus the
+                   faint wash carry the memory grammar. -->
+              <div class="sp-thread-item" style="background:var(--voice-memory-faint)">
+                <div class="sp-thread-meta"><span class="sp-agent-chip" style="color:var(--voice-memory-dim);background:var(--voice-memory-faint)">Brain</span><span class="sp-thread-time">11:24am</span></div>
+                Relay's checkout drop-off spiked after the March address-form change; Engineer is reusing the validation pattern that fixed it.
               </div>
             </div>
-          </div>
-          <p class="db-card-note">Honest and quiet. The risk: a brand-new workspace reads as a dead room in its very first minute, before any voice has spoken.</p>
-        </div>
+          </aside>
 
-        <!-- WITH -->
-        <div class="db-card">
-          <div class="db-card-label">A2 &middot; with: app-idle variant, half density, far layer only</div>
-          <div class="db-preview">
-            <div class="db-stars" aria-hidden="true">
-              <span class="db-star" style="left:6%;top:58%;opacity:.16"></span>
-              <span class="db-star" style="left:14%;top:82%;opacity:.10"></span>
-              <span class="db-star" style="left:23%;top:66%;opacity:.20"></span>
-              <span class="db-star" style="left:31%;top:90%;opacity:.09"></span>
-              <span class="db-star" style="left:40%;top:72%;opacity:.13"></span>
-              <span class="db-star" style="left:48%;top:86%;opacity:.18"></span>
-              <span class="db-star" style="left:57%;top:63%;opacity:.11"></span>
-              <span class="db-star" style="left:66%;top:79%;opacity:.15"></span>
-              <span class="db-star" style="left:74%;top:60%;opacity:.09"></span>
-              <span class="db-star" style="left:82%;top:88%;opacity:.19"></span>
-              <span class="db-star" style="left:90%;top:70%;opacity:.12"></span>
-              <span class="db-star" style="left:95%;top:83%;opacity:.08"></span>
-            </div>
-            <div class="db-preview-topbar">
-              <span class="db-mini-brand">Supaprod</span>
-              <span class="sp-mono" style="font-size:10px;color:var(--ink-subtle)">Helio Labs / Relay</span>
-              <nav class="db-mini-nav">
-                <span class="is-on">Mission Control</span><span>Approvals</span><span>Brain</span><span>Settings</span>
-              </nav>
-            </div>
-            <div class="db-preview-spine">
-              <span class="db-mini-node"><span class="db-mini-dot"></span>01 Discover</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>02 Decide</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>03 Plan</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>04 Design</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>05 Build</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>06 Ship</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>07 Learn</span>
-            </div>
-            <div class="db-preview-body">
-              <div class="sp-warm-slot" style="border-color:transparent">
-                <p class="sp-warm-slot-line">Tell me what you're building, or start with "What should we build next?"</p>
+          <main class="sp-canvas">
+            <div class="sp-surface-header">
+              <span class="sp-stage-marker">05 Build</span>
+              <span class="sp-surface-title">Guest checkout</span>
+              <span class="sp-agent-chip">Engineer</span>
+              <span class="sp-state-chip is-working"><span class="sp-state-dot"></span>Building</span>
+              <div class="sp-header-cluster">
+                <button class="sp-icon-btn" title="Copy link">&#128279;</button>
+                <span class="sp-kebab"><button class="sp-icon-btn">&#8942;</button></span>
               </div>
             </div>
-          </div>
-          <p class="db-card-note">Landing DNA carried into the first minute: the room feels like a place before it has content. Stars sit behind the empty slot only, never behind the chrome rows, and vanish the moment real work arrives.</p>
-        </div>
-      </div>
-
-      <div class="db-card" style="margin-top:14px">
-        <div class="db-card-label">The spec's recommendation</div>
-        <p style="font-size:12.5px;line-height:1.6;color:var(--ink-body)">
-          Adopt A2, scoped exactly as the spec verdict states: <span style="color:var(--ink-text)">working surfaces never; brand moments yes</span>. The app-idle variant runs at roughly half landing density, far layer only, on workspace and product empty states, onboarding and tour frames, and the Brain at idle. It is removed, not dimmed, once the surface holds content, so ambient novelty can never compete with the machine-blue working presence.
-        </p>
-      </div>
-
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>A1: no stars anywhere in the app</span>
-          <span class="db-check"><span class="db-box"></span>A2: app-idle variant, scoped as above (recommended)</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ B. The color system ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">B</span>
-        <span class="db-section-title">The color law: three voices, five tiers each</span>
-        <span class="db-section-ref">spec &sect;2</span>
-      </div>
-      <p class="db-section-sub">
-        Black monotone carries the interface; three voices carry all meaning. Each voice is a ramp so it can whisper (ambience) or speak (the one live locus) without anyone inventing an inline rgba. The swatches below are specimens of the tokens as they exist in the shared stylesheet.
-      </p>
-
-      <!-- Ember ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Ember</span>
-          <span class="db-ramp-role">the human's move. Brand color. One live locus per screen: the gate.</span>
-        </div>
-        <div class="db-swatch-row">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human)"></div>
-            <div class="db-swatch-token">--voice-human</div>
-            <div class="db-swatch-use">gate text, Approve and run, focus ring</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-hover)"></div>
-            <div class="db-swatch-token">--voice-human-hover</div>
-            <div class="db-swatch-use">accent button hover only</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-dim)"></div>
-            <div class="db-swatch-token">--voice-human-dim</div>
-            <div class="db-swatch-use">snoozed gates, spine entry caps</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-border)"></div>
-            <div class="db-swatch-token">--voice-human-border</div>
-            <div class="db-swatch-use">the active tray card and chip edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-soft)"></div>
-            <div class="db-swatch-token">--voice-human-soft</div>
-            <div class="db-swatch-use">gate chip and tray count fills</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-faint)"></div>
-            <div class="db-swatch-token">--voice-human-faint</div>
-            <div class="db-swatch-use">needs-you row tint, tray count fill</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Machine ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Machine blue</span>
-          <span class="db-ramp-role">the agents at work. 8.64:1 on ink. Full hue only where work happens right now.</span>
-        </div>
-        <div class="db-swatch-row" style="grid-template-columns:repeat(5,1fr)">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine)"></div>
-            <div class="db-swatch-token">--voice-machine</div>
-            <div class="db-swatch-use">active stage node, live PulseLine, caret, data numerals</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-dim)"></div>
-            <div class="db-swatch-token">--voice-machine-dim</div>
-            <div class="db-swatch-use">Working strip at rest, agent chips, inactive traces</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-border)"></div>
-            <div class="db-swatch-token">--voice-machine-border</div>
-            <div class="db-swatch-use">working state chip edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-soft)"></div>
-            <div class="db-swatch-token">--voice-machine-soft</div>
-            <div class="db-swatch-use">the working pulse halo</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-faint)"></div>
-            <div class="db-swatch-token">--voice-machine-faint</div>
-            <div class="db-swatch-use">machine-authored row tint</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Memory ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Memory gold</span>
-          <span class="db-ramp-role">the Brain speaking. The gold ban holds everywhere else.</span>
-        </div>
-        <div class="db-swatch-row" style="grid-template-columns:repeat(5,1fr)">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory)"></div>
-            <div class="db-swatch-token">--voice-memory</div>
-            <div class="db-swatch-use">solid: inside Brain only</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-dim)"></div>
-            <div class="db-swatch-token">--voice-memory-dim</div>
-            <div class="db-swatch-use">the memory chip on a memory-citing row</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-border)"></div>
-            <div class="db-swatch-token">--voice-memory-border</div>
-            <div class="db-swatch-use">Brain panel edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-soft)"></div>
-            <div class="db-swatch-token">--voice-memory-soft</div>
-            <div class="db-swatch-use">Brain idle wash</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-faint)"></div>
-            <div class="db-swatch-token">--voice-memory-faint</div>
-            <div class="db-swatch-use">memory citation row tint (the Briefing)</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="db-grid-2" style="margin-top:14px">
-        <!-- Verdict layer -->
-        <div class="db-card">
-          <div class="db-card-label">The verdict layer: state, never a voice</div>
-          <div style="display:flex;gap:10px;margin-bottom:10px">
-            <div style="flex:1">
-              <div class="db-swatch-chip" style="background:var(--verdict-pass)"></div>
-              <div class="db-swatch-token">--verdict-pass</div>
-            </div>
-            <div style="flex:1">
-              <div class="db-swatch-chip" style="background:var(--verdict-fail)"></div>
-              <div class="db-swatch-token">--verdict-fail</div>
-            </div>
-          </div>
-          <p style="font-size:12px;line-height:1.6;color:var(--ink-body)">
-            Badges, checks, and outcomes only. Never prose, chrome, or backgrounds. The amber working token is retired and deleted: working IS the machine speaking, so working states use the machine ramp and can never collide with memory gold again.
-          </p>
-        </div>
-        <!-- Bans -->
-        <div class="db-card">
-          <div class="db-card-label">The four bans</div>
-          <ul class="db-ban-list">
-            <li><span class="db-ban-x">&#215;</span>No purple, violet, or indigo anywhere, charts and embeds included. It is the generic-AI tell of 2026.</li>
-            <li><span class="db-ban-x">&#215;</span>No fourth voice. Verdicts have green and red, attention is ember, data numerals are machine blue.</li>
-            <li><span class="db-ban-x">&#215;</span>Gold outside the memory grammar. No gold text, headings, or metrics.</li>
-            <li><span class="db-ban-x">&#215;</span>Ember copy that skips the consequence. Every ember string says what approving sets in motion, or it is a bug.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Adopt the three ramps, the verdict layer, and the four bans as the color law</span>
-          <span class="db-check"><span class="db-box"></span>Change something first</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ C. The approval choreography ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">C</span>
-        <span class="db-section-title">The signature moment: approval releases work</span>
-        <span class="db-section-ref">spec &sect;5.3 &middot; 700 to 900ms, once per screen</span>
-      </div>
-      <p class="db-section-sub">
-        The one choreographed sequence in the product, spent on the low-frequency, high-stakes beat. The state change is optimistic: the click lands instantly, the animation happens past the trigger point. Storyboarded on the live case: SPEC-52, saved replies for Relay.
-      </p>
-
-      <div class="db-story">
-        <!-- Beat 1: the single live ember locus of this page -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">1</span>
-            <span class="db-beat-title">The gate waits</span>
-            <span class="db-beat-time">at rest</span>
-          </div>
-          <div class="db-beat-stage">
-            <div class="sp-gate-card" style="padding:10px">
-              <div class="sp-card-chiprow" style="margin-bottom:6px">
-                <span class="sp-gate-chip">Your move</span>
-                <span class="sp-card-time">10:26am</span>
+            <div class="sp-canvas-face">
+              <div class="sp-face-body">
+                <div class="sp-doc-id">SPEC-47 &middot; task 2 of 4</div>
+                <div class="sp-doc-h">Checkout.tsx: skip account creation for guests</div>
+                <div class="sp-doc-block">
+                  <div class="sf-code-line">  const session = useCheckoutSession();</div>
+                  <div class="sf-code-line sf-code-add">+ if (session.mode === "guest") {</div>
+                  <div class="sf-code-line sf-code-add">+   return &lt;GuestDetailsStep onContinue={toPayment} /&gt;;</div>
+                  <div class="sf-code-line sf-code-add">+ }</div>
+                  <div class="sf-code-line">  return &lt;AccountStep onContinue={toPayment} /&gt;;<span class="ink-caret"></span></div>
+                </div>
+                <div class="sp-doc-sub">Reading now</div>
+                <p class="sp-doc-p">Checkout.tsx, the March address-form validation pattern, and the payment-step contract in SPEC-47.</p>
               </div>
-              <div class="sp-gate-headline" style="font-size:12px">The spec is ready for you.</div>
-              <div class="sp-gate-reco" style="font-size:11px">Approve it and Engineer starts the build.</div>
-              <div class="sp-gate-actions" style="margin-top:8px">
-                <button class="sp-btn sp-btn-accent" style="height:26px;font-size:11px">Approve and run <span class="sp-kbd">1</span></button>
+              <div class="sp-face-footer">
+                <div class="sp-pulse-line"><span class="sp-pulse-dot"></span><span>Tests run after each task. About 6 minutes to the next receipt.</span></div>
               </div>
             </div>
-          </div>
-          <p class="db-beat-caption">The ember card in the Thread. Same object as the spine node and the tray card; one count, one source.</p>
+          </main>
         </div>
 
-        <!-- Beat 2 -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">2</span>
-            <span class="db-beat-title">You press approve</span>
-            <span class="db-beat-time">0ms, optimistic</span>
-          </div>
-          <div class="db-beat-stage">
-            <div style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-panel);background:var(--ink-panel);padding:10px">
-              <div class="sp-receipt-line" style="font-size:11.5px">
-                <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Approved at <span class="sp-mono" style="font-size:10.5px">11:02am</span>. SPEC-52 is on record.</span>
-              </div>
-            </div>
-            <div class="db-toast" style="font-size:11px">Approved. Engineer starts the build.</div>
-          </div>
-          <p class="db-beat-caption">The card flips to a receipt, the registry toast confirms. No spinner ever sits between the click and this frame.</p>
+        <!-- Working strip -->
+        <div class="sp-working-strip">
+          <span>engineer &middot; writing the checkout change</span>
+          <span class="sp-strip-sep">&middot;</span>
+          <span>watch &middot; next sweep 2:00pm</span>
+          <span class="sp-strip-summary" style="margin-left:auto">1 agent working, nothing waiting on you</span>
         </div>
 
-        <!-- Beat 3: the one full-hue machine locus of this page -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">3</span>
-            <span class="db-beat-title">The spine node flips</span>
-            <span class="db-beat-time">within 1s</span>
-          </div>
-          <div class="db-beat-stage">
-            <div style="display:flex;align-items:center;gap:5px">
-              <div class="sp-spine-node is-done" style="height:24px;padding:0 8px">
-                <span class="sp-spine-node-dot"></span>
-                <span class="sp-spine-node-num">03</span>
-                <span class="sp-spine-node-label" style="font-size:11px">Plan</span>
-                <span class="sp-artifact-chip">SPEC-52</span>
+        <!-- Composer -->
+        <div class="sp-composer">
+          <div class="sp-composer-box ink-input-focus">
+            <textarea class="sp-composer-input" rows="1" placeholder="Ask about this build, or start another journey"></textarea>
+            <div class="sp-composer-row">
+              <div class="sp-composer-chips">
+                <button class="sp-journey-chip">Ship it when green <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
               </div>
-              <span class="sp-spine-edge" style="min-width:8px"></span>
-              <div class="sp-spine-node is-working" style="height:24px;padding:0 8px">
-                <span class="sp-spine-node-dot ink-working"></span>
-                <span class="sp-spine-node-num">05</span>
-                <span class="sp-spine-node-label" style="font-size:11px">Build</span>
-              </div>
+              <button class="sp-btn sp-btn-accent sp-composer-send">Send <span class="sp-kbd">&#9166;</span></button>
             </div>
           </div>
-          <p class="db-beat-caption">The energy visibly travels: 03 takes its check and artifact chip, 05 fills machine blue and picks up the working pulse.</p>
-        </div>
-
-        <!-- Beat 4 -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">4</span>
-            <span class="db-beat-title">The strip resumes</span>
-            <span class="db-beat-time">by 900ms, calm</span>
-          </div>
-          <div class="db-beat-stage">
-            <div class="sp-working-strip" style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-control);height:auto;min-height:30px;padding:6px 10px;font-size:10px;gap:8px">
-              <span class="sp-pulse-dot" style="width:6px;height:6px"></span>
-              <span>engineer &middot; reading the codebase first &middot; 0m</span>
-            </div>
-            <div class="db-beat-caption" style="margin-top:2px">The verb changes to the new stage's deck line. The room is quiet again; the work is not.</div>
-          </div>
-          <p class="db-beat-caption">First approval ever, once per user, adds the Pixel caption: "That approval just set three agents in motion."</p>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- The optional star-drift beat: an explicit yes/no -->
-      <div class="db-beat-drift">
-        <div style="flex:1">
-          <div style="font-size:12.5px;font-weight:600;color:var(--ink-text);margin-bottom:3px">Optional beat 3b: one far-layer star drift</div>
-          <div style="font-size:12px;line-height:1.55;color:var(--ink-subtle)">A single slow drift in the far star layer acknowledges the release, only on surfaces that already carry the app-idle backdrop. Purely decorative, so the spec leaves it to this board rather than ruling.</div>
-        </div>
-        <div class="db-call-opts" style="flex:none">
-          <span class="db-check"><span class="db-box"></span>Yes, keep the beat</span>
-          <span class="db-check"><span class="db-box"></span>No, cut it</span>
-        </div>
-      </div>
+  <!-- ============ RECOMMENDATION ============ -->
+  <section class="sf-reco">
+    <div class="sp-kicker">Recommendation &middot; A1, now with rendered evidence</div>
+    <p class="sf-reco-p">Adopt the scoped app-idle variant as shown in Frame 2. At 18 far-layer stars capped at 0.24 opacity it genuinely is subtle: from normal viewing distance Frame 2 reads as Frame 1 with a faint sense that the room is the same canvas the landing was drawn on, and the brand continuity is worth that whisper on a surface that is otherwise a dead end of black. The honest caveats: on a bright, high-contrast monitor the three or four largest stars are individually noticeable near the headline, and if that registers as decoration rather than atmosphere the correct fix is to cap star radius at 0.10 in the app preset, not to dim further, because below roughly 0.08 opacity the field stops existing and the variant becomes a placebo. If you find yourself squinting to check whether the stars are there, that is the argument for ticking the first box instead; a field nobody can see is complexity without a payoff. Either answer is safe: the boundary that actually matters, working surfaces never carry stars, holds in both worlds and Frame 3 shows it.</p>
+    <div class="sf-checks">
+      <div class="sf-check"><span class="sf-box">[ ]</span><span><strong>No stars anywhere in the app.</strong> Frame 1 is every surface, always. LandingBackdrop stays landing-only.</span></div>
+      <div class="sf-check"><span class="sf-box">[ ]</span><span><strong>Adopt the app-idle variant as rendered in Frame 2</strong> (recommended): 18 far-layer stars, opacity capped at 0.24, CSS-only breathe and 120s drift, still under prefers-reduced-motion, removed entirely the moment the surface holds content. Scope: workspace and product empty states, onboarding and tour frames, the Brain at idle.</span></div>
+      <div class="sf-check"><span class="sf-box">[ ]</span><span><strong>Adopt with adjustments</strong> (name them in Notes): fewer stars / smaller radius cap / no drift / narrower scope.</span></div>
+    </div>
+    <div class="sf-notes-line">Notes: ____________________________________________</div>
+  </section>
 
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Approve the four-beat choreography as storyboarded</span>
-          <span class="db-check"><span class="db-box"></span>Rework the sequence</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ D. The sanctioned retirements ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">D</span>
-        <span class="db-section-title">The sanctioned retirements, re-confirmed in your sight</span>
-        <span class="db-section-ref">charter: no silent scope cuts</span>
-      </div>
-      <p class="db-section-sub">
-        Four pieces of the old app do not appear in any Mission Control mockup. The charter forbids cutting scope silently, so each is named here with its recommendation. Marking a box makes the cut yours, not ours.
-      </p>
-
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Weather widget</div>
-          <div class="db-retire-was">old Today header ornament</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Decoration that answers no journey question; the Briefing already opens the day with what actually changed.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
-
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Focus dock</div>
-          <div class="db-retire-was">old pinned what-needs-me panel</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Its one job, "what needs me now," is the Approvals tray plus the Working strip; a second home for the same question splits the count the one-source rule just unified.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
-
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Liquid glass</div>
-          <div class="db-retire-was">translucent blur panel treatment</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Blur-driven depth fights the hairline-and-layering system and reads borrowed; in this language a hue never does a hairline's job, and neither does a blur.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
-
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Standalone Ask panel</div>
-          <div class="db-retire-was">the old &#8984;J input, one of three</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>The Composer is the one input by charter; a surviving second box quietly rebuilds the three-input problem the rebuild was rejected for.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
-    </section>
-
-    <footer class="db-footer">
-      When every box above carries your mark, this page becomes the record: the starfield scope, the color law, the choreography, and the four cuts are founder-ruled, and the build phase starts against them. Anything left unmarked stays open and blocks its section, not the gate.
-    </footer>
-
-  </div>
 </div>
-
 </body>
 </html>

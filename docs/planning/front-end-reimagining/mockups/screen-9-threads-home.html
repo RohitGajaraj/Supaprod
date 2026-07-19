@@ -1,45 +1,55 @@
 <!--
-  SCREEN: screen-8-decision-board.html : the founder decision board
+  SCREEN 9: Threads home (the revisitable archive of every conversation)
 
-  NOT an app screen: a review document page on the shared tokens. It
-  gathers every open visual decision from the design-language spec into
-  one page so the founder can rule on each with a checkbox.
+  THE MOMENT: Sunday morning at Helio Labs, the same morning as
+  screen 2. Mo opens the history affordance beside Ask to find
+  Friday's pricing teardown thread and save its key line to the
+  brain. One thread carries an open gate (the week-2 rollout call,
+  the same single item the Approvals count shows). Nothing running.
+
+  STATE SHOWN: scope = This product (Relay), view = All threads,
+  selected thread = "Pricing teardown for the annual plan" (no gate
+  on the selected thread; the gate lives on one unselected row).
 
   WHAT THE FOUNDER SHOULD EVALUATE
-  A. Starfield in the app: the room header rendered WITH and WITHOUT
-     the app-idle variant, side by side, with the spec's verdict.
-  B. The color system: the three voice ramps as swatch rows, where
-     each tier is used, the verdict layer, and the four bans.
-  C. The approval choreography: the four beats of the signature
-     moment, storyboarded, plus the optional star-drift beat as an
-     explicit yes/no.
-  D. The sanctioned retirements: weather widget, focus dock, liquid
-     glass, standalone Ask panel, each with a one-line recommendation
-     and a keep-or-retire call (the charter's no-silent-scope-cuts
-     invariant, re-confirmed here at the mockup gate).
+  1. Red-line #5 satisfied: every conversation lands somewhere
+     revisitable: two scopes (This product / All of Helio Labs),
+     search, rename (pencil in the preview header), folders, and
+     promote-to-memory ("Save to the brain", honest about the Brain
+     review gate it feeds).
+  2. Threads is NOT a fifth nav door: it opens from the history
+     affordance beside Ask (G T). Nav stays 4 destinations; the
+     route is /threads with a deep link per thread.
+  3. Card craft per Addendum 1.1 #1 and #2: no colored edge strips
+     anywhere (the memory grammar is a gold CHIP, not a gold edge
+     tick); every row is one internal grid: chip row (label left,
+     time right, mono, in the header row), title, snippet, evidence
+     chips only when real. Baseline-aligned, nothing floats.
+  4. One ember locus: the gate chip on the rollout row. The rail
+     count and the TopBar Approvals count are the same gate object
+     at the ambient tier: one count (1) from one source.
+  5. Nothing dead-ends: the selected thread's receipts link to what
+     it already became (DEC-19), and the footer carries a forward
+     door ("Make this a bet"). Continue reopens the thread where it
+     lives, never a second renderer.
 
   CHARTER REQUIREMENTS DEMONSTRATED
-  Hard invariants: no silent scope cuts (section D re-confirms all
-  four retirements in the founder's sight); mockup-gate decisions
-  made ON real frames (section A renders the frames).
-  Spec 2: the ramp system and bans, shown as the swatches themselves.
-  Spec 3: the starfield verdict, judged on frames not principles.
-  Spec 5.3: the signature moment, beat by beat, with the star-drift
-  beat surfaced as the mockup-gate decision it is.
+  #3 one input model (Ask in the TopBar is the one entry; the search
+     field is a filter, not a second composer; no docked composer
+     here so there are never two input boxes on one screen)
+  #4 machine work visible (Working strip stays, idle but honest)
+  #5 costs quiet (kebabs closed, zero figures inline)
+  #6 every capability placed (threads registry row: /threads, G T)
 
-  RESTRAINT NOTE: this page's own chrome is fully neutral ink; every
-  ember and machine hue on the page sits inside a framed exhibit as
-  the specimen under review. The single live ember locus is the
-  storyboard's step 1 gate card (the needs-you element); machine blue
-  reaches full hue only at step 3's unblocked node. The one Geist
-  Pixel moment is the board title. Costs: none anywhere, kebabs
-  closed inside exhibits. No purple exists in this file.
+  Content world: Helio Labs (Relay, Comet, Atlas, Beacon),
+  continuous with screens 1-8: SPEC-52, BET-31, DEC-19, KIT-07,
+  saved replies shipped Friday 4:12pm, Watch's Monday 7:00 AM sweep.
 -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Supaprod : founder decision board</title>
+<title>Supaprod : Threads</title>
 <style>
 /* ==================================================================
    SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
@@ -1548,900 +1558,601 @@ ol {
 
 /* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
 
-/* ==== SCREEN-SPECIFIC: the decision board (a document, not a room) = */
+/* ---- SCREEN 9: Threads home ---------------------------------------- */
 
-.db-page {
-  width: var(--sp-frame-w);
+.th-main {
+  display: grid;
+  grid-template-columns: 232px 440px minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* Rail: chrome recedes, one step dimmer than the list and preview. */
+.th-rail {
+  border-right: 1px solid var(--ink-hairline);
   background: var(--ink-bg);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-hero);
-  overflow: hidden;
-}
-.db-inner {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 48px 40px 56px;
-}
-.db-head {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--ink-hairline);
-  margin-bottom: 36px;
-}
-.db-title {
-  font-size: 26px;
-  color: var(--ink-text);
-  margin: 10px 0 10px;
-}
-.db-lede {
-  font-size: 13.5px;
-  line-height: 1.65;
-  color: var(--ink-body);
-  max-width: 720px;
-}
-.db-section {
-  margin-bottom: 44px;
-}
-.db-section-head {
+  padding: 14px 12px;
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
 }
-.db-section-num {
-  font-family: var(--font-mono);
+.th-scope {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 3px;
+}
+.th-scope-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 6px;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+  text-align: left;
+}
+.th-scope-item:hover {
+  color: var(--ink-body);
+}
+.th-scope-item.is-active {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.th-scope-note {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
   color: var(--ink-faint);
 }
-.db-section-title {
-  font-size: 16px;
-  font-weight: 600;
+.th-rail-group-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 9px 6px;
+}
+.th-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-body);
+  cursor: pointer;
+}
+.th-rail-item:hover {
+  background: var(--ink-raised);
+}
+.th-rail-item.is-active {
+  background: var(--ink-raised);
   color: var(--ink-text);
 }
-.db-section-ref {
+.th-rail-count {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
 }
-.db-section-sub {
-  font-size: 12.5px;
-  line-height: 1.6;
+/* The gate object at the ambient tier: same count, same source as
+   the TopBar Approvals pill and the one gate row. Never full hue
+   here; the row's chip is the screen's single ember locus. */
+.th-rail-count.is-gate {
+  color: var(--voice-human-dim);
+}
+.th-rail-glyph {
+  width: 14px;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 11px;
+  flex: none;
+}
+.th-new-folder {
   color: var(--ink-subtle);
-  max-width: 760px;
-  margin-bottom: 18px;
+  font-size: 12px;
 }
 
-/* Minicards and exhibit frames */
-.db-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+/* List: search on top, day-grouped rows below. */
+.th-list {
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.db-card {
-  background: var(--ink-panel);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-panel);
-  padding: 16px;
-}
-.db-card-label {
+.th-search {
+  margin: 12px 12px 4px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
-  margin-bottom: 12px;
-}
-.db-card-note {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--ink-subtle);
-  margin-top: 12px;
-}
-
-/* The framed room-header preview (exhibit A) */
-.db-preview {
-  position: relative;
+  height: var(--ink-control-sm);
+  padding: 0 10px;
+  background: var(--ink-panel);
   border: 1px solid var(--ink-hairline);
   border-radius: var(--ink-radius-control);
-  overflow: hidden;
-  background: var(--ink-bg);
 }
-.db-preview-topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 36px;
-  padding: 0 14px;
-  border-bottom: 1px solid var(--ink-hairline);
-  position: relative;
-  z-index: 2;
-}
-.db-preview-topbar .db-mini-brand {
-  font-size: 11px;
-  font-weight: 600;
+.th-search input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--ink-text);
 }
-.db-mini-nav {
-  display: flex;
-  gap: 10px;
-  margin-left: 10px;
-  font-size: 10.5px;
-  color: var(--ink-subtle);
-}
-.db-mini-nav .is-on {
-  color: var(--ink-text);
-}
-.db-preview-spine {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--ink-hairline);
-  position: relative;
-  z-index: 2;
-}
-.db-mini-node {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 9px;
+.th-search input::placeholder {
   color: var(--ink-faint);
+}
+.th-search-glyph {
+  color: var(--ink-faint);
+  font-size: 12px;
+  flex: none;
+}
+.th-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.th-list-scroll .sp-day-divider {
+  margin: 6px 0 2px;
+}
+
+/* Thread row: one internal grid (Addendum 1.1 #2). Chip row with the
+   label left and the mono time right, then title, then snippet, then
+   evidence chips only when real. Plain ink surface, hairline border,
+   no edge strips, nothing decorative. */
+.th-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.th-row:hover {
+  background: var(--ink-panel);
+  border-color: var(--ink-hairline-soft);
+}
+.th-row.is-selected {
+  background: var(--ink-raised);
+  border-color: var(--ink-hairline);
+}
+.th-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.th-row-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.db-mini-node .db-mini-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+.th-you-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--ink-subtle);
   background: var(--ink-raised);
-  border: 1px solid var(--ink-hairline);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
 }
-.db-mini-edge {
-  flex: 1;
-  min-width: 6px;
-  height: 1px;
-  background: var(--ink-hairline-soft);
-}
-.db-preview-body {
-  position: relative;
-  z-index: 2;
-  padding: 22px 20px 24px;
-}
-.db-preview-body .sp-warm-slot {
-  background: transparent;
-}
-/* The app-idle star layer: far layer only, roughly half landing
-   density, tiny fixed dots. Pure specimen, no animation. */
-.db-stars {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-.db-star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: #f4f4f5;
-}
-
-/* Swatch rows (exhibit B) */
-.db-ramp {
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
+.th-row.is-selected .th-you-chip {
   background: var(--ink-panel);
-  margin-bottom: 12px;
-  overflow: hidden;
 }
-.db-ramp-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 12px 16px 0;
-}
-.db-ramp-name {
+.th-row-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-text);
-}
-.db-ramp-role {
-  font-size: 11.5px;
-  color: var(--ink-subtle);
-}
-.db-swatch-row {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  padding: 12px 16px 14px;
-}
-.db-swatch {
-  min-width: 0;
-}
-.db-swatch-chip {
-  height: 34px;
-  border-radius: 6px;
-  border: 1px solid var(--ink-hairline-soft);
-}
-.db-swatch-token {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  color: var(--ink-subtle);
-  margin-top: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.db-swatch-use {
-  font-size: 10.5px;
-  line-height: 1.45;
-  color: var(--ink-faint);
+.th-row-snippet {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.th-row-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 2px;
 }
-.db-ban-list li {
-  display: flex;
-  gap: 10px;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--ink-body);
-  padding: 7px 0;
-  border-bottom: 1px solid var(--ink-hairline-soft);
-}
-.db-ban-list li:last-child {
-  border-bottom: none;
-}
-.db-ban-x {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--verdict-fail);
-  flex: none;
-  padding-top: 1px;
-}
-
-/* Storyboard (exhibit C) */
-.db-story {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.db-beat {
-  background: var(--ink-panel);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-panel);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-.db-beat-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.db-beat-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-}
-.db-beat-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-text);
-}
-.db-beat-time {
-  margin-left: auto;
+/* Memory grammar as a CHIP, never an edge tick (Addendum 1.1 #1). */
+.th-memory-chip {
   font-family: var(--font-mono);
   font-size: 9.5px;
-  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid var(--voice-memory-border);
   white-space: nowrap;
 }
-.db-beat-stage {
-  flex: 1;
-  border: 1px solid var(--ink-hairline-soft);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-bg);
-  padding: 12px;
-  margin: 8px 0 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  min-height: 128px;
-}
-.db-beat-caption {
-  font-size: 11.5px;
-  line-height: 1.55;
-  color: var(--ink-subtle);
-}
-.db-toast {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink-raised);
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  padding: 8px 11px;
-  font-size: 12px;
-  color: var(--ink-text);
-}
-.db-beat-drift {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px dashed var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  padding: 12px 16px;
-}
-
-/* Retirements (exhibit D) */
-.db-retire-row {
-  display: grid;
-  grid-template-columns: 190px 1fr auto;
-  gap: 18px;
-  align-items: center;
-  padding: 13px 16px;
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-panel);
-  margin-bottom: 10px;
-}
-.db-retire-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-text);
-}
-.db-retire-was {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  margin-top: 2px;
-}
-.db-retire-reco {
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--ink-body);
-}
-.db-reco-tag {
+.th-folder-chip {
   font-family: var(--font-mono);
   font-size: 9.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
-  border: 1px solid var(--ink-hairline);
-  border-radius: 4px;
+  letter-spacing: 0.04em;
   padding: 1px 5px;
-  margin-right: 7px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  white-space: nowrap;
 }
 
-/* The founder's-call line: an empty checkbox, always unchecked. */
-.db-call {
+/* Preview: the selected thread, continuable and promotable. */
+.th-preview {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.th-preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px 8px;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
-  margin-top: 14px;
-  padding: 11px 16px;
-  border: 1px solid var(--ink-hairline);
-  border-radius: var(--ink-radius-control);
-  background: var(--ink-bg);
 }
-.db-call-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-subtle);
-  flex: none;
-}
-.db-call-opts {
+.th-preview-metaline {
   display: flex;
-  align-items: center;
-  gap: 22px;
-  flex-wrap: wrap;
-}
-.db-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--ink-body);
-}
-.db-box {
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--ink-subtle);
-  border-radius: 4px;
-  flex: none;
-}
-.db-call-blank {
-  margin-left: auto;
-  display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-}
-.db-call-blank .db-blank-line {
-  display: inline-block;
-  width: 180px;
-  border-bottom: 1px solid var(--ink-hairline);
-  height: 14px;
-}
-.db-footer {
-  border-top: 1px solid var(--ink-hairline);
-  padding-top: 18px;
   font-size: 12px;
   color: var(--ink-subtle);
-  line-height: 1.6;
-  max-width: 760px;
+}
+.th-preview-metaline .th-row-time {
+  font-size: 10.5px;
+}
+.th-exchange-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.th-preview .sp-thread-item {
+  font-size: 12.5px;
+}
+/* A memory citation inside a machine message: gold chip leading the
+   line, faint wash on the quoted line only. No edge strips. */
+.th-memory-cite {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: var(--voice-memory-faint);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.th-receipts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+}
+.th-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px 16px;
+  border-top: 1px solid var(--ink-hairline-soft);
 }
 </style>
 </head>
 <body>
 
-<div class="db-page">
-  <div class="db-inner">
+<div class="sp-frame">
+  <div class="sp-shell" style="grid-template-rows: var(--sp-topbar-h) minmax(0, 1fr) auto;">
 
-    <!-- ============ Board header ============ -->
-    <header class="db-head">
-      <div class="sp-kicker">Founder gate 1 &middot; review document &middot; not an app screen</div>
-      <!-- The one Geist Pixel moment on this page -->
-      <h1 class="db-title sp-pixel">The decision board</h1>
-      <p class="db-lede">
-        Every open visual decision from the design language spec, on one page. Four calls: the starfield in the app, the color law, the approval choreography, and the four retirements. Each section ends with your checkbox; nothing below ships until the box is marked. The colored elements on this page are exhibits under review, not live UI.
-      </p>
+    <!-- ============================================================
+         REGION 1: TopBar (permanent, identical anatomy). Threads is
+         not a fifth door: no nav item is active. It opened from the
+         history affordance beside Ask (G T). The Approvals count is
+         the gate object's ambient rendering; the same single item
+         appears as this screen's one ember locus down in the list.
+         ============================================================ -->
+    <header class="sp-topbar">
+      <div class="sp-topbar-brand">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <g fill="#f4f4f5">
+            <circle cx="8" cy="2.4" r="1.15"/>
+            <circle cx="12.4" cy="4.5" r="1.15"/>
+            <circle cx="13.5" cy="9.3" r="1.15"/>
+            <circle cx="10.4" cy="13.1" r="1.15"/>
+            <circle cx="5.6" cy="13.1" r="1.15"/>
+            <circle cx="2.5" cy="9.3" r="1.15"/>
+            <circle cx="3.6" cy="4.5" r="1.15"/>
+          </g>
+          <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+        </svg>
+        <span class="sp-brand-name">Supaprod</span>
+      </div>
+      <div class="sp-topbar-divider"></div>
+      <button class="sp-product-switcher">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+      <nav class="sp-topbar-nav">
+        <a class="sp-nav-item" href="#">Mission Control</a>
+        <a class="sp-nav-item" href="#">Approvals <span class="sp-tray-count">1</span></a>
+        <a class="sp-nav-item" href="#">Brain</a>
+        <a class="sp-nav-item" href="#">Settings</a>
+      </nav>
+      <div class="sp-topbar-right">
+        <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+        <button class="sp-icon-btn" title="Past threads (you are here)">&#8635;</button>
+        <button class="sp-icon-btn" title="Shortcuts">?</button>
+        <div class="sp-avatar">MO</div>
+      </div>
     </header>
 
-    <!-- ============ A. Starfield: with vs without ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">A</span>
-        <span class="db-section-title">Starfield in the app: the room at idle, with and without</span>
-        <span class="db-section-ref">spec &sect;3</span>
-      </div>
-      <p class="db-section-sub">
-        Both frames show the same moment: a brand-new Helio Labs workspace, Relay selected, no missions yet. This is the ONLY class of surface where the spec allows stars: workspace and product empty states, onboarding, and the Brain at idle. Working surfaces (Mission Control mid-loop, Thread, Canvas, Approvals) stay starless in both worlds.
-      </p>
+    <!-- ============================================================
+         MAIN: rail (scope, views, folders) + list + preview.
+         No Spine and no docked Composer: Threads is the archive
+         behind Ask, and the search field is a filter, never a second
+         input box on the screen.
+         ============================================================ -->
+    <div class="th-main">
 
-      <div class="db-grid-2">
-        <!-- WITHOUT -->
-        <div class="db-card">
-          <div class="db-card-label">A1 &middot; without: plain ink</div>
-          <div class="db-preview">
-            <div class="db-preview-topbar">
-              <span class="db-mini-brand">Supaprod</span>
-              <span class="sp-mono" style="font-size:10px;color:var(--ink-subtle)">Helio Labs / Relay</span>
-              <nav class="db-mini-nav">
-                <span class="is-on">Mission Control</span><span>Approvals</span><span>Brain</span><span>Settings</span>
-              </nav>
-            </div>
-            <div class="db-preview-spine">
-              <span class="db-mini-node"><span class="db-mini-dot"></span>01 Discover</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>02 Decide</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>03 Plan</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>04 Design</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>05 Build</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>06 Ship</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>07 Learn</span>
-            </div>
-            <div class="db-preview-body">
-              <div class="sp-warm-slot">
-                <p class="sp-warm-slot-line">Tell me what you're building, or start with "What should we build next?"</p>
-              </div>
-            </div>
-          </div>
-          <p class="db-card-note">Honest and quiet. The risk: a brand-new workspace reads as a dead room in its very first minute, before any voice has spoken.</p>
+      <!-- ----------------------------------------------------------
+           Rail. Scope on top (per-product / workspace-wide), then
+           system views, then user folders. Counts right-aligned,
+           mono, tabular. "Waiting on you" rides the ambient ember
+           tier: same object and count as Approvals.
+           ---------------------------------------------------------- -->
+      <aside class="th-rail">
+
+        <div class="th-scope">
+          <button class="th-scope-item is-active">This product <span class="th-scope-note">RELAY</span></button>
+          <button class="th-scope-item">All of Helio Labs <span class="th-scope-note">4 PRODUCTS</span></button>
         </div>
 
-        <!-- WITH -->
-        <div class="db-card">
-          <div class="db-card-label">A2 &middot; with: app-idle variant, half density, far layer only</div>
-          <div class="db-preview">
-            <div class="db-stars" aria-hidden="true">
-              <span class="db-star" style="left:6%;top:58%;opacity:.16"></span>
-              <span class="db-star" style="left:14%;top:82%;opacity:.10"></span>
-              <span class="db-star" style="left:23%;top:66%;opacity:.20"></span>
-              <span class="db-star" style="left:31%;top:90%;opacity:.09"></span>
-              <span class="db-star" style="left:40%;top:72%;opacity:.13"></span>
-              <span class="db-star" style="left:48%;top:86%;opacity:.18"></span>
-              <span class="db-star" style="left:57%;top:63%;opacity:.11"></span>
-              <span class="db-star" style="left:66%;top:79%;opacity:.15"></span>
-              <span class="db-star" style="left:74%;top:60%;opacity:.09"></span>
-              <span class="db-star" style="left:82%;top:88%;opacity:.19"></span>
-              <span class="db-star" style="left:90%;top:70%;opacity:.12"></span>
-              <span class="db-star" style="left:95%;top:83%;opacity:.08"></span>
-            </div>
-            <div class="db-preview-topbar">
-              <span class="db-mini-brand">Supaprod</span>
-              <span class="sp-mono" style="font-size:10px;color:var(--ink-subtle)">Helio Labs / Relay</span>
-              <nav class="db-mini-nav">
-                <span class="is-on">Mission Control</span><span>Approvals</span><span>Brain</span><span>Settings</span>
-              </nav>
-            </div>
-            <div class="db-preview-spine">
-              <span class="db-mini-node"><span class="db-mini-dot"></span>01 Discover</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>02 Decide</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>03 Plan</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>04 Design</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>05 Build</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>06 Ship</span><span class="db-mini-edge"></span>
-              <span class="db-mini-node"><span class="db-mini-dot"></span>07 Learn</span>
-            </div>
-            <div class="db-preview-body">
-              <div class="sp-warm-slot" style="border-color:transparent">
-                <p class="sp-warm-slot-line">Tell me what you're building, or start with "What should we build next?"</p>
-              </div>
-            </div>
-          </div>
-          <p class="db-card-note">Landing DNA carried into the first minute: the room feels like a place before it has content. Stars sit behind the empty slot only, never behind the chrome rows, and vanish the moment real work arrives.</p>
-        </div>
-      </div>
-
-      <div class="db-card" style="margin-top:14px">
-        <div class="db-card-label">The spec's recommendation</div>
-        <p style="font-size:12.5px;line-height:1.6;color:var(--ink-body)">
-          Adopt A2, scoped exactly as the spec verdict states: <span style="color:var(--ink-text)">working surfaces never; brand moments yes</span>. The app-idle variant runs at roughly half landing density, far layer only, on workspace and product empty states, onboarding and tour frames, and the Brain at idle. It is removed, not dimmed, once the surface holds content, so ambient novelty can never compete with the machine-blue working presence.
-        </p>
-      </div>
-
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>A1: no stars anywhere in the app</span>
-          <span class="db-check"><span class="db-box"></span>A2: app-idle variant, scoped as above (recommended)</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ B. The color system ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">B</span>
-        <span class="db-section-title">The color law: three voices, five tiers each</span>
-        <span class="db-section-ref">spec &sect;2</span>
-      </div>
-      <p class="db-section-sub">
-        Black monotone carries the interface; three voices carry all meaning. Each voice is a ramp so it can whisper (ambience) or speak (the one live locus) without anyone inventing an inline rgba. The swatches below are specimens of the tokens as they exist in the shared stylesheet.
-      </p>
-
-      <!-- Ember ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Ember</span>
-          <span class="db-ramp-role">the human's move. Brand color. One live locus per screen: the gate.</span>
-        </div>
-        <div class="db-swatch-row">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human)"></div>
-            <div class="db-swatch-token">--voice-human</div>
-            <div class="db-swatch-use">gate text, Approve and run, focus ring</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-hover)"></div>
-            <div class="db-swatch-token">--voice-human-hover</div>
-            <div class="db-swatch-use">accent button hover only</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-dim)"></div>
-            <div class="db-swatch-token">--voice-human-dim</div>
-            <div class="db-swatch-use">snoozed gates, spine entry caps</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-border)"></div>
-            <div class="db-swatch-token">--voice-human-border</div>
-            <div class="db-swatch-use">the active tray card and chip edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-soft)"></div>
-            <div class="db-swatch-token">--voice-human-soft</div>
-            <div class="db-swatch-use">gate chip and tray count fills</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-human-faint)"></div>
-            <div class="db-swatch-token">--voice-human-faint</div>
-            <div class="db-swatch-use">needs-you row tint, tray count fill</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Machine ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Machine blue</span>
-          <span class="db-ramp-role">the agents at work. 8.64:1 on ink. Full hue only where work happens right now.</span>
-        </div>
-        <div class="db-swatch-row" style="grid-template-columns:repeat(5,1fr)">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine)"></div>
-            <div class="db-swatch-token">--voice-machine</div>
-            <div class="db-swatch-use">active stage node, live PulseLine, caret, data numerals</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-dim)"></div>
-            <div class="db-swatch-token">--voice-machine-dim</div>
-            <div class="db-swatch-use">Working strip at rest, agent chips, inactive traces</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-border)"></div>
-            <div class="db-swatch-token">--voice-machine-border</div>
-            <div class="db-swatch-use">working state chip edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-soft)"></div>
-            <div class="db-swatch-token">--voice-machine-soft</div>
-            <div class="db-swatch-use">the working pulse halo</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-machine-faint)"></div>
-            <div class="db-swatch-token">--voice-machine-faint</div>
-            <div class="db-swatch-use">machine-authored row tint</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Memory ramp -->
-      <div class="db-ramp">
-        <div class="db-ramp-head">
-          <span class="db-ramp-name">Memory gold</span>
-          <span class="db-ramp-role">the Brain speaking. The gold ban holds everywhere else.</span>
-        </div>
-        <div class="db-swatch-row" style="grid-template-columns:repeat(5,1fr)">
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory)"></div>
-            <div class="db-swatch-token">--voice-memory</div>
-            <div class="db-swatch-use">solid: inside Brain only</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-dim)"></div>
-            <div class="db-swatch-token">--voice-memory-dim</div>
-            <div class="db-swatch-use">the memory chip on a memory-citing row</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-border)"></div>
-            <div class="db-swatch-token">--voice-memory-border</div>
-            <div class="db-swatch-use">Brain panel edges</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-soft)"></div>
-            <div class="db-swatch-token">--voice-memory-soft</div>
-            <div class="db-swatch-use">Brain idle wash</div>
-          </div>
-          <div class="db-swatch">
-            <div class="db-swatch-chip" style="background:var(--voice-memory-faint)"></div>
-            <div class="db-swatch-token">--voice-memory-faint</div>
-            <div class="db-swatch-use">memory citation row tint (the Briefing)</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="db-grid-2" style="margin-top:14px">
-        <!-- Verdict layer -->
-        <div class="db-card">
-          <div class="db-card-label">The verdict layer: state, never a voice</div>
-          <div style="display:flex;gap:10px;margin-bottom:10px">
-            <div style="flex:1">
-              <div class="db-swatch-chip" style="background:var(--verdict-pass)"></div>
-              <div class="db-swatch-token">--verdict-pass</div>
-            </div>
-            <div style="flex:1">
-              <div class="db-swatch-chip" style="background:var(--verdict-fail)"></div>
-              <div class="db-swatch-token">--verdict-fail</div>
-            </div>
-          </div>
-          <p style="font-size:12px;line-height:1.6;color:var(--ink-body)">
-            Badges, checks, and outcomes only. Never prose, chrome, or backgrounds. The amber working token is retired and deleted: working IS the machine speaking, so working states use the machine ramp and can never collide with memory gold again.
-          </p>
-        </div>
-        <!-- Bans -->
-        <div class="db-card">
-          <div class="db-card-label">The four bans</div>
-          <ul class="db-ban-list">
-            <li><span class="db-ban-x">&#215;</span>No purple, violet, or indigo anywhere, charts and embeds included. It is the generic-AI tell of 2026.</li>
-            <li><span class="db-ban-x">&#215;</span>No fourth voice. Verdicts have green and red, attention is ember, data numerals are machine blue.</li>
-            <li><span class="db-ban-x">&#215;</span>Gold outside the memory grammar. No gold text, headings, or metrics.</li>
-            <li><span class="db-ban-x">&#215;</span>Ember copy that skips the consequence. Every ember string says what approving sets in motion, or it is a bug.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Adopt the three ramps, the verdict layer, and the four bans as the color law</span>
-          <span class="db-check"><span class="db-box"></span>Change something first</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ C. The approval choreography ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">C</span>
-        <span class="db-section-title">The signature moment: approval releases work</span>
-        <span class="db-section-ref">spec &sect;5.3 &middot; 700 to 900ms, once per screen</span>
-      </div>
-      <p class="db-section-sub">
-        The one choreographed sequence in the product, spent on the low-frequency, high-stakes beat. The state change is optimistic: the click lands instantly, the animation happens past the trigger point. Storyboarded on the live case: SPEC-52, saved replies for Relay.
-      </p>
-
-      <div class="db-story">
-        <!-- Beat 1: the single live ember locus of this page -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">1</span>
-            <span class="db-beat-title">The gate waits</span>
-            <span class="db-beat-time">at rest</span>
-          </div>
-          <div class="db-beat-stage">
-            <div class="sp-gate-card" style="padding:10px">
-              <div class="sp-card-chiprow" style="margin-bottom:6px">
-                <span class="sp-gate-chip">Your move</span>
-                <span class="sp-card-time">10:26am</span>
-              </div>
-              <div class="sp-gate-headline" style="font-size:12px">The spec is ready for you.</div>
-              <div class="sp-gate-reco" style="font-size:11px">Approve it and Engineer starts the build.</div>
-              <div class="sp-gate-actions" style="margin-top:8px">
-                <button class="sp-btn sp-btn-accent" style="height:26px;font-size:11px">Approve and run <span class="sp-kbd">1</span></button>
-              </div>
-            </div>
-          </div>
-          <p class="db-beat-caption">The ember card in the Thread. Same object as the spine node and the tray card; one count, one source.</p>
-        </div>
-
-        <!-- Beat 2 -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">2</span>
-            <span class="db-beat-title">You press approve</span>
-            <span class="db-beat-time">0ms, optimistic</span>
-          </div>
-          <div class="db-beat-stage">
-            <div style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-panel);background:var(--ink-panel);padding:10px">
-              <div class="sp-receipt-line" style="font-size:11.5px">
-                <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Approved at <span class="sp-mono" style="font-size:10.5px">11:02am</span>. SPEC-52 is on record.</span>
-              </div>
-            </div>
-            <div class="db-toast" style="font-size:11px">Approved. Engineer starts the build.</div>
-          </div>
-          <p class="db-beat-caption">The card flips to a receipt, the registry toast confirms. No spinner ever sits between the click and this frame.</p>
-        </div>
-
-        <!-- Beat 3: the one full-hue machine locus of this page -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">3</span>
-            <span class="db-beat-title">The spine node flips</span>
-            <span class="db-beat-time">within 1s</span>
-          </div>
-          <div class="db-beat-stage">
-            <div style="display:flex;align-items:center;gap:5px">
-              <div class="sp-spine-node is-done" style="height:24px;padding:0 8px">
-                <span class="sp-spine-node-dot"></span>
-                <span class="sp-spine-node-num">03</span>
-                <span class="sp-spine-node-label" style="font-size:11px">Plan</span>
-                <span class="sp-artifact-chip">SPEC-52</span>
-              </div>
-              <span class="sp-spine-edge" style="min-width:8px"></span>
-              <div class="sp-spine-node is-working" style="height:24px;padding:0 8px">
-                <span class="sp-spine-node-dot ink-working"></span>
-                <span class="sp-spine-node-num">05</span>
-                <span class="sp-spine-node-label" style="font-size:11px">Build</span>
-              </div>
-            </div>
-          </div>
-          <p class="db-beat-caption">The energy visibly travels: 03 takes its check and artifact chip, 05 fills machine blue and picks up the working pulse.</p>
-        </div>
-
-        <!-- Beat 4 -->
-        <div class="db-beat">
-          <div class="db-beat-meta">
-            <span class="db-beat-num">4</span>
-            <span class="db-beat-title">The strip resumes</span>
-            <span class="db-beat-time">by 900ms, calm</span>
-          </div>
-          <div class="db-beat-stage">
-            <div class="sp-working-strip" style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-control);height:auto;min-height:30px;padding:6px 10px;font-size:10px;gap:8px">
-              <span class="sp-pulse-dot" style="width:6px;height:6px"></span>
-              <span>engineer &middot; reading the codebase first &middot; 0m</span>
-            </div>
-            <div class="db-beat-caption" style="margin-top:2px">The verb changes to the new stage's deck line. The room is quiet again; the work is not.</div>
-          </div>
-          <p class="db-beat-caption">First approval ever, once per user, adds the Pixel caption: "That approval just set three agents in motion."</p>
-        </div>
-      </div>
-
-      <!-- The optional star-drift beat: an explicit yes/no -->
-      <div class="db-beat-drift">
-        <div style="flex:1">
-          <div style="font-size:12.5px;font-weight:600;color:var(--ink-text);margin-bottom:3px">Optional beat 3b: one far-layer star drift</div>
-          <div style="font-size:12px;line-height:1.55;color:var(--ink-subtle)">A single slow drift in the far star layer acknowledges the release, only on surfaces that already carry the app-idle backdrop. Purely decorative, so the spec leaves it to this board rather than ruling.</div>
-        </div>
-        <div class="db-call-opts" style="flex:none">
-          <span class="db-check"><span class="db-box"></span>Yes, keep the beat</span>
-          <span class="db-check"><span class="db-box"></span>No, cut it</span>
-        </div>
-      </div>
-
-      <div class="db-call">
-        <span class="db-call-label">Founder's call</span>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Approve the four-beat choreography as storyboarded</span>
-          <span class="db-check"><span class="db-box"></span>Rework the sequence</span>
-        </div>
-        <span class="db-call-blank">notes<span class="db-blank-line"></span></span>
-      </div>
-    </section>
-
-    <!-- ============ D. The sanctioned retirements ============ -->
-    <section class="db-section">
-      <div class="db-section-head">
-        <span class="db-section-num">D</span>
-        <span class="db-section-title">The sanctioned retirements, re-confirmed in your sight</span>
-        <span class="db-section-ref">charter: no silent scope cuts</span>
-      </div>
-      <p class="db-section-sub">
-        Four pieces of the old app do not appear in any Mission Control mockup. The charter forbids cutting scope silently, so each is named here with its recommendation. Marking a box makes the cut yours, not ours.
-      </p>
-
-      <div class="db-retire-row">
         <div>
-          <div class="db-retire-name">Weather widget</div>
-          <div class="db-retire-was">old Today header ornament</div>
+          <div class="th-rail-group-label">Views</div>
+          <a class="th-rail-item is-active"><span class="th-rail-glyph">&#9776;</span>All threads <span class="th-rail-count">24</span></a>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#9679;</span>Waiting on you <span class="th-rail-count is-gate">1</span></a>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#10022;</span>In the brain <span class="th-rail-count">5</span></a>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#9675;</span>Unfiled <span class="th-rail-count">7</span></a>
         </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Decoration that answers no journey question; the Briefing already opens the day with what actually changed.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
 
-      <div class="db-retire-row">
         <div>
-          <div class="db-retire-name">Focus dock</div>
-          <div class="db-retire-was">old pinned what-needs-me panel</div>
+          <div class="th-rail-group-label">Folders</div>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#9656;</span>Pricing research <span class="th-rail-count">6</span></a>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#9656;</span>Support deflection <span class="th-rail-count">9</span></a>
+          <a class="th-rail-item"><span class="th-rail-glyph">&#9656;</span>Q3 planning <span class="th-rail-count">2</span></a>
+          <a class="th-rail-item th-new-folder"><span class="th-rail-glyph">+</span>New folder</a>
         </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Its one job, "what needs me now," is the Approvals tray plus the Working strip; a second home for the same question splits the count the one-source rule just unified.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
 
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Liquid glass</div>
-          <div class="db-retire-was">translucent blur panel treatment</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>Blur-driven depth fights the hairline-and-layering system and reads borrowed; in this language a hue never does a hairline's job, and neither does a blur.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
+      </aside>
 
-      <div class="db-retire-row">
-        <div>
-          <div class="db-retire-name">Standalone Ask panel</div>
-          <div class="db-retire-was">the old &#8984;J input, one of three</div>
-        </div>
-        <div class="db-retire-reco"><span class="db-reco-tag">retire</span>The Composer is the one input by charter; a surviving second box quietly rebuilds the three-input problem the rebuild was rejected for.</div>
-        <div class="db-call-opts">
-          <span class="db-check"><span class="db-box"></span>Retire</span>
-          <span class="db-check"><span class="db-box"></span>Keep</span>
-        </div>
-      </div>
-    </section>
+      <!-- ----------------------------------------------------------
+           List. Search, then day-grouped rows (the dayLabel seam).
+           Row grid per Addendum 1.1 #2: chip row (label left, mono
+           time right), title, snippet, evidence chips only when
+           real. The rollout row's gate chip is the ONE ember locus.
+           ---------------------------------------------------------- -->
+      <section class="th-list">
 
-    <footer class="db-footer">
-      When every box above carries your mark, this page becomes the record: the starfield scope, the color law, the choreography, and the four cuts are founder-ruled, and the build phase starts against them. Anything left unmarked stays open and blocks its section, not the gate.
-    </footer>
+        <div class="th-search ink-input-focus">
+          <span class="th-search-glyph">&#8981;</span>
+          <input placeholder="Search Relay's threads" />
+          <span class="sp-kbd">/</span>
+        </div>
+
+        <div class="th-list-scroll">
+
+          <div class="sp-day-divider">Today</div>
+
+          <!-- The gate thread: the single ember locus of the screen.
+               The chip, the rail count, and the Approvals pill are
+               the same object with one count from one source. -->
+          <article class="th-row">
+            <div class="th-row-meta">
+              <span class="sp-agent-chip">Chief of Staff</span>
+              <span class="sp-gate-chip"><span class="sp-state-dot" style="background:var(--voice-human)"></span>Your call</span>
+              <span class="th-row-time">9:41 AM</span>
+            </div>
+            <div class="th-row-title">Saved replies: the week 2 rollout</div>
+            <div class="th-row-snippet">Approve the rollout and Announce stages it to every Relay workspace Monday.</div>
+          </article>
+
+          <!-- The selected thread. -->
+          <article class="th-row is-selected">
+            <div class="th-row-meta">
+              <span class="th-you-chip">You</span>
+              <span class="th-row-time">8:56 AM</span>
+            </div>
+            <div class="th-row-title">Pricing teardown for the annual plan</div>
+            <div class="th-row-snippet">Chief of Staff: the annual discount is doing the work churn was blamed for.</div>
+            <div class="th-row-chips">
+              <span class="sp-artifact-chip">BET-31</span>
+              <span class="th-folder-chip">&#9656; Pricing research</span>
+            </div>
+          </article>
+
+          <div class="sp-day-divider">Fri Jul 17</div>
+
+          <article class="th-row">
+            <div class="th-row-meta">
+              <span class="sp-agent-chip">Announce</span>
+              <span class="th-row-time">4:12 PM</span>
+            </div>
+            <div class="th-row-title">Ship receipts for saved replies</div>
+            <div class="th-row-snippet">Shipped to production at 4:12pm. Rollback stayed one click for 24 hours.</div>
+            <div class="th-row-chips">
+              <span class="sp-artifact-chip">SPEC-52</span>
+              <span class="th-memory-chip">In the brain</span>
+            </div>
+          </article>
+
+          <article class="th-row">
+            <div class="th-row-meta">
+              <span class="th-you-chip">You</span>
+              <span class="th-row-time">11:20 AM</span>
+            </div>
+            <div class="th-row-title">Why did deflection dip in week 27?</div>
+            <div class="th-row-snippet">Watch traced the dip to the two macros retired on Jul 8, not to volume.</div>
+            <div class="th-row-chips">
+              <span class="sp-artifact-chip">NOTE-118</span>
+            </div>
+          </article>
+
+          <div class="sp-day-divider">Thu Jul 16</div>
+
+          <article class="th-row">
+            <div class="th-row-meta">
+              <span class="th-you-chip">You</span>
+              <span class="th-row-time">3:05 PM</span>
+            </div>
+            <div class="th-row-title">Tear down the queue-priority idea</div>
+            <div class="th-row-snippet">Declined as a build; the teardown holds it until 214 tickets say otherwise.</div>
+            <div class="th-row-chips">
+              <span class="sp-artifact-chip">DEC-19</span>
+              <span class="th-memory-chip">In the brain</span>
+            </div>
+          </article>
+
+          <article class="th-row">
+            <div class="th-row-meta">
+              <span class="sp-agent-chip">Draft</span>
+              <span class="th-row-time">10:12 AM</span>
+            </div>
+            <div class="th-row-title">Launch note for saved replies</div>
+            <div class="th-row-snippet">Draft wrote three versions; the plain one won and went into the kit.</div>
+            <div class="th-row-chips">
+              <span class="sp-artifact-chip">KIT-07</span>
+              <span class="th-folder-chip">&#9656; Support deflection</span>
+            </div>
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- ----------------------------------------------------------
+           Preview: the selected thread. SurfaceHeader anatomy, the
+           last exchange, what this thread already became (receipts),
+           and the action row. Continue reopens the thread where it
+           lives; Save to the brain proposes a memory candidate and
+           says so honestly (the Brain review gate decides).
+           ---------------------------------------------------------- -->
+      <section class="th-preview">
+
+        <header class="sp-surface-header">
+          <span class="sp-stage-marker">Thread</span>
+          <h1 class="sp-surface-title">Pricing teardown for the annual plan</h1>
+          <button class="sp-icon-btn" title="Rename">&#9998;</button>
+          <div class="sp-header-cluster">
+            <button class="sp-icon-btn" title="Copy link">&#128279;</button>
+            <div class="sp-kebab">
+              <button class="sp-icon-btn" title="Details">&#8942;</button>
+              <div class="sp-details-menu">
+                <button class="sp-menu-item">Move to folder</button>
+                <button class="sp-menu-item">Details</button>
+                <button class="sp-menu-item">Delete thread</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="th-preview-scroll">
+
+          <div class="th-preview-metaline">
+            <span>Started by you &middot; 14 exchanges &middot; Relay</span>
+            <span class="th-row-time">Updated 8:56 AM</span>
+          </div>
+
+          <div class="th-exchange-label">Last exchange</div>
+
+          <div class="sp-thread-item is-human">
+            <div class="sp-thread-meta">
+              <span class="th-you-chip">You</span>
+              <span class="sp-thread-time">8:52 AM</span>
+            </div>
+            If we killed the annual discount tomorrow, what would churn actually do? Use the week 27 and 28 numbers, not the average.
+          </div>
+
+          <div class="sp-thread-item is-machine">
+            <div class="sp-thread-meta">
+              <span class="sp-agent-chip">Chief of Staff</span>
+              <span class="sp-thread-time">8:56 AM</span>
+            </div>
+            Weeks 27 and 28 say the discount is retention, not revenue: 41 of the 46 annual renewals took it, and the 5 that did not all churned inside a quarter. Killing it saves 9% on paper and costs an estimated 3x that in renewals. The teardown in BET-31 holds.
+            <div class="th-memory-cite">
+              <span class="th-memory-chip">From the brain</span>
+              <span>Annual-plan churn was priced in, not fixed. Decided Jun 30, held up twice since.</span>
+            </div>
+          </div>
+
+          <div class="th-receipts">
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Saved as a decision. <span class="sp-mono">DEC-22</span> links back to this thread. <span class="sp-receipt-action">Open it</span></span>
+            </div>
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Saved as a note. <span class="sp-mono">NOTE-121</span> in Pricing research.</span>
+            </div>
+          </div>
+
+          <div class="sp-next-line">
+            <button class="sp-journey-chip">Make this a bet <span class="sp-chip-arrow">&#8594;</span></button>
+          </div>
+
+        </div>
+
+        <div class="th-preview-actions">
+          <button class="sp-btn">Continue this thread <span class="sp-kbd">&#9166;</span></button>
+          <button class="sp-btn-secondary sp-btn">Save to the brain</button>
+          <button class="sp-btn-ghost sp-btn">Move to folder</button>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- ============================================================
+         Working strip: the machine stays visible even in the
+         archive. Sunday quiet, honest about the next sweep; the
+         summary carries the same one waiting-on-you count.
+         ============================================================ -->
+    <div class="sp-working-strip">
+      <span class="sp-pulse-dot"></span>
+      <span>all quiet &middot; watch's next sweep Mon 7:00 AM</span>
+      <span class="sp-strip-sep">&middot;</span>
+      <span class="sp-strip-summary">0 agents working, 1 waiting on you</span>
+    </div>
 
   </div>
 </div>
