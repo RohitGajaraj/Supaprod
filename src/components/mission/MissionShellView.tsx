@@ -70,6 +70,8 @@ export interface MissionShellViewProps {
   onOpenCrew?: () => void;
   /** Opens the engine room (off-nav, one click deep). Optional. */
   onOpenEngineRoom?: () => void;
+  /** Opens the Artifacts workspace view (what the loop has made). Optional. */
+  onOpenArtifacts?: () => void;
   /** The real Thread column (the caller owns the stream + briefing reads). */
   thread: Omit<ThreadProps, "className">;
   /** The real docked Composer (the caller owns draft + expanded state). */
@@ -201,6 +203,7 @@ export function MissionShellView({
   onAsk,
   onOpenCrew,
   onOpenEngineRoom,
+  onOpenArtifacts,
   thread,
   composer,
   workingStrip,
@@ -277,6 +280,16 @@ export function MissionShellView({
               style={{ color: "var(--ink-subtle)" }}
             >
               Under the hood
+            </button>
+          ) : null}
+          {onOpenArtifacts ? (
+            <button
+              type="button"
+              onClick={onOpenArtifacts}
+              className="ink-focus hidden h-7 items-center rounded-lg px-2 text-[12px] transition-colors hover:bg-[var(--ink-raised)] hover:text-[var(--ink-body)] sm:flex"
+              style={{ color: "var(--ink-subtle)" }}
+            >
+              Artifacts
             </button>
           ) : null}
           {/* The always-visible Ask affordance: summons the same composer. */}

@@ -488,6 +488,7 @@ export function MissionShell({
         }}
         onOpenCrew={() => setCrewOpen(true)}
         onOpenEngineRoom={() => void navigate({ to: "/engine-room" })}
+        onOpenArtifacts={() => void navigate({ to: "/artifacts" })}
         thread={{
           dayLabel,
           briefing: briefingQ.data ?? null,

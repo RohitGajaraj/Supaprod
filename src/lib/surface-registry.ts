@@ -714,14 +714,15 @@ export const SURFACE_REGISTRY = {
     opensFrom: "top-bar-threads",
     status: "planned",
   },
-  // Artifacts home: generated resources (interactive prototypes, HTML files,
-  // docs, launch kits) get a named, revisitable home. Naming and placement
-  // pending the founder's Gate 1b pick; registered so it cannot be forgotten.
+  // Artifacts home: the workspace view of what the loop has made (prototypes,
+  // specs, docs today). Founder-approved 2026-07-19, named "Artifacts", reached
+  // from the room's Artifacts door and /artifacts. Backed by artifacts.functions.ts;
+  // versions + rename/delete follow with their migration (gap K6-K9).
   artifacts: {
     kind: "route",
-    home: "artifacts",
-    opensFrom: "top-bar-artifacts",
-    status: "planned",
+    home: "route:/artifacts",
+    opensFrom: "room-topbar-artifacts-door",
+    status: "live",
   },
 
   // ---- Brain (memory as a destination, not a settings pane) ----
@@ -870,7 +871,7 @@ export type SurfaceDomain = keyof typeof SURFACE_REGISTRY;
  * while listed here. When a placeholder's *.functions.ts lands, remove it
  * from this list in the same commit.
  */
-export const PLACEHOLDER_DOMAINS: readonly SurfaceDomain[] = ["threads", "artifacts"];
+export const PLACEHOLDER_DOMAINS: readonly SurfaceDomain[] = ["threads"];
 
 /** Lookup with a typed result; returns undefined for unknown domains. */
 export function surfaceForDomain(domain: string): SurfaceEntry | undefined {
