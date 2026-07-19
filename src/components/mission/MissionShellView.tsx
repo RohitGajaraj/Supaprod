@@ -25,7 +25,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { Spine, type StageId, type StageLoopState } from "@/components/mission/Spine";
-import { Kbd, NextLine, ReceiptLine, SurfaceHeader } from "@/components/mission/primitives";
+import { Kbd, NextLine, ReceiptLine } from "@/components/mission/primitives";
 // Direct imports (not the ./composer barrel): the barrel pulls the connected
 // GlobalComposer and its live seams; the pure view must stay provider-free.
 import { Composer, type ComposerProps } from "./composer/Composer";
@@ -70,9 +70,12 @@ export interface MissionShellViewProps {
   thread: Omit<ThreadProps, "className">;
   /** The real docked Composer (the caller owns draft + expanded state). */
   composer: Omit<ComposerProps, "className">;
-  /** Mono stage marker for the Canvas header ("01 Discover"). */
-  canvasMarker: string;
-  canvasTitle: string;
+  /** The always-on WorkingStrip, rendered just above the Composer. */
+  workingStrip?: ReactNode;
+  /** Optional backdrop behind the Canvas (the scoped app-idle starfield),
+   *  mounted only on a genuinely idle/empty room. */
+  canvasBackdrop?: ReactNode;
+  /** The stage's face. Owns its own SurfaceHeader (spec 9); the shell frames it. */
   canvas: ReactNode;
   className?: string;
 }
@@ -194,8 +197,8 @@ export function MissionShellView({
   onAsk,
   thread,
   composer,
-  canvasMarker,
-  canvasTitle,
+  workingStrip,
+  canvasBackdrop,
   canvas,
   className,
 }: MissionShellViewProps) {
@@ -298,16 +301,21 @@ export function MissionShellView({
           </div>
         </aside>
 
-        {/* Region 4: the Canvas. One step brighter than chrome. */}
+        {/* Region 4: the Canvas. One step brighter than chrome. The face owns
+            its own SurfaceHeader (spec 9), working triple, and scroll. An
+            optional app-idle backdrop sits behind an idle/empty room. */}
         <section
           data-region="canvas"
-          className="flex min-h-0 min-w-0 flex-col"
+          className="relative flex min-h-0 min-w-0 flex-col"
           style={{ background: "var(--ink-panel)" }}
         >
-          <SurfaceHeader stageMarker={canvasMarker} title={canvasTitle} />
-          <div className="min-h-0 flex-1 overflow-y-auto">{canvas}</div>
+          {canvasBackdrop}
+          <div className="relative z-[1] flex min-h-0 flex-1 flex-col">{canvas}</div>
         </section>
       </div>
+
+      {/* The always-on activity line, just above the one input (spec 6.2). */}
+      {workingStrip}
 
       {/* Region 5: the real docked Composer. Collapsed it is a button strip;
           expanded it is THE input. The caller keeps the overlay and the dock

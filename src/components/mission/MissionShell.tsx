@@ -26,7 +26,7 @@
 // body is not extractable (Design, Build, Ship), an honest "Open the full
 // workbench" card links to the existing route. Real CanvasFaces are Phase 3.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -35,6 +35,7 @@ import { useAskStream } from "@/hooks/use-ask-stream";
 import {
   decideApprovalItem,
   getApprovalsQueue,
+  type ApprovalKind,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
 import { getLoopState } from "@/lib/loop-state.functions";
@@ -47,75 +48,53 @@ import { SPINE_STAGES, type StageId, type StageLoopState } from "@/components/mi
 import { MissionShellView, type MissionDoorId } from "./MissionShellView";
 import { journeyActivation, journeyHandoffFor } from "./journey-wiring";
 import { ComposerOverlay } from "./composer/ComposerOverlay";
-import { DiscoverSurface } from "@/components/discover/DiscoverSurface";
-import { OpportunityQueue } from "@/components/discover/OpportunityQueue";
-import { PlanSurface } from "@/components/plan/PlanSurface";
-import { OutcomesPanel } from "@/components/learn/OutcomesPanel";
+import { StageCanvasFace } from "./faces";
+import { ApprovalsTray } from "./ApprovalsTray";
+import { WorkingStrip } from "./WorkingStrip";
+import { AppIdleBackdrop } from "./AppIdleBackdrop";
+import { useLiveActivity } from "@/components/supaprod/LivePulse";
 
 /** Poll only while the tab is visible (the AppShell convention). */
 function pollWhenVisible(ms: number) {
   return () => (typeof document !== "undefined" && document.hidden ? false : ms);
 }
 
-/** Honest Phase 2 face for stages whose old route body is not cleanly
- *  importable: name the workbench, link the door, promise nothing else. */
-function OpenWorkbenchCard({ label, to }: { label: string; to: string }) {
-  return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div
-        className="w-full max-w-[420px] rounded-xl border p-6 text-center"
-        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
-      >
-        <div className="text-sm font-semibold" style={{ color: "var(--ink-text)" }}>
-          {label} works in its full workbench.
-        </div>
-        <p className="mt-2 text-[12.5px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
-          This stage has not moved into Mission Control yet. Everything is live in the existing
-          workbench.
-        </p>
-        <div className="mt-4 inline-flex">
-          <Link
-            to={to}
-            className="ink-focus inline-flex h-8 items-center gap-[7px] whitespace-nowrap rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
-            style={{
-              background: "var(--ink-panel)",
-              borderColor: "var(--ink-hairline)",
-              color: "var(--ink-text)",
-            }}
-          >
-            Open the full workbench
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
+/** Which Spine stage a gate family lights (client-safe mirror of
+ *  loop-state.functions' GATE_STAGE; that lives in a server module, so the
+ *  optimistic signature moment keeps its own copy rather than importing it). */
+const GATE_TO_STAGE: Record<ApprovalKind, StageId> = {
+  decision: "decide",
+  opportunity: "decide",
+  assumption_challenge: "decide",
+  spec: "plan",
+  design_gate: "design",
+  tool_call: "build",
+  trust_graduation: "build",
+  memory_candidate: "learn",
+  house_rule: "learn",
+  playbook_proposal: "learn",
+};
 
-/** The stage's temp Canvas face. Wrapped in the room's panel padding where the
- *  legacy surface expects a page body. */
-function stageFace(stage: StageId): ReactNode {
-  switch (stage) {
-    case "discover":
-      return <DiscoverSurface />;
-    case "decide":
-      return <OpportunityQueue />;
-    case "plan":
-      return <PlanSurface />;
-    case "design":
-      return <OpenWorkbenchCard label="Design" to="/design" />;
-    case "build":
-      return <OpenWorkbenchCard label="Build" to="/build" />;
-    case "ship":
-      return <OpenWorkbenchCard label="Ship" to="/ship" />;
-    case "learn":
-      return <div className="p-6">{<OutcomesPanel />}</div>;
-  }
-}
+/** The stage's live verb for the optimistic flip (mirrors loop-state's
+ *  LIVE_VERB; kept client-side for the same reason). */
+const OPTIMISTIC_VERB: Record<StageId, string> = {
+  discover: "reading signals",
+  decide: "weighing the case",
+  plan: "drafting the spec",
+  design: "shaping the prototype",
+  build: "writing the change",
+  ship: "staging the release",
+  learn: "reading the results",
+};
+
+const FIRST_APPROVAL_KEY = "supaprod:mc:first-approval-seen";
 
 export function MissionShell({
   productId,
   stage,
   journey,
+  trayOpen,
+  onTrayChange,
   onStageChange,
   onJourneyChange,
 }: {
@@ -123,6 +102,9 @@ export function MissionShell({
   stage: StageId;
   /** The active journey (URL search), or null. */
   journey: JourneyId | null;
+  /** The Approvals tray open state (URL search ?panel=approvals). */
+  trayOpen: boolean;
+  onTrayChange: (open: boolean) => void;
   onStageChange: (stage: StageId) => void;
   /** One navigation: the journey AND the stage its activation lands on. */
   onJourneyChange: (journey: JourneyId | null, stage?: StageId) => void;
@@ -163,12 +145,57 @@ export function MissionShell({
   }, [approvalsQueue, productId]);
 
   const decideFn = useServerFn(decideApprovalItem);
+  const queueKey = ["approvals", "queue", activeWorkspaceId] as const;
+  const loopKey = ["loop-state", activeWorkspaceId, productId] as const;
   const decideMutation = useMutation({
     mutationFn: (vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" }) =>
       decideFn({
         data: { id: vars.item.sourceId, kind: vars.item.kindKey, verdict: vars.verdict },
       }),
-    onError: () => toast("That decision did not save. Try again."),
+    // The signature moment (spec 5.3): apply optimistically so the energy
+    // visibly travels within 1s. The gate leaves the queue (its ember clears
+    // on the Spine and the pill), and on approve the unblocked stage flips to
+    // machine blue with the new verb; the Working strip picks up the change
+    // from the same loop-state cache. Rolled back on error.
+    onMutate: async (vars) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: queueKey }),
+        queryClient.cancelQueries({ queryKey: loopKey }),
+      ]);
+      const prevQueue = queryClient.getQueryData(queueKey);
+      const prevLoop = queryClient.getQueryData(loopKey);
+      queryClient.setQueryData<{ items: ApprovalQueueItem[] }>(queueKey, (old) =>
+        old ? { items: old.items.filter((i) => i.id !== vars.item.id) } : old,
+      );
+      const flipStage = GATE_TO_STAGE[vars.item.kindKey];
+      queryClient.setQueryData<{ stages: StageLoopState[] }>(loopKey, (old) => {
+        if (!old) return old;
+        return {
+          stages: old.stages.map((s) => {
+            if (s.stage !== flipStage) return s;
+            return vars.verdict === "approve"
+              ? { stage: s.stage, state: "active", liveVerb: OPTIMISTIC_VERB[flipStage] }
+              : { stage: s.stage, state: "quiet" };
+          }),
+        };
+      });
+      // First approval ever, once per user: the one Pixel caption (spec 5.3).
+      if (
+        vars.verdict === "approve" &&
+        typeof window !== "undefined" &&
+        !window.localStorage.getItem(FIRST_APPROVAL_KEY)
+      ) {
+        window.localStorage.setItem(FIRST_APPROVAL_KEY, "1");
+        toast("That approval just set agents in motion.");
+      }
+      return { prevQueue, prevLoop };
+    },
+    onError: (_e, _vars, ctx) => {
+      const c = ctx as { prevQueue?: unknown; prevLoop?: unknown } | undefined;
+      if (c?.prevQueue !== undefined) queryClient.setQueryData(queueKey, c.prevQueue);
+      if (c?.prevLoop !== undefined) queryClient.setQueryData(loopKey, c.prevLoop);
+      toast("That decision did not save. Try again.");
+    },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["approvals"] });
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
@@ -183,6 +210,31 @@ export function MissionShell({
     refetchInterval: pollWhenVisible(30_000),
   });
   const loopStages: StageLoopState[] = loopState?.stages ?? [];
+
+  // The shared live-activity read (one poll for the whole app): feeds the
+  // Working strip's one live locus so it and the top-bar ticker never disagree.
+  const live = useLiveActivity();
+
+  // The tray's focused item id, held here so J/K survive a queue refetch.
+  const [trayFocusedId, setTrayFocusedId] = useState<string | null>(null);
+
+  // The app-idle starfield is scoped to a genuinely empty/idle room only
+  // (LOCKED): every stage quiet or inferred, nothing active, nothing waiting.
+  const roomIsIdle =
+    loopStages.length > 0 &&
+    loopStages.every((s) => s.state === "quiet" || s.state === "inferred");
+
+  // Clicking a gate node on the Spine opens that gate in the tray (spec 6.6:
+  // "clicking it opens that gate card, not a dashboard"); every other stage
+  // just moves the Canvas.
+  const handleStageSelect = (next: StageId) => {
+    const node = loopStages.find((s) => s.stage === next);
+    onStageChange(next);
+    if (node?.state === "gate") onTrayChange(true);
+  };
+
+  const currentLoop: StageLoopState =
+    loopStages.find((s) => s.stage === stage) ?? { stage, state: "quiet" };
 
   // The Briefing: machine-authored receipts prose (composition over the same
   // reads the pill and the Spine use; honest zero state; no cost figures).
@@ -302,7 +354,6 @@ export function MissionShell({
   }, [onStageChange]);
 
   const activeProduct = products.find((p) => p.id === productId) ?? null;
-  const stageMeta = SPINE_STAGES.find((s) => s.id === stage) ?? SPINE_STAGES[0];
 
   // A routed product that is not in this workspace (stale link, switched
   // workspace): say so plainly, never render someone else's room.
@@ -376,7 +427,7 @@ export function MissionShell({
         queueCount={queueCount}
         onOpenDoor={onOpenDoor}
         stage={stage}
-        onStageSelect={onStageChange}
+        onStageSelect={handleStageSelect}
         loopStages={loopStages}
         journeyStages={journeyStages}
         journeyHandoff={journeyHandoff}
@@ -404,14 +455,43 @@ export function MissionShell({
           expanded: composerExpanded && !overlayOpen,
           onExpandedChange: setComposerExpanded,
         }}
-        canvasMarker={`${stageMeta.num} ${stageMeta.label}`}
-        canvasTitle={activeProduct?.name ?? activeWorkspace?.name ?? "Mission Control"}
-        canvas={stageFace(stage)}
+        workingStrip={
+          <WorkingStrip
+            loopStages={loopStages}
+            waitingCount={queueCount}
+            liveAction={live.state === "working" ? live.action : null}
+            seed={productId}
+            onOpenApprovals={() => onTrayChange(true)}
+            onOpenStage={handleStageSelect}
+          />
+        }
+        canvasBackdrop={roomIsIdle ? <AppIdleBackdrop /> : null}
+        canvas={
+          <StageCanvasFace
+            stage={stage}
+            productId={productId}
+            workspaceId={activeWorkspaceId ?? null}
+            loop={currentLoop}
+            onActivateJourney={activateJourney}
+          />
+        }
       />
       <ComposerOverlay
         open={overlayOpen}
         onClose={() => setOverlayOpen(false)}
         {...composerSurface}
+      />
+      <ApprovalsTray
+        open={trayOpen}
+        onClose={() => onTrayChange(false)}
+        items={threadGates}
+        focusedId={trayFocusedId}
+        onFocusChange={setTrayFocusedId}
+        onDecide={(item, verdict) => decideMutation.mutate({ item, verdict })}
+        onOpenEvidence={(item) => {
+          onStageChange(GATE_TO_STAGE[item.kindKey]);
+          onTrayChange(false);
+        }}
       />
     </>
   );

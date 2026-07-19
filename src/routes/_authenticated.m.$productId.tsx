@@ -15,14 +15,18 @@ const STAGE_IDS = SPINE_STAGES.map((s) => s.id) as readonly StageId[];
 const JOURNEY_IDS = JOURNEYS.map((j) => j.id) as readonly JourneyId[];
 
 export const Route = createFileRoute("/_authenticated/m/$productId")({
-  validateSearch: (search: Record<string, unknown>): { stage?: StageId; journey?: JourneyId } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { stage?: StageId; journey?: JourneyId; panel?: "approvals" } => {
     const s = search.stage;
     const j = search.journey;
+    const p = search.panel;
     return {
       stage: (STAGE_IDS as readonly string[]).includes(s as string) ? (s as StageId) : undefined,
       journey: (JOURNEY_IDS as readonly string[]).includes(j as string)
         ? (j as JourneyId)
         : undefined,
+      panel: p === "approvals" ? "approvals" : undefined,
     };
   },
   component: MissionRoom,
@@ -31,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/m/$productId")({
 
 function MissionRoom() {
   const { productId } = Route.useParams();
-  const { stage, journey } = Route.useSearch();
+  const { stage, journey, panel } = Route.useSearch();
   const navigate = Route.useNavigate();
 
   return (
@@ -39,6 +43,13 @@ function MissionRoom() {
       productId={productId}
       stage={stage ?? "discover"}
       journey={journey ?? null}
+      trayOpen={panel === "approvals"}
+      onTrayChange={(open) =>
+        void navigate({
+          search: (prev) => ({ ...prev, panel: open ? "approvals" : undefined }),
+          resetScroll: false,
+        })
+      }
       onStageChange={(next) =>
         void navigate({
           search: (prev) => ({ ...prev, stage: next }),

@@ -58,7 +58,9 @@ export interface GateChipCardProps {
   /** Soft gates only: the visible countdown ("Runs in 30s unless you pause"). Hard gates show none. */
   countdown?: string;
   onApprove: () => void;
-  onSendBack: () => void;
+  /** Optional: only wired where a distinct "return for revision" path exists.
+   *  Omitted, the Send back verb does not render (claim never outruns wiring). */
+  onSendBack?: () => void;
   onDecline: () => void;
   /** Expands the gate into the Canvas. */
   onOpenEvidence?: () => void;
@@ -161,18 +163,20 @@ export function GateChip(props: GateChipProps) {
         >
           Approve and run <Kbd onAccent>1</Kbd>
         </button>
-        <button
-          type="button"
-          onClick={onSendBack}
-          className={cn(GATE_BTN, "border hover:bg-[#202024]")}
-          style={{
-            background: "var(--ink-raised)",
-            borderColor: "var(--ink-hairline)",
-            color: "var(--ink-text)",
-          }}
-        >
-          Send back <Kbd>2</Kbd>
-        </button>
+        {onSendBack ? (
+          <button
+            type="button"
+            onClick={onSendBack}
+            className={cn(GATE_BTN, "border hover:bg-[#202024]")}
+            style={{
+              background: "var(--ink-raised)",
+              borderColor: "var(--ink-hairline)",
+              color: "var(--ink-text)",
+            }}
+          >
+            Send back <Kbd>2</Kbd>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onDecline}

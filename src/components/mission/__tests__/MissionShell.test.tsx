@@ -94,8 +94,6 @@ function makeProps(overrides: Partial<MissionShellViewProps> = {}): MissionShell
     onAsk: mock(() => {}),
     thread: makeThread(),
     composer: makeComposer(),
-    canvasMarker: "01 Discover",
-    canvasTitle: "Relay",
     canvas: <div data-testid="canvas-face">the face</div>,
     ...overrides,
   };
@@ -115,9 +113,10 @@ describe("MissionShellView: the five regions", () => {
     expect(screen.getByText("Agents finished 2 pieces of work overnight.")).toBeTruthy();
     // Region 5 is the REAL Composer's docked strip.
     expect(screen.getByTestId("composer-docked")).toBeTruthy();
-    // The Canvas renders the provided face under the shared SurfaceHeader.
+    // The Canvas frames the provided face; the face owns its own header
+    // (spec 9), so the shell renders exactly what the face hands it.
     expect(screen.getByTestId("canvas-face")).toBeTruthy();
-    expect(screen.getByText("01 Discover")).toBeTruthy();
+    expect(container.querySelector('[data-region="canvas"]')).toBeTruthy();
   });
 
   test("nav is exactly the 4 doors, and a door click reports its id", () => {
@@ -285,7 +284,6 @@ function JourneyHarness() {
         setStage(first);
       },
     }),
-    canvasMarker: stage,
     canvas: <div data-testid="canvas-face">{stage}</div>,
   });
   return <MissionShellView {...props} />;
