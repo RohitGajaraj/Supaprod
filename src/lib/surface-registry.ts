@@ -704,15 +704,16 @@ export const SURFACE_REGISTRY = {
   },
 
   // ---- Addendum 1.1 placeholders (founder red-lines, items 5-6) ----
-  // Threads home: every conversation lands somewhere revisitable, with
-  // per-product and workspace-wide views, search, rename, grouping, and
-  // promote-to-memory. Concept in design (research/threads-and-artifacts.md);
-  // no server-function domain exists yet, see PLACEHOLDER_DOMAINS.
+  // Threads home: the revisitable archive of every conversation. Founder-approved
+  // 2026-07-19 ("build it"), reached from the room's Threads door and /threads
+  // (deep link ?c=<id>). Backed by threads.functions.ts; folders, cross-scope
+  // views, full-text search, and promote-to-memory follow with their migration
+  // (gaps K1-K5).
   threads: {
     kind: "route",
-    home: "threads",
-    opensFrom: "top-bar-threads",
-    status: "planned",
+    home: "route:/threads",
+    opensFrom: "room-topbar-threads-door",
+    status: "live",
   },
   // Artifacts home: the workspace view of what the loop has made (prototypes,
   // specs, docs today). Founder-approved 2026-07-19, named "Artifacts", reached
@@ -871,7 +872,7 @@ export type SurfaceDomain = keyof typeof SURFACE_REGISTRY;
  * while listed here. When a placeholder's *.functions.ts lands, remove it
  * from this list in the same commit.
  */
-export const PLACEHOLDER_DOMAINS: readonly SurfaceDomain[] = ["threads"];
+export const PLACEHOLDER_DOMAINS: readonly SurfaceDomain[] = [];
 
 /** Lookup with a typed result; returns undefined for unknown domains. */
 export function surfaceForDomain(domain: string): SurfaceEntry | undefined {

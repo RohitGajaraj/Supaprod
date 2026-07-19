@@ -38,6 +38,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTrustLedgerRouteImport } from './routes/_authenticated.trust-ledger'
 import { Route as AuthenticatedTracesRouteImport } from './routes/_authenticated.traces'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated.today'
+import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticated.threads'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
 import { Route as AuthenticatedSyncRouteImport } from './routes/_authenticated.sync'
 import { Route as AuthenticatedSwarmRouteImport } from './routes/_authenticated.swarm'
@@ -318,6 +319,11 @@ const AuthenticatedTracesRoute = AuthenticatedTracesRouteImport.update({
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedThreadsRoute = AuthenticatedThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
@@ -1136,6 +1142,7 @@ export interface FileRoutesByFullPath {
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1300,6 +1307,7 @@ export interface FileRoutesByTo {
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1468,6 +1476,7 @@ export interface FileRoutesById {
   '/_authenticated/swarm': typeof AuthenticatedSwarmRoute
   '/_authenticated/sync': typeof AuthenticatedSyncRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/threads': typeof AuthenticatedThreadsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/traces': typeof AuthenticatedTracesRouteWithChildren
   '/_authenticated/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1636,6 +1645,7 @@ export interface FileRouteTypes {
     | '/swarm'
     | '/sync'
     | '/tasks'
+    | '/threads'
     | '/today'
     | '/traces'
     | '/trust-ledger'
@@ -1800,6 +1810,7 @@ export interface FileRouteTypes {
     | '/swarm'
     | '/sync'
     | '/tasks'
+    | '/threads'
     | '/today'
     | '/traces'
     | '/trust-ledger'
@@ -1967,6 +1978,7 @@ export interface FileRouteTypes {
     | '/_authenticated/swarm'
     | '/_authenticated/sync'
     | '/_authenticated/tasks'
+    | '/_authenticated/threads'
     | '/_authenticated/today'
     | '/_authenticated/traces'
     | '/_authenticated/trust-ledger'
@@ -2367,6 +2379,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/threads': {
+      id: '/_authenticated/threads'
+      path: '/threads'
+      fullPath: '/threads'
+      preLoaderRoute: typeof AuthenticatedThreadsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/tasks': {
@@ -3435,6 +3454,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSwarmRoute: typeof AuthenticatedSwarmRoute
   AuthenticatedSyncRoute: typeof AuthenticatedSyncRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
   AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
@@ -3497,6 +3517,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSwarmRoute: AuthenticatedSwarmRoute,
   AuthenticatedSyncRoute: AuthenticatedSyncRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
   AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
