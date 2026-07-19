@@ -8,6 +8,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  PLACEHOLDER_DOMAINS,
   SURFACE_KINDS,
   SURFACE_REGISTRY,
   SURFACE_STATUSES,
@@ -38,11 +39,31 @@ describe("surface registry", () => {
 
   test("every registry entry maps to a real file on disk (no rot)", () => {
     const onDisk = new Set(domainsOnDisk());
-    const stale = Object.keys(SURFACE_REGISTRY).filter((d) => !onDisk.has(d));
+    const placeholders = new Set<string>(PLACEHOLDER_DOMAINS);
+    const stale = Object.keys(SURFACE_REGISTRY).filter(
+      (d) => !onDisk.has(d) && !placeholders.has(d),
+    );
     expect(
       stale,
       `Registry entries with no matching src/lib/<domain>.functions.ts (remove or rename): ${stale.join(", ")}`,
     ).toEqual([]);
+  });
+
+  test("placeholder domains stay honest: status planned, no file on disk yet", () => {
+    // Addendum 1.1 items 5-6 (Threads and Artifacts homes): these are the
+    // only entries allowed to exist without a *.functions.ts module. Each
+    // must remain 'planned', and the moment its domain module lands it must
+    // leave PLACEHOLDER_DOMAINS so the no-rot gate covers it again.
+    const onDisk = new Set(domainsOnDisk());
+    for (const domain of PLACEHOLDER_DOMAINS) {
+      const entry = surfaceForDomain(domain);
+      expect(entry, `Placeholder ${domain} missing from SURFACE_REGISTRY`).toBeDefined();
+      expect(entry?.status, `Placeholder ${domain} must stay status 'planned'`).toBe("planned");
+      expect(
+        onDisk.has(domain),
+        `${domain}.functions.ts now exists on disk: remove '${domain}' from PLACEHOLDER_DOMAINS`,
+      ).toBe(false);
+    }
   });
 
   test("no entry has an empty opensFrom: every domain is reachable from a visible element", () => {

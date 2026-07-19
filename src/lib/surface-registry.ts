@@ -512,6 +512,12 @@ export const SURFACE_REGISTRY = {
   },
 
   // ---- The Thread (cards arrive in the conversation spine of the room) ----
+  briefing: {
+    kind: "canvas-panel",
+    home: "thread",
+    opensFrom: "thread-briefing-card",
+    status: "planned",
+  },
   briefs: {
     kind: "canvas-panel",
     home: "thread",
@@ -697,6 +703,27 @@ export const SURFACE_REGISTRY = {
     status: "planned",
   },
 
+  // ---- Addendum 1.1 placeholders (founder red-lines, items 5-6) ----
+  // Threads home: every conversation lands somewhere revisitable, with
+  // per-product and workspace-wide views, search, rename, grouping, and
+  // promote-to-memory. Concept in design (research/threads-and-artifacts.md);
+  // no server-function domain exists yet, see PLACEHOLDER_DOMAINS.
+  threads: {
+    kind: "route",
+    home: "threads",
+    opensFrom: "top-bar-threads",
+    status: "planned",
+  },
+  // Artifacts home: generated resources (interactive prototypes, HTML files,
+  // docs, launch kits) get a named, revisitable home. Naming and placement
+  // pending the founder's Gate 1b pick; registered so it cannot be forgotten.
+  artifacts: {
+    kind: "route",
+    home: "artifacts",
+    opensFrom: "top-bar-artifacts",
+    status: "planned",
+  },
+
   // ---- Brain (memory as a destination, not a settings pane) ----
   brain: { kind: "route", home: "brain", opensFrom: "nav-rail-brain", status: "live" },
   "brain-insights": { kind: "route", home: "brain", opensFrom: "nav-rail-brain", status: "live" },
@@ -834,6 +861,16 @@ export const SURFACE_REGISTRY = {
 } as const satisfies Record<string, SurfaceEntry>;
 
 export type SurfaceDomain = keyof typeof SURFACE_REGISTRY;
+
+/**
+ * Registry entries that are IA placeholders (design-language-spec Addendum
+ * 1.1, items 5-6): the surface is founder-mandated but no server-function
+ * domain module exists yet. The no-rot test exempts exactly this list, and
+ * separately asserts each stays status 'planned' and gains no file on disk
+ * while listed here. When a placeholder's *.functions.ts lands, remove it
+ * from this list in the same commit.
+ */
+export const PLACEHOLDER_DOMAINS: readonly SurfaceDomain[] = ["threads", "artifacts"];
 
 /** Lookup with a typed result; returns undefined for unknown domains. */
 export function surfaceForDomain(domain: string): SurfaceEntry | undefined {

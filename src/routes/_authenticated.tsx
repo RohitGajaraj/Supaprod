@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useEffect, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CommandPalette, GotoShortcuts } from "@/components/supaprod/CommandPalette";
+import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
 import { AppShell } from "@/components/supaprod/AppShell";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
@@ -10,7 +10,7 @@ import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 
 import { AskProvider } from "@/lib/ask-context";
-import { AskPanel } from "@/components/obsidian/AskPanel";
+import { GlobalComposer } from "@/components/mission/composer";
 import { FocusDock } from "@/components/supaprod/FocusDock";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -145,9 +145,7 @@ function AuthedLayout() {
   // carries its own five-region shell (TopBar, Spine, Thread, Canvas,
   // Composer), so the old AppShell must not wrap it. GotoShortcuts also stays
   // off there: it binds bare digits 1-7 to old-app surfaces, and in the room
-  // those keys walk the Spine (shell-local listener in MissionShell). Ask
-  // (Cmd+J / supaprod:open-ask) stays mounted - the room's composer strip and
-  // Ask button open the same panel. The old app is otherwise untouched.
+  // those keys walk the Spine (shell-local listener in MissionShell).
   const isMissionControl = pathname === "/m" || pathname.startsWith("/m/");
 
   return (
@@ -161,7 +159,6 @@ function AuthedLayout() {
             {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
             <BackendHealthBanner />
             <BillingBanner />
-            <CommandPalette />
             {!isOnboarding && !isMissionControl && <GotoShortcuts />}
             {isOnboarding || isMissionControl ? (
               <Outlet />
@@ -170,9 +167,15 @@ function AuthedLayout() {
                 <Outlet />
               </AppShell>
             )}
-            {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
-                  rail destination - mounted once, floats over the whole shell. */}
-            {!isOnboarding && <AskPanel />}
+            {/* Phase 2 (front-end reimagining): the ONE summonable composer.
+                  Cmd/Ctrl+J and Cmd/Ctrl+K plus the supaprod:open-ask /
+                  supaprod:open-cmdk events open the ComposerOverlay on every
+                  old-app surface. The retired CommandPalette and AskPanel
+                  components stay in the tree source but are unmounted
+                  (Addendum 1.1 rule 8); inside /m/$productId the room's own
+                  MissionShell answers the same keys and events, so
+                  GlobalComposer stands down there (it self-excludes). */}
+            {!isOnboarding && <GlobalComposer />}
             {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
                   page, the cross-surface countdown while a block runs (Option F). */}
             {!isOnboarding && <FocusDock />}

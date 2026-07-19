@@ -1,17 +1,21 @@
-// MissionShellView (front-end reimagining, Phase 1): the room's five regions
+// MissionShellView (front-end reimagining, Phase 2): the room's five regions
 // as a pure view, per mockups/_shell-template.html and screen-2.
 //
 //   1. TopBar     - mark, product switcher, the 4 doors, the needs-you ember
 //                   pill (ONE COUNT ONE SOURCE: the caller feeds it from the
 //                   shared ["approvals","queue",workspaceId] query), and the
 //                   always-visible Ask button with its shortcut.
-//   2. Spine      - the whole loop, always (primitive 6.6).
-//   3. Thread     - honest Phase 1 placeholder: day label + recent receipts +
-//                   a WarmSlot. No fake briefing; the real Composer thread is
-//                   Phase 2.
+//   2. Spine      - the whole loop, always (primitive 6.6). An active journey
+//                   lights its slice; stages outside it dim but stay present.
+//   3. Thread     - the real conversation column: Briefing, inline gates, the
+//                   Ask messages (composer/Thread). When the active journey's
+//                   slice is done, the handoff suggestion (NextLine) lands
+//                   here so the loop never dead-ends.
 //   4. Canvas     - the stage's face, provided by the caller.
-//   5. Composer   - the docked strip: ONE affordance that opens Ask. It is a
-//                   button, never a second input box (Addendum 1.1 rule 4).
+//   5. Composer   - the real docked Composer: a strip when collapsed, THE
+//                   textarea when expanded (Addendum 1.1 rule 4; the caller
+//                   guarantees the dock and the overlay never both hold an
+//                   input).
 //
 // Pure on purpose: no router, no queries, no providers - the connected
 // MissionShell wires those. This is what the component test renders.
@@ -21,13 +25,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { Spine, type StageId, type StageLoopState } from "@/components/mission/Spine";
-import {
-  AgentChip,
-  Kbd,
-  ReceiptLine,
-  SurfaceHeader,
-  WarmSlot,
-} from "@/components/mission/primitives";
+import { Kbd, NextLine, ReceiptLine, SurfaceHeader } from "@/components/mission/primitives";
+// Direct imports (not the ./composer barrel): the barrel pulls the connected
+// GlobalComposer and its live seams; the pure view must stay provider-free.
+import { Composer, type ComposerProps } from "./composer/Composer";
+import { Thread, type ThreadProps } from "./composer/Thread";
 
 export type MissionDoorId = "mission" | "approvals" | "brain" | "settings";
 
@@ -38,14 +40,12 @@ const DOORS: { id: MissionDoorId; label: string }[] = [
   { id: "settings", label: "Settings" },
 ];
 
-export interface ThreadReceipt {
-  id: string;
-  /** Past-tense receipt sentence ("Saved replies spec moved to approved"). */
+/** The done-journey handoff rendered at the Thread's tail: the plain-words
+ *  done state plus the ONE forward door (NextLine grammar). */
+export interface JourneyHandoffLine {
   text: string;
-  /** stage_events.actor: 'human', an agent slug, 'system', or null. */
-  actor: string | null;
-  /** Clock time for the craft-bar meta row (right-aligned, mono). */
-  time: string;
+  doorLabel: string;
+  onGo: () => void;
 }
 
 export interface MissionShellViewProps {
@@ -60,12 +60,16 @@ export interface MissionShellViewProps {
   stage: StageId;
   onStageSelect: (stage: StageId) => void;
   loopStages: StageLoopState[];
-  /** "Saturday, July 19" - the Thread's day divider. */
-  dayLabel: string;
-  receipts: ThreadReceipt[];
-  /** True once the receipts read settled, so the WarmSlot line is honest. */
-  receiptsLoaded: boolean;
+  /** The active journey's slice; stages outside it dim but stay present. */
+  journeyStages?: StageId[];
+  /** Present when the active journey's slice is done: the forward door. */
+  journeyHandoff?: JourneyHandoffLine | null;
+  /** The TopBar Ask button: summons the caller's overlay composer. */
   onAsk: () => void;
+  /** The real Thread column (the caller owns the stream + briefing reads). */
+  thread: Omit<ThreadProps, "className">;
+  /** The real docked Composer (the caller owns draft + expanded state). */
+  composer: Omit<ComposerProps, "className">;
   /** Mono stage marker for the Canvas header ("01 Discover"). */
   canvasMarker: string;
   canvasTitle: string;
@@ -73,7 +77,7 @@ export interface MissionShellViewProps {
   className?: string;
 }
 
-/** The needs-you ember pill: the gate object's TopBar rendering. Hidden at zero. */
+/** The needs-you pill: the gate object's TopBar rendering. Hidden at zero. */
 function NeedsYouPill({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
@@ -174,44 +178,6 @@ function ProductSwitcher({
   );
 }
 
-/** One Thread item on the craft grid: chip row (actor left, mono time right),
- *  then the receipt body. Plain ink surfaces, no edge strips. */
-function ThreadReceiptItem({ receipt }: { receipt: ThreadReceipt }) {
-  const isHuman = receipt.actor === "human";
-  const isMachine =
-    receipt.actor != null && receipt.actor !== "human" && receipt.actor !== "system";
-  return (
-    <div
-      className="rounded-[10px] px-3 py-2.5"
-      style={
-        isHuman
-          ? { background: "var(--ink-raised)", border: "1px solid var(--ink-hairline-soft)" }
-          : { background: "var(--voice-machine-faint)" }
-      }
-    >
-      <div className="mb-1.5 flex items-center gap-2">
-        {isMachine ? (
-          <AgentChip slug={receipt.actor as string} />
-        ) : (
-          <span
-            className="font-mono text-[9.5px] uppercase tracking-[0.12em]"
-            style={{ color: "var(--ink-subtle)" }}
-          >
-            {isHuman ? "You" : "System"}
-          </span>
-        )}
-        <span
-          className="ml-auto font-mono text-[10px] tabular-nums"
-          style={{ color: "var(--ink-faint)" }}
-        >
-          {receipt.time}
-        </span>
-      </div>
-      <ReceiptLine>{receipt.text}</ReceiptLine>
-    </div>
-  );
-}
-
 export function MissionShellView({
   workspaceName,
   productName,
@@ -223,10 +189,11 @@ export function MissionShellView({
   stage,
   onStageSelect,
   loopStages,
-  dayLabel,
-  receipts,
-  receiptsLoaded,
+  journeyStages,
+  journeyHandoff,
   onAsk,
+  thread,
+  composer,
   canvasMarker,
   canvasTitle,
   canvas,
@@ -281,7 +248,7 @@ export function MissionShellView({
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          {/* The always-visible Ask affordance: same panel as the docked strip. */}
+          {/* The always-visible Ask affordance: summons the same composer. */}
           <button
             type="button"
             aria-label="Ask Supaprod"
@@ -298,54 +265,36 @@ export function MissionShellView({
         </div>
       </header>
 
-      {/* Region 2: the Spine. The whole loop, always. */}
+      {/* Region 2: the Spine. The whole loop, always; a journey lights its slice. */}
       <div data-region="spine" className="flex-none">
-        <Spine states={loopStages} onStageSelect={onStageSelect} />
+        <Spine states={loopStages} journeyStages={journeyStages} onStageSelect={onStageSelect} />
       </div>
 
       <div className="grid min-h-0 flex-1" style={{ gridTemplateColumns: "380px minmax(0, 1fr)" }}>
-        {/* Region 3: the Thread. Day label + receipts + a WarmSlot; the real
-            conversation lands in Phase 2, so nothing here pretends to chat. */}
+        {/* Region 3: the Thread. Briefing, inline gates, the conversation,
+            and the done-journey handoff door - nothing dead-ends. */}
         <aside
           data-region="thread"
           className="flex min-h-0 flex-col border-r"
           style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
         >
           <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
-            <div
-              className="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.1em]"
-              style={{ color: "var(--ink-faint)" }}
-            >
-              <span
-                aria-hidden
-                className="h-px flex-1"
-                style={{ background: "var(--ink-hairline-soft)" }}
-              />
-              {dayLabel}
-              <span
-                aria-hidden
-                className="h-px flex-1"
-                style={{ background: "var(--ink-hairline-soft)" }}
-              />
-            </div>
-            {receipts.map((receipt) => (
-              <ThreadReceiptItem key={receipt.id} receipt={receipt} />
-            ))}
-            <WarmSlot
-              line={
-                receipts.length > 0
-                  ? {
-                      text: "That is everything from the last 24 hours. New receipts land here as agents finish work.",
-                    }
-                  : receiptsLoaded
-                    ? {
-                        text: "Nothing has moved in the last 24 hours. Ask for work and the receipts land here.",
-                        actionLabel: "Ask Supaprod",
-                        onAction: onAsk,
-                      }
-                    : { text: "Reading the last 24 hours of receipts." }
-              }
-            />
+            <Thread {...thread} />
+            {journeyHandoff ? (
+              <div
+                data-testid="journey-handoff"
+                className="rounded-[10px] px-3 py-2.5"
+                style={{
+                  background: "var(--ink-raised)",
+                  border: "1px solid var(--ink-hairline-soft)",
+                }}
+              >
+                <ReceiptLine>{journeyHandoff.text}</ReceiptLine>
+                <NextLine
+                  doors={[{ label: journeyHandoff.doorLabel, onGo: journeyHandoff.onGo }]}
+                />
+              </div>
+            ) : null}
           </div>
         </aside>
 
@@ -360,30 +309,15 @@ export function MissionShellView({
         </section>
       </div>
 
-      {/* Region 5: the docked composer strip. One affordance, one input model:
-          it opens Ask. Never a second input box on the screen. */}
+      {/* Region 5: the real docked Composer. Collapsed it is a button strip;
+          expanded it is THE input. The caller keeps the overlay and the dock
+          from ever both holding an input (one input model per screen). */}
       <div
         data-region="composer"
         className="flex-none border-t px-5 pb-4 pt-3"
         style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
       >
-        <button
-          type="button"
-          aria-label="Ask Supaprod"
-          onClick={onAsk}
-          className="ink-focus flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors hover:border-[var(--ink-subtle)]"
-          style={{ background: "var(--ink-panel)", borderColor: "var(--ink-hairline)" }}
-        >
-          <span className="flex-1 text-[13.5px] font-medium" style={{ color: "var(--ink-faint)" }}>
-            Ask anything, or name the work.
-          </span>
-          <span
-            className="flex flex-none items-center gap-1.5 text-xs font-medium"
-            style={{ color: "var(--ink-text)" }}
-          >
-            Ask <Kbd>{"⌘J"}</Kbd>
-          </span>
-        </button>
+        <Composer {...composer} />
       </div>
     </div>
   );
