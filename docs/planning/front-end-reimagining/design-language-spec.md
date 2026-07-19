@@ -286,3 +286,11 @@ These override anything above on conflict.
 7. **Post-login landing.** Returning users land on Mission Control at rest (the /m index resolves the last active product): the needs-you pill answers "what waits on me," the Briefing answers "what happened," the spine answers "where do I jump." Brand-new accounts get the first-run LoopFrame instead. Every exhibit states which state it shows.
 8. **Standalone Ask panel stays retired** (founder confirmed 2026-07-19; may return later only on his explicit ask).
 9. **Starfield decision deferred** until a rendered, subtle app-idle variant is reviewed on real frames.
+
+## Addendum 1.2 (founder refinement, 2026-07-19 late)
+
+Clarifies Addendum 1.1 item 1. Deleting the edge strip is NOT the solution; the strip did a real job (instant source recognition) and that job must be REPLACED by a deliberate, visible treatment:
+
+1. **Every card must answer "who is this from" at a glance** without an edge strip. Design a replacement treatment and present options for the founder's pick: candidates to explore include a voice-tinted chip row band, a low-alpha background wash in the voice's faint tier, a corner source mark, an inset icon keyline, or a distinct surface material. Whatever wins must be visible in one glance, calm at scale (20 cards on screen), work in both themes, and never read as a decorative stripe.
+2. **Memory/Brain cards get their OWN distinct tone treatment**, stronger than ordinary voice attribution: when content comes from memory (the product remembering: past decisions, house rules, evidence lines), the user must recognize it instantly as memory. This pairs with the memory-hue replacement (Addendum 1.1 item 3): the new memory color and the memory card treatment are one decision, presented together on the color v2 board.
+3. The card-spec exhibit must show the chosen treatment on all card types (thread, gate, receipt, briefing, memory/evidence) side by side, in both themes, so the founder judges the system, not one card.
