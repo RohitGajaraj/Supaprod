@@ -20,7 +20,7 @@ export type PageHeaderProps = {
   /** Mono kicker naming the lifecycle position, e.g. "The Loop · 01 Discover"
    *  or "Intelligence · Memory". Renders uppercase in the mono voice.
    *  Wayfinding fix 2026-07-19: OPTIONAL, and omitted wherever the TopBar
-   *  crumb already names the surface — one wayfinding source per screen.
+   *  crumb already names the surface; one wayfinding source per screen.
    *  Pass it only when it adds location the crumb does not carry. */
   eyebrow?: string;
   /** Outcome-first surface title, Geist Sans 600. Plain string; use `accent`
