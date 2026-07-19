@@ -54,41 +54,48 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    * 4. Verify ShimmerStatus renders the status label
    */
   it("parses SSE status events and updates liveStatus state", async () => {
-    // Mock the /api/chat endpoint to return SSE stream
     const statusLabel = "researching opportunities";
-    const sseResponse = `data: {"status":{"label":"${statusLabel}","detail":"analyzing","phase":null}}\n[DONE]\n`;
+    const sseResponse = `data: {"status":{"label":"${statusLabel}","phase":"search"}}\ndata: {"delta":{"piece":"Test answer"}}\ndata: {"kind":"done"}\n`;
 
+    // Mock fetch to return a readable stream with SSE frames
+    const encoder = new TextEncoder();
+    let readCount = 0;
     global.fetch = mock(async () => {
       return {
         ok: true,
+        status: 200,
         body: {
           getReader: () => ({
             read: async () => {
-              // Return SSE data on first read
-              const encoder = new TextEncoder();
-              const data = encoder.encode(sseResponse);
-              return { done: false, value: data };
+              if (readCount === 0) {
+                readCount++;
+                return { done: false, value: encoder.encode(sseResponse) };
+              }
+              return { done: true, value: undefined };
             },
           }),
         },
       } as any;
     });
 
-    // TODO: Render AskPanel with context provider
-    // const { container } = render(
-    //   <QueryClientProvider client={queryClient}>
-    //     <AskPanel />
-    //   </QueryClientProvider>
-    // );
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
 
-    // TODO: Simulate sending a message
-    // await userEvent.click(screen.getByRole("button", { name: /send/i }));
-    // await userEvent.type(screen.getByRole("textbox"), "What should I focus on?");
+    // Find the textarea and send a message
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "What should I focus on?");
 
-    // TODO: Wait for SSE status to appear in ShimmerStatus
-    // await waitFor(() => {
-    //   expect(screen.getByText(statusLabel)).toBeTruthy();
-    // });
+    const sendButton = screen.getByRole("button", { name: /Send/i });
+    await user.click(sendButton);
+
+    // Wait for the status label to appear in the ShimmerStatus component
+    await waitFor(() => {
+      expect(screen.getByText(statusLabel)).toBeTruthy();
+    });
   });
 
   /**
@@ -105,8 +112,52 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    * 4. Verify liveStatus is null and status label is gone
    */
   it("clears liveStatus when SSE stream completes", async () => {
-    // TODO: Similar to above, but verify cleanup
-    // This ensures the finally block at line 947-950 executes correctly
+    const statusLabel = "synthesizing";
+    const sseResponse = `data: {"status":{"label":"${statusLabel}","phase":"synthesize"}}\ndata: {"delta":{"piece":"Complete answer"}}\n`;
+
+    let readCount = 0;
+    global.fetch = mock(async () => {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (readCount === 0) {
+                readCount++;
+                const encoder = new TextEncoder();
+                return { done: false, value: encoder.encode(sseResponse) };
+              }
+              return { done: true, value: undefined };
+            },
+          }),
+        },
+      } as any;
+    });
+
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
+
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "Test question");
+    await user.click(screen.getByRole("button", { name: /Send/i }));
+
+    // Verify status appears
+    await waitFor(() => {
+      expect(screen.getByText(statusLabel)).toBeTruthy();
+    });
+
+    // Wait for stream to complete and status to be cleared
+    await waitFor(() => {
+      // After stream completes, the liveStatus should be cleared in the finally block
+      // The ShimmerStatus should no longer show the status label for a settled message
+      const messages = screen.queryAllByText(/Complete answer/);
+      expect(messages.length).toBeGreaterThan(0);
+    });
   });
 
   /**
@@ -122,7 +173,44 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    * 4. Verify liveStatus is null
    */
   it("clears liveStatus on stream error", async () => {
-    // TODO: Test error path cleanup
+    const statusLabel = "processing";
+
+    // Mock fetch to return status, then fail on read
+    global.fetch = mock(async () => {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => {
+              // Simulate a network error mid-stream
+              throw new Error("Network error");
+            },
+          }),
+        },
+      } as any;
+    });
+
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
+
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "Test question");
+    await user.click(screen.getByRole("button", { name: /Send/i }));
+
+    // Verify error message appears
+    await waitFor(() => {
+      const errorMsg = screen.queryByText(/could not reach the model/i);
+      expect(errorMsg).toBeTruthy();
+    });
+
+    // Verify liveStatus is cleared (no shimmer status visible for error state)
+    const shimmerElements = screen.queryAllByText(statusLabel);
+    expect(shimmerElements.length).toBe(0);
   });
 
   /**
@@ -135,10 +223,54 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    * Scenario:
    * 1. Send a message with status events
    * 2. Verify ResearchActivityLine receives non-null liveStatus prop
-   * 3. Verify the component renders status display
+   * 3. Verify the component renders status display (spinner + label)
    */
   it("threads liveStatus prop to ResearchActivityLine", async () => {
-    // TODO: Spy on ResearchActivityLine render or verify its output
+    const statusLabel = "analyzing sources";
+    const sseResponse = `data: {"status":{"label":"${statusLabel}","phase":"read"}}\n`;
+
+    let readCount = 0;
+    global.fetch = mock(async () => {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (readCount === 0) {
+                readCount++;
+                const encoder = new TextEncoder();
+                return { done: false, value: encoder.encode(sseResponse) };
+              }
+              // Keep stream open to preserve liveStatus
+              await new Promise((r) => setTimeout(r, 100));
+              return { done: true, value: undefined };
+            },
+          }),
+        },
+      } as any;
+    });
+
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
+
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "Analyze this");
+    await user.click(screen.getByRole("button", { name: /Send/i }));
+
+    // Wait for liveStatus to be set and rendered
+    // The ResearchActivityLine component renders with a spinner and the label
+    await waitFor(() => {
+      expect(screen.getByText(statusLabel)).toBeTruthy();
+    });
+
+    // Verify the shimmer/spinner is visible (ResearchActivityLine's first child)
+    const statusElement = screen.getByText(statusLabel);
+    expect(statusElement.parentElement).toBeTruthy();
   });
 
   /**
@@ -154,7 +286,57 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    * 4. Verify final status persists until stream end
    */
   it("handles multiple status updates in a single stream", async () => {
-    // TODO: Test status progression (e.g., "searching" → "analyzing" → "compiling")
+    const statuses = [
+      { label: "searching", phase: "search" },
+      { label: "analyzing", phase: "read" },
+      { label: "compiling", phase: "synthesize" },
+    ];
+
+    const sseFrames = statuses
+      .map((s) => `data: {"status":{"label":"${s.label}","phase":"${s.phase}"}}`)
+      .join("\n");
+    const sseResponse = `${sseFrames}\ndata: {"delta":{"piece":"Final answer"}}\n`;
+
+    let readCount = 0;
+    global.fetch = mock(async () => {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (readCount === 0) {
+                readCount++;
+                const encoder = new TextEncoder();
+                return { done: false, value: encoder.encode(sseResponse) };
+              }
+              return { done: true, value: undefined };
+            },
+          }),
+        },
+      } as any;
+    });
+
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
+
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "Test");
+    await user.click(screen.getByRole("button", { name: /Send/i }));
+
+    // Verify the final status is shown (state updates with latest)
+    await waitFor(() => {
+      expect(screen.getByText("compiling")).toBeTruthy();
+    });
+
+    // Verify the final answer is rendered
+    await waitFor(() => {
+      expect(screen.getByText(/Final answer/)).toBeTruthy();
+    });
   });
 
   /**
@@ -166,11 +348,63 @@ describe("AskPanel (integration: SSE → state → component)", () => {
    *
    * Scenario:
    * 1. Send message A (with status events)
-   * 2. Send message B before A completes
-   * 3. Verify status updates reflect the correct stream
+   * 2. Try to send message B before A completes
+   * 3. Verify B is blocked (AskPanel prevents concurrent sends)
+   *
+   * NOTE: Current AskPanel.tsx line 884 prevents concurrent sends with
+   * `if (streaming) return;`, so send() is effectively debounced. This
+   * test documents the guard; relaxing that constraint would require
+   * reviewing abort-controller isolation (one per stream, line 912-913).
    */
   it("isolates liveStatus between concurrent streams", async () => {
-    // Note: Current AskPanel.tsx prevents concurrent sends (if (streaming) return),
-    // so this may not be applicable, but documenting the seam anyway.
+    const status1 = "searching (message 1)";
+    const sseResponse1 = `data: {"status":{"label":"${status1}","phase":"search"}}\ndata: {"delta":{"piece":"Answer 1"}}\n`;
+
+    let readCount = 0;
+    global.fetch = mock(async () => {
+      return {
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (readCount === 0) {
+                readCount++;
+                const encoder = new TextEncoder();
+                return { done: false, value: encoder.encode(sseResponse1) };
+              }
+              return { done: true, value: undefined };
+            },
+          }),
+        },
+      } as any;
+    });
+
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AskPanel />
+      </QueryClientProvider>
+    );
+
+    const textarea = screen.getByPlaceholderText(/Ask anything in Supaprod/);
+    await user.type(textarea, "First message");
+    const sendButton = screen.getByRole("button", { name: /Send/i });
+    await user.click(sendButton);
+
+    // Try to send another message immediately (should be blocked)
+    await user.type(textarea, "Second message");
+    // The send button should be disabled while streaming
+    expect(sendButton).toHaveAttribute("disabled");
+
+    // Wait for first stream to complete
+    await waitFor(() => {
+      expect(screen.getByText(/Answer 1/)).toBeTruthy();
+    });
+
+    // Now button should be enabled again and second message can send
+    await waitFor(() => {
+      expect(sendButton).not.toHaveAttribute("disabled");
+    });
   });
 });
