@@ -239,6 +239,27 @@ export function EvidenceFace({ productId, loop, onActivateJourney }: FaceProps) 
           <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
             <ReceiptCount>{signals.length}</ReceiptCount> signals in view, newest first.
           </p>
+          {(() => {
+            const bySource = new Map<string, number>();
+            for (const s of signals) {
+              const k = s.source ?? "signal";
+              bySource.set(k, (bySource.get(k) ?? 0) + 1);
+            }
+            const entries = [...bySource.entries()].sort((a, b) => b[1] - a[1]);
+            return entries.length > 1 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {entries.map(([src, n]) => (
+                  <span
+                    key={src}
+                    className="inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em]"
+                    style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)" }}
+                  >
+                    {src} <span style={{ color: "var(--ink-text)" }}>{n}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null;
+          })()}
           {signals.slice(0, 40).map((s) => (
             <FaceCard key={s.id} chip={<Chip>{s.source ?? "signal"}</Chip>} time={relTime(s.created_at)}>
               <p className="text-[13px] leading-[1.5]" style={{ color: "var(--ink-text)" }}>
@@ -1159,6 +1180,13 @@ export function ShipFace({ productId, workspaceId, loop, onActivateJourney }: Fa
     >
       {deployments.length > 0 ? (
         <div className="flex flex-col gap-2.5 p-5">
+          <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+            <ReceiptCount>{deployments.length}</ReceiptCount>{" "}
+            {deployments.length === 1 ? "release" : "releases"}, newest first.
+            {deployments.some((d) => (d.status ?? "").toLowerCase() === "success" || d.environment === "production")
+              ? " Rollback stays one click on every live release."
+              : ""}
+          </p>
           {deployments.slice(0, 20).map((d) => {
             const live = (d.status ?? "").toLowerCase() === "success" || d.environment === "production";
             return (
@@ -1216,6 +1244,14 @@ type LaunchRow = {
   created_at?: string | null;
 };
 
+type LearnRow = {
+  id: string;
+  title?: string | null;
+  status?: string | null;
+  ice_score?: number | null;
+  problem?: string | null;
+};
+
 export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchOutcome = useServerFn(getOutcomeData);
   const q = useQuery({
@@ -1224,6 +1260,8 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
     refetchInterval: pollWhenVisible(60_000),
   });
   const launches = (q.data?.launches ?? []) as LaunchRow[];
+  const learnings = (q.data?.learnings ?? []) as LearnRow[];
+  const hasContent = launches.length > 0 || learnings.length > 0;
 
   return (
     <CanvasFace
@@ -1236,7 +1274,7 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
       loading={q.isLoading}
       error={q.isError ? { message: "Could not read outcomes.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
       emptyLine={
-        launches.length === 0
+        !hasContent
           ? {
               text: "Not enough data yet. After a launch, Learn records how it landed against the outcome contract, honestly.",
               actionLabel: "How did it land?",
@@ -1245,34 +1283,66 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
           : null
       }
     >
-      {launches.length > 0 ? (
-        <div className="flex flex-col gap-2.5 p-5">
-          <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-            What went out, recorded, not measured, until the metric feed is wired.
-          </p>
-          {launches.slice(0, 20).map((a) => (
-            <FaceCard
-              key={a.id}
-              chip={
-                <>
-                  {a.tool_name ? <Chip>{a.tool_name}</Chip> : null}
-                  {a.status ? <Chip>{a.status}</Chip> : null}
-                </>
-              }
-              time={relTime(a.created_at)}
-            >
-              {a.rationale ? (
-                <p className="text-[13px] leading-[1.5]" style={{ color: "var(--ink-text)" }}>
-                  {a.rationale}
-                </p>
-              ) : null}
-              {a.agent_slug ? (
-                <p className="mt-1 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-                  by {agentDisplayName(a.agent_slug)}
-                </p>
-              ) : null}
-            </FaceCard>
-          ))}
+      {hasContent ? (
+        <div className="flex flex-col gap-4 p-5">
+          {learnings.length > 0 ? (
+            <div className="flex flex-col gap-2.5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+                What the loop learned
+              </p>
+              {learnings.slice(0, 10).map((l) => (
+                <FaceCard
+                  key={l.id}
+                  chip={
+                    <>
+                      {l.status ? <Chip>{l.status}</Chip> : null}
+                      {typeof l.ice_score === "number" ? <Chip>ICE {l.ice_score.toFixed(1)}</Chip> : null}
+                    </>
+                  }
+                >
+                  <p className="text-[13px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
+                    {l.title ?? "Re-scored bet"}
+                  </p>
+                  <p className="mt-1 text-[12px] leading-[1.45]" style={{ color: "var(--ink-subtle)" }}>
+                    Re-scored after the outcome. The loop adjusted its confidence from what actually happened.
+                  </p>
+                </FaceCard>
+              ))}
+            </div>
+          ) : null}
+          {launches.length > 0 ? (
+            <div className="flex flex-col gap-2.5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+                What went out
+              </p>
+              <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+                Recorded, not measured, until the metric feed is wired.
+              </p>
+              {launches.slice(0, 20).map((a) => (
+                <FaceCard
+                  key={a.id}
+                  chip={
+                    <>
+                      {a.tool_name ? <Chip>{a.tool_name}</Chip> : null}
+                      {a.status ? <Chip>{a.status}</Chip> : null}
+                    </>
+                  }
+                  time={relTime(a.created_at)}
+                >
+                  {a.rationale ? (
+                    <p className="text-[13px] leading-[1.5]" style={{ color: "var(--ink-text)" }}>
+                      {a.rationale}
+                    </p>
+                  ) : null}
+                  {a.agent_slug ? (
+                    <p className="mt-1 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                      by {agentDisplayName(a.agent_slug)}
+                    </p>
+                  ) : null}
+                </FaceCard>
+              ))}
+            </div>
+          ) : null}
           <NextLine doors={[journeyDoor("j1", onActivateJourney)]} />
         </div>
       ) : null}
