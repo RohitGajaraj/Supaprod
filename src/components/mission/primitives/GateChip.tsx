@@ -1,5 +1,6 @@
 // GateChip (comprehension primitive 6.3, design-language-spec).
-// The ember element: the ONLY thing ember ever marks. A gate renders as a
+// Chips wear slate silver (founder ruling 2026-07-19, Addendum 1.3); ember
+// marks only the primary action inside the card. A gate renders as a
 // chip (Spine, rows) and a card (Thread, tray); both are the same object with
 // one count from one source, so approving from any rendering clears all.
 // The copy contract is binding: every ember string answers what waits, why it
@@ -82,9 +83,9 @@ export function GateChip(props: GateChipProps) {
           props.className,
         )}
         style={{
-          color: "var(--voice-human)",
-          background: "var(--voice-human-faint)",
-          borderColor: "var(--voice-human-border)",
+          color: "var(--chip-fg)",
+          background: "var(--chip-faint)",
+          borderColor: "var(--chip-border)",
         }}
       >
         {typeof props.count === "number" ? (

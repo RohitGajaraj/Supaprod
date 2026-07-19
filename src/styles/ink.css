@@ -39,6 +39,12 @@
   --voice-machine-border: rgba(108, 176, 245, 0.35);
   --voice-machine-soft: #172534;
   --voice-machine-faint: #0f1822;
+  /* Chip ramp: slate silver, founder ruling 2026-07-19 (Addendum 1.3). Chips never wear ember. */
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
   --voice-memory: #e8b44c; /* memory moments ONLY; the gold ban holds everywhere else */
   --voice-memory-dim: #a8842f;
   --voice-memory-border: rgba(232, 180, 76, 0.35);
@@ -95,6 +101,11 @@
   --voice-machine-border: rgba(46, 110, 214, 0.35);
   --voice-machine-soft: #e4eefb;
   --voice-machine-faint: #f0f6fd;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
   --voice-memory: #b8860b;
   --voice-memory-dim: #96700a;
   --voice-memory-border: rgba(184, 134, 11, 0.4);

@@ -81,9 +81,9 @@ function NeedsYouPill({ count }: { count: number }) {
       data-testid="needs-you-pill"
       className="inline-flex h-4 min-w-4 items-center justify-center rounded-lg border px-1 font-mono text-[10px] tabular-nums"
       style={{
-        color: "var(--voice-human)",
-        background: "var(--voice-human-faint)",
-        borderColor: "var(--voice-human-border)",
+        color: "var(--chip-fg)",
+        background: "var(--chip-faint)",
+        borderColor: "var(--chip-border)",
       }}
     >
       {count}
