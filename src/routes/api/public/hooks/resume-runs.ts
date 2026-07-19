@@ -155,14 +155,23 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               .order("created_at", { ascending: true })
               .limit(BATCH * 4);
             const resumable: { id: string }[] = [];
-            for (const w of waiting ?? []) {
-              if (resumable.length >= BATCH) break;
-              const { count } = await admin
+            if (waiting && waiting.length > 0) {
+              // PERF: Batch-fetch all pending/approved approvals in one query
+              // instead of N+1 per waiting run.
+              const waitingIds = (waiting as { id: string }[]).map((w) => w.id);
+              const { data: blockedApprovals } = await admin
                 .from("agent_approvals")
-                .select("id", { count: "exact", head: true })
-                .eq("run_id", w.id)
+                .select("run_id")
+                .in("run_id", waitingIds)
                 .in("status", ["pending", "approved"]);
-              if ((count ?? 0) === 0) resumable.push(w);
+              const blockedByRun = new Set<string>();
+              for (const a of (blockedApprovals ?? []) as { run_id: string }[]) {
+                blockedByRun.add(a.run_id);
+              }
+              for (const w of waiting) {
+                if (resumable.length >= BATCH) break;
+                if (!blockedByRun.has(w.id)) resumable.push(w);
+              }
             }
 
             const ids = [...(queued ?? []), ...(stale ?? []), ...resumable].map((r) => r.id);

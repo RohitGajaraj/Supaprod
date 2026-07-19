@@ -762,6 +762,15 @@ You must output a JSON object EXACTLY in this format:
         // signal so every downstream await can bail out early instead of
         // burning tokens on an answer nobody will read.
         const streamAbort = new AbortController();
+        // PERF: Wire HTTP request.signal to streamAbort so abandoning the request
+        // also aborts research+model pipelines immediately.
+        if (request.signal.aborted) {
+          streamAbort.abort();
+        } else {
+          request.signal.addEventListener("abort", () => {
+            streamAbort.abort();
+          });
+        }
         const stream = new ReadableStream<Uint8Array>({
           cancel() {
             streamAbort.abort();
@@ -792,6 +801,7 @@ You must output a JSON object EXACTLY in this format:
                   subQueries,
                   emit: (status) => send({ status }),
                   scope: body.scope,
+                  signal: streamAbort.signal,
                 });
                 researchSources = r.sources;
                 webBlock = r.webBlock;
@@ -928,10 +938,10 @@ ${grounding}`,
                 surface_ref: body.conversationId,
                 model,
                 messages: chatMessages,
-                // Thread both the HTTP request signal and our stream-cancel
-                // signal so the runtime can abort the upstream fetch when
-                // either the client disconnects or the panel closes.
-                signal: streamAbort.signal.aborted ? streamAbort.signal : request.signal,
+                // PERF: streamAbort.signal is wired to both request.signal and
+                // the stream cancel() hook, so this unified signal aborts when
+                // either the client closes or the panel is dismissed.
+                signal: streamAbort.signal,
               });
             } catch (e) {
               const errMsg = e instanceof Error ? e.message : String(e);
