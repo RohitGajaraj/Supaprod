@@ -1,0 +1,76 @@
+# The Love-Gate · reimagined Mission Control
+
+> _Created: 2026-07-20 · Last updated: 2026-07-20_
+
+The Love-Gate is the standing companion from `AGENTS.md`: a surface is not done
+until it is **enterprise-credible AND consumer-grade at the same time**, verified
+on a **fresh production account**. This file is the concrete, repeatable gate for
+the front-end reimagining (the `/m` room, its seven faces, the Approvals tray,
+Threads, Artifacts, the reclustered Settings, and the one-question onboarding),
+plus the pre-deploy dry-run recorded against the sandbox branch
+`sandbox/mission-control-v2`.
+
+Honesty note on scope: the **binding** run is on a fresh production account, and
+that can only happen after the Gate-2 merge deploys this branch. Until then this
+is a **dry run on the dev server** (Node 26, `localhost:8080`, demo account).
+Every item below is marked with what was actually observed.
+
+---
+
+## The checklist (run top to bottom on a fresh account)
+
+### Consumer-grade (would a smart non-technical person feel this is for them?)
+
+1. **One primary action per screen.** Ember marks exactly one thing; everything
+   else is quiet. No screen presents two competing calls to action.
+2. **No pressure, no cognitive load.** First-run asks at most one optional
+   question; no forward path is ever disabled or gated behind input.
+3. **Calm, humanized voice.** No AI-tell, no em/en dashes, no boilerplate
+   onboarding ("Welcome to X", "Let's get started"). Copy sounds like a person.
+4. **Empty states teach.** Every empty surface names who acts next and the one
+   action that fills it, never a blank panel.
+5. **Loading is shaped, not blank.** Skeletons match the arriving content.
+6. **Costs stay quiet.** No credit/token/dollar figures inline on any surface
+   (behind Details only).
+7. **Chromeless moments stay chromeless.** A first-run / focus moment shows no
+   nav rail, banner, or dock.
+
+### Enterprise-credible (would a buyer trust it with real work?)
+
+8. **Honest states.** No mocked data; errors surface plainly with a recovery
+   verb; a failed read never wears an empty state's clothes.
+9. **No claim outruns wiring.** Every verb the UI shows performs a real backend
+   action, or is not shown (or degrades with an honest message).
+10. **Governance is visible.** Approvals, autonomy/oversight modes, and the
+    receipts are reachable, not hidden.
+11. **Accessibility holds.** Focus rings on every interactive element, real
+    labels, keyboard paths.
+12. **Zero console errors** on every surface.
+
+---
+
+## Dry-run results (sandbox branch, 2026-07-20)
+
+| Surface | Result | Notes |
+| --- | --- | --- |
+| One-question onboarding (`/start`) | PASS (after fix) | One optional question; forward action never disables ("Walk me in" / "Continue"); distinctive voice ("Step one of one", "This isn't a form"); **fixed**: was rendering inside the app shell (nav rail + Sample-data banner + focus dock), now clean full-viewport. 0 errors. |
+| The room (`/m/$productId`) | PASS | Seven faces render real data; one ember locus; Spine reads real loop state; optimistic decide (signature moment) fires; 0 errors (verified across the session). |
+| Approvals tray | PASS | Approve / Send back (revisable only) / Decline / Snooze, each honest; send-back + snooze degrade with an honest message until their tables land at Gate-2. |
+| Threads (`/threads`) | PASS, one follow-on | Real day-grouped conversations, search, read preview, rename, copy-link; 0 errors. FOLLOW-ON: renders inside the old Obsidian AppShell chrome rather than a room-consistent/chromeless frame (visual consistency, not a blocker; the whole app adopts the reimagined shell at Gate-2). |
+| Artifacts (`/artifacts`) | PASS, same follow-on | 23 real artifacts, kind chips, open links; 0 errors. Same shell-consistency follow-on as Threads. |
+| Settings (5 groups + Autonomy & approvals) | PASS | Five groups render; every legacy section reachable; Autonomy surface shows kill switch + per-tool oversight modes; 0 errors. |
+| Seed richness | PASS | v1 already covers 20+ surfaces on two products; v2 adds the review-status spec so the tray's full verb set + signature moment are experienceable (applies at Gate-2). |
+
+## Flagged for the binding run (fresh production account, post-Gate-2)
+
+- Re-run every row above on a genuinely fresh signup (not the demo), with the
+  seed flags on (`SAMPLE_WORKSPACE_ENABLED=1`), so the sample-workspace path and
+  the migrations (`approval_snoozes`, `approval_feedback`, `sample-mc-v2`) are
+  live and the gate interactions are exercised end to end.
+- Resolve the Threads/Artifacts shell-consistency follow-on as part of the
+  app-wide reimagined-shell adoption.
+
+## Related
+
+- [`docs/features/sample-workspace-seed.md`](../../features/sample-workspace-seed.md) · the rich seed the room stands on
+- [`AGENTS.md`](../../../AGENTS.md) · the standing Love-Gate companion
