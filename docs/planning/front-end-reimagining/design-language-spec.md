@@ -270,3 +270,19 @@ The Canvas (60% or more of Mission Control) renders the stage's actual work thro
 ## 10. Review gates this spec adds
 
 Any Mission Control mockup or PR is checked against: the grayscale test (2.5), the ember copy contract (6.3), the motion budget table (5.1), the one-live-locus rule (2.1), the forward-door rule (6.5), the cost-quiet rule (7), and the believable-timestamps rule (1). These are review items, not aspirations; several get CI enforcement (ActionSpec labels, forward doors, deep links) per the gap register.
+
+---
+
+## Addendum 1.1 (founder red-lines, 2026-07-19 evening)
+
+These override anything above on conflict.
+
+1. **Cards: edge strips banned.** No colored left/right/top edge strips or highlighter bars on any card, anywhere ("looks AI-designed"). Voice and attribution come from the agent chip and the content; gates from the ember chip and the action row. Cards are plain ink surfaces: hairline border, token radius, nothing decorative.
+2. **Craft bar (binding, all surfaces).** Timestamps: right-aligned, mono, in the card header row, never floating mid-content or inline mid-sentence. Numbers emphasized inline must not break line flow or wrap oddly. Every card follows one internal grid: chip row (label left, time right), body, optional evidence chips, action row. Baseline alignment throughout. Text never distorted, truncated mid-word, or spaced irregularly.
+3. **Color revision pending (token-only change).** The soft and faint tiers of the human (ember) and machine ramps get retuned; memory GOLD is retired and will be replaced by a modern, elegant, non-generic hue; the machine hue may also change if a candidate beats blue. Light mode gets an explicit strategy (one dual-mode accent set, or per-mode accents). Components must consume token variables only, so the revision lands entirely in ink.css.
+4. **Ask affordances.** The docked per-screen composer stays AND the shell carries one always-visible Ask button in the TopBar with its shortcut key, opening the same composer. Never two input boxes on one screen.
+5. **Threads home (new requirement).** Every conversation must land somewhere revisitable: a Threads surface with per-product and workspace-wide views, search, rename, grouping/folders, and promote-to-memory. Registry entry required; concept in design.
+6. **Artifacts home (new requirement).** Generated resources (interactive prototypes, HTML files, docs, launch kits) need a named, revisitable home. Naming and placement in design; registry entry required.
+7. **Post-login landing.** Returning users land on Mission Control at rest (the /m index resolves the last active product): the needs-you pill answers "what waits on me," the Briefing answers "what happened," the spine answers "where do I jump." Brand-new accounts get the first-run LoopFrame instead. Every exhibit states which state it shows.
+8. **Standalone Ask panel stays retired** (founder confirmed 2026-07-19; may return later only on his explicit ask).
+9. **Starfield decision deferred** until a rendered, subtle app-idle variant is reviewed on real frames.
