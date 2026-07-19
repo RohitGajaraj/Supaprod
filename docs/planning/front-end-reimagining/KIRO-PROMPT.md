@@ -6,7 +6,7 @@ Copy everything between the lines into the new session, from the repo root.
 
 You are continuing a founder-approved, mid-flight front-end rebuild of Supaprod called Mission Control. The work lives on branch `sandbox/mission-control-v2` (already pushed to origin). Check out that branch and never work on main.
 
-Before doing ANYTHING, read these in order:
+Before doing ANYTHING, open `docs/planning/front-end-reimagining/CONTINUATION-BOARD.html` in a browser for the visual phase map (what is done, where the stop line is, where you start), then read these in order:
 1. `docs/planning/front-end-reimagining/HANDOFF.md` - the live state and your complete task list (its CONTINUATION section is your work order).
 2. `docs/planning/front-end-reimagining/problem-statement.md` - the charter.
 3. `docs/planning/front-end-reimagining/design-language-spec.md` - the design law. The Addenda 1.1, 1.2, 1.3 at the bottom override the body.
