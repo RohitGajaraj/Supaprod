@@ -27,6 +27,10 @@ export function providerLabel(provider: string): string {
   return known[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
 }
 
+// Hoist static model grouping outside the component to avoid recomputing on every render.
+// MODELS is a module-level constant; grouping never changes at runtime.
+const MODEL_GROUPS = modelsByProvider(MODELS);
+
 /**
  * ChatGPT-style compact model picker, now open-ended + capability-aware.
  *   - "Auto" routes each message to the model best at the task (capability routing).
@@ -61,7 +65,7 @@ export function ModelSwitcher({
   ]);
   const recommendedModelId = platform.data?.recommendedModel ?? "google/gemini-2.5-flash";
 
-  const groups = modelsByProvider(MODELS);
+  const groups = MODEL_GROUPS;
   const current = MODELS.find((m) => m.id === value);
   const label = value === AUTO_MODEL ? "Auto" : (current?.label ?? value);
 

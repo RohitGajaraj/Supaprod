@@ -109,8 +109,10 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
     if (typeof window === "undefined") {
       return;
     }
+    let cancelled = false;
     const CACHE_KEY = "supaprod.ambient.v5";
     const applyPayload = (payload: AmbientPayload) => {
+      if (cancelled) return;
       setPlace(payload.place);
       setWeather(payload.weather);
       setDenied(false);
@@ -143,7 +145,10 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
       loadFromNetworkLocation()
         .catch(loadFromTimeZone)
         .then(applyPayload)
-        .catch(() => setDenied(true));
+        .catch(() => {
+          if (cancelled) return;
+          setDenied(true);
+        });
 
     if (!("geolocation" in navigator)) {
       fallback();
@@ -157,7 +162,7 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
     // always show up.
     let resolved = false;
     const settle = (fn: () => void) => {
-      if (resolved) return;
+      if (resolved || cancelled) return;
       resolved = true;
       fn();
     };
@@ -167,7 +172,9 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
       ({ coords }) =>
         settle(() => {
           clearTimeout(timer);
-          loadFromBrowserPosition(coords).then(applyPayload).catch(fallback);
+          loadFromBrowserPosition(coords)
+            .then(applyPayload)
+            .catch(fallback);
         }),
       () =>
         settle(() => {
@@ -176,6 +183,10 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
         }),
       { maximumAge: 15 * 60_000, timeout: 4500 },
     );
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone?.split("/").pop()?.replace("_", " ");
