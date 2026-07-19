@@ -22,22 +22,41 @@ type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
 /**
  * SECURITY: Extract and validate CORS origin from request.
- * The endpoint is authenticated (Bearer token required), so wildcard CORS
- * doesn't introduce CSRF risk. However, for defense-in-depth we validate
- * the origin and reflect it back instead of using wildcard.
- * Falls back to "*" only if origin is unparseable (e.g., during preflight).
+ * The endpoint is authenticated (Bearer token required), but we still enforce
+ * origin allowlisting for defense-in-depth and to prevent CORS misconfiguration.
+ * Reflects origin back only if it's in the allowlist; otherwise returns null
+ * (no CORS header) to deny cross-origin access.
  */
-function getValidatedCorsOrigin(request: Request): string {
-  try {
-    const origin = request.headers.get("origin");
-    if (!origin) return "*"; // preflight or same-origin request
-    // Validate origin is a valid URL
-    new URL(origin);
-    return origin;
-  } catch {
-    // Invalid origin format; allow with wildcard for robustness
-    return "*";
+function getValidatedCorsOrigin(request: Request): string | null {
+  const origin = request.headers.get("origin");
+  if (!origin) return null; // same-origin request or no origin
+
+  // Allowlist of trusted origins
+  const allowedOrigins = [
+    "http://localhost:5173", // dev server
+    "http://localhost:3000", // alternative dev port
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+  ];
+
+  // Add production origin if available
+  if (process.env.VITE_PUBLIC_ORIGIN) {
+    allowedOrigins.push(process.env.VITE_PUBLIC_ORIGIN);
   }
+
+  try {
+    // Validate that origin is a valid URL
+    new URL(origin);
+    // Return origin only if it's in the allowlist
+    if (allowedOrigins.includes(origin)) {
+      return origin;
+    }
+  } catch {
+    // Invalid origin format; deny cross-origin access
+  }
+
+  // Origin not in allowlist; return null to omit CORS header
+  return null;
 }
 
 /**
@@ -83,14 +102,18 @@ type ChatMeta = {
 /**
  * Generate SSE headers with proper CORS origin.
  * SECURITY: Use validated origin instead of wildcard for defense-in-depth.
+ * Omits CORS header if origin is not allowed (null).
  */
-function getSseHeaders(origin: string) {
-  return {
+function getSseHeaders(origin: string | null) {
+  const headers: Record<string, string> = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
-    "Access-Control-Allow-Origin": origin,
   };
+  if (origin) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
 }
 
 const GENERIC_FAILURE = "I hit a snag answering that. Try again or switch models.";
@@ -172,15 +195,17 @@ function stripMention(text: string, slug: string): string {
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
-      OPTIONS: ({ request }) =>
-        new Response(null, {
-          status: 204,
-          headers: {
-            "Access-Control-Allow-Origin": getValidatedCorsOrigin(request),
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "content-type, authorization",
-          },
-        }),
+      OPTIONS: ({ request }) => {
+        const origin = getValidatedCorsOrigin(request);
+        const headers: Record<string, string> = {
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "content-type, authorization",
+        };
+        if (origin) {
+          headers["Access-Control-Allow-Origin"] = origin;
+        }
+        return new Response(null, { status: 204, headers });
+      },
       POST: async ({ request }) => {
         // SECURITY: Extract validated CORS origin early for all SSE responses.
         const corsOrigin = getValidatedCorsOrigin(request);
@@ -1142,9 +1167,10 @@ ${grounding}`,
   },
 });
 
-function json(body: unknown, status = 200, origin = "*") {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": origin },
-  });
+function json(body: unknown, status = 200, origin: string | null = null) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (origin) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return new Response(JSON.stringify(body), { status, headers });
 }
