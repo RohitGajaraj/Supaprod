@@ -51,6 +51,7 @@ import { ComposerOverlay } from "./composer/ComposerOverlay";
 import { StageCanvasFace } from "./faces";
 import { ApprovalsTray } from "./ApprovalsTray";
 import { WorkingStrip } from "./WorkingStrip";
+import { CrewDrawer } from "./CrewDrawer";
 import { AppIdleBackdrop } from "./AppIdleBackdrop";
 import { useLiveActivity } from "@/components/supaprod/LivePulse";
 
@@ -217,6 +218,9 @@ export function MissionShell({
 
   // The tray's focused item id, held here so J/K survive a queue refetch.
   const [trayFocusedId, setTrayFocusedId] = useState<string | null>(null);
+
+  // The Crew drawer (the roster in-context); the engine room is a route.
+  const [crewOpen, setCrewOpen] = useState(false);
 
   // The app-idle starfield is scoped to a genuinely empty/idle room only
   // (LOCKED): every stage quiet or inferred, nothing active, nothing waiting.
@@ -435,6 +439,8 @@ export function MissionShell({
           setOverlayOpen(true);
           setComposerExpanded(false);
         }}
+        onOpenCrew={() => setCrewOpen(true)}
+        onOpenEngineRoom={() => void navigate({ to: "/engine-room" })}
         thread={{
           dayLabel,
           briefing: briefingQ.data ?? null,
@@ -493,6 +499,7 @@ export function MissionShell({
           onTrayChange(false);
         }}
       />
+      <CrewDrawer open={crewOpen} onClose={() => setCrewOpen(false)} />
     </>
   );
 }

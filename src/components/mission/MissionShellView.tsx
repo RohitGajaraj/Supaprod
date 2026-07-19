@@ -66,6 +66,10 @@ export interface MissionShellViewProps {
   journeyHandoff?: JourneyHandoffLine | null;
   /** The TopBar Ask button: summons the caller's overlay composer. */
   onAsk: () => void;
+  /** Opens the Crew drawer (the 13-agent roster in-context). Optional. */
+  onOpenCrew?: () => void;
+  /** Opens the engine room (off-nav, one click deep). Optional. */
+  onOpenEngineRoom?: () => void;
   /** The real Thread column (the caller owns the stream + briefing reads). */
   thread: Omit<ThreadProps, "className">;
   /** The real docked Composer (the caller owns draft + expanded state). */
@@ -195,6 +199,8 @@ export function MissionShellView({
   journeyStages,
   journeyHandoff,
   onAsk,
+  onOpenCrew,
+  onOpenEngineRoom,
   thread,
   composer,
   workingStrip,
@@ -251,6 +257,28 @@ export function MissionShellView({
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          {/* Recessed doors: the crew (roster) and the engine room (off-nav,
+              one click deep). Quiet by default; they are depth, not chrome. */}
+          {onOpenCrew ? (
+            <button
+              type="button"
+              onClick={onOpenCrew}
+              className="ink-focus hidden h-7 items-center rounded-lg px-2 text-[12px] transition-colors hover:bg-[var(--ink-raised)] hover:text-[var(--ink-body)] sm:flex"
+              style={{ color: "var(--ink-subtle)" }}
+            >
+              Crew
+            </button>
+          ) : null}
+          {onOpenEngineRoom ? (
+            <button
+              type="button"
+              onClick={onOpenEngineRoom}
+              className="ink-focus hidden h-7 items-center rounded-lg px-2 text-[12px] transition-colors hover:bg-[var(--ink-raised)] hover:text-[var(--ink-body)] sm:flex"
+              style={{ color: "var(--ink-subtle)" }}
+            >
+              Under the hood
+            </button>
+          ) : null}
           {/* The always-visible Ask affordance: summons the same composer. */}
           <button
             type="button"
