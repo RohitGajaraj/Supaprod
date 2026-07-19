@@ -1,15 +1,16 @@
 /**
- * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 - the pure grouping model for the
- * Settings surface. OBS-13 collapses the prior 5 groups + one recessed
- * Advanced group into exactly **four panes** (You · Workspace · Connections ·
- * Plan) per the Obsidian IA law (contract §8: Settings is a quiet list, no
- * recessed fold). Every original `SectionId` and the `?section=` deep-link
- * contract are preserved unchanged - only the grouping presentation moved.
+ * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 -> front-end reimagining Phase 4 - the
+ * pure grouping model for the Settings surface. The reimagining recluster
+ * (founder-approved 2026-07-19) presents Settings as **five named groups**
+ * (You · Workspace · Agents · Connections & Data · Plan & Usage), promoting
+ * Agents to its own group per charter requirement 9. Every original `SectionId`
+ * and the `?section=` deep-link contract are preserved unchanged - only the
+ * grouping presentation moved, so no renderer moves and no deep link breaks.
  *
- * PURE: no React / db / network. The route imports these to drive the pane
- * index (tier 1) and, inside the active pane, that pane's member sections
- * (tier 2). The invariants (every section in exactly one pane, primary-is-
- * first, legacy ids resolve, round-trip pane derivation) are unit-verified.
+ * PURE: no React / db / network. The route imports these to drive the group
+ * index (tier 1) and, inside the active group, that group's member sections
+ * (tier 2). The invariants (every section in exactly one group, primary-is-
+ * first, legacy ids resolve, round-trip group derivation) are unit-verified.
  */
 
 export type SectionId =
@@ -27,7 +28,7 @@ export type SectionId =
   | "notifications"
   | "memory";
 
-export type GroupId = "you" | "workspace" | "connections" | "plan";
+export type GroupId = "you" | "workspace" | "agents" | "connections" | "plan";
 
 export type SettingsSection = { id: SectionId; label: string };
 
@@ -40,46 +41,64 @@ export type SettingsGroup = {
   sections: SettingsSection[];
 };
 
+// FRONT-END REIMAGINING Phase 4 (founder-approved recluster, 2026-07-19): the
+// four OBS-13 panes (You / Workspace / Connections / Billing) become the FIVE
+// approved groups (You / Workspace / Agents / Connections & Data / Plan & Usage),
+// with Agents promoted to its own group (charter requirement 9: a deliberate
+// agent home). This is a pure REGROUPING - every `SectionId` and the `?section=`
+// deep-link contract are unchanged, so no renderer moves and no link breaks;
+// only which group each section sits under changed. Source: the reclustering
+// spec (research/ia-reclustering.md §2). The larger relocations it also
+// proposes (a Brand feed item, moving Memory to Brain, folding /sync in, and a
+// dedicated Autonomy & approvals panel) are the follow-on; those touch working
+// cross-surface components or new backend and are tracked separately.
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "you",
     label: "You",
-    desc: "Your profile, notifications, data, and diagnostics.",
+    desc: "Your profile, look, and alerts.",
     sections: [
       { id: "profile", label: "Profile" },
       { id: "notifications", label: "Notifications" },
-      { id: "data", label: "Data" },
-      { id: "health", label: "Diagnostics" },
     ],
   },
   {
     id: "workspace",
     label: "Workspace",
-    desc: "The workspace brief, voice, AI staff, products, and AI keys.",
+    desc: "What you are building, your brand, and your team.",
     sections: [
       { id: "workspace", label: "Brief & voice" },
-      { id: "staff", label: "AI staff" },
       { id: "products", label: "Products" },
-      { id: "ai", label: "AI & keys" },
       { id: "memory", label: "Memory" },
     ],
   },
   {
+    id: "agents",
+    label: "Agents",
+    desc: "Your AI staff: what they may do, and which models do the work.",
+    sections: [
+      { id: "staff", label: "Roster" },
+      { id: "ai", label: "Models & keys" },
+    ],
+  },
+  {
     id: "connections",
-    label: "Connections",
-    desc: "Connect your tools as sources, and let external agents use Supaprod.",
+    label: "Connections & Data",
+    desc: "What flows in, what external agents can read, and what we store.",
     sections: [
       { id: "connections", label: "Sources" },
       { id: "interop", label: "Agent access" },
+      { id: "data", label: "Your data" },
     ],
   },
   {
     id: "plan",
-    label: "Billing",
-    desc: "Your plan and credits.",
+    label: "Plan & Usage",
+    desc: "Your plan, credits, and whether the agents are healthy.",
     sections: [
       { id: "billing", label: "Plan" },
       { id: "credits", label: "Credits" },
+      { id: "health", label: "Diagnostics" },
     ],
   },
 ];
@@ -106,6 +125,9 @@ export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
   calendar: "connections",
   plan: "billing",
   you: "profile",
+  // Group-id symmetry: the Agents group id resolves to its landing section, so
+  // `?section=agents` (and the SettingsIndex round-trip) lands inside Agents.
+  agents: "staff",
 };
 
 function isSectionId(raw: string): raw is SectionId {
@@ -148,8 +170,8 @@ export function sectionLabel(section: SectionId): string {
   return section;
 }
 
-/** All four panes are primary - OBS-13 drops the recessed Advanced fold. */
+/** All five groups are primary - the reimagining keeps no recessed fold. */
 export const PRIMARY_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS;
 
-/** No pane is recessed under the four-pane law. */
+/** No group is recessed under the five-group model. */
 export const RECESSED_GROUPS: readonly SettingsGroup[] = [];
