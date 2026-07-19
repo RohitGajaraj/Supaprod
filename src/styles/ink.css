@@ -32,13 +32,13 @@
   --voice-human-hover: #ff8344;
   --voice-human-dim: #c25a2b;
   --voice-human-border: rgba(255, 107, 44, 0.4);
-  --voice-human-soft: rgba(255, 107, 44, 0.12);
-  --voice-human-faint: rgba(255, 107, 44, 0.06);
+  --voice-human-soft: #33150a;
+  --voice-human-faint: #200e07;
   --voice-machine: #6cb0f5;
   --voice-machine-dim: #4d7fb3;
   --voice-machine-border: rgba(108, 176, 245, 0.35);
-  --voice-machine-soft: rgba(108, 176, 245, 0.14);
-  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+  --voice-machine-soft: #172534;
+  --voice-machine-faint: #0f1822;
   --voice-memory: #e8b44c; /* memory moments ONLY; the gold ban holds everywhere else */
   --voice-memory-dim: #a8842f;
   --voice-memory-border: rgba(232, 180, 76, 0.35);
@@ -88,13 +88,13 @@
   --voice-human-hover: #d94e12;
   --voice-human-dim: #b34d15;
   --voice-human-border: rgba(240, 90, 26, 0.45);
-  --voice-human-soft: rgba(240, 90, 26, 0.1);
-  --voice-human-faint: rgba(240, 90, 26, 0.05);
+  --voice-human-soft: #fce9dd;
+  --voice-human-faint: #fdf2ec;
   --voice-machine: #2e6ed6;
   --voice-machine-dim: #5b86bd;
   --voice-machine-border: rgba(46, 110, 214, 0.35);
-  --voice-machine-soft: rgba(46, 110, 214, 0.12);
-  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+  --voice-machine-soft: #e4eefb;
+  --voice-machine-faint: #f0f6fd;
   --voice-memory: #b8860b;
   --voice-memory-dim: #96700a;
   --voice-memory-border: rgba(184, 134, 11, 0.4);
