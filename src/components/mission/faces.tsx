@@ -13,7 +13,7 @@
 // empty spend bucket); empty states are WarmSlots that name who acts next.
 // Costs, drivers, and trace links live behind the kebab Details, one click in.
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -25,12 +25,13 @@ import type { StageId, StageLoopState } from "@/components/mission/Spine";
 import type { SurfaceHeaderState } from "@/components/mission/primitives/SurfaceHeader";
 import type { MissionStateId } from "@/lib/mission-vocabulary";
 import { drawWorkingLine } from "@/lib/mission-vocabulary";
-import { castByStation, agentDisplayName, type AgentStation } from "@/lib/agent-vocabulary";
+import { castByStation, agentDisplayName, stepLabel, type AgentStation } from "@/lib/agent-vocabulary";
 import { journeyById, type JourneyId } from "@/lib/journeys";
 import { listSignals, listOpportunities, listSpecs } from "@/lib/discovery.functions";
 import { listPrototypes } from "@/lib/prototypes.functions";
 import { getPersistedScaffold } from "@/lib/design-scaffold.functions";
 import { listMissions } from "@/lib/missions.functions";
+import { getStudioSession, type StudioCi, type StudioRunDetail } from "@/lib/studio.functions";
 import { buildDriverLabel } from "@/lib/build/driver";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getOutcomeData } from "@/lib/outcome.functions";
@@ -549,14 +550,331 @@ type MissionRow = {
 
 const MISSION_DONE = ["done", "complete", "completed", "succeeded", "shipped"];
 
+// A single build step from the loop trace (StudioRunDetail.steps element).
+type BuildStep = StudioRunDetail["steps"][number];
+type BuildChange = { id: string; path: string; op: string; base_chars: number; new_chars: number };
+type BuildSession = {
+  mission: { id: string; title?: string | null; goal?: string | null; status?: string | null };
+  kind: "build" | "mission";
+  spec: { id: string; title: string } | null;
+  runs: StudioRunDetail[];
+  changeset:
+    | { id: string; status: string; branch: string | null; pr_url: string | null; pr_number: number | null; title: string; file_count: number }
+    | null;
+  changes: BuildChange[];
+  ci: StudioCi;
+  total_cost_usd: number;
+};
+
+/** The plan flow: the loop's tool-call steps as done / now / next (screen-3). */
+function BuildPlan({ steps, running }: { steps: BuildStep[]; running: boolean }) {
+  const calls = steps.filter((s) => s.kind === "tool_call");
+  if (calls.length === 0) return null;
+  const lastExecuted = (() => {
+    let idx = -1;
+    calls.forEach((s, i) => {
+      if (s.kind === "tool_call" && s.status === "executed") idx = i;
+    });
+    return idx;
+  })();
+  return (
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      {calls.slice(0, 8).map((s, i) => {
+        const isCall = s.kind === "tool_call";
+        const errored = isCall && s.status === "error";
+        const isNow = running && i === lastExecuted + 1;
+        const isDone = isCall && s.status === "executed";
+        const color = errored
+          ? "var(--verdict-fail)"
+          : isNow
+            ? "var(--voice-machine)"
+            : isDone
+              ? "var(--ink-body)"
+              : "var(--ink-faint)";
+        return (
+          <span key={i} className="flex items-center gap-1.5">
+            {i > 0 ? <span style={{ color: "var(--ink-faint)" }}>{"→"}</span> : null}
+            <span
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11.5px]"
+              style={{
+                color,
+                borderColor: isNow ? "var(--voice-machine-border)" : "var(--ink-hairline)",
+                background: isNow ? "var(--voice-machine-faint)" : "transparent",
+              }}
+            >
+              <span className="font-mono text-[9.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+                {i + 1}
+              </span>
+              {stepLabel(s)}
+              {isDone ? <span style={{ color: "var(--verdict-pass)" }}>{"✓"}</span> : null}
+              {errored ? <span style={{ color: "var(--verdict-fail)" }}>{"✗"}</span> : null}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+const OP_LABEL: Record<string, string> = { add: "added", create: "added", edit: "edited", modify: "edited", update: "edited", delete: "removed", remove: "removed" };
+
+/** The files-changed rail: real paths + op + size from the changeset. */
+function FilesChangedCard({ changes }: { changes: BuildChange[] }) {
+  const total = changes.reduce((a, c) => a + c.new_chars, 0);
+  return (
+    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>Files changed</span>
+        <span className="font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>{changes.length}</span>
+      </div>
+      <div className="flex flex-col gap-1">
+        {changes.slice(0, 12).map((c) => {
+          const slash = c.path.lastIndexOf("/");
+          const dir = slash >= 0 ? c.path.slice(0, slash + 1) : "";
+          const file = slash >= 0 ? c.path.slice(slash + 1) : c.path;
+          return (
+            <div key={c.id} className="flex items-center gap-2 text-[12px]">
+              <span className="min-w-0 flex-1 truncate">
+                <span style={{ color: "var(--ink-faint)" }}>{dir}</span>
+                <span style={{ color: "var(--ink-text)" }}>{file}</span>
+              </span>
+              <span className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]" style={{ color: "var(--ink-subtle)" }}>
+                {OP_LABEL[c.op] ?? c.op}
+              </span>
+            </div>
+          );
+        })}
+        {changes.length > 12 ? (
+          <div className="text-[11px]" style={{ color: "var(--ink-faint)" }}>{changes.length - 12} more files</div>
+        ) : null}
+      </div>
+      <div className="mt-2 border-t pt-2 font-mono text-[10px]" style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-faint)" }}>
+        {(total / 1000).toFixed(1)}k characters across {changes.length} {changes.length === 1 ? "file" : "files"}
+      </div>
+    </div>
+  );
+}
+
+/** The session card: the run-level facts (model, status, cost, tokens, steps). */
+function SessionCard({ run }: { run: StudioRunDetail | undefined }) {
+  if (!run) return null;
+  return (
+    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <div className="mb-2 text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>This session</div>
+      <div className="flex flex-col gap-1.5 text-[11.5px]">
+        <div className="flex items-center justify-between">
+          <span style={{ color: "var(--ink-subtle)" }}>State</span>
+          <span className="font-mono" style={{ color: run.status === "running" ? "var(--voice-machine)" : "var(--ink-body)" }}>{run.status}</span>
+        </div>
+        {run.model ? (
+          <div className="flex items-center justify-between">
+            <span style={{ color: "var(--ink-subtle)" }}>Model</span>
+            <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-body)" }}>{run.model}</span>
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between">
+          <span style={{ color: "var(--ink-subtle)" }}>Steps</span>
+          <span className="font-mono tabular-nums" style={{ color: "var(--ink-body)" }}>{run.steps.length}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span style={{ color: "var(--ink-subtle)" }}>Started</span>
+          <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-body)" }}>{relTime(run.created_at)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** CI checks: the real PR check runs, or an honest line before the PR opens. */
+function CiStrip({ ci }: { ci: StudioCi }) {
+  if (!ci) {
+    return (
+      <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+        Checks run when the pull request opens.
+      </p>
+    );
+  }
+  const glyph = (conclusion: string | null, status: string) => {
+    if (conclusion === "success") return { c: "✓", color: "var(--verdict-pass)" };
+    if (conclusion === "failure") return { c: "✗", color: "var(--verdict-fail)" };
+    if (status === "completed") return { c: "•", color: "var(--ink-subtle)" };
+    return { c: "•", color: "var(--voice-machine)" };
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px]">
+      {ci.checks.slice(0, 6).map((ch, i) => {
+        const g = glyph(ch.conclusion, ch.status);
+        return (
+          <span key={i} className="inline-flex items-center gap-1.5" style={{ color: "var(--ink-body)" }}>
+            <span style={{ color: g.color }}>{g.c}</span>
+            {ch.name}
+          </span>
+        );
+      })}
+      {ci.pr_url ? (
+        <a href={ci.pr_url} target="_blank" rel="noreferrer" className="ink-focus underline underline-offset-2" style={{ color: "var(--ink-subtle)" }}>
+          PR #{ci.pr_number}
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+/** The terminal: the latest run's real streamed output. */
+function BuildTerminal({ output }: { output: string | null | undefined }) {
+  const text = (output ?? "").trim();
+  if (!text) return null;
+  return (
+    <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}>
+      <div className="flex items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline-soft)" }}>
+        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>session output</span>
+        <span className="ml-auto rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}>
+          Sandbox
+        </span>
+      </div>
+      <pre className="max-h-56 overflow-y-auto whitespace-pre-wrap px-3 py-2 font-mono text-[11px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+        {text.slice(-2000)}
+      </pre>
+    </div>
+  );
+}
+
+/** The rich build deck for the focused mission. */
+function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabel?: string | null }) {
+  const latestRun = session.runs[session.runs.length - 1];
+  const done = MISSION_DONE.includes((session.mission.status ?? "").toLowerCase());
+  const running = !done && session.runs.some((r) => r.status === "running");
+
+  if (session.kind === "mission" && session.runs.length === 0) {
+    return (
+      <div className="rounded-xl border p-4" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+        <p className="text-[13px] font-medium" style={{ color: "var(--ink-text)" }}>
+          {session.mission.title ?? session.mission.goal ?? "Mission"}
+        </p>
+        <p className="mt-1 text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+          This mission runs agents directly, without a code changeset. Open it for the full run.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Header row: what is building + provenance chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[14px] font-semibold" style={{ color: "var(--ink-text)" }}>
+          {session.mission.title ?? session.mission.goal ?? "Build"}
+        </span>
+        {session.spec ? <Chip>{`Spec: ${session.spec.title}`}</Chip> : null}
+        {session.changeset?.branch ? <Chip>{session.changeset.branch}</Chip> : null}
+        {session.mission.status ? <Chip>{session.mission.status}</Chip> : null}
+      </div>
+
+      {/* The plan flow */}
+      {latestRun ? <BuildPlan steps={latestRun.steps} running={running} /> : null}
+
+      {/* The split: files rail + work column */}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-3">
+          {session.changes.length > 0 ? <FilesChangedCard changes={session.changes} /> : null}
+          <SessionCard run={latestRun} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-3">
+          {session.changeset ? (
+            <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+              <div className="text-[12.5px] font-medium" style={{ color: "var(--ink-text)" }}>{session.changeset.title}</div>
+              <div className="mt-1 font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+                {session.changeset.status} · {session.changeset.file_count} {session.changeset.file_count === 1 ? "file" : "files"}
+              </div>
+            </div>
+          ) : null}
+          <CiStrip ci={session.ci} />
+          <BuildTerminal output={latestRun?.output} />
+        </div>
+      </div>
+
+      {/* Footer receipt: honest about what ran */}
+      {done ? (
+        <ReceiptLine>
+          Build finished{driverLabel ? ` by ${driverLabel}` : ""}. {session.changes.length}{" "}
+          {session.changes.length === 1 ? "file" : "files"} changed.
+        </ReceiptLine>
+      ) : null}
+    </div>
+  );
+}
+
+/** The other builds, switchable: clicking focuses one in the deck above. */
+function OtherBuilds({
+  missions,
+  focusedId,
+  onPick,
+}: {
+  missions: MissionRow[];
+  focusedId: string | null;
+  onPick: (id: string) => void;
+}) {
+  const others = missions.filter((m) => m.id !== focusedId).slice(0, 12);
+  if (others.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+        Other builds
+      </p>
+      {others.map((m) => {
+        const done = MISSION_DONE.includes((m.status ?? "").toLowerCase());
+        return (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => onPick(m.id)}
+            className="ink-focus flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-[var(--ink-raised)]"
+            style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+          >
+            <span
+              className="h-1.5 w-1.5 flex-none rounded-full"
+              style={{ background: done ? "var(--verdict-pass)" : "var(--voice-machine)" }}
+            />
+            <span className="min-w-0 flex-1 truncate text-[12.5px]" style={{ color: "var(--ink-text)" }}>
+              {m.title ?? m.goal ?? "Build mission"}
+            </span>
+            <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{relTime(m.updated_at)}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchMissions = useServerFn(listMissions);
-  const q = useQuery({
+  const fetchSession = useServerFn(getStudioSession);
+  const mq = useQuery({
     queryKey: ["face-missions", productId],
     queryFn: () => fetchMissions(),
     refetchInterval: pollWhenVisible(15_000),
   });
-  const missions = (q.data?.missions ?? []) as MissionRow[];
+  const missions = (mq.data?.missions ?? []) as MissionRow[];
+
+  // Focus the picked build, else the first still-running one, else the newest.
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const focusedId = useMemo(() => {
+    if (pickedId && missions.some((m) => m.id === pickedId)) return pickedId;
+    const running = missions.find((m) => !MISSION_DONE.includes((m.status ?? "").toLowerCase()));
+    return running?.id ?? missions[0]?.id ?? null;
+  }, [pickedId, missions]);
+
+  const sq = useQuery({
+    queryKey: ["build-session", focusedId],
+    queryFn: () => fetchSession({ data: { missionId: focusedId as string } }),
+    enabled: !!focusedId,
+    refetchInterval: pollWhenVisible(10_000),
+  });
+  const session = sq.data as BuildSession | undefined;
+  const focusedMission = missions.find((m) => m.id === focusedId);
+  const driverLabel = focusedMission?.build_driver
+    ? buildDriverLabel(focusedMission.build_driver)
+    : null;
 
   return (
     <CanvasFace
@@ -566,8 +884,8 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
       state={faceState("build", loop, "Built")}
       deepLink={stageDeepLink(productId, "build")}
       working={faceWorking("build", loop)}
-      loading={q.isLoading}
-      error={q.isError ? { message: "Could not read the build.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      loading={mq.isLoading}
+      error={mq.isError ? { message: "Could not read the build.", actionLabel: "Try again", onAction: () => void mq.refetch() } : null}
       emptyLine={
         missions.length === 0
           ? {
@@ -579,43 +897,28 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
       }
     >
       {missions.length > 0 ? (
-        <div className="flex flex-col gap-2.5 p-5">
-          <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-            The diff, CI, and preview live in the build workbench, one click in.
-          </p>
-          {missions.slice(0, 20).map((m) => {
-            const done = MISSION_DONE.includes((m.status ?? "").toLowerCase());
-            return (
-              <FaceCard
-                key={m.id}
-                chip={
-                  <>
-                    {m.status ? <Chip>{m.status}</Chip> : null}
-                    {typeof m.hop_count === "number" ? <Chip>{m.hop_count} steps</Chip> : null}
-                  </>
-                }
-                time={relTime(m.updated_at)}
-              >
-                <p className="text-[13.5px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
-                  {m.title ?? m.goal ?? "Build mission"}
-                </p>
-                {done ? (
-                  <ReceiptLine className="mt-2">
-                    Build finished{m.build_driver ? ` by ${buildDriverLabel(m.build_driver)}` : ""}.
-                    Open it to review the diff.
-                  </ReceiptLine>
-                ) : null}
-                <Link
-                  to="/build/$missionId"
-                  params={{ missionId: m.id }}
-                  className="ink-focus mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
-                  style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
-                >
-                  Open the build
-                </Link>
-              </FaceCard>
-            );
-          })}
+        <div className="flex flex-col gap-4 p-5">
+          {session ? (
+            <BuildDeck session={session} driverLabel={driverLabel} />
+          ) : sq.isLoading ? (
+            <div className="flex flex-col gap-2.5">
+              <div className="ink-skeleton h-6 w-2/3 rounded-lg" />
+              <div className="ink-skeleton h-40 w-full rounded-xl" />
+            </div>
+          ) : null}
+
+          {focusedId ? (
+            <Link
+              to="/build/$missionId"
+              params={{ missionId: focusedId }}
+              className="ink-focus inline-flex h-8 w-fit items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+              style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+            >
+              Open the full workbench
+            </Link>
+          ) : null}
+
+          <OtherBuilds missions={missions} focusedId={focusedId} onPick={setPickedId} />
           <NextLine doors={[journeyDoor("j6", onActivateJourney)]} />
         </div>
       ) : null}
