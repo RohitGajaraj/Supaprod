@@ -639,8 +639,27 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       }
     }
 
-    items.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
-    return { items };
+    // Gate snoozes (front-end reimagining Phase 4; founder-authorized
+    // 2026-07-19): drop items the operator deferred with H until snoozed_until.
+    // RLS scopes the read to this user. Tolerant by design: the table lands at
+    // the Gate-2 merge, so until then the read errors and `snoozed` stays empty
+    // and every gate shows - the queue never breaks on the un-applied migration.
+    const snoozeDb = supabase as unknown as SupabaseClient;
+    const { data: snoozeRows } = await snoozeDb
+      .from("approval_snoozes")
+      .select("kind,source_id")
+      .gt("snoozed_until", new Date().toISOString());
+    const snoozed = new Set(
+      ((snoozeRows ?? []) as { kind: string; source_id: string }[]).map(
+        (r) => `${r.kind}:${r.source_id}`,
+      ),
+    );
+    const visible = snoozed.size
+      ? items.filter((it) => !snoozed.has(`${it.kindKey}:${it.sourceId}`))
+      : items;
+
+    visible.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
+    return { items: visible };
   });
 
 const DecideSchema = z.object({
@@ -734,4 +753,59 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
       default:
         throw new Error(`decideApprovalItem: unknown kind ${String(data.kind)}`);
     }
+  });
+
+const SnoozeSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum([
+    "tool_call",
+    "decision",
+    "memory_candidate",
+    "house_rule",
+    "trust_graduation",
+    "spec",
+    "opportunity",
+    "assumption_challenge",
+    "design_gate",
+    "playbook_proposal",
+  ]),
+  /** Defer window in hours; default one day ("resurfaces with tomorrow's briefing"). */
+  hours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 30)
+    .optional(),
+  reason: z.string().max(500).optional(),
+});
+
+export type SnoozeApprovalItemResult = { ok: boolean; snoozedUntil: string };
+
+/**
+ * Snooze a gate (the tray's H verb). Defers ANY federated family by
+ * (kind, source_id) without touching its source table: a personal triage
+ * record in approval_snoozes that getApprovalsQueue filters on until it lapses.
+ * Founder-authorized 2026-07-19; the table lands at the Gate-2 merge, so a call
+ * against the un-applied DB surfaces a plain error (the UI never claims it
+ * worked when it did not).
+ */
+export const snoozeApprovalItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof SnoozeSchema>) => SnoozeSchema.parse(d))
+  .handler(async ({ context, data }): Promise<SnoozeApprovalItemResult> => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const hours = data.hours ?? 24;
+    const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    const { error } = await db.from("approval_snoozes").upsert(
+      {
+        user_id: context.userId,
+        kind: data.kind,
+        source_id: data.id,
+        snoozed_until: snoozedUntil,
+        reason: data.reason ?? null,
+      },
+      { onConflict: "user_id,kind,source_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true, snoozedUntil };
   });

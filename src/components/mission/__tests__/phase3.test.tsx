@@ -158,6 +158,24 @@ describe("ApprovalsTray: keyed verdicts, one source", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  test("when onSnooze is wired, the Snooze verb renders and H snoozes the focused item", () => {
+    const onSnooze = mock(() => {});
+    render(
+      <ApprovalsTray
+        open
+        onClose={mock(() => {})}
+        items={items}
+        focusedId="q-2"
+        onFocusChange={mock(() => {})}
+        onDecide={mock(() => {})}
+        onSnooze={onSnooze}
+      />,
+    );
+    expect(screen.getAllByText("Snooze").length).toBeGreaterThan(0);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "h" }));
+    expect(onSnooze).toHaveBeenCalledWith(items[1]);
+  });
+
   test("Enter opens the focused item's evidence", () => {
     const onOpenEvidence = mock(() => {});
     render(

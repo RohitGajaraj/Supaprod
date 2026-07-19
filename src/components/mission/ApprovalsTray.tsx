@@ -38,6 +38,9 @@ export interface ApprovalsTrayProps {
   onDecide: (item: ApprovalQueueItem, verdict: "approve" | "reject") => void;
   /** Opens the item's evidence: expands it into the Canvas (spec 6.3). */
   onOpenEvidence?: (item: ApprovalQueueItem) => void;
+  /** Snooze (H): defers the item with a resurface time. Founder-authorized;
+   *  the backend lands at the Gate-2 merge. Omitted, the verb does not render. */
+  onSnooze?: (item: ApprovalQueueItem) => void;
   loading?: boolean;
 }
 
@@ -56,6 +59,7 @@ export function ApprovalsTray({
   onFocusChange,
   onDecide,
   onOpenEvidence,
+  onSnooze,
   loading,
 }: ApprovalsTrayProps) {
   const focusedIndex = items.findIndex((i) => i.id === focusedId);
@@ -98,6 +102,9 @@ export function ApprovalsTray({
       } else if (key === "3") {
         e.preventDefault();
         if (items[cur]) onDecide(items[cur], "reject");
+      } else if (key === "h" && onSnooze) {
+        e.preventDefault();
+        if (items[cur]) onSnooze(items[cur]);
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (items[cur]) onOpenEvidence?.(items[cur]);
@@ -105,7 +112,7 @@ export function ApprovalsTray({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, items, focusedId, onFocusChange, onDecide, onOpenEvidence, onClose]);
+  }, [open, items, focusedId, onFocusChange, onDecide, onOpenEvidence, onSnooze, onClose]);
 
   // Scroll the focused card into view as J/K walks the list.
   useEffect(() => {
@@ -218,6 +225,7 @@ export function ApprovalsTray({
                       consequence={item.approveConsequence}
                       onApprove={() => onDecide(item, "approve")}
                       onDecline={() => onDecide(item, "reject")}
+                      onSnooze={onSnooze ? () => onSnooze(item) : undefined}
                       onOpenEvidence={onOpenEvidence ? () => onOpenEvidence(item) : undefined}
                     />
                   </div>
@@ -242,6 +250,14 @@ export function ApprovalsTray({
                 >
                   <Kbd>3</Kbd> Decline
                 </span>
+                {onSnooze ? (
+                  <span
+                    className="flex items-center gap-1 text-[11px]"
+                    style={{ color: "var(--ink-subtle)" }}
+                  >
+                    <Kbd>H</Kbd> Snooze
+                  </span>
+                ) : null}
                 <span
                   className="flex items-center gap-1 text-[11px]"
                   style={{ color: "var(--ink-subtle)" }}

@@ -35,6 +35,7 @@ import { useAskStream } from "@/hooks/use-ask-stream";
 import {
   decideApprovalItem,
   getApprovalsQueue,
+  snoozeApprovalItem,
   type ApprovalKind,
   type ApprovalQueueItem,
 } from "@/lib/approvals-queue.functions";
@@ -199,6 +200,33 @@ export function MissionShell({
       if (c?.prevLoop !== undefined) queryClient.setQueryData(loopKey, c.prevLoop);
       toast("That decision did not save. Try again.");
     },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
+    },
+  });
+
+  // Snooze (tray H): defer a gate. Optimistically leaves the queue (its ember
+  // clears on the Spine and the pill); it resurfaces on its own at snoozed_until.
+  // The backend lands at the Gate-2 merge, so a real error surfaces honestly.
+  const snoozeFn = useServerFn(snoozeApprovalItem);
+  const snoozeMutation = useMutation({
+    mutationFn: (item: ApprovalQueueItem) =>
+      snoozeFn({ data: { id: item.sourceId, kind: item.kindKey } }),
+    onMutate: async (item) => {
+      await queryClient.cancelQueries({ queryKey: queueKey });
+      const prevQueue = queryClient.getQueryData(queueKey);
+      queryClient.setQueryData<{ items: ApprovalQueueItem[] }>(queueKey, (old) =>
+        old ? { items: old.items.filter((i) => i.id !== item.id) } : old,
+      );
+      return { prevQueue };
+    },
+    onError: (_e, _item, ctx) => {
+      const c = ctx as { prevQueue?: unknown } | undefined;
+      if (c?.prevQueue !== undefined) queryClient.setQueryData(queueKey, c.prevQueue);
+      toast("Snooze is not live yet. It turns on with the next release.");
+    },
+    onSuccess: () => toast("Snoozed. It will resurface with tomorrow's briefing."),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["approvals"] });
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
@@ -517,6 +545,7 @@ export function MissionShell({
           onStageChange(GATE_TO_STAGE[item.kindKey]);
           onTrayChange(false);
         }}
+        onSnooze={(item) => snoozeMutation.mutate(item)}
       />
       <CrewDrawer open={crewOpen} onClose={() => setCrewOpen(false)} />
       {offerTour && !tourOpen ? (
