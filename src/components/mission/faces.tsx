@@ -591,7 +591,11 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
     refetchInterval: pollWhenVisible(30_000),
   });
   const protos = (q.data ?? []) as PrototypeRow[];
-  const latest = protos[0] ?? null;
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const latest = useMemo(
+    () => protos.find((p) => p.id === pickedId) ?? protos[0] ?? null,
+    [protos, pickedId],
+  );
 
   // The live scaffold HTML, rendered same-origin via srcDoc (the /p/$slug
   // share viewer sets a frame-blocking header, so it cannot be iframed; the
@@ -625,16 +629,56 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
     >
       {latest ? (
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-5">
-          <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-            {scaffoldHtml
-              ? "The live scaffold, exactly as it renders. Open it full-screen to click through it."
-              : "The prototype is published. Open it full-screen to click through it."}
+          {protos.length > 1 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {protos.slice(0, 8).map((p) => {
+                const on = p.id === latest.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPickedId(p.id)}
+                    aria-pressed={on}
+                    className="ink-focus max-w-[220px] truncate rounded-lg border px-2.5 py-1 text-[12px] transition-colors"
+                    style={{
+                      borderColor: on ? "var(--ink-hairline)" : "transparent",
+                      background: on ? "var(--ink-raised)" : "transparent",
+                      color: on ? "var(--ink-text)" : "var(--ink-subtle)",
+                    }}
+                  >
+                    {p.name}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+          <p className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+            Rendered in your brand{latest.isPublic ? " · shared publicly" : ""}.{" "}
+            {scaffoldHtml ? "Live and clickable below." : "Opens full-screen in its own tab."}
           </p>
           {scaffoldHtml ? (
             <div
-              className="min-h-[420px] flex-1 overflow-hidden rounded-xl border"
-              style={{ borderColor: "var(--ink-hairline)", background: "#fff" }}
+              className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-xl border"
+              style={{ borderColor: "var(--ink-hairline)" }}
             >
+              {/* Browser-chrome frame: the prototype reads as a real product. */}
+              <div
+                className="flex flex-none items-center gap-2 border-b px-3 py-1.5"
+                style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="h-2 w-2 rounded-full" style={{ background: "var(--ink-hairline)" }} />
+                ))}
+                <span className="ml-1 min-w-0 flex-1 truncate font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+                  /p/{latest.shareSlug}
+                </span>
+                <span
+                  className="flex-none rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+                  style={{ borderColor: "var(--voice-machine-border)", color: "var(--voice-machine)" }}
+                >
+                  Interactive
+                </span>
+              </div>
               {/* srcDoc + scripts-only sandbox: null origin, no parent frame
                   access, no external network (the DesignScaffoldPanel idiom). */}
               <iframe
@@ -642,7 +686,8 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
                 title={`Prototype: ${latest.name}`}
                 srcDoc={scaffoldHtml}
                 sandbox="allow-scripts"
-                className="h-full min-h-[420px] w-full"
+                className="min-h-[400px] w-full flex-1"
+                style={{ background: "#fff" }}
               />
             </div>
           ) : (
