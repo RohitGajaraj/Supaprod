@@ -1,80 +1,17 @@
 {
-  "timestamp": "2026-07-18T09:20:50.903Z",
-  "mode": "headless",
-  "workerType": "optimize",
-  "model": "sonnet",
-  "durationMs": 277628,
-  "executionId": "optimize_1784366173275_4d3eay",
-  "success": true,
-  "findings": {
-    "sections": [
-      {
-        "title": "Performance analysis — cadence-lane-2",
-        "content": "\nBefore writing this up I checked git history and memory: a same-day audit (`project_perf-audit-2026-07-18`, 2 parallel `ecc:performance-optimizer` agents, file:line-verified) already found 11 issues, and **7 commits since then have fixed 8 of them** (5 from the audit + digest parallelization + a Notion debounce + the ranking sort). I re-verified live code rather than trust the memory snapshot. Here's what's actually still open, by your five categories.\n\n",
-        "level": 2
-      },
-      {
-        "title": "Already fixed — no action needed",
-        "content": "| Area | Fix | Commit |\n|---|---|---|\n| N+1: `dispatchPRDToLinear` | `pLimit(4)` + batched `sync_mappings` insert | `a068a0a9` |\n| N+1: digest generation | 4 queries → `Promise.all`; `pLimit(8)` across users | `1ffdfbf6` |\n| N+1: workspace context in agent loop | request-scoped cache (now TTL'd, uncommitted) | `a291d3fe` + working tree |\n| Re-render: `AutoClustered`/`ThemeRow`, `SignalFeed`/`SignalCard` | id-based handlers instead of parent-wrapped closures | `a068a0a9`, `1ffdfbf6` |\n| Leak: `GraphUniverseCanvas` RAF loop | conditional reschedule, matches `GraphForceCanvas` | `f9cb1bf4` |\n| Leak: LLM stream not cancelled on disconnect | `AbortSignal` threaded chat.ts → runtime.server.ts → all 3 providers | `b5338fd5`, `a068a0a9` |\n| Redundant computation: `MissionOrchestratorDetail` unattended audit | `useMemo` | `0d98b4c3` |\n| Redundant computation: `rankOpportunities` | Schwartzian transform | `ab3a0fc5` |\n| Redundant computation: Notion search | 300ms debounce | `1ffdfbf6` |\n\n",
-        "level": 3
-      },
-      {
-        "title": "1. N+1 query patterns — 3 still open",
-        "content": "\n**`src/lib/capabilities.functions.ts:139-148` + `153-211`** — `buildCapabilityForAgent` is called in a serial loop over `activeCast`, and inside it, three queries (`loadVoiceAnchorBlock(userId)`, `workspace_briefs`, `brief_items`) are scoped only to `userId`/`workspaceId` — **identical on every iteration** — yet re-run per agent. For a 13-agent cast that's 39 round trips for 3 rows. Same shape as the workspace-context cache you just added to `loop.server.ts` — hoist these above the loop, same pattern as the already-hoisted `trustByAgentId`:\n\n```ts\n// in buildCapabilities, before the for-loop:\nconst voiceBlock = await loadVoiceAnchorBlock(supabase, userId).catch(() => \"\");\nlet briefBlock = \"\", briefItemsBlock = \"\";\nif (workspaceId) {\n  const [{ data: brief }, { data: briefItems }] = await Promise.all([\n    supabase.from(\"workspace_briefs\").select(\"...\").eq(\"workspace_id\", workspaceId).maybeSingle(),\n    supabase.from(\"brief_items\").select(\"...\").eq(\"workspace_id\", workspaceId).eq(\"status\", \"standing\"),\n  ]);\n  briefBlock = renderBriefBlock(brief as any);\n  briefItemsBlock = renderBriefItemsBlock(briefItems as BriefItem[] | null);\n}\n// pass voiceBlock/briefBlock/briefItemsBlock into buildCapabilityForAgent instead of loading them inside it\n```\n\n**`src/lib/ai/eval-runner.server.ts:144-227`** — cases are independent but run in a `for` loop with a per-case `eval_case_results` insert. Parallelize with the repo's established `pLimit` pattern and batch the insert:\n\n```ts\nimport pLimit from \"p-limit\";\nconst limit = pLimit(5);\nconst rowsToInsert: Array<Record<string, unknown>> = [];\nawait Promise.all(cases.map((c) => limit(async () => {\n  // ...existing subject/judge logic...\n  rowsToInsert.push({ run_id: runId, case_id: c.id, /* ... */ });\n})));\nawait supabase.from(\"eval_case_results\").insert(rowsToInsert);\n```\n\n**`src/lib/lineage.functions.ts:353-362`** — `promotePrdToTasks` calls `recordLineage` (a single-row `upsert`) once per task in a loop. `recordLineage`'s `upsert` accepts an array with the same `onConflict`, so batch it directly instead of importing the per-row helper:\n\n```ts\nif (tasks?.length) {\n  await supabase.from(\"artifact_lineage\").upsert(\n    tasks.map((t) => ({\n      user_id: userId,\n      parent_kind: \"prd\", parent_id: prd.id,\n      child_kind: \"task\", child_id: t.id,\n      relation: \"promoted\",\n      rationale: \"Generated from PRD by promotePrdToTasks\",\n      created_by_agent: \"prd-writer\",\n    })),\n    { onConflict: \"user_id,parent_kind,parent_id,child_kind,child_id,relation\" },\n  );\n}\n```\n\n",
-        "level": 3
-      },
-      {
-        "title": "2. Unnecessary re-renders — 1 still open (and it's a decoy)",
-        "content": "\n**`src/components/discover/OpportunityQueue.tsx:239-260` vs `363-385`** — the comment at line 239 claims \"stable callback handlers to prevent re-renders,\" and the handlers genuinely are `useCallback`'d and take `id` as a parameter. But the call site never uses that — it still wraps every one in a fresh arrow per row: `onOpen={() => handleOpen(o.id)}`, `onChallenge={() => handleChallenge(o.id)}`, etc. (lines 371-384). That new closure defeats `OpportunityRow`'s `memo()` exactly as if the `useCallback` layer didn't exist. This is the sibling files' actual fix pattern (id-based handlers passed straight through, id read inside the child) — apply it here too:\n\n```tsx\n// OpportunityRow needs an `id` prop and calls onOpen(id) internally instead of\n// the parent pre-binding it. Call site becomes:\n<OpportunityRow\n  id={o.id}\n  onOpen={handleOpen}          // was onOpen={() => handleOpen(o.id)}\n  onChallenge={handleChallenge}\n  onDraftSpec={handleDraftSpec}\n  onLineage={handleLineage}\n  onSetStatus={handleSetStatus}   // signature already takes (id, status)\n  onDelete={handleDelete}         // signature already takes (id, title) — pass title too or read via id\n  ...\n/>\n```\n\n",
-        "level": 3
-      },
-      {
-        "title": "3. Caching opportunities",
-        "content": "\n- The `loop.server.ts` workspace-context cache (module-level `Map`, now TTL'd at 30s) is a good pattern — reuse it for capabilities.functions.ts above. One follow-up: the TTL check only skips *stale reads*, it never evicts expired entries from the `Map`, so the cache grows by one entry per distinct workspace ever seen in the isolate's lifetime. Low severity (bounded by workspace count) but worth a `if (workspaceContextCache.size > N) clear stale entries` sweep if that ever matters.\n- `capabilities.functions.ts`'s `computeAllAgentTrust` is already correctly hoisted outside its loop (line 126-135) — good reference for the fix above.\n\n",
-        "level": 3
-      },
-      {
-        "title": "4. Memory leaks — 1 still open",
-        "content": "\n**`src/components/obsidian/AskPanel.tsx:1044-1053`** — the stream-abort effect only runs its cleanup logic when `isOpen` flips to `false`:\n```ts\nReact.useEffect(() => {\n  if (isOpen) return;\n  if (abortControllerRef.current) { abortControllerRef.current.abort(); ... }\n  readAloud.stop();\n}, [isOpen, readAloud]);\n```\nIf the component unmounts by some *other* path while `isOpen` is still `true` (parent stops rendering `AskPanel`, an onboarding flip, a route change), this effect's own unmount doesn't fire that body — it only runs on the next render where `isOpen` has changed. Add a true unmount-only cleanup:\n```ts\nReact.useEffect(() => {\n  return () => {\n    abortControllerRef.current?.abort();\n    abortControllerRef.current = null;\n  };\n}, []); // empty deps: fires only on unmount, independent of the isOpen-driven effect above\n```\n\n",
-        "level": 3
-      },
-      {
-        "title": "5. Redundant computation — 1 still open",
-        "content": "**`src/components/knowledge/CalendarPanel.tsx:316-360`** — `meetingItems`, `eventItems`, `allItems`, `feed` (filter+sort), `pastCount` (filter), and `buckets` (groupBy) are all recomputed inline on every render, unmemoized, off react-query data that only actually changes on refetch:\n```ts\nconst allItems = useMemo(\n  () => [...meetingItems(meetings.data), ...eventItems(events.data)],\n  [meetings.data, events.data],\n);\nconst feed = useMemo(() => allItems.filter(...).sort(...), [allItems]);\nconst pastCount = useMemo(() => allItems.filter(...).length, [allItems]);\nconst buckets = useMemo(() => { /* groupBy */ }, [allItems]);\n```\n\n---\n\nWant me to implement these six? They follow the exact patterns already committed today (`pLimit`, batch upsert, hoisted queries, id-based handlers, unmount-only effect, `useMemo`), so it'd be quick — happy to knock them out and commit under BUILD-ONLY mode like the rest of today's fixes.",
-        "level": 3
-      }
-    ],
-    "codeBlocks": [
-      {
-        "language": "ts",
-        "code": "// in buildCapabilities, before the for-loop:\nconst voiceBlock = await loadVoiceAnchorBlock(supabase, userId).catch(() => \"\");\nlet briefBlock = \"\", briefItemsBlock = \"\";\nif (workspaceId) {\n  const [{ data: brief }, { data: briefItems }] = await Promise.all([\n    supabase.from(\"workspace_briefs\").select(\"...\").eq(\"workspace_id\", workspaceId).maybeSingle(),\n    supabase.from(\"brief_items\").select(\"...\").eq(\"workspace_id\", workspaceId).eq(\"status\", \"standing\"),\n  ]);\n  briefBlock = renderBriefBlock(brief as any);\n  briefItemsBlock = renderBriefItemsBlock(briefItems as BriefItem[] | null);\n}\n// pass voiceBlock/briefBlock/briefItemsBlock into buildCapabilityForAgent instead of loading them inside it"
-      },
-      {
-        "language": "ts",
-        "code": "import pLimit from \"p-limit\";\nconst limit = pLimit(5);\nconst rowsToInsert: Array<Record<string, unknown>> = [];\nawait Promise.all(cases.map((c) => limit(async () => {\n  // ...existing subject/judge logic...\n  rowsToInsert.push({ run_id: runId, case_id: c.id, /* ... */ });\n})));\nawait supabase.from(\"eval_case_results\").insert(rowsToInsert);"
-      },
-      {
-        "language": "ts",
-        "code": "if (tasks?.length) {\n  await supabase.from(\"artifact_lineage\").upsert(\n    tasks.map((t) => ({\n      user_id: userId,\n      parent_kind: \"prd\", parent_id: prd.id,\n      child_kind: \"task\", child_id: t.id,\n      relation: \"promoted\",\n      rationale: \"Generated from PRD by promotePrdToTasks\",\n      created_by_agent: \"prd-writer\",\n    })),\n    { onConflict: \"user_id,parent_kind,parent_id,child_kind,child_id,relation\" },\n  );\n}"
-      },
-      {
-        "language": "tsx",
-        "code": "// OpportunityRow needs an `id` prop and calls onOpen(id) internally instead of\n// the parent pre-binding it. Call site becomes:\n<OpportunityRow\n  id={o.id}\n  onOpen={handleOpen}          // was onOpen={() => handleOpen(o.id)}\n  onChallenge={handleChallenge}\n  onDraftSpec={handleDraftSpec}\n  onLineage={handleLineage}\n  onSetStatus={handleSetStatus}   // signature already takes (id, status)\n  onDelete={handleDelete}         // signature already takes (id, title) — pass title too or read via id\n  ...\n/>"
-      },
-      {
-        "language": "ts",
-        "code": "React.useEffect(() => {\n  if (isOpen) return;\n  if (abortControllerRef.current) { abortControllerRef.current.abort(); ... }\n  readAloud.stop();\n}, [isOpen, readAloud]);"
-      },
-      {
-        "language": "ts",
-        "code": "React.useEffect(() => {\n  return () => {\n    abortControllerRef.current?.abort();\n    abortControllerRef.current = null;\n  };\n}, []); // empty deps: fires only on unmount, independent of the isOpen-driven effect above"
-      },
-      {
-        "language": "ts",
-        "code": "const allItems = useMemo(\n  () => [...meetingItems(meetings.data), ...eventItems(events.data)],\n  [meetings.data, events.data],\n);\nconst feed = useMemo(() => allItems.filter(...).sort(...), [allItems]);\nconst pastCount = useMemo(() => allItems.filter(...).length, [allItems]);\nconst buckets = useMemo(() => { /* groupBy */ }, [allItems]);"
-      }
-    ]
+  "timestamp": "2026-07-18T13:06:55.392Z",
+  "mode": "local",
+  "memoryUsage": {
+    "rss": 28688384,
+    "heapTotal": 30294016,
+    "heapUsed": 25094448,
+    "external": 4264662,
+    "arrayBuffers": 344954
   },
-  "rawOutputPreview": "## Performance analysis — cadence-lane-2\n\nBefore writing this up I checked git history and memory: a same-day audit (`project_perf-audit-2026-07-18`, 2 parallel `ecc:performance-optimizer` agents, file:line-verified) already found 11 issues, and **7 commits since then have fixed 8 of them** (5 from the audit + digest parallelization + a Notion debounce + the ranking sort). I re-verified live code rather than trust the memory snapshot. Here's what's actually still open, by your five categories.\n\n### Already fixed — no action needed\n| Area | Fix | Commit |\n|---|---|---|\n| N+1: `dispatchPRDToLinear` | `pLimit(4)` + batched `sync_mappings` insert | `a068a0a9` |\n| N+1: digest generation | 4 queries → `Promise.all`; `pLimit(8)` across users | `1ffdfbf6` |\n| N+1: workspace context in agent loop | request-scoped cache (now TTL'd, uncommitted) | `a291d3fe` + working tree |\n| Re-render: `AutoClustered`/`ThemeRow`, `SignalFeed`/`SignalCard` | id-based handlers instead of parent-wrapped closures | `a068a0a9`, `1ffdfbf6` |\n| Leak: `GraphUniverseCanvas` RAF loop | conditional reschedule, matches `GraphForceCanvas` | `f9cb1bf4` |\n| Leak: LLM stream not cancelled on disconnect | `AbortSignal` threaded chat.ts → runtime.server.ts → all 3 providers | `b5338fd5`, `a068a0a9` |\n| Redundant computation: `MissionOrchestratorDetail` unattended audit | `useMemo` | `0d98b4c3` |\n| Redundant computation: `rankOpportunities` | Schwartzian transform | `ab3a0fc5` |\n| Redundant computation: Notion search | 300ms debounce | `1ffdfbf6` |\n\n### 1. N+1 query patterns — 3 still open\n\n**`src/lib/capabilities.functions.ts:139-148` + `153-211`** — `buildCapabilityForAgent` is called in a serial loop over `activeCast`, and inside it, three queries (`loadVoiceAnchorBlock(userId)`, `workspace_briefs`, `brief_items`) are scoped only to `userId`/`workspaceId` — **identical on every iteration** — yet re-run per agent. For a 13-agent cast that's 39 round trips for 3 rows. Same shape as the workspace-context cache",
-  "rawOutputLength": 7888
+  "uptime": 19091.095966666,
+  "optimizations": {
+    "cacheHitRate": 0.78,
+    "avgResponseTime": 45
+  },
+  "note": "Install Claude Code CLI for AI-powered optimization suggestions"
 }

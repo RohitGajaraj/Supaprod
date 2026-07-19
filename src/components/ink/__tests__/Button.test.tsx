@@ -16,7 +16,7 @@ describe("Button Component", () => {
       render(
         <Button asChild>
           <a href="/test">Link Button</a>
-        </Button>
+        </Button>,
       );
       const link = screen.getByRole("link", { name: /link button/i });
       expect(link).toBeTruthy();
@@ -33,7 +33,7 @@ describe("Button Component", () => {
         <Button>
           <span data-testid="icon">→</span>
           Next
-        </Button>
+        </Button>,
       );
       expect(screen.getByTestId("icon")).toBeTruthy();
       expect(screen.getByText("Next")).toBeTruthy();
@@ -152,7 +152,7 @@ describe("Button Component", () => {
         <Button>
           <span>Icon</span>
           <span>Label</span>
-        </Button>
+        </Button>,
       );
       expect(screen.getByText("Icon")).toBeTruthy();
       expect(screen.getByText("Label")).toBeTruthy();
@@ -163,7 +163,7 @@ describe("Button Component", () => {
         <Button>
           <span>A</span>
           <span>B</span>
-        </Button>
+        </Button>,
       );
       const button = container.querySelector("button");
       expect(button?.className).toContain("gap-2");
@@ -209,9 +209,7 @@ describe("Button Component", () => {
     });
 
     test("handles className prop alongside variant styles", () => {
-      const { container } = render(
-        <Button className="custom-class">Styled</Button>
-      );
+      const { container } = render(<Button className="custom-class">Styled</Button>);
       const button = container.querySelector("button");
       expect(button?.className).toContain("custom-class");
       expect(button?.className).toContain("bg-[var(--ds-gray-1000)]");

@@ -459,7 +459,9 @@ export async function generateDigest(
       );
     }
     if (enabled.health && prefetched.stalledCount > 0) {
-      digestItems.push(`- Health: ${prefetched.stalledCount} agent run(s) are stalled or inactive.`);
+      digestItems.push(
+        `- Health: ${prefetched.stalledCount} agent run(s) are stalled or inactive.`,
+      );
     }
     if (enabled.budget && prefetched.budget) {
       const dUsed = prefetched.budget.daily_usd_used ?? 0;
@@ -521,7 +523,8 @@ export async function generateDigest(
       digestItems.push(`- Health: ${c} agent run(s) are stalled or inactive.`);
     }
     if (enabled.budget && (budgetResult as { data: unknown }).data) {
-      const budget = (budgetResult as { data: { daily_usd_used?: number; daily_usd_cap?: number } }).data!;
+      const budget = (budgetResult as { data: { daily_usd_used?: number; daily_usd_cap?: number } })
+        .data!;
       const dUsed = budget.daily_usd_used ?? 0;
       const dCap = budget.daily_usd_cap ?? 0;
       if (dCap > 0 && dUsed >= dCap * 0.8) {
@@ -719,11 +722,7 @@ export async function sendDueDigests(
       .select("user_id,daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used")
       .in("user_id", userIds),
 
-    supabase
-      .from("drift_incidents")
-      .select("user_id")
-      .in("user_id", userIds)
-      .eq("status", "open"),
+    supabase.from("drift_incidents").select("user_id").in("user_id", userIds).eq("status", "open"),
   ]);
 
   const profileById = new Map(

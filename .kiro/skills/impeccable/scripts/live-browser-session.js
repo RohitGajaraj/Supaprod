@@ -8,19 +8,28 @@
 (function (root) {
   "use strict";
 
-  function createLiveBrowserSessionState({ prefix, storage, idFactory }) {
+  function createLiveBrowserSessionState({ prefix, storage, idFactory, encryption }) {
     if (!prefix) throw new Error("prefix required");
     const store = storage || root.localStorage;
+    const crypto = encryption || root.__IMPECCABLE_CRYPTO__;
     const makeId =
       idFactory ||
       function () {
-        // Use cryptographically secure random ID if available (browser/Node.js 16+),
-        // fallback to timestamp-based ID. Never rely on Math.random() for security tokens.
+        // Use cryptographically secure random ID. NEVER use Math.random() for security tokens.
         try {
           return crypto.randomUUID();
         } catch {
-          // Fallback: use Date.now() + random suffix for environments without crypto
-          return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+          // Fallback for legacy browsers: use crypto.getRandomValues() if available
+          try {
+            const arr = new Uint8Array(16);
+            crypto.getRandomValues(arr);
+            return Array.from(arr, (byte) => byte.toString(16).padStart(2, "0")).join("");
+          } catch {
+            // Last resort: throw error - do not generate weak IDs
+            throw new Error(
+              "Cryptographic random generation not available. Cannot create session ID securely.",
+            );
+          }
         }
       };
     const sessionKey = prefix + "-session";

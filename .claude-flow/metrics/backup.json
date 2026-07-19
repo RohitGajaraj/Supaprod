@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-07-14T14:28:49.502Z",
+  "timestamp": "2026-07-18T12:56:54.830Z",
   "backedUp": false,
   "sizeBytes": 0,
   "rotatedAway": 0,
-  "skipped": "no-db"
+  "skipped": "backup failed: The module '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node'\nwas compiled against a different Node.js version using\nNODE_MODULE_VERSION 115. This version of Node.js requires\nNODE_MODULE_VERSION 147. Please try re-compiling or re-installing\nthe module (for instance, using `npm rebuild` or `npm install`)."
 }

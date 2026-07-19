@@ -8,13 +8,8 @@ describe("AgentActivityTimeline Container", () => {
     test("renders the container element", () => {
       const { container } = render(
         <AgentActivityTimeline>
-          <TimelineEntry
-            timestamp="14:32:45"
-            agent="Builder"
-            status="success"
-            action="Ran tests"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="14:32:45" agent="Builder" status="success" action="Ran tests" />
+        </AgentActivityTimeline>,
       );
       const timeline = container.querySelector("div");
       expect(timeline).toBeTruthy();
@@ -36,7 +31,7 @@ describe("AgentActivityTimeline Container", () => {
             status="running"
             action="Publishing build"
           />
-        </AgentActivityTimeline>
+        </AgentActivityTimeline>,
       );
       expect(screen.getByText("Ran tests")).toBeTruthy();
       expect(screen.getByText("Publishing build")).toBeTruthy();
@@ -45,13 +40,8 @@ describe("AgentActivityTimeline Container", () => {
     test("applies engineering grid background styling", () => {
       const { container } = render(
         <AgentActivityTimeline>
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
+        </AgentActivityTimeline>,
       );
       const timeline = container.querySelector("div");
       expect(timeline?.className).toContain("bg-[length:4px_4px]");
@@ -61,13 +51,8 @@ describe("AgentActivityTimeline Container", () => {
     test("applies border and padding", () => {
       const { container } = render(
         <AgentActivityTimeline>
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
+        </AgentActivityTimeline>,
       );
       const timeline = container.querySelector("div");
       expect(timeline?.className).toContain("border");
@@ -78,13 +63,8 @@ describe("AgentActivityTimeline Container", () => {
     test("applies monospace font styling", () => {
       const { container } = render(
         <AgentActivityTimeline>
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
+        </AgentActivityTimeline>,
       );
       const timeline = container.querySelector("div");
       expect(timeline?.className).toContain("font-mono");
@@ -94,13 +74,8 @@ describe("AgentActivityTimeline Container", () => {
     test("applies custom className alongside default styles", () => {
       const { container } = render(
         <AgentActivityTimeline className="custom-timeline">
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
+        </AgentActivityTimeline>,
       );
       const timeline = container.querySelector("div");
       expect(timeline?.className).toContain("custom-timeline");
@@ -111,13 +86,8 @@ describe("AgentActivityTimeline Container", () => {
       const ref = React.createRef<HTMLDivElement>();
       render(
         <AgentActivityTimeline ref={ref}>
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
+        </AgentActivityTimeline>,
       );
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
     });
@@ -142,7 +112,7 @@ describe("AgentActivityTimeline Container", () => {
               action={`Action ${i}`}
             />
           ))}
-        </AgentActivityTimeline>
+        </AgentActivityTimeline>,
       );
       expect(screen.getByText("Action 0")).toBeTruthy();
       expect(screen.getByText("Action 9")).toBeTruthy();
@@ -151,20 +121,10 @@ describe("AgentActivityTimeline Container", () => {
     test("handles mixed content children", () => {
       render(
         <AgentActivityTimeline>
-          <TimelineEntry
-            timestamp="10:00:00"
-            agent="Builder"
-            status="success"
-            action="Test"
-          />
+          <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />
           <div>Custom content</div>
-          <TimelineEntry
-            timestamp="10:01:00"
-            agent="Deploy"
-            status="pending"
-            action="Deploy"
-          />
-        </AgentActivityTimeline>
+          <TimelineEntry timestamp="10:01:00" agent="Deploy" status="pending" action="Deploy" />
+        </AgentActivityTimeline>,
       );
       expect(screen.getByText("Test")).toBeTruthy();
       expect(screen.getByText("Custom content")).toBeTruthy();
@@ -176,12 +136,7 @@ describe("TimelineEntry Component", () => {
   describe("Rendering", () => {
     test("renders timestamp, agent, and action", () => {
       render(
-        <TimelineEntry
-          timestamp="14:32:45"
-          agent="Builder"
-          status="success"
-          action="Ran tests"
-        />
+        <TimelineEntry timestamp="14:32:45" agent="Builder" status="success" action="Ran tests" />,
       );
       expect(screen.getByText("14:32:45")).toBeTruthy();
       expect(screen.getByText("Builder")).toBeTruthy();
@@ -196,19 +151,14 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Ran tests"
           result="287/287 passing"
-        />
+        />,
       );
       expect(screen.getByText("→ 287/287 passing")).toBeTruthy();
     });
 
     test("does not render result line when result prop is undefined", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="14:32:45"
-          agent="Builder"
-          status="success"
-          action="Ran tests"
-        />
+        <TimelineEntry timestamp="14:32:45" agent="Builder" status="success" action="Ran tests" />,
       );
       expect(!container.textContent?.includes("→ ")).toBe(true);
     });
@@ -221,12 +171,10 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Ran tests"
           result=""
-        />
+        />,
       );
       const divs = container.querySelectorAll("div");
-      const hasResultLine = Array.from(divs).some((div) =>
-        div.textContent?.includes("→")
-      );
+      const hasResultLine = Array.from(divs).some((div) => div.textContent?.includes("→"));
       expect(!hasResultLine).toBe(true);
     });
   });
@@ -234,49 +182,27 @@ describe("TimelineEntry Component", () => {
   describe("Status Icons", () => {
     test("renders pending status icon (○)", () => {
       render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="pending"
-          action="Waiting"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="pending" action="Waiting" />,
       );
       expect(screen.getByText("○")).toBeTruthy();
     });
 
     test("renders running status icon (◐)", () => {
       render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="running"
-          action="Processing"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="running" action="Processing" />,
       );
       expect(screen.getByText("◐")).toBeTruthy();
     });
 
     test("renders success status icon (✓)", () => {
       render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="success"
-          action="Complete"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Complete" />,
       );
       expect(screen.getByText("✓")).toBeTruthy();
     });
 
     test("renders error status icon (✗)", () => {
-      render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="error"
-          action="Failed"
-        />
-      );
+      render(<TimelineEntry timestamp="10:00:00" agent="Builder" status="error" action="Failed" />);
       expect(screen.getByText("✗")).toBeTruthy();
     });
   });
@@ -284,30 +210,20 @@ describe("TimelineEntry Component", () => {
   describe("Status Colors", () => {
     test("applies gray color for pending status", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="pending"
-          action="Waiting"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="pending" action="Waiting" />,
       );
       const iconSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "○"
+        (s) => s.textContent === "○",
       );
       expect(iconSpan?.className).toContain("text-[var(--ds-gray-600)]");
     });
 
     test("applies blue color and animation for running status", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="running"
-          action="Processing"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="running" action="Processing" />,
       );
       const iconSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "◐"
+        (s) => s.textContent === "◐",
       );
       expect(iconSpan?.className).toContain("text-[var(--ds-blue-600)]");
       expect(iconSpan?.className).toContain("animate-spin");
@@ -315,30 +231,20 @@ describe("TimelineEntry Component", () => {
 
     test("applies green color for success status", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="success"
-          action="Complete"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Complete" />,
       );
       const iconSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "✓"
+        (s) => s.textContent === "✓",
       );
       expect(iconSpan?.className).toContain("text-[var(--ds-green-600)]");
     });
 
     test("applies red color for error status", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="error"
-          action="Failed"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="error" action="Failed" />,
       );
       const iconSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "✗"
+        (s) => s.textContent === "✗",
       );
       expect(iconSpan?.className).toContain("text-[var(--ds-red-600)]");
     });
@@ -347,30 +253,20 @@ describe("TimelineEntry Component", () => {
   describe("Text Styling", () => {
     test("applies gray styling to timestamp", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="14:32:45"
-          agent="Builder"
-          status="success"
-          action="Test"
-        />
+        <TimelineEntry timestamp="14:32:45" agent="Builder" status="success" action="Test" />,
       );
       const timestampSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "14:32:45"
+        (s) => s.textContent === "14:32:45",
       );
       expect(timestampSpan?.className).toContain("text-[var(--ds-gray-600)]");
     });
 
     test("applies consistent width to timestamp column", () => {
       const { container } = render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="success"
-          action="Test"
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action="Test" />,
       );
       const timestampSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "10:00:00"
+        (s) => s.textContent === "10:00:00",
       );
       expect(timestampSpan?.className).toContain("w-12");
       expect(timestampSpan?.className).toContain("flex-shrink-0");
@@ -383,10 +279,10 @@ describe("TimelineEntry Component", () => {
           agent="Builder"
           status="success"
           action="Very long action text"
-        />
+        />,
       );
-      const actionSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent?.includes("Very long action")
+      const actionSpan = Array.from(container.querySelectorAll("span")).find((s) =>
+        s.textContent?.includes("Very long action"),
       );
       expect(actionSpan?.className).toContain("break-words");
     });
@@ -399,10 +295,10 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Test"
           result="Result data"
-        />
+        />,
       );
-      const resultSpan = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent?.includes("Result data")
+      const resultSpan = Array.from(container.querySelectorAll("span")).find((s) =>
+        s.textContent?.includes("Result data"),
       );
       expect(resultSpan?.className).toContain("text-[var(--ds-gray-600)]");
     });
@@ -416,22 +312,15 @@ describe("TimelineEntry Component", () => {
           agent="Builder"
           status="success"
           action="Test"
-        />
+        />,
       );
-      expect(
-        screen.getByText("2026-07-18T14:32:45.123456Z")
-      ).toBeTruthy();
+      expect(screen.getByText("2026-07-18T14:32:45.123456Z")).toBeTruthy();
     });
 
     test("handles very long agent name", () => {
       const longAgent = "A".repeat(100);
       render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent={longAgent}
-          status="success"
-          action="Test"
-        />
+        <TimelineEntry timestamp="10:00:00" agent={longAgent} status="success" action="Test" />,
       );
       expect(screen.getByText(longAgent)).toBeTruthy();
     });
@@ -439,12 +328,7 @@ describe("TimelineEntry Component", () => {
     test("handles very long action description", () => {
       const longAction = "Processing: " + "x".repeat(500);
       render(
-        <TimelineEntry
-          timestamp="10:00:00"
-          agent="Builder"
-          status="success"
-          action={longAction}
-        />
+        <TimelineEntry timestamp="10:00:00" agent="Builder" status="success" action={longAction} />,
       );
       expect(screen.getByText(longAction)).toBeTruthy();
     });
@@ -458,7 +342,7 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Test"
           result={longResult}
-        />
+        />,
       );
       expect(screen.getByText("→ " + longResult)).toBeTruthy();
     });
@@ -471,7 +355,7 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Test → Deploy • Check ✓"
           result="Result: $1,234.56 (100%)"
-        />
+        />,
       );
       expect(screen.getByText("Test → Deploy • Check ✓")).toBeTruthy();
       expect(screen.getByText("→ Result: $1,234.56 (100%)")).toBeTruthy();
@@ -485,7 +369,7 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="🚀 Deploy 🎉"
           result="✨ Success ✨"
-        />
+        />,
       );
       expect(screen.getByText("🚀 Deploy 🎉")).toBeTruthy();
     });
@@ -498,7 +382,7 @@ describe("TimelineEntry Component", () => {
           status="success"
           action="Test"
           result={undefined}
-        />
+        />,
       );
       expect(screen.getByText("Test")).toBeTruthy();
       const resultInDocument = screen.queryByText(/^→/);
@@ -517,19 +401,9 @@ describe("TimelineEntry Component", () => {
             action="Step 1"
             result="Done"
           />
-          <TimelineEntry
-            timestamp="14:33:00"
-            agent="Agent2"
-            status="running"
-            action="Step 2"
-          />
-          <TimelineEntry
-            timestamp="14:34:00"
-            agent="Agent3"
-            status="pending"
-            action="Step 3"
-          />
-        </>
+          <TimelineEntry timestamp="14:33:00" agent="Agent2" status="running" action="Step 2" />
+          <TimelineEntry timestamp="14:34:00" agent="Agent3" status="pending" action="Step 3" />
+        </>,
       );
       const entries = container.querySelectorAll(":scope > div");
       expect(entries.length > 0).toBe(true);

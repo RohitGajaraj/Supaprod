@@ -1118,6 +1118,19 @@ export function AskPanel() {
     readAloud.stop();
   }, [isOpen, readAloud]);
 
+  // Unmount cleanup: abort any in-flight stream when the component is removed
+  // from the tree entirely (e.g., route navigation while isOpen=true). Without
+  // this, the fetch reader loop continues indefinitely pulling chunks and
+  // calling setState on an unmounted component (memory leak + potential errors).
+  React.useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
+
   React.useEffect(() => {
     if (!isOpen || !pendingIntent) return;
     const intent = pendingIntent;

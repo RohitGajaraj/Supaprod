@@ -24,6 +24,8 @@ import {
 import {
   getActiveHouseRulesForWorkspace,
   renderHouseRulesBlock,
+  filterRulesForAgent,
+  type HouseRule,
 } from "@/lib/house-rules.functions";
 import { renderBriefBlock, renderBriefItemsBlock, type BriefItem } from "@/lib/briefs.functions";
 import { loadVoiceAnchorBlock } from "@/lib/ai/loop.server";
@@ -135,6 +137,47 @@ export const getCapabilities = createServerFn({ method: "GET" })
       console.warn("capabilities: trust load failed, autonomy will show tier only:", e);
     }
 
+    // Load workspace-invariant data ONCE before building all capabilities.
+    // These queries are independent of the agent; hoisting them prevents an N+1
+    // where each agent would refetch the same data (voice anchor, briefs, rules).
+    let voiceBlock = "";
+    let briefBlock = "";
+    let briefItemsBlock = "";
+    let allHouseRules: HouseRule[] = [];
+    try {
+      voiceBlock = await loadVoiceAnchorBlock(supabase, userId);
+    } catch (e) {
+      console.warn("capabilities: voice anchor load failed:", e);
+    }
+    if (workspaceId) {
+      try {
+        const { data: brief } = await supabase
+          .from("workspace_briefs")
+          .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
+          .eq("workspace_id", workspaceId)
+          .maybeSingle();
+        briefBlock = renderBriefBlock(brief as any);
+
+        const { data: briefItems } = await supabase
+          .from("brief_items")
+          .select(
+            "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
+          )
+          .eq("workspace_id", workspaceId)
+          .eq("status", "standing");
+        briefItemsBlock = renderBriefItemsBlock(briefItems as BriefItem[] | null);
+      } catch (e) {
+        console.warn("capabilities: brief load failed:", e);
+      }
+      try {
+        // Load all approved house rules once (unfiltered by agent);
+        // each agent will filter to rules that apply to them.
+        allHouseRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId);
+      } catch (e) {
+        console.warn("capabilities: house rules load failed:", e);
+      }
+    }
+
     // Parallelize capability building across all cast members, capping concurrent
     // Supabase connections to prevent connection pool exhaustion (same pattern used
     // in notifications.functions.ts and orchestrator.functions.ts).
@@ -142,7 +185,17 @@ export const getCapabilities = createServerFn({ method: "GET" })
     const capabilities = await Promise.all(
       activeCast.map((agent) =>
         limit(() =>
-          buildCapabilityForAgent(supabase, userId, agent, workspaceId, trustByAgentId),
+          buildCapabilityForAgent(
+            supabase,
+            userId,
+            agent,
+            workspaceId,
+            trustByAgentId,
+            voiceBlock,
+            briefBlock,
+            briefItemsBlock,
+            allHouseRules,
+          ),
         ),
       ),
     );
@@ -156,6 +209,10 @@ async function buildCapabilityForAgent(
   agent: CatalogEntry,
   workspaceId: string | null,
   trustByAgentId: Map<string, AgentTrust>,
+  voiceBlock: string = "",
+  briefBlock: string = "",
+  briefItemsBlock: string = "",
+  allHouseRules: HouseRule[] = [],
 ): Promise<AgentCapability> {
   // Load the agent's own live row, scoped by (user_id, slug) -- the exact
   // scoping the real runtime chokepoint uses (loop.server.ts), since a slug
@@ -178,40 +235,15 @@ async function buildCapabilityForAgent(
   // Instructions preview: what this agent is actually told every run. Reuses
   // the exact same render functions loop.server.ts's chokepoint calls, in the
   // same order, so the preview can never silently drift from real behavior.
+  // Workspace-invariant blocks (voice, brief, rules) are preloaded once and
+  // passed in to avoid N+1 refetches -- this agent just composes them.
   let instructionsPreview = baseInstructions;
-  try {
-    const voiceBlock = await loadVoiceAnchorBlock(supabase, userId);
-    instructionsPreview += voiceBlock;
-  } catch (e) {
-    console.warn(`Failed to load voice anchor for ${agent.name}:`, e);
-  }
-  if (workspaceId) {
-    try {
-      const { data: brief } = await supabase
-        .from("workspace_briefs")
-        .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
-        .eq("workspace_id", workspaceId)
-        .maybeSingle();
-      instructionsPreview += renderBriefBlock(brief as any);
-
-      const { data: briefItems } = await supabase
-        .from("brief_items")
-        .select(
-          "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
-        )
-        .eq("workspace_id", workspaceId)
-        .eq("status", "standing");
-      instructionsPreview += renderBriefItemsBlock(briefItems as BriefItem[] | null);
-    } catch (e) {
-      console.warn(`Failed to load brief for ${agent.name}:`, e);
-    }
-    try {
-      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId, agent.slug);
-      instructionsPreview += renderHouseRulesBlock(activeRules);
-    } catch (e) {
-      console.warn(`Failed to load house rules for ${agent.name}:`, e);
-    }
-  }
+  instructionsPreview += voiceBlock;
+  instructionsPreview += briefBlock;
+  instructionsPreview += briefItemsBlock;
+  // House rules are loaded for all agents at once; filter to this agent's scope.
+  const agentRules = filterRulesForAgent(allHouseRules, agent.slug);
+  instructionsPreview += renderHouseRulesBlock(agentRules);
 
   // Skills: playbooks bound to this agent's station, with win-rates and
   // this agent's own enable/disable state.

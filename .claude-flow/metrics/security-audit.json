@@ -1,52 +1,12 @@
 {
-  "timestamp": "2026-07-18T09:20:20.807Z",
-  "mode": "headless",
-  "workerType": "audit",
-  "model": "haiku",
-  "durationMs": 247627,
-  "executionId": "audit_1784366173180_btqvd7",
-  "success": true,
-  "findings": {
-    "vulnerabilities": [
-      {
-        "severity": "medium",
-        "file": "bun.lock (monaco-editor@0.55.1 -> dompurify@3.2.7)",
-        "line": 1381,
-        "description": "Transitive dependency dompurify@3.2.7 (bundled via monaco-editor) is affected by multiple moderate CVEs (prototype-pollution to XSS, IN_PLACE sanitization bypass, ALLOWED_ATTR pollution, mutation-XSS via re-contextualization). Not directly imported by app code, but monaco-editor is used in-app for code/markdown editing, so any path that renders monaco-processed HTML inherits the exposure. Fix requires monaco-editor to bump its bundled dompurify past 3.4.6, or bun.lock override once available."
-      },
-      {
-        "severity": "low",
-        "file": "package.json / bun.lock (dev toolchain)",
-        "line": 0,
-        "description": "bun audit reports low/moderate advisories in build-only tooling: @babel/core <=7.29.0 (arbitrary file read via sourceMappingURL), brace-expansion (ReDoS in eslint's minimatch chain), esbuild >=0.27.3 <0.28.1 (Windows dev-server file read), js-yaml <=4.1.1 (quadratic DoS via merge-key aliases, used by eslint/tanstack-start build plugins). None are reachable at runtime in production, but should be cleared with `bun update`."
-      },
-      {
-        "severity": "low",
-        "file": "src/routes/api/public/*.ts (mcp.ts, a2a.*, teardown.ts, ingest-signals.ts)",
-        "line": 0,
-        "description": "Wildcard `Access-Control-Allow-Origin: *` is used broadly across public API surfaces. This is intentional (public A2A/MCP protocol discovery, an unauthenticated demo endpoint) and safe as long as no route relies on ambient cookie auth for these paths — verify that assumption holds as new public endpoints are added, since a future cookie-authenticated route accidentally reusing this CORS block would be exploitable cross-origin."
-      },
-      {
-        "severity": "low",
-        "file": "src/routes/api/public/teardown.ts",
-        "line": 82,
-        "description": "The public teardown endpoint's per-IP rate limiter (checkPublicDecisionRateLimit) fails open on a DB fault by explicit design (see inline comment). During a Supabase outage this removes the only per-actor cost cap on an unauthenticated paid-LLM-call endpoint; the daily circuit breaker partially mitigates this but shares the same DB fault domain."
-      }
-    ],
-    "riskScore": 18,
-    "recommendations": [
-      "Run `bun update` to clear the 4 low/moderate build-tooling advisories (babel/core, brace-expansion, esbuild, js-yaml).",
-      "Track monaco-editor upstream for a dompurify bump past 3.4.6; if monaco is used to render any untrusted markdown/HTML preview, audit that specific path directly.",
-      "Document/allowlist which /api/public/* routes are intentionally open-CORS vs. which will later require credentialed (cookie) auth, so the pattern isn't copy-pasted into a route that shouldn't have it.",
-      "Consider a fail-closed (or short-TTL cached) fallback for the teardown rate limiter so a DB blip doesn't remove the only cost cap on a paid public endpoint.",
-      "Continue the existing practice of RLS-by-default + timing-safe cron secrets + webhook signature verification — no regressions found this pass.",
-      "Re-run `bun audit` after each dependency bump and wire it into CI so new transitive CVEs surface automatically rather than via manual audits.",
-      "No hardcoded secrets, SQL injection, or auth-bypass issues found — keep the current zod-at-the-boundary + parameterized-query discipline as new server functions are added.",
-      "Periodically re-run the CREATE TABLE vs ENABLE ROW LEVEL SECURITY cross-check against supabase/migrations/ as new tables are added, since it's cheap and catches an easy-to-miss class of bug.",
-      "For app_private.hook_secrets-style tables (privilege-revoked instead of RLS), keep documenting the rationale inline so future readers don't 'fix' it by adding RLS to a table that intentionally has zero direct grants.",
-      "Nothing here blocks shipping; the medium finding is dependency hygiene, not an active exploit path in this codebase."
-    ]
+  "timestamp": "2026-07-18T13:01:55.311Z",
+  "mode": "local",
+  "checks": {
+    "envFilesProtected": true,
+    "gitIgnoreExists": true,
+    "noHardcodedSecrets": true
   },
-  "rawOutputPreview": "## Security Analysis — cadence-lane-2 (Supaprod)\n\nNote: the \"Codebase Context\" pasted into the request was mostly minified `.output/public/assets/*.js` build artifacts and vendored third-party skill scripts (`.kiro/skills/impeccable/*`) — not the actual application source, and not useful for a real vulnerability assessment. I instead ran targeted checks against the real source (`src/`, `supabase/migrations/`) and dependency lockfile. Your memory also shows a security audit already ran earlier tonight on this branch (01:21, risk 28/100) — this is a fresh pass, not a rehash.\n\n**What I checked and found clean:** no hardcoded secrets/API keys in source (only test-fixture strings in `egress-guardrails.test.ts`); no raw/concatenated SQL (Supabase client + parameterized calls throughout); all `/api/public/hooks/*-tick.ts` cron endpoints gated by `requireHookCaller` with `timingSafeEqual` secret comparison; GitHub and Stripe/payments webhooks both do real signature verification; `chat.ts` requires a validated Bearer token; `.env` properly gitignored, no secrets committed; CSP/HSTS/X-Frame-Options headers implemented and unit-tested (`src/server.ts`); 160/163 tables in migrations have RLS enabled, and the 3 apparent gaps were false positives (one has RLS, one is `app_private.hook_secrets` with `REVOKE ALL FROM PUBLIC/anon/authenticated` — correctly locked to `service_role` only instead of RLS); `SUPABASE_SERVICE_ROLE_KEY` usage is confined to `.server.ts`/route-handler files, never client-reachable; the two `dangerouslySetInnerHTML` usages are static/developer-controlled strings, not user input.\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"medium\",\n      \"file\": \"bun.lock (monaco-editor@0.55.1 -> dompurify@3.2.7)\",\n      \"line\": 1381,\n      \"description\": \"Transitive dependency dompurify@3.2.7 (bundled via monaco-editor) is affected by multiple moderate CVEs (prototype-pollution to XSS, IN_PLACE sanitization bypass, ALLOWED_ATTR pollution, mutation-XSS via re-c",
-  "rawOutputLength": 5684
+  "riskLevel": "low",
+  "recommendations": [],
+  "note": "Install Claude Code CLI for AI-powered security analysis"
 }

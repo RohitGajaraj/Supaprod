@@ -20,7 +20,11 @@ function isSafeColorValue(color: unknown): boolean {
   // Reject common CSS injection patterns
   if (/^javascript:|import |@import|behavior:/i.test(trimmed)) return false;
   // Require valid color format: hex, rgb, hsl, or CSS named color (word characters + -)
-  if (!/^(#[0-9a-f]{3,8}|rgb[a]?\(|hsl[a]?\(|[a-z][a-z0-9-]*|currentColor|transparent|inherit)$/i.test(trimmed.split(/\s/)[0])) {
+  if (
+    !/^(#[0-9a-f]{3,8}|rgb[a]?\(|hsl[a]?\(|[a-z][a-z0-9-]*|currentColor|transparent|inherit)$/i.test(
+      trimmed.split(/\s/)[0],
+    )
+  ) {
     return false;
   }
   return true;
