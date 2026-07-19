@@ -1,17 +1,57 @@
 {
-  "timestamp": "2026-07-18T13:06:55.392Z",
-  "mode": "local",
-  "memoryUsage": {
-    "rss": 28688384,
-    "heapTotal": 30294016,
-    "heapUsed": 25094448,
-    "external": 4264662,
-    "arrayBuffers": 344954
+  "timestamp": "2026-07-19T08:54:15.117Z",
+  "mode": "headless",
+  "workerType": "optimize",
+  "model": "sonnet",
+  "durationMs": 121078,
+  "executionId": "optimize_1784451134039_1a8y2r",
+  "success": true,
+  "findings": {
+    "sections": [
+      {
+        "title": "1. N+1 query patterns",
+        "content": "\n**Already fixed today** (commits `1a0687d1`, `b2b736e1`): `orchestrator.functions.ts` PRD→Linear dispatch and `capabilities.functions.ts` (34-agent capability load) were both parallelized/batched.\n\n**Still open — `src/lib/ai/eval-runner.server.ts:157-227`**, `runEvalSuite` does a single-row `insert` into `eval_case_results` inside the `for (const c of cases)` loop, at three separate call sites (error path, success path, catch path). For a suite with N cases this is N sequential round-trips purely for bookkeeping — the model calls above them are a real dependency and must stay sequential, but the writes don't need to.\n\n```ts\n// Before: insert() at 3 call sites inside the loop\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        await supabase.from(\"eval_case_results\").insert({ ...row... });\n        continue;\n      }\n      const judge = await callModel(...);\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    } catch (e) {\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    }\n  }\n}\n\n// After: accumulate, batch-insert once\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  const rows: EvalCaseResultInsert[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: \"error\", ... });\n        continue;\n      }\n      const judge = await callModel(...);\n      rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: isPassed ? \"passed\" : \"failed\", ... });\n    } catch (e) {\n      rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: \"error\", error: ... });\n    }\n  }\n  if (rows.length) await supabase.from(\"eval_case_results\").insert(rows);\n}\n```\n\n**Still open — `src/lib/lineage.functions.ts:353-362`**, `promotePrdToTasks` calls `recordLineage` (an `upsert`) once per created task in a loop:\n\n```ts\nfor (const t of tasks ?? []) {\n  await recordLineage(supabase, userId, {\n    parent_kind: \"prd\", parent_id: prd.id, child_kind: \"task\", child_id: t.id,\n    rationale: \"Generated from PRD by promotePrdToTasks\", created_by_agent: \"prd-writer\",\n  });\n}\n```\n\n`recordLineage` itself (`lineage.functions.ts:41-54`) is a thin wrapper around a single-row `upsert` with `onConflict: \"user_id,parent_kind,parent_id,child_kind,child_id,relation\"`. Since the conflict target is stable across rows, this batches cleanly:\n\n```ts\nconst lineageRows = (tasks ?? []).map((t) => ({\n  user_id: userId,\n  parent_kind: \"prd\" as const,\n  parent_id: prd.id,\n  child_kind: \"task\" as const,\n  child_id: t.id,\n  relation: \"promoted\",\n  rationale: \"Generated from PRD by promotePrdToTasks\",\n  created_by_agent: \"prd-writer\",\n}));\nif (lineageRows.length) {\n  await supabase\n    .from(\"artifact_lineage\")\n    .upsert(lineageRows, { onConflict: \"user_id,parent_kind,parent_id,child_kind,child_id,relation\" });\n}\n```\n\nNote the behavior change: today's per-row `recordLineage` call fails independently per row (nothing catches it, so actually the *first* failure currently aborts the loop — worth confirming that's intended); a single batch `upsert` fails or succeeds as one unit. Since this runs strictly after the real `tasks` insert already succeeded, a lineage-stamping failure here is not user-facing data loss — logging the error rather than throwing is reasonable if you want the batch to be forgiving.\n\n",
+        "level": 2
+      },
+      {
+        "title": "2 & 5. Unnecessary re-renders / redundant computations",
+        "content": "\n**Still open — `src/components/knowledge/CalendarPanel.tsx:316-360`.** Four derived values (`allItems`, `feed`, `pastCount`, `buckets`) are computed as plain `const`s in the render body — filter/map/sort/reduce chains re-run on *every* render, including the ones triggered by the component's own `useMutation`'s `isPending` flips (line ~309, the \"add hold\" mutation).\n\n```tsx\n// Before — recomputed every render\nconst allItems = [...meetingItems, ...eventItems];\nconst _now = Date.now();\nconst _end = _now + 14 * 24 * 60 * 60 * 1000;\nconst feed = allItems.filter(...).sort(...);\nconst pastCount = allItems.filter(...).length;\nconst buckets: Record<string, DayItem[]> = {};\nfor (const it of allItems) { ... }\n```\n\n```tsx\n// After\nconst allItems = useMemo(() => [...meetingItems, ...eventItems], [meetingItems, eventItems]);\n\nconst feed = useMemo(() => {\n  const now = Date.now();\n  const end = now + 14 * 24 * 60 * 60 * 1000;\n  return allItems\n    .filter((it) => {\n      const t = new Date(it.start_at).getTime();\n      return t >= now - 12 * 60 * 60 * 1000 && t <= end;\n    })\n    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());\n}, [allItems]);\n\nconst pastCount = useMemo(\n  () => allItems.filter((it) => new Date(it.start_at).getTime() < Date.now() - 12 * 60 * 60 * 1000).length,\n  [allItems],\n);\n\nconst buckets = useMemo(() => {\n  const b: Record<string, DayItem[]> = {};\n  for (const it of allItems) {\n    const k = new Date(it.start_at).toDateString();\n    (b[k] = b[k] ?? []).push(it);\n  }\n  return b;\n}, [allItems]);\n```\n\n★ Insight ─────────────────────────────────────\nMemoizing on `[allItems]` pins the \"now\" used for the 14-day window to the last time the *data* changed, not wall-clock time on every render — that's a real behavior change, not just a mechanical wrap. It's almost certainly the better behavior here (an item doesn't silently drop out of \"upcoming\" just because a re-render happened to fire a millisecond past midnight), but flag it because it's the kind of memoization that changes what the UI shows, not just how fast it renders.\n─────────────────────────────────────────────────\n\n**Already fixed today**: two memo-defeat suspects (`ThemeRow`, `SignalCard`) turned out to be false positives on inspection — parent already passes a stable top-level `useCallback` handler, no inline-arrow rewrap. `OpportunityQueue`'s `BoundOpportunityRow` wrapper (stable id/handler as props, per-row currying inside its own render rather than inside `.map()`) is the correct fix for \"hooks can't live inside a loop, but a naive inline closure defeats `memo()`\" — worth using as the template if you hit this pattern elsewhere.\n\n",
+        "level": 2
+      },
+      {
+        "title": "3. Caching opportunities",
+        "content": "\nNo new confirmed gaps beyond what's already logged — the 2026-07-17 audit flagged loop-brief/house-rules/embed cache gaps but without file:line citations, so I'm not going to restate it as fact without re-verifying (per this session's own \"verify before recommending\" rule). If you want, I can have an agent chase that down specifically; it wasn't part of today's re-verified set.\n\n",
+        "level": 2
+      },
+      {
+        "title": "4. Memory leaks",
+        "content": "**Already fixed today**: `GraphUniverseCanvas.tsx:534-538`'s RAF loop now bails (`if (document.hidden || !isVisible) { rafId.current = null; return; }`) instead of running forever off-screen; `AskPanel.tsx:1059-1066`'s SSE reader now has an unmount-only `useEffect` cleanup that aborts the stream (commit `b2b736e1`). No new leaks surfaced in this pass.\n\n---\n\n**Net**: 8 of the 11 findings from the last full sweep are shipped. The 3 remaining — eval-runner batch insert, lineage batch upsert, CalendarPanel memoization — are all mechanical, low-risk fixes with sketches above. Want me to implement them now?",
+        "level": 2
+      }
+    ],
+    "codeBlocks": [
+      {
+        "language": "ts",
+        "code": "// Before: insert() at 3 call sites inside the loop\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        await supabase.from(\"eval_case_results\").insert({ ...row... });\n        continue;\n      }\n      const judge = await callModel(...);\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    } catch (e) {\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    }\n  }\n}\n\n// After: accumulate, batch-insert once\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  const rows: EvalCaseResultInsert[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: \"error\", ... });\n        continue;\n      }\n      const judge = await callModel(...);\n      rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: isPassed ? \"passed\" : \"failed\", ... });\n    } catch (e) {\n      rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: \"error\", error: ... });\n    }\n  }\n  if (rows.length) await supabase.from(\"eval_case_results\").insert(rows);\n}"
+      },
+      {
+        "language": "ts",
+        "code": "for (const t of tasks ?? []) {\n  await recordLineage(supabase, userId, {\n    parent_kind: \"prd\", parent_id: prd.id, child_kind: \"task\", child_id: t.id,\n    rationale: \"Generated from PRD by promotePrdToTasks\", created_by_agent: \"prd-writer\",\n  });\n}"
+      },
+      {
+        "language": "ts",
+        "code": "const lineageRows = (tasks ?? []).map((t) => ({\n  user_id: userId,\n  parent_kind: \"prd\" as const,\n  parent_id: prd.id,\n  child_kind: \"task\" as const,\n  child_id: t.id,\n  relation: \"promoted\",\n  rationale: \"Generated from PRD by promotePrdToTasks\",\n  created_by_agent: \"prd-writer\",\n}));\nif (lineageRows.length) {\n  await supabase\n    .from(\"artifact_lineage\")\n    .upsert(lineageRows, { onConflict: \"user_id,parent_kind,parent_id,child_kind,child_id,relation\" });\n}"
+      },
+      {
+        "language": "tsx",
+        "code": "// Before — recomputed every render\nconst allItems = [...meetingItems, ...eventItems];\nconst _now = Date.now();\nconst _end = _now + 14 * 24 * 60 * 60 * 1000;\nconst feed = allItems.filter(...).sort(...);\nconst pastCount = allItems.filter(...).length;\nconst buckets: Record<string, DayItem[]> = {};\nfor (const it of allItems) { ... }"
+      },
+      {
+        "language": "tsx",
+        "code": "// After\nconst allItems = useMemo(() => [...meetingItems, ...eventItems], [meetingItems, eventItems]);\n\nconst feed = useMemo(() => {\n  const now = Date.now();\n  const end = now + 14 * 24 * 60 * 60 * 1000;\n  return allItems\n    .filter((it) => {\n      const t = new Date(it.start_at).getTime();\n      return t >= now - 12 * 60 * 60 * 1000 && t <= end;\n    })\n    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());\n}, [allItems]);\n\nconst pastCount = useMemo(\n  () => allItems.filter((it) => new Date(it.start_at).getTime() < Date.now() - 12 * 60 * 60 * 1000).length,\n  [allItems],\n);\n\nconst buckets = useMemo(() => {\n  const b: Record<string, DayItem[]> = {};\n  for (const it of allItems) {\n    const k = new Date(it.start_at).toDateString();\n    (b[k] = b[k] ?? []).push(it);\n  }\n  return b;\n}, [allItems]);"
+      }
+    ]
   },
-  "uptime": 19091.095966666,
-  "optimizations": {
-    "cacheHitRate": 0.78,
-    "avgResponseTime": 45
-  },
-  "note": "Install Claude Code CLI for AI-powered optimization suggestions"
+  "rawOutputPreview": "Verified against live code — all three still-open items from this morning's audit are exactly as documented, with no changes since. Rather than re-run a full sweep (a comprehensive one already ran today and is largely fixed), here's the current state across all five categories, with concrete fixes for what's still open.\n\n## 1. N+1 query patterns\n\n**Already fixed today** (commits `1a0687d1`, `b2b736e1`): `orchestrator.functions.ts` PRD→Linear dispatch and `capabilities.functions.ts` (34-agent capability load) were both parallelized/batched.\n\n**Still open — `src/lib/ai/eval-runner.server.ts:157-227`**, `runEvalSuite` does a single-row `insert` into `eval_case_results` inside the `for (const c of cases)` loop, at three separate call sites (error path, success path, catch path). For a suite with N cases this is N sequential round-trips purely for bookkeeping — the model calls above them are a real dependency and must stay sequential, but the writes don't need to.\n\n```ts\n// Before: insert() at 3 call sites inside the loop\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        await supabase.from(\"eval_case_results\").insert({ ...row... });\n        continue;\n      }\n      const judge = await callModel(...);\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    } catch (e) {\n      await supabase.from(\"eval_case_results\").insert({ ...row... });\n    }\n  }\n}\n\n// After: accumulate, batch-insert once\nasync function runEvalSuite(...) {\n  const scores: number[] = [];\n  const rows: EvalCaseResultInsert[] = [];\n  for (const c of cases) {\n    try {\n      const subject = await callModel(...);\n      if (subject.status !== \"ok\") {\n        rows.push({ run_id: runId, case_id: c.id, user_id: userId, status: \"error\", ... });\n        continue;\n      }\n      const judge = await callModel(...);\n      rows.push({ run_id: runId, case_id: c.i",
+  "rawOutputLength": 7676
 }

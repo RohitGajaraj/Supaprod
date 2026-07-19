@@ -551,7 +551,11 @@ You must output a JSON object EXACTLY in this format:
               ? `On it. I've dispatched **${mission.title}** to ${mentionedAgent.name}.\n\nYou can track its progress and approve decisions inline below.`
               : `I've planned and dispatched a new orchestrated mission: **${mission.title}**.\n\nYou can track the progress of the specialist agents and approve their decisions inline below.`;
             const encoder = new TextEncoder();
+            const missionStreamAbort = new AbortController();
             const stream = new ReadableStream({
+              cancel() {
+                missionStreamAbort.abort();
+              },
               async start(controller) {
                 const payload = JSON.stringify({
                   choices: [
@@ -580,6 +584,11 @@ You must output a JSON object EXACTLY in this format:
                 );
                 controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
                 controller.close();
+
+                // Bail out early if client disconnected, avoiding DB writes nobody will see
+                if (missionStreamAbort.signal.aborted || request.signal.aborted) {
+                  return;
+                }
 
                 // Persist the assistant message in DB with mission_id link
                 // (typed-builder cast: generated types predate the mission_id column)
