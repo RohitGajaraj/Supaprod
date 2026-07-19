@@ -260,12 +260,121 @@ type OppRow = {
   id: string;
   title?: string | null;
   problem?: string | null;
+  impact?: number | null;
+  confidence?: number | null;
+  ease?: number | null;
   ice_score?: number | null;
   status?: string | null;
   updated_at?: string;
   decided_by_agent_slug?: string | null;
   critic_review?: unknown;
 };
+
+type CriticVerdict = "ship" | "revise" | "kill";
+type ParsedCritic = {
+  verdict?: CriticVerdict;
+  summary?: string;
+  risks: string[];
+  kill_criteria: string[];
+  missing_evidence: string[];
+  confidence?: number;
+};
+
+/** Tolerant read of an opportunity's critic_review jsonb (object or string). */
+function parseCritic(raw: unknown): ParsedCritic | null {
+  if (!raw) return null;
+  let obj: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      obj = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!obj || typeof obj !== "object") return null;
+  const o = obj as Record<string, unknown>;
+  const strArr = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  const v = o.verdict;
+  const parsed: ParsedCritic = {
+    verdict: v === "ship" || v === "revise" || v === "kill" ? v : undefined,
+    summary: typeof o.summary === "string" ? o.summary : undefined,
+    risks: strArr(o.risks),
+    kill_criteria: strArr(o.kill_criteria),
+    missing_evidence: strArr(o.missing_evidence),
+    confidence: typeof o.confidence === "number" ? o.confidence : undefined,
+  };
+  if (!parsed.verdict && !parsed.summary && parsed.risks.length === 0) return null;
+  return parsed;
+}
+
+const VERDICT_TONE: Record<CriticVerdict, { label: string; color: string; bg: string; border: string }> = {
+  ship: { label: "Ship", color: "var(--verdict-pass)", bg: "rgba(74,194,107,0.10)", border: "rgba(74,194,107,0.35)" },
+  revise: { label: "Revise", color: "var(--voice-memory)", bg: "var(--voice-memory-faint)", border: "var(--voice-memory-border)" },
+  kill: { label: "Kill", color: "var(--verdict-fail)", bg: "rgba(229,83,75,0.10)", border: "rgba(229,83,75,0.35)" },
+};
+
+/** One ICE dimension as a labelled mini bar (0-10). */
+function IceBar({ label, value }: { label: string; value: number }) {
+  const pct = Math.max(0, Math.min(100, (value / 10) * 100));
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-mono text-[10px]" style={{ color: "var(--ink-subtle)" }}>{label}</span>
+      <span className="h-1 w-10 overflow-hidden rounded-full" style={{ background: "var(--ink-raised)" }}>
+        <span className="block h-full" style={{ width: `${pct}%`, background: "var(--voice-machine-dim)" }} />
+      </span>
+      <span className="font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-body)" }}>{value}</span>
+    </div>
+  );
+}
+
+/** The Critic's red-team, rendered under a bet (the moat: what could go wrong). */
+function CriticBlock({ critic }: { critic: ParsedCritic }) {
+  const tone = critic.verdict ? VERDICT_TONE[critic.verdict] : null;
+  return (
+    <div
+      className="mt-2.5 rounded-lg border p-2.5"
+      style={{ borderColor: "var(--ink-hairline-soft)", background: "var(--ink-raised)" }}
+    >
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[9.5px] uppercase tracking-[0.08em]" style={{ color: "var(--ink-subtle)" }}>
+          Critic
+        </span>
+        {tone ? (
+          <span
+            className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.06em]"
+            style={{ color: tone.color, background: tone.bg, borderColor: tone.border }}
+          >
+            {tone.label}
+          </span>
+        ) : null}
+        {typeof critic.confidence === "number" ? (
+          <span className="font-mono text-[9.5px]" style={{ color: "var(--ink-faint)" }}>
+            {Math.round(critic.confidence <= 1 ? critic.confidence * 100 : critic.confidence)}% sure
+          </span>
+        ) : null}
+      </div>
+      {critic.summary ? (
+        <p className="mt-1.5 text-[12px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>{critic.summary}</p>
+      ) : null}
+      {critic.risks.length > 0 ? (
+        <ul className="mt-1.5 flex flex-col gap-1">
+          {critic.risks.slice(0, 3).map((r, i) => (
+            <li key={i} className="flex gap-1.5 text-[11.5px] leading-[1.45]" style={{ color: "var(--ink-subtle)" }}>
+              <span style={{ color: "var(--verdict-fail)" }}>{"·"}</span>
+              {r}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {critic.kill_criteria.length > 0 ? (
+        <p className="mt-1.5 text-[11px] leading-[1.45]" style={{ color: "var(--ink-faint)" }}>
+          Kill if: {critic.kill_criteria.slice(0, 2).join("; ")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchOpps = useServerFn(listOpportunities);
@@ -299,35 +408,68 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
       {opps.length > 0 ? (
         <div className="flex flex-col gap-2.5 p-5">
           <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-            <ReceiptCount>{opps.length}</ReceiptCount> ranked, highest impact first.
+            <ReceiptCount>{opps.length}</ReceiptCount> ranked, highest impact first. Each carries the
+            Critic's read before it reaches you.
           </p>
-          {opps.slice(0, 30).map((o, i) => (
-            <FaceCard
-              key={o.id}
-              chip={
-                <>
-                  <Chip>#{i + 1}</Chip>
-                  {o.status ? <Chip>{o.status}</Chip> : null}
-                </>
-              }
-              time={relTime(o.updated_at)}
-            >
-              <p className="text-[13.5px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
-                {o.title ?? "Untitled bet"}
-              </p>
-              {o.problem ? (
-                <p className="mt-1 text-[12.5px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
-                  {o.problem.slice(0, 200)}
+          {opps.slice(0, 30).map((o, i) => {
+            const critic = parseCritic(o.critic_review);
+            const tone = critic?.verdict ? VERDICT_TONE[critic.verdict] : null;
+            const hasIce =
+              typeof o.impact === "number" ||
+              typeof o.confidence === "number" ||
+              typeof o.ease === "number";
+            return (
+              <FaceCard
+                key={o.id}
+                chip={
+                  <>
+                    <Chip>#{i + 1}</Chip>
+                    {o.status ? <Chip>{o.status}</Chip> : null}
+                    {tone ? (
+                      <span
+                        className="inline-flex h-[20px] items-center rounded-[10px] border px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
+                        style={{ color: tone.color, background: tone.bg, borderColor: tone.border }}
+                      >
+                        {tone.label}
+                      </span>
+                    ) : null}
+                  </>
+                }
+                time={relTime(o.updated_at)}
+              >
+                <p className="text-[13.5px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
+                  {o.title ?? "Untitled bet"}
                 </p>
-              ) : null}
-              {typeof o.ice_score === "number" ? (
-                <p className="mt-1.5 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-                  ICE <ReceiptCount>{o.ice_score.toFixed(1)}</ReceiptCount>
-                  {o.decided_by_agent_slug ? ` · decided by ${agentDisplayName(o.decided_by_agent_slug)}` : ""}
-                </p>
-              ) : null}
-            </FaceCard>
-          ))}
+                {o.problem ? (
+                  <p className="mt-1 text-[12.5px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+                    {o.problem.slice(0, 240)}
+                  </p>
+                ) : null}
+                {hasIce ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    {typeof o.impact === "number" ? <IceBar label="I" value={o.impact} /> : null}
+                    {typeof o.confidence === "number" ? <IceBar label="C" value={o.confidence} /> : null}
+                    {typeof o.ease === "number" ? <IceBar label="E" value={o.ease} /> : null}
+                    {typeof o.ice_score === "number" ? (
+                      <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                        ICE <ReceiptCount>{o.ice_score.toFixed(1)}</ReceiptCount>
+                      </span>
+                    ) : null}
+                  </div>
+                ) : typeof o.ice_score === "number" ? (
+                  <p className="mt-1.5 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                    ICE <ReceiptCount>{o.ice_score.toFixed(1)}</ReceiptCount>
+                  </p>
+                ) : null}
+                {critic ? <CriticBlock critic={critic} /> : null}
+                {o.decided_by_agent_slug ? (
+                  <p className="mt-1.5 font-mono text-[10.5px]" style={{ color: "var(--ink-faint)" }}>
+                    decided by {agentDisplayName(o.decided_by_agent_slug)}
+                  </p>
+                ) : null}
+              </FaceCard>
+            );
+          })}
           <NextLine
             doors={[journeyDoor("j3", onActivateJourney), journeyDoor("j2", onActivateJourney)]}
           />
