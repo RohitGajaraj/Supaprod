@@ -8,7 +8,7 @@ import { listApiKeys, listPlatformProviders } from "@/lib/byokeys.functions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 /** Friendly provider header label; falls back to a title-cased id for any provider. */
-function providerLabel(provider: string): string {
+export function providerLabel(provider: string): string {
   const known: Record<string, string> = {
     google: "Google",
     openai: "OpenAI",
