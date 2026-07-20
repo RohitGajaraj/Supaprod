@@ -26,6 +26,10 @@ export interface ThreadSummary {
   folderId: string | null;
   /** Role of the most recent message: 'user' rows show the "you" chip. */
   lastRole: string | null;
+  /** screen-9 rail views: an approved memory candidate saved from this thread
+   *  (In the brain), and a pending one (Waiting on you, a gate on the thread). */
+  inBrain: boolean;
+  waiting: boolean;
 }
 
 export interface ThreadMessage {
@@ -76,6 +80,26 @@ export const listThreads = createServerFn({ method: "GET" })
       }
     }
 
+    // screen-9 rail views: which threads have a memory candidate saved from
+    // them (approved -> In the brain; pending -> Waiting on you). Tolerant: if
+    // the source_conversation_id column has not migrated yet, both stay empty.
+    const inBrainByConv = new Set<string>();
+    const waitingByConv = new Set<string>();
+    if (ids.length > 0) {
+      const { data: memRows, error: memErr } = await db
+        .from("memory_candidates")
+        .select("source_conversation_id,status")
+        .in("source_conversation_id", ids);
+      if (!memErr) {
+        for (const m of (memRows ?? []) as Row[]) {
+          const cid = str(m.source_conversation_id);
+          if (!cid) continue;
+          if (str(m.status) === "approved") inBrainByConv.add(cid);
+          else if (str(m.status) === "pending") waitingByConv.add(cid);
+        }
+      }
+    }
+
     const threads: ThreadSummary[] = conversations.map((c) => {
       const id = String(c.id);
       return {
@@ -86,6 +110,8 @@ export const listThreads = createServerFn({ method: "GET" })
         productId: str(c.product_id),
         folderId: str(c.folder_id),
         lastRole: lastRoleByConv.get(id) ?? null,
+        inBrain: inBrainByConv.has(id),
+        waiting: waitingByConv.has(id),
       };
     });
 
@@ -189,6 +215,8 @@ export const searchConversations = createServerFn({ method: "GET" })
         productId: str(c.product_id),
         folderId: str(c.folder_id),
         lastRole: null,
+        inBrain: false,
+        waiting: false,
       };
     });
     return { threads };
@@ -275,6 +303,8 @@ export const listThreadsInFolder = createServerFn({ method: "GET" })
         productId: str(c.product_id),
         folderId: data.folderId,
         lastRole: null,
+        inBrain: false,
+        waiting: false,
       })),
     };
   });

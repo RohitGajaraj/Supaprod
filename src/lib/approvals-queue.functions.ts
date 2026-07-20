@@ -54,6 +54,26 @@ import { listTrustGraduationProposals, decideTrustGraduation } from "@/lib/trust
 import { savePrd, updateOpportunity, type CriticReview } from "@/lib/discovery.functions";
 import { decideDesignGate } from "@/lib/design-scaffold.functions";
 import { decidePlaybookProposal } from "@/lib/playbooks.functions";
+import { castByStation, type AgentStation } from "@/lib/agent-vocabulary";
+
+/** The station whose specialist owns each gate family, so a gate that carries
+ *  no explicit agent slug still shows an honest attribution chip (the agent
+ *  that produces that kind of call). */
+const APPROVAL_KIND_STATION: Partial<Record<ApprovalKind, AgentStation>> = {
+  decision: "decide",
+  opportunity: "decide",
+  assumption_challenge: "decide",
+  spec: "define",
+  design_gate: "design",
+  tool_call: "build",
+  memory_candidate: "learn",
+  house_rule: "learn",
+};
+function approvalAgentSlug(kind: ApprovalKind, explicit: string | null): string | null {
+  if (explicit) return explicit;
+  const station = APPROVAL_KIND_STATION[kind];
+  return station ? (castByStation(station)[0]?.slug ?? null) : null;
+}
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { ApprovalItem } from "@/components/ink/ApprovalCard";
@@ -91,6 +111,10 @@ export type ApprovalQueueItem = ApprovalItem & {
    *  trust, or a mission with no resolvable project - see the ledger note). */
   projectId: string | null;
   projectName: string | null;
+  /** The agent that owns this gate (real slug for tool-call gates, else the
+   *  owning station's specialist); renders the attribution chip. Set in the
+   *  final map, so the per-kind constructions do not each repeat it. */
+  agentSlug?: string | null;
 };
 
 export type ApprovalsQueueResult = {
@@ -331,9 +355,12 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         : { id: null, name: null };
 
     const items: ApprovalQueueItem[] = [];
+    // Real agent slug per tool-call gate, so the final map can attribute it.
+    const agentSlugBySource = new Map<string, string>();
 
     // --- Tool-call confirm/review gates ------------------------------------
     for (const a of govern.approvals.filter((a) => a.status === "pending")) {
+      if (a.agent_slug) agentSlugBySource.set(a.id, a.agent_slug);
       const consequence = toolConsequence(a.tool_name);
       const track = a.agent_slug ? govern.trackByAgent[a.agent_slug] : undefined;
       const evidence: string[] = [];
@@ -659,7 +686,12 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       : items;
 
     visible.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
-    return { items: visible };
+    return {
+      items: visible.map((it) => ({
+        ...it,
+        agentSlug: approvalAgentSlug(it.kindKey, agentSlugBySource.get(it.sourceId) ?? null),
+      })),
+    };
   });
 
 const DecideSchema = z.object({

@@ -87,8 +87,25 @@ function ThreadRow({
           {thread.snippet}
         </span>
       ) : null}
-      {you || folderName ? (
+      {you || folderName || thread.inBrain || thread.waiting ? (
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {thread.waiting ? (
+            <span
+              className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+              style={{ borderColor: "var(--voice-human-border)", color: "var(--voice-human)" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--voice-human)" }} />
+              your call
+            </span>
+          ) : null}
+          {thread.inBrain ? (
+            <span
+              className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+              style={{ borderColor: "var(--ink-hairline)", color: "var(--voice-memory-dim)" }}
+            >
+              {"\u2726"} in the brain
+            </span>
+          ) : null}
           {you ? (
             <span className="rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}>
               you
@@ -149,9 +166,12 @@ function ThreadPreview({
     mutationFn: () => {
       const lastAgent = [...messages].reverse().find((m) => m.role !== "user");
       const content = (lastAgent?.content ?? title).trim().slice(0, 1000);
-      return propose({ data: { content, sourceKind: "user" } });
+      return propose({ data: { content, sourceKind: "user", sourceConversationId: threadId ?? undefined } });
     },
-    onSuccess: () => toast.success("Proposed to the brain. It waits in Brain's review queue."),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["threads"] });
+      toast.success("Proposed to the brain. It waits in Brain's review queue.");
+    },
     onError: () => toast.error("Could not propose this to the brain."),
   });
 
@@ -314,7 +334,7 @@ export function ThreadsSurface({
   const [scope, setScope] = useState<"product" | "all">("product");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(initialThreadId ?? null);
-  const [view, setView] = useState<"all" | "week" | "unfiled">("all");
+  const [view, setView] = useState<"all" | "waiting" | "brain" | "unfiled">("all");
 
   // Server-side search across titles AND message content (debounced), so a
   // thread is found by something said inside it, not just the loaded page.
@@ -384,22 +404,21 @@ export function ThreadsSurface({
     () => threads.filter((t) => scope === "all" || !activeProductId || t.productId === activeProductId),
     [threads, scope, activeProductId],
   );
-  const counts = useMemo(() => {
-    const weekMs = Date.now() - 7 * 86400000;
-    const ts = (t: ThreadSummary) => (t.updatedAt ? new Date(t.updatedAt).getTime() : 0);
-    return {
+  const counts = useMemo(
+    () => ({
       all: scoped.length,
-      week: scoped.filter((t) => ts(t) >= weekMs).length,
+      waiting: scoped.filter((t) => t.waiting).length,
+      brain: scoped.filter((t) => t.inBrain).length,
       unfiled: scoped.filter((t) => !t.folderId).length,
-    };
-  }, [scoped]);
+    }),
+    [scoped],
+  );
 
   const filtered = useMemo(() => {
-    const weekMs = Date.now() - 7 * 86400000;
     return baseThreads.filter((t) => {
       if (scope === "product" && activeProductId && t.productId !== activeProductId) return false;
-      const ts = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
-      if (view === "week" && ts < weekMs) return false;
+      if (view === "waiting" && !t.waiting) return false;
+      if (view === "brain" && !t.inBrain) return false;
       if (view === "unfiled" && t.folderId) return false;
       return true;
     });
@@ -474,9 +493,10 @@ export function ThreadsSurface({
             Views
           </div>
           {([
-            { id: "all", label: "All threads", n: counts.all },
-            { id: "week", label: "This week", n: counts.week },
-            { id: "unfiled", label: "Unfiled", n: counts.unfiled },
+            { id: "all", label: "All threads", n: counts.all, gate: false },
+            { id: "waiting", label: "Waiting on you", n: counts.waiting, gate: true },
+            { id: "brain", label: "In the brain", n: counts.brain, gate: false },
+            { id: "unfiled", label: "Unfiled", n: counts.unfiled, gate: false },
           ] as const).map((v) => {
             const on = view === v.id;
             return (
@@ -492,7 +512,10 @@ export function ThreadsSurface({
                 style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
               >
                 <span className="min-w-0 flex-1 truncate">{v.label}</span>
-                <span className="flex-none font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+                <span
+                  className="flex-none font-mono text-[10.5px] tabular-nums"
+                  style={{ color: v.gate && v.n > 0 ? "var(--voice-human)" : "var(--ink-faint)" }}
+                >
                   {v.n}
                 </span>
               </button>

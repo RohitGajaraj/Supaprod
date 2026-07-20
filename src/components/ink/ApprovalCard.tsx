@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { VerdictChip, type VerdictTone } from "./chips";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 /**
  * ApprovalCard - one item in the single queue of everything awaiting human
@@ -14,6 +15,8 @@ export type ApprovalItem = {
   /** Card kind chip, e.g. "PROPOSAL", "PLAN", "SHIP GATE", "SPEND", "MEMORY". */
   kind: string;
   kindTone?: VerdictTone;
+  /** The agent that owns this gate; renders the attribution chip. */
+  agentSlug?: string | null;
   project?: string;
   /** What the agent proposes, one plain sentence. */
   title: string;
@@ -73,6 +76,11 @@ export function ApprovalCard({
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <VerdictChip tone={item.kindTone ?? "human"}>{item.kind}</VerdictChip>
+          {item.agentSlug ? (
+            <span className="ink-mono shrink-0 rounded border border-[var(--ink-hairline)] px-1.5 text-[10px] uppercase tracking-[0.04em] text-[var(--ink-subtle)]">
+              {agentDisplayName(item.agentSlug)}
+            </span>
+          ) : null}
           {item.project ? (
             <span className="ink-mono truncate text-[11px] text-[var(--ink-subtle)]">
               {item.project}

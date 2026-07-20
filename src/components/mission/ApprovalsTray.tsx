@@ -222,6 +222,7 @@ export function ApprovalsTray({
                     <GateChip
                       headline={item.title}
                       recommendation={firstEvidence(item)}
+                      agentSlug={item.agentSlug ?? undefined}
                       receipts={
                         item.project
                           ? [

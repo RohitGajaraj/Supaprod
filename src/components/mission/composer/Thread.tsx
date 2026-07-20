@@ -145,6 +145,7 @@ function InlineGate({
     <GateChip
       headline={item.title}
       recommendation={item.evidence[0] ?? "Waiting on your call."}
+      agentSlug={item.agentSlug ?? undefined}
       receipts={item.project ? [{ label: item.project }] : undefined}
       consequence={item.approveConsequence}
       onApprove={() => onDecide(item, "approve")}
