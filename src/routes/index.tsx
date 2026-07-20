@@ -114,7 +114,10 @@ function LandingPage() {
     import("@/integrations/supabase/client")
       .then(({ supabase }) => supabase.auth.getUser())
       .then(({ data }) => {
-        if (!cancelled && data.user) window.location.replace("/today");
+        // sandbox/mission-control-v2: an authenticated visitor lands in the
+        // reimagined Mission Control room, not the retired /today shell, so the
+        // reimagined experience is the coherent home (founder ruling 2026-07-20).
+        if (!cancelled && data.user) window.location.replace("/m");
       })
       .catch(() => {});
     return () => {
