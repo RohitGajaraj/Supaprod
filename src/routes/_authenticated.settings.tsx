@@ -74,7 +74,6 @@ import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
 import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
 import { HealthCard } from "@/components/settings/HealthCard";
 import { NotificationsTab } from "@/components/settings/NotificationsTab";
-import { MemoryView } from "@/components/settings/memory/MemoryView";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
@@ -514,7 +513,35 @@ function SettingsPage() {
               </>
             )}
             {active === "notifications" && <NotificationsTab />}
-            {active === "memory" && <MemoryView />}
+            {active === "memory" && (
+              <div
+                className="rounded-xl border p-5"
+                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+              >
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
+                  Memory lives in Brain
+                </h2>
+                <p
+                  style={{
+                    marginTop: 6,
+                    maxWidth: 460,
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                    color: "var(--text-body)",
+                  }}
+                >
+                  The ledger of what the loop knows (its decisions, what it learned, and the review
+                  gate for new memories) now has one home in Brain. Manage it there.
+                </p>
+                <Link
+                  to="/brain"
+                  className="loom-press mt-3 inline-block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{ fontSize: 13, color: "var(--link)" }}
+                >
+                  Open Brain →
+                </Link>
+              </div>
+            )}
             {active === "health" && <HealthCard />}
             {active === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
