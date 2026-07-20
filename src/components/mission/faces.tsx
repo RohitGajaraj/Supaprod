@@ -291,6 +291,7 @@ type OppRow = {
   updated_at?: string;
   decided_by_agent_slug?: string | null;
   critic_review?: unknown;
+  project_id?: string | null;
 };
 
 type CriticVerdict = "ship" | "revise" | "kill";
@@ -406,7 +407,11 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
     queryFn: () => fetchOpps(),
     refetchInterval: pollWhenVisible(30_000),
   });
-  const opps = (q.data?.opportunities ?? []) as OppRow[];
+  // Scope to THIS product's queue: listOpportunities reads RLS-wide (every
+  // workspace the user belongs to), so the room's Decide board must filter to
+  // the active product or it mixes another workspace's bets in.
+  const allOpps = (q.data?.opportunities ?? []) as OppRow[];
+  const opps = allOpps.filter((o) => o.project_id === productId);
 
   return (
     <CanvasFace
@@ -513,6 +518,7 @@ type SpecRow = {
   updated_at?: string;
   citations?: unknown;
   critic_review?: unknown;
+  project_id?: string | null;
 };
 
 function countArray(v: unknown): number {
@@ -527,7 +533,8 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
     queryFn: () => fetchSpecs(),
     refetchInterval: pollWhenVisible(30_000),
   });
-  const specs = (q.data?.prds ?? []) as SpecRow[];
+  // Scope to THIS product (listSpecs reads RLS-wide, like listOpportunities).
+  const specs = ((q.data?.prds ?? []) as SpecRow[]).filter((s) => s.project_id === productId);
   const [pickedId, setPickedId] = useState<string | null>(null);
   const focused = useMemo(
     () => specs.find((s) => s.id === pickedId) ?? specs[0] ?? null,
