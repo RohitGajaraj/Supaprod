@@ -639,8 +639,27 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       }
     }
 
-    items.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
-    return { items };
+    // Gate snoozes (front-end reimagining Phase 4; founder-authorized
+    // 2026-07-19): drop items the operator deferred with H until snoozed_until.
+    // RLS scopes the read to this user. Tolerant by design: the table lands at
+    // the Gate-2 merge, so until then the read errors and `snoozed` stays empty
+    // and every gate shows - the queue never breaks on the un-applied migration.
+    const snoozeDb = supabase as unknown as SupabaseClient;
+    const { data: snoozeRows } = await snoozeDb
+      .from("approval_snoozes")
+      .select("kind,source_id")
+      .gt("snoozed_until", new Date().toISOString());
+    const snoozed = new Set(
+      ((snoozeRows ?? []) as { kind: string; source_id: string }[]).map(
+        (r) => `${r.kind}:${r.source_id}`,
+      ),
+    );
+    const visible = snoozed.size
+      ? items.filter((it) => !snoozed.has(`${it.kindKey}:${it.sourceId}`))
+      : items;
+
+    visible.sort((a, b) => (b.timestamp ?? "").localeCompare(a.timestamp ?? ""));
+    return { items: visible };
   });
 
 const DecideSchema = z.object({
@@ -734,4 +753,127 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
       default:
         throw new Error(`decideApprovalItem: unknown kind ${String(data.kind)}`);
     }
+  });
+
+const SnoozeSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum([
+    "tool_call",
+    "decision",
+    "memory_candidate",
+    "house_rule",
+    "trust_graduation",
+    "spec",
+    "opportunity",
+    "assumption_challenge",
+    "design_gate",
+    "playbook_proposal",
+  ]),
+  /** Defer window in hours; default one day ("resurfaces with tomorrow's briefing"). */
+  hours: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 30)
+    .optional(),
+  reason: z.string().max(500).optional(),
+});
+
+export type SnoozeApprovalItemResult = { ok: boolean; snoozedUntil: string };
+
+/**
+ * Snooze a gate (the tray's H verb). Defers ANY federated family by
+ * (kind, source_id) without touching its source table: a personal triage
+ * record in approval_snoozes that getApprovalsQueue filters on until it lapses.
+ * Founder-authorized 2026-07-19; the table lands at the Gate-2 merge, so a call
+ * against the un-applied DB surfaces a plain error (the UI never claims it
+ * worked when it did not).
+ */
+export const snoozeApprovalItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof SnoozeSchema>) => SnoozeSchema.parse(d))
+  .handler(async ({ context, data }): Promise<SnoozeApprovalItemResult> => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const hours = data.hours ?? 24;
+    const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    const { error } = await db.from("approval_snoozes").upsert(
+      {
+        user_id: context.userId,
+        kind: data.kind,
+        source_id: data.id,
+        snoozed_until: snoozedUntil,
+        reason: data.reason ?? null,
+      },
+      { onConflict: "user_id,kind,source_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true, snoozedUntil };
+  });
+
+/** The gate families that can be SENT BACK (returned to a revisable state with
+ *  a note), as opposed to only approved/declined. A spec returns to draft; a
+ *  design gate returns for revision. Every other family is a binary gate. */
+export const REVISABLE_KINDS: readonly ApprovalKind[] = ["spec", "design_gate"];
+
+export function isRevisableKind(kind: ApprovalKind): boolean {
+  return REVISABLE_KINDS.includes(kind);
+}
+
+const SendBackSchema = z.object({
+  id: z.string().min(1),
+  kind: z.enum([
+    "tool_call",
+    "decision",
+    "memory_candidate",
+    "house_rule",
+    "trust_graduation",
+    "spec",
+    "opportunity",
+    "assumption_challenge",
+    "design_gate",
+    "playbook_proposal",
+  ]),
+  /** The operator's revision guidance. Required: a note-less send-back is a decline. */
+  note: z.string().min(1).max(2000),
+});
+
+export type SendBackApprovalItemResult = { ok: boolean };
+
+/**
+ * Send a revisable gate back with a note (the tray's verb 2). The note is
+ * persisted (approval_feedback), then the gate is returned to its revisable
+ * state via the SAME resolvers the decide path uses: a spec to draft, a design
+ * gate to reject-for-revision, so the agent continues the same thread knowing
+ * what to fix. Non-revisable families are refused (decline them instead).
+ *
+ * Founder-authorized 2026-07-19. The approval_feedback table lands at the Gate-2
+ * merge; until then the note insert fails and the whole send-back is refused
+ * with an honest message (the UI never claims it worked when it did not).
+ */
+export const sendBackApprovalItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof SendBackSchema>) => SendBackSchema.parse(d))
+  .handler(async ({ context, data }): Promise<SendBackApprovalItemResult> => {
+    if (!isRevisableKind(data.kind)) {
+      throw new Error("This kind can't be sent back. Decline it instead.");
+    }
+    const db = context.supabase as unknown as SupabaseClient;
+
+    // 1) Capture the note first. Pre-merge (table absent) this throws, and the
+    //    whole send-back is refused - honest, atomic, mirrors the snooze verb.
+    const { error: fbErr } = await db.from("approval_feedback").insert({
+      user_id: context.userId,
+      kind: data.kind,
+      source_id: data.id,
+      note: data.note,
+    });
+    if (fbErr) throw new Error(fbErr.message);
+
+    // 2) Return the gate to its revisable state via the existing resolvers.
+    if (data.kind === "spec") {
+      await savePrd({ data: { id: data.id, status: "draft" } });
+    } else {
+      await decideDesignGate({ data: { prdId: data.id, decision: "reject" } });
+    }
+    return { ok: true };
   });

@@ -38,9 +38,11 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTrustLedgerRouteImport } from './routes/_authenticated.trust-ledger'
 import { Route as AuthenticatedTracesRouteImport } from './routes/_authenticated.traces'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated.today'
+import { Route as AuthenticatedThreadsRouteImport } from './routes/_authenticated.threads'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.tasks'
 import { Route as AuthenticatedSyncRouteImport } from './routes/_authenticated.sync'
 import { Route as AuthenticatedSwarmRouteImport } from './routes/_authenticated.swarm'
+import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated.start'
 import { Route as AuthenticatedStakeholderRouteImport } from './routes/_authenticated.stakeholder'
 import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
@@ -79,6 +81,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated.budgets'
 import { Route as AuthenticatedBriefingRouteImport } from './routes/_authenticated.briefing'
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
+import { Route as AuthenticatedArtifactsRouteImport } from './routes/_authenticated.artifacts'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated.approvals'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated.agents'
@@ -89,6 +92,7 @@ import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated.missions.index'
+import { Route as AuthenticatedMIndexRouteImport } from './routes/_authenticated.m.index'
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
@@ -100,6 +104,7 @@ import { Route as AuthenticatedStudioMissionIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedPrdsIdRouteImport } from './routes/_authenticated.prds.$id'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated.missions.$missionId'
 import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
+import { Route as AuthenticatedMProductIdRouteImport } from './routes/_authenticated.m.$productId'
 import { Route as AuthenticatedBuildMissionIdRouteImport } from './routes/_authenticated.build.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
 import { Route as AuthenticatedAdminRoutingRouteImport } from './routes/_authenticated.admin.routing'
@@ -317,6 +322,11 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedThreadsRoute = AuthenticatedThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -330,6 +340,11 @@ const AuthenticatedSyncRoute = AuthenticatedSyncRouteImport.update({
 const AuthenticatedSwarmRoute = AuthenticatedSwarmRouteImport.update({
   id: '/swarm',
   path: '/swarm',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedStartRoute = AuthenticatedStartRouteImport.update({
+  id: '/start',
+  path: '/start',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStakeholderRoute =
@@ -526,6 +541,11 @@ const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
   path: '/brain',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedArtifactsRoute = AuthenticatedArtifactsRouteImport.update({
+  id: '/artifacts',
+  path: '/artifacts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   id: '/approvals',
   path: '/approvals',
@@ -580,6 +600,11 @@ const AuthenticatedMissionsIndexRoute =
     path: '/missions/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMIndexRoute = AuthenticatedMIndexRouteImport.update({
+  id: '/m/',
+  path: '/m/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedBuildIndexRoute = AuthenticatedBuildIndexRouteImport.update({
   id: '/build/',
   path: '/build/',
@@ -637,6 +662,11 @@ const AuthenticatedMeetingsIdRoute = AuthenticatedMeetingsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedMeetingsRoute,
+} as any)
+const AuthenticatedMProductIdRoute = AuthenticatedMProductIdRouteImport.update({
+  id: '/m/$productId',
+  path: '/m/$productId',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBuildMissionIdRoute =
   AuthenticatedBuildMissionIdRouteImport.update({
@@ -1076,6 +1106,7 @@ export interface FileRoutesByFullPath {
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/artifacts': typeof AuthenticatedArtifactsRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1114,9 +1145,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/start': typeof AuthenticatedStartRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1139,6 +1172,7 @@ export interface FileRoutesByFullPath {
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/m/$productId': typeof AuthenticatedMProductIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1150,6 +1184,7 @@ export interface FileRoutesByFullPath {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
+  '/m/': typeof AuthenticatedMIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/plan/': typeof AuthenticatedPlanIndexRoute
   '/prds/': typeof AuthenticatedPrdsIndexRoute
@@ -1238,6 +1273,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/artifacts': typeof AuthenticatedArtifactsRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1275,9 +1311,11 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/start': typeof AuthenticatedStartRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/threads': typeof AuthenticatedThreadsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/traces': typeof AuthenticatedTracesRouteWithChildren
   '/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1300,6 +1338,7 @@ export interface FileRoutesByTo {
   '/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/m/$productId': typeof AuthenticatedMProductIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1311,6 +1350,7 @@ export interface FileRoutesByTo {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
+  '/m': typeof AuthenticatedMIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/plan': typeof AuthenticatedPlanIndexRoute
   '/prds': typeof AuthenticatedPrdsIndexRoute
@@ -1402,6 +1442,7 @@ export interface FileRoutesById {
   '/_authenticated/agents': typeof AuthenticatedAgentsRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/artifacts': typeof AuthenticatedArtifactsRoute
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/briefing': typeof AuthenticatedBriefingRoute
   '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
@@ -1440,9 +1481,11 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/ship': typeof AuthenticatedShipRoute
   '/_authenticated/stakeholder': typeof AuthenticatedStakeholderRoute
+  '/_authenticated/start': typeof AuthenticatedStartRoute
   '/_authenticated/swarm': typeof AuthenticatedSwarmRoute
   '/_authenticated/sync': typeof AuthenticatedSyncRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/threads': typeof AuthenticatedThreadsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/traces': typeof AuthenticatedTracesRouteWithChildren
   '/_authenticated/trust-ledger': typeof AuthenticatedTrustLedgerRoute
@@ -1465,6 +1508,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/routing': typeof AuthenticatedAdminRoutingRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/_authenticated/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
+  '/_authenticated/m/$productId': typeof AuthenticatedMProductIdRoute
   '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/prds/$id': typeof AuthenticatedPrdsIdRoute
@@ -1476,6 +1520,7 @@ export interface FileRoutesById {
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
+  '/_authenticated/m/': typeof AuthenticatedMIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
   '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
@@ -1567,6 +1612,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/approvals'
+    | '/artifacts'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -1605,9 +1651,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ship'
     | '/stakeholder'
+    | '/start'
     | '/swarm'
     | '/sync'
     | '/tasks'
+    | '/threads'
     | '/today'
     | '/traces'
     | '/trust-ledger'
@@ -1630,6 +1678,7 @@ export interface FileRouteTypes {
     | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
+    | '/m/$productId'
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
@@ -1641,6 +1690,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin/'
     | '/build/'
+    | '/m/'
     | '/missions/'
     | '/plan/'
     | '/prds/'
@@ -1729,6 +1779,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/approvals'
+    | '/artifacts'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -1766,9 +1817,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/ship'
     | '/stakeholder'
+    | '/start'
     | '/swarm'
     | '/sync'
     | '/tasks'
+    | '/threads'
     | '/today'
     | '/traces'
     | '/trust-ledger'
@@ -1791,6 +1844,7 @@ export interface FileRouteTypes {
     | '/admin/routing'
     | '/admin/workspaces'
     | '/build/$missionId'
+    | '/m/$productId'
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
@@ -1802,6 +1856,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/admin'
     | '/build'
+    | '/m'
     | '/missions'
     | '/plan'
     | '/prds'
@@ -1892,6 +1947,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agents'
     | '/_authenticated/analytics'
     | '/_authenticated/approvals'
+    | '/_authenticated/artifacts'
     | '/_authenticated/brain'
     | '/_authenticated/briefing'
     | '/_authenticated/budgets'
@@ -1930,9 +1986,11 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/ship'
     | '/_authenticated/stakeholder'
+    | '/_authenticated/start'
     | '/_authenticated/swarm'
     | '/_authenticated/sync'
     | '/_authenticated/tasks'
+    | '/_authenticated/threads'
     | '/_authenticated/today'
     | '/_authenticated/traces'
     | '/_authenticated/trust-ledger'
@@ -1955,6 +2013,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/routing'
     | '/_authenticated/admin/workspaces'
     | '/_authenticated/build/$missionId'
+    | '/_authenticated/m/$productId'
     | '/_authenticated/meetings/$id'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/prds/$id'
@@ -1966,6 +2025,7 @@ export interface FileRouteTypes {
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
+    | '/_authenticated/m/'
     | '/_authenticated/missions/'
     | '/_authenticated/plan/'
     | '/_authenticated/prds/'
@@ -2333,6 +2393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/threads': {
+      id: '/_authenticated/threads'
+      path: '/threads'
+      fullPath: '/threads'
+      preLoaderRoute: typeof AuthenticatedThreadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -2352,6 +2419,13 @@ declare module '@tanstack/react-router' {
       path: '/swarm'
       fullPath: '/swarm'
       preLoaderRoute: typeof AuthenticatedSwarmRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/start': {
+      id: '/_authenticated/start'
+      path: '/start'
+      fullPath: '/start'
+      preLoaderRoute: typeof AuthenticatedStartRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/stakeholder': {
@@ -2620,6 +2694,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/artifacts': {
+      id: '/_authenticated/artifacts'
+      path: '/artifacts'
+      fullPath: '/artifacts'
+      preLoaderRoute: typeof AuthenticatedArtifactsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/approvals': {
       id: '/_authenticated/approvals'
       path: '/approvals'
@@ -2688,6 +2769,13 @@ declare module '@tanstack/react-router' {
       path: '/missions'
       fullPath: '/missions/'
       preLoaderRoute: typeof AuthenticatedMissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/m/': {
+      id: '/_authenticated/m/'
+      path: '/m'
+      fullPath: '/m/'
+      preLoaderRoute: typeof AuthenticatedMIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/build/': {
@@ -2766,6 +2854,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/meetings/$id'
       preLoaderRoute: typeof AuthenticatedMeetingsIdRouteImport
       parentRoute: typeof AuthenticatedMeetingsRoute
+    }
+    '/_authenticated/m/$productId': {
+      id: '/_authenticated/m/$productId'
+      path: '/m/$productId'
+      fullPath: '/m/$productId'
+      preLoaderRoute: typeof AuthenticatedMProductIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/build/$missionId': {
       id: '/_authenticated/build/$missionId'
@@ -3336,6 +3431,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedArtifactsRoute: typeof AuthenticatedArtifactsRoute
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedBriefingRoute: typeof AuthenticatedBriefingRoute
   AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
@@ -3374,16 +3470,20 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipRoute: typeof AuthenticatedShipRoute
   AuthenticatedStakeholderRoute: typeof AuthenticatedStakeholderRoute
+  AuthenticatedStartRoute: typeof AuthenticatedStartRoute
   AuthenticatedSwarmRoute: typeof AuthenticatedSwarmRoute
   AuthenticatedSyncRoute: typeof AuthenticatedSyncRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedThreadsRoute: typeof AuthenticatedThreadsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
   AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
   AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
+  AuthenticatedMProductIdRoute: typeof AuthenticatedMProductIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
+  AuthenticatedMIndexRoute: typeof AuthenticatedMIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
@@ -3395,6 +3495,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedArtifactsRoute: AuthenticatedArtifactsRoute,
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedBriefingRoute: AuthenticatedBriefingRoute,
   AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,
@@ -3433,16 +3534,20 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipRoute: AuthenticatedShipRoute,
   AuthenticatedStakeholderRoute: AuthenticatedStakeholderRoute,
+  AuthenticatedStartRoute: AuthenticatedStartRoute,
   AuthenticatedSwarmRoute: AuthenticatedSwarmRoute,
   AuthenticatedSyncRoute: AuthenticatedSyncRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedThreadsRoute: AuthenticatedThreadsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
   AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
   AuthenticatedBuildMissionIdRoute: AuthenticatedBuildMissionIdRoute,
+  AuthenticatedMProductIdRoute: AuthenticatedMProductIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
+  AuthenticatedMIndexRoute: AuthenticatedMIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,

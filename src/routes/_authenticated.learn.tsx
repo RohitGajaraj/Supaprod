@@ -88,7 +88,6 @@ function LearnSurface() {
         }}
       >
         <PageHeader
-          eyebrow="The Loop · 07 Learn"
           title="Did it"
           accent="work?"
           subtitle="The loop closes here. Every shipped bet comes back with an outcome, a verdict, and the impact it produced, then feeds Memory so the next call is sharper."

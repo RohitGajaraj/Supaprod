@@ -46,7 +46,7 @@ const STATE_META: Record<LiveState, { color: string; word: string; pulse?: boole
   running: { color: "var(--voice-machine)", word: "running", pulse: true },
   queued: { color: "var(--ink-subtle)", word: "queued" },
   gate: { color: "var(--voice-human)", word: "needs you" },
-  paused: { color: "var(--verdict-working)", word: "paused" },
+  paused: { color: "var(--voice-machine-dim)", word: "paused" },
   idle: { color: "var(--ink-faint)", word: "idle" },
 };
 

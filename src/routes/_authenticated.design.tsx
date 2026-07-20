@@ -269,7 +269,6 @@ function DesignSurface() {
         }}
       >
         <PageHeader
-          eyebrow="The Loop · 04 Design"
           title="Your brand, in every"
           accent="build."
           subtitle="Import your brand once, then every mockup and prototype renders through it."
