@@ -80,6 +80,7 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
+import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import {
   PRIMARY_GROUPS,
   RECESSED_GROUPS,
@@ -493,6 +494,18 @@ function SettingsPage() {
             {active === "billing" && <BillingTab checkout={checkout} />}
             {active === "credits" && <CreditsTab />}
             {active === "interop" && <IntegrationsTab />}
+            {active === "sync" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <WorkspaceBindingsSection />
+                <Link
+                  to="/sync"
+                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{ fontSize: 12.5, color: "var(--link)" }}
+                >
+                  Open sync, per-product bindings, and conflicts →
+                </Link>
+              </div>
+            )}
             {active === "profile" && (
               <>
                 <ProfileTab />

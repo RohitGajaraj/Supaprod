@@ -24,6 +24,7 @@ export type SectionId =
   | "billing"
   | "credits"
   | "interop"
+  | "sync"
   | "profile"
   | "health"
   | "data"
@@ -91,6 +92,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     desc: "What flows in, what external agents can read, and what we store.",
     sections: [
       { id: "connections", label: "Sources" },
+      { id: "sync", label: "Sync & bindings" },
       { id: "interop", label: "Agent access" },
       { id: "data", label: "Your data" },
     ],
