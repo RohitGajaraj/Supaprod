@@ -36,6 +36,7 @@ import { getStudioSession, type StudioCi, type StudioRunDetail } from "@/lib/stu
 import { buildDriverLabel } from "@/lib/build/driver";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getOutcomeData } from "@/lib/outcome.functions";
+import { listDecisions } from "@/lib/decisions.functions";
 
 // ---------------------------------------------------------------------------
 // Shared face plumbing
@@ -1436,6 +1437,27 @@ export function RestFace({
   });
   const deployments = (dq.data?.deployments ?? []) as DeploymentRow[];
 
+  // The moat, on the room's home: what the team decided, with provenance.
+  // Approved decisions read as settled memory; if none are closed yet, the
+  // column says so honestly rather than sitting empty.
+  const fetchDecisions = useServerFn(listDecisions);
+  const decQ = useQuery({
+    queryKey: ["rest-decisions", workspaceId],
+    queryFn: () => fetchDecisions({ data: { workspaceId: workspaceId ?? undefined, limit: 40 } }),
+    refetchInterval: pollWhenVisible(60_000),
+  });
+  type RestDecision = {
+    id: string;
+    title: string;
+    status: string;
+    source_kind: string | null;
+    source_label: string | null;
+    created_at: string;
+  };
+  const decisions = (decQ.data?.decisions ?? []) as RestDecision[];
+  const decisionCount = decisions.length;
+  const memoryCards = decisions.filter((d) => d.status === "approved").slice(0, 4);
+
   const byStage = new Map(loopStages.map((s) => [s.stage, s]));
   const doneCount = loopStages.filter((s) => s.state === "done").length;
   const gateCount = loopStages
@@ -1451,7 +1473,7 @@ export function RestFace({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="mx-auto w-full max-w-[760px] px-8 py-8">
+      <div className="mx-auto w-full max-w-[860px] px-8 py-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-subtle)" }}>
           {productName ?? "This product"}
         </p>
@@ -1465,6 +1487,10 @@ export function RestFace({
           <span style={{ color: "var(--ink-faint)" }}>·</span>
           <span>
             <span className="font-mono" style={{ color: "var(--ink-text)" }}>{deployments.length}</span> shipped
+          </span>
+          <span style={{ color: "var(--ink-faint)" }}>·</span>
+          <span>
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{decisionCount}</span> decisions in memory
           </span>
           {gateCount > 0 ? (
             <>
@@ -1514,34 +1540,76 @@ export function RestFace({
           })}
         </div>
 
-        {deployments.length > 0 ? (
-          <>
-            <div className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+        {/* screen-2: the two-column base - what went out, and what the loop
+            now holds in memory (the moat), side by side under the loop. */}
+        <div className="mt-7 grid gap-8" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <div>
+            <div className="text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
               Shipped
             </div>
-            <div className="mt-2 flex flex-col gap-1.5">
-              {deployments.slice(0, 5).map((d) => (
-                <div key={d.id} className="flex items-center gap-2 text-[12.5px]">
-                  {d.environment ? (
-                    <span
-                      className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]"
-                      style={{ color: "var(--ink-subtle)" }}
-                    >
-                      {d.environment}
+            {deployments.length > 0 ? (
+              <div className="mt-2 flex flex-col gap-1.5">
+                {deployments.slice(0, 5).map((d) => (
+                  <div key={d.id} className="flex items-center gap-2 text-[12.5px]">
+                    {d.environment ? (
+                      <span
+                        className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]"
+                        style={{ color: "var(--ink-subtle)" }}
+                      >
+                        {d.environment}
+                      </span>
+                    ) : null}
+                    <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink-body)" }}>
+                      {d.status ?? "release"}
+                      {d.commit_sha ? ` · ${d.commit_sha.slice(0, 7)}` : ""}
                     </span>
-                  ) : null}
-                  <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink-body)" }}>
-                    {d.status ?? "release"}
-                    {d.commit_sha ? ` · ${d.commit_sha.slice(0, 7)}` : ""}
-                  </span>
-                  <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
-                    {relTime(d.deployed_at ?? d.created_at)}
-                  </span>
-                </div>
-              ))}
+                    <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
+                      {relTime(d.deployed_at ?? d.created_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-[12.5px]" style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}>
+                Nothing shipped yet. Ship stages the release the moment a build turns green.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <div className="text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+              What memory holds
             </div>
-          </>
-        ) : null}
+            {memoryCards.length > 0 ? (
+              <div className="mt-2 flex flex-col gap-2">
+                {memoryCards.map((d) => (
+                  <div
+                    key={d.id}
+                    className="rounded-[10px] border p-3"
+                    style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+                  >
+                    <p className="text-[12.5px]" style={{ color: "var(--ink-body)", lineHeight: 1.45 }}>
+                      {d.title}
+                    </p>
+                    <p
+                      className="mt-1.5 font-mono text-[10px]"
+                      style={{ color: "var(--voice-memory, var(--ink-faint))" }}
+                    >
+                      from {d.source_label ?? d.source_kind ?? "your call"} · {relTime(d.created_at)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-[12.5px]" style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}>
+                Memory fills as you close the loop.
+                {decisionCount > 0
+                  ? ` ${decisionCount} ${decisionCount === 1 ? "decision is" : "decisions are"} in flight.`
+                  : ""}
+              </p>
+            )}
+          </div>
+        </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-3 border-t pt-5" style={{ borderColor: "var(--ink-hairline)" }}>
           <p className="text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
