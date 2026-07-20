@@ -511,6 +511,102 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
 // 03 Spec (Plan): document + assumptions + task graph
 // ---------------------------------------------------------------------------
 
+/** screen-5 doc anatomy: parse body_md into an overview + titled sections; a
+ *  section reads as a list when its lines are bullets or Rn/An/Tn tokens. */
+type SpecSection = { title: string; items: { num: string | null; text: string }[]; prose: string };
+function parseSpecSections(md: string): { overview: string; sections: SpecSection[] } {
+  const lines = (md ?? "").split("\n");
+  const overview: string[] = [];
+  const sections: SpecSection[] = [];
+  let cur: { title: string; raw: string[] } | null = null;
+  const flush = () => {
+    if (!cur) return;
+    const items: { num: string | null; text: string }[] = [];
+    const prose: string[] = [];
+    for (const l of cur.raw) {
+      const t = l.trim();
+      if (!t) continue;
+      const bullet = t.match(/^[-*]\s+(.*)/);
+      const token = t.match(/^((?:R|A|T|Q|NG|M)\d+(?:\.\.(?:R|A|T|Q|NG|M)?\d+)?)[).:]?\s+(.*)/);
+      if (token) items.push({ num: token[1], text: token[2] });
+      else if (bullet) items.push({ num: null, text: bullet[1] });
+      else prose.push(t);
+    }
+    sections.push({ title: cur.title, items, prose: prose.join(" ") });
+    cur = null;
+  };
+  for (const raw of lines) {
+    if (/^#\s+/.test(raw)) continue; // H1 title rendered separately
+    const h = raw.match(/^#{2,3}\s+(.*)/);
+    if (h) {
+      flush();
+      cur = { title: h[1].trim(), raw: [] };
+      continue;
+    }
+    if (cur) cur.raw.push(raw);
+    else if (raw.trim()) overview.push(raw.trim());
+  }
+  flush();
+  return { overview: overview.join(" ").trim(), sections };
+}
+
+function SpecDocSub({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-[0.11em]" style={{ color: "var(--ink-faint)" }}>
+      {children}
+    </div>
+  );
+}
+
+/** The spec rendered as a document (screen-5): overview, then each section as a
+ *  numbered list (Requirements / Assumptions on watch / Task graph) or a block
+ *  (Outcome contract), matching the mockup's doc anatomy. */
+function SpecDoc({ title, bodyMd, streaming }: { title: string; bodyMd: string; streaming?: boolean }) {
+  const { overview, sections } = useMemo(() => parseSpecSections(bodyMd), [bodyMd]);
+  return (
+    <div className="max-h-[460px] overflow-y-auto rounded-xl border p-4" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <h2 className="text-[16px] font-semibold leading-tight" style={{ color: "var(--ink-text)" }}>{title}</h2>
+      {overview ? (
+        <p className="mt-1.5 text-[13px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>{overview}</p>
+      ) : null}
+      {sections.map((s, si) => {
+        const isBlock = /outcome|contract|check.?by|landed/i.test(s.title) && s.items.length === 0;
+        return (
+          <div key={si}>
+            <SpecDocSub>
+              {s.title}
+              {s.items.length > 1 ? <span className="ml-1.5" style={{ color: "var(--ink-faint)" }}>{`(${s.items.length})`}</span> : null}
+            </SpecDocSub>
+            {isBlock ? (
+              <div className="rounded-lg border p-3 text-[12.5px] leading-[1.55]" style={{ borderColor: "var(--ink-hairline-soft)", background: "var(--ink-bg)", color: "var(--ink-body)" }}>
+                {s.prose}
+              </div>
+            ) : s.items.length > 0 ? (
+              <ul className="flex flex-col gap-1.5">
+                {s.items.map((it, ii) => (
+                  <li key={ii} className="flex gap-2 text-[12.5px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
+                    {it.num ? (
+                      <span className="flex-none font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-subtle)", minWidth: "26px" }}>{it.num}</span>
+                    ) : (
+                      <span className="flex-none" style={{ color: "var(--ink-faint)" }}>{"\u2022"}</span>
+                    )}
+                    <span>{it.text}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : s.prose ? (
+              <p className="text-[12.5px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>{s.prose}</p>
+            ) : null}
+          </div>
+        );
+      })}
+      {streaming ? (
+        <span className="ink-caret mt-2 inline-block" style={{ color: "var(--voice-machine)" }}>{"\u258d"}</span>
+      ) : null}
+    </div>
+  );
+}
+
 type SpecRow = {
   id: string;
   title?: string | null;
@@ -609,24 +705,19 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
             ) : null}
           </div>
 
-          <h2 className="text-[17px] font-semibold leading-tight" style={{ color: "var(--ink-text)" }}>
-            {doc?.title ?? focused.title ?? "Untitled spec"}
-          </h2>
+          <div className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+            {`SPEC \u00b7 ${focused.status === "approved" ? "approved" : focused.status ?? "draft"}`}
+            {countArray(focused.citations) > 0 ? ` \u00b7 ${countArray(focused.citations)} cited` : ""}
+          </div>
 
           {docQ.isLoading ? (
             <div className="ink-skeleton h-48 w-full rounded-xl" />
           ) : doc?.body_md ? (
-            <div
-              className="max-h-[440px] overflow-y-auto rounded-xl border p-4"
-              style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
-            >
-              <pre
-                className="whitespace-pre-wrap font-sans text-[13px] leading-[1.6]"
-                style={{ color: "var(--ink-body)" }}
-              >
-                {doc.body_md}
-              </pre>
-            </div>
+            <SpecDoc
+              title={doc.title ?? focused.title ?? "Untitled spec"}
+              bodyMd={doc.body_md}
+              streaming={focused.status === "draft" || focused.status === "drafting"}
+            />
           ) : (
             <p className="text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
               This spec has no body yet.
