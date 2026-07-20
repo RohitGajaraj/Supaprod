@@ -42,4 +42,12 @@ Legend: ✅ at bar · ◐ right shell/skeleton, thin vs mockup · ❌ wrong shel
 7. **Rich seed** — `seed_sample_workspace` to the "Relay"-level story so every surface/journey shows believable content; artifact V1..V4 progression.
 8. **Verify** — tsc + build + tests + live Love-Gate walkthrough; commit + push per increment.
 
+## Demo seed status (live DB, `demo@redcadence.app`, 2026-07-20)
+Founder ruling: drop "Solar Rebate Calculator" (a small example that downgrades the platform); showcase a premium, enterprise-credible story like the mockups' Helio Labs / Relay. Ground truth: the rich **Helio Labs** seed (migration `20260718120000`, products Atlas/Relay/Comet/Beacon) was ALREADY in the live DB; the app just defaulted to the older "Explore workspace" (resolution is localStorage else alphabetical-first).
+Done (as the demo user, RLS-scoped, reversible):
+- Deleted the two empty clutter products (0 content): **Solar Rebate Calculator** + the stray **Winter Savings Challenge**.
+- Made **Relay** Helio's newest product (created_at bump) so `/m` defaults to it.
+- Renamed "Explore workspace" -> "Sample sandbox" so **Helio Labs** sorts first and is the default workspace on a fresh session. Verified live: a cleared session lands on `/m/{relay}` = Helio Labs / Relay with rich gates (the notification-digest two-passes gate, the checkout gate) + a live Build.
+Caveat + open decision: a browser with a stale stored workspace pref still opens "Sample sandbox" until one switch. To make Helio the ONLY demo everywhere, delete the Sample sandbox (Prism + Trellis) - destructive, holds rich supersession content, so FOUNDER-CONFIRM before deleting. The remaining room-face thinness ("inferred" stages, 0 shipped, no memory/shipped columns) is fidelity work (rows 2/#3), not seed.
+
 Rule carried from HANDOFF: mockup Addenda + committed code beat the mockups where they disagree (chips are slate, memory is Vellum). No merge to main without the founder's explicit words.
