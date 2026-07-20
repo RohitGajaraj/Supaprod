@@ -13,9 +13,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { listThreads, getThread, searchConversations, type ThreadSummary, type ThreadMessage } from "@/lib/threads.functions";
+import {
+  listThreads,
+  getThread,
+  searchConversations,
+  listFolders,
+  createFolder,
+  moveThreadToFolder,
+  listThreadsInFolder,
+  type ThreadSummary,
+  type ThreadMessage,
+  type ThreadFolder,
+} from "@/lib/threads.functions";
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
+import { usePrompt } from "@/hooks/use-confirm";
 
 function dayLabel(iso: string | null): string {
   if (!iso) return "Earlier";
@@ -75,7 +87,15 @@ function ThreadRow({
   );
 }
 
-function ThreadPreview({ threadId }: { threadId: string | null }) {
+function ThreadPreview({
+  threadId,
+  folders,
+  onMove,
+}: {
+  threadId: string | null;
+  folders: ThreadFolder[];
+  onMove: (folderId: string | null) => void;
+}) {
   const fetchThread = useServerFn(getThread);
   const rename = useServerFn(renameConversation);
   const propose = useServerFn(proposeMemoryCandidate);
@@ -188,6 +208,25 @@ function ThreadPreview({ threadId }: { threadId: string | null }) {
         >
           {saveToBrain.isPending ? "Saving…" : "Save to the brain"}
         </button>
+        {folders.length > 0 ? (
+          <select
+            aria-label="Move to folder"
+            value=""
+            onChange={(e) => onMove(e.target.value === "__none" ? null : e.target.value)}
+            className="ink-focus flex-none rounded-md border bg-transparent px-2 py-1 text-[12px]"
+            style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)" }}
+          >
+            <option value="" disabled>
+              Move to folder
+            </option>
+            <option value="__none">Unfiled</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
@@ -269,7 +308,50 @@ export function ThreadsSurface({
     queryFn: () => search({ data: { q: debouncedQ } }),
     enabled: searching,
   });
-  const baseThreads = searching ? (searchQ.data?.threads ?? []) : threads;
+
+  // Folders (K1): the rail's user folders + the selected folder's threads.
+  // Tolerant: pre-migration listFolders returns [] so the group hides itself.
+  const qc = useQueryClient();
+  const foldersFn = useServerFn(listFolders);
+  const folderThreadsFn = useServerFn(listThreadsInFolder);
+  const createFolderFn = useServerFn(createFolder);
+  const foldersQ = useQuery({ queryKey: ["thread-folders"], queryFn: () => foldersFn() });
+  const folders = foldersQ.data?.folders ?? [];
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const folderThreadsQ = useQuery({
+    queryKey: ["thread-folder", folderFilter],
+    queryFn: () => folderThreadsFn({ data: { folderId: folderFilter as string } }),
+    enabled: !!folderFilter,
+  });
+  const createFolderMut = useMutation({
+    mutationFn: (name: string) => createFolderFn({ data: { name } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["thread-folders"] });
+      toast.success("Folder created.");
+    },
+    onError: () => toast.error("Folders turn on with the next release."),
+  });
+  const prompt = usePrompt();
+  const moveFn = useServerFn(moveThreadToFolder);
+  const moveMut = useMutation({
+    mutationFn: (v: { threadId: string; folderId: string | null }) => moveFn({ data: v }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["thread-folder"] });
+      void qc.invalidateQueries({ queryKey: ["threads"] });
+      toast.success("Moved.");
+    },
+    onError: () => toast.error("Move to folder turns on with the next release."),
+  });
+  const newFolder = async () => {
+    const name = await prompt({ title: "New folder", placeholder: "Folder name", confirmLabel: "Create" });
+    if (name && name.trim()) createFolderMut.mutate(name.trim());
+  };
+
+  const baseThreads = folderFilter
+    ? (folderThreadsQ.data?.threads ?? [])
+    : searching
+      ? (searchQ.data?.threads ?? [])
+      : threads;
 
   // Default the selection to the newest thread once loaded.
   useEffect(() => {
@@ -349,8 +431,11 @@ export function ThreadsSurface({
               <button
                 key={v.id}
                 type="button"
-                onClick={() => setView(v.id)}
-                aria-current={on ? "true" : undefined}
+                onClick={() => {
+                  setView(v.id);
+                  setFolderFilter(null);
+                }}
+                aria-current={on && !folderFilter ? "true" : undefined}
                 className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
                 style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
               >
@@ -361,6 +446,36 @@ export function ThreadsSurface({
               </button>
             );
           })}
+        </div>
+        <div>
+          <div className="px-2 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--ink-faint)" }}>
+            Folders
+          </div>
+          {folders.map((f) => {
+            const on = folderFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFolderFilter(f.id)}
+                aria-current={on ? "true" : undefined}
+                className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+                style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
+              >
+                <span aria-hidden style={{ color: "var(--ink-faint)" }}>{"▸"}</span>
+                <span className="min-w-0 flex-1 truncate">{f.name}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => void newFolder()}
+            className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+            style={{ color: "var(--ink-subtle)" }}
+          >
+            <span aria-hidden style={{ color: "var(--ink-faint)" }}>+</span>
+            New folder
+          </button>
         </div>
       </aside>
 
@@ -430,7 +545,13 @@ export function ThreadsSurface({
         </div>
       </section>
 
-      <ThreadPreview threadId={selected} />
+      <ThreadPreview
+        threadId={selected}
+        folders={folders}
+        onMove={(folderId) => {
+          if (selected) moveMut.mutate({ threadId: selected, folderId });
+        }}
+      />
     </div>
   );
 }
