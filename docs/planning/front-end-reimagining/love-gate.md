@@ -112,20 +112,29 @@ Full sweep at close: `tsc --noEmit` clean, 148 mission/surface/seed tests pass,
   journey handoffs. No separate all-journeys overview exists in the mockups.
 - **Onboarding (`screen-1`) — deliberately kept minimal** per founder steering
   (frictionless one-question `/start`).
-- **Migration-bearing follow-ons (task 10):** mostly SHIPPED this run.
-  DONE (each degrade-gracefully; the tables/columns apply at the Gate-2 merge):
-  Threads save-to-brain (`067c9fe6`, no migration), Settings Brand feed
-  (`e5cac045`, no migration), Artifacts rename + delete per kind (`a8b8a7dd`,
-  no migration), Threads server-side search across message content (`a65eab31`,
-  ILIKE now, FTS index later), Threads folders + create + filter + move
-  (`25f218a9`, conversation_folders migration), Settings `/sync` fold
-  (`7a268e32`, no migration).
-  STILL OPEN (genuinely blocked, documented): Artifacts VERSIONS (K7) needs an
-  artifact_versions spine PLUS snapshot capture wired into every family's write
-  path (a large cross-cutting change); the Artifacts per-product tab needs
-  product_id columns on the prototype/spec families (a backend schema gap);
-  Settings Memory to Brain is deferred as low-value nav that risks hiding the
-  memory ledger. These three want a dedicated pass, not a tail-end patch.
+- **Migration-bearing follow-ons (task 10): FULLY CLOSED.** All nine shipped,
+  each degrade-gracefully (the tables/columns apply at the Gate-2 merge; until
+  then reads return empty and writes surface an honest "turns on with the next
+  release"):
+  1. Threads save-to-brain (`067c9fe6`, no migration)
+  2. Settings Brand feed (`e5cac045`, no migration)
+  3. Artifacts rename + delete per kind (`a8b8a7dd`, no migration)
+  4. Threads server-side search across message content (`a65eab31`, ILIKE now,
+     FTS index a later perf-only migration)
+  5. Threads folders + create + filter + move (`25f218a9`,
+     `conversation_folders` migration)
+  6. Settings `/sync` fold (`7a268e32`, no migration)
+  7. Artifacts VERSIONS K7 (`f8ffdef1`, `artifact_versions` migration): a
+     generic {title, body} snapshot per artifact with per-kind dispatch
+     (spec->body_md, doc->content_text, prototype->description); each row has a
+     History panel with Snapshot now + Restore.
+  8. Artifacts per-product tab (`f8ffdef1`, NO migration): every family carries
+     project_id and the projects table IS the product, so listArtifacts resolves
+     a product list with counts and the surface filters by product.
+  9. Settings Memory to Brain (`c814a304`, no migration): the Memory section
+     points to /brain (the canonical Memory ledger) instead of duplicating it.
+  Migrations staged for the Gate-2 merge: approval_snoozes, approval_feedback,
+  sample_workspace_seed_v2, conversation_folders, artifact_versions.
 
 ## Final verification (2026-07-20)
 `tsc --noEmit` clean · `bun run build` succeeds · full `bun test` = 5295 pass
