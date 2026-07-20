@@ -15,6 +15,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { listThreads, getThread, type ThreadSummary, type ThreadMessage } from "@/lib/threads.functions";
 import { renameConversation } from "@/lib/conversations.functions";
+import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 
 function dayLabel(iso: string | null): string {
   if (!iso) return "Earlier";
@@ -77,6 +78,7 @@ function ThreadRow({
 function ThreadPreview({ threadId }: { threadId: string | null }) {
   const fetchThread = useServerFn(getThread);
   const rename = useServerFn(renameConversation);
+  const propose = useServerFn(proposeMemoryCandidate);
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
@@ -99,6 +101,19 @@ function ThreadPreview({ threadId }: { threadId: string | null }) {
       toast.success("Thread renamed.");
     },
     onError: () => toast.error("Could not rename the thread."),
+  });
+
+  // Save to the brain: propose this thread's key line as a memory candidate.
+  // Honest about the gate: it lands in Brain's review queue, pending, not
+  // straight into memory. No migration (memory_candidates already exists).
+  const saveToBrain = useMutation({
+    mutationFn: () => {
+      const lastAgent = [...messages].reverse().find((m) => m.role !== "user");
+      const content = (lastAgent?.content ?? title).trim().slice(0, 1000);
+      return propose({ data: { content, sourceKind: "user" } });
+    },
+    onSuccess: () => toast.success("Proposed to the brain. It waits in Brain's review queue."),
+    onError: () => toast.error("Could not propose this to the brain."),
   });
 
   if (!threadId) {
@@ -162,6 +177,16 @@ function ThreadPreview({ threadId }: { threadId: string | null }) {
           style={{ color: "var(--ink-subtle)" }}
         >
           Copy link
+        </button>
+        <button
+          type="button"
+          title="Save to the brain"
+          disabled={saveToBrain.isPending || messages.length === 0}
+          onClick={() => saveToBrain.mutate()}
+          className="ink-focus flex-none rounded-md px-2 py-1 text-[12px] transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
+          style={{ color: "var(--voice-memory-dim)" }}
+        >
+          {saveToBrain.isPending ? "Saving…" : "Save to the brain"}
         </button>
       </header>
 
