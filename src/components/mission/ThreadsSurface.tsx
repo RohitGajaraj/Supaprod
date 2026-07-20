@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { listThreads, getThread, type ThreadSummary, type ThreadMessage } from "@/lib/threads.functions";
+import { listThreads, getThread, searchConversations, type ThreadSummary, type ThreadMessage } from "@/lib/threads.functions";
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 
@@ -249,11 +249,27 @@ export function ThreadsSurface({
   onSelectThread?: (id: string) => void;
 }) {
   const fetchThreads = useServerFn(listThreads);
+  const search = useServerFn(searchConversations);
   const q = useQuery({ queryKey: ["threads"], queryFn: () => fetchThreads() });
   const threads = useMemo(() => q.data?.threads ?? [], [q.data]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(initialThreadId ?? null);
   const [view, setView] = useState<"all" | "today" | "week">("all");
+
+  // Server-side search across titles AND message content (debounced), so a
+  // thread is found by something said inside it, not just the loaded page.
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+  const searching = debouncedQ.length > 0;
+  const searchQ = useQuery({
+    queryKey: ["threads-search", debouncedQ],
+    queryFn: () => search({ data: { q: debouncedQ } }),
+    enabled: searching,
+  });
+  const baseThreads = searching ? (searchQ.data?.threads ?? []) : threads;
 
   // Default the selection to the newest thread once loaded.
   useEffect(() => {
@@ -275,21 +291,17 @@ export function ThreadsSurface({
   }, [threads]);
 
   const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     const todayMs = startOfToday.getTime();
     const weekMs = Date.now() - 7 * 86400000;
-    return threads.filter((t) => {
+    return baseThreads.filter((t) => {
       const ts = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
       if (view === "today" && ts < todayMs) return false;
       if (view === "week" && ts < weekMs) return false;
-      if (needle) {
-        return t.title.toLowerCase().includes(needle) || t.snippet.toLowerCase().includes(needle);
-      }
       return true;
     });
-  }, [threads, query, view]);
+  }, [baseThreads, view]);
 
   const groups = useMemo(() => {
     const out: { label: string; items: ThreadSummary[] }[] = [];
@@ -374,7 +386,7 @@ export function ThreadsSurface({
           />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-8">
-          {q.isLoading ? (
+          {q.isLoading || (searching && searchQ.isLoading) ? (
             <div className="flex flex-col gap-2 px-1 pt-1">
               <div className="ink-skeleton h-12 w-full rounded-[10px]" />
               <div className="ink-skeleton h-12 w-full rounded-[10px]" />
