@@ -1103,7 +1103,7 @@ function lineDiff(base: string, next: string): DiffLine[] {
   return out;
 }
 
-/** One file's expandable diff — screen-3 b3-diff styling (add green, del red). */
+/** One file's expandable diff, screen-3 b3-diff styling (add green, del red). */
 function DiffFile({ file, defaultOpen }: { file: DiffFileRow; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const lines = useMemo(
@@ -1274,7 +1274,7 @@ function BuildFooter({
   );
 }
 
-/** The rich build deck for the focused mission — screen-3 fidelity. */
+/** The rich build deck for the focused mission, screen-3 fidelity. */
 function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabel?: string | null }) {
   const latestRun = session.runs[session.runs.length - 1];
   const done = MISSION_DONE.includes((session.mission.status ?? "").toLowerCase());
@@ -1333,7 +1333,7 @@ function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabe
       {/* Working triple 2: what the build is reading */}
       <ReadingRow session={session} latestRun={latestRun} />
 
-      {/* Working triple 3: the split — session rail + work column */}
+      {/* Working triple 3: the split, session rail + work column */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
           {session.changes.length > 0 ? <FilesChangedCard changes={session.changes} stats={fileStats} /> : null}
