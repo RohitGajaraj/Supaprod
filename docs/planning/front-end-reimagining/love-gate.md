@@ -112,11 +112,20 @@ Full sweep at close: `tsc --noEmit` clean, 148 mission/surface/seed tests pass,
   journey handoffs. No separate all-journeys overview exists in the mockups.
 - **Onboarding (`screen-1`) — deliberately kept minimal** per founder steering
   (frictionless one-question `/start`).
-- **Migration-bearing follow-ons (apply at the Gate-2 merge, still open):**
-  Artifacts versions + rename/delete + per-product tab; Threads folders + FTS +
-  save-to-brain; Settings Memory->Brain move + `/sync` fold. Each needs a new
-  table/column, so they land with the merge; the reads must degrade gracefully
-  until then (the snooze/feedback pattern).
+- **Migration-bearing follow-ons (task 10):** mostly SHIPPED this run.
+  DONE (each degrade-gracefully; the tables/columns apply at the Gate-2 merge):
+  Threads save-to-brain (`067c9fe6`, no migration), Settings Brand feed
+  (`e5cac045`, no migration), Artifacts rename + delete per kind (`a8b8a7dd`,
+  no migration), Threads server-side search across message content (`a65eab31`,
+  ILIKE now, FTS index later), Threads folders + create + filter + move
+  (`25f218a9`, conversation_folders migration), Settings `/sync` fold
+  (`7a268e32`, no migration).
+  STILL OPEN (genuinely blocked, documented): Artifacts VERSIONS (K7) needs an
+  artifact_versions spine PLUS snapshot capture wired into every family's write
+  path (a large cross-cutting change); the Artifacts per-product tab needs
+  product_id columns on the prototype/spec families (a backend schema gap);
+  Settings Memory to Brain is deferred as low-value nav that risks hiding the
+  memory ledger. These three want a dedicated pass, not a tail-end patch.
 
 ## Final verification (2026-07-20)
 `tsc --noEmit` clean · `bun run build` succeeds · full `bun test` = 5295 pass
