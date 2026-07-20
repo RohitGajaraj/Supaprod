@@ -20,6 +20,12 @@ export interface ThreadSummary {
   updatedAt: string | null;
   /** First line of the most recent message, best-effort. */
   snippet: string;
+  /** The product this thread is scoped to (screen-9 scope switcher), or null. */
+  productId: string | null;
+  /** The folder it is filed under, or null (screen-9 Unfiled view). */
+  folderId: string | null;
+  /** Role of the most recent message: 'user' rows show the "you" chip. */
+  lastRole: string | null;
 }
 
 export interface ThreadMessage {
@@ -39,7 +45,7 @@ export const listThreads = createServerFn({ method: "GET" })
 
     const { data: convRows, error } = await db
       .from("conversations")
-      .select("id,title,updated_at")
+      .select("id,title,updated_at,product_id,folder_id")
       .order("updated_at", { ascending: false })
       .limit(80);
     if (error) throw new Error(error.message);
@@ -47,20 +53,23 @@ export const listThreads = createServerFn({ method: "GET" })
     const conversations = (convRows ?? []) as Row[];
     const ids = conversations.map((c) => String(c.id));
 
-    // One batched read for the latest message per conversation (the snippet).
-    // Tolerant: any failure just yields no snippets.
+    // One batched read for the latest message per conversation (the snippet +
+    // its role, so a thread whose last word was yours shows the "you" chip).
     const snippetByConv = new Map<string, string>();
+    const lastRoleByConv = new Map<string, string>();
     if (ids.length > 0) {
       const { data: msgRows } = await db
         .from("messages")
-        .select("conversation_id,content,created_at")
+        .select("conversation_id,content,role,created_at")
         .in("conversation_id", ids)
         .order("created_at", { ascending: false })
         .limit(600);
       for (const m of (msgRows ?? []) as Row[]) {
         const cid = str(m.conversation_id);
+        if (!cid) continue;
+        if (!lastRoleByConv.has(cid)) lastRoleByConv.set(cid, str(m.role) ?? "");
         const content = str(m.content);
-        if (!cid || snippetByConv.has(cid)) continue;
+        if (snippetByConv.has(cid)) continue;
         if (content && content.trim()) {
           snippetByConv.set(cid, content.trim().replace(/\s+/g, " ").slice(0, 140));
         }
@@ -74,6 +83,9 @@ export const listThreads = createServerFn({ method: "GET" })
         title: str(c.title) ?? "Untitled thread",
         updatedAt: str(c.updated_at),
         snippet: snippetByConv.get(id) ?? "",
+        productId: str(c.product_id),
+        folderId: str(c.folder_id),
+        lastRole: lastRoleByConv.get(id) ?? null,
       };
     });
 
@@ -162,7 +174,7 @@ export const searchConversations = createServerFn({ method: "GET" })
     // match on a conversation the caller cannot read simply drops out here).
     const { data: convRows } = await db
       .from("conversations")
-      .select("id,title,updated_at")
+      .select("id,title,updated_at,product_id,folder_id")
       .in("id", [...convIds])
       .order("updated_at", { ascending: false })
       .limit(80);
@@ -174,6 +186,9 @@ export const searchConversations = createServerFn({ method: "GET" })
         title: str(c.title) ?? "Untitled thread",
         updatedAt: str(c.updated_at),
         snippet: snippetByConv.get(id) ?? "",
+        productId: str(c.product_id),
+        folderId: str(c.folder_id),
+        lastRole: null,
       };
     });
     return { threads };
@@ -246,7 +261,7 @@ export const listThreadsInFolder = createServerFn({ method: "GET" })
     const db = context.supabase as unknown as SupabaseClient;
     const { data: rows, error } = await db
       .from("conversations")
-      .select("id,title,updated_at")
+      .select("id,title,updated_at,product_id")
       .eq("folder_id", data.folderId)
       .order("updated_at", { ascending: false })
       .limit(80);
@@ -257,6 +272,9 @@ export const listThreadsInFolder = createServerFn({ method: "GET" })
         title: str(c.title) ?? "Untitled thread",
         updatedAt: str(c.updated_at),
         snippet: "",
+        productId: str(c.product_id),
+        folderId: data.folderId,
+        lastRole: null,
       })),
     };
   });

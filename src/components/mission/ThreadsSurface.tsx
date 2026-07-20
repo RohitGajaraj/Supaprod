@@ -28,6 +28,7 @@ import {
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
 import { usePrompt } from "@/hooks/use-confirm";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 function dayLabel(iso: string | null): string {
   if (!iso) return "Earlier";
@@ -54,11 +55,14 @@ function ThreadRow({
   thread,
   selected,
   onSelect,
+  folderName,
 }: {
   thread: ThreadSummary;
   selected: boolean;
   onSelect: () => void;
+  folderName?: string | null;
 }) {
+  const you = thread.lastRole === "user";
   return (
     <button
       type="button"
@@ -82,6 +86,21 @@ function ThreadRow({
         <span className="line-clamp-1 text-[12px]" style={{ color: "var(--ink-subtle)" }}>
           {thread.snippet}
         </span>
+      ) : null}
+      {you || folderName ? (
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {you ? (
+            <span className="rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}>
+              you
+            </span>
+          ) : null}
+          {folderName ? (
+            <span className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)" }}>
+              <span aria-hidden style={{ color: "var(--ink-faint)" }}>{"\u25b8"}</span>
+              {folderName}
+            </span>
+          ) : null}
+        </div>
       ) : null}
     </button>
   );
@@ -291,9 +310,11 @@ export function ThreadsSurface({
   const search = useServerFn(searchConversations);
   const q = useQuery({ queryKey: ["threads"], queryFn: () => fetchThreads() });
   const threads = useMemo(() => q.data?.threads ?? [], [q.data]);
+  const { activeProductId, activeProduct } = useWorkspace();
+  const [scope, setScope] = useState<"product" | "all">("product");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(initialThreadId ?? null);
-  const [view, setView] = useState<"all" | "today" | "week">("all");
+  const [view, setView] = useState<"all" | "week" | "unfiled">("all");
 
   // Server-side search across titles AND message content (debounced), so a
   // thread is found by something said inside it, not just the loaded page.
@@ -358,32 +379,31 @@ export function ThreadsSurface({
     if (!selected && threads.length > 0) setSelected(threads[0].id);
   }, [threads, selected]);
 
-  // View counts (computed client-side from the loaded threads, honest).
+  // View counts, scoped to the current product (or all of the workspace).
+  const scoped = useMemo(
+    () => threads.filter((t) => scope === "all" || !activeProductId || t.productId === activeProductId),
+    [threads, scope, activeProductId],
+  );
   const counts = useMemo(() => {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const todayMs = startOfToday.getTime();
     const weekMs = Date.now() - 7 * 86400000;
     const ts = (t: ThreadSummary) => (t.updatedAt ? new Date(t.updatedAt).getTime() : 0);
     return {
-      all: threads.length,
-      today: threads.filter((t) => ts(t) >= todayMs).length,
-      week: threads.filter((t) => ts(t) >= weekMs).length,
+      all: scoped.length,
+      week: scoped.filter((t) => ts(t) >= weekMs).length,
+      unfiled: scoped.filter((t) => !t.folderId).length,
     };
-  }, [threads]);
+  }, [scoped]);
 
   const filtered = useMemo(() => {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const todayMs = startOfToday.getTime();
     const weekMs = Date.now() - 7 * 86400000;
     return baseThreads.filter((t) => {
+      if (scope === "product" && activeProductId && t.productId !== activeProductId) return false;
       const ts = t.updatedAt ? new Date(t.updatedAt).getTime() : 0;
-      if (view === "today" && ts < todayMs) return false;
       if (view === "week" && ts < weekMs) return false;
+      if (view === "unfiled" && t.folderId) return false;
       return true;
     });
-  }, [baseThreads, view]);
+  }, [baseThreads, view, scope, activeProductId]);
 
   const groups = useMemo(() => {
     const out: { label: string; items: ThreadSummary[] }[] = [];
@@ -417,14 +437,46 @@ export function ThreadsSurface({
             Everything asked and answered.
           </p>
         </div>
+        {/* Scope switcher (screen-9): this product vs all of the workspace. */}
+        <div className="flex flex-col gap-1">
+          {[
+            { id: "product" as const, label: "This product", note: (activeProduct?.name ?? "product").toUpperCase() },
+            { id: "all" as const, label: "All of the workspace", note: "" },
+          ].map((s) => {
+            const on = scope === s.id;
+            const disabled = s.id === "product" && !activeProductId;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                disabled={disabled}
+                onClick={() => setScope(s.id)}
+                aria-pressed={on}
+                className="ink-focus flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[12.5px] transition-colors disabled:opacity-40"
+                style={{
+                  borderColor: on ? "var(--ink-hairline)" : "transparent",
+                  background: on ? "var(--ink-raised)" : "transparent",
+                  color: on ? "var(--ink-text)" : "var(--ink-body)",
+                }}
+              >
+                <span className="min-w-0 flex-1 truncate">{s.label}</span>
+                {s.note ? (
+                  <span className="flex-none font-mono text-[9px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
+                    {s.note}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
         <div>
           <div className="px-2 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--ink-faint)" }}>
             Views
           </div>
           {([
             { id: "all", label: "All threads", n: counts.all },
-            { id: "today", label: "Today", n: counts.today },
             { id: "week", label: "This week", n: counts.week },
+            { id: "unfiled", label: "Unfiled", n: counts.unfiled },
           ] as const).map((v) => {
             const on = view === v.id;
             return (
@@ -536,6 +588,7 @@ export function ThreadsSurface({
                       thread={t}
                       selected={t.id === selected}
                       onSelect={() => select(t.id)}
+                      folderName={folders.find((f) => f.id === t.folderId)?.name ?? null}
                     />
                   ))}
                 </div>
