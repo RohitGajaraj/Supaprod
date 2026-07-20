@@ -74,3 +74,37 @@ Every item below is marked with what was actually observed.
 
 - [`docs/features/sample-workspace-seed.md`](../../features/sample-workspace-seed.md) · the rich seed the room stands on
 - [`AGENTS.md`](../../../AGENTS.md) · the standing Love-Gate companion
+
+---
+
+## Fidelity rebuild (2026-07-20, overnight run) · mockups as the floor, beyond them
+
+Founder ruling: the mockup HTMLs are the BASELINE, and the delivered surfaces
+must meet and exceed them, wired to real data. The Phase 3 faces had shipped as
+thin lists; this run rebuilt them rich. All on `sandbox/mission-control-v2`,
+each tsc-clean + live-verified with 0 console errors, committed and pushed.
+
+| Surface | Rebuilt to | Real data | Commit |
+| --- | --- | --- | --- |
+| Build face | live build-deck: plan flow (done/now/next), files-changed rail, session card, changeset, CI checks, terminal | `getStudioSession` | `50f47b8c` |
+| Decide face | ranked, red-teamed board: ICE bars, verdict chip, the Critic's risks + kill-criteria inline | `listOpportunities` + `critic_review` | `c82c0f5c` |
+| Design face | design workbench: prototype switcher + provenance + live prototype in a browser-chrome device frame | `listPrototypes` + `getPersistedScaffold` | `28a0bbdd` |
+| Threads | 3-pane home: rail (Views: All / Today / This week, live counts) + list + preview | `listThreads` / `getThread` | `b7cf3af0` |
+| Room rest face (new) | product-at-rest Canvas: computed headline, facts, the loop stage-by-stage (clickable), Shipped | `getLoopState` + `listDeployments` | `cef02bf5` |
+| Learn / Evidence / Ship | Learn: "what the loop learned" (re-scored bets) + launches; Evidence: source-grouped summary; Ship: release summary | `getOutcomeData` / `listSignals` / `listDeployments` | `e42d1b6a` |
+| Gated room + tray (screen-4) | already satisfied by the Phase 3/4 gate card + send-back work (verified live: rich gate cards, keyboard legend, one-count-one-source) | `getApprovalsQueue` | prior |
+
+Full sweep at close: `tsc --noEmit` clean, 148 mission/surface/seed tests pass,
+`bun run build` succeeds.
+
+### Deliberately not changed
+- **Onboarding (`/start`) kept minimal.** `screen-1-first-run` is richer, but the
+  founder explicitly steered onboarding to a frictionless, delightful,
+  one-question screen. Keeping that win is the right call, not a richness pass.
+
+### Remaining (documented, not silently cut)
+- **Journey / flow view (`screen-5-journey-flow`)** — a new "flow before screens"
+  composition. Not yet built; a sizeable new surface for a fresh, focused session.
+- **Migration-bearing follow-ons (apply at Gate-2):** Artifacts versions +
+  rename/delete + per-product tab; Threads folders + FTS + save-to-brain;
+  Settings Brand feed + Memory->Brain + `/sync` fold. All additive.
