@@ -32,7 +32,7 @@ import { listSignals, listOpportunities, listSpecs, getPrd } from "@/lib/discove
 import { listPrototypes } from "@/lib/prototypes.functions";
 import { getPersistedScaffold } from "@/lib/design-scaffold.functions";
 import { listMissions } from "@/lib/missions.functions";
-import { getStudioSession, type StudioCi, type StudioRunDetail } from "@/lib/studio.functions";
+import { getStudioSession, getChangesetDiff, type StudioCi, type StudioRunDetail } from "@/lib/studio.functions";
 import { buildDriverLabel } from "@/lib/build/driver";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getOutcomeData } from "@/lib/outcome.functions";
@@ -893,9 +893,17 @@ function BuildPlan({ steps, running }: { steps: BuildStep[]; running: boolean })
 
 const OP_LABEL: Record<string, string> = { add: "added", create: "added", edit: "edited", modify: "edited", update: "edited", delete: "removed", remove: "removed" };
 
-/** The files-changed rail: real paths + op + size from the changeset. */
-function FilesChangedCard({ changes }: { changes: BuildChange[] }) {
-  const total = changes.reduce((a, c) => a + c.new_chars, 0);
+/** The files-changed rail (screen-3): path + real +add/-del counts + a total line. */
+function FilesChangedCard({
+  changes,
+  stats,
+}: {
+  changes: BuildChange[];
+  stats: Map<string, { adds: number; dels: number }>;
+}) {
+  const haveStats = stats.size > 0;
+  const totalAdds = [...stats.values()].reduce((a, s) => a + s.adds, 0);
+  const totalDels = [...stats.values()].reduce((a, s) => a + s.dels, 0);
   return (
     <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
       <div className="mb-2 flex items-center gap-2">
@@ -907,15 +915,23 @@ function FilesChangedCard({ changes }: { changes: BuildChange[] }) {
           const slash = c.path.lastIndexOf("/");
           const dir = slash >= 0 ? c.path.slice(0, slash + 1) : "";
           const file = slash >= 0 ? c.path.slice(slash + 1) : c.path;
+          const st = stats.get(c.path);
           return (
             <div key={c.id} className="flex items-center gap-2 text-[12px]">
-              <span className="min-w-0 flex-1 truncate">
+              <span className="min-w-0 flex-1 truncate font-mono text-[11.5px]">
                 <span style={{ color: "var(--ink-faint)" }}>{dir}</span>
                 <span style={{ color: "var(--ink-text)" }}>{file}</span>
               </span>
-              <span className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]" style={{ color: "var(--ink-subtle)" }}>
-                {OP_LABEL[c.op] ?? c.op}
-              </span>
+              {st ? (
+                <span className="flex-none font-mono text-[10.5px]">
+                  {st.adds > 0 ? <span style={{ color: "var(--verdict-pass)" }}>{`+${st.adds}`}</span> : null}
+                  {st.dels > 0 ? <span className="ml-1.5" style={{ color: "var(--verdict-fail)" }}>{`-${st.dels}`}</span> : null}
+                </span>
+              ) : (
+                <span className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]" style={{ color: "var(--ink-subtle)" }}>
+                  {OP_LABEL[c.op] ?? c.op}
+                </span>
+              )}
             </div>
           );
         })}
@@ -924,59 +940,67 @@ function FilesChangedCard({ changes }: { changes: BuildChange[] }) {
         ) : null}
       </div>
       <div className="mt-2 border-t pt-2 font-mono text-[10px]" style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-faint)" }}>
-        {(total / 1000).toFixed(1)}k characters across {changes.length} {changes.length === 1 ? "file" : "files"}
+        {haveStats
+          ? `+${totalAdds}  -${totalDels}  across ${changes.length} ${changes.length === 1 ? "file" : "files"}`
+          : `${changes.length} ${changes.length === 1 ? "file" : "files"} changed`}
       </div>
     </div>
   );
 }
 
-/** The session card: the run-level facts (model, status, cost, tokens, steps). */
-function SessionCard({ run }: { run: StudioRunDetail | undefined }) {
+/** This session (screen-3): the run narrated as a timeline; the live step reads as now. */
+function SessionCard({ run, running }: { run: StudioRunDetail | undefined; running: boolean }) {
   if (!run) return null;
+  const calls = run.steps.filter((s) => s.kind === "tool_call");
+  const rows: { label: string; now: boolean }[] = [
+    { label: `Session started ${relTime(run.created_at)}`, now: false },
+  ];
+  calls.slice(0, 8).forEach((s, i) => {
+    rows.push({ label: stepLabel(s), now: running && i === Math.min(calls.length, 8) - 1 });
+  });
+  if (rows.length === 1) rows.push({ label: run.status, now: running });
   return (
     <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
       <div className="mb-2 text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>This session</div>
-      <div className="flex flex-col gap-1.5 text-[11.5px]">
-        <div className="flex items-center justify-between">
-          <span style={{ color: "var(--ink-subtle)" }}>State</span>
-          <span className="font-mono" style={{ color: run.status === "running" ? "var(--voice-machine)" : "var(--ink-body)" }}>{run.status}</span>
-        </div>
-        {run.model ? (
-          <div className="flex items-center justify-between">
-            <span style={{ color: "var(--ink-subtle)" }}>Model</span>
-            <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-body)" }}>{run.model}</span>
+      <div className="flex flex-col gap-1">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-baseline gap-2 text-[12px]">
+            <span className="flex-none font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="min-w-0 flex-1" style={{ color: r.now ? "var(--voice-machine)" : "var(--ink-body)" }}>
+              {r.now ? (
+                <span
+                  className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
+                  style={{ background: "var(--voice-machine)" }}
+                />
+              ) : null}
+              {r.label}
+            </span>
           </div>
-        ) : null}
-        <div className="flex items-center justify-between">
-          <span style={{ color: "var(--ink-subtle)" }}>Steps</span>
-          <span className="font-mono tabular-nums" style={{ color: "var(--ink-body)" }}>{run.steps.length}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span style={{ color: "var(--ink-subtle)" }}>Started</span>
-          <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-body)" }}>{relTime(run.created_at)}</span>
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/** CI checks: the real PR check runs, or an honest line before the PR opens. */
-function CiStrip({ ci }: { ci: StudioCi }) {
+/** CI checks (screen-3): the real PR check runs + the PR state, or an honest pre-PR line. */
+function CiStrip({ ci, changesetStatus }: { ci: StudioCi; changesetStatus: string | null }) {
   if (!ci) {
     return (
-      <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-        Checks run when the pull request opens.
-      </p>
+      <div className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+        {changesetStatus === "pr_open" ? "Pull request open; checks reporting." : "Checks run when the pull request opens."}
+      </div>
     );
   }
   const glyph = (conclusion: string | null, status: string) => {
-    if (conclusion === "success") return { c: "✓", color: "var(--verdict-pass)" };
-    if (conclusion === "failure") return { c: "✗", color: "var(--verdict-fail)" };
-    if (status === "completed") return { c: "•", color: "var(--ink-subtle)" };
-    return { c: "•", color: "var(--voice-machine)" };
+    if (conclusion === "success") return { c: "\u2713", color: "var(--verdict-pass)" };
+    if (conclusion === "failure") return { c: "\u2717", color: "var(--verdict-fail)" };
+    if (status === "completed") return { c: "\u2022", color: "var(--ink-subtle)" };
+    return { c: "\u2022", color: "var(--voice-machine)" };
   };
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px]">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
       {ci.checks.slice(0, 6).map((ch, i) => {
         const g = glyph(ch.conclusion, ch.status);
         return (
@@ -987,18 +1011,28 @@ function CiStrip({ ci }: { ci: StudioCi }) {
         );
       })}
       {ci.pr_url ? (
-        <a href={ci.pr_url} target="_blank" rel="noreferrer" className="ink-focus underline underline-offset-2" style={{ color: "var(--ink-subtle)" }}>
-          PR #{ci.pr_number}
+        <a
+          href={ci.pr_url}
+          target="_blank"
+          rel="noreferrer"
+          className="ink-focus ml-auto underline underline-offset-2"
+          style={{ color: "var(--ink-subtle)" }}
+        >
+          {`Pull request #${ci.pr_number}`}
         </a>
-      ) : null}
+      ) : (
+        <span className="ml-auto" style={{ color: "var(--ink-faint)" }}>
+          Pull request opens after the suite passes
+        </span>
+      )}
     </div>
   );
 }
 
-/** The terminal: the latest run's real streamed output. */
-function BuildTerminal({ output }: { output: string | null | undefined }) {
+/** The terminal (screen-3): the latest run's real output, sandbox badge, live caret. */
+function BuildTerminal({ output, running }: { output: string | null | undefined; running: boolean }) {
   const text = (output ?? "").trim();
-  if (!text) return null;
+  if (!text && !running) return null;
   return (
     <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}>
       <div className="flex items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline-soft)" }}>
@@ -1008,17 +1042,265 @@ function BuildTerminal({ output }: { output: string | null | undefined }) {
         </span>
       </div>
       <pre className="max-h-56 overflow-y-auto whitespace-pre-wrap px-3 py-2 font-mono text-[11px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
-        {text.slice(-2000)}
+        {text ? text.slice(-2000) : "working"}
+        {running ? <span className="ink-caret" style={{ color: "var(--voice-machine)" }}>{"\u258d"}</span> : null}
       </pre>
     </div>
   );
 }
 
-/** The rich build deck for the focused mission. */
+// ---------------------------------------------------------------------------
+// screen-3 aggregated diff: the actual code the build wrote (add / del lines),
+// per file, first file expanded. Reads the real base/new content through
+// getChangesetDiff. A line-level LCS diff, capped so a very large file degrades
+// to plain content rather than an O(mn) render blowup.
+// ---------------------------------------------------------------------------
+type DiffLine = { kind: "ctx" | "add" | "del"; text: string };
+type DiffFileRow = {
+  id: string;
+  path: string;
+  op: string;
+  base_content: string | null;
+  new_content: string | null;
+};
+
+function lineDiff(base: string, next: string): DiffLine[] {
+  const a = base ? base.replace(/\n$/, "").split("\n") : [];
+  const b = next ? next.replace(/\n$/, "").split("\n") : [];
+  if (a.length === 0) return b.map((t) => ({ kind: "add" as const, text: t }));
+  if (b.length === 0) return a.map((t) => ({ kind: "del" as const, text: t }));
+  if (a.length * b.length > 400_000) return b.map((t) => ({ kind: "ctx" as const, text: t }));
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = m - 1; i >= 0; i--)
+    for (let j = n - 1; j >= 0; j--)
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out: DiffLine[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < m && j < n) {
+    if (a[i] === b[j]) {
+      out.push({ kind: "ctx", text: a[i] });
+      i++;
+      j++;
+    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      out.push({ kind: "del", text: a[i] });
+      i++;
+    } else {
+      out.push({ kind: "add", text: b[j] });
+      j++;
+    }
+  }
+  while (i < m) {
+    out.push({ kind: "del", text: a[i] });
+    i++;
+  }
+  while (j < n) {
+    out.push({ kind: "add", text: b[j] });
+    j++;
+  }
+  return out;
+}
+
+/** One file's expandable diff — screen-3 b3-diff styling (add green, del red). */
+function DiffFile({ file, defaultOpen }: { file: DiffFileRow; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const lines = useMemo(
+    () => lineDiff(file.base_content ?? "", file.new_content ?? ""),
+    [file.base_content, file.new_content],
+  );
+  const adds = lines.filter((l) => l.kind === "add").length;
+  const dels = lines.filter((l) => l.kind === "del").length;
+  const slash = file.path.lastIndexOf("/");
+  const dir = slash >= 0 ? file.path.slice(0, slash + 1) : "";
+  const name = slash >= 0 ? file.path.slice(slash + 1) : file.path;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="ink-focus flex w-full items-center gap-2 px-3 py-1.5 text-left"
+      >
+        <span style={{ color: "var(--ink-faint)" }}>{open ? "\u25be" : "\u25b8"}</span>
+        <span className="min-w-0 flex-1 truncate font-mono text-[11.5px]" style={{ color: "var(--ink-text)" }}>
+          <span style={{ color: "var(--ink-faint)" }}>{dir}</span>
+          {name}
+        </span>
+        {adds > 0 ? <span className="font-mono text-[10.5px]" style={{ color: "var(--verdict-pass)" }}>{`+${adds}`}</span> : null}
+        {dels > 0 ? <span className="font-mono text-[10.5px]" style={{ color: "var(--verdict-fail)" }}>{`-${dels}`}</span> : null}
+      </button>
+      {open ? (
+        <div
+          className="overflow-x-auto border-t py-1.5 font-mono text-[11px] leading-[1.55]"
+          style={{ borderColor: "var(--ink-hairline-soft)" }}
+        >
+          <div className="flex whitespace-pre px-3 text-[10px]" style={{ color: "var(--ink-faint)" }}>
+            <span className="w-4 flex-none" />
+            {`@@ ${file.op} ${dir}${name} @@`}
+          </div>
+          {lines.slice(0, 200).map((l, idx) => (
+            <div
+              key={idx}
+              className="flex whitespace-pre px-3"
+              style={{
+                background:
+                  l.kind === "add"
+                    ? "rgba(74,194,107,0.07)"
+                    : l.kind === "del"
+                      ? "rgba(229,83,75,0.06)"
+                      : "transparent",
+                color: l.kind === "del" ? "var(--ink-subtle)" : "var(--ink-body)",
+              }}
+            >
+              <span
+                className="w-4 flex-none select-none"
+                style={{
+                  color:
+                    l.kind === "add"
+                      ? "var(--verdict-pass)"
+                      : l.kind === "del"
+                        ? "var(--verdict-fail)"
+                        : "var(--ink-faint)",
+                }}
+              >
+                {l.kind === "add" ? "+" : l.kind === "del" ? "-" : ""}
+              </span>
+              {l.text || " "}
+            </div>
+          ))}
+          {lines.length > 200 ? (
+            <div className="px-3 pt-1 text-[10.5px]" style={{ color: "var(--ink-faint)" }}>
+              {`${lines.length - 200} more lines`}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** screen-3: the aggregated diff of what the build wrote, real code per file. */
+function DiffPanel({ changesetId }: { changesetId: string }) {
+  const fetchDiff = useServerFn(getChangesetDiff);
+  const q = useQuery({
+    queryKey: ["build-diff", changesetId],
+    queryFn: () => fetchDiff({ data: { changesetId } }),
+    refetchInterval: pollWhenVisible(12_000),
+  });
+  const changes = (q.data?.changes ?? []) as DiffFileRow[];
+  if (changes.length === 0) return null;
+  return (
+    <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <div className="flex items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline-soft)" }}>
+        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>The change</span>
+        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-faint)" }}>
+          {`${changes.length} ${changes.length === 1 ? "file" : "files"}`}
+        </span>
+      </div>
+      <div className="flex flex-col">
+        {changes.map((f, i) => (
+          <div key={f.id} style={i > 0 ? { borderTop: "1px solid var(--ink-hairline-soft)" } : undefined}>
+            <DiffFile file={f} defaultOpen={i === 0} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** What the build is reading (screen-3 b3-reading): the spec + the sources read. */
+function ReadingRow({
+  session,
+  latestRun,
+}: {
+  session: BuildSession;
+  latestRun: StudioRunDetail | undefined;
+}) {
+  const chips: string[] = [];
+  if (session.spec) chips.push(session.spec.title);
+  const seen = new Set<string>(chips);
+  for (const s of latestRun?.steps ?? []) {
+    if (s.kind !== "tool_call") continue;
+    if (!/read|search|tree|open|grep/i.test(s.name)) continue;
+    const args = s.args as { path?: string; query?: string } | undefined;
+    const label = args?.path ?? args?.query;
+    if (label && !seen.has(label)) {
+      seen.add(label);
+      chips.push(label);
+    }
+    if (chips.length >= 6) break;
+  }
+  if (chips.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+        Reading
+      </span>
+      {chips.slice(0, 6).map((c, i) => (
+        <span
+          key={i}
+          className="rounded-md border px-2 py-0.5 font-mono text-[11px]"
+          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)", background: "var(--ink-panel)" }}
+        >
+          {c.length > 42 ? `${c.slice(0, 40)}\u2026` : c}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** The face footer (screen-3 b3-footer-row): the latest receipt line. */
+function BuildFooter({
+  session,
+  done,
+  driverLabel,
+}: {
+  session: BuildSession;
+  done: boolean;
+  driverLabel?: string | null;
+}) {
+  const cs = session.changeset;
+  const receipt = done
+    ? `Build finished${driverLabel ? ` by ${driverLabel}` : ""}. ${session.changes.length} ${session.changes.length === 1 ? "file" : "files"} changed.`
+    : cs?.status === "pr_open"
+      ? `Pull request #${cs.pr_number} is open. Review and merge once the checks are green.`
+      : `${session.changes.length} ${session.changes.length === 1 ? "file" : "files"} staged so far.`;
+  return (
+    <div className="flex items-center gap-2 border-t pt-3 text-[12px]" style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-subtle)" }}>
+      <span style={{ color: "var(--verdict-pass)" }}>{"\u2713"}</span>
+      <span>{receipt}</span>
+    </div>
+  );
+}
+
+/** The rich build deck for the focused mission — screen-3 fidelity. */
 function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabel?: string | null }) {
   const latestRun = session.runs[session.runs.length - 1];
   const done = MISSION_DONE.includes((session.mission.status ?? "").toLowerCase());
   const running = !done && session.runs.some((r) => r.status === "running");
+
+  // The real diff, fetched once and shared with FilesChanged + DiffPanel (React
+  // Query dedupes the shared key). Feeds the per-file +add/-del counts.
+  const fetchDiff = useServerFn(getChangesetDiff);
+  const changesetId = session.changeset?.id ?? null;
+  const diffQ = useQuery({
+    queryKey: ["build-diff", changesetId ?? "none"],
+    queryFn: () => fetchDiff({ data: { changesetId: changesetId as string } }),
+    enabled: !!changesetId,
+    refetchInterval: pollWhenVisible(12_000),
+  });
+  const fileStats = useMemo(() => {
+    const m = new Map<string, { adds: number; dels: number }>();
+    for (const f of (diffQ.data?.changes ?? []) as DiffFileRow[]) {
+      const d = lineDiff(f.base_content ?? "", f.new_content ?? "");
+      m.set(f.path, {
+        adds: d.filter((l) => l.kind === "add").length,
+        dels: d.filter((l) => l.kind === "del").length,
+      });
+    }
+    return m;
+  }, [diffQ.data]);
 
   if (session.kind === "mission" && session.runs.length === 0) {
     return (
@@ -1045,36 +1327,27 @@ function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabe
         {session.mission.status ? <Chip>{session.mission.status}</Chip> : null}
       </div>
 
-      {/* The plan flow */}
+      {/* Working triple 1: the plan */}
       {latestRun ? <BuildPlan steps={latestRun.steps} running={running} /> : null}
 
-      {/* The split: files rail + work column */}
+      {/* Working triple 2: what the build is reading */}
+      <ReadingRow session={session} latestRun={latestRun} />
+
+      {/* Working triple 3: the split — session rail + work column */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
-          {session.changes.length > 0 ? <FilesChangedCard changes={session.changes} /> : null}
-          <SessionCard run={latestRun} />
+          {session.changes.length > 0 ? <FilesChangedCard changes={session.changes} stats={fileStats} /> : null}
+          <SessionCard run={latestRun} running={running} />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
-          {session.changeset ? (
-            <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-              <div className="text-[12.5px] font-medium" style={{ color: "var(--ink-text)" }}>{session.changeset.title}</div>
-              <div className="mt-1 font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
-                {session.changeset.status} · {session.changeset.file_count} {session.changeset.file_count === 1 ? "file" : "files"}
-              </div>
-            </div>
-          ) : null}
-          <CiStrip ci={session.ci} />
-          <BuildTerminal output={latestRun?.output} />
+          {session.changeset ? <DiffPanel changesetId={session.changeset.id} /> : null}
+          <CiStrip ci={session.ci} changesetStatus={session.changeset?.status ?? null} />
+          <BuildTerminal output={latestRun?.output} running={running} />
         </div>
       </div>
 
-      {/* Footer receipt: honest about what ran */}
-      {done ? (
-        <ReceiptLine>
-          Build finished{driverLabel ? ` by ${driverLabel}` : ""}. {session.changes.length}{" "}
-          {session.changes.length === 1 ? "file" : "files"} changed.
-        </ReceiptLine>
-      ) : null}
+      {/* Footer: the latest receipt */}
+      <BuildFooter session={session} done={done} driverLabel={driverLabel} />
     </div>
   );
 }

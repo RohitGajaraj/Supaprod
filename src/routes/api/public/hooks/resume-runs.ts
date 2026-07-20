@@ -44,6 +44,11 @@ const MISSION_BATCH = Math.max(1, Number(process.env.MISSION_ADVANCE_BATCH) || 5
 // Cap on unplanned mission re-planning per tick. Each call triggers an
 // orchestrator AI loop (expensive); 2 is intentionally conservative.
 const REPLAN_BATCH = 2;
+// Starvation guard: an unplanned mission (no steps, no active run) older than
+// this has failed to plan on every re-plan retry for too long. It is marked
+// 'halted' so it can never permanently monopolize the fixed REPLAN_BATCH slots
+// and starve fresh dispatches behind it. Env-tunable; 20 minutes by default.
+const ABANDON_MS = Math.max(60_000, Number(process.env.REPLAN_ABANDON_MS) || 20 * 60 * 1000);
 
 export const Route = createFileRoute("/api/public/hooks/resume-runs")({
   server: {
@@ -218,16 +223,28 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             // orchestrator run. This happens when chat.ts fires runAgentLoop
             // as fire-and-forget and the Cloudflare Worker terminates before
             // the orchestrator completes its planning call.
+            // KI-17 + STARVATION FIX: recover missions with no plan and no
+            // active run (orchestrator planning was evicted before it persisted
+            // anything). Two changes fix the starvation where old broken missions
+            // monopolized the two re-plan slots forever:
+            //  (1) order NEWEST-FIRST, so a fresh dispatch is re-planned on the
+            //      very next tick instead of waiting behind ancient stuck ones;
+            //  (2) any unplanned mission older than ABANDON_MS is marked 'halted'
+            //      (planning has failed every retry for too long), so it leaves
+            //      the running set and can never clog the queue again.
+            const abandonCutoff = new Date(Date.now() - ABANDON_MS).toISOString();
             const { data: unplannedCandidates } = await admin
               .from("missions")
-              .select("id,user_id,workspace_id,goal,status")
+              .select("id,user_id,workspace_id,goal,status,created_at")
               .in("status", ["running", "in_progress"])
               .lt("created_at", cutoff)
-              .order("created_at", { ascending: true })
-              .limit(REPLAN_BATCH * 4);
+              .order("created_at", { ascending: false })
+              .limit(REPLAN_BATCH * 8);
             const toReplan: MissionLite[] = [];
-            for (const m of (unplannedCandidates ?? []) as MissionLite[]) {
-              if (toReplan.length >= REPLAN_BATCH) break;
+            const toAbandon: string[] = [];
+            for (const m of (unplannedCandidates ?? []) as (MissionLite & {
+              created_at: string;
+            })[]) {
               const { count: stepCount } = await admin
                 .from("mission_steps")
                 .select("id", { count: "exact", head: true })
@@ -239,7 +256,21 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                 .eq("mission_id", m.id)
                 .in("status", ["queued", "running", "waiting_approval"]);
               if ((activeRuns ?? 0) > 0) continue;
-              toReplan.push(m);
+              // Genuinely unplanned. Abandon it if it has been stuck past the
+              // threshold; otherwise re-plan it (newest first, up to the cap).
+              if (m.created_at < abandonCutoff) {
+                toAbandon.push(m.id);
+              } else if (toReplan.length < REPLAN_BATCH) {
+                toReplan.push(m);
+              }
+            }
+            if (toAbandon.length) {
+              // Give up on missions whose planning never landed; keeps the queue
+              // clear. Best-effort: a failure here just retries next tick.
+              await admin
+                .from("missions")
+                .update({ status: "halted", updated_at: new Date().toISOString() })
+                .in("id", toAbandon);
             }
             const planned: { id: string; run_id?: string; error?: string }[] = [];
             for (const m of toReplan) {

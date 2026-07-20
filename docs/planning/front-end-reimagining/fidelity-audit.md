@@ -1,6 +1,9 @@
 # Reimagining Fidelity Audit — delivered vs mockups (ground-truth, live)
 
 > _Created: 2026-07-20 · Last updated: 2026-07-20_
+
+> **🔒 HARD RULE (founder, standing, restated 4x — strictly binding across ALL surfaces): the mockup `.html` files ARE the baseline floor. Build each surface to match its mockup faithfully FIRST — every section, control, and layout the mockup shows — then add on top if valuable. Never ship a thinner interpretation. When building or reviewing any surface, open its mockup (`docs/planning/front-end-reimagining/mockups/screen-*.html`, `card-spec.html`, `landing-when-you-login.html`) and reproduce it 1:1 before wiring real data. A surface that omits a section the mockup has is INCOMPLETE, not done.**
+
 > Founder-directed (Rohit, 2026-07-20): "run through all the product surfaces, compare with mockups; where no mockup exists, build to standard." This is the second request; this pass is grounded in a LIVE walkthrough of the running dev server (localhost:8080, demo@redcadence.app) with side-by-side mockup renders (served from localhost:8099), not assumptions. Branch `sandbox/mission-control-v2`. Production/main/public-landing untouched.
 
 ## How this was captured
