@@ -4841,6 +4841,7 @@ export type Database = {
           importance: number | null
           kind: string | null
           scope: string | null
+          source_conversation_id: string | null
           source_kind: string
           status: string
           supersedes_memory_id: string | null
@@ -4856,6 +4857,7 @@ export type Database = {
           importance?: number | null
           kind?: string | null
           scope?: string | null
+          source_conversation_id?: string | null
           source_kind: string
           status?: string
           supersedes_memory_id?: string | null
@@ -4871,6 +4873,7 @@ export type Database = {
           importance?: number | null
           kind?: string | null
           scope?: string | null
+          source_conversation_id?: string | null
           source_kind?: string
           status?: string
           supersedes_memory_id?: string | null
@@ -4878,6 +4881,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "memory_candidates_source_conversation_id_fkey"
+            columns: ["source_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "memory_candidates_workspace_id_fkey"
             columns: ["workspace_id"]
