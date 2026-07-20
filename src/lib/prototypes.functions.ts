@@ -33,6 +33,7 @@ export type PrototypeSummary = {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  projectId: string | null;
 };
 
 export const listPrototypes = createServerFn({ method: "GET" })
@@ -41,7 +42,7 @@ export const listPrototypes = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("prototypes")
-      .select("id,name,prd_id,share_slug,is_public,created_at,updated_at")
+      .select("id,name,prd_id,project_id,share_slug,is_public,created_at,updated_at")
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
@@ -53,6 +54,7 @@ export const listPrototypes = createServerFn({ method: "GET" })
       isPublic: Boolean(r.is_public),
       createdAt: r.created_at as string,
       updatedAt: r.updated_at as string,
+      projectId: (r.project_id as string | null) ?? null,
     }));
   });
 
@@ -92,13 +94,14 @@ export const publishPrototypeFromPrd = createServerFn({ method: "POST" })
         entry_path: "index.html",
         is_public: false,
       })
-      .select("id,name,prd_id,share_slug,is_public,created_at,updated_at")
+      .select("id,name,prd_id,project_id,share_slug,is_public,created_at,updated_at")
       .single();
     if (insertErr) throw new Error(insertErr.message);
     const p = prototype as {
       id: string;
       name: string;
       prd_id: string;
+      project_id: string | null;
       share_slug: string;
       is_public: boolean;
       created_at: string;
@@ -132,6 +135,7 @@ export const publishPrototypeFromPrd = createServerFn({ method: "POST" })
       isPublic: Boolean(p.is_public),
       createdAt: p.created_at,
       updatedAt: p.updated_at,
+      projectId: p.project_id ?? null,
     };
   });
 

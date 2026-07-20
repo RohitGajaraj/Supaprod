@@ -752,13 +752,137 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
 // 04 Interactive prototype (Design): the live scaffold
 // ---------------------------------------------------------------------------
 
+/** screen-6 version trail: the design process (flow to wireframe to branded to
+ *  interactive) as the progress bar; v4 is the live prototype on the canvas. */
+function DesignVersionTrail({ prdRef, span }: { prdRef: string; span: string }) {
+  const stages = [
+    { tag: "v1", name: "Flow map", thumb: "flow" as const },
+    { tag: "v2", name: "Wireframe", thumb: "wire" as const },
+    { tag: "v3", name: "In your brand", thumb: "brand" as const },
+    { tag: "v4", name: "Interactive", thumb: "live" as const, current: true },
+  ];
+  const thumb = (kind: "flow" | "wire" | "brand" | "live") => {
+    if (kind === "flow")
+      return (
+        <div className="flex h-12 items-center justify-center gap-1 rounded-md" style={{ background: "#101013" }}>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="flex items-center gap-1">
+              {i > 0 ? <span className="h-px w-2" style={{ background: "rgba(255,255,255,.3)" }} /> : null}
+              <span className="h-3 w-3 rounded-sm border" style={{ borderColor: i === 2 ? "rgba(255,255,255,.45)" : "rgba(255,255,255,.2)" }} />
+            </span>
+          ))}
+        </div>
+      );
+    if (kind === "wire")
+      return (
+        <div className="flex h-12 flex-col justify-center gap-1 rounded-md p-2" style={{ background: "#e8e8ea" }}>
+          <span className="h-1.5 rounded" style={{ width: "55%", background: "#c6c6cb" }} />
+          <span className="h-2 rounded" style={{ background: "#cfcfd4" }} />
+          <span className="h-2 rounded" style={{ width: "82%", background: "#cfcfd4" }} />
+        </div>
+      );
+    // brand + live: a mini branded card (teal accent); live adds hotspot dots
+    return (
+      <div className="relative h-12 overflow-hidden rounded-md" style={{ background: "#fbfbfa" }}>
+        <div className="flex h-3 items-center gap-1 px-1.5" style={{ background: "#fff", borderBottom: "1px solid rgba(0,0,0,.08)" }}>
+          <span className="h-1.5 w-1.5 rounded-sm" style={{ background: "#0f766e" }} />
+        </div>
+        <div className="flex flex-col gap-1 p-1.5">
+          <span className="h-1.5 rounded" style={{ width: "40%", background: "#9ca3af" }} />
+          <span className="h-2 rounded border" style={{ borderColor: "rgba(0,0,0,.09)", background: "#fff" }} />
+        </div>
+        {kind === "live" ? (
+          <>
+            <span className="absolute h-2 w-2 rounded-full" style={{ top: 3, right: 4, background: "#18181b", boxShadow: "0 0 0 1px rgba(255,255,255,.8)" }} />
+            <span className="absolute h-2 w-2 rounded-full" style={{ bottom: 4, right: 10, background: "#18181b", boxShadow: "0 0 0 1px rgba(255,255,255,.8)" }} />
+          </>
+        ) : null}
+      </div>
+    );
+  };
+  return (
+    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <div className="mb-2 flex items-center gap-2">
+        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>{prdRef}</span>
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>How it took shape</span>
+        <span className="font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{span}</span>
+      </div>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {stages.map((s, i) => (
+          <div key={s.tag} className="flex flex-none items-center gap-2">
+            {i > 0 ? <span style={{ color: "var(--ink-faint)" }}>{"\u2192"}</span> : null}
+            <div
+              className="flex w-[112px] flex-col gap-1.5 rounded-lg border p-2"
+              style={{
+                borderColor: s.current ? "var(--voice-machine-border)" : "var(--ink-hairline)",
+                background: s.current ? "var(--voice-machine-faint)" : "var(--ink-bg)",
+              }}
+            >
+              {thumb(s.thumb)}
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9.5px]" style={{ color: "var(--ink-faint)" }}>{s.tag}</span>
+                <span className="truncate text-[11px]" style={{ color: "var(--ink-text)" }}>{s.name}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** screen-6 annotation rail: the clickable paths, the flat feed it replaces, the
+ *  one quiet brand line (brand config lives in Settings, never here). */
+function DesignRail() {
+  const paths = [
+    "Opens the conversation inline. The digest stays put.",
+    "Clears the digest and logs it to the audit trail.",
+    "Mutes the conversation for 7 days, undo in the toast.",
+  ];
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>Clickable paths · 3</div>
+        <div className="flex flex-col gap-1.5">
+          {paths.map((p, i) => (
+            <div key={i} className="flex gap-2 text-[12px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+              <span className="flex-none font-mono text-[10px]" style={{ color: "var(--voice-machine)" }}>{i + 1}</span>
+              <span>{p}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>What it replaces</div>
+        <div className="flex flex-col gap-1">
+          {["100%", "92%", "100%", "86%", "78%"].map((w, i) => (
+            <span key={i} className="h-2 rounded" style={{ width: w, background: "var(--ink-raised)" }} />
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] leading-[1.5]" style={{ color: "var(--ink-subtle)" }}>
+          The flat feed: 41 notifications yesterday, admins opened 6. One grouped screen replaces it.
+        </p>
+      </div>
+      <p className="text-[11px] leading-[1.5]" style={{ color: "var(--ink-faint)" }}>
+        Rendered through your brand kit.{" "}
+        <Link to="/settings" className="ink-focus underline underline-offset-2" style={{ color: "var(--ink-subtle)" }}>
+          Brand kit lives in Settings
+        </Link>
+        .
+      </p>
+    </div>
+  );
+}
+
 type PrototypeRow = {
   id: string;
   name: string;
   prdId: string | null;
   shareSlug: string;
   isPublic: boolean;
+  createdAt: string;
   updatedAt: string;
+  projectId: string | null;
 };
 
 export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps) {
@@ -769,8 +893,9 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
     queryFn: () => fetchProtos(),
     refetchInterval: pollWhenVisible(30_000),
   });
-  const protos = (q.data ?? []) as PrototypeRow[];
+  const protos = ((q.data ?? []) as PrototypeRow[]).filter((p) => p.projectId === productId);
   const [pickedId, setPickedId] = useState<string | null>(null);
+  const [protoState, setProtoState] = useState<"Default" | "Loading" | "Empty" | "Error">("Default");
   const latest = useMemo(
     () => protos.find((p) => p.id === pickedId) ?? protos[0] ?? null,
     [protos, pickedId],
@@ -831,62 +956,94 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
               })}
             </div>
           ) : null}
-          <p className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-            Rendered in your brand{latest.isPublic ? " · shared publicly" : ""}.{" "}
-            {scaffoldHtml ? "Live and clickable below." : "Opens full-screen in its own tab."}
-          </p>
-          {scaffoldHtml ? (
-            <div
-              className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-xl border"
-              style={{ borderColor: "var(--ink-hairline)" }}
-            >
-              {/* Browser-chrome frame: the prototype reads as a real product. */}
-              <div
-                className="flex flex-none items-center gap-2 border-b px-3 py-1.5"
-                style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
-              >
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="h-2 w-2 rounded-full" style={{ background: "var(--ink-hairline)" }} />
-                ))}
-                <span className="ml-1 min-w-0 flex-1 truncate font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
-                  /p/{latest.shareSlug}
-                </span>
-                <span
-                  className="flex-none rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
-                  style={{ borderColor: "var(--voice-machine-border)", color: "var(--voice-machine)" }}
-                >
-                  Interactive
-                </span>
+          <DesignVersionTrail
+            prdRef={`${latest.name}${latest.isPublic ? " · shared" : ""}`}
+            span={`ready ${relTime(latest.updatedAt)}`}
+          />
+
+          {/* The stage: the device frame (states + scaffold) + the annotation rail */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,260px)]">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>States</span>
+                {(["Default", "Loading", "Empty", "Error"] as const).map((s) => {
+                  const on = protoState === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setProtoState(s)}
+                      aria-pressed={on}
+                      className="ink-focus rounded-md border px-2 py-0.5 text-[11px] transition-colors"
+                      style={{
+                        borderColor: on ? "var(--ink-hairline)" : "transparent",
+                        background: on ? "var(--ink-raised)" : "transparent",
+                        color: on ? "var(--ink-text)" : "var(--ink-subtle)",
+                      }}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
               </div>
-              {/* srcDoc + scripts-only sandbox: null origin, no parent frame
-                  access, no external network (the DesignScaffoldPanel idiom). */}
-              <iframe
-                key={latest.id}
-                title={`Prototype: ${latest.name}`}
-                srcDoc={scaffoldHtml}
-                sandbox="allow-scripts"
-                className="min-h-[400px] w-full flex-1"
-                style={{ background: "#fff" }}
-              />
+              <div className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)" }}>
+                <div className="flex flex-none items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}>
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="h-2 w-2 rounded-full" style={{ background: "var(--ink-hairline)" }} />
+                  ))}
+                  <span className="ml-1 min-w-0 flex-1 truncate font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+                    relay.heliolabs.com/inbox/digest
+                  </span>
+                  <span className="flex-none rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--voice-machine-border)", color: "var(--voice-machine)" }}>
+                    Interactive · V4
+                  </span>
+                </div>
+                {protoState === "Default" && scaffoldHtml ? (
+                  <iframe
+                    key={latest.id}
+                    title={`Prototype: ${latest.name}`}
+                    srcDoc={scaffoldHtml}
+                    sandbox="allow-scripts"
+                    className="min-h-[400px] w-full flex-1"
+                    style={{ background: "#fff" }}
+                  />
+                ) : (
+                  <div className="flex min-h-[400px] flex-1 flex-col items-center justify-center gap-2 px-6 text-center" style={{ background: "#fff" }}>
+                    {protoState === "Loading" ? (
+                      <span className="text-[13px]" style={{ color: "#64748b" }}>Loading your digest…</span>
+                    ) : protoState === "Empty" ? (
+                      <>
+                        <span className="text-[15px] font-semibold" style={{ color: "#18181b" }}>You are all caught up</span>
+                        <span className="text-[13px]" style={{ color: "#64748b" }}>Nothing new since the last sweep. The next digest arrives at 5:00pm.</span>
+                      </>
+                    ) : protoState === "Error" ? (
+                      <>
+                        <span className="text-[15px] font-semibold" style={{ color: "#b91c1c" }}>The digest did not load</span>
+                        <span className="text-[13px]" style={{ color: "#64748b" }}>We could not reach the inbox service. Retry, or check back after the next sweep.</span>
+                      </>
+                    ) : (
+                      <span className="text-[13px]" style={{ color: "#64748b" }}>
+                        {scaffoldQ.isLoading ? "Loading the prototype." : "This prototype opens full-screen in its own tab."}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <div
-              className="rounded-xl border border-dashed px-6 py-10 text-center"
-              style={{ borderColor: "var(--ink-hairline)" }}
-            >
-              <p className="text-[13px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
-                {scaffoldQ.isLoading
-                  ? "Loading the scaffold."
-                  : "This prototype opens in its own tab."}
-              </p>
-            </div>
-          )}
-          <div className="flex items-center gap-3">
+            <DesignRail />
+          </div>
+
+          {/* Footer: the receipt + the forward door */}
+          <div className="flex items-center gap-3 border-t pt-3" style={{ borderColor: "var(--ink-hairline-soft)" }}>
+            <span className="flex flex-1 items-center gap-1.5 text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+              <span style={{ color: "var(--verdict-pass)" }}>{"\u2713"}</span>
+              Prototype ready {relTime(latest.updatedAt)}. 1 screen, 4 states, 3 clickable paths.
+            </span>
             <a
               href={`/p/${latest.shareSlug}`}
               target="_blank"
               rel="noreferrer"
-              className="ink-focus inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+              className="ink-focus inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors hover:bg-[#202024]"
               style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
             >
               Open full-screen
