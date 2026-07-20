@@ -358,6 +358,8 @@ export async function runResearch(opts: {
   emit: (status: ResearchStatus) => void;
   /** PC-36 B: thread the Ask panel's screen scope into workspace retrieval. */
   scope?: ResearchScope;
+  /** Optional abort signal from the Ask stream, so a cancelled request stops research. */
+  signal?: AbortSignal;
 }): Promise<ResearchResult> {
   const { supabase, userId, query, mode, subQueries, emit, scope } = opts;
   // FIRECRAWL-FLOOR-b: gate web mode on whether ANY web backend is configured, not
