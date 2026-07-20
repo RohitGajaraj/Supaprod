@@ -28,7 +28,7 @@ import type { MissionStateId } from "@/lib/mission-vocabulary";
 import { drawWorkingLine } from "@/lib/mission-vocabulary";
 import { castByStation, agentDisplayName, stepLabel, type AgentStation } from "@/lib/agent-vocabulary";
 import { journeyById, type JourneyId } from "@/lib/journeys";
-import { listSignals, listOpportunities, listSpecs } from "@/lib/discovery.functions";
+import { listSignals, listOpportunities, listSpecs, getPrd } from "@/lib/discovery.functions";
 import { listPrototypes } from "@/lib/prototypes.functions";
 import { getPersistedScaffold } from "@/lib/design-scaffold.functions";
 import { listMissions } from "@/lib/missions.functions";
@@ -520,12 +520,27 @@ function countArray(v: unknown): number {
 
 export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchSpecs = useServerFn(listSpecs);
+  const fetchPrd = useServerFn(getPrd);
   const q = useQuery({
     queryKey: ["face-specs", productId],
     queryFn: () => fetchSpecs(),
     refetchInterval: pollWhenVisible(30_000),
   });
   const specs = (q.data?.prds ?? []) as SpecRow[];
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const focused = useMemo(
+    () => specs.find((s) => s.id === pickedId) ?? specs[0] ?? null,
+    [specs, pickedId],
+  );
+
+  const docQ = useQuery({
+    queryKey: ["face-spec-doc", focused?.id],
+    queryFn: () => fetchPrd({ data: { id: focused!.id } }),
+    enabled: !!focused?.id,
+  });
+  const doc = docQ.data?.prd as { title?: string | null; body_md?: string | null } | undefined;
+  const critic = focused ? parseCritic(focused.critic_review) : null;
+  const tone = critic?.verdict ? VERDICT_TONE[critic.verdict] : null;
 
   return (
     <CanvasFace
@@ -547,44 +562,87 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
           : null
       }
     >
-      {specs.length > 0 ? (
-        <div className="flex flex-col gap-2.5 p-5">
-          {specs.slice(0, 30).map((s) => {
-            const cites = countArray(s.citations);
-            const approved = s.status === "approved";
-            return (
-              <FaceCard
-                key={s.id}
-                chip={
-                  <>
-                    {s.status ? <Chip>{s.status}</Chip> : null}
-                    {cites > 0 ? <Chip>{cites} cited</Chip> : null}
-                  </>
-                }
-                time={relTime(s.updated_at)}
+      {focused ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 p-5">
+          {specs.length > 1 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {specs.slice(0, 8).map((s) => {
+                const on = s.id === focused.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setPickedId(s.id)}
+                    aria-pressed={on}
+                    className="ink-focus max-w-[240px] truncate rounded-lg border px-2.5 py-1 text-[12px] transition-colors"
+                    style={{
+                      borderColor: on ? "var(--ink-hairline)" : "transparent",
+                      background: on ? "var(--ink-raised)" : "transparent",
+                      color: on ? "var(--ink-text)" : "var(--ink-subtle)",
+                    }}
+                  >
+                    {s.title ?? "Untitled spec"}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {focused.status ? <Chip>{focused.status}</Chip> : null}
+            {countArray(focused.citations) > 0 ? <Chip>{countArray(focused.citations)} cited</Chip> : null}
+            {tone ? (
+              <span
+                className="inline-flex h-[20px] items-center rounded-[10px] border px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
+                style={{ color: tone.color, background: tone.bg, borderColor: tone.border }}
               >
-                <p className="text-[13.5px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
-                  {s.title ?? "Untitled spec"}
-                </p>
-                {approved ? (
-                  <ReceiptLine className="mt-2">
-                    Spec approved.{" "}
-                    {cites > 0 ? (
-                      <>
-                        <ReceiptCount>{cites}</ReceiptCount> citations on the record.
-                      </>
-                    ) : (
-                      "On the record."
-                    )}
-                  </ReceiptLine>
-                ) : null}
-                <NextLine
-                  className="mt-2"
-                  doors={[journeyDoor("j5", onActivateJourney), journeyDoor("j4", onActivateJourney)]}
-                />
-              </FaceCard>
-            );
-          })}
+                {tone.label}
+              </span>
+            ) : null}
+          </div>
+
+          <h2 className="text-[17px] font-semibold leading-tight" style={{ color: "var(--ink-text)" }}>
+            {doc?.title ?? focused.title ?? "Untitled spec"}
+          </h2>
+
+          {docQ.isLoading ? (
+            <div className="ink-skeleton h-48 w-full rounded-xl" />
+          ) : doc?.body_md ? (
+            <div
+              className="max-h-[440px] overflow-y-auto rounded-xl border p-4"
+              style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+            >
+              <pre
+                className="whitespace-pre-wrap font-sans text-[13px] leading-[1.6]"
+                style={{ color: "var(--ink-body)" }}
+              >
+                {doc.body_md}
+              </pre>
+            </div>
+          ) : (
+            <p className="text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+              This spec has no body yet.
+            </p>
+          )}
+
+          {critic ? <CriticBlock critic={critic} /> : null}
+
+          {focused.status === "approved" ? (
+            <ReceiptLine>
+              Spec approved.{" "}
+              {countArray(focused.citations) > 0 ? (
+                <>
+                  <ReceiptCount>{countArray(focused.citations)}</ReceiptCount> citations on the record.
+                </>
+              ) : (
+                "On the record."
+              )}
+            </ReceiptLine>
+          ) : null}
+
+          <NextLine
+            doors={[journeyDoor("j5", onActivateJourney), journeyDoor("j4", onActivateJourney)]}
+          />
         </div>
       ) : null}
     </CanvasFace>
