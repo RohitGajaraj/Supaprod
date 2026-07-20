@@ -1330,6 +1330,63 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          note: string
+          source_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          note: string
+          source_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string
+          source_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      approval_snoozes: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          reason: string | null
+          snoozed_until: string
+          source_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          reason?: string | null
+          snoozed_until: string
+          source_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          snoozed_until?: string
+          source_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       artifact_lineage: {
         Row: {
           ai_event_id: string | null
@@ -1391,6 +1448,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      artifact_versions: {
+        Row: {
+          artifact_id: string
+          artifact_kind: string
+          body: string | null
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          artifact_id: string
+          artifact_kind: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          artifact_id?: string
+          artifact_kind?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
       }
       assumption_challenges: {
         Row: {
@@ -2155,9 +2245,37 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
+          folder_id: string | null
           id: string
           model: string
           product_id: string | null
@@ -2169,6 +2287,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          folder_id?: string | null
           id?: string
           model?: string
           product_id?: string | null
@@ -2180,6 +2299,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          folder_id?: string | null
           id?: string
           model?: string
           product_id?: string | null
@@ -2190,6 +2310,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_product_id_fkey"
             columns: ["product_id"]
@@ -9263,6 +9390,10 @@ export type Database = {
         Returns: undefined
       }
       seed_sample_workspace: { Args: { _user_id: string }; Returns: string }
+      seed_sample_workspace_v2: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       seed_seam2_ci_tools: { Args: { _user_id: string }; Returns: undefined }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
