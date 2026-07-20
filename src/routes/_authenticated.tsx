@@ -161,7 +161,12 @@ function AuthedLayout() {
     pathname === "/threads" ||
     pathname.startsWith("/threads/") ||
     pathname === "/artifacts" ||
-    pathname.startsWith("/artifacts/");
+    pathname.startsWith("/artifacts/") ||
+    // Settings wears the reimagined room shell (RoomChromeShell) per screen-7,
+    // so the old AppShell 10-rail must not wrap it (founder ruling 2026-07-20:
+    // no bounce back to the retired shell).
+    pathname === "/settings" ||
+    pathname.startsWith("/settings/");
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the

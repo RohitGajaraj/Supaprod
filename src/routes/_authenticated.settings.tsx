@@ -13,7 +13,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { agentBlurb, agentDisplayName, catalogEntry } from "@/lib/agent-vocabulary";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/supaprod/TopBar";
+import { RoomChromeShell } from "@/components/mission/RoomChrome";
+import { SurfaceHeader } from "@/components/mission/primitives";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import {
   Avatar,
@@ -82,14 +83,9 @@ import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import {
   PRIMARY_GROUPS,
-  RECESSED_GROUPS,
   normalizeSection,
-  groupForSection,
-  findGroup,
-  primarySection,
   sectionLabel,
   type SectionId,
-  type GroupId,
 } from "@/lib/settings-sections";
 
 // The section ids, grouping, legacy deep-link map, and normalizeSection now live
@@ -141,63 +137,70 @@ export const Route = createFileRoute("/_authenticated/settings")({
   ),
 });
 
-// OBS-13 - the quiet left index (mono 01-04 + label), the Settings nav
-// anatomy: a column inside the content area, NOT a second rail. Active row
-// bg #1A1A1E + ember index, per the OBS-02 nav anatomy this mirrors.
-function SettingsIndex({
-  activeGroup,
+// The reimagined Settings nav (screen-7 `set-nav`): five named groups, every
+// door visible at once (no numbered index, no Advanced fold), ink tokens. The
+// active section wears the raised wash; a group label sits above its sections.
+// Memory now lives in Brain, echoed as a footer note like the mockup.
+function SettingsNav({
+  active,
   onSet,
 }: {
-  activeGroup: GroupId;
-  onSet: (id: GroupId) => void;
+  active: SectionId;
+  onSet: (id: SectionId) => void;
 }) {
   return (
-    <div className="flex flex-col" style={{ gap: 2, width: 172, flexShrink: 0 }}>
-      {PRIMARY_GROUPS.map((g, i) => {
-        const isActive = g.id === activeGroup;
-        return (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => onSet(g.id)}
-            aria-current={isActive ? "true" : undefined}
-            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]${isActive ? " loom-thread-active" : ""}`}
+    <aside
+      className="flex flex-col gap-5 border-r px-4 py-5"
+      style={{ width: 220, flexShrink: 0, borderColor: "var(--ink-hairline)" }}
+    >
+      {PRIMARY_GROUPS.map((g) => (
+        <div key={g.id} className="flex flex-col gap-0.5">
+          <div
+            className="mb-1 px-2 font-mono uppercase"
             style={{
-              gap: 10,
-              padding: "8px 12px",
-              borderRadius: "var(--radius-control)",
-              // No inline background when inactive so the hover class can win
-              // (inline styles beat utility classes).
-              background: isActive ? "var(--surface-active)" : undefined,
-              textAlign: "left",
-              transitionProperty: "background-color",
-              transitionDuration: "var(--dur-press, 140ms)",
+              fontSize: "10px",
+              letterSpacing: "0.1em",
+              color: "var(--ink-faint)",
             }}
           >
-            {/* v4 §3: active nav index reads ember-text; the mono floor is 10.5px */}
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor, 10.5px)",
-                letterSpacing: "0.08em",
-                color: isActive ? "var(--ember-text)" : "var(--text-subtle)",
-              }}
-            >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-base, 14px)",
-                color: isActive ? "var(--text-primary)" : "var(--text-body)",
-              }}
-            >
-              {g.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+            {g.label}
+          </div>
+          {g.sections.map((s) => {
+            const isActive = s.id === active;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onSet(s.id)}
+                aria-current={isActive ? "page" : undefined}
+                className={`ink-focus flex items-center rounded-lg text-left transition-colors ${
+                  isActive ? "" : "hover:bg-[var(--ink-raised)]"
+                }`}
+                style={{
+                  padding: "6px 10px",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "13px",
+                  background: isActive ? "var(--ink-raised)" : undefined,
+                  color: isActive ? "var(--ink-text)" : "var(--ink-body)",
+                }}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+      <div
+        className="px-2 pt-1"
+        style={{ fontSize: "11.5px", lineHeight: 1.5, color: "var(--ink-faint)" }}
+      >
+        Looking for Memory? It lives in{" "}
+        <Link to="/brain" style={{ color: "var(--ink-body)", textDecoration: "underline" }}>
+          Brain
+        </Link>{" "}
+        now.
+      </div>
+    </aside>
   );
 }
 
@@ -408,68 +411,17 @@ function SettingsPage() {
   // section, its member sections (for the tier-2 sub-row), and a pane-click
   // handler that lands on the pane's primary section. The ?section= id stays
   // the routing key.
-  const activeGroup = groupForSection(active);
-  const groupMembers = findGroup(activeGroup)?.sections ?? [];
-  const setGroup = (gid: GroupId) => navigate({ search: { section: primarySection(gid) } });
-
-  const workspaceName = activeWorkspace?.name;
-
+  // screen-7: Settings wears the room shell (the four doors, Settings lit),
+  // its own five-group set-nav, and the surface header - no old AppShell rail,
+  // so it no longer bounces to the retired 10-rail chrome.
   return (
-    <>
-      <TopBar crumbs={[workspaceName ?? "Workspace", "Settings"]} />
-      <div
-        data-screen-label="Settings"
-        style={{
-          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
-          width: "100%",
-          maxWidth: "var(--container-standard, 1240px)",
-          margin: "0 auto",
-        }}
-      >
-        {/* Wayfinding fix 2026-07-19: the TopBar crumb already reads
-            "[workspace] / Settings", so the visible workspace eyebrow and
-            page-name heading merely repeated it. One wayfinding source per
-            screen: the crumb keeps the location; the h1 stays sr-only for the
-            AT-navigable outline (same pattern as Today). */}
-        <h1 className="sr-only">Settings</h1>
-
-        <div className="flex flex-col md:flex-row" style={{ gap: 44 }}>
-          <div className="md:w-48">
-            <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
-          </div>
-
-          <div style={{ flex: 1, minWidth: 0, maxWidth: 880 }}>
-            {/* Tier 2: the active pane's member sections — only shown when the pane
-              holds more than one section (single-section panes need no sub-row). */}
-            {groupMembers.length > 1 ? (
-              <div className="flex flex-wrap" style={{ gap: 4, marginBottom: 20 }}>
-                {groupMembers.map((s) => {
-                  const isActive = s.id === active;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setTab(s.id)}
-                      aria-pressed={isActive}
-                      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-mono-floor, 10.5px)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        padding: "5px 10px",
-                        borderRadius: "var(--radius-control)",
-                        background: isActive ? "var(--raised)" : undefined,
-                        color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                      }}
-                    >
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-
+    <RoomChromeShell activeDoor="settings">
+      <div className="flex min-h-full" data-screen-label="Settings">
+        <SettingsNav active={active} onSet={setTab} />
+        <section className="min-w-0 flex-1">
+          <SurfaceHeader stageMarker="Settings" title={sectionLabel(active)} />
+          <h1 className="sr-only">Settings</h1>
+          <div style={{ padding: "26px 30px 72px", maxWidth: 980, margin: "0 auto" }}>
             {active === "connections" && (
               <ConnectionsTab
                 connector={activeConnector}
@@ -553,9 +505,9 @@ function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
-    </>
+    </RoomChromeShell>
   );
 }
 
