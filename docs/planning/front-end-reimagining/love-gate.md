@@ -103,8 +103,24 @@ Full sweep at close: `tsc --noEmit` clean, 148 mission/surface/seed tests pass,
   one-question screen. Keeping that win is the right call, not a richness pass.
 
 ### Remaining (documented, not silently cut)
-- **Journey / flow view (`screen-5-journey-flow`)** — a new "flow before screens"
-  composition. Not yet built; a sizeable new surface for a fresh, focused session.
-- **Migration-bearing follow-ons (apply at Gate-2):** Artifacts versions +
-  rename/delete + per-product tab; Threads folders + FTS + save-to-brain;
-  Settings Brand feed + Memory->Brain + `/sync` fold. All additive.
+- **Settings Brand feed — DONE** (`e5cac045`, no migration): Workspace > Brand
+  renders the design-memory feed (import URL / paste / defaults, learns from
+  approve/reject).
+- **Journey / flow (`screen-5`) — ADDRESSED**: screen-5 is the room during a
+  journey (the plan/reading/output triple + handoff), not a standalone view.
+  Met by the Build plan-flow, the Plan face's spec document, and the NextLine
+  journey handoffs. No separate all-journeys overview exists in the mockups.
+- **Onboarding (`screen-1`) — deliberately kept minimal** per founder steering
+  (frictionless one-question `/start`).
+- **Migration-bearing follow-ons (apply at the Gate-2 merge, still open):**
+  Artifacts versions + rename/delete + per-product tab; Threads folders + FTS +
+  save-to-brain; Settings Memory->Brain move + `/sync` fold. Each needs a new
+  table/column, so they land with the merge; the reads must degrade gracefully
+  until then (the snooze/feedback pattern).
+
+## Final verification (2026-07-20)
+`tsc --noEmit` clean · `bun run build` succeeds · full `bun test` = 5295 pass
+with only the 16 pre-existing fails + 10 errors (proven pre-existing via
+`git stash`, not from this work; every touched scope, 148 mission/surface/
+settings/seed tests, passes). Branch `sandbox/mission-control-v2` is clean and
+HEAD == origin. Not merged to main; held for the founder's Gate-2 review.
