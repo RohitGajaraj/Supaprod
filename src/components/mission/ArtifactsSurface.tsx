@@ -1,16 +1,22 @@
-// ArtifactsSurface (front-end reimagining Phase 4; founder-approved, named
-// "Artifacts"). The workspace view of everything the loop has made:
-// prototypes, specs, docs today. The /artifacts route renders this; a
-// per-product tab on the Canvas rest face is the follow-up placement.
+// ArtifactsSurface (front-end reimagining, founder-approved, named "Artifacts").
+// The workspace view of everything the loop has made: prototypes, specs, docs.
+// The /artifacts route renders this; a per-product tab on the Canvas rest face
+// is the follow-up placement.
 //
-// Read-only index today (gap K6): rename/delete (K9) and versions (K7) are the
-// migration-bearing follow-ups, so this never renders a control it cannot back.
-// Plain ink surfaces, chip attribution, mono timestamps, no cost figures.
+// K6 index (no migration) + K9 rename/delete (no migration: each family already
+// has its own server fns, dispatched by kind here). Versions (K7) + the
+// per-product tab remain the migration-bearing follow-ups. Plain ink surfaces,
+// chip attribution, mono timestamps, no cost figures.
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { usePrompt, useConfirm } from "@/hooks/use-confirm";
 import { listArtifacts, type ArtifactSummary, type ArtifactKind } from "@/lib/artifacts.functions";
+import { renamePrototype, deletePrototype } from "@/lib/prototypes.functions";
+import { savePrd, deletePrd } from "@/lib/discovery.functions";
+import { updateDoc, deleteDoc } from "@/lib/docs.functions";
 
 const KIND_LABEL: Record<ArtifactKind, string> = {
   prototype: "Prototype",
@@ -30,11 +36,20 @@ function relTime(iso: string | null): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function ArtifactRow({ a }: { a: ArtifactSummary }) {
+function ArtifactRow({
+  a,
+  onRename,
+  onDelete,
+  busy,
+}: {
+  a: ArtifactSummary;
+  onRename: (a: ArtifactSummary) => void;
+  onDelete: (a: ArtifactSummary) => void;
+  busy: boolean;
+}) {
   return (
-    <a
-      href={a.href}
-      className="ink-focus flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors hover:bg-[var(--ink-raised)]"
+    <div
+      className="group flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors hover:bg-[var(--ink-raised)]"
       style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
     >
       <span
@@ -43,16 +58,35 @@ function ArtifactRow({ a }: { a: ArtifactSummary }) {
       >
         {KIND_LABEL[a.kind]}
       </span>
-      <span className="min-w-0 flex-1 truncate text-[13.5px]" style={{ color: "var(--ink-text)" }}>
+      <a
+        href={a.href}
+        className="ink-focus min-w-0 flex-1 truncate text-[13.5px]"
+        style={{ color: "var(--ink-text)" }}
+      >
         {a.name}
-      </span>
+      </a>
       <span className="flex-none font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
         {relTime(a.updatedAt)}
       </span>
-      <span aria-hidden className="flex-none text-[12px]" style={{ color: "var(--ink-faint)" }}>
-        {"→"}
-      </span>
-    </a>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onRename(a)}
+        className="ink-focus flex-none rounded-md px-2 py-0.5 text-[11.5px] opacity-0 transition-opacity hover:bg-[var(--ink-raised)] focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-40"
+        style={{ color: "var(--ink-subtle)" }}
+      >
+        Rename
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => onDelete(a)}
+        className="ink-focus flex-none rounded-md px-2 py-0.5 text-[11.5px] opacity-0 transition-opacity hover:bg-[rgba(229,83,75,0.08)] focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-40"
+        style={{ color: "var(--verdict-fail)" }}
+      >
+        Delete
+      </button>
+    </div>
   );
 }
 
@@ -60,6 +94,65 @@ export function ArtifactsSurface() {
   const fetchArtifacts = useServerFn(listArtifacts);
   const q = useQuery({ queryKey: ["artifacts"], queryFn: () => fetchArtifacts() });
   const artifacts = useMemo(() => q.data?.artifacts ?? [], [q.data]);
+
+  const qc = useQueryClient();
+  const prompt = usePrompt();
+  const confirm = useConfirm();
+  const fRenameProto = useServerFn(renamePrototype);
+  const fDeleteProto = useServerFn(deletePrototype);
+  const fSavePrd = useServerFn(savePrd);
+  const fDeletePrd = useServerFn(deletePrd);
+  const fUpdateDoc = useServerFn(updateDoc);
+  const fDeleteDoc = useServerFn(deleteDoc);
+
+  const renameMut = useMutation({
+    mutationFn: async ({ a, name }: { a: ArtifactSummary; name: string }) => {
+      if (a.kind === "prototype") await fRenameProto({ data: { id: a.id, name } });
+      else if (a.kind === "spec") await fSavePrd({ data: { id: a.id, title: name } });
+      else await fUpdateDoc({ data: { id: a.id, title: name } });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["artifacts"] });
+      toast.success("Renamed.");
+    },
+    onError: () => toast.error("Could not rename that."),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: async (a: ArtifactSummary) => {
+      if (a.kind === "prototype") await fDeleteProto({ data: { id: a.id } });
+      else if (a.kind === "spec") await fDeletePrd({ data: { id: a.id } });
+      else await fDeleteDoc({ data: { id: a.id } });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["artifacts"] });
+      toast.success("Deleted.");
+    },
+    onError: () => toast.error("Could not delete that."),
+  });
+
+  const busy = renameMut.isPending || deleteMut.isPending;
+
+  const onRename = async (a: ArtifactSummary) => {
+    const name = await prompt({
+      title: "Rename artifact",
+      defaultValue: a.name,
+      placeholder: "New name",
+      confirmLabel: "Rename",
+    });
+    if (name && name.trim() && name.trim() !== a.name) renameMut.mutate({ a, name: name.trim() });
+  };
+
+  const onDelete = async (a: ArtifactSummary) => {
+    const ok = await confirm({
+      title: "Delete this artifact?",
+      body: `"${a.name}" will be removed. This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Keep",
+      destructive: true,
+    });
+    if (ok) deleteMut.mutate(a);
+  };
 
   return (
     <div
@@ -112,7 +205,13 @@ export function ArtifactsSurface() {
             {artifacts.length} in this workspace, newest first.
           </p>
           {artifacts.map((a) => (
-            <ArtifactRow key={`${a.kind}:${a.id}`} a={a} />
+            <ArtifactRow
+              key={`${a.kind}:${a.id}`}
+              a={a}
+              onRename={onRename}
+              onDelete={onDelete}
+              busy={busy}
+            />
           ))}
         </div>
       )}

@@ -152,3 +152,33 @@ export const togglePrototypeShare = createServerFn({ method: "POST" })
     if (!updated) throw new Error("Prototype not found");
     return { ok: true, isPublic: data.isPublic };
   });
+
+// K9 (Artifacts rename/delete): rename + delete a prototype. RLS-scoped like
+// the rest of this file (own-row + workspace-member); no migration. A foreign
+// id updates/deletes zero rows rather than someone else's.
+export const renamePrototype = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ id: z.string().uuid(), name: z.string().min(1).max(200) }).parse(i),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const builder = context.supabase.from("prototypes") as unknown as {
+      update: (p: Record<string, unknown>) => {
+        eq: (c: string, v: string) => Promise<{ error: { message: string } | null }>;
+      };
+    };
+    const { error } = await builder
+      .update({ name: data.name, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deletePrototype = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { error } = await context.supabase.from("prototypes").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
