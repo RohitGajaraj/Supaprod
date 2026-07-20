@@ -137,15 +137,56 @@ export type MissionListRow = {
 
 export const listMissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ missions: MissionListRow[] }> => {
+  .inputValidator((i: unknown) =>
+    z
+      .object({ productId: z.string().uuid().optional() })
+      .optional()
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data: input }): Promise<{ missions: MissionListRow[] }> => {
     const { supabase } = context;
-    const { data, error } = await supabase
+
+    // Build-face scoping: a mission carries only workspace_id, so its product
+    // link lives on the studio_changeset it produced (product_id) or on the
+    // spec it was dispatched from (prds.product_id → the prd→mission lineage
+    // edge). When a productId is given, restrict to exactly that product's
+    // builds; no builds yet is an honest empty state, never a cross-product leak.
+    let productMissionIds: string[] | null = null;
+    if (input?.productId) {
+      const productId = input.productId;
+      const [{ data: csRows }, { data: prdRows }] = await Promise.all([
+        supabase.from("studio_changesets").select("mission_id").eq("product_id", productId),
+        supabase.from("prds").select("id").eq("product_id", productId),
+      ]);
+      const set = new Set<string>();
+      for (const r of (csRows ?? []) as { mission_id: string | null }[]) {
+        if (r.mission_id) set.add(r.mission_id);
+      }
+      const prdIds = ((prdRows ?? []) as { id: string }[]).map((p) => p.id);
+      if (prdIds.length) {
+        const { data: edges } = await supabase
+          .from("artifact_lineage")
+          .select("child_id")
+          .eq("parent_kind", "prd")
+          .in("parent_id", prdIds)
+          .eq("child_kind", "mission");
+        for (const e of (edges ?? []) as { child_id: string | null }[]) {
+          if (e.child_id) set.add(e.child_id);
+        }
+      }
+      productMissionIds = [...set];
+      if (productMissionIds.length === 0) return { missions: [] };
+    }
+
+    let query = supabase
       .from("missions")
       .select(
         "id,title,goal,status,hop_count,current_agent_id,created_at,updated_at,completed_at,build_driver",
       )
       .order("updated_at", { ascending: false })
       .limit(50);
+    if (productMissionIds) query = query.in("id", productMissionIds);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     const missions = data ?? [];
     if (missions.length === 0) return { missions: [] };

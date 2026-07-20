@@ -1126,7 +1126,7 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
   const fetchSession = useServerFn(getStudioSession);
   const mq = useQuery({
     queryKey: ["face-missions", productId],
-    queryFn: () => fetchMissions(),
+    queryFn: () => fetchMissions({ data: { productId } }),
     refetchInterval: pollWhenVisible(15_000),
   });
   const missions = (mq.data?.missions ?? []) as MissionRow[];
