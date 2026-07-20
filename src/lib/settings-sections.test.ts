@@ -32,6 +32,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
   "staff",
   "autonomy",
   "workspace",
+  "brand",
   "products",
   "billing",
   "credits",
@@ -44,7 +45,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 14 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 15 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 

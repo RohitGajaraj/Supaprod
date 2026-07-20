@@ -19,6 +19,7 @@ export type SectionId =
   | "staff"
   | "autonomy"
   | "workspace"
+  | "brand"
   | "products"
   | "billing"
   | "credits"
@@ -69,6 +70,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
     desc: "What you are building, your brand, and your team.",
     sections: [
       { id: "workspace", label: "Brief & voice" },
+      { id: "brand", label: "Brand" },
       { id: "products", label: "Products" },
       { id: "memory", label: "Memory" },
     ],

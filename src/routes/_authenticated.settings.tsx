@@ -79,6 +79,7 @@ import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
+import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import {
   PRIMARY_GROUPS,
   RECESSED_GROUPS,
@@ -482,6 +483,7 @@ function SettingsPage() {
               <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
             )}
             {active === "products" && <ProductsTab />}
+            {active === "brand" && <DesignMemoryPanel />}
             {active === "workspace" && (
               <>
                 <WorkspaceTab scrollToBrief={rawSection === "brief"} />
