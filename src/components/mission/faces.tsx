@@ -1998,6 +1998,12 @@ export function RestFace({
       : activeCount > 0
         ? `${activeCount} ${activeCount === 1 ? "agent is" : "agents are"} at work.`
         : "Quiet. The next loop starts on your word.";
+  // A brand-new product with nothing run yet: greet the operator and point at
+  // the one input instead of a blank room (the essence of screen-1's first
+  // zone, kept simple per the founder's minimal-first-run ruling). Product-
+  // scoped signals only (decisionCount is workspace-wide, so it is excluded).
+  const isFresh =
+    deployments.length === 0 && gateCount === 0 && doneCount === 0 && activeCount === 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -2029,6 +2035,32 @@ export function RestFace({
             </>
           ) : null}
         </div>
+
+        {isFresh ? (
+          <div className="mt-6 rounded-xl border p-5" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+            <p className="text-[13.5px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>
+              Nothing has run here yet. Name the work in the box below, or start with one of these, and the loop takes it from there.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                { j: "j1" as JourneyId, label: "What should we build next?" },
+                { j: "j0" as JourneyId, label: "Take it from signal to shipped" },
+                { j: "j2" as JourneyId, label: "Tear an idea down" },
+              ].map((c) => (
+                <button
+                  key={c.j}
+                  type="button"
+                  onClick={() => onActivateJourney?.(c.j)}
+                  className="ink-focus inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+                  style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)", color: "var(--ink-text)" }}
+                >
+                  {c.label}
+                  <span style={{ color: "var(--ink-faint)" }}>{"\u2192"}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
           The loop, stage by stage
