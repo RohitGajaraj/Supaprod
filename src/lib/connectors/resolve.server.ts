@@ -95,7 +95,9 @@ async function getCachedWorkspaceTier(workspaceId: string): Promise<string | und
       .select("plan_tier")
       .eq("id", workspaceId)
       .maybeSingle();
-    const tier = !error ? ((ws as { plan_tier?: string } | null)?.plan_tier ?? undefined) : undefined;
+    const tier = !error
+      ? ((ws as { plan_tier?: string } | null)?.plan_tier ?? undefined)
+      : undefined;
     _workspaceTierCache.set(workspaceId, { value: tier ?? "", at: now });
     return tier;
   } catch {
