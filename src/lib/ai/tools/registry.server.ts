@@ -1607,9 +1607,10 @@ const studioCommit = def({
         .maybeSingle();
       missionTitle = (m as { title?: string } | null)?.title ?? null;
     }
-    for (const path of paths) {
-      if (ours.has(path)) continue;
-      const { error } = await supabase.from("builder_file_claims").insert({
+    // Batch insert new claims instead of sequential per-path inserts (N+1 fix)
+    const claimsToInsert = Array.from(paths)
+      .filter((path) => !ours.has(path))
+      .map((path) => ({
         user_id: userId,
         workspace_id: workspaceId ?? null,
         run_id: runId ?? null,
@@ -1617,10 +1618,12 @@ const studioCommit = def({
         mission_title: missionTitle,
         repo,
         path,
-        status: "held",
-      });
+        status: "held" as const,
+      }));
+    if (claimsToInsert.length > 0) {
+      const { error } = await supabase.from("builder_file_claims").insert(claimsToInsert);
       if (error && !/unique|duplicate/i.test(error.message)) {
-        console.error("[studio.commit] claim insert failed:", error.message);
+        console.error("[studio.commit] batch claim insert failed:", error.message);
       }
     }
 

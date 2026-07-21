@@ -76,6 +76,33 @@ function admin(): SupabaseClient {
   return supabaseAdmin as unknown as SupabaseClient;
 }
 
+// Workspace plan_tier cache: tier is rarely flipped and requested on every
+// resolveProviderAuth call with requiredCapability set. Cache it in-process
+// so the hot path costs at most one RPC per workspace per TTL, not a round-trip
+// per connector call. Same pattern as creditsEnabled in runtime.server.ts.
+let _workspaceTierCache: Map<string, { value: string; at: number }> = new Map();
+const WORKSPACE_TIER_TTL_MS = 5 * 60 * 1000;
+
+async function getCachedWorkspaceTier(workspaceId: string): Promise<string | undefined> {
+  const now = Date.now();
+  const cached = _workspaceTierCache.get(workspaceId);
+  if (cached && now - cached.at < WORKSPACE_TIER_TTL_MS) {
+    return cached.value;
+  }
+  try {
+    const { data: ws, error } = await admin()
+      .from("workspaces")
+      .select("plan_tier")
+      .eq("id", workspaceId)
+      .maybeSingle();
+    const tier = !error ? ((ws as { plan_tier?: string } | null)?.plan_tier ?? undefined) : undefined;
+    _workspaceTierCache.set(workspaceId, { value: tier ?? "", at: now });
+    return tier;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * KI-34 cross-tenant credential guard. The connection_bindings write RLS
  * authorizes by workspace membership only and never validates connection_id, so a
@@ -241,24 +268,13 @@ export async function resolveProviderAuth(args: {
   // for an unauthorized tier. Fails CLOSED: any lookup error defaults to 'free'
   // (most restrictive), never fails open. assertConnectorCapability throws with a
   // user-readable upgrade message on insufficient tier; that error propagates as-is.
+  // Tier lookups are cached per workspace to avoid redundant RPC calls on the hot path.
   if (requiredCapability && workspaceId) {
-    let tier;
-    try {
-      const { data: ws, error } = await admin()
-        .from("workspaces")
-        .select("plan_tier")
-        .eq("id", workspaceId)
-        .maybeSingle();
-      // On any DB error, default to 'free' (fail closed — never grant access when
-      // we can't verify the tier). This is intentionally more restrictive than the
-      // credential chain's fail-open policy; a security gate must not fail open.
-      if (error) {
-        console.warn(`[connectors] tier lookup failed for workspace, defaulting free`);
-      }
-      tier = normalizePlanTier((ws as { plan_tier?: string } | null)?.plan_tier);
-    } catch {
-      tier = normalizePlanTier(undefined); // defaults to 'free'
+    const tierRaw = await getCachedWorkspaceTier(workspaceId);
+    if (!tierRaw) {
+      console.warn(`[connectors] tier lookup failed for workspace, defaulting free`);
     }
+    const tier = normalizePlanTier(tierRaw);
     // Throws with user-readable upgrade prompt if tier is insufficient.
     assertConnectorCapability(tier, requiredCapability);
   }

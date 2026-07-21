@@ -172,10 +172,7 @@ export async function watchAssumptions(
 
   // Batch update last_watched_at for all scanned assumptions.
   if (watchedIds.length > 0) {
-    await supabase
-      .from("assumptions")
-      .update({ last_watched_at: nowIso })
-      .in("id", watchedIds);
+    await supabase.from("assumptions").update({ last_watched_at: nowIso }).in("id", watchedIds);
   }
 
   // Batch insert challenges; ignore conflicts (uq_assumption_challenges_open already flagged).
