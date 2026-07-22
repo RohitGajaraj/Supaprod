@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Reviews are rolling — the 10-minute interview can land any time once the application is read, so interview-ready means ready the day you submit (YC's posted outer bound: decisions by Aug 28, batch Oct–Dec in San Francisco, $500K standard deal)._
 >
-> **How to use this file:** each field shows the PREVIOUS answer (from the rolled-over application), the NEW answer in a copy-paste block, and one line on why. Anything in `[square brackets]` is a slot you fill or confirm on submit day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
+> **How to use this file:** three columns now. Each field below shows the PREVIOUS answer (rolled-over application) and the NEW answer (2026-07-10 rewrite); **the ⭐ SUBMIT SHEET section is the THIRD column (2026-07-22) — the final submit-day text, written under the ratified triple-RFS positioning with live-verified numbers; where it differs from a "New" block, the submit sheet wins.** Anything in `[square brackets]` is a slot you fill or confirm on submit day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
 
 ## The five laws this application is written under
 
@@ -13,6 +13,183 @@
 5. **Lead with the delta, land the scope.** YC's FAQ: progress since a prior application "is a strong signal" — make it impossible to miss in a 90-second skim. And "Cursor for product managers" is the door, not the room: the answers escalate to what this actually is, the operating system a whole product org runs on.
 
 **What a partner is scanning for, in order:** (1) do I get what this is in one sentence, (2) is there an earned insight, (3) is this founder formidable, (4) is anything real and live. Every answer below serves one of those four.
+
+---
+
+## ⭐ THE SUBMIT SHEET — the third column, NOW (2026-07-22)
+
+> _This is the copy-paste sheet for submit day: every changed field's FINAL text, superseding the "New" blocks below where they differ. Written under the ratified triple-RFS positioning ([`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md)): door (Cursor for PMs) → body (the OS) → brain (the outcome memory, the crescendo). Numbers pulled live 2026-07-22: homepage stats 145 missions run · 81 decisions recorded · 54 outcomes graded · 4,117 AI calls (they render live on supaprod.ai, so a partner can check them); repo 3,966 commits in seven weeks · 384 migrations; register 401 specced / 366 shipped (corrected tally). Alumni-playbook rules applied: first line of every answer is the TL;DR, numbers over adjectives, competitors named with the insight, submit days early. Remaining founder-only slots are marked `[FOUNDER]`._
+
+**§2 Personal website:** `https://supaprod.ai`
+
+**§4 Who writes code:**
+
+```
+I direct all of it; AI agents write the code. I run parallel Claude Code
+lanes with one model doing judgment and review over what the build models
+produce. Every change goes through typecheck, build, and a review pass
+before merge. Seven weeks in, this codebase has about 3,970 commits and 384
+database migrations, and when I had an outside AI code auditor review the
+codebase and my build register, the register held up. No non-founder has
+touched it. Building this way is also the whole point of Supaprod: one
+person directing a fleet of agents, with receipts for everything they did.
+```
+
+**§7a Company name:** `Supaprod` · **§7c Company URL:** `https://supaprod.ai`
+
+**§7b 50 characters:** `Cursor for PMs, the whole product org.` (39 chars — KEEP; the door, per the telling order)
+
+**§7e Product link:**
+
+```
+https://supaprod.ai
+
+Demo login: demo2@redcadence.app / Cadence!Demo2026 (or sign up; you get a
+seeded workspace with sample products to explore.)
+```
+
+_(Checklist: verify this exact login works on supaprod.ai in incognito before submit; the legacy credential domain is intentional.)_
+
+**§7f What is your company going to make:**
+
+```
+Supaprod is where a product org runs when AI agents do the work. The
+shortest way to say it: Cursor for product managers, but one system for the
+whole lifecycle, not a copilot bolted onto one step. You connect the tools
+where your product signals live and the agents take it from there: they
+read the signals, cluster them into opportunities, argue against the weak
+bets before you commit, write the spec with the evidence attached, plan the
+work, and hand builds to coding agents. You approve the calls that matter.
+
+The part that makes it a company: every agent action leaves a receipt, and
+every decision gets checked later against what actually happened. Supaprod
+answers "why did we decide this" in seconds, learns which calls were right,
+and re-ranks what to build next from its own track record. Agents earn
+autonomy the way a new hire earns trust, and anything they produce rolls
+back with one key.
+
+AI made building cheap. What a company runs on now is decisions and whether
+they were right. That is the layer I own. Agents do the work. You answer
+for it. Supaprod is how you answer.
+```
+
+**§8a How far along:**
+
+```
+The product works end to end today, and the numbers in this answer render
+live on the homepage. In seven weeks, solo: an autonomous engine that
+advances product missions every minute (live right now: 145 missions run,
+81 decisions recorded, 54 outcomes graded, 4,117 AI calls through one
+audited path); agents that open real pull requests behind a merge gate no
+agent can cross; permissions agents earn from their track record; one-key
+rollback on anything they produce; and decisions that get re-checked
+against outcomes, which then re-rank what to build next.
+
+I track the build in a public-style register: 401 features specced, 366
+shipped. An outside AI code auditor reviewed the codebase against that
+register and it held.
+
+Everything until now was building the machine. Now I am putting people in
+it: the beta opens this week, and the public launch follows in weeks, not
+months.
+```
+
+**§8b How long working on this:**
+
+```
+Seven weeks on this build at roughly sixteen hours a day, seven days a
+week; the repo shows 3,966 commits over that stretch. Before that, about a
+month of nights and weekends on the prototype that became Supaprod. I am
+going full-time on Supaprod regardless of anything. That decision is made.
+The batch changes where I sit, not whether I am in.
+```
+
+_[FOUNDER: the Intellect one-liner for the interview stays yours to decide and rehearse — see §8b note below.]_
+
+**§8e Are people using your product:** _(submit whichever is literally true that day)_
+
+```
+Not yet outside my own daily use. Supaprod runs its own roadmap, and its
+agents built most of it. The beta opens this week from a named prospect
+list, and anyone can walk the real product today with the demo login above.
+```
+
+**§8h Same idea as a previous batch:**
+
+```
+Same idea, one batch later, roughly ten times the product. Since the
+rollover: the product got its name, domain, and public site (supaprod.ai);
+the autonomous engine went live and has now run 145 missions and recorded
+81 decisions; agents open real pull requests behind human gates; recorded
+outcomes now re-rank what to build next; an outside AI code audit of the
+build register held up; and the public launch is weeks away. The pace is
+the pitch.
+```
+
+**§9a Why this idea / domain expertise / how do you know people need it:**
+
+```
+I have spent close to a decade in product: communication systems at ISRO,
+then product roles at Infineon and Bosch, and most recently the AI platform
+that 200+ financial institutions use to build their own AI products. In
+every one of those jobs the real work was being the glue across a dozen
+tools, and re-answering "why did we decide this" from memory.
+
+Supaprod started as a dashboard I built to stop drowning in that. Then I
+noticed YC kept describing the company I was already building, three
+times: a "Cursor for product managers" (Spring 2026 RFS), an "AI operating
+system for companies," and a "company brain" (both Summer 2026 RFS). My
+insight is that those are one product. You cannot be the company brain
+without owning the loop that generates the outcomes, and you cannot run
+that loop without being the operating system. The product org is where the
+loop is tightest, so that is where I started.
+
+How I know people need it: the top-voted thread in the biggest PM community
+is literally "So why did we decide on X? Cue hours of finding that Slack
+conversation from months ago" (480 points), and that community's biggest
+post this year is a senior PM hand-building exactly this out of Claude
+Code, MCP connectors, and a memory system. And I need it myself, every
+single day.
+```
+
+**§9b Competitors / what do you understand that they don't:**
+
+```
+Nobody runs the whole loop; my real competitor is the stitched stack:
+Linear or Jira for tracking, Notion for docs, ChatPRD for specs (100k+
+PMs), a coding agent for the build, and the PM as the glue. The space is
+moving fast: Samepage raised $4.85M in June to surface signals for product
+leaders, Brief captures decision context for agents, Productboard shipped
+Spark, and Notion launched Ship OS this month claiming "customer feedback
+to a merged PR."
+
+What I understand that they don't: every one of them stops one step short.
+Samepage surfaces, ChatPRD and Spark draft, Brief remembers context, Linear
+and Ship OS dispatch. Nobody checks the shipped outcome against the
+decision and feeds it back, and that last step is the only one that
+compounds. The connected record of decision, evidence, and outcome cannot
+be bolted onto a tracker, and it cannot be copied quickly, because it only
+accumulates with time.
+
+I also deliberately do not build the code generator. Cursor and Devin are
+in a capital knife fight there, and the models keep absorbing that layer.
+Supaprod decides what is worth building, dispatches to whichever generator
+wins, and keeps the receipts. If a frontier lab ships a "PM agent," it
+ships capability. The accountability layer across your tools is the part
+they structurally will not own.
+```
+
+**Everything else:** §3a/3b/3d, §5, §7g, §8c, §8g, §8i, §9c, §9d, §10, §11a/11b, §12 — the "New" blocks below stand as final (name updated to Supaprod where noted). `[FOUNDER]` slots remaining: the IIM Bangalore venture line (§3c), the Intellect one-liner (§8b), messaging Badis before naming Asendia (§11a), both video re-records (§6, §7d).
+
+**The NOW pre-submit checklist (continuous, in priority order):**
+
+1. Verify `demo2@redcadence.app` login on `https://supaprod.ai` in incognito; re-seed the demo workspace; check demo credit balance.
+2. Re-record the founder video (≤1:00, bullet card) and demo video (~2:15) per [`video-scripts.md`](./video-scripts.md).
+3. Fill the three `[FOUNDER]` text slots; message Badis.
+4. On submit day: re-read the homepage stats and sync the numbers in §8a/§8h/§4 to what the site shows that hour (they render live).
+5. Read every answer aloud; the retell test with one outside reader; the neediness scan.
+6. Attach the chosen Claude Code session transcript (§8d).
+7. Submit early — July 25 or 26, not the 27th.
 
 ---
 
