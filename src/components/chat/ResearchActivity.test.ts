@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-// import { render, screen } from "@testing-library/react"; // For DOM rendering tests
+import { render, screen } from "@testing-library/react";
+import React from "react";
 import {
   parseResearchStatus,
   summarySegments,
@@ -1035,32 +1036,24 @@ describe("ResearchActivity", () => {
 
   describe("ResearchActivityLine (DOM rendering)", () => {
     it("renders spinner and status label when statuses exist", () => {
-      // NOTE: This test requires render() from @testing-library/react
-      // The component renders a spinner (className="spinner") and ShimmerText
-      // with the latest status label. This test verifies actual DOM output,
-      // not just JSX structure.
       const statuses = [{ phase: "search" as const, label: "Searching documents..." }];
-      // render(ResearchActivityLine({ statuses }));
-      // expect(screen.getByText("Searching documents...")).toBeTruthy();
-      // const spinner = document.querySelector(".spinner");
-      // expect(spinner).toBeTruthy();
+      render(React.createElement(ResearchActivityLine, { statuses }));
+      expect(screen.getByText("Searching documents...")).toBeTruthy();
+      const spinner = document.querySelector(".spinner");
+      expect(spinner).toBeTruthy();
     });
 
     it("renders status label with correct text content", () => {
-      // The latest status label should be visible in the DOM
       const statuses = [
         { phase: "plan" as const, label: "Planning..." },
         { phase: "read" as const, label: "Reading sources..." },
       ];
-      // render(ResearchActivityLine({ statuses }));
-      // The latest status is "Reading sources..."
-      // expect(screen.getByText("Reading sources...")).toBeTruthy();
-      // expect(screen.queryByText("Planning...")).not.toBeTruthy();
+      render(React.createElement(ResearchActivityLine, { statuses }));
+      expect(screen.getByText("Reading sources...")).toBeTruthy();
+      expect(screen.queryByText("Planning...")).toBeNull();
     });
 
     it("renders summary segments joined by ' · ' separator", () => {
-      // The completed phases should render as summary segments joined by " · "
-      // e.g. "Searched 2 queries · Read 3 sources"
       const statuses = [
         { phase: "search" as const, label: "Searching..." },
         { phase: "search" as const, label: "Searching..." },
@@ -1069,34 +1062,27 @@ describe("ResearchActivity", () => {
         { phase: "read" as const, label: "Reading..." },
         { phase: "synthesize" as const, label: "Synthesizing..." },
       ];
-      // render(ResearchActivityLine({ statuses }));
-      // Completed: 2 searches, 3 reads; current: synthesize
-      // expect(screen.getByText(/Searched 2 queries · Read 3 sources/)).toBeTruthy();
+      render(React.createElement(ResearchActivityLine, { statuses }));
+      expect(screen.getByText(/Searched 2 queries · Read 3 sources/)).toBeTruthy();
     });
 
     it("renders gap between spinner and status label", () => {
-      // The flex container should have columnGap: 8 (pixels)
       const statuses = [{ phase: "search" as const, label: "Searching..." }];
-      // render(ResearchActivityLine({ statuses }));
-      // The div with className="fade-up" should have gap styling
-      // const container = screen.getByText("Searching...").parentElement;
-      // expect(container?.style.columnGap).toBe("8px");
+      render(React.createElement(ResearchActivityLine, { statuses }));
+      const container = screen.getByText("Searching...").parentElement;
+      expect(container?.style.columnGap).toBe("8px");
     });
 
     it("renders no summary segment when no phases completed", () => {
-      // If only one status (the current one), there's no summary
       const statuses = [{ phase: "plan" as const, label: "Planning..." }];
-      // render(ResearchActivityLine({ statuses }));
-      // Only the latest status should show, not a summary
-      // expect(screen.getByText("Planning...")).toBeTruthy();
-      // expect(screen.queryByText(/Searched|Read|Workspace/)).not.toBeTruthy();
+      render(React.createElement(ResearchActivityLine, { statuses }));
+      expect(screen.getByText("Planning...")).toBeTruthy();
+      expect(screen.queryByText(/Searched|Read|Workspace/)).toBeNull();
     });
   });
 
   describe("ResearchSummaryRow (DOM rendering)", () => {
     it("renders research chips when research data exists", () => {
-      // The component renders a flex row with research mode chips
-      // Each chip shows research mode indicators: "Searched n queries", "Read m sources", etc.
       const meta: ChatMeta = {
         research: { mode: "web", sub_queries: ["q1", "q2"] },
         sources: [
@@ -1105,58 +1091,52 @@ describe("ResearchActivity", () => {
         ],
         workspace_chunks: 0,
       };
-      // render(ResearchSummaryRow({ meta }));
-      // Should show chips for the research summary
-      // expect(screen.getByText(/Searched 2 queries/)).toBeTruthy();
-      // expect(screen.getByText(/Read 2 sources/)).toBeTruthy();
+      render(React.createElement(ResearchSummaryRow, { meta }));
+      expect(screen.getByText(/Searched 2 queries/)).toBeTruthy();
+      expect(screen.getByText(/Read 2 sources/)).toBeTruthy();
     });
 
     it("renders workspace indicator chip when workspace chunks > 0", () => {
-      // When workspace chunks are accessed, show "Workspace" chip
       const meta: ChatMeta = {
         research: { mode: "both", sub_queries: [] },
         sources: [],
         workspace_chunks: 3,
       };
-      // render(ResearchSummaryRow({ meta }));
-      // expect(screen.getByText("Workspace")).toBeTruthy();
+      render(React.createElement(ResearchSummaryRow, { meta }));
+      expect(screen.getByText("Workspace")).toBeTruthy();
     });
 
     it("renders chips with uppercase labels and mono font", () => {
-      // Research chips should render as uppercase (UPPERCASE LABEL)
-      // with monospace font and letter-spacing
       const meta: ChatMeta = {
         research: { mode: "internal", sub_queries: [] },
         sources: [],
         workspace_chunks: 0,
       };
-      // render(ResearchSummaryRow({ meta }));
-      // The chips should have className containing "mono" or style with monospace font
-      // const chips = document.querySelectorAll('[style*="font-mono"], [class*="mono"]');
-      // expect(chips.length).toBeGreaterThan(0);
+      render(React.createElement(ResearchSummaryRow, { meta }));
+      const chips = document.querySelectorAll('[style*="font-mono"], [class*="mono"]');
+      expect(chips.length).toBeGreaterThan(0);
     });
 
     it("renders nothing when research mode is 'chat'", () => {
-      // Should return null for chat-mode research
       const meta: ChatMeta = {
         research: { mode: "chat", sub_queries: [] },
         sources: [],
         workspace_chunks: 0,
       };
-      // render(ResearchSummaryRow({ meta }));
-      // expect(document.body.children.length).toBe(0); // or similar null check
+      render(React.createElement(ResearchSummaryRow, { meta }));
+      const rendered = screen.queryByText(/Searched|Read|Workspace/);
+      expect(rendered).toBeNull();
     });
 
     it("renders flex row with gap spacing", () => {
-      // The container should be display: flex with gap: 1.5 (Tailwind spacing)
       const meta: ChatMeta = {
         research: { mode: "web", sub_queries: ["q1"] },
         sources: [{ n: 1, title: "S1", kind: "web" }],
         workspace_chunks: 0,
       };
-      // render(ResearchSummaryRow({ meta }));
-      // const container = screen.getByText(/Searched 1 query/).parentElement?.parentElement;
-      // expect(container?.className).toContain("gap");
+      render(React.createElement(ResearchSummaryRow, { meta }));
+      const container = screen.getByText(/Searched 1 query/).closest(".flex");
+      expect(container?.className).toContain("gap");
     });
   });
 });

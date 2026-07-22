@@ -1,12 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { render, screen } from "@testing-library/react";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-  toneForScore,
-} from "../DetailKit";
+import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "../DetailKit";
 
 /**
  * Component rendering tests for DetailKit primitives.
@@ -44,7 +38,7 @@ describe("DetailHeader — Refined detail panel header", () => {
 
   it("should render meta row when chips are provided", () => {
     const { container } = render(
-      <DetailHeader title="Title" chips={<span data-testid="chip">Status</span>} />
+      <DetailHeader title="Title" chips={<span data-testid="chip">Status</span>} />,
     );
 
     expect(screen.getByTestId("chip")).toBeDefined();
@@ -54,7 +48,7 @@ describe("DetailHeader — Refined detail panel header", () => {
 
   it("should render time on the right side of the meta row", () => {
     const { container } = render(
-      <DetailHeader title="Title" time={<span data-testid="time">2 hours ago</span>} />
+      <DetailHeader title="Title" time={<span data-testid="time">2 hours ago</span>} />,
     );
 
     expect(screen.getByTestId("time")).toBeDefined();
@@ -68,7 +62,7 @@ describe("DetailHeader — Refined detail panel header", () => {
         title="Title"
         time={<span data-testid="time">Time</span>}
         traceRef={<span data-testid="trace">ABC123</span>}
-      />
+      />,
     );
 
     expect(screen.getByTestId("time")).toBeDefined();
@@ -87,7 +81,7 @@ describe("DetailHeader — Refined detail panel header", () => {
         chips={<span data-testid="chip">Opportunity</span>}
         time={<span data-testid="time">30m ago</span>}
         traceRef={<span data-testid="trace">XYZ789</span>}
-      />
+      />,
     );
 
     expect(screen.getByTestId("chip")).toBeDefined();
@@ -217,7 +211,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
         <div data-testid="cell1">Cell 1</div>
         <div data-testid="cell2">Cell 2</div>
         <div data-testid="cell3">Cell 3</div>
-      </StatStrip>
+      </StatStrip>,
     );
 
     expect(screen.getByTestId("cell1")).toBeDefined();
@@ -229,7 +223,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
     const { container } = render(
       <StatStrip>
         <span>Cell</span>
-      </StatStrip>
+      </StatStrip>,
     );
 
     const grid = container.querySelector("div");
@@ -244,7 +238,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
         <div>1</div>
         <div>2</div>
         <div>3</div>
-      </StatStrip>
+      </StatStrip>,
     );
 
     // Should render without error with 3 children
@@ -258,7 +252,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
       <StatStrip columns={4}>
         <div>1</div>
         <div>2</div>
-      </StatStrip>
+      </StatStrip>,
     );
 
     expect(screen.getByText("1")).toBeDefined();
@@ -269,7 +263,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
     const { container } = render(
       <StatStrip>
         <div>Cell</div>
-      </StatStrip>
+      </StatStrip>,
     );
 
     expect(screen.getByText("Cell")).toBeDefined();
@@ -279,7 +273,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
     render(
       <StatStrip columns={1}>
         <div data-testid="single">Single Cell</div>
-      </StatStrip>
+      </StatStrip>,
     );
 
     expect(screen.getByTestId("single")).toBeDefined();
@@ -290,7 +284,7 @@ describe("StatStrip — Horizontal grid of stat cells", () => {
       <StatStrip>
         <StatCell label="Score" value="9" tone="moss" />
         <StatCell label="Count" value="42" tone="neutral" />
-      </StatStrip>
+      </StatStrip>,
     );
 
     expect(screen.getByText("Score")).toBeDefined();
@@ -303,7 +297,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Overview">
         <div>Section content</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
@@ -317,7 +311,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Details">
         <div>Content</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
@@ -330,7 +324,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Stats">
         <p>Data</p>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const marker = container.querySelector("[aria-hidden='true']");
@@ -344,7 +338,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     render(
       <DetailSection heading="Details">
         <div data-testid="content">Custom content here</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     expect(screen.getByTestId("content")).toBeDefined();
@@ -352,12 +346,9 @@ describe("DetailSection — Consistent section anatomy", () => {
 
   it("should render action control to the right of heading when provided", () => {
     const { container } = render(
-      <DetailSection
-        heading="Signals"
-        action={<button data-testid="action-btn">Export</button>}
-      >
+      <DetailSection heading="Signals" action={<button data-testid="action-btn">Export</button>}>
         <div>Content</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     expect(screen.getByTestId("action-btn")).toBeDefined();
@@ -371,7 +362,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Styled" style={{ minHeight: "200px" }}>
         <div>Content</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
@@ -384,7 +375,7 @@ describe("DetailSection — Consistent section anatomy", () => {
       <DetailSection heading="Layout">
         <p>Line 1</p>
         <p>Line 2</p>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
@@ -397,7 +388,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     render(
       <DetailSection heading="metadata">
         <span>Details</span>
-      </DetailSection>
+      </DetailSection>,
     );
 
     // Verify the heading is rendered and visible
@@ -410,7 +401,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Simple">
         <p>No action here</p>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
@@ -423,7 +414,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Actions" action={<button>Delete</button>}>
         <p>Content</p>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const headingRow = container.querySelector(".flex.items-center.justify-between");
@@ -436,7 +427,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const { container } = render(
       <DetailSection heading="Full">
         <div>Body</div>
-      </DetailSection>
+      </DetailSection>,
     );
 
     const section = container.querySelector("section");
