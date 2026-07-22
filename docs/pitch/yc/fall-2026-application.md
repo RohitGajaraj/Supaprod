@@ -1,4 +1,4 @@
-# The YC application — Fall 2026 (previous vs new, field by field)
+open# The YC application — Fall 2026 (previous vs new, field by field)
 
 > _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Reviews are rolling — the 10-minute interview can land any time once the application is read, so interview-ready means ready the day you submit (YC's posted outer bound: decisions by Aug 28, batch Oct–Dec in San Francisco, $500K standard deal)._
 >
@@ -106,7 +106,7 @@ going full-time on Supaprod regardless of anything. That decision is made.
 The batch changes where I sit, not whether I am in.
 ```
 
-_[FOUNDER: the Intellect one-liner for the interview stays yours to decide and rehearse — see §8b note below.]_
+_[Intellect one-liner: DECIDED 2026-07-23 — locked in the §8b note below; rehearse verbatim.]_
 
 **§8e Are people using your product:** _(submit whichever is literally true that day)_
 
@@ -181,7 +181,7 @@ ships capability. The accountability layer across your tools is the part
 they structurally will not own.
 ```
 
-**Everything else:** §3a/3b/3d, §5, §7g, §8c, §8g, §8i, §9c, §9d, §10, §11a/11b, §12 — the "New" blocks below stand as final (name updated to Supaprod where noted). `[FOUNDER]` slots remaining: the IIM Bangalore venture line (§3c), the Intellect one-liner (§8b), messaging Badis before naming Asendia (§11a), both video re-records (§6, §7d).
+**Everything else:** §3a/3b/3d, §5, §7g, §8c, §8g, §8i, §9c, §9d, §10, §11a/11b, §12 — the "New" blocks below stand as final (name updated to Supaprod where noted). `[FOUNDER]` slots remaining (updated 2026-07-23): ~~IIM Bangalore venture line (§3c)~~ and ~~Intellect one-liner (§8b)~~ both DONE; still open — messaging Badis before naming Asendia (§11a), and both video re-records (§6, §7d).
 
 **The NOW pre-submit checklist (continuous, in priority order):**
 
@@ -265,8 +265,8 @@ PMs and founders. The public launch follows in weeks, not months.
 ### 8b — "How long have you been working on this?"
 
 ```
-Seven weeks on this build, seven days a week; the repo shows 3,966
-commits over that stretch, and a month of nights and weekends on the
+Seven weeks on this build, seven days a week; the repo shows nearly
+4,000 commits over that stretch, and a month of nights and weekends on the
 prototype before that. Full-time in every sense but the paperwork: I
 built it alongside a product role that is winding down, and quitting is
 decided, not contingent on this application. I spent close to a decade
@@ -396,7 +396,7 @@ either way. I would rather build it at YC speed.
 2. One fresh-email incognito signup: confirm it completes, and whether the new workspace arrives seeded (`SAMPLE_WORKSPACE_ENABLED` in Lovable env). If unseeded, flip the flag or trim the seeded claim in 7e.
 3. Check demo-account credit balances and workspace state before submit and again before any interview window; re-run the reseed if a visitor left a mess.
 4. ~~The employment fact~~ RESOLVED 2026-07-22: 8b now carries the true decided-posture version and 3c drops the "current employer" flag. Rehearse the interview card in the 8b note. If a resignation date lands before submit, upgrade 8b to the dated version ("my notice is in; last day [date]").
-5. **[FOUNDER]** The IIM venture line (3c) — a live [FILL] bracket still sits in the carried-forward text and would kill the application if submitted. Confirm the previous-submission date in the YC portal (anchors 8h's "five weeks"). Ask Badis to file the recommendation through YC's official recommender flow.
+5. ~~The IIM venture line (3c) [FILL] bracket~~ RESOLVED 2026-07-23 (bubble-tea venture filled in). Still do: confirm the previous-submission date in the YC portal (anchors 8h's "five weeks"), and ask Badis to file the recommendation through YC's official recommender flow.
 6. Submit-day sync: homepage numbers (145/81/54 drift daily), commit count (3,968 as of the panel check), register count (362 strict today per the fixed scripts/dashboard-tally.sh; quote only what the script reproduces).
 7. Read every answer aloud; retell test with one outside reader; neediness scan; bragging scan. Submit July 24 or 25. Keep the old videos attached until the new ones replace them; record and swap both within 48 hours of submitting.
 8. Interview prep cards to load now: (a) the 8c-vs-7f reconciliation, one breath: "I build Supaprod with commercial IDE tools because I am a solo founder in an editor; my users' org runs Supaprod's own build lane — spec-shaped gated pull requests with receipts and rollback"; (b) the 1,500-hours source (DoorDash PM, April 2026 podcast) ready to cite; (c) one concrete outcome-grading story with the ledger entry on screen; (d) a real beta number ready for "how did the beta go" by interview time.
@@ -458,8 +458,12 @@ missions where a mistake is unrecoverable. The systems I worked on flew.
 - At Intellect (my current employer) I led product on the AI platform that 200+
   financial institutions across 70+ countries use to build their own AI products.
   I didn't write that code; I shipped the product.
-- [FILL: your IIM Bangalore venture: name + one line on what it did + URL if any.
-  It's on your LinkedIn, so partners will see it either way; better to own it here.]
+- Earlier, at IIM Bangalore, I founded a food-and-beverage venture: one of the
+  first attempts to bring bubble tea to the Indian market. I took it from
+  ideation through recipe formulation, user testing, and competitive analysis;
+  it was selected into IIM Bangalore's entrepreneurship cell and recognized by a
+  Government of India startup initiative. I set it down to go build product
+  full-time, which is the depth I'm bringing back to founding now.
 ```
 
 ### 3d. "List any competitions/awards you have won, or papers you've published."
@@ -608,13 +612,13 @@ _(Note the register: zero users is stated once, in 8e, where the form asks — n
 
 ```
 Forty-five days on this build at roughly sixteen hours a day, seven days a week;
-the repo shows about [3,400] commits over that stretch. Before that, about a
+the repo shows nearly 4,000 commits over that stretch. Before that, about a
 month of nights and weekends on the prototype that became Supaprod. I'm going
 full-time on Supaprod regardless of anything. That decision is made. The batch
 changes where I sit, not whether I'm in.
 ```
 
-_[CONFIRM before submit: your one-line answer about your current role at Intellect, for the interview. It must match your LinkedIn ("Jun 2023 – Present"). Suggested honest line if asked: "I'm serving out my transition at [status]; Supaprod gets 16 hours a day and my resignation is planned for [date] / already submitted." Decide the true version and rehearse it — do not improvise this one.]_
+_[Interview one-liner, locked 2026-07-23 — rehearse verbatim: "I'm a Senior AI Product Manager at Intellect, building an AI platform for the banking and finance domain (Jun 2023 – present). Supaprod gets sixteen hours a day; I'm serving out my transition and going full-time, resignation planned." Matches LinkedIn. If a resignation date lands before the interview, add it ("last day [date]"). Do not improvise this one.]_
 
 ### 8c. "What tech stack are you using… Include AI models and AI coding tools you use."
 
@@ -638,24 +642,19 @@ can bring their own keys.
 
 **Previous:** "No."
 
-**New — two variants; submit whichever is TRUE on July 26:**
-
-Variant A (beta users exist):
+**New — TRUE as of 2026-07-23 (no outside users yet; the dogfooding is real):**
 
 ```
-Yes, since [date]: [N] beta users from [M] discovery calls. Too early for
-patterns; the first thing they reach for is asking "why did we decide X" and
-getting the receipt back. I use it daily myself to run Supaprod's own roadmap.
+Not outside users yet — I'm opening the first access now. The daily user is me:
+I run Supaprod's own roadmap inside Supaprod, and its agents built most of it.
+The live homepage numbers — 145 missions, 81 decisions, 54 outcomes — are that
+real usage, not a demo, and a partner can watch them move. Anyone can try it
+today through the demo login above; self-serve signup is already on.
 ```
 
-Variant B (not yet):
-
-```
-The first beta users are getting access now, from the [N] discovery
-conversations I've run with PMs and founders this month. Until they're in,
-the daily user is me: Supaprod runs its own roadmap, and its agents built
-most of it.
-```
+_[If real beta users land before July 26, lead with the number instead: "Yes,
+since [date]: [N] users from [M] discovery calls," then keep the dogfooding
+line. Do not invent a discovery-call count — quote only what actually happened.]_
 
 ### 8f. "When will you have a version people can use?"
 
@@ -819,8 +818,8 @@ _[Checklist: message Badis BEFORE submitting — heads-up + ask about an alumni 
 
 1. **Start discovery calls — the one thing that most changes this application's odds.** Target 20–30 real conversations from the prospect list before July 25 (Lago got in pre-product on "100+ growth leaders interviewed"). Log each: name, role, the quote, would-they-use. The true count fills `[N]` in 9a and 8e. Never inflate; YC verifies.
 2. Message Badis (heads-up + alumni recommendation ask).
-3. Decide the employment one-liner (8b bracket) and rehearse it.
-4. [FILL] the IIM Bangalore venture line in 3c.
+3. ~~Decide the employment one-liner (8b bracket) and rehearse it.~~ DONE 2026-07-23 — Senior AI PM at Intellect (banking/finance AI platform); locked in the §8b note.
+4. ~~[FILL] the IIM Bangalore venture line in 3c.~~ DONE 2026-07-23 — bubble-tea venture, IIMB entrepreneurship cell + Government-of-India recognition; no URL.
 
 **Launch week (July 15–21):** 5. Ship the beta per the campaign plan; first outside users in. 6. Re-record the founder video (≤1:00, bullet card, one take) — [`video-scripts.md`](./video-scripts.md) Part 1. 7. Re-record the demo video (~2:15, script Part 2). Re-seed the demo workspace first; verify demo-account credit balance.
 
