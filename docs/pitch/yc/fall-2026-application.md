@@ -254,7 +254,7 @@ first user, not customer traction, and anyone can watch them move.
 Underneath: agents open real pull requests behind a merge gate no agent
 can cross, autonomy is earned per agent from track record, and anything
 an agent produces rolls back with one keystroke. I track every feature in
-a register: 401 specced, 370 shipped. I had an outside AI auditor check
+a register: 401 specced, 362 shipped. I had an outside AI auditor check
 that register against the code in July, and it held up.
 
 The doors are open: self-serve signup is live, the demo login is above,
@@ -385,7 +385,7 @@ either way. I would rather build it at YC speed.
 3. Check demo-account credit balances and workspace state before submit and again before any interview window; re-run the reseed if a visitor left a mess.
 4. **[FOUNDER] The employment fact (the skeptic's top kill-factor):** if resigned or last-day dated, restore the dated full-time line in 8b and change 3c "my current employer" to "where I led product until [month]." If still employed, keep 8b as written and rehearse the one-line truth for the interview. Nothing stronger than the truth goes on the form.
 5. **[FOUNDER]** The IIM venture line (3c) — a live [FILL] bracket still sits in the carried-forward text and would kill the application if submitted. Confirm the previous-submission date in the YC portal (anchors 8h's "five weeks"). Ask Badis to file the recommendation through YC's official recommender flow.
-6. Submit-day sync: homepage numbers (145/81/54 drift daily), commit count (3,968 as of the panel check), register count (370 today; re-run the fixed tally).
+6. Submit-day sync: homepage numbers (145/81/54 drift daily), commit count (3,968 as of the panel check), register count (362 strict today per the fixed scripts/dashboard-tally.sh; quote only what the script reproduces).
 7. Read every answer aloud; retell test with one outside reader; neediness scan; bragging scan. Submit July 24 or 25. Keep the old videos attached until the new ones replace them; record and swap both within 48 hours of submitting.
 8. Interview prep cards to load now: (a) the 8c-vs-7f reconciliation, one breath: "I build Supaprod with commercial IDE tools because I am a solo founder in an editor; my users' org runs Supaprod's own build lane — spec-shaped gated pull requests with receipts and rollback"; (b) the 1,500-hours source (DoorDash PM, April 2026 podcast) ready to cite; (c) one concrete outcome-grading story with the ledger entry on screen; (d) a real beta number ready for "how did the beta go" by interview time.
 

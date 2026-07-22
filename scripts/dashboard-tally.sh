@@ -17,7 +17,7 @@ F="docs/planning/feature-dashboard.md"
 [ -f "$F" ] || { echo "no $F" >&2; exit 1; }
 
 echo "=== status tally (strict = done/total; weighted folds ◐ at its [~NN%], ⏸️/🔨 at 0.5) ==="
-awk -F'|' '/^\| [0-9]+ \|/{
+awk -F'|' '/^\| [0-9]+ +\|/{
     s=$3; gsub(/^[ \t]+|[ \t]+$/,"",s);
     # collapse a "🔨 In Dev (...)" status to the bare 🔨 token for weighting/counting
     if (s ~ /^🔨/) s="🔨";
@@ -38,7 +38,7 @@ awk -F'|' '/^\| [0-9]+ \|/{
   }' "$F"
 
 echo "=== by-priority class (✅ rows map to Done, mirrors rerank-dashboard.py classify) ==="
-awk -F'|' '/^\| [0-9]+ \|/{
+awk -F'|' '/^\| [0-9]+ +\|/{
     s=$3; gsub(/^[ \t]+|[ \t]+$/,"",s);
     p=$8; gsub(/^[ \t]+|[ \t]+$/,"",p);
     if(s=="✅") p="Done";

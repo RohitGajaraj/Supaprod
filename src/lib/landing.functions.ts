@@ -34,14 +34,32 @@ export type LandingStats = {
 export const getLandingStats = createServerFn({ method: "GET" }).handler(
   async (): Promise<LandingStats | null> => {
     try {
+      // Receipts law: the public counters exclude seeded sample/demo workspaces,
+      // so a visitor's demo signup can never inflate them. Undercounting is
+      // acceptable; inflating never is. Rows with a null workspace_id drop out
+      // of a not-in filter, which errs in the same safe direction.
+      const sampleWs = await db
+        .from("workspaces")
+        .select("id")
+        .or('is_sample.eq.true,name.in.("Sample workspace","Demo workspace")');
+      if (sampleWs.error) return null;
+      const excluded = (sampleWs.data ?? []).map((w: { id: string }) => w.id);
+      // Loose builder typing on purpose: supabase-js generics recurse too deep
+      // here (TS2589), and this file already runs on a relaxed client cast.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const scoped = (q: any) =>
+        excluded.length ? q.not("workspace_id", "in", `(${excluded.join(",")})`) : q;
+
       const [missions, decisions, learnings, aiEvents, waitlist] = await Promise.all([
-        db.from("missions").select("id", { count: "exact", head: true }),
-        db.from("decisions").select("id", { count: "exact", head: true }),
-        db
-          .from("learnings")
-          .select("id", { count: "exact", head: true })
-          .not("verdict", "is", null),
-        db.from("ai_events").select("id", { count: "exact", head: true }),
+        scoped(db.from("missions").select("id", { count: "exact", head: true })),
+        scoped(db.from("decisions").select("id", { count: "exact", head: true })),
+        scoped(
+          db
+            .from("learnings")
+            .select("id", { count: "exact", head: true })
+            .not("verdict", "is", null),
+        ),
+        scoped(db.from("ai_events").select("id", { count: "exact", head: true })),
         db.from("waitlist_signups").select("id", { count: "exact", head: true }),
       ]);
       if (missions.error || decisions.error || learnings.error || aiEvents.error) return null;
