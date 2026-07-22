@@ -266,14 +266,26 @@ PMs and founders. The public launch follows in weeks, not months.
 
 ```
 Seven weeks on this build, seven days a week; the repo shows 3,966
-commits over that stretch. Before that, a month of nights and weekends
-on the prototype. The decision was made long before this application: I
-spent close to a decade doing product work inside other companies, and
-this is the company I could not leave unbuilt. The batch changes my
-speed and my zip code, not my direction.
+commits over that stretch, and a month of nights and weekends on the
+prototype before that. Full-time in every sense but the paperwork: I
+built it alongside a product role that is winding down, and quitting is
+decided, not contingent on this application. I spent close to a decade
+doing product work inside other companies, and this is the company I
+could not leave unbuilt. The batch changes my speed and my zip code, not
+my direction.
 ```
 
-_(SKEPTIC FLAG, unresolved founder fact: the form also asks "how much of that has been full-time," and 3c still says "my current employer." Sixteen-hour-day claims were removed as unsafe until the employment fact is settled — see checklist item 4. If resigned with a date, restore: "I resigned on [date]; Supaprod has been the only job since.")_
+_(Resolved 2026-07-22 with the founder: employed while winding down, quitting decided and unconditional. The form text above is the exact truth stated with a decided posture. 3c drops the "my current employer" flag (see below). INTERVIEW CARD, rehearse verbatim: "I'm employed on paper while I wind it down; Supaprod has had all of me for seven weeks, and I'm leaving regardless of your decision." Never say "on a break," never make the resignation conditional on acceptance.)_
+
+### 3c — one-line fix to the carried-forward answer
+
+The 3c bullet "At Intellect (my current employer) I led product on the AI platform..." becomes:
+
+```
+- At Intellect, where I lead product on the AI platform that 200+
+  financial institutions across 70+ countries use to build their own AI
+  products. I didn't write that code; I shipped the product.
+```
 
 ### 8e — "Are people using your product?"
 
@@ -383,7 +395,7 @@ either way. I would rather build it at YC speed.
 1. **GATE:** migration `20260722211500` is committed and pushed this session; after the next Lovable deploy, test `explore@` AND `ember@` in incognito on supaprod.ai — the verifier confirmed the login FAILS live until the migration applies. Do not submit until both logins pass and land on a populated Today view.
 2. One fresh-email incognito signup: confirm it completes, and whether the new workspace arrives seeded (`SAMPLE_WORKSPACE_ENABLED` in Lovable env). If unseeded, flip the flag or trim the seeded claim in 7e.
 3. Check demo-account credit balances and workspace state before submit and again before any interview window; re-run the reseed if a visitor left a mess.
-4. **[FOUNDER] The employment fact (the skeptic's top kill-factor):** if resigned or last-day dated, restore the dated full-time line in 8b and change 3c "my current employer" to "where I led product until [month]." If still employed, keep 8b as written and rehearse the one-line truth for the interview. Nothing stronger than the truth goes on the form.
+4. ~~The employment fact~~ RESOLVED 2026-07-22: 8b now carries the true decided-posture version and 3c drops the "current employer" flag. Rehearse the interview card in the 8b note. If a resignation date lands before submit, upgrade 8b to the dated version ("my notice is in; last day [date]").
 5. **[FOUNDER]** The IIM venture line (3c) — a live [FILL] bracket still sits in the carried-forward text and would kill the application if submitted. Confirm the previous-submission date in the YC portal (anchors 8h's "five weeks"). Ask Badis to file the recommendation through YC's official recommender flow.
 6. Submit-day sync: homepage numbers (145/81/54 drift daily), commit count (3,968 as of the panel check), register count (362 strict today per the fixed scripts/dashboard-tally.sh; quote only what the script reproduces).
 7. Read every answer aloud; retell test with one outside reader; neediness scan; bragging scan. Submit July 24 or 25. Keep the old videos attached until the new ones replace them; record and swap both within 48 hours of submitting.
