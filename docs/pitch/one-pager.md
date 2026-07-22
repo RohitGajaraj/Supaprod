@@ -65,10 +65,10 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - "Their demo shows what the AI did. Ours shows what we can prove."
 - "Lovable builds you the wrong feature, beautifully, in ten minutes. Supaprod stops you from building the wrong thing — and proves which thing was right."
 
-**Agent-vendor neutrality (declared launch capability, RPT-42 — added 2026-07-11; claim tag: WIRING, the BuildDriver seam + MCP/Skills compliance are real, the marketing packaging is new):**
+**The engine is ours; the models are plug-ins (own-engine ruling, founder 2026-07-22 — supersedes the RPT-42 dispatch-first framing on every pitch surface):**
 
-- "Your agents will change. Your decision history shouldn't." (the deprecation-insurance line, now stated on the connect surface itself.)
-- "We feed the builders and judge the results, so we're the one seat that stays put when the models churn." Supaprod drives a native build floor plus the Claude Agent SDK / OpenHands and BYO Devin/Codex/Cursor through one BuildDriver seam, and speaks MCP + Skills, so a model or vendor swap never resets the outcome ledger. This is the structural half of the absorption defense (moat point 3, the neutral seat) made market-legible.
+- "Your models will change. Your decision history shouldn't." (the deprecation-insurance line, kept.)
+- Supaprod's own build engine runs the lifecycle end to end through one chokepoint, plugging the best model into every job — sensing, deciding, designing, building, researching, learning. A frontier release is a same-day drop-in, never a vendor negotiation; users never buy a second tool license; product context never round-trips through another vendor. Enterprise BYO (an existing Devin/Codex contract) exists behind the same seam, unadvertised. MCP + Skills interop unchanged.
 - "The labs shipped the hands. We're the seat above the fleet where a human answers for the work."
 
 ---

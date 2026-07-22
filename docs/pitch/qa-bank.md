@@ -20,7 +20,7 @@
 
 **"Why won't Atlassian/Airtable just do this?"** — They buy the pieces (Cycle absorbed 2025; Kraftful → Amplitude) but a suite can't be the neutral judge across its competitors' tools, and none of them will publish their misses. Our two controversial moves — artifacts-as-projections and published calibration — are organizationally impossible for an incumbent whose revenue is the artifact tooling. [moat.md §4; v13 §7]
 
-**"Why aren't you building the code generator yourselves?"** — Because it's a knife fight we'd lose and don't need: Devin went $37M→$492M ARR in twelve months at a $26B valuation, Cursor is at $2B ARR, Copilot's agent is GA on GitHub's distribution — and Amodei says models absorb SWE end-to-end within two years. We own the layer that strengthens every time they improve: the decision, the dispatch, the gate, and the receipts. A better generator makes Supaprod better the same day, behind the same seam — and an enterprise can bring its own Devin contract, moving the spikiest compute cost to their bill. The judge doesn't enter the race. [full argument: build-driver-and-dispatch.md, the 2026-07-10 section]
+**"Why build the code generator yourselves when Cursor and Devin exist?"** — Because the generator stopped being the hard part. Frontier models turned code generation into a commodity you call through an API; the hard part is the harness — the planning, the merge gates, the receipts, the trust ramp — and the loop above it that decides what is worth building. We built that harness once and plug in the best model for every lifecycle job (sensing, deciding, designing, building, researching, learning). Users never buy a second tool license, their product context never round-trips through another vendor, and every model release upgrades the build station the same day. We are not selling codegen against Devin ($492M ARR) or Cursor ($2B ARR) — that is their race; build is one governed station inside our loop. An enterprise that already has a Devin contract can bring it, quietly, behind the same seam. [own-engine ruling 2026-07-22; the architecture seam: build-driver-and-dispatch.md]
 
 **"What's defensible in the AI stack?"** — Nothing, per Casado ("no endemic tech moat") — which is our argument: the moat is the receipted, outcome-labeled record and the trust ramp, not the model calls. Method is commodity; method bound to your accumulated judgment is not. [investor corpus; v11 §8]
 
@@ -48,7 +48,7 @@
 
 **"Will the agent commit garbage to our repo?"** — The build spine can't bypass your merge gate: PRs only, CI must pass, merge is permanently human-gated (a non-overridable floor), every step traced. The trust ramp means an agent earns even its lower-stakes permissions. [SW-2; the tool-mode floors]
 
-**"We already have Copilot/Cursor/Devin."** — Keep them — we dispatch to them. Supaprod is the layer that decides WHAT'S worth building and proves what worked; your build tools stay, with receipts on top. [BuildDriver seam; moat.md §6]
+**"We already have Copilot/Cursor/Devin."** — Keep them; they're your engineers' tools. Supaprod's own engine covers the product loop's build station natively — spec to pull request behind your merge gate, no extra license — and the layer you're actually buying is the one nobody else sells: what's worth building, and proof of what worked. If your org has standardized on one build vendor, enterprise BYO exists behind the same seam. [own-engine ruling 2026-07-22; moat.md §6]
 
 ## The questions WE ask them (discovery, every beta first-session)
 

@@ -22,6 +22,8 @@
 
 **§2 Personal website:** `https://supaprod.ai`
 
+> ⤵️ _A fourth column now exists below (🔥 THE NEXT ITERATION) — where it rewrites a field, it supersedes this sheet. This third column stays for side-by-side comparison._
+
 **§4 Who writes code:**
 
 ```
@@ -190,6 +192,202 @@ they structurally will not own.
 5. Read every answer aloud; the retell test with one outside reader; the neediness scan.
 6. Attach the chosen Claude Code session transcript (§8d).
 7. Submit early — July 25 or 26, not the 27th.
+
+---
+
+## 🔥 THE NEXT ITERATION — fourth column (2026-07-22, founder-energy pass, panel-revised)
+
+> _The FOURTH column: where a field appears here, this is the final submit text, superseding the third-column sheet above. Written under the founder's rulings of 2026-07-22 (humble AND strong, zero bragging; OS opens 7f, Cursor is the handle, the brain closes; the own-engine story; RFS as quiet confirmation; no point-count citations; under-five-minute read) and revised against a three-partner adversarial panel (clarity skimmer: SHORTLIST; skeptic: BORDERLINE-to-INTERVIEW with fixes, all applied; verifier: every claim checked against the live site, git, and code — its blocker and wording fixes applied). Fields not rewritten here carry forward from the sheet above._
+
+### 7b — 50 characters
+
+```
+Cursor for PMs, but for the whole product org.
+```
+
+### 7e — Product link
+
+```
+https://supaprod.ai
+
+Demo login: explore@supaprod.ai / Supaprod!Explore2026 (a workspace
+seeded with sample products). Or sign up with email; you are in a
+working workspace in about a minute.
+```
+
+_(Provisioned in-database by migration `20260722211500_demo_accounts_supaprod_domain.sql` — `explore@supaprod.ai` for YC plus the codename twin `ember@supaprod.ai` / `Supaprod!Ember2026` held back for later investor use; both seeded, both with Helio Labs access, onboarding pre-completed. Legacy `redcadence.app` logins stay internal-only. VERIFIER FLAG: the login fails on production until the migration ships and Lovable deploys — checklist item 1 gates submission on a passing incognito test.)_
+
+### 7f — "What is your company going to make?"
+
+```
+Supaprod is the operating system a product team runs on when AI agents do
+the work. It reads the signals from your users and your market and tells
+you what is worth building. It argues with you before you commit. Then it
+writes the spec, builds it, ships it behind gates you control, and checks
+what actually happened. The closest familiar thing is Cursor, but for the
+whole product lifecycle instead of the code editor.
+
+The build lane is built in: agents deliver spec-shaped pull requests
+behind a merge gate, with a receipt on every action and one-key rollback,
+plugging in whichever model is best at each job in the lifecycle:
+sensing, deciding, designing, building, researching, learning. Your team
+runs no separate coding tool for it.
+
+What makes it compound: every decision is recorded with its evidence, and
+every outcome is checked and remembered. That record becomes the brain of
+your product org. It answers "why did we decide this" in seconds, and it
+gets sharper about your next call with every outcome it records.
+
+Agents do the work. You answer for it. Supaprod is how you answer.
+```
+
+### 8a — "How far along are you?"
+
+```
+The product works end to end today, and the proof is that it runs its own
+development: Supaprod plans, builds, and ships Supaprod. The numbers on
+the homepage render live from that run: 145 missions run end to end
+(multi-step agent jobs, decision to shipped change), 81 decisions
+recorded with receipts, 54 outcomes graded. Those are my numbers as its
+first user, not customer traction, and anyone can watch them move.
+
+Underneath: agents open real pull requests behind a merge gate no agent
+can cross, autonomy is earned per agent from track record, and anything
+an agent produces rolls back with one keystroke. I track every feature in
+a register: 401 specced, 370 shipped. I had an outside AI auditor check
+that register against the code in July, and it held up.
+
+The doors are open: self-serve signup is live, the demo login is above,
+and I am recruiting the first beta cohort now from a named list of 25
+PMs and founders. The public launch follows in weeks, not months.
+```
+
+### 8b — "How long have you been working on this?"
+
+```
+Seven weeks on this build, seven days a week; the repo shows 3,966
+commits over that stretch. Before that, a month of nights and weekends
+on the prototype. The decision was made long before this application: I
+spent close to a decade doing product work inside other companies, and
+this is the company I could not leave unbuilt. The batch changes my
+speed and my zip code, not my direction.
+```
+
+_(SKEPTIC FLAG, unresolved founder fact: the form also asks "how much of that has been full-time," and 3c still says "my current employer." Sixteen-hour-day claims were removed as unsafe until the employment fact is settled — see checklist item 4. If resigned with a date, restore: "I resigned on [date]; Supaprod has been the only job since.")_
+
+### 8e — "Are people using your product?"
+
+```
+Not yet, outside my own daily use. The doors just opened: self-serve
+signup is live, and I am recruiting the first beta cohort now from a
+named list of 25 PMs and founders. Anyone can walk the product today
+with the demo login above or a one-minute signup.
+```
+
+### 8h — "Did anything change since your previous application?"
+
+```
+Same idea, one batch later: seven weeks of building, five of them since
+that submission rolled over. In those five weeks the product got its
+name and public site, supaprod.ai. The engine went from an early spine
+to running the whole loop on its own, nights included: 145 missions, 81
+recorded decisions, real pull requests behind human gates. Recorded
+outcomes now re-rank what to build next. This is what one person
+directing a fleet of agents ships in five weeks.
+```
+
+### 9a — "Why did you pick this idea? Do you have domain expertise? How do you know people need this?"
+
+```
+I lived this problem for close to a decade before building the fix.
+Communication systems at ISRO, then product at Infineon and Bosch, then
+an AI platform that 200+ financial institutions build on. Different
+industries, same job underneath: carry context across a dozen tools, and
+answer "why did we decide this" from memory, months later, with the
+evidence long buried.
+
+Supaprod began as a system I built to run my own work. Two things told me
+the itch was not just mine. Product people at companies like OpenAI and
+DoorDash now hand-build their own versions out of Claude Code, Codex,
+connectors, and memory files; one PM described spending 1,500 hours on
+her setup. People do not do that for a mild annoyance. And YC's own
+recent requests for startups describe the same gap from three angles: a
+Cursor for product managers, an AI operating system for companies, a
+company brain. I read those as confirmation I was standing in the right
+place.
+
+I remain the most demanding user I have. I run my company on it every
+day.
+```
+
+### 9b — "Who are your competitors? What do you understand that they don't?"
+
+```
+Nobody runs the whole loop; my real competitor is the stitched stack:
+Linear or Jira for tracking, Notion for docs, ChatPRD for specs, a coding
+agent for the build, and the product manager as the glue. The space is
+moving fast. Samepage raised a $4.85M seed and launched in June to
+surface signals for product leaders. Brief captures decision context for
+agents. Productboard shipped Spark. Notion launched Ship OS this month,
+which promises customer feedback to a merged pull request.
+
+What I understand that they do not: every one of them stops one step
+short. They surface, draft, remember, or dispatch. None of them checks
+the shipped outcome against the decision that caused it and feeds that
+back, and that last step is the only one that compounds. It cannot be
+bolted onto a tracker, and it cannot be copied quickly, because it only
+accumulates with time. I built the whole system around it.
+
+On the build, I own the harness, not the model: code generation is a
+commodity you call through an API, so I built the lane once, gates,
+receipts, rollback, the outcome feed, and plug the best model into it.
+My users never buy a second coding tool, and when a better model ships,
+Supaprod gets better the same day.
+```
+
+### 9c — "How do or will you make money? How much could you make?"
+
+```
+Free tier runs the full loop on a small credit budget; paid plans are a
+workspace subscription plus usage credits for agent runs, so revenue
+grows with how much work the agents do, not with headcount. Land: solo
+founders and PMs on small teams, who feel this hardest and can start
+without procurement. Expand: teams and enterprises, where the audit
+trail is the thing they actually budget for. That budget already exists;
+today it is split across Linear, Notion, a spec tool, a coding agent,
+and status meetings.
+
+How big: every software company is heading toward small pods where one
+PM directs a fleet of agents. Supaprod is the operating system that pod
+runs on and the system of record for its decisions, and systems of
+record are the biggest outcomes in software. Pricing gets its first real
+test in beta this month.
+```
+
+### 11a — "What convinced you to apply to Y Combinator? Did someone encourage you to apply?"
+
+```
+Two reasons and one honest nudge. The mission needs speed: every company
+is about to run on fleets of agents, and someone has to build the layer
+where a human still answers for the work. That layer gets decided in the
+next two years, not the next ten, and YC compresses exactly that kind of
+time. Second, the bar: this is the hardest room my company can be tested
+in, and I want it tested there. The nudge: I watched a friend's company
+go through a recent batch up close, from application to Demo Day, and
+the rate they improved at settled it for me. I am building Supaprod
+either way. I would rather build it at YC speed.
+```
+
+### The fourth-column pre-submit checklist (supersedes the sheet's checklist)
+
+1. **GATE:** migration `20260722211500` is committed and pushed this session; after the next Lovable deploy, test `explore@` AND `ember@` in incognito on supaprod.ai — the verifier confirmed the login FAILS live until the migration applies. Do not submit until both logins pass and land on a populated Today view.
+2. One fresh-email incognito signup: confirm it completes, and whether the new workspace arrives seeded (`SAMPLE_WORKSPACE_ENABLED` in Lovable env). If unseeded, flip the flag or trim the seeded claim in 7e.
+3. Check demo-account credit balances and workspace state before submit and again before any interview window; re-run the reseed if a visitor left a mess.
+4. **[FOUNDER] The employment fact (the skeptic's top kill-factor):** if resigned or last-day dated, restore the dated full-time line in 8b and change 3c "my current employer" to "where I led product until [month]." If still employed, keep 8b as written and rehearse the one-line truth for the interview. Nothing stronger than the truth goes on the form.
+5. **[FOUNDER]** The IIM venture line (3c) — a live [FILL] bracket still sits in the carried-forward text and would kill the application if submitted. Confirm the previous-submission date in the YC portal (anchors 8h's "five weeks"). Ask Badis to file the recommendation through YC's official recommender flow.
+6. Submit-day sync: homepage numbers (145/81/54 drift daily), commit count (3,968 as of the panel check), register count (370 today; re-run the fixed tally).
+7. Read every answer aloud; retell test with one outside reader; neediness scan; bragging scan. Submit July 24 or 25. Keep the old videos attached until the new ones replace them; record and swap both within 48 hours of submitting.
+8. Interview prep cards to load now: (a) the 8c-vs-7f reconciliation, one breath: "I build Supaprod with commercial IDE tools because I am a solo founder in an editor; my users' org runs Supaprod's own build lane — spec-shaped gated pull requests with receipts and rollback"; (b) the 1,500-hours source (DoorDash PM, April 2026 podcast) ready to cite; (c) one concrete outcome-grading story with the ledger entry on screen; (d) a real beta number ready for "how did the beta go" by interview time.
 
 ---
 
