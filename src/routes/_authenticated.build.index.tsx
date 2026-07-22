@@ -688,7 +688,6 @@ function BuildPage() {
         <div aria-hidden="true" className="loom-glow-field" />
         <div style={{ marginBottom: 22 }}>
           <PageHeader
-            eyebrow="The Loop · 05 Build"
             title="Approved specs in,"
             accent="merged PRs out."
             subtitle="Agents pick up approved specs, write the code, run the tests, and open the pull request. You appear only at the gates."

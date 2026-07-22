@@ -138,8 +138,14 @@ export async function runEvalSuite(
   let passed = 0,
     failed = 0,
     errored = 0;
+  // Accumulators the parallelized aggregation loop below fills (a prior
+  // batching refactor dropped these declarations, leaving them undefined at
+  // runtime and unresolved at type-check).
+  const scores: number[] = [];
+  let totalCost = 0;
+  let totalLatency = 0;
   // Batch-insert all results after the loop to eliminate N sequential inserts
-  type ResultRow = Parameters<(typeof supabase.from<"eval_case_results">)["insert"]>[0];
+  type ResultRow = Record<string, unknown>;
   const resultRows: ResultRow[] = [];
 
   // Parallelize case processing with bounded concurrency (4 concurrent cases)

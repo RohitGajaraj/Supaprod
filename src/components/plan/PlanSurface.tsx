@@ -235,7 +235,6 @@ export function PlanSurface({ view }: { view?: PlanView }) {
       >
         <div aria-hidden="true" className="loom-glow-field" />
         <PageHeader
-          eyebrow="The Loop · 03 Plan"
           title="The bets you have"
           accent="committed to."
           subtitle="Every bet declares an outcome and a measure. Nothing hides in a backlog."

@@ -10,10 +10,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { agentBlurb, agentDisplayName, catalogEntry } from "@/lib/agent-vocabulary";
+import { agentBlurb, agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/supaprod/TopBar";
+import { RoomChromeShell } from "@/components/mission/RoomChrome";
+import { SurfaceHeader } from "@/components/mission/primitives";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import {
   Avatar,
@@ -28,7 +29,7 @@ import { useTheme, type Theme } from "@/hooks/use-theme";
 import { Sun, Moon, Monitor, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
+import { listAgents, listAgentRuns, listAgentReflections, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -74,20 +75,17 @@ import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
 import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
 import { HealthCard } from "@/components/settings/HealthCard";
 import { NotificationsTab } from "@/components/settings/NotificationsTab";
-import { MemoryView } from "@/components/settings/memory/MemoryView";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
+import { ControlsPanel } from "@/components/governance/ControlsPanel";
+import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
+import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import {
   PRIMARY_GROUPS,
-  RECESSED_GROUPS,
   normalizeSection,
-  groupForSection,
-  findGroup,
-  primarySection,
   sectionLabel,
   type SectionId,
-  type GroupId,
 } from "@/lib/settings-sections";
 
 // The section ids, grouping, legacy deep-link map, and normalizeSection now live
@@ -139,63 +137,70 @@ export const Route = createFileRoute("/_authenticated/settings")({
   ),
 });
 
-// OBS-13 - the quiet left index (mono 01-04 + label), the Settings nav
-// anatomy: a column inside the content area, NOT a second rail. Active row
-// bg #1A1A1E + ember index, per the OBS-02 nav anatomy this mirrors.
-function SettingsIndex({
-  activeGroup,
+// The reimagined Settings nav (screen-7 `set-nav`): five named groups, every
+// door visible at once (no numbered index, no Advanced fold), ink tokens. The
+// active section wears the raised wash; a group label sits above its sections.
+// Memory now lives in Brain, echoed as a footer note like the mockup.
+function SettingsNav({
+  active,
   onSet,
 }: {
-  activeGroup: GroupId;
-  onSet: (id: GroupId) => void;
+  active: SectionId;
+  onSet: (id: SectionId) => void;
 }) {
   return (
-    <div className="flex flex-col" style={{ gap: 2, width: 172, flexShrink: 0 }}>
-      {PRIMARY_GROUPS.map((g, i) => {
-        const isActive = g.id === activeGroup;
-        return (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => onSet(g.id)}
-            aria-current={isActive ? "true" : undefined}
-            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]${isActive ? " loom-thread-active" : ""}`}
+    <aside
+      className="flex flex-col gap-5 border-r px-4 py-5"
+      style={{ width: 220, flexShrink: 0, borderColor: "var(--ink-hairline)" }}
+    >
+      {PRIMARY_GROUPS.map((g) => (
+        <div key={g.id} className="flex flex-col gap-0.5">
+          <div
+            className="mb-1 px-2 font-mono uppercase"
             style={{
-              gap: 10,
-              padding: "8px 12px",
-              borderRadius: "var(--radius-control)",
-              // No inline background when inactive so the hover class can win
-              // (inline styles beat utility classes).
-              background: isActive ? "var(--surface-active)" : undefined,
-              textAlign: "left",
-              transitionProperty: "background-color",
-              transitionDuration: "var(--dur-press, 140ms)",
+              fontSize: "10px",
+              letterSpacing: "0.1em",
+              color: "var(--ink-faint)",
             }}
           >
-            {/* v4 §3: active nav index reads ember-text; the mono floor is 10.5px */}
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor, 10.5px)",
-                letterSpacing: "0.08em",
-                color: isActive ? "var(--ember-text)" : "var(--text-subtle)",
-              }}
-            >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-base, 14px)",
-                color: isActive ? "var(--text-primary)" : "var(--text-body)",
-              }}
-            >
-              {g.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+            {g.label}
+          </div>
+          {g.sections.map((s) => {
+            const isActive = s.id === active;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onSet(s.id)}
+                aria-current={isActive ? "page" : undefined}
+                className={`ink-focus flex items-center rounded-lg text-left transition-colors ${
+                  isActive ? "" : "hover:bg-[var(--ink-raised)]"
+                }`}
+                style={{
+                  padding: "6px 10px",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "13px",
+                  background: isActive ? "var(--ink-raised)" : undefined,
+                  color: isActive ? "var(--ink-text)" : "var(--ink-body)",
+                }}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+      <div
+        className="px-2 pt-1"
+        style={{ fontSize: "11.5px", lineHeight: 1.5, color: "var(--ink-faint)" }}
+      >
+        Looking for Memory? It lives in{" "}
+        <Link to="/brain" style={{ color: "var(--ink-body)", textDecoration: "underline" }}>
+          Brain
+        </Link>{" "}
+        now.
+      </div>
+    </aside>
   );
 }
 
@@ -406,93 +411,17 @@ function SettingsPage() {
   // section, its member sections (for the tier-2 sub-row), and a pane-click
   // handler that lands on the pane's primary section. The ?section= id stays
   // the routing key.
-  const activeGroup = groupForSection(active);
-  const groupMembers = findGroup(activeGroup)?.sections ?? [];
-  const setGroup = (gid: GroupId) => navigate({ search: { section: primarySection(gid) } });
-
-  const workspaceName = activeWorkspace?.name;
-
+  // screen-7: Settings wears the room shell (the four doors, Settings lit),
+  // its own five-group set-nav, and the surface header - no old AppShell rail,
+  // so it no longer bounces to the retired 10-rail chrome.
   return (
-    <>
-      <TopBar crumbs={[workspaceName ?? "Workspace", "Settings"]} />
-      <div
-        data-screen-label="Settings"
-        style={{
-          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
-          width: "100%",
-          maxWidth: "var(--container-standard, 1240px)",
-          margin: "0 auto",
-        }}
-      >
-        {/* v4 surface header: real h1 (AT-navigable outline) + the maker's-mark
-            thread underline (DESIGN-LOOM §6, static). */}
-        <header style={{ marginBottom: 28 }}>
-          <ObsidianMonoLabel style={{ display: "block", marginBottom: 6 }}>
-            {workspaceName ?? "Workspace"}
-          </ObsidianMonoLabel>
-          <h1
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontWeight: 400,
-              fontSize: 28,
-              lineHeight: 1.15,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            Settings
-          </h1>
-          <span
-            aria-hidden="true"
-            style={{
-              display: "block",
-              width: 24,
-              height: 2,
-              marginTop: 10,
-              borderRadius: 2,
-              background: "var(--thread-gradient)",
-              opacity: 0.4,
-            }}
-          />
-        </header>
-
-        <div className="flex flex-col md:flex-row" style={{ gap: 44 }}>
-          <div className="md:w-48">
-            <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
-          </div>
-
-          <div style={{ flex: 1, minWidth: 0, maxWidth: 880 }}>
-            {/* Tier 2: the active pane's member sections — only shown when the pane
-              holds more than one section (single-section panes need no sub-row). */}
-            {groupMembers.length > 1 ? (
-              <div className="flex flex-wrap" style={{ gap: 4, marginBottom: 20 }}>
-                {groupMembers.map((s) => {
-                  const isActive = s.id === active;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setTab(s.id)}
-                      aria-pressed={isActive}
-                      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-mono-floor, 10.5px)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        padding: "5px 10px",
-                        borderRadius: "var(--radius-control)",
-                        background: isActive ? "var(--raised)" : undefined,
-                        color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                      }}
-                    >
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-
+    <RoomChromeShell activeDoor="settings">
+      <div className="flex min-h-full" data-screen-label="Settings">
+        <SettingsNav active={active} onSet={setTab} />
+        <section className="min-w-0 flex-1">
+          <SurfaceHeader stageMarker="Settings" title={sectionLabel(active)} />
+          <h1 className="sr-only">Settings</h1>
+          <div style={{ padding: "26px 30px 72px", maxWidth: 980, margin: "0 auto" }}>
             {active === "connections" && (
               <ConnectionsTab
                 connector={activeConnector}
@@ -502,7 +431,11 @@ function SettingsPage() {
             )}
             {active === "ai" && <ModelsTab />}
             {active === "staff" && <StaffTab />}
+            {active === "autonomy" && (
+              <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
+            )}
             {active === "products" && <ProductsTab />}
+            {active === "brand" && <DesignMemoryPanel />}
             {active === "workspace" && (
               <>
                 <WorkspaceTab scrollToBrief={rawSection === "brief"} />
@@ -512,6 +445,18 @@ function SettingsPage() {
             {active === "billing" && <BillingTab checkout={checkout} />}
             {active === "credits" && <CreditsTab />}
             {active === "interop" && <IntegrationsTab />}
+            {active === "sync" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <WorkspaceBindingsSection />
+                <Link
+                  to="/sync"
+                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{ fontSize: 12.5, color: "var(--link)" }}
+                >
+                  Open sync, per-product bindings, and conflicts →
+                </Link>
+              </div>
+            )}
             {active === "profile" && (
               <>
                 <ProfileTab />
@@ -520,7 +465,35 @@ function SettingsPage() {
               </>
             )}
             {active === "notifications" && <NotificationsTab />}
-            {active === "memory" && <MemoryView />}
+            {active === "memory" && (
+              <div
+                className="rounded-xl border p-5"
+                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+              >
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
+                  Memory lives in Brain
+                </h2>
+                <p
+                  style={{
+                    marginTop: 6,
+                    maxWidth: 460,
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                    color: "var(--text-body)",
+                  }}
+                >
+                  The ledger of what the loop knows (its decisions, what it learned, and the review
+                  gate for new memories) now has one home in Brain. Manage it there.
+                </p>
+                <Link
+                  to="/brain"
+                  className="loom-press mt-3 inline-block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{ fontSize: 13, color: "var(--link)" }}
+                >
+                  Open Brain →
+                </Link>
+              </div>
+            )}
             {active === "health" && <HealthCard />}
             {active === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -532,9 +505,9 @@ function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
-    </>
+    </RoomChromeShell>
   );
 }
 
@@ -2451,65 +2424,112 @@ function AgentToolCap({ agent }: { agent: AgentRow }) {
   );
 }
 
+// screen-7 roster: a TABLE (Agent / Job / Stage / Approval / Last activity /
+// On) with an expandable agent revealing three ledgers (Skills / Tool access /
+// Knowledge & instructions). Real data only: the 13-agent catalog (name/job/
+// stage), the agents table (enabled + tool-reach cap), agent_runs (last
+// activity), and the reflections RPC (skills). Values we do not store yet
+// (a per-product knowledge note) are shown honestly, never faked.
+
+const STATION_STAGE: Record<string, string> = {
+  sense: "01",
+  decide: "02",
+  define: "03",
+  design: "04",
+  build: "05",
+  ship: "06",
+  learn: "07",
+};
+
+// The per-agent approval posture. This is the DEFAULT oversight for the role
+// (real product behavior: read/analyze agents run alone, agents that draft an
+// artifact ask first, and agents that change code or deploy need review). The
+// operator tightens it in Autonomy & approvals - a set blast-radius cap of
+// "high" forces review. Never a fabricated per-tool state; the exact runtime
+// mode is still resolved per tool by resolveApprovalMode.
+function defaultPosture(entry: ReturnType<typeof catalogEntry>): "alone" | "asks" | "review" {
+  if (!entry) return "alone";
+  if (entry.conductor) return "alone";
+  if (entry.face === "critic") return "alone"; // red-teams / checks, does not mutate
+  if (entry.station === "sense" || entry.station === "learn") return "alone"; // read / analyze
+  if (entry.station === "build") return "review"; // touches code, deploys
+  return "asks"; // decide / define / design / ship: produces something for your call
+}
+
+function approvalForAgent(
+  agent: AgentRow,
+  entry: ReturnType<typeof catalogEntry>,
+): { label: string; review: boolean } {
+  const posture = agent.max_tool_risk === "high" ? "review" : defaultPosture(entry);
+  if (posture === "review") return { label: "needs review", review: true };
+  if (posture === "asks") return { label: "asks first", review: false };
+  return { label: "runs alone", review: false };
+}
+
+type RunRow = {
+  agent_slug: string | null;
+  status: string | null;
+  created_at: string;
+  input?: string | null;
+};
+
+function lastActivityFor(slug: string, runs: RunRow[]): { text: string; live: boolean } | null {
+  const run = runs.find((r) => r.agent_slug === slug);
+  if (!run) return null;
+  if (run.status === "running") return { text: "working now", live: true };
+  if (run.status === "queued") return { text: "queued", live: true };
+  const verb = run.status === "failed" ? "stopped" : "ran";
+  return { text: `${verb} · ${relTimeCaps(run.created_at)}`, live: false };
+}
+
 function StaffTab() {
   const fAgents = useServerFn(listAgents);
+  const fRuns = useServerFn(listAgentRuns);
   const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
+  const runsQ = useQuery({ queryKey: ["agent-runs"], queryFn: () => fRuns() });
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
 
   if (agentsQ.error) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+      <div
+        className="rounded-xl border p-6"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
+      >
+        <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--voice-human)" }}>
           Couldn't load agents
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-subtle)", marginTop: 8 }}>
           {(agentsQ.error as Error)?.message}
         </p>
         <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
+          className="ink-focus mt-3 rounded-lg border px-3 py-1.5 text-[12.5px]"
+          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-body)" }}
           onClick={() => agentsQ.refetch()}
         >
-          Retry · reloads agents
+          Retry
         </button>
       </div>
     );
   }
 
   if (agentsQ.isLoading) {
-    // Skeleton shaped like the agent card grid, never a dead text frame
-    // (checklist point 5).
     return (
-      <div
-        aria-hidden="true"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-          gap: 12,
-        }}
-      >
-        {[0, 1, 2, 3].map((i) => (
+      <div aria-hidden="true" style={{ display: "grid", gap: 8 }}>
+        {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className="animate-pulse"
-            style={{
-              height: 92,
-              borderRadius: "var(--radius-card, 10px)",
-              background: "var(--raised)",
-            }}
+            style={{ height: 40, borderRadius: 8, background: "var(--ink-raised)" }}
           />
         ))}
       </div>
     );
   }
 
-  // Roster ruling A8: the concrete set is the 13 catalog-active agents.
-  // Deprecated alias rows (engineer/stakeholder/copilot and older) are live
-  // duplicates from seeding history; they stay in the DB for run history but
-  // never render as staff, so every card is one recognizable specialist.
-  const agents = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
+  const rows = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
     (a) => catalogEntry(a.slug)?.status !== "deprecated",
   );
-  if (agents.length === 0) {
+  if (rows.length === 0) {
     return (
       <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
         No agents in this workspace yet.
@@ -2517,73 +2537,297 @@ function StaffTab() {
     );
   }
 
+  // Order by the catalog (station order, cast then conductor), so the roster
+  // reads down the loop like the mockup, not by DB insert order.
+  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
+  const ordered = [...rows].sort(
+    (a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999),
+  );
+  const runs = (runsQ.data?.runs ?? []) as RunRow[];
+
+  // The lede counts: how many run alone / ask first / need review, from the
+  // same derivation each row shows.
+  const modes = ordered.map((a) => approvalForAgent(a, catalogEntry(a.slug)));
+  const alone = modes.filter((m) => m.label === "runs alone").length;
+  const asks = modes.filter((m) => m.label === "asks first").length;
+  const review = modes.filter((m) => m.review).length;
+
   return (
-    <div
-      // auto-fit so the card grid wraps instead of crushing at 1024/768
-      // (checklist point 10); 4-up at full width, fewer columns as it narrows.
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-        gap: 12,
-      }}
-    >
-      {agents.map((a) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div>
+        <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-body)" }}>
+          Your AI staff: what they may do, and on whose approval.{" "}
+          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+            {ordered.length}
+          </span>{" "}
+          agents:{" "}
+          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+            {alone}
+          </span>{" "}
+          run alone,{" "}
+          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+            {asks}
+          </span>{" "}
+          ask first,{" "}
+          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+            {review}
+          </span>{" "}
+          need review on risky tools.
+        </p>
+        <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 6, maxWidth: "70ch" }}>
+          New tools ask for permission the moment they are first needed, inside the run. This page is
+          the ledger; the dials live in Autonomy & approvals.
+        </p>
+      </div>
+
+      <div
+        className="overflow-hidden rounded-xl border"
+        style={{ borderColor: "var(--ink-hairline)" }}
+      >
+        {/* Column header */}
         <div
-          key={a.slug}
-          className="bento"
-          style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}
+          className="grid items-center gap-3 border-b px-4 py-2.5 font-mono text-[9.5px] uppercase tracking-[0.08em]"
+          style={{
+            gridTemplateColumns: "132px minmax(0,1fr) 46px 104px 132px 40px 22px",
+            borderColor: "var(--ink-hairline)",
+            color: "var(--ink-faint)",
+            background: "var(--ink-raised)",
+          }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="font-display" style={{ fontSize: 15 }}>
-                {agentDisplayName(a.slug, a.name)}
-              </div>
-              <div className="mono-label" style={{ fontSize: 8.5 }}>
-                {agentBlurb(a.slug) ?? a.role}
-              </div>
-            </div>
-            <button
-              role="switch"
-              aria-checked={a.enabled}
-              aria-label={`${a.name} ${a.enabled ? "enabled" : "disabled"}. Changing this is gated in Govern.`}
-              title={`${a.name} ${a.enabled ? "enabled" : "disabled"}`}
-              onClick={() =>
-                toast(
-                  a.enabled
-                    ? `${a.name} stays on. Disabling agents is gated in Govern.`
-                    : `${a.name} stays off. Enabling agents is gated in Govern.`,
-                )
-              }
-              // Focus ring never removed (checklist point 2); background
-              // transition rides the global reduced-motion kill switch.
-              className="cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                width: 30,
-                height: 17,
-                borderRadius: 99,
-                background: a.enabled ? "var(--deep-green)" : "var(--surface-2)",
-                position: "relative",
-                flexShrink: 0,
-                transitionProperty: "background-color",
-                transitionDuration: "var(--dur-press, 140ms)",
-              }}
-            >
-              <span
-                style={{
-                  position: "absolute",
-                  ...(a.enabled ? { right: 2 } : { left: 2 }),
-                  top: 2,
-                  width: 13,
-                  height: 13,
-                  borderRadius: 99,
-                  background: "var(--canvas)",
-                }}
-              ></span>
-            </button>
-          </div>
-          <AgentToolCap agent={a} />
+          <span>Agent</span>
+          <span>Job</span>
+          <span>Stage</span>
+          <span>Approval</span>
+          <span>Last activity</span>
+          <span>On</span>
+          <span />
         </div>
-      ))}
+        {ordered.map((a) => (
+          <AgentRosterRow
+            key={a.slug}
+            agent={a}
+            lastActivity={lastActivityFor(a.slug, runs)}
+            open={openSlug === a.slug}
+            onToggleOpen={() => setOpenSlug((cur) => (cur === a.slug ? null : a.slug))}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentRosterRow({
+  agent,
+  lastActivity,
+  open,
+  onToggleOpen,
+}: {
+  agent: AgentRow;
+  lastActivity: { text: string; live: boolean } | null;
+  open: boolean;
+  onToggleOpen: () => void;
+}) {
+  const entry = catalogEntry(agent.slug);
+  const stage = entry?.conductor ? "all" : (STATION_STAGE[entry?.station ?? ""] ?? "--");
+  const approval = approvalForAgent(agent, entry);
+  const off = agent.enabled === false;
+
+  return (
+    <div style={{ borderBottom: "1px solid var(--ink-hairline)" }}>
+      <div
+        className="grid items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--ink-raised)]"
+        style={{
+          gridTemplateColumns: "132px minmax(0,1fr) 46px 104px 132px 40px 22px",
+          opacity: off ? 0.5 : 1,
+        }}
+      >
+        <span
+          className="w-fit whitespace-nowrap rounded-[5px] px-[7px] py-[2px] font-mono text-[10px]"
+          style={{ background: "var(--ink-raised)", color: "var(--ink-text)" }}
+        >
+          {agentDisplayName(agent.slug, agent.name)}
+        </span>
+        <span className="truncate text-[12.5px]" style={{ color: "var(--ink-body)" }} title={agentBlurb(agent.slug) ?? agent.role}>
+          {agentBlurb(agent.slug) ?? agent.role}
+        </span>
+        <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+          {stage}
+        </span>
+        <span
+          className="text-[12px]"
+          style={{ color: approval.review ? "var(--voice-human)" : "var(--ink-subtle)" }}
+        >
+          {approval.label}
+        </span>
+        <span
+          className="flex items-center gap-1.5 truncate text-[12px]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
+          {lastActivity ? (
+            <>
+              {lastActivity.live ? (
+                <span
+                  aria-hidden
+                  className="ink-working h-1.5 w-1.5 flex-none rounded-full"
+                  style={{ background: "var(--voice-machine)" }}
+                />
+              ) : null}
+              {lastActivity.text}
+            </>
+          ) : (
+            <span style={{ color: "var(--ink-faint)" }}>quiet</span>
+          )}
+        </span>
+        <button
+          role="switch"
+          aria-checked={!off}
+          aria-label={`${agent.name} ${off ? "off" : "on"}. Changing this is gated in Autonomy & approvals.`}
+          title={`${agent.name} ${off ? "off" : "on"}`}
+          onClick={() =>
+            toast(
+              off
+                ? `${agent.name} stays off. Enabling agents is gated in Autonomy & approvals.`
+                : `${agent.name} stays on. Disabling agents is gated in Autonomy & approvals.`,
+            )
+          }
+          className="ink-focus relative cursor-pointer"
+          style={{
+            width: 28,
+            height: 16,
+            borderRadius: 99,
+            background: off ? "var(--ink-hairline)" : "var(--voice-machine)",
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              ...(off ? { left: 2 } : { right: 2 }),
+              top: 2,
+              width: 12,
+              height: 12,
+              borderRadius: 99,
+              background: "var(--ink-bg)",
+            }}
+          />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleOpen}
+          aria-expanded={open}
+          aria-label={open ? "Collapse agent" : "Expand agent"}
+          className="ink-focus flex h-6 w-6 items-center justify-center rounded-md text-[11px] transition-colors hover:bg-[var(--ink-panel)]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
+          {open ? "▾" : "▸"}
+        </button>
+      </div>
+      {open ? <AgentExpand agent={agent} /> : null}
+    </div>
+  );
+}
+
+// The three-ledger agent home (screen-7 set-expand): Skills (the lessons the
+// agent learned, from the reflections RPC), Tool access (the blast-radius reach
+// control, real), and Knowledge & instructions (the workspace brief/voice it
+// reads, real; per-product notes are an honest, not-yet-wired slot).
+function AgentExpand({ agent }: { agent: AgentRow }) {
+  const fReflect = useServerFn(listAgentReflections);
+  const reflectQ = useQuery({
+    queryKey: ["agent-reflections", agent.slug],
+    queryFn: () => fReflect({ data: { agentSlug: agent.slug, limit: 6 } }),
+  });
+  const lessons = reflectQ.data?.reflections ?? [];
+
+  const panelStyle: React.CSSProperties = {
+    background: "var(--ink-bg)",
+    border: "1px solid var(--ink-hairline)",
+    borderRadius: 10,
+    padding: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    minWidth: 0,
+  };
+  const titleStyle: React.CSSProperties = {
+    fontFamily: "var(--font-mono)",
+    fontSize: "10px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    color: "var(--ink-subtle)",
+  };
+
+  return (
+    <div style={{ background: "var(--ink-raised)", padding: "14px 16px 18px" }}>
+      <div
+        style={{
+          display: "grid",
+          gap: 12,
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        }}
+      >
+        {/* Skills */}
+        <div style={panelStyle}>
+          <div style={titleStyle}>
+            Skills{lessons.length ? ` · ${lessons.length} lessons learned` : ""}
+          </div>
+          {reflectQ.isLoading ? (
+            <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>Loading…</p>
+          ) : lessons.length === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
+              No lessons yet. They accrue from real runs and your corrections.
+            </p>
+          ) : (
+            lessons.slice(0, 5).map((l) => (
+              <div key={l.id} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.45 }}>
+                <span
+                  className="font-mono"
+                  style={{ color: "var(--ink-faint)", flexShrink: 0, fontSize: 10 }}
+                >
+                  {relTimeCaps(l.created_at)}
+                </span>
+                <span style={{ color: "var(--ink-body)" }}>
+                  {l.metadata?.what_worked || l.content}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Tool access (the reach control, real) */}
+        <div style={panelStyle}>
+          <div style={titleStyle}>Tool access</div>
+          <p style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
+            Cap the blast radius of the tools this agent may call. New tools ask for permission
+            inline the first time they are needed.
+          </p>
+          <AgentToolCap agent={agent} />
+          <p style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+            The per-tool grant matrix lands with the agent-access work.
+          </p>
+        </div>
+
+        {/* Knowledge & instructions */}
+        <div style={panelStyle}>
+          <div style={titleStyle}>Knowledge &amp; instructions</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
+              Workspace
+            </span>
+            <span style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
+              Reads the company brief and voice anchor, like every agent. Edit those in Workspace.
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
+              Per product
+            </span>
+            <span style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
+              Per-product instructions the agent reads before each mission are not wired yet.
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

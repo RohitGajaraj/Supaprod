@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useEffect, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CommandPalette, GotoShortcuts } from "@/components/supaprod/CommandPalette";
+import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
 import { AppShell } from "@/components/supaprod/AppShell";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
@@ -10,7 +10,7 @@ import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 
 import { AskProvider } from "@/lib/ask-context";
-import { AskPanel } from "@/components/obsidian/AskPanel";
+import { GlobalComposer } from "@/components/mission/composer";
 import { FocusDock } from "@/components/supaprod/FocusDock";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -139,8 +139,38 @@ function AuthedLayout() {
   // Onboarding is documented full-viewport, no-shell (_authenticated.onboarding.tsx)
   // and must stay that way after the OBS-02 hoist: wrapping it in <AppShell>
   // would expose all five nav destinations + the 1-5/g shortcuts before the
-  // account has finished onboarding.
-  const isOnboarding = pathname.startsWith("/onboarding");
+  // account has finished onboarding. The reimagined one-question first run at
+  // /start (front-end reimagining Phase 5) is the same kind of moment, so it
+  // gets the same clean, chromeless full-viewport treatment (no shell, no
+  // shortcuts, no composer, no focus dock, no sample banner).
+  const isOnboarding = pathname.startsWith("/onboarding") || pathname === "/start";
+  // Mission Control sandbox (/m, front-end reimagining Phase 1): the room
+  // carries its own five-region shell (TopBar, Spine, Thread, Canvas,
+  // Composer), so the old AppShell must not wrap it. GotoShortcuts also stays
+  // off there: it binds bare digits 1-7 to old-app surfaces, and in the room
+  // those keys walk the Spine (shell-local listener in MissionShell).
+  const isMissionControl = pathname === "/m" || pathname.startsWith("/m/");
+  // The reimagined standalone surfaces (Threads, Artifacts) are part of the
+  // Mission Control world, reached from the room's top-bar doors. They carry
+  // their own ink header, so the old Obsidian AppShell (nav rail + banners)
+  // must not wrap them (Love-Gate consumer-grade finding, 2026-07-20). Kept
+  // chromeless like the room until the app-wide reimagined shell adoption gives
+  // them the room top bar.
+  const isReimaginedSurface =
+    isMissionControl ||
+    pathname === "/threads" ||
+    pathname.startsWith("/threads/") ||
+    pathname === "/artifacts" ||
+    pathname.startsWith("/artifacts/") ||
+    // Settings, Approvals, and Brain wear the reimagined room shell
+    // (RoomChromeShell) per the mockups, so the old AppShell 10-rail must not
+    // wrap them (founder ruling 2026-07-20: no bounce back to the retired shell).
+    pathname === "/settings" ||
+    pathname.startsWith("/settings/") ||
+    pathname === "/approvals" ||
+    pathname.startsWith("/approvals/") ||
+    pathname === "/brain" ||
+    pathname.startsWith("/brain/");
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the
@@ -153,21 +183,30 @@ function AuthedLayout() {
             {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
             <BackendHealthBanner />
             <BillingBanner />
-            <CommandPalette />
-            {!isOnboarding && <GotoShortcuts />}
-            {isOnboarding ? (
+            {!isOnboarding && !isReimaginedSurface && <GotoShortcuts />}
+            {isOnboarding || isReimaginedSurface ? (
               <Outlet />
             ) : (
               <AppShell>
                 <Outlet />
               </AppShell>
             )}
-            {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
-                  rail destination - mounted once, floats over the whole shell. */}
-            {!isOnboarding && <AskPanel />}
+            {/* Phase 2 (front-end reimagining): the ONE summonable composer.
+                  Cmd/Ctrl+J and Cmd/Ctrl+K plus the supaprod:open-ask /
+                  supaprod:open-cmdk events open the ComposerOverlay on every
+                  old-app surface. The retired CommandPalette and AskPanel
+                  components stay in the tree source but are unmounted
+                  (Addendum 1.1 rule 8); inside /m/$productId the room's own
+                  MissionShell answers the same keys and events, so
+                  GlobalComposer stands down there (it self-excludes). */}
+            {!isOnboarding && <GlobalComposer />}
             {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
-                  page, the cross-surface countdown while a block runs (Option F). */}
-            {!isOnboarding && <FocusDock />}
+                  page, the cross-surface countdown while a block runs (Option F).
+                  Off Mission Control: its fixed bottom-center sliver sits on top
+                  of the room's docked Composer and intercepts its clicks (found
+                  in live smoke 2026-07-19), and the founder's Gate 1 retirements
+                  already drop the dock from the reimagined room. */}
+            {!isOnboarding && !isReimaginedSurface && <FocusDock />}
           </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>

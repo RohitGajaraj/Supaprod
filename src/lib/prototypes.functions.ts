@@ -33,6 +33,7 @@ export type PrototypeSummary = {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  projectId: string | null;
 };
 
 export const listPrototypes = createServerFn({ method: "GET" })
@@ -41,7 +42,7 @@ export const listPrototypes = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("prototypes")
-      .select("id,name,prd_id,share_slug,is_public,created_at,updated_at")
+      .select("id,name,prd_id,project_id,share_slug,is_public,created_at,updated_at")
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
@@ -53,6 +54,7 @@ export const listPrototypes = createServerFn({ method: "GET" })
       isPublic: Boolean(r.is_public),
       createdAt: r.created_at as string,
       updatedAt: r.updated_at as string,
+      projectId: (r.project_id as string | null) ?? null,
     }));
   });
 
@@ -92,13 +94,14 @@ export const publishPrototypeFromPrd = createServerFn({ method: "POST" })
         entry_path: "index.html",
         is_public: false,
       })
-      .select("id,name,prd_id,share_slug,is_public,created_at,updated_at")
+      .select("id,name,prd_id,project_id,share_slug,is_public,created_at,updated_at")
       .single();
     if (insertErr) throw new Error(insertErr.message);
     const p = prototype as {
       id: string;
       name: string;
       prd_id: string;
+      project_id: string | null;
       share_slug: string;
       is_public: boolean;
       created_at: string;
@@ -132,6 +135,7 @@ export const publishPrototypeFromPrd = createServerFn({ method: "POST" })
       isPublic: Boolean(p.is_public),
       createdAt: p.created_at,
       updatedAt: p.updated_at,
+      projectId: p.project_id ?? null,
     };
   });
 
@@ -151,4 +155,34 @@ export const togglePrototypeShare = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!updated) throw new Error("Prototype not found");
     return { ok: true, isPublic: data.isPublic };
+  });
+
+// K9 (Artifacts rename/delete): rename + delete a prototype. RLS-scoped like
+// the rest of this file (own-row + workspace-member); no migration. A foreign
+// id updates/deletes zero rows rather than someone else's.
+export const renamePrototype = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ id: z.string().uuid(), name: z.string().min(1).max(200) }).parse(i),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const builder = context.supabase.from("prototypes") as unknown as {
+      update: (p: Record<string, unknown>) => {
+        eq: (c: string, v: string) => Promise<{ error: { message: string } | null }>;
+      };
+    };
+    const { error } = await builder
+      .update({ name: data.name, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deletePrototype = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { error } = await context.supabase.from("prototypes").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

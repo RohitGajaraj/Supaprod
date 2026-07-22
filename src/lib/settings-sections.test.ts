@@ -15,12 +15,12 @@ import {
 } from "./settings-sections";
 
 /**
- * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 - the grouping must collapse 12 flat
- * tabs into exactly four calm panes (You · Workspace · Connections · Plan)
- * WITHOUT breaking the `?section=` deep-link contract. These tests lock both:
- * the structural invariants of the four-pane model AND that every one of the
- * 12 section ids is still reachable and unchanged. "products" (the ported
- * PortfolioBoard, OBS-10) joined the Workspace pane after the original 11.
+ * SETTINGS-SEGREGATE -> front-end reimagining Phase 4 - the grouping presents
+ * the 13 flat sections as exactly FIVE named groups (You · Workspace · Agents ·
+ * Connections & Data · Plan & Usage) WITHOUT breaking the `?section=` deep-link
+ * contract. These tests lock both: the structural invariants of the five-group
+ * model AND that every one of the 13 section ids is still reachable and
+ * unchanged. Agents is promoted to its own group (charter requirement 9).
  */
 
 // The 13 section ids the route ships with - the routing contract that must
@@ -30,11 +30,14 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
   "staff",
+  "autonomy",
   "workspace",
+  "brand",
   "products",
   "billing",
   "credits",
   "interop",
+  "sync",
   "profile",
   "health",
   "data",
@@ -43,7 +46,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 13 section ids (no id added or dropped)", () => {
+  it("exposes exactly the 16 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 
@@ -59,18 +62,24 @@ describe("settings-sections - the routing contract is preserved", () => {
   });
 });
 
-describe("settings-sections - four-pane shape", () => {
-  it("collapses to exactly four panes, none recessed", () => {
-    expect(SETTINGS_GROUPS.length).toBe(4);
-    expect(PRIMARY_GROUPS.length).toBe(4);
+describe("settings-sections - five-group shape", () => {
+  it("presents exactly five groups, none recessed", () => {
+    expect(SETTINGS_GROUPS.length).toBe(5);
+    expect(PRIMARY_GROUPS.length).toBe(5);
     expect(RECESSED_GROUPS.length).toBe(0);
   });
 
-  it("the four panes are You, Workspace, Connections, Plan in that order", () => {
-    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual(["you", "workspace", "connections", "plan"]);
+  it("the five groups are You, Workspace, Agents, Connections & Data, Plan & Usage in order", () => {
+    expect(SETTINGS_GROUPS.map((g) => g.id)).toEqual([
+      "you",
+      "workspace",
+      "agents",
+      "connections",
+      "plan",
+    ]);
   });
 
-  it("every pane has a label, a one-line desc, and at least one section", () => {
+  it("every group has a label, a one-line desc, and at least one section", () => {
     for (const g of SETTINGS_GROUPS) {
       expect(g.label.length).toBeGreaterThan(0);
       expect(g.desc.length).toBeGreaterThan(0);
@@ -78,31 +87,33 @@ describe("settings-sections - four-pane shape", () => {
     }
   });
 
-  it("the 3-places-to-connect confusion is consolidated: Yours + This workspace's live in one pane", () => {
+  it("Connections & Data holds Sources, Agent access, and Your data", () => {
     expect(groupForSection("connections")).toBe("connections");
     expect(groupForSection("interop")).toBe("connections");
+    expect(groupForSection("data")).toBe("connections");
   });
 
-  it("health and data (the old recessed Advanced group) now live in You", () => {
-    expect(groupForSection("health")).toBe("you");
-    expect(groupForSection("data")).toBe("you");
+  it("Diagnostics lives in Plan & Usage (system health + cost, one neighborhood)", () => {
+    expect(groupForSection("health")).toBe("plan");
   });
 
-  it("AI & keys lives in Workspace, not its own pane", () => {
-    expect(groupForSection("ai")).toBe("workspace");
+  it("Agents is its own group: Roster (staff), Autonomy & approvals, and Models & keys (ai) live there", () => {
+    expect(groupForSection("staff")).toBe("agents");
+    expect(groupForSection("autonomy")).toBe("agents");
+    expect(groupForSection("ai")).toBe("agents");
   });
 
-  it("Products (OBS-10, /product's PortfolioBoard) lives in Workspace, not a fifth pane", () => {
+  it("Products (OBS-10, /product's PortfolioBoard) still lives in Workspace", () => {
     expect(groupForSection("products")).toBe("workspace");
   });
 });
 
 describe("settings-sections - derivations", () => {
-  it("groupForSection round-trips with primarySection for all four panes", () => {
+  it("groupForSection round-trips with primarySection for all five groups", () => {
     for (const g of SETTINGS_GROUPS) {
       const primary = primarySection(g.id);
       expect(groupForSection(primary)).toBe(g.id);
-      // the primary is the pane's first member
+      // the primary is the group's first member
       expect(primary).toBe(g.sections[0]!.id);
     }
   });
@@ -117,13 +128,14 @@ describe("settings-sections - derivations", () => {
   });
 
   it("findGroup returns the definition, or undefined when unknown", () => {
-    expect(findGroup("plan")?.label).toBe("Billing");
+    expect(findGroup("plan")?.label).toBe("Plan & Usage");
     // @ts-expect-error - unknown id
     expect(findGroup("nope")).toBeUndefined();
   });
 
   it("sectionLabel maps ids to human labels and de-jargons Models/Staff", () => {
-    expect(sectionLabel("ai")).toBe("AI & keys");
+    expect(sectionLabel("ai")).toBe("Models & keys");
+    expect(sectionLabel("staff")).toBe("Roster");
     expect(sectionLabel("workspace")).toBe("Brief & voice");
     expect(sectionLabel("connections")).toBe("Sources");
     // unknown id falls back to itself

@@ -275,10 +275,10 @@ export const getCapabilities = createServerFn({ method: "GET" })
           }
           capabilityHistoryByAgent.get(key)!.push({
             id: (row as any).id,
-            changeType: (row as any).change_type,
+            type: (row as any).change_type,
             description: (row as any).description,
-            createdAt: (row as any).created_at,
-            userId: (row as any).user_id,
+            changedAt: (row as any).created_at,
+            changedBy: (row as any).user_id,
           });
         }
       } catch (e) {

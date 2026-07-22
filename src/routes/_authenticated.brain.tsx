@@ -24,7 +24,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { TopBar } from "@/components/supaprod/TopBar";
+import { RoomChromeShell } from "@/components/mission/RoomChrome";
 import { PageHeader } from "@/components/supaprod/PageHeader";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
@@ -530,12 +530,10 @@ function MemoryPage() {
   const stripFailed = brain.isError || stats.isError;
 
   return (
-    <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
+    <RoomChromeShell activeDoor="brain">
       <MemorySurface>
         {/* The hero: Tempo PageHeader (retires the Loom serif/italic hero). */}
         <PageHeader
-          eyebrow="Intelligence · Brain"
           title="Your product's"
           accent="brain."
           subtitle="Every call you made, what it became, and how belief moved, on one substrate the whole loop reads from and reasons over."
@@ -695,6 +693,6 @@ function MemoryPage() {
         </Suspense>
         <MemoryMachineryDisclosure counts={strip} />
       </MemorySurface>
-    </>
+    </RoomChromeShell>
   );
 }

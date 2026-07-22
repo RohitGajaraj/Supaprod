@@ -334,6 +334,19 @@ export function AutoClustered() {
     [sortedThemes, sourceFilter, signalsByTheme],
   );
 
+  // Memoize handlers to prevent ThemeRow memo defeat. Declared BEFORE the
+  // loading/error early returns: hooks after a conditional return violate the
+  // Rules of Hooks and crashed with "Rendered more hooks than during the
+  // previous render" on any cold mount that starts in the loading state
+  // (surfaced by the Mission Control /m Discover face, 2026-07-19).
+  const handleOpenDetail = useCallback((id: string) => setOpenThemeId(id), []);
+  const handlePromote = useCallback((id: string) => promoteTheme.mutate(id), [promoteTheme]);
+  const handleDraftSpec = useCallback((id: string) => draftThemeSpec.mutate(id), [draftThemeSpec]);
+  const handleAsk = useCallback(
+    (themeId: string, title: string) => askTheme.mutate({ themeId, title }),
+    [askTheme],
+  );
+
   if (signals.isLoading || themes.isLoading) {
     return (
       <div className="grid gap-3" aria-label="Loading themes" role="status">
@@ -389,15 +402,6 @@ export function AutoClustered() {
   }
 
   const shown = showAll ? themeList : themeList.slice(0, VISIBLE);
-
-  // Memoize handlers to prevent ThemeRow memo defeat
-  const handleOpenDetail = useCallback((id: string) => setOpenThemeId(id), []);
-  const handlePromote = useCallback((id: string) => promoteTheme.mutate(id), [promoteTheme]);
-  const handleDraftSpec = useCallback((id: string) => draftThemeSpec.mutate(id), [draftThemeSpec]);
-  const handleAsk = useCallback(
-    (themeId: string, title: string) => askTheme.mutate({ themeId, title }),
-    [askTheme],
-  );
 
   return (
     <div className="grid gap-3">

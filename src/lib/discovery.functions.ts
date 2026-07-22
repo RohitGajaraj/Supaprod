@@ -596,7 +596,7 @@ export const listSpecs = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("prds")
-      .select("id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations")
+      .select("id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id")
       .order("updated_at", { ascending: false })
       .limit(300);
     if (error) throw new Error(error.message);

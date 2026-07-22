@@ -1,0 +1,102 @@
+<!-- CONTINUATION BOARD: the visual phase-by-phase map of the Mission Control rebuild.
+     For any agent or human picking up the work. Pairs with HANDOFF.md (the work order)
+     and KIRO-PROMPT.md (the paste-ready prompt). Self-contained, no external requests. -->
+<meta charset="utf-8">
+<title>Supaprod rebuild: continuation board</title>
+<style>
+  :root{
+    --ink-bg:#0a0a0a; --ink-panel:#111114; --ink-raised:#17171b; --ink-hairline:#26262b;
+    --ink-text:#ededf0; --ink-body:#b8b8bf; --ink-subtle:#7c7c85;
+    --ember:#ff6b2c; --ember-faint:#200e07; --ember-border:rgba(255,107,44,.35);
+    --machine:#6cb0f5; --machine-soft:#172534; --machine-faint:#0f1822;
+    --memory:#d3c39c; --memory-faint:#16130b; --memory-border:rgba(211,195,156,.32);
+    --chip-fg:#b9c4d4; --chip-border:rgba(185,196,212,.28); --chip-faint:#101317;
+    --pass:#4ade80;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--ink-bg);color:var(--ink-body);font:14px/1.55 -apple-system,"Segoe UI",sans-serif;padding:40px 24px 80px}
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{color:var(--ink-text);font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .sub{color:var(--ink-subtle);margin:6px 0 30px}
+  h2{color:var(--ink-text);font-size:14px;font-weight:600;margin:34px 0 12px;text-transform:uppercase;letter-spacing:.08em;font-size:11.5px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  .phase{display:flex;gap:14px;padding:14px 16px;border:1px solid var(--ink-hairline);border-radius:12px;background:var(--ink-panel);margin-bottom:10px;align-items:flex-start}
+  .phase .badge{flex:none;width:92px;text-align:center;border-radius:11px;border:1px solid;padding:2px 0;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.04em;margin-top:2px}
+  .done .badge{color:var(--pass);border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.06)}
+  .flight .badge{color:var(--machine);border-color:rgba(108,176,245,.4);background:var(--machine-faint)}
+  .next .badge{color:#0a0a0a;border-color:var(--ember);background:var(--ember);font-weight:700}
+  .wait .badge{color:var(--chip-fg);border-color:var(--chip-border);background:var(--chip-faint)}
+  .phase b{color:var(--ink-text);font-weight:600;font-size:13.5px}
+  .phase p{font-size:12.5px;margin-top:3px}
+  .phase .ev{margin-top:6px;font-size:11px;color:var(--ink-subtle)}
+  .ev .mono{color:var(--ink-subtle)}
+  .startline{border:1px solid var(--ember-border);background:linear-gradient(180deg,var(--ember-faint),transparent 70%),var(--ink-panel);border-radius:12px;padding:16px 18px;margin:14px 0 4px}
+  .startline b{color:var(--ember);font-size:13.5px}
+  .startline p{color:var(--ink-body);font-size:12.5px;margin-top:6px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{border:1px solid var(--ink-hairline);border-radius:12px;background:var(--ink-panel);padding:14px 16px}
+  .card b{color:var(--ink-text);font-size:12.5px;font-weight:600}
+  .card ul{margin:8px 0 0 16px;font-size:12px}
+  .card li{margin-bottom:5px}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid rgba(255,255,255,.12)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  td{padding:6px 10px;border-top:1px solid var(--ink-hairline);vertical-align:top}
+  td:first-child{white-space:nowrap;color:var(--ink-subtle)}
+  .open-item{color:var(--memory)}
+  @media (max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+<div class="wrap">
+  <h1>Mission Control rebuild: continuation board</h1>
+  <div class="sub">Branch <span class="mono">sandbox/mission-control-v2</span> (pushed to origin) · updated 2026-07-19 night · pairs with <span class="mono">HANDOFF.md</span> (the work order) and <span class="mono">KIRO-PROMPT.md</span> (the paste-ready prompt)</div>
+
+  <div class="startline">
+    <b>START HERE, next session</b>
+    <p>1. Check out <span class="mono">sandbox/mission-control-v2</span> (HEAD should match commit <span class="mono">5b26cfc4</span>). &nbsp;2. Read <span class="mono">HANDOFF.md</span> in this folder, fully. &nbsp;3. Phases R, M, 0, 1, 2 are DONE and verified; do not redo them. &nbsp;4. Begin Phase 3, then 4, then 5 per the HANDOFF work order. The founder released the Phase 3 hold by giving you this package. Commit and push after EVERY phase, before starting the next one, no exceptions. Never touch main. Merge only on the founder's explicit words.</p>
+  </div>
+
+  <h2>The phases</h2>
+  <div class="phase done"><span class="badge">DONE</span><div><b>Phase R: research + charter</b><p>10 parallel research streams (Codex/Cursor, Lovable/v0, Linear/Raycast, Devin, Replit, design systems, journeys, IA recluster, vocabulary, build engine) synthesized into the charter folder: design-language-spec, 16-journey catalog, build-engine memo, gap register (64 entries).</p><div class="ev">Evidence: commit <span class="mono">97c64d64</span> · folder <span class="mono">docs/planning/front-end-reimagining/</span></div></div></div>
+  <div class="phase done"><span class="badge">DONE</span><div><b>Phase M: mockup gate</b><p>8 consistency-swept screens + gallery + decision sheet. Founder opened the gate ("pls continue"), then red-lined: edge strips banned, craft bar, color retune, threads and artifacts homes needed. All captured as spec Addenda 1.1 to 1.3.</p><div class="ev">Evidence: <span class="mono">mockups/index.html</span>, <span class="mono">GATE-1-DECISIONS.md</span> (provisional record inside)</div></div></div>
+  <div class="phase done"><span class="badge">DONE</span><div><b>Phase 0: the no-orphan registry</b><p><span class="mono">src/lib/surface-registry.ts</span> + CI test: every server-function domain has a registered home and a visible door. Unregistered domain = failing test.</p><div class="ev">Evidence: commit <span class="mono">983d645f</span> · 78/78 tests</div></div></div>
+  <div class="phase done"><span class="badge">DONE</span><div><b>Phase 1: the room</b><p>MissionShell + <span class="mono">/m</span> routes live: TopBar (4 doors, one-source needs-you pill, Ask button), live Spine on getLoopState, canvas hosting existing surfaces as temp faces, keys 1-7. Verified by a logged-in smoke test; two crashes found and fixed. Old app untouched.</p><div class="ev">Evidence: commit <span class="mono">a31624ef</span> · screenshots in <span class="mono">build-evidence/</span></div></div></div>
+  <div class="phase done"><span class="badge">DONE</span><div><b>Phase 2: conversation + journeys</b><p>Complete and verified: use-ask-stream (SSE byte-identical, mic and read-aloud alive), Briefing, journeys-as-data (24 wiredVia pairs fs-verified), Composer + Thread + journey chips, ONE overlay on both shortcut keys everywhere. Live smoke passed; FocusDock click-interception bug fixed.</p><div class="ev">Evidence: <span class="mono">build-evidence/phase2-*.png</span> · 3536/3536 tests · tsc clean</div></div></div>
+  <div class="phase next"><span class="badge">NEXT</span><div><b>Phase 3: faces + tray + strip</b><p>Seven CanvasFace implementations (strangler rule per stage), ApprovalsTray (J/K, 1/2/3/H, Enter), WorkingStrip on the vocabulary decks, the ember-to-done signature moment (700-900ms, the one big motion), the approved app-idle starfield on its scoped surfaces, cost-quiet pass.</p><div class="ev">Hold RELEASED by the founder handing you this package</div></div></div>
+  <div class="phase wait"><span class="badge">THEN</span><div><b>Phase 4: depth + settings + agents</b><p>Drawers (engine rooms verbatim, crew), Brain canvas, Settings in the five approved groups, agent management (plain-words approval modes, tool/MCP grants, knowledge/instructions), Build face on the native driver (B3 naming-honesty fix FIRST; B5 dry run authorized: test repo, small budget), Design face interactive prototypes, tooltips + opt-in tour. Threads + Artifacts surfaces only after the founder signs their concepts.</p></div></div>
+  <div class="phase wait"><span class="badge">THEN</span><div><b>Phase 5: seed + verify + Gate 2</b><p>Per-account SAMPLE seed (all 10 approval kinds, a failed-then-recovered run), stale demo data cleaned LAST, one-question onboarding, redirects, copy pass, generated coverage matrix, demo script for the founder's video, the full Love-Gate walkthrough on a fresh account. Then STOP: live dev server to the founder. His words are the only merge key.</p></div></div>
+
+  <h2>Locked by the founder (do not reopen)</h2>
+  <div class="cols">
+    <div class="card"><b>Color system, applied in ink.css</b><ul>
+      <li><span class="sw" style="background:#ff6b2c"></span>Ember, V1 tone: the human's move; primary actions ONLY, never chips</li>
+      <li><span class="sw" style="background:#6cb0f5"></span>Machine blue: live agent work, one full-hue locus per screen</li>
+      <li><span class="sw" style="background:#d3c39c"></span>Memory speaks Vellum (gold retired)</li>
+      <li><span class="sw" style="background:#b9c4d4"></span>Chips wear slate silver (<span class="mono">--chip-*</span>)</li>
+      <li>Tier retune applied · no purple anywhere · light mode = dual-mode siblings</li></ul></div>
+    <div class="card"><b>Structure + behavior</b><ul>
+      <li>Mission Control IA, nav = 4 doors; journey-first; keys 1-7 = stages</li>
+      <li>Starfield: scoped app-idle variant approved (empty states, onboarding, Brain idle; never working surfaces)</li>
+      <li>Cards: no colored edge strips; craft grid; timestamps right-aligned mono</li>
+      <li>Costs never inline; credits behind a details click</li>
+      <li>Settings five-group recluster; standalone Ask retired; weather/focus-dock/liquid-glass retired</li></ul></div>
+  </div>
+
+  <h2>Open founder sign-offs (present options, then wait)</h2>
+  <div class="card"><ul>
+    <li class="open-item">Card source-recognition treatment: current faint wash is INTERIM (Addendum 1.2); show 2-3 rendered options incl. the Vellum memory tone</li>
+    <li class="open-item">Threads home: concept + mockup exist (<span class="mono">screen-9-threads-home.html</span>); not yet signed</li>
+    <li class="open-item">Artifacts: naming (Library / Shelf / Made here) + placement</li>
+    <li class="open-item">Gate 2: the live review; merge only on his explicit words</li></ul></div>
+
+  <h2>File map</h2>
+  <div class="card"><table>
+    <tr><td class="mono">HANDOFF.md</td><td>The work order. Read first, fully. Step 0 is your entry point.</td></tr>
+    <tr><td class="mono">KIRO-PROMPT.md</td><td>The paste-ready prompt the founder gives a fresh session.</td></tr>
+    <tr><td class="mono">problem-statement.md</td><td>The charter: what this rebuild must achieve and never violate.</td></tr>
+    <tr><td class="mono">design-language-spec.md</td><td>The design law. Addenda 1.1-1.3 at the bottom override the body.</td></tr>
+    <tr><td class="mono">execution-plan.md · journey-catalog.md · gap-register.md</td><td>Phases · the 16 journeys with wiring truth · 64 tracked gaps with dispositions.</td></tr>
+    <tr><td class="mono">build-engine-strategy.md</td><td>Read before touching the Build face. B3 honesty fix first.</td></tr>
+    <tr><td class="mono">mockups/</td><td>All exhibits + <span class="mono">GATE-1-DECISIONS.md</span> and <span class="mono">GATE-1B-REVIEW.md</span> (the founder's verbatim decisions).</td></tr>
+    <tr><td class="mono">research/ · build-evidence/</td><td>Teardowns and studies · live smoke screenshots.</td></tr>
+    <tr><td class="mono">src/components/mission/ · src/lib/surface-registry.ts · src/lib/loop-state.functions.ts</td><td>The committed build so far. tsc clean, tests green.</td></tr>
+  </table></div>
+</div>

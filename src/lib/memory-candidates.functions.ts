@@ -142,6 +142,8 @@ const ProposeSchema = z
     importance: z.number().int().min(1).max(5).optional(),
     sourceKind: z.enum(["user", "agent", "outcome"]).optional(),
     workspaceId: z.string().uuid().nullable().optional(),
+    /** The thread this was saved from (screen-9 Threads rail link). */
+    sourceConversationId: z.string().uuid().nullable().optional(),
   })
   .strip();
 
@@ -171,22 +173,48 @@ export const proposeMemoryCandidate = createServerFn({ method: "POST" })
 
     const conflict = await findConflictingMemory(supabase, userId, workspaceId, screened.text);
 
-    const { data: inserted, error } = await supabase
-      .from("memory_candidates")
-      .insert({
-        user_id: userId,
-        workspace_id: workspaceId,
-        source_kind: data.sourceKind ?? "user",
-        scope: data.scope ?? null,
-        kind: data.kind ?? null,
-        content: screened.text,
-        importance: data.importance ?? null,
-        status: "pending",
-        supersedes_memory_id: conflict?.id ?? null,
-      })
-      .select("id,supersedes_memory_id")
-      .single();
-    if (error) throw new Error(error.message);
+    const baseRow = {
+      user_id: userId,
+      workspace_id: workspaceId,
+      source_kind: data.sourceKind ?? "user",
+      scope: data.scope ?? null,
+      kind: data.kind ?? null,
+      content: screened.text,
+      importance: data.importance ?? null,
+      status: "pending",
+      supersedes_memory_id: conflict?.id ?? null,
+    };
+    // Carry the source conversation link when present; tolerant of the
+    // pre-migration window (retry without it if the column is not there yet).
+    let inserted: { id: string; supersedes_memory_id: string | null } | null = null;
+    {
+      const withConv =
+        data.sourceConversationId != null
+          ? { ...baseRow, source_conversation_id: data.sourceConversationId }
+          : baseRow;
+      const first = await supabase
+        .from("memory_candidates")
+        .insert(withConv)
+        .select("id,supersedes_memory_id")
+        .single();
+      if (
+        first.error &&
+        data.sourceConversationId != null &&
+        /source_conversation_id/.test(first.error.message)
+      ) {
+        const retry = await supabase
+          .from("memory_candidates")
+          .insert(baseRow)
+          .select("id,supersedes_memory_id")
+          .single();
+        if (retry.error) throw new Error(retry.error.message);
+        inserted = retry.data as { id: string; supersedes_memory_id: string | null };
+      } else if (first.error) {
+        throw new Error(first.error.message);
+      } else {
+        inserted = first.data as { id: string; supersedes_memory_id: string | null };
+      }
+    }
 
     const row = inserted as { id: string; supersedes_memory_id: string | null };
     return { id: row.id, supersedesMemoryId: row.supersedes_memory_id };

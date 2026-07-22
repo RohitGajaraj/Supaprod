@@ -13,6 +13,7 @@ import {
 import { getLiveActivity } from "@/lib/agents.functions";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { RoomChromeShell } from "@/components/mission/RoomChrome";
 
 /**
  * Surface 3: Approvals. The single pull point (architecture §5): one queue,
@@ -189,7 +190,8 @@ function ApprovalsSurface() {
         : null;
 
   return (
-    <div className="mx-auto w-full max-w-2xl flex-1 px-6 pb-16">
+    <RoomChromeShell activeDoor="approvals">
+      <div className="mx-auto w-full max-w-2xl flex-1 px-6 pb-16">
       <header className="flex flex-col gap-4 pb-6 pt-10">
         <div>
           <h1 className="text-[22px] font-medium leading-tight text-[var(--ink-text)]">
@@ -262,6 +264,7 @@ function ApprovalsSurface() {
           {otherWorkspacesCount} more in other workspaces
         </p>
       ) : null}
-    </div>
+      </div>
+    </RoomChromeShell>
   );
 }
