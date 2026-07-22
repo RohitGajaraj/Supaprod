@@ -4,7 +4,9 @@
 
 ## What Supaprod is (the answer, three depths)
 
-**One line (category):** Supaprod is the end-to-end, agentic product management operating system — it tells you what to build, builds it, and learns your product as it goes. It owns the loop and keeps the receipts. _(Category headline updated 2026-07-18, founder ruling; the decision-and-outcome layer stays the moat story.)_
+**One line (category):** Supaprod is the agentic operating system for product teams. It tells you what to build — from your signals, the market, and your own decision history — then builds it, ships it, checks the outcome, and remembers. The more it runs, the sharper it gets. _(Category headline founder-ratified 2026-07-22 — the triple-RFS repositioning, supersedes the 2026-07-18 headline; the decision-and-outcome layer stays the moat story. Full architecture, corrected live RFS verbatims, vocabulary rules: [`repositioning-2026-07-22.md`](./repositioning-2026-07-22.md).)_
+
+**The intersection claim (the earned insight, for applications and decks):** YC has now asked for this company three times, in three pieces — a "Cursor for product managers" (Spring 2026), an "AI operating system for companies" (Summer 2026), a "company brain" (Summer 2026). They are one product: you can't be the company brain without owning the loop that generates the outcomes, and you can't run the loop without being the operating system. The product org is where that loop is tightest, so that's where we started. Told always door → body → brain, one headline per surface, brain as the crescendo.
 
 **One line (the instant anchor):** _"Supaprod is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."_
 
