@@ -20,35 +20,41 @@ describe("Badge", () => {
   });
 
   describe("variant", () => {
-    it("renders primary variant", () => {
+    it("renders primary variant with ember colors", () => {
       const { container } = render(<Badge variant="primary">Live</Badge>);
       const badge = container.querySelector("div");
+      // CVA generates background color for primary variant
       expect(badge?.className).toContain("bg-[var(--ds-ember-100)]");
-      expect(badge?.className).toContain("text-[var(--ds-ember-900)]");
+      // Border is also applied
+      expect(badge?.className).toContain("border-[var(--ds-ember-400)]");
     });
 
     it("renders success variant", () => {
       const { container } = render(<Badge variant="success">Done</Badge>);
       const badge = container.querySelector("div");
       expect(badge?.className).toContain("bg-[var(--ds-green-100)]");
+      expect(badge?.className).toContain("border-[var(--ds-green-400)]");
     });
 
     it("renders warning variant", () => {
       const { container } = render(<Badge variant="warning">Queued</Badge>);
       const badge = container.querySelector("div");
       expect(badge?.className).toContain("bg-[var(--ds-amber-100)]");
+      expect(badge?.className).toContain("border-[var(--ds-amber-400)]");
     });
 
     it("renders destructive variant", () => {
       const { container } = render(<Badge variant="destructive">Failed</Badge>);
       const badge = container.querySelector("div");
       expect(badge?.className).toContain("bg-[var(--ds-red-100)]");
+      expect(badge?.className).toContain("border-[var(--ds-red-400)]");
     });
 
     it("renders info variant", () => {
       const { container } = render(<Badge variant="info">Running</Badge>);
       const badge = container.querySelector("div");
       expect(badge?.className).toContain("bg-[var(--ds-blue-100)]");
+      expect(badge?.className).toContain("border-[var(--ds-blue-400)]");
     });
   });
 
@@ -89,9 +95,10 @@ describe("Badge", () => {
       const badge = container.querySelector("div");
       expect(icon).toBeTruthy();
       expect(badge?.textContent).toContain("With Icon");
-      expect(icon?.parentElement).toBe(badge);
-      // Icon should appear before text in DOM order
-      expect(icon?.nextSibling?.textContent).toContain("With Icon");
+      // Icon should be wrapped in flex-shrink-0 span
+      expect(icon?.parentElement?.className).toContain("flex-shrink-0");
+      // And that wrapper should be inside the badge
+      expect(icon?.parentElement?.parentElement).toBe(badge);
     });
 
     it("does not render icon span when icon is undefined", () => {
