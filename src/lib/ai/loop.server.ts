@@ -9,7 +9,7 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { callModel, GovernanceHaltError, resolveCreditAccountId } from "./runtime.server";
+import { callModel, GovernanceHaltError, resolveCreditAccountId, type KeyResolutionCache } from "./runtime.server";
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
@@ -853,6 +853,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
   };
 
+  // Cross-call cache for key resolution: avoids re-deriving BYOK eligibility and
+  // reloading vault keys if the same provider is used across multiple loop steps.
+  // Each step calls callModel once; this cache persists across those calls.
+  const keyResolutionCache: KeyResolutionCache = {};
+
   for (let i = s.startStep; i < maxSteps; i++) {
     // F-STUDIO: mid-session operator steering. Unconsumed steer messages on
     // the mission are appended as operator guidance before this step's model
@@ -931,6 +936,9 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         // provider that ignores `tools` or replies with plain text still
         // works via resolveModelAction's legacy fallback below.
         ...(NATIVE_TOOLCALLING_ENABLED ? { tools: buildNativeToolDefs(modeOf.keys()) } : {}),
+        // Cross-call key resolution cache: shared across loop steps to avoid re-deriving
+        // BYOK eligibility and reloading vault keys for the same provider.
+        keyResolutionCache,
       });
     } catch (e) {
       if (e instanceof GovernanceHaltError) {

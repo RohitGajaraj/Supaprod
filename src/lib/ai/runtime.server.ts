@@ -387,6 +387,13 @@ export type CallOpts = {
   task?: Capability;
   /** Optional AbortSignal for cancelling the request (e.g., when client disconnects) */
   signal?: AbortSignal;
+  /**
+   * Optional cross-call cache for key resolution. When provided, reused across multiple
+   * callModel invocations (e.g., across steps in an agent loop) to avoid re-deriving BYOK
+   * eligibility and reloading vault keys for the same provider. If not provided, a fresh
+   * cache is created for each call (backwards compatible).
+   */
+  keyResolutionCache?: KeyResolutionCache;
 };
 
 export type CallResult = {
@@ -468,8 +475,12 @@ async function byokAllowedForCall(
  * (userId, workspaceId, surface) tuple and reused for subsequent calls (e.g.,
  * during retries or fallback chain traversal). Prevents re-deriving BYOK
  * eligibility and reloading keys from the vault multiple times per callModel.
+ *
+ * When provided via CallOpts.keyResolutionCache, the cache persists across
+ * multiple callModel invocations (e.g., across loop steps), enabling cross-call
+ * optimization: same-provider calls avoid re-deriving BYOK eligibility + vault reloads.
  */
-type KeyResolutionCache = {
+export type KeyResolutionCache = {
   byokEligible?: boolean;
   keysByProvider?: Map<
     string,
@@ -1667,7 +1678,8 @@ export async function callModel(
   // Cache for key resolution across retry attempts and fallback chain traversal.
   // This avoids re-deriving BYOK eligibility and reloading vault keys if the same
   // provider appears in retries or multiple fallback models use the same provider.
-  const keyResolutionCache: KeyResolutionCache = {};
+  // If a cache is provided (cross-call optimization), reuse it; otherwise create fresh.
+  const keyResolutionCache: KeyResolutionCache = opts.keyResolutionCache ?? {};
 
   const attempt = async (model: string) => {
     const { provider: prov } = splitModelId(model);
