@@ -587,7 +587,7 @@ describe("RoutingTable Component", () => {
     test("renders table with many rows", () => {
       const manyRows = Array.from({ length: 50 }, (_, i) => ({
         ...mockRows[0],
-        surface: (`surface-${i}` as unknown) as RoutingSurface,
+        surface: `surface-${i}` as unknown as RoutingSurface,
       }));
       const { container } = render(
         <RoutingTable

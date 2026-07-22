@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-19T15:23:58.172Z",
+  "timestamp": "2026-07-21T13:04:01.607Z",
   "distillationEnabled": true,
   "patternsConsolidated": 0,
   "memoryCleaned": 0,
@@ -12,5 +12,5 @@
   "namespaces": [],
   "dryRun": false,
   "corrupt": false,
-  "skipped": "error: dlopen(/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node' (code signature in <E8D2D3D9-1043-32E0-927F-2B377BA35F93> '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node' not valid for use in process: system is shutting down), '/System/Volumes/Preboot/Cryptexes/OS/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node' (no such file), '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node' (code signature in <E8D2D3D9-1043-32E0-927F-2B377BA35F93> '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node' not valid for use in process: system is shutting down)"
+  "skipped": "error: The module '/Users/rohitgajaraj/.npm/_npx/489f51a63dd46519/node_modules/better-sqlite3/build/Release/better_sqlite3.node'\nwas compiled against a different Node.js version using\nNODE_MODULE_VERSION 115. This version of Node.js requires\nNODE_MODULE_VERSION 147. Please try re-compiling or re-installing\nthe module (for instance, using `npm rebuild` or `npm install`)."
 }

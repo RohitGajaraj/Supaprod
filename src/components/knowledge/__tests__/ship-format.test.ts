@@ -90,33 +90,31 @@ describe("fmtUsd", () => {
     expect(fmtUsd(0.019)).toBe("$0.02");
   });
 
-  // Negative numbers (FIXED: condition correctly gates 4-decimal formatting to positive values only)
+  // Negative numbers: the sign is prefixed before the $ sign (not "$-5.00"),
+  // and the 2-vs-4-decimal threshold applies to the absolute value so negative
+  // sub-cent amounts get the same 4-decimal precision as their positive counterparts.
   test("formats negative whole numbers with 2 decimal places", () => {
-    // The condition v > 0 && v < 0.01 ensures that only positive values less than $0.01
-    // get 4-decimal formatting; negative numbers always receive 2 decimals
     const result = fmtUsd(-5);
-    expect(result).toBe("$-5.00");
+    expect(result).toBe("-$5.00");
   });
 
   test("formats negative cents correctly with 2 decimal places", () => {
-    expect(fmtUsd(-0.5)).toBe("$-0.50");
-    expect(fmtUsd(-0.99)).toBe("$-0.99");
-    expect(fmtUsd(-123.45)).toBe("$-123.45");
+    expect(fmtUsd(-0.5)).toBe("-$0.50");
+    expect(fmtUsd(-0.99)).toBe("-$0.99");
+    expect(fmtUsd(-123.45)).toBe("-$123.45");
   });
 
-  test("formats negative amounts less than $0.01 with 2 decimal places", () => {
-    // Negative amounts < $0.01 correctly receive 2-decimal formatting, not 4.
-    // This is because the v > 0 gate prevents negatives from entering the 4-decimal path.
-    expect(fmtUsd(-0.001)).toBe("$-0.00");
-    expect(fmtUsd(-0.0001)).toBe("$-0.00");
-    expect(fmtUsd(-0.005)).toBe("$-0.01");
+  test("formats negative amounts less than $0.01 with 4 decimal places", () => {
+    expect(fmtUsd(-0.001)).toBe("-$0.0010");
+    expect(fmtUsd(-0.0001)).toBe("-$0.0001");
+    expect(fmtUsd(-0.005)).toBe("-$0.0050");
   });
 
   // String input
   test("accepts string input and converts to number", () => {
     expect(fmtUsd("5")).toBe("$5.00");
     expect(fmtUsd("0.50")).toBe("$0.50");
-    expect(fmtUsd("-10")).toBe("$-10.00");
+    expect(fmtUsd("-10")).toBe("-$10.00");
   });
 
   test("returns '$0' for non-numeric string input", () => {
@@ -146,5 +144,47 @@ describe("fmtUsd", () => {
     const numberResult = fmtUsd(5.5);
     const stringResult = fmtUsd("5.5");
     expect(numberResult).toBe(stringResult);
+  });
+
+  test("negative values: small negative (< $0.01) use 4 decimals with minus sign", () => {
+    expect(fmtUsd(-0.005)).toBe("-$0.0050");
+  });
+
+  test("negative values: regular negative amounts use 2 decimals with minus sign", () => {
+    expect(fmtUsd(-5)).toBe("-$5.00");
+    expect(fmtUsd(-10.5)).toBe("-$10.50");
+  });
+
+  test("negative zero is treated as zero", () => {
+    expect(fmtUsd(-0)).toBe("$0");
+  });
+
+  test("negative string input is parsed and formatted correctly", () => {
+    expect(fmtUsd("-25.75")).toBe("-$25.75");
+    expect(fmtUsd("-0.001")).toBe("-$0.0010");
+  });
+
+  test("minus sign appears BEFORE dollar sign, not after", () => {
+    const result = fmtUsd(-5);
+    expect(result).toBe("-$5.00");
+    expect(result).not.toBe("$-5.00");
+  });
+
+  test("large negative amounts format correctly", () => {
+    expect(fmtUsd(-1000000)).toBe("-$1000000.00");
+  });
+
+  test("negative sub-cent values use 4 decimals", () => {
+    expect(fmtUsd(-0.0001)).toBe("-$0.0001");
+    expect(fmtUsd(-0.00999)).toBe("-$0.0100");
+  });
+
+  test("boundary: exactly -0.01 uses 2 decimals", () => {
+    expect(fmtUsd(-0.01)).toBe("-$0.01");
+  });
+
+  test("positive and negative versions format symmetrically", () => {
+    expect(fmtUsd(42.5)).toBe("$42.50");
+    expect(fmtUsd(-42.5)).toBe("-$42.50");
   });
 });

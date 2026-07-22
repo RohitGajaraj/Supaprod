@@ -230,6 +230,66 @@ describe("resolveKindColors", () => {
     expect(result.get("signal")).toBeDefined();
     expect(result.get("signal")).toBe("#e5bddf"); // Verify whitespace is trimmed
   });
+
+  test("trims whitespace from resolved CSS variable values", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "  #ffffff  " }));
+    const result = resolveKindColors({} as HTMLElement);
+    const color = result.get("signal");
+    expect(color).not.toContain("  ");
+  });
+
+  test("falls back to literal color when CSS variable is empty", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "" }));
+    const result = resolveKindColors({} as HTMLElement);
+    // signal should have fallback color #e5bddf
+    expect(result.get("signal")).toBe("#e5bddf");
+  });
+
+  test("resolves all registered kinds without error", () => {
+    const allKinds = [
+      "signal",
+      "theme",
+      "opportunity",
+      "prd",
+      "roadmap_item",
+      "task",
+      "meeting",
+      "mission",
+      "design_memory",
+      "decision",
+    ];
+
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "#dedede" }));
+
+    const result = resolveKindColors({} as HTMLElement);
+
+    // All registered kinds should be in the result
+    for (const kind of allKinds) {
+      expect(result.has(kind)).toBe(true);
+      expect(result.get(kind)).toBeDefined();
+    }
+  });
+
+  test("handles getPropertyValue returning non-empty then trimming to empty", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "   " })); // Whitespace only, trims to empty
+    const result = resolveKindColors({} as HTMLElement);
+    // Should use fallback when trimmed value is empty
+    expect(result.get("signal")).toBe("#e5bddf");
+  });
+
+  test("__unknown color is always set", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "#dedede" }));
+    const result = resolveKindColors({} as HTMLElement);
+    expect(result.has("__unknown")).toBe(true);
+    expect(result.get("__unknown")).toBeDefined();
+  });
+
+  test("map size includes all registered kinds plus __unknown", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "#dedede" }));
+    const result = resolveKindColors({} as HTMLElement);
+    // 10 registered kinds + __unknown = 11 entries minimum
+    expect(result.size).toBeGreaterThanOrEqual(11);
+  });
 });
 
 // ---------------------------------------------------------------------------

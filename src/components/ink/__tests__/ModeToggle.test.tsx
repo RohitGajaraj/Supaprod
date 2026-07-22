@@ -6,23 +6,13 @@ import { describe, test, expect, mock } from "bun:test";
 describe("ModeToggle Component", () => {
   describe("Rendering", () => {
     test("renders radiogroup with correct aria-label", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const radiogroup = screen.getByRole("radiogroup", { name: /Working mode/i });
       expect(radiogroup).toBeTruthy();
     });
 
     test("renders two radio buttons for Plan and Build modes", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(planBtn).toBeTruthy();
@@ -30,52 +20,27 @@ describe("ModeToggle Component", () => {
     });
 
     test("renders Plan button with correct label", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByText("Plan");
       expect(planBtn).toBeTruthy();
     });
 
     test("renders Build button with correct label", () => {
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={() => {}} />);
       const buildBtn = screen.getByText("Build");
       expect(buildBtn).toBeTruthy();
     });
 
     test("renders hint text for active mode", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       expect(screen.getByText(/thinking only, nothing changes/i)).toBeTruthy();
     });
 
     test("changes hint text when mode changes", () => {
-      const { rerender } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { rerender } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       expect(screen.getByText(/thinking only, nothing changes/i)).toBeTruthy();
 
-      rerender(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      rerender(<ModeToggle mode="build" onChange={() => {}} />);
       expect(screen.getByText(/agents will act/i)).toBeTruthy();
       expect(screen.queryByText(/thinking only/i)).toBeNull();
     });
@@ -83,45 +48,25 @@ describe("ModeToggle Component", () => {
 
   describe("Aria-Checked State (CRITICAL for Accessibility & Safety)", () => {
     test("sets aria-checked=true on active Plan mode", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       expect(planBtn.getAttribute("aria-checked")).toBe("true");
     });
 
     test("sets aria-checked=false on inactive Plan mode when Build is active", () => {
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       expect(planBtn.getAttribute("aria-checked")).toBe("false");
     });
 
     test("sets aria-checked=true on active Build mode", () => {
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(buildBtn.getAttribute("aria-checked")).toBe("true");
     });
 
     test("sets aria-checked=false on inactive Build mode when Plan is active", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(buildBtn.getAttribute("aria-checked")).toBe("false");
     });
@@ -130,12 +75,7 @@ describe("ModeToggle Component", () => {
   describe("Mode Switching via onChange", () => {
     test("calls onChange with 'build' when Build button clicked from Plan mode", () => {
       const onChange = mock((mode: WorkMode) => {});
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={onChange} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       fireEvent.click(buildBtn);
       expect(onChange).toHaveBeenCalledWith("build");
@@ -143,12 +83,7 @@ describe("ModeToggle Component", () => {
 
     test("calls onChange with 'plan' when Plan button clicked from Build mode", () => {
       const onChange = mock((mode: WorkMode) => {});
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={onChange} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       fireEvent.click(planBtn);
       expect(onChange).toHaveBeenCalledWith("plan");
@@ -156,12 +91,7 @@ describe("ModeToggle Component", () => {
 
     test("does not call onChange when clicking the already-active mode", () => {
       const onChange = mock((mode: WorkMode) => {});
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={onChange} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       fireEvent.click(planBtn);
       // The component may still call onChange; what matters is the parent re-renders
@@ -172,12 +102,7 @@ describe("ModeToggle Component", () => {
 
   describe("Visual Indicator for Build Mode (CRITICAL Safety Feature)", () => {
     test("shows colored dot indicator when Build mode is active", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="build" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       const dot = buildBtn.querySelector('[aria-hidden="true"]');
       expect(dot).toBeTruthy();
@@ -188,12 +113,7 @@ describe("ModeToggle Component", () => {
     });
 
     test("does not show dot in Plan button even when Build mode is active", () => {
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       const dot = planBtn.querySelector(".rounded-full");
       // Plan button should not have the dot (it's only on Build when selected)
@@ -201,12 +121,7 @@ describe("ModeToggle Component", () => {
     });
 
     test("does not show dot in Build button when Plan mode is active", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       const dot = buildBtn.querySelector(".h-1\\.5.w-1\\.5.rounded-full");
       // Build button should not have the dot when Plan is active
@@ -216,46 +131,26 @@ describe("ModeToggle Component", () => {
 
   describe("Styling and Focus States", () => {
     test("applies selected state styling to active mode", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       expect(planBtn.className).toContain("bg-[var(--ink-raised)]");
       expect(planBtn.className).toContain("text-[var(--ink-text)]");
     });
 
     test("applies unselected state styling to inactive mode", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(buildBtn.className).toContain("text-[var(--ink-subtle)]");
     });
 
     test("applies hover state to inactive mode", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(buildBtn.className).toContain("hover:text-[var(--ink-body)]");
     });
 
     test("applies ink-focus class for keyboard navigation", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       expect(planBtn.className).toContain("ink-focus");
     });
@@ -264,11 +159,7 @@ describe("ModeToggle Component", () => {
   describe("Custom Styling via className Prop", () => {
     test("applies custom className to container", () => {
       const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-          className="custom-margin"
-        />,
+        <ModeToggle mode="plan" onChange={() => {}} className="custom-margin" />,
       );
       const wrapper = container.querySelector(".custom-margin");
       expect(wrapper).toBeTruthy();
@@ -276,11 +167,7 @@ describe("ModeToggle Component", () => {
 
     test("preserves default classes alongside custom className", () => {
       const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-          className="custom-margin"
-        />,
+        <ModeToggle mode="plan" onChange={() => {}} className="custom-margin" />,
       );
       const wrapper = container.querySelector(".flex.flex-col.gap-1");
       expect(wrapper).toBeTruthy();
@@ -290,63 +177,33 @@ describe("ModeToggle Component", () => {
 
   describe("Hint Text Display (Mode Clarification - Anti-Ambiguity Feature)", () => {
     test("shows correct hint for Plan mode", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       expect(screen.getByText("thinking only, nothing changes")).toBeTruthy();
     });
 
     test("shows correct hint for Build mode", () => {
-      render(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="build" onChange={() => {}} />);
       expect(screen.getByText("agents will act")).toBeTruthy();
     });
 
     test("updates hint when mode changes", () => {
-      const { rerender } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { rerender } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       expect(screen.getByText("thinking only, nothing changes")).toBeTruthy();
 
-      rerender(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      rerender(<ModeToggle mode="build" onChange={() => {}} />);
       expect(screen.getByText("agents will act")).toBeTruthy();
       expect(screen.queryByText("thinking only, nothing changes")).toBeNull();
     });
 
     test("hint text uses monospace font for visual distinction", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const hint = container.querySelector(".ink-mono");
       expect(hint).toBeTruthy();
       expect(hint?.textContent).toContain("thinking only");
     });
 
     test("hint text uses faint color for visual hierarchy", () => {
-      const { container } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { container } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       const hintSpan = container.querySelector(".ink-mono.text-\\[10px\\]");
       expect(hintSpan).toBeTruthy();
       expect(hintSpan?.className).toContain("text-[var(--ink-faint)]");
@@ -356,24 +213,14 @@ describe("ModeToggle Component", () => {
   describe("Invalid Mode Handling", () => {
     test("displays hint for first mode when given invalid mode value", () => {
       // @ts-ignore - intentionally testing invalid mode
-      render(
-        <ModeToggle
-          mode="invalid"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="invalid" onChange={() => {}} />);
       // The component falls back to MODES[0] (plan) for the hint display
       expect(screen.getByText("thinking only, nothing changes")).toBeTruthy();
     });
 
     test("still renders both buttons even with invalid mode", () => {
       // @ts-ignore - intentionally testing invalid mode
-      render(
-        <ModeToggle
-          mode="invalid"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="invalid" onChange={() => {}} />);
       expect(screen.getByRole("radio", { name: /Plan/ })).toBeTruthy();
       expect(screen.getByRole("radio", { name: /Build/ })).toBeTruthy();
     });
@@ -381,12 +228,7 @@ describe("ModeToggle Component", () => {
 
   describe("Keyboard Navigation (Accessibility)", () => {
     test("supports keyboard focus on radio buttons", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
       planBtn.focus();
       expect(document.activeElement).toBe(planBtn);
@@ -394,12 +236,7 @@ describe("ModeToggle Component", () => {
 
     test("supports Enter key to select mode", () => {
       const onChange = mock((mode: WorkMode) => {});
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={onChange} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       buildBtn.focus();
       fireEvent.keyDown(buildBtn, { key: "Enter", code: "Enter" });
@@ -409,12 +246,7 @@ describe("ModeToggle Component", () => {
 
     test("supports Space key to select mode", () => {
       const onChange = mock((mode: WorkMode) => {});
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={onChange} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       buildBtn.focus();
       fireEvent.keyDown(buildBtn, { key: " ", code: "Space" });
@@ -425,12 +257,7 @@ describe("ModeToggle Component", () => {
 
   describe("Edge Cases", () => {
     test("renders correctly with no custom className", () => {
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={() => {}} />);
       expect(screen.getByRole("radiogroup")).toBeTruthy();
     });
 
@@ -439,12 +266,7 @@ describe("ModeToggle Component", () => {
       const onChange = mock((mode: WorkMode) => {
         callCount++;
       });
-      render(
-        <ModeToggle
-          mode="plan"
-          onChange={onChange}
-        />,
-      );
+      render(<ModeToggle mode="plan" onChange={onChange} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       const planBtn = screen.getByRole("radio", { name: /Plan/ });
 
@@ -470,21 +292,11 @@ describe("ModeToggle Component", () => {
 
   describe("Integration with Parent State Management", () => {
     test("re-renders correctly when parent updates mode prop", () => {
-      const { rerender } = render(
-        <ModeToggle
-          mode="plan"
-          onChange={() => {}}
-        />,
-      );
+      const { rerender } = render(<ModeToggle mode="plan" onChange={() => {}} />);
       let planBtn = screen.getByRole("radio", { name: /Plan/ });
       expect(planBtn.getAttribute("aria-checked")).toBe("true");
 
-      rerender(
-        <ModeToggle
-          mode="build"
-          onChange={() => {}}
-        />,
-      );
+      rerender(<ModeToggle mode="build" onChange={() => {}} />);
       const buildBtn = screen.getByRole("radio", { name: /Build/ });
       expect(buildBtn.getAttribute("aria-checked")).toBe("true");
 

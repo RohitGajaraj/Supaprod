@@ -10,10 +10,7 @@ describe("ApprovalCard Component", () => {
     kindTone: "human",
     project: "project-slug",
     title: "Add user authentication to checkout",
-    evidence: [
-      "12 signals point at checkout friction",
-      "Competitor X has this feature",
-    ],
+    evidence: ["12 signals point at checkout friction", "Competitor X has this feature"],
     impact: "~120 credits · touches checkout flow only",
     approveConsequence: "authentication layer deployed",
     rejectConsequence: "checkbox friction persists",
@@ -22,36 +19,18 @@ describe("ApprovalCard Component", () => {
 
   describe("Rendering", () => {
     test("renders card with aria-label from kind and title", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       const card = screen.getByLabelText(/PROPOSAL.*Add user authentication/i);
       expect(card).toBeTruthy();
     });
 
     test("renders VerdictChip with kind and correct tone", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.getByText("PROPOSAL")).toBeTruthy();
     });
 
     test("renders project slug when present", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.getByText("project-slug")).toBeTruthy();
     });
 
@@ -68,24 +47,12 @@ describe("ApprovalCard Component", () => {
     });
 
     test("renders title as heading", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.getByText("Add user authentication to checkout")).toBeTruthy();
     });
 
     test("renders evidence list with bullets", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.getByText("12 signals point at checkout friction")).toBeTruthy();
       expect(screen.getByText("Competitor X has this feature")).toBeTruthy();
     });
@@ -104,13 +71,7 @@ describe("ApprovalCard Component", () => {
     });
 
     test("renders impact line when present", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.getByText("~120 credits · touches checkout flow only")).toBeTruthy();
     });
 
@@ -127,13 +88,7 @@ describe("ApprovalCard Component", () => {
     });
 
     test("renders Approve and Reject buttons with consequences", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
       const rejectBtn = screen.getByText("Reject");
       expect(approveBtn).toBeTruthy();
@@ -146,13 +101,7 @@ describe("ApprovalCard Component", () => {
   describe("Async Approval Handling", () => {
     test("calls onApprove when Approve button clicked", async () => {
       const onApprove = mock(async () => {});
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={onApprove}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
       fireEvent.click(approveBtn);
       await waitFor(() => {
@@ -162,13 +111,7 @@ describe("ApprovalCard Component", () => {
 
     test("calls onReject when Reject button clicked", async () => {
       const onReject = mock(async () => {});
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={onReject}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={onReject} />);
       const rejectBtn = screen.getByText("Reject");
       fireEvent.click(rejectBtn);
       await waitFor(() => {
@@ -180,13 +123,7 @@ describe("ApprovalCard Component", () => {
       const onApprove = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={onApprove}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
       fireEvent.click(approveBtn);
       await waitFor(() => {
@@ -198,13 +135,7 @@ describe("ApprovalCard Component", () => {
       const onReject = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={onReject}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={onReject} />);
       const rejectBtn = screen.getByText("Reject");
       fireEvent.click(rejectBtn);
       await waitFor(() => {
@@ -218,13 +149,7 @@ describe("ApprovalCard Component", () => {
       const onApprove = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={onApprove}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
 
       // First click triggers approval
@@ -242,13 +167,7 @@ describe("ApprovalCard Component", () => {
       const onReject = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={onReject}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={onReject} />);
       const rejectBtn = screen.getByText("Reject");
 
       // First click triggers rejection
@@ -266,13 +185,7 @@ describe("ApprovalCard Component", () => {
       const onApprove = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={onApprove}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
       const rejectBtn = screen.getByText("Reject");
 
@@ -288,13 +201,7 @@ describe("ApprovalCard Component", () => {
       const onReject = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={onReject}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={onReject} />);
       const approveBtn = screen.getByText("Approve");
       const rejectBtn = screen.getByText("Reject");
 
@@ -391,13 +298,7 @@ describe("ApprovalCard Component", () => {
     });
 
     test("omits Open button when onOpen not provided", () => {
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />);
       expect(screen.queryByText("Open")).toBeNull();
     });
 
@@ -450,11 +351,7 @@ describe("ApprovalCard Component", () => {
 
     test("Approve button has correct styling during normal state", () => {
       const { container } = render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={async () => {}}
-          onReject={async () => {}}
-        />,
+        <ApprovalCard item={mockItem} onApprove={async () => {}} onReject={async () => {}} />,
       );
       const approveBtn = screen.getByText("Approve");
       expect(approveBtn?.className).toContain("bg-[var(--voice-human)]");
@@ -476,9 +373,7 @@ describe("ApprovalCard Component", () => {
     });
 
     test("handles many evidence lines", () => {
-      const manyEvidence = Array.from({ length: 20 }, (_, i) =>
-        `Evidence point ${i + 1}`,
-      );
+      const manyEvidence = Array.from({ length: 20 }, (_, i) => `Evidence point ${i + 1}`);
       const itemWithManyEvidence = {
         ...mockItem,
         evidence: manyEvidence,
@@ -498,13 +393,7 @@ describe("ApprovalCard Component", () => {
       const onApprove = mock(async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
       });
-      render(
-        <ApprovalCard
-          item={mockItem}
-          onApprove={onApprove}
-          onReject={async () => {}}
-        />,
-      );
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
       const approveBtn = screen.getByText("Approve");
 
       // Initially shows Approve text

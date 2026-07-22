@@ -65,11 +65,54 @@ describe("relTimeCaps", () => {
     const futureIso = new Date(now + 60_000).toISOString();
     expect(relTimeCaps(futureIso)).toBe("1M AGO");
   });
+
+  test("far future timestamp also floors to 1M AGO", () => {
+    const farFutureIso = new Date(now + 365 * DAY_MS).toISOString();
+    expect(relTimeCaps(farFutureIso)).toBe("1M AGO");
+  });
+
+  test("handles very old timestamps (years ago) correctly", () => {
+    const veryOldIso = new Date(now - 365 * DAY_MS).toISOString();
+    const days = Math.floor(365);
+    expect(relTimeCaps(veryOldIso)).toBe(`${days}D AGO`);
+  });
+
+  test("empty string for malformed date", () => {
+    expect(relTimeCaps("")).toBe("");
+  });
+
+  test("empty string for invalid date object stringification", () => {
+    expect(relTimeCaps("0000-00-00T00:00:00Z")).toBe("");
+  });
 });
 
 describe("sourceCaps", () => {
   test("upcases a lowercase source", () => {
     expect(sourceCaps("intercom")).toBe("INTERCOM");
+  });
+
+  test("already-uppercase remains unchanged", () => {
+    expect(sourceCaps("GITHUB")).toBe("GITHUB");
+  });
+
+  test("mixed case is uppercased", () => {
+    expect(sourceCaps("SlackBot")).toBe("SLACKBOT");
+  });
+
+  test("numeric characters remain unchanged", () => {
+    expect(sourceCaps("source123")).toBe("SOURCE123");
+  });
+
+  test("special characters and spaces are uppercased (or pass through)", () => {
+    expect(sourceCaps("my-source_tool 2.0")).toBe("MY-SOURCE_TOOL 2.0");
+  });
+
+  test("empty string remains empty", () => {
+    expect(sourceCaps("")).toBe("");
+  });
+
+  test("single character is uppercased", () => {
+    expect(sourceCaps("a")).toBe("A");
   });
 });
 
@@ -89,6 +132,39 @@ describe("latestIso", () => {
   test("returns null when nothing is valid", () => {
     expect(latestIso([])).toBeNull();
     expect(latestIso([null, undefined, "", "nope"])).toBeNull();
+  });
+
+  test("handles single valid entry", () => {
+    const iso = new Date(Date.now() - 10 * 60_000).toISOString();
+    expect(latestIso([iso])).toBe(iso);
+  });
+
+  test("handles all-null entries", () => {
+    expect(latestIso([null, null, null])).toBeNull();
+  });
+
+  test("handles mix of nulls and blanks", () => {
+    expect(latestIso([null, "", undefined])).toBeNull();
+  });
+
+  test("returns the EXACT ISO string that was passed in", () => {
+    const iso1 = "2026-01-01T10:00:00Z";
+    const iso2 = "2026-01-01T11:00:00Z";
+    const result = latestIso([iso1, iso2]);
+    expect(result).toBe(iso2); // exact object reference match
+  });
+
+  test("sub-millisecond precision collapses to the same ms; first-seen wins the tie", () => {
+    // Date only carries millisecond precision, so both parse to the same ms;
+    // the strict `>` comparison in latestIso means later entries never win a tie.
+    const iso1 = "2026-01-01T10:00:00.000001Z";
+    const iso2 = "2026-01-01T10:00:00.000002Z";
+    const result = latestIso([iso1, iso2]);
+    expect(result).toBe(iso1);
+  });
+
+  test("returns null for array with only invalid entries mixed with blanks", () => {
+    expect(latestIso(["", "not-a-date", null, "also-invalid"])).toBeNull();
   });
 });
 
@@ -141,6 +217,36 @@ describe("traceRef", () => {
 
   test("returns an empty string when the id has no alphanumeric characters", () => {
     expect(traceRef("---")).toBe("");
+  });
+
+  test("handles empty string input", () => {
+    expect(traceRef("")).toBe("");
+  });
+
+  test("skips all non-alphanumeric characters correctly", () => {
+    expect(traceRef("a!b@c#d$e%f^g")).toBe("ABCDEF");
+  });
+
+  test("handles numeric-only strings", () => {
+    expect(traceRef("123456789")).toBe("123456");
+  });
+
+  test("handles uppercase input", () => {
+    expect(traceRef("ABCDEF-1234")).toBe("ABCDEF");
+  });
+
+  test("stops at exactly 6 characters, ignoring remainder", () => {
+    const result = traceRef("abcdefghijk");
+    expect(result).toBe("ABCDEF");
+    expect(result.length).toBe(6);
+  });
+
+  test("handles mixed alphanumerics with heavy punctuation", () => {
+    expect(traceRef("a-.-.-.-.-.-b-.-.-.-.-c-.-d-.-e-.-f-.-g")).toBe("ABCDEF");
+  });
+
+  test("handles UUIDs with uppercase hex", () => {
+    expect(traceRef("A1B2C3D4-0000-0000-0000-000000000000")).toBe("A1B2C3");
   });
 });
 

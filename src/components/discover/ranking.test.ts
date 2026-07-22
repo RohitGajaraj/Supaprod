@@ -327,6 +327,42 @@ describe("rankOpportunities", () => {
     const stringy = rankOpportunities(opps, noCorr).find((r) => r.opp.id === "stringy")!;
     expect(stringy.rationale).toBe("Ranked #2: ICE 7.3");
   });
+
+  test("handles ice_score === null (nullish coalesce in scoreOf)", () => {
+    const opps = [mk({ id: "a", ice_score: null }), mk({ id: "b", ice_score: 5 })];
+    const ranked = rankOpportunities(opps, noCorr);
+    // Bet with ice_score=5 should rank above the null-score bet
+    expect(ranked[0].opp.id).toBe("b");
+  });
+
+  test("all bets with null ice_score fall through to verdict/corroboration/confidence", () => {
+    const opps = [
+      mk({ id: "a", ice_score: null, critic_review: null }),
+      mk({ id: "b", ice_score: null, critic_review: critic("ship") }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    // Endorsed bet should rank higher despite both having null ice_score
+    expect(ranked[0].opp.id).toBe("b");
+  });
+
+  test("malformed created_at dates default to 0 in tie-break (timeOf fallback)", () => {
+    const opps = [
+      mk({ id: "a", created_at: "not-a-date", ice_score: 5 }),
+      mk({ id: "b", created_at: "2026-01-01T00:00:00Z", ice_score: 5 }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    // Both have same ICE, malformed date should be treated as time 0
+    // Tie-break then goes to created_at: older (0) should come first
+    expect(ranked[0].opp.id).toBe("a");
+  });
+
+  test("single opportunity is marked as best bet", () => {
+    const opps = [mk({ id: "only" })];
+    const ranked = rankOpportunities(opps, noCorr);
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0].isBestBet).toBe(true);
+    expect(ranked[0].rank).toBe(1);
+  });
 });
 
 describe("deriveDesignation", () => {

@@ -106,6 +106,26 @@ describe("incidentRealId", () => {
     const id = "exec:550e8400-e29b-41d4-a716-446655440000";
     expect(incidentRealId(id)).toBe("550e8400-e29b-41d4-a716-446655440000");
   });
+
+  test("handles three-level namespace nesting (still splits on the first colon only)", () => {
+    expect(incidentRealId("exec:namespace:inner:abc123")).toBe("namespace:inner:abc123");
+  });
+
+  test("handles empty namespace (colon at start)", () => {
+    expect(incidentRealId(":abc123")).toBe("abc123");
+  });
+
+  test("handles empty string", () => {
+    expect(incidentRealId("")).toBe("");
+  });
+
+  test("handles a lone colon", () => {
+    expect(incidentRealId(":")).toBe("");
+  });
+
+  test("handles consecutive colons (keeps the second one in the tail)", () => {
+    expect(incidentRealId("exec::abc")).toBe(":abc");
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -201,5 +221,23 @@ describe("incidentTraceRef", () => {
     const ref = incidentTraceRef("exec:550e8400-e29b-41d4-a716-446655440000");
     const match = ref.match(/INC·[A-Z0-9]{6}$/);
     expect(match).toBeDefined();
+  });
+
+  test("multi-colon namespaces: only the first colon is stripped, the rest feeds traceRef", () => {
+    // incidentRealId keeps "ns:inner:a1b2c3d4" (colons intact past the first),
+    // so traceRef's alphanumeric-only, first-6 rule reads "nsinne", not the uuid tail.
+    expect(incidentTraceRef("exec:ns:inner:a1b2c3d4")).toBe("INC·NSINNE");
+  });
+
+  test("strips non-alphanumeric characters (hyphens) from a non-UUID real id", () => {
+    expect(incidentTraceRef("exec:xyz-123-abc")).toBe("INC·XYZ123");
+  });
+
+  test("handles real ids with fewer than 6 alphanumeric characters", () => {
+    expect(incidentTraceRef("exec:a1b")).toBe("INC·A1B");
+  });
+
+  test("handles an empty real id after the namespace", () => {
+    expect(incidentTraceRef("exec:")).toBe("INC·");
   });
 });

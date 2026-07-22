@@ -183,7 +183,9 @@ describe("FigmaEmbed.config.renderHTML()", () => {
     expect(attrs.class).toContain("my-4");
     expect(attrs.class).toContain("rounded-xl");
     expect(attrs.class).toContain("border");
+    expect(attrs.class).toContain("border-border/60");
     expect(attrs.class).toContain("overflow-hidden");
+    expect(attrs.class).toContain("bg-secondary/20");
   });
 
   test("should render an iframe as a child", () => {

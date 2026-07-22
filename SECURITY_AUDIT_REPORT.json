@@ -1,0 +1,89 @@
+{
+  "vulnerabilities": [
+    {
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 33,
+      "description": "HMAC token signature validation is stubbed: function loads buffers but never performs actual HMAC-SHA256 comparison. Returns true unconditionally. Allows injection/tampering of authentication tokens.",
+      "cwe": "CWE-347: Improper Verification of Cryptographic Signature"
+    },
+    {
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+      "line": 20,
+      "description": "Weak PBKDF2 key derivation: only 100,000 iterations. NIST recommends minimum 600,000 iterations for 2026 standards. Degrades resistance to brute-force attacks on session encryption keys.",
+      "cwe": "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+    },
+    {
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+      "line": 9,
+      "description": "Fallback to plaintext storage when WebCrypto unavailable: session data (including tokens) stored unencrypted in localStorage. Exposes sensitive authentication tokens to XSS and localStorage compromise.",
+      "cwe": "CWE-319: Cleartext Transmission of Sensitive Information"
+    },
+    {
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 22,
+      "description": "Global token exposure: authentication token stored in window.__IMPECCABLE_TOKEN__ accessible to all scripts on page. Vulnerable to XSS, malicious third-party scripts, and browser extensions.",
+      "cwe": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+    },
+    {
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+      "line": 53,
+      "description": "Unvalidated localStorage JSON deserialization: parsed session object never validated for expected structure. Attacker controlling localStorage could inject malicious session objects.",
+      "cwe": "CWE-502: Deserialization of Untrusted Data"
+    },
+    {
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-dom.js",
+      "line": 35,
+      "description": "Math.random() fallback for security-relevant IDs: if crypto.randomUUID unavailable, falls back to Math.random() which is not cryptographically secure. Could be used to generate predictable session/token identifiers.",
+      "cwe": "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+    },
+    {
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+      "line": 1,
+      "description": "Race condition in concurrent session writes: localStorage operations lack transaction/locking. Multiple tabs/windows could experience data corruption or lost updates to session state.",
+      "cwe": "CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization"
+    },
+    {
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 61,
+      "description": "Localhost port validation allows HTTP injection: port regex allows 4-5 digit numbers. If injection script runs on exposed interface or behind misconfigured proxy, enables HTTP request smuggling attacks.",
+      "cwe": "CWE-94: Improper Control of Generation of Code"
+    },
+    {
+      "severity": "low",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 1,
+      "description": "No Content Security Policy bypass detection: injected script doesn't validate that it operates within CSP constraints. Could be bypassed with malformed CSP headers.",
+      "cwe": "CWE-693: Protection Mechanism Failure"
+    },
+    {
+      "severity": "low",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+      "line": 37,
+      "description": "Silent failures in storage operations: safeRead/safeWrite/safeRemove silently catch all exceptions. Error conditions (quota exceeded, private mode) not surfaced, may lead to silent data loss.",
+      "cwe": "CWE-391: Unchecked Error Condition"
+    }
+  ],
+  "riskScore": 64,
+  "recommendations": [
+    "CRITICAL: Implement actual HMAC-SHA256 verification in validateTokenSignature() using crypto.subtle.verify() before loading injection script",
+    "CRITICAL: Increase PBKDF2 iterations from 100,000 to minimum 600,000 (RFC 2898, NIST SP 800-132)",
+    "CRITICAL: Remove plaintext fallback in createPlaintextStorage(). Fail secure instead: throw error if WebCrypto unavailable rather than silencing encryption",
+    "CRITICAL: Move TOKEN from global window object into module closure. Expose only validated session ID, never raw token",
+    "HIGH: Add schema validation for deserialized session objects before use (e.g., check for required properties, types)",
+    "HIGH: Replace Math.random() fallback in id8() with crypto.getRandomValues() only, with hard error if unavailable",
+    "HIGH: Implement transactional session storage: use versioning/checksums to detect concurrent write races",
+    "MEDIUM: Tighten port regex to explicitly allow only localhost: validate target origin before making requests",
+    "MEDIUM: Add CSP validation: ensure injected script respects (or detects violation of) current page CSP",
+    "MEDIUM: Surface storage errors explicitly instead of silently failing: log quota exceeded, private mode detection, enable user remediation",
+    "MEDIUM: Encrypt localStorage content even if WebCrypto available (defense in depth): do not rely on XSS isolation alone",
+    "LOW: Implement auto-rotation of PBKDF2 salt on each session: prevents rainbow tables if salt ever leaks"
+  ]
+}

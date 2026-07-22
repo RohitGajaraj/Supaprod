@@ -352,6 +352,99 @@ describe("ResearchActivity", () => {
       expect(chipTexts).toContain("Read 2 sources");
       expect(chipTexts).toContain("Workspace");
     });
+
+    it("should return null for mode='chat' even with sources and workspace_chunks present", () => {
+      const meta: ChatMeta = {
+        research: { mode: "chat", sub_queries: [] },
+        sources: [{ kind: "web", title: "Source", url: "http://example.com" }],
+        workspace_chunks: 5,
+      };
+      const result = ResearchSummaryRow({ meta });
+      // chat mode short-circuits before segments are computed, regardless of sources/chunks
+      expect(result).toBeNull();
+    });
+
+    it("should count only web-kind sources for the Read segment, excluding others", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: [] },
+        sources: [
+          { kind: "web", title: "Web 1", url: "http://example.com" },
+          { kind: "web", title: "Web 2", url: "http://example.com" },
+          { kind: "doc", title: "Doc", href: "/docs/1" },
+        ],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      const chipTexts = children.map((chip: any) => chip?.props?.children);
+      expect(chipTexts).toContain("Read 2 sources");
+    });
+
+    it("should render chips with the full expected class list (inline-flex, items-center, rounded-full, border, hairline)", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["q1"] },
+        sources: [{ kind: "web", title: "Source", url: "http://example.com" }],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      const firstChip = children[0];
+      expect(firstChip?.props.className).toContain("inline-flex");
+      expect(firstChip?.props.className).toContain("items-center");
+      expect(firstChip?.props.className).toContain("rounded-full");
+      expect(firstChip?.props.className).toContain("border");
+      expect(firstChip?.props.className).toContain("hairline");
+    });
+
+    it("should apply mono-font uppercase typography styles to chips", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["q1"] },
+        sources: [],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      const firstChip = children[0];
+      expect(firstChip?.props.style.fontFamily).toBe("var(--font-mono)");
+      expect(firstChip?.props.style.fontSize).toBe(9.5);
+      expect(firstChip?.props.style.letterSpacing).toBe("0.06em");
+      expect(firstChip?.props.style.textTransform).toBe("uppercase");
+    });
+
+    it("should render the searched-queries chip when sources is empty but sub_queries is not", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["q1", "q2"] },
+        sources: [],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      expect(result?.type).toBe("div");
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      expect(
+        children.some((chip: any) => chip?.props?.children?.includes?.("Searched 2 queries")),
+      ).toBe(true);
+    });
+
+    it("should render the outer wrapper with the full expected flex-layout class list", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["q1"] },
+        sources: [],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      expect(result?.props.className).toContain("flex");
+      expect(result?.props.className).toContain("flex-wrap");
+      expect(result?.props.className).toContain("items-center");
+      expect(result?.props.className).toContain("gap-1.5");
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -805,6 +898,41 @@ describe("ResearchActivity", () => {
         : [result?.props.children];
       const spinner = children.find((c: any) => c?.props?.className === "spinner");
       expect(spinner).toBeDefined();
+    });
+
+    it("should accumulate 3 completed search phases into 'Searched 3 queries'", () => {
+      const statuses = [
+        { phase: "search" as const, label: "Searching #1..." },
+        { phase: "search" as const, label: "Searching #2..." },
+        { phase: "search" as const, label: "Searching #3..." },
+        { phase: "read" as const, label: "Reading..." },
+      ];
+      const result = ResearchActivityLine({ statuses });
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      const trailSpan = children.find(
+        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+      );
+      expect(trailSpan?.props?.children).toContain("Searched 3 queries");
+    });
+
+    it("should count both search and read phases together when both are done (no workspace)", () => {
+      const statuses = [
+        { phase: "search" as const, label: "Searching..." },
+        { phase: "read" as const, label: "Reading #1..." },
+        { phase: "read" as const, label: "Reading #2..." },
+        { phase: "synthesize" as const, label: "Synthesizing..." },
+      ];
+      const result = ResearchActivityLine({ statuses });
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
+      const trailSpan = children.find(
+        (c: any) => c?.type === "span" && c?.props?.className?.includes("mono-label"),
+      );
+      expect(trailSpan?.props?.children).toContain("Searched 1 query");
+      expect(trailSpan?.props?.children).toContain("Read 2 sources");
     });
   });
 
