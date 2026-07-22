@@ -1,0 +1,125 @@
+{
+  "auditDate": "2026-07-22",
+  "scope": "Browser-side injection scripts (Impeccable live mode) and compiled assets",
+  "vulnerabilities": [
+    {
+      "id": "BROKEN_HMAC_VALIDATION",
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 25,
+      "cwe": "CWE-347",
+      "category": "crypto",
+      "shortDescription": "HMAC-SHA256 token signature validation is not performed",
+      "description": "The validateTokenSignature() function claims to validate HMAC-SHA256 signatures but only decodes base64 without any cryptographic verification. It never computes or compares an HMAC; it simply decodes the input and returns true.",
+      "failureScenario": "Attacker modifies TOKEN or TOKEN_SIGNATURE in browser console. The validation passes because no actual cryptographic check occurs. Server-side validation is assumed but not visible in code.",
+      "impact": "Token tampering is undetected on client. If server doesn't validate the signature, an attacker can forge authentication tokens.",
+      "remediation": "Implement proper HMAC validation: (1) Ensure server provides a valid HMAC-SHA256(token, serverSecret). (2) Client-side: Never trust this alone; server MUST re-verify on every use. (3) Use crypto.subtle.verify() if implementing client-side checks for defense-in-depth only."
+    },
+    {
+      "id": "WEAK_TOKEN_FORMAT_VALIDATION",
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 44,
+      "cwe": "CWE-20",
+      "category": "input-validation",
+      "shortDescription": "Token validation is regex-only, not cryptographic",
+      "description": "Token is validated only against regex pattern `/^[a-f0-9-]{36,}$/`. This confirms format but not authenticity. No cryptographic proof that the token came from the server or hasn't been modified.",
+      "failureScenario": "Attacker generates a valid-looking UUID (36+ hex chars with dashes) and injects it as TOKEN. Regex passes. Validation succeeds even though token is completely fabricated.",
+      "impact": "Attacker can inject arbitrary tokens. Authentication is bypassable if server doesn't independently verify the token.",
+      "remediation": "Rely on server-side token verification, not client-side format checks. Implement rate limiting and token binding (e.g., tied to session ID). Log all token validation failures."
+    },
+    {
+      "id": "INSECURE_CRYPTO_FALLBACK",
+      "severity": "high",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+      "line": 63,
+      "cwe": "CWE-391",
+      "category": "crypto",
+      "shortDescription": "Encryption falls back to plaintext if WebCrypto unavailable",
+      "description": "createPlaintextStorage() is returned as a fallback when crypto.subtle is not available. Instead of storing data encrypted, it returns an object that passes plaintext through without encryption. Sensitive session data can be exposed in localStorage.",
+      "failureScenario": "In an older browser (before 2015) or a restricted environment where WebCrypto is disabled, encrypt() and decrypt() are no-ops. Session tokens stored in localStorage are readable in plaintext. An XSS attacker reads localStorage directly.",
+      "impact": "Session tokens, user keys, and sensitive data stored via this API are readable in plaintext if WebCrypto is unavailable. Risk is low in modern browsers (WebCrypto is now ~100% available) but violates secure-by-default principle.",
+      "remediation": "Remove the plaintext fallback. Throw an error if WebCrypto is unavailable: `throw new Error('WebCrypto is required for secure session storage')`. Never silently downgrade to plaintext encryption."
+    },
+    {
+      "id": "CLIENT_SIDE_ONLY_VALIDATION",
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 29,
+      "cwe": "CWE-287",
+      "category": "auth",
+      "shortDescription": "Token validation performed only on client side",
+      "description": "Comment explicitly states 'This is client-side validation only.' Client-side validation can always be bypassed (attacker can modify or delete the validation code). Server MUST re-verify the token on every request, but the code provided doesn't show server-side verification.",
+      "failureScenario": "Client-side validateTokenSignature() is bypassed by: (1) modifying the function to return true unconditionally, (2) deleting the validation call, or (3) sending requests directly without going through the browser validation. If server doesn't validate, authentication is bypassed entirely.",
+      "impact": "Authentication is only as strong as client-side checks, which are not trustworthy for security-critical decisions.",
+      "remediation": "Implement server-side token validation: (1) Every API request must validate the TOKEN. (2) Verify HMAC-SHA256(token, serverSecret) server-side. (3) Check token expiration. (4) Rate-limit by token. (5) Log all validation failures. Client-side checks are only for UX, never for security."
+    },
+    {
+      "id": "GLOBAL_TOKEN_EXPOSURE",
+      "severity": "medium",
+      "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+      "line": 13,
+      "cwe": "CWE-532",
+      "category": "info-disclosure",
+      "shortDescription": "Authentication token exposed on global window object",
+      "description": "TOKEN is injected into window.__IMPECCABLE_TOKEN__ by the server. Any script on the page (including XSS-injected scripts, third-party analytics, ads) can read window.__IMPECCABLE_TOKEN__ and impersonate the user.",
+      "failureScenario": "An XSS vulnerability elsewhere in Supaprod allows attacker to inject JavaScript. Attacker reads `window.__IMPECCABLE_TOKEN__` and sends it to their server. Attacker now has the user's session token and can act as the user.",
+      "impact": "Session hijacking, account takeover, unauthorized data access. All actions taken via this token appear to come from the legitimate user.",
+      "remediation": "Store the token in a secure location: (1) httpOnly cookie (immune to XSS because JavaScript cannot read it). (2) If using window object, delete the token after initialization and move it to a closure/private variable. (3) Implement strict Content Security Policy (CSP) to prevent XSS. (4) Use SubresourceIntegrity (SRI) for any third-party scripts."
+    },
+    {
+      "id": "WEAK_PBKDF2_ITERATION_COUNT",
+      "severity": "low",
+      "file": ".kiro/skills/impeccable/scripts/live-browser-crypto.js",
+      "line": 22,
+      "cwe": "CWE-326",
+      "category": "crypto",
+      "shortDescription": "PBKDF2 iteration count of 100,000 is below current standards",
+      "description": "PBKDF2 uses 100,000 iterations with SHA-256. While this was reasonable in 2019, NIST and OWASP recommend at least 310,000 iterations (as of 2023), and it should be adaptive based on available time.",
+      "failureScenario": "Attacker captures a stored encrypted session (e.g., stolen localStorage dump). Attacker performs offline brute-force attack deriving keys with PBKDF2. With only 100k iterations, GPU/ASIC attacks complete in reasonable time.",
+      "impact": "Encrypted session data is more vulnerable to offline brute-force attacks than modern standards allow.",
+      "remediation": "Increase PBKDF2 iterations to at least 310,000. Better: use Argon2id (available via libsodium bindings in Node.js for server-side key derivation). If browser-only: implement iterative key hardening using available resources, or consider server-side session management instead of client-side encryption."
+    }
+  ],
+  "riskScore": 68,
+  "riskSummary": "The codebase has critical authentication and cryptographic flaws. Token validation is not properly implemented (HMAC signature is not verified), tokens are exposed on the global window object (XSS risk), and encryption falls back to plaintext. The primary risk is that attackers can forge or hijack authentication tokens if the server doesn't independently verify them.",
+  "recommendations": [
+    "CRITICAL: Implement proper server-side HMAC-SHA256 verification. Every API request must validate that the token's signature is authentic.",
+    "CRITICAL: Move authentication tokens from window.__IMPECCABLE_TOKEN__ to httpOnly cookies or use a secure closure. Tokens on window are readable by any XSS payload.",
+    "CRITICAL: Remove the plaintext encryption fallback. Throw an error if WebCrypto is unavailable instead of silently downgrading security.",
+    "HIGH: Verify that server-side validation exists for all token checks. Client-side validation is not trustworthy.",
+    "HIGH: Implement Content Security Policy (CSP) with strict settings to prevent XSS attacks that could steal tokens from window.",
+    "MEDIUM: Increase PBKDF2 iterations to at least 310,000, or migrate to Argon2id if possible.",
+    "MEDIUM: Add rate limiting on failed token validation attempts to detect brute-force attacks.",
+    "MEDIUM: Log all token validation failures, including source IP and User-Agent, for anomaly detection.",
+    "LOW: Add SubresourceIntegrity (SRI) to any third-party scripts to prevent malicious script injection.",
+    "LOW: Implement token expiration and rotation policies. Tokens should not be valid indefinitely."
+  ],
+  "detailedFindings": {
+    "authentication": {
+      "status": "VULNERABLE",
+      "details": "Token validation is performed only on the client side with incomplete HMAC verification. Server-side validation is not visible in the provided code. Tokens are exposed globally, making them readable by XSS attacks."
+    },
+    "cryptography": {
+      "status": "PARTIALLY_COMPLIANT",
+      "details": "AES-256-GCM encryption is properly implemented, but falls back to plaintext. PBKDF2 iteration count is below current NIST recommendations."
+    },
+    "dataProtection": {
+      "status": "VULNERABLE",
+      "details": "Session tokens and sensitive data are stored in localStorage (inherently vulnerable to XSS). No secure cookie usage observed."
+    },
+    "xssProtection": {
+      "status": "NOT_OBSERVED",
+      "details": "No Content Security Policy or XSS-specific mitigations visible. Tokens are directly readable by any script."
+    },
+    "sqlInjection": {
+      "status": "NOT_APPLICABLE",
+      "details": "Browser-side scripts do not directly execute SQL. Server-side code not provided for analysis."
+    },
+    "dependencies": {
+      "status": "NOT_FULLY_ANALYZED",
+      "details": "Bundled/minified code present; full dependency tree not visible. No obvious hardcoded secrets in analyzed portions."
+    }
+  },
+  "testingNotes": "Analysis based on static code review of browser injection scripts. Dynamic testing recommended to verify: (1) Whether server-side token validation actually occurs. (2) Whether tokens can be forged. (3) XSS attack surface in main Supaprod application. (4) Whether CSP is implemented. (5) Token expiration behavior."
+}
