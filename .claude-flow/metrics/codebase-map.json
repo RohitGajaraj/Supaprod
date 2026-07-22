@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-21T13:04:01.560Z",
+  "timestamp": "2026-07-22T13:46:47.873Z",
   "projectRoot": "/Users/rohitgajaraj/Projects/My Projects/My Builds/cadence-lane-2",
   "structure": {
     "hasPackageJson": true,
@@ -7,5 +7,5 @@
     "hasClaudeConfig": true,
     "hasClaudeFlow": true
   },
-  "scannedAt": 1784639041561
+  "scannedAt": 1784728007873
 }

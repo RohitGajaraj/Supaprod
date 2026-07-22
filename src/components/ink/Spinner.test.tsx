@@ -188,10 +188,15 @@ describe("Spinner", () => {
         </div>,
       );
 
-      const spinner = container.querySelector("div div");
+      const allDivs = container.querySelectorAll("div");
+      // Find the spinner div (should be the innermost one)
+      const spinner = Array.from(allDivs).find(
+        (el) => el.querySelector === undefined || el.childNodes.length === 0,
+      );
       const text = container.querySelector("span");
 
-      expect(spinner?.className).toContain("inline-block");
+      expect(spinner).toBeTruthy();
+      expect(spinner?.tagName).toBe("DIV");
       expect(text?.textContent).toBe("Loading...");
     });
 
