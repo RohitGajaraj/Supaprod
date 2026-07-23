@@ -1,4 +1,5 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { describe, expect, test, beforeEach, afterEach, skip } from "bun:test";
+import type { ReactElement } from "react";
 import { whenOf, deltaOf } from "./CompoundingPanel";
 
 describe("whenOf — learning timestamp formatting", () => {
@@ -274,5 +275,120 @@ describe("deltaOf — ICE movement rounding and threshold logic", () => {
     });
 
     expect(result).toBe(10);
+  });
+});
+
+describe("CompoundingPanel component states", () => {
+  /**
+   * IMPLEMENTATION NOTES: CompoundingPanel uses useQuery without useMutation.
+   * Component state tests require mocking @tanstack/react-query useQuery hook
+   * and @tanstack/react-start useServerFn.
+   *
+   * Once implemented, this tests:
+   * - Loading state: renders PanelSkeleton
+   * - Error state: renders error card with retry button
+   * - Empty state: renders "No outcomes recorded yet" message
+   * - Success state: renders learning rows with:
+   *   - VerdictChip with status-mapped tone
+   *   - Opportunity title or "an outcome memo"
+   *   - ICE delta (if moved ranking)
+   *   - AuditTag and timestamp
+   *   - Learning summary (if present)
+   * - Pagination: shows "Show N more" button when rows > 50
+   *
+   * Critical behaviors:
+   * - rescoreCount = learnings.filter((l) => deltaOf(l) != null).length
+   * - Display rules: "latest 50 outcomes · X re-ranked a priority"
+   * - Link target: /brain?tab=learnings&learning=<id>
+   */
+
+  test.skip("renders PanelSkeleton when isLoading is true", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: <PanelSkeleton /> component visible
+  });
+
+  test.skip("renders error card when isError is true", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Card with "Learnings · failed to load" + error message + Retry button
+  });
+
+  test.skip("renders error message from query error", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Displays (query.error as Error).message
+  });
+
+  test.skip("renders empty state when learnings array is empty", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Message about no outcomes recorded + "When you record what a shipped bet actually did..."
+  });
+
+  test.skip("renders learning rows when data is present", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Maps learnings array and renders each as a Link row
+  });
+
+  test.skip("displays headline from describeCompounding when summary is present", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Paragraph with headline text (e.g., "X decisions memory has re-ranked...")
+  });
+
+  test.skip("displays count line: 'N recorded outcome(s) · X re-ranked a priority'", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Mono-label with correct count and rescore count
+  });
+
+  test.skip("renders 'latest 50 outcomes' when learnings.length === 50 (server cap)", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Count line says "latest 50 outcomes" instead of "50 recorded outcomes"
+  });
+
+  test.skip("shows VerdictChip with status-mapped tone for each row", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: VerdictChip component with tone from VERDICT_TONE map (validated/missed/mixed)
+  });
+
+  test.skip("renders opportunity_title or 'an outcome memo' for missing title", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Span with l.opportunity_title ?? "an outcome memo"
+  });
+
+  test.skip("displays ICE delta with sign when learning moved a ranking", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: RE-RANKED ±X.X ICE when deltaOf(l) != null
+  });
+
+  test.skip("hides delta line when deltaOf returns null (jitter)", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: No RE-RANKED line when movement is below 0.1 threshold
+  });
+
+  test.skip("renders AuditTag and timestamp for each row", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: AuditTag with kind="learning" id=l.id, timestamp from whenOf(l.created_at)
+  });
+
+  test.skip("renders learning summary when present, with 2-line clamp", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Paragraph with l.summary, style with WebkitLineClamp: 2
+  });
+
+  test.skip("hides summary when l.summary is falsy", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: No summary paragraph rendered
+  });
+
+  test.skip("renders Link with correct target (tab=learnings, learning=id)", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: Link to="/brain" with search={{ tab: "learnings", learning: l.id }}
+  });
+
+  test.skip("renders borders between rows (except last)", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // Expected: borderTop: i === 0 ? "none" : "1px solid var(--hairline)"
+  });
+
+  test.skip("calls refetch when Retry button is clicked in error state", () => {
+    // TODO: Implement mock.module pattern for useQuery + mock event simulation
+    // Expected: q.refetch() and lq.refetch() invoked
   });
 });

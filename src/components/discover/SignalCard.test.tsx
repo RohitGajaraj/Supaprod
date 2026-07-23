@@ -26,6 +26,7 @@ const BASE_PROPS = {
   when: "3H AGO",
   quote: "A verbatim quote.",
   theme: null,
+  id: "SIG-base-test",
 };
 
 // OBS-10: the write-action overflow menu ported from the retired /product
@@ -385,7 +386,7 @@ describe("SignalCard isLast prop", () => {
 });
 
 describe("SignalCard onOpen prop", () => {
-  test("becomes clickable when onOpen is provided", () => {
+  test("becomes clickable when onOpen AND id are both provided", () => {
     const el = SignalCard({ ...BASE_PROPS, onOpen: () => {} });
     const props = el.props as Record<string, unknown>;
     expect(props.role).toBe("button");
@@ -394,6 +395,13 @@ describe("SignalCard onOpen prop", () => {
 
   test("is not clickable when onOpen is not provided", () => {
     const el = SignalCard(BASE_PROPS);
+    const props = el.props as Record<string, unknown>;
+    expect(props.role).toBeUndefined();
+    expect(props.tabIndex).toBeUndefined();
+  });
+
+  test("is not clickable when id is missing, even if onOpen is provided", () => {
+    const el = SignalCard({ ...BASE_PROPS, id: undefined, onOpen: () => {} });
     const props = el.props as Record<string, unknown>;
     expect(props.role).toBeUndefined();
     expect(props.tabIndex).toBeUndefined();

@@ -9,7 +9,12 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { callModel, GovernanceHaltError, resolveCreditAccountId, type KeyResolutionCache } from "./runtime.server";
+import {
+  callModel,
+  GovernanceHaltError,
+  resolveCreditAccountId,
+  type KeyResolutionCache,
+} from "./runtime.server";
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";

@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, skip } from "bun:test";
+import type { ReactElement } from "react";
 import { deriveBrainStats, type BrainStats } from "./BrainStatTrio";
 import type { ImpactLedgerResult } from "@/lib/pm-impact.functions";
 
@@ -305,5 +306,85 @@ describe("deriveBrainStats", () => {
     const cells = (result as any).cells;
     const validatedCell = cells.find((c: any) => c.label === "VALIDATED");
     expect(validatedCell?.value).toBe("100%");
+  });
+});
+
+describe("BrainStatTrio component states", () => {
+  /**
+   * IMPLEMENTATION NOTES: BrainStatTrio component uses useQuery to fetch
+   * impact ledger data. Component-level tests require:
+   * - Mock useQuery via mock.module pattern
+   * - Mock useServerFn for the getFunctions
+   * - Shallow element inspection
+   *
+   * Component structure:
+   * - StatCell (lines 52-69): Renders one stat with label/value
+   * - download() function (74-80): Exports markdown as .txt file
+   * - Component render (84-179): Loading/error/empty/success states + download button
+   */
+
+  test.skip("renders PanelSkeleton when ledger.isLoading is true", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: <PanelSkeleton /> component visible
+  });
+
+  test.skip("renders error card when ledger.isError is true", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Card with "Brain stats · failed to load" + error message + Retry button
+  });
+
+  test.skip("displays error message from query error", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: (ledger.error as Error).message rendered
+  });
+
+  test.skip("renders empty state when hasRecord is false", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Card with "No decision record yet" message
+  });
+
+  test.skip("renders StatCell trio when hasRecord is true", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Three StatCell components for cells from deriveBrainStats
+  });
+
+  test.skip("displays decision trend sparkline when decisionsTrend is present", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Recharts ResponsiveContainer with AreaChart + Area
+  });
+
+  test.skip("renders markdown content when stats.markdown is present", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Rendered HTML from markdown string
+  });
+
+  test.skip("shows download button when markdown is present", () => {
+    // TODO: Implement mock.module pattern for useQuery
+    // EXPECTED: Button with download icon, onClick triggers download()
+  });
+
+  test.skip("download button initiates file download as .txt", () => {
+    // TODO: Implement mock.module pattern + simulate click
+    // EXPECTED: Creates blob, sets download href, triggers click
+  });
+
+  test.skip("hides download button when markdown is null", () => {
+    // TODO: Implement mock.module pattern for useQuery with no markdown
+    // EXPECTED: No download button rendered
+  });
+
+  test.skip("StatCell displays label and value correctly", () => {
+    // TODO: Test StatCell component (line 52-69)
+    // EXPECTED: Renders label in mono-caps + value in stat style
+  });
+
+  test.skip("calls refetch when Retry button is clicked in error state", () => {
+    // TODO: Implement mock.module pattern + simulate click
+    // EXPECTED: ledger.refetch() invoked
+  });
+
+  test.skip("renders markdown with correct line breaks and formatting", () => {
+    // TODO: Implement mock.module pattern with known markdown
+    // EXPECTED: Markdown rendered as proper HTML (h1, ul, li, etc.)
   });
 });

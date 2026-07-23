@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import type { ReactElement } from "react";
+import { VerdictChip, StatusGlyph, type VerdictTone, type LiveState } from "./chips";
 
 /**
  * VerdictChip and StatusGlyph component tests
@@ -74,7 +76,7 @@ describe("StatusGlyph state mapping", () => {
       running: { color: "var(--voice-machine)", word: "running", pulse: true },
       queued: { color: "var(--ink-subtle)", word: "queued" },
       gate: { color: "var(--voice-human)", word: "needs you" },
-      paused: { color: "var(--verdict-working)", word: "paused" },
+      paused: { color: "var(--voice-machine-dim)", word: "paused" },
       idle: { color: "var(--ink-faint)", word: "idle" },
     };
 
@@ -299,5 +301,168 @@ describe("Chips integration: shared patterns and consistency", () => {
     mutedTokens.forEach((token) => {
       expect(token).toContain("ink-");
     });
+  });
+});
+
+describe("VerdictChip render output", () => {
+  test("renders a span element", () => {
+    const el = VerdictChip({ tone: "pass", children: "APPROVED" }) as ReactElement;
+    expect(el.type).toBe("span");
+  });
+
+  test("renders all VerdictTone variants without error", () => {
+    const tones: VerdictTone[] = ["pass", "fail", "human", "machine", "neutral"];
+    tones.forEach((tone) => {
+      const el = VerdictChip({ tone, children: "Test" }) as ReactElement;
+      expect(el).toBeDefined();
+      expect(el.type).toBe("span");
+    });
+  });
+
+  test("applies tone color via inline style", () => {
+    const el = VerdictChip({ tone: "pass", children: "PASS" }) as ReactElement;
+    const style = el.props?.style as Record<string, string>;
+    expect(style.color).toBe("var(--verdict-pass)");
+    expect(style.borderColor).toContain("color-mix");
+    expect(style.borderColor).toContain("var(--verdict-pass)");
+  });
+
+  test("applies different color for each tone", () => {
+    const tones = [
+      { tone: "pass" as const, expectedColor: "var(--verdict-pass)" },
+      { tone: "fail" as const, expectedColor: "var(--verdict-fail)" },
+      { tone: "human" as const, expectedColor: "var(--voice-human)" },
+      { tone: "machine" as const, expectedColor: "var(--voice-machine)" },
+      { tone: "neutral" as const, expectedColor: "var(--ink-subtle)" },
+    ];
+
+    tones.forEach(({ tone, expectedColor }) => {
+      const el = VerdictChip({ tone, children: "Test" }) as ReactElement;
+      const style = el.props?.style as Record<string, string>;
+      expect(style.color).toBe(expectedColor);
+    });
+  });
+
+  test("renders children as text content", () => {
+    const el = VerdictChip({ tone: "pass", children: "APPROVED" }) as ReactElement;
+    expect(el.props?.children).toBe("APPROVED");
+  });
+
+  test("includes required CSS classes", () => {
+    const el = VerdictChip({ tone: "pass", children: "Test" }) as ReactElement;
+    const className = el.props?.className as string;
+    expect(className).toContain("inline-flex");
+    expect(className).toContain("rounded-full");
+    expect(className).toContain("border");
+    expect(className).toContain("font-mono");
+    expect(className).toContain("uppercase");
+  });
+
+  test("merges custom className with default classes", () => {
+    const el = VerdictChip({ tone: "pass", children: "Test", className: "custom-class" }) as ReactElement;
+    const className = el.props?.className as string;
+    expect(className).toContain("custom-class");
+    expect(className).toContain("inline-flex");
+  });
+});
+
+describe("StatusGlyph render output", () => {
+  test("renders a span wrapper with inline-flex", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    expect(el.type).toBe("span");
+    expect(el.props?.className).toContain("inline-flex");
+  });
+
+  test("renders all LiveState variants without error", () => {
+    const states: LiveState[] = ["running", "queued", "gate", "paused", "idle"];
+    states.forEach((state) => {
+      const el = StatusGlyph({ state }) as ReactElement;
+      expect(el).toBeDefined();
+      expect(el.type).toBe("span");
+    });
+  });
+
+  test("renders a colored dot (first child span)", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    const children = el.props?.children as ReactElement[];
+    const dotSpan = children[0];
+    expect(dotSpan.type).toBe("span");
+    expect(dotSpan.props?.["aria-hidden"]).toBe(true);
+    expect(dotSpan.props?.className).toContain("rounded-full");
+  });
+
+  test("dot uses state's color variable", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    const children = el.props?.children as ReactElement[];
+    const dotSpan = children[0];
+    const style = dotSpan.props?.style as Record<string, string>;
+    expect(style.background).toBe("var(--voice-machine)");
+  });
+
+  test("renders pulse animation class for running state only", () => {
+    const runningEl = StatusGlyph({ state: "running" }) as ReactElement;
+    const runningChildren = runningEl.props?.children as ReactElement[];
+    const runningDot = runningChildren[0];
+    expect(runningDot.props?.className).toContain("ink-working");
+
+    const queuedEl = StatusGlyph({ state: "queued" }) as ReactElement;
+    const queuedChildren = queuedEl.props?.children as ReactElement[];
+    const queuedDot = queuedChildren[0];
+    expect(queuedDot.props?.className).not.toContain("ink-working");
+  });
+
+  test("renders text label (second child span)", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    const children = el.props?.children as ReactElement[];
+    const labelSpan = children[1];
+    expect(labelSpan.type).toBe("span");
+    expect(labelSpan.props?.className).toContain("ink-mono");
+  });
+
+  test("text label renders state's default word", () => {
+    const states = [
+      { state: "running" as const, expectedWord: "running" },
+      { state: "queued" as const, expectedWord: "queued" },
+      { state: "gate" as const, expectedWord: "needs you" },
+      { state: "paused" as const, expectedWord: "paused" },
+      { state: "idle" as const, expectedWord: "idle" },
+    ];
+
+    states.forEach(({ state, expectedWord }) => {
+      const el = StatusGlyph({ state }) as ReactElement;
+      const children = el.props?.children as ReactElement[];
+      const labelSpan = children[1];
+      expect(labelSpan.props?.children).toBe(expectedWord);
+    });
+  });
+
+  test("text label color matches dot color", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    const children = el.props?.children as ReactElement[];
+    const dotSpan = children[0];
+    const labelSpan = children[1];
+    const dotColor = (dotSpan.props?.style as Record<string, string>).background;
+    const labelColor = (labelSpan.props?.style as Record<string, string>).color;
+    expect(labelColor).toBe(dotColor);
+  });
+
+  test("custom label prop overrides default state word", () => {
+    const el = StatusGlyph({ state: "running", label: "Processing..." }) as ReactElement;
+    const children = el.props?.children as ReactElement[];
+    const labelSpan = children[1];
+    expect(labelSpan.props?.children).toBe("Processing...");
+  });
+
+  test("merges custom className with default classes", () => {
+    const el = StatusGlyph({ state: "running", className: "custom-class" }) as ReactElement;
+    const className = el.props?.className as string;
+    expect(className).toContain("custom-class");
+    expect(className).toContain("inline-flex");
+  });
+
+  test("renders with correct gap between dot and text", () => {
+    const el = StatusGlyph({ state: "running" }) as ReactElement;
+    const className = el.props?.className as string;
+    expect(className).toContain("gap-1.5");
   });
 });

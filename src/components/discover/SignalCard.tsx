@@ -66,7 +66,7 @@ export const SignalCard = memo(function SignalCard({
   actionsPending = false,
 }: SignalCardProps) {
   const hasActions = onPromote || onDraftSpec || onLineage || onDelete;
-  const clickable = Boolean(onOpen);
+  const clickable = Boolean(onOpen && id);
   // A known connector gets its brand mark; anything else (manual capture, web
   // research, an unmapped source) still shows a neutral origin glyph.
   const knownProvider = Boolean(sourceId && sourceId in CONNECTOR_REGISTRY);
