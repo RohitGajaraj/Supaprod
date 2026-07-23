@@ -1,8 +1,8 @@
-open# The YC application — Fall 2026 (previous vs new, field by field)
+# The YC application — Fall 2026 (previous vs new, field by field)
 
 > _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Reviews are rolling — the 10-minute interview can land any time once the application is read, so interview-ready means ready the day you submit (YC's posted outer bound: decisions by Aug 28, batch Oct–Dec in San Francisco, $500K standard deal)._
 >
-> **How to use this file:** three columns now. Each field below shows the PREVIOUS answer (rolled-over application) and the NEW answer (2026-07-10 rewrite); **the ⭐ SUBMIT SHEET section is the THIRD column (2026-07-22) — the final submit-day text, written under the ratified triple-RFS positioning with live-verified numbers; where it differs from a "New" block, the submit sheet wins.** Anything in `[square brackets]` is a slot you fill or confirm on submit day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
+> **How to use this file:** five columns now. ① PREVIOUS (the rolled-over application) and ② NEW (2026-07-10) sit field-by-field below; ③ the ⭐ SUBMIT SHEET (2026-07-22) and ④ 🔥 THE NEXT ITERATION (2026-07-22) were the submit-day rewrites. **The application is SUBMITTED. The 🚨 UPDATE SHEET (⑤, 2026-07-23) is the only operative column now — YC's portal exposes exactly five editable surfaces, and ⑤ maps them one to one. Columns ①–④ stay untouched as the historical record and as interview prep (a partner may quote the locked text back at you).** Anything in `[square brackets]` is a slot you fill or confirm on paste day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
 
 ## The five laws this application is written under
 
@@ -13,6 +13,157 @@ open# The YC application — Fall 2026 (previous vs new, field by field)
 5. **Lead with the delta, land the scope.** YC's FAQ: progress since a prior application "is a strong signal" — make it impossible to miss in a 90-second skim. And "Cursor for product managers" is the door, not the room: the answers escalate to what this actually is, the operating system a whole product org runs on.
 
 **What a partner is scanning for, in order:** (1) do I get what this is in one sentence, (2) is there an earned insight, (3) is this founder formidable, (4) is anything real and live. Every answer below serves one of those four.
+
+---
+
+## 🚨 THE UPDATE SHEET — fifth column (2026-07-23). SUBMITTED; five surfaces remain editable. This is the operative section.
+
+> _Status: the Fall 2026 application is in (YC portal id `6e83e72d-8136-4cad-87…`). The portal now shows only **Update your application** with five surfaces — Progress Update, Fundraising Update, Team Update, Founder Video, Demo Video (founder screenshots, 2026-07-23). Everything else (7f, 9a, 9b, 9c, the 50-char, company name) is locked with whatever was live at submit — and for the Progress and Team fields that is still the ① PREVIOUS text ("three weeks ago… Cadence… no users… 6 weeks away"). **So these five surfaces are the only place the current truth and the sharpened positioning ever reach a partner. Written for the real read: tens of thousands of applications per batch, under five minutes per file including videos — first sentence carries the whole answer, numbers argue, nothing is volunteered twice.**_
+>
+> _Numbers pulled live 2026-07-23: repo **3,979 commits · 387 migrations**; register **401 specced / 362 shipped** (`scripts/dashboard-tally.sh` reproduces it); homepage counters **83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls**. The counters are STRICT: the 2026-07-22 seeding correctly flagged the demo workspaces (Sample sandbox, Explore workspace, Helio Labs `10000000-…`) as samples, so the public numbers dropped from the 145/81/54 in column ③. That is the Receipts law doing its job (undercount, never inflate) — the copy below quotes the strict numbers and says so out loud. Raw totals including seeded content are 151/103/86/4,333; never quote those. **Re-pull every number the hour you paste — the counters render live and a partner can check them.**_
+
+### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
+
+The company-name field is locked at `Cadence`. Do not start a fresh application over it:
+
+1. **The alumni recommendation is attached to this application.** A new application starts with zero referral history, and Badis would have to re-file against the new record, with no guarantee it links before review.
+2. **This record IS the "progress since applying" story.** YC's FAQ calls progress since submission a strong signal; the update surfaces exist precisely to carry it. A new application throws away the recorded slope and the early-review timestamp.
+3. Two live applications for one company in one cycle reads disorganized — the opposite of formidable.
+
+The rename travels through the surfaces we do control: the first line of the Progress Update, the product-URL field (`supaprod.ai`), both re-recorded videos, and one parenthetical in the Team Update. Renames are routine at YC. Optional belt-and-braces: a two-line note to `apply@ycombinator.com` (YC's published address for application questions) — application id, "Cadence renamed to Supaprod, now at supaprod.ai," nothing else asked. **Badis changes nothing** — his recommendation points at this application; keeping the application keeps the referral.
+
+### The Fall 2026 RFS check (fetched live 2026-07-23)
+
+The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American Defense, A Cloud for Small Software, **Multiplayer AI**, Compute at Sea, Consumer AI for 1B, AI for the Aging Population, OS for the Physical World, Crypto, Data for the Real World, Proving You're Human, AI-Native Compliance, Self-Maintaining APIs). The Summer cells ("company brain," "AI operating system for companies") are no longer on the live page. Two binding consequences:
+
+1. **Date the three circles whenever cited** — "Spring 2026" / "Summer 2026," never "the current RFS." They stay fully verifiable (the locked 9a already cites them); a partner glancing at today's page must never catch a tense mismatch.
+2. **The one honest Fall echo is Multiplayer AI** (Aaron Epstein): _"working with AI is largely single-player"_ — teams should _"drop into the same live agent session to watch it work, redirect it, and hand it off."_ That is a fair description of the fleet as wired today (signed runs, traces, approval gates, human handoffs). It gets one sentence in the Progress Update, no more. No other Fall category applies to us; do not stretch. (Recorded in [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §10.)
+
+### Surface 1 — Progress Update (the crown field; it carries everything)
+
+**Product link:** `https://supaprod.ai`
+
+**Login credentials (single-line field):**
+
+```
+explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace; or sign up with any email — you are in a working workspace in about a minute)
+```
+
+_(Verified in production auth 2026-07-23: `explore@supaprod.ai` exists and has a workspace. GATE: one incognito login on supaprod.ai before pasting. Fallback if it fails: `demo2@redcadence.app / Cadence!Demo2026`, then fix. `ember@supaprod.ai` stays reserved for investors; the redcadence logins go internal-only once this pastes.)_
+
+**"How far along are you?"** — replaces the stale "Early… I started three weeks ago" text:
+
+```
+Since submitting I renamed Cadence to Supaprod (https://supaprod.ai) and the
+product went from an early spine to working end to end. The proof: Supaprod
+builds Supaprod. It plans its own roadmap, its agents write the code behind a
+merge gate no agent can cross, and it grades its own shipped outcomes. Seven
+weeks of build, about 4,000 commits, solo.
+
+The homepage counters render live from the database: 83 missions run, 26
+decisions recorded with receipts, 16 shipped outcomes graded. Counted
+strictly: seeded demo workspaces are excluded, so those numbers can only
+undercount. The build register: 401 features specced, 362 shipped. An outside
+AI code auditor checked the register against the code in July, and it held.
+
+YC has asked for this company three times in two RFS cycles: a "Cursor for
+product managers" (Spring 2026), an "AI operating system for companies" and a
+"company brain" (Summer 2026). They are one product: you cannot be the brain
+without owning the loop that makes the outcomes, and the product org is where
+that loop is tightest. The Fall RFS asks for multiplayer AI, shared agents a
+team can watch, redirect, and hand off. That is how this fleet runs: every
+action signed, every run open to a trace, merges behind gates a human
+controls.
+
+Doors are open: self-serve signup is live, the demo login above works, and I
+am recruiting the first beta cohort from a named list of 25 PMs and founders.
+Public launch in weeks, not months.
+```
+
+**"How long have each of you been working on this? How much of that has been full-time?"** — replaces "Three weeks… 35 to 40 hours a week":
+
+```
+Seven weeks on this build, seven days a week; the repo shows about 4,000
+commits over that stretch, and a month of nights and weekends on the
+prototype before that. Full-time in every sense but the paperwork: I built
+this alongside a product role that is winding down, and quitting is decided,
+not contingent on this application. The batch changes my speed and my zip
+code, not my direction.
+```
+
+**"What tech stack are you using…?"** — replaces the current text (same substance, tighter, current tools):
+
+```
+Built almost entirely with Claude Code, plus Lovable, Cursor, and
+Antigravity. Frontend: TanStack Start (React 19, Vite), Tailwind, shadcn.
+Data: Supabase Postgres with row-level security, pgvector, and pg_cron
+driving the autonomous engine. Deployed on Cloudflare Workers.
+Model-agnostic by design: every AI call goes through one runtime chokepoint
+(budget, cache, guardrails, tracing, fallback), so Claude, GPT, Gemini,
+DeepSeek, or local models plug in, and users can bring their own keys.
+```
+
+**"Are people using your product?"** — keep **No** unless outside users are literally in on paste day. (No + "usable today" below is consistent: availability is not adoption. If beta users land first, flip to Yes and state the true count in the adjacent field — never a padded one.)
+
+**"When will you have a version people can use?"** — replaces "roughly 6 weeks… about three months":
+
+```
+It is usable today: https://supaprod.ai, with the demo login above, and
+self-serve signup is already on. I am recruiting the first beta cohort now
+from a named list of 25 PMs and founders. Public launch is weeks away, not
+months.
+```
+
+**Demo video slot on this form:** see Surface 5.
+
+### Surface 2 — Fundraising Update
+
+File nothing. No investment taken, not fundraising; the surface exists for changes and nothing changed. (The locked §10 answers already say exactly this.)
+
+### Surface 3 — Team Update
+
+**"Who writes code, or does other technical work on your product?"** — replaces the "prototype… point of Cadence" text:
+
+```
+I direct all of it; AI agents write the code. I run parallel Claude Code
+lanes with one model reviewing what the build models produce, and every
+change passes typecheck, build, and review before merge. Seven weeks in:
+about 4,000 commits, 387 database migrations, and when an outside AI code
+auditor reviewed the codebase against my build register, the register held.
+No non-founder has touched it. This is the whole point of Supaprod
+(Cadence's new name): one person directing a fleet of agents, with receipts
+for everything they did.
+```
+
+**"Are you looking for a cofounder?"** — KEEP the live text unchanged; it already reads secure: "Solo, and moving fast. Open to a cofounder who shares the vision and energy and adds a fresh perspective I do not have. For now, solo."
+
+### Surface 4 — Founder Video (≤1:00; replaces the 2:54 currently attached)
+
+Re-record per [`video-scripts.md`](./video-scripts.md) Part 1 — the bullet card now opens with the rename line and the "Supaprod builds Supaprod" proof. One take, webcam, look at the lens, bullets not script. This video and the Progress Update are where the rename is said out loud.
+
+### Surface 5 — Demo Video (≤3:00 / 100 MB per the form; replaces the 11:46)
+
+Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old video opens on a "Welcome to Cadence" login screen — the most stale artifact still attached to this application (the live product is already Supaprod-clean). Deliberate choice: the demo spends zero seconds on the rename; the founder video and the Progress Update first line carry it. Product on screen from frame one; the wedge inside 30 seconds; never cut the miss/rollback beat.
+
+### Website changes this session surfaced (call-outs, priority order)
+
+1. ~~Homepage counters dropped 145→83~~ — **correct behavior, not a bug.** The 07-22 seeding flagged the demo workspaces as samples; the strict public counters are the quotable ones. No data change; the copy above wears the strictness as an integrity line.
+2. **Real gap the diagnosis exposed:** outcome grading has run almost entirely inside seeded workspaces; the founder's real workspaces show 0 graded outcomes. Before launch (and certainly before any interview), run the outcome loop on the real roadmap workspace so "outcomes graded" grows from real use.
+3. The demo video is the last big Cadence-branded surface. Re-recording (Surface 5) retires it.
+4. `src/components/plan/LoopsPanel.tsx` is the one remaining UI file mentioning "Cadence" — check whether it is user-visible and rename if so.
+5. Credential rotation: `explore@supaprod.ai` becomes the public demo identity (YC form), `ember@` stays reserved, redcadence logins go internal-only.
+6. Standing memo §7 items stay open (stub connectors badged, `/updates` changelog refresh, `/proof` sample labels, `DECISION_BRAIN_SUPERSESSION` on for demo workspaces) — pre-launch work, not paste-blocking.
+
+### Paste-day checklist (in this order)
+
+1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
+2. Re-pull the four homepage counters, `git rev-list --count HEAD`, and `bash scripts/dashboard-tally.sh`; sync every number above to that hour; confirm the beta-list count (25) is still true.
+3. Paste the Progress Update fields; set the radio truthfully; save.
+4. Paste the Team Update; save.
+5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.
+6. Record and upload both videos within 48 hours; the old ones stay attached until the new ones replace them.
+7. Optional: the two-line rename email to apply@ycombinator.com.
+8. Log the update date here. From now until the interview, keep the one-line daily delta per [`interview-prep.md`](./interview-prep.md) §5.
 
 ---
 
@@ -655,6 +806,25 @@ today through the demo login above; self-serve signup is already on.
 _[If real beta users land before July 26, lead with the number instead: "Yes,
 since [date]: [N] users from [M] discovery calls," then keep the dogfooding
 line. Do not invent a discovery-call count — quote only what actually happened.]_
+
+_Archive — the 2026-07-10 two-variant version (column ②, preserved verbatim from the founder's saved copy; superseded by the text above):_
+
+Variant A (beta users exist):
+
+```
+Yes, since [date]: [N] beta users from [M] discovery calls. Too early for
+patterns; the first thing they reach for is asking "why did we decide X" and
+getting the receipt back. I use it daily myself to run Supaprod's own roadmap.
+```
+
+Variant B (not yet):
+
+```
+The first beta users are getting access now, from the [N] discovery
+conversations I've run with PMs and founders this month. Until they're in,
+the daily user is me: Supaprod runs its own roadmap, and its agents built
+most of it.
+```
 
 ### 8f. "When will you have a version people can use?"
 

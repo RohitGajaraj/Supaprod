@@ -10,15 +10,17 @@
 
 **Your bullet card (glance, don't read — YC's own instruction):**
 
-- Rohit, solo founder of Supaprod — Cursor for product managers
+- Rohit, solo founder of Supaprod — you'll see it as Cadence on the form; renamed since I applied — Cursor for product managers
 - Ten years in product: ISRO at 21 → the AI platform 200+ banks build on
 - The wall I hit: agents did MORE of my work, I could explain LESS of it — accountable for everything, able to prove nothing
 - So I built the layer that was missing: agents run the lifecycle, every action has a receipt, every decision gets checked against what happened
-- Proof: Supaprod built itself — ~[3,400] commits in [8] weeks, one person directing the fleet, every change receipted
-- 16 hours a day for [45+] days; beta opening now, public launch weeks away; going all the way in, full-time, regardless of anything
+- Proof: Supaprod builds Supaprod — about [4,000] commits in [seven] weeks, one person directing the fleet, every change receipted
+- Seven weeks, seven days a week; beta opening now, public launch weeks away; going all the way in, full-time, regardless of anything
 - Close: "Agents do the work. You answer for it. Supaprod is how you answer."
 
-**Delivery notes:** energy beats polish; smile once; if you go over 1:00, cut the resume bullet, never the wall story or the close. Say the numbers as numbers ("thirty-four hundred commits"), they carry the video.
+**Delivery notes:** energy beats polish; smile once; if you go over 1:00, cut the resume bullet, never the wall story or the close. Say the numbers as numbers ("four thousand commits"), they carry the video.
+
+_(Post-submit note, 2026-07-23: this video and the demo are two of the only five surfaces still editable on the submitted application — see [`fall-2026-application.md`](./fall-2026-application.md) column ⑤. The rename is said out loud HERE and in the Progress Update text; the demo video deliberately spends zero seconds on it.)_
 
 ---
 
