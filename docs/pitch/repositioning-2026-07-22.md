@@ -38,6 +38,14 @@ Position Supaprod at the intersection of three circles (founder Venn, 2026-07-22
 **Category sentence (deck/investor surfaces):**
 > "Supaprod is the agentic operating system for product teams. It tells you what to build — from your signals, the market, and your own decision history — then builds it, ships it, checks the outcome, and remembers. The more it runs, the sharper it gets."
 
+**⭐ The layman two-liner (canonical, founder-directed 2026-07-23 — the connected-path telling of all three circles without naming any of them; use when a human asks "so what is Supaprod?"):**
+> "Supaprod tells you what to build and gets it built: AI agents read everything you already know (your user feedback, product data, competitors, market), surface what is worth building, and once you approve, they build and ship it. Think of it like Cursor, but for the whole product lifecycle, not just writing code. And it remembers: every decision is recorded with its evidence and outcome, so the next time a similar call comes up, it shows you how you decided last time and whether it worked."
+
+**The sub-50-word version:**
+> "Supaprod runs product work with AI agents: it tells you what to build from everything you already know, builds and ships it once you approve, and remembers how every decision turned out, so your next call is sharper than your last." _(41 words)_
+
+The connected path is the point: reads what you know → tells you what to build (the OS running the work; ①+② implicitly) → you approve, agents ship → it remembers decisions and outcomes and briefs your next similar call (③ implicitly). The three RFS labels stay OUT of the layman telling; they are citations, not the explanation.
+
 **The intersection claim (application field 9a / deck slide 4):**
 > "YC has now asked for this company three times, in three pieces: a 'Cursor for product managers' (Spring 2026), an 'AI operating system for companies' (Summer 2026), a 'company brain' (Summer 2026). My insight is that they are one product — you cannot be the company brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. The product org is where that loop is tightest, so that is where I started."
 
@@ -110,3 +118,4 @@ The RFS page fully rotated to 13 Fall 2026 categories: The Primer (Miklas), The 
 1. **The three circles stay canonical but must be DATED wherever cited** — "Spring 2026" / "Summer 2026," never "the current RFS." They remain verifiable (archive + the submitted application's locked 9a already cites them); dated citation prevents any tense mismatch against today's page.
 2. **Multiplayer AI is the one honest Fall echo.** Epstein verbatim: _"working with AI is largely single-player"_; teams should _"drop into the same live agent session to watch it work, redirect it, and hand it off."_ Supaprod's fleet as wired (signed runs, per-run traces, approval gates, human handoffs) fairly matches the watch/redirect/hand-off frame — usable as ONE supporting sentence after the three dated circles, never as a fourth circle or a headline. No other Fall 2026 category applies to Supaprod; claiming one would be overreach.
 3. The YC application's post-submit surfaces carry this telling now — see [`yc/fall-2026-application.md`](./yc/fall-2026-application.md) column ⑤ (the update sheet).
+4. **In application UPDATE copy the RFS goes implicit (founder ruling 2026-07-23):** no verbatim "Cursor for product managers" / "AI operating system for companies" / "company brain" quoting — it reads as copying YC's own words back at them. One attribution sentence instead ("YC's own recent RFS essays have been circling this same company from different angles; I read that as confirmation"). The submitted application's locked 9a keeps its dated explicit citations (unchangeable and fine). Decks and non-YC investor surfaces keep the explicit dated citations per §5 — this ruling is scoped to YC-facing update copy.

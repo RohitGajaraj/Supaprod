@@ -23,6 +23,8 @@
 > _Numbers pulled live 2026-07-23: repo **3,979 commits · 387 migrations**; register **401 specced / 362 shipped** (`scripts/dashboard-tally.sh` reproduces it); homepage counters **83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls**. The counters are STRICT: the 2026-07-22 seeding correctly flagged the demo workspaces (Sample sandbox, Explore workspace, Helio Labs `10000000-…`) as samples, so the public numbers dropped from the 145/81/54 in column ③. That is the Receipts law doing its job (undercount, never inflate) — the copy below quotes the strict numbers and says so out loud. Raw totals including seeded content are 151/103/86/4,333; never quote those. **Re-pull every number the hour you paste — the counters render live and a partner can check them.**_
 >
 > _Founder pass #2 (2026-07-23, plan-approved): hard numbers are OUT of the pasted copy — they live on the interview numbers card ([`interview-prep.md`](./interview-prep.md) §2) — except the ~4,000-commits line in "how long." The listening/user spotlight is in. The audit is phrased as what it actually was (a Claude-based review, not an outside firm). No solo-founder self-reference anywhere. Product Hunt / Hacker News appear as presence, not the distribution strategy. And every field below now shows ON THE FORM NOW vs PASTE THIS side by side, so paste day is compare-and-go._
+>
+> _Founder pass #3 (2026-07-23): the homepage-numbers pointer is CUT (flagged twice = veto). No meta labels ("Why this matters now"). The telling is reordered to how the founder says it to a human: what-to-build leads (reads your feedback/data/competitors/market → tells you what is worth building), Cursor is a plain analogy clarified as end-to-end ("the whole product lifecycle, not just writing code"), and the brain closes with the concrete beat ("shows you how you decided last time and whether it worked"). **RFS references go implicit in update copy** — no verbatim "Cursor for product managers" / "company brain" / "AI operating system" quoting (reads as copying YC's words); one attribution sentence instead ("YC's own recent RFS essays have been circling this same company"); the locked 9a still carries the dated explicit citations, which is fine. Build+listen is a parallel loop, never sequential ("I keep building, with the beta live; feedback goes straight back into the build"). BYOK is enterprise-scoped. Connectors stay OUT of the tech stack (privacy/PII questions invited for no gain; the signal sources are already implied in "reads everything you already know"). The canonical layman two-liner + sub-50 live in [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -71,26 +73,26 @@ not let me change the name; same company, live at https://supaprod.ai.
 Since submitting, the product went from an early spine to running end to
 end, and the proof is that Supaprod is building Supaprod on its own: it
 plans its roadmap, its agents write the code behind a merge gate no agent
-can cross, and it grades what actually shipped. The numbers on the homepage
-render live from that loop.
+can cross, and it grades what actually shipped.
 
-Why this matters now: code is commoditized. Agents build whatever you point
-them at, cheaply. The scarce thing left is knowing what to build and whether
-the call was right. That is the layer I own, in three pieces. The door is
-"Cursor for product managers": one place where product work runs. The body
-is an operating system for the product org: signals come in, decisions get
-made with the evidence attached, agents execute, outcomes get checked. The
-part that compounds is the brain: Supaprod records how you decide, what
-evidence moved you, which bets paid, so it learns your taste, not just your
-tasks. That record cannot be copied; it can only accumulate. YC's own RFS
-essays described each piece: a "Cursor for product managers" (Spring 2026),
-an "AI operating system for companies" and a "company brain" (Summer 2026).
-This fall's multiplayer-AI request describes how it runs day to day: shared
-agents a team can watch, redirect, and hand off, safe to share because
-every action carries a receipt.
+Code is commoditized; agents build whatever you point them at, cheaply.
+The scarce thing left is knowing what to build and whether the call was
+right. That is what Supaprod does: it reads everything you already know
+(your user feedback, your product data, your competitors, your market) and
+tells you what is worth building next. You make the call; agents build and
+ship it. Think of it like Cursor, but for the whole product lifecycle end
+to end, not just writing code.
 
-The beta is live today. The job now is putting it in real users' hands and
-rebuilding the roadmap around what they say.
+Then it remembers. Every decision is recorded with its evidence and
+checked against what actually happened, so when a similar call comes up,
+Supaprod shows you how you decided last time and whether it worked. Your
+product judgment compounds in the system instead of living in someone's
+head. YC's own recent RFS essays have been circling this same company from
+different angles; I read that as confirmation.
+
+I keep building, with the beta live for users today; I talk to users
+constantly, and their feedback goes straight back into the build, in a
+loop.
 ```
 
 _[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
@@ -121,7 +123,7 @@ runs the agentic workflows; I direct them in parallel through Conductor,
 with Lovable and Antigravity in the mix.
 AI models: model-agnostic by design. Every AI call goes through one runtime
 chokepoint (budget, cache, guardrails, tracing, fallback), so Claude, GPT,
-Gemini, DeepSeek, or local models plug in, and users bring their own keys.
+Gemini, DeepSeek, or local models plug in; enterprises can bring their own keys.
 Frontend: TanStack Start (React 19) with Tailwind.
 Backend and data: Supabase Postgres with row-level security; pgvector for
 retrieval; pg_cron schedules the autonomous engine.
