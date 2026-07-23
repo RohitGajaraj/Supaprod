@@ -138,6 +138,8 @@ YC's guide: "the best way to get an edge is to work hard and have your startup i
 
 ## 6. The 90-second screen-share path (rehearse until boring)
 
+> _⚠️ 2026-07-23: this path references the old Today-view IA. The app moved — no Today view on login, and a design (prototype) stage now sits between plan and build. Re-walk the live app and rewrite these five beats to the current screens before any interview; the same two gaps are logged at the top of [`video-scripts.md`](./video-scripts.md)._
+
 1. **Today view** — "This is my morning: the fleet worked overnight; these are the calls waiting for me." (10s)
 2. **The wedge** — ask "why did we decide [X]?" → the answer with receipts. "This is the question every PM gets asked and can't answer. Supaprod answers it in seconds." (25s)
 3. **A decision** — open the top call, show the critic's argument and evidence, approve it. "Recorded, with what I saw when I decided." (25s)

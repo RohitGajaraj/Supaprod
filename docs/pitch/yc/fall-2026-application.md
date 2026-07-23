@@ -31,6 +31,8 @@
 > _Founder pass #5 (2026-07-23): stack made explicit and audited legit — Language: TypeScript end to end (verified: server functions in the same TanStack Start app, no other backend language); Backend named as its own line; Deployment verified real (wrangler.jsonc + the Cloudflare Vite plugin compile the app into a Worker; serverless at the edge; published through Lovable); PostHog/Sentry verified present in the observability layer + the form allows "planning to use." "When version" softened: "live and open for beta users; people can get their hands on it" — never "fully usable/done."_
 >
 > _Founder pass #6 (2026-07-23): "when version" now leads with the DATE — "By the second week of September (six weeks from now)" — target first, current standing second (confidence + drive), and the how-far-along close carries the same date so a cross-reading partner sees one consistent target. The tech stack is FOUNDER-FINALIZED in his own structure (Backend and data merged with TypeScript named; bare "Cloudflare Workers"; "feature gates" added to the chokepoint list). Two corrections applied to his paste: "featuregate" smoothed to "feature gates," and "users bring their own keys" kept OUT per his own round-4 ruling (the question asks what WE use, not what we offer customers) — restore it only if he re-rules._
+>
+> _**✅ STATUS (2026-07-23, end of day): FILED.** The founder pasted the three text surfaces into the YC portal: the Progress Update fields and the Team Update (Fundraising untouched — nothing to file). **REMAINING: the founder video (≤1:00) and the demo video (≤3:00).** Before filming, the scripts need a truth pass against the live app — two founder-reported gaps are logged at the top of [`video-scripts.md`](./video-scripts.md): the post-login home is no longer a Today view, and the lifecycle now runs plan → design (prototype) → build → ship. From here until the interview: the one-line daily delta per [`interview-prep.md`](./interview-prep.md) §5._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -230,7 +232,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.
 6. Record and upload both videos within 48 hours; the old ones stay attached until the new ones replace them.
 7. Optional: the two-line rename email to apply@ycombinator.com.
-8. Log the update date here. From now until the interview, keep the one-line daily delta per [`interview-prep.md`](./interview-prep.md) §5.
+8. Log the update date here. ✅ LOGGED: text surfaces filed 2026-07-23 (see the STATUS line in the header note); videos pending. From now until the interview, keep the one-line daily delta per [`interview-prep.md`](./interview-prep.md) §5.
 
 ---
 

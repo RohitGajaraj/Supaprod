@@ -1,5 +1,12 @@
 # The YC videos — founder (1:00) + demo (~2:10)
 
+> **⚠️ TRUTH PASS NEEDED BEFORE FILMING (founder-reported 2026-07-23 — the app has moved since these scripts were written; these are the ONLY two application surfaces still pending):**
+>
+> 1. **There is no Today view on login anymore.** The demo's opening beat ("This is my morning… the fleet worked overnight") and the closing "end on the calm Today view" must be re-anchored to whatever the post-login home actually is today.
+> 2. **The lifecycle now includes a DESIGN stage.** After a plan is approved it goes to design for a prototype, and only then builds and ships. The 1:25–1:50 beat (spec → tasks → pull request) must show plan → design (prototype) → build → ship.
+>
+> Re-walk the live app and update every beat to what the screen actually shows before recording — the claim law below already requires this; the founder will come back to rework these scripts.
+
 > _Rewritten 2026-07-10 against YC's official rules and the research corpus ([`research-findings.md`](./research-findings.md) §1.3): founder video is **1 minute, founders talking, nothing else, and "do not recite a written script: use bullet points instead."** Demo video: partners give it 60–90 seconds of attention; funded demos "often look terrible… but they sound incredible — dense, factual, and fast." One take, no editing, real product. Claim law: anything not true on filming day gets cut — check [`../one-pager.md`](../one-pager.md) tags before recording. Both videos: re-record replaces the 2:54 founder video and the 11:46 demo currently on the application._
 
 ---
