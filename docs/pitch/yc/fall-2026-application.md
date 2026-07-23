@@ -27,6 +27,8 @@
 > _Founder pass #3 (2026-07-23): the homepage-numbers pointer is CUT (flagged twice = veto). No meta labels ("Why this matters now"). The telling is reordered to how the founder says it to a human: what-to-build leads (reads your feedback/data/competitors/market → tells you what is worth building), Cursor is a plain analogy clarified as end-to-end ("the whole product lifecycle, not just writing code"), and the brain closes with the concrete beat ("shows you how you decided last time and whether it worked"). **RFS references go implicit in update copy** — no verbatim "Cursor for product managers" / "company brain" / "AI operating system" quoting (reads as copying YC's words); one attribution sentence instead ("YC's own recent RFS essays have been circling this same company"); the locked 9a still carries the dated explicit citations, which is fine. Build+listen is a parallel loop, never sequential ("I keep building, with the beta live; feedback goes straight back into the build"). BYOK is enterprise-scoped. Connectors stay OUT of the tech stack (privacy/PII questions invited for no gain; the signal sources are already implied in "reads everything you already know"). The canonical layman two-liner + sub-50 live in [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3._
 >
 > _Founder pass #4 (2026-07-23): **answer the question asked** — every field re-audited for drift. "How far along" now answers PROGRESS (the journey: decade of pain → prototype → seven weeks → beta live with building and listening in parallel, design iterations, roadmap reshaped by feedback → launch next), not what the product does; the loved what-it-does telling is preserved right below that field and in `README.md`. "Almost done, not finished" replaces any fully-done claim. "Full-time in every sense but the paperwork" is gone — the employment line is one true clause with no gray area. The batch line adds mentorship. The stack answers only what WE use (the customer BYOK offer removed — they asked what we use, not what we sell). "When version" drops the demo-login echo and names forums (Hacker News, Product Hunt) as presence. "Who writes code" now leads with everything built in-house by me + agents (design, development, coding, testing, user analysis) and spotlights the independent Claude-based security review._
+>
+> _Founder pass #5 (2026-07-23): stack made explicit and audited legit — Language: TypeScript end to end (verified: server functions in the same TanStack Start app, no other backend language); Backend named as its own line; Deployment verified real (wrangler.jsonc + the Cloudflare Vite plugin compile the app into a Worker; serverless at the edge; published through Lovable); PostHog/Sentry verified present in the observability layer + the form allows "planning to use." "When version" softened: "live and open for beta users; people can get their hands on it" — never "fully usable/done."_
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -139,10 +141,14 @@ with Lovable and Antigravity in the mix.
 AI models: model-agnostic by design. Every AI call goes through one runtime
 chokepoint (budget, cache, guardrails, tracing, fallback), so Claude, GPT,
 Gemini, DeepSeek, or local models plug in.
-Frontend: TanStack Start (React 19) with Tailwind.
-Backend and data: Supabase Postgres with row-level security; pgvector for
+Language: TypeScript end to end, one codebase for frontend and backend.
+Frontend: React 19 on TanStack Start, with Tailwind.
+Backend: TypeScript server functions in the same app; all the agent and
+AI logic lives there.
+Database: Supabase Postgres with row-level security; pgvector for
 retrieval; pg_cron schedules the autonomous engine.
-Deployment: Cloudflare Workers.
+Deployment: Cloudflare Workers (serverless, runs at the edge), published
+through Lovable.
 Observability: the system captures its own telemetry by design, every agent
 action and AI call logged as a receipt, extended with PostHog for product
 analytics and Sentry for failure capture.
@@ -161,10 +167,10 @@ _(Confirm the exact Kimi model name on paste day — the live field currently sa
 - **PASTE THIS:**
 
 ```
-It is usable today and open for beta users at https://supaprod.ai. It is
-almost done, not finished; the last stretch is being shaped by user
-feedback. Public launch is a few weeks out; you will see Supaprod on
-forums like Hacker News and Product Hunt.
+It is live and open for beta users today; people can get their hands on
+it at https://supaprod.ai. It is almost done, not finished; the last
+stretch is being shaped by user feedback. Public launch is a few weeks
+out; you will see Supaprod on forums like Hacker News and Product Hunt.
 ```
 
 **Demo video slot on this form:** see Surface 5.
