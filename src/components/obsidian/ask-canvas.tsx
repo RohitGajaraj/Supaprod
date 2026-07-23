@@ -113,7 +113,7 @@ type GateRowData = {
   agent_slug?: string | null;
 };
 
-function ApprovalGateRow({
+export function ApprovalGateRow({
   approval,
   deciding,
   onDecide,
