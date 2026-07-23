@@ -25,6 +25,8 @@
 > _Founder pass #2 (2026-07-23, plan-approved): hard numbers are OUT of the pasted copy — they live on the interview numbers card ([`interview-prep.md`](./interview-prep.md) §2) — except the ~4,000-commits line in "how long." The listening/user spotlight is in. The audit is phrased as what it actually was (a Claude-based review, not an outside firm). No solo-founder self-reference anywhere. Product Hunt / Hacker News appear as presence, not the distribution strategy. And every field below now shows ON THE FORM NOW vs PASTE THIS side by side, so paste day is compare-and-go._
 >
 > _Founder pass #3 (2026-07-23): the homepage-numbers pointer is CUT (flagged twice = veto). No meta labels ("Why this matters now"). The telling is reordered to how the founder says it to a human: what-to-build leads (reads your feedback/data/competitors/market → tells you what is worth building), Cursor is a plain analogy clarified as end-to-end ("the whole product lifecycle, not just writing code"), and the brain closes with the concrete beat ("shows you how you decided last time and whether it worked"). **RFS references go implicit in update copy** — no verbatim "Cursor for product managers" / "company brain" / "AI operating system" quoting (reads as copying YC's words); one attribution sentence instead ("YC's own recent RFS essays have been circling this same company"); the locked 9a still carries the dated explicit citations, which is fine. Build+listen is a parallel loop, never sequential ("I keep building, with the beta live; feedback goes straight back into the build"). BYOK is enterprise-scoped. Connectors stay OUT of the tech stack (privacy/PII questions invited for no gain; the signal sources are already implied in "reads everything you already know"). The canonical layman two-liner + sub-50 live in [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3._
+>
+> _Founder pass #4 (2026-07-23): **answer the question asked** — every field re-audited for drift. "How far along" now answers PROGRESS (the journey: decade of pain → prototype → seven weeks → beta live with building and listening in parallel, design iterations, roadmap reshaped by feedback → launch next), not what the product does; the loved what-it-does telling is preserved right below that field and in `README.md`. "Almost done, not finished" replaces any fully-done claim. "Full-time in every sense but the paperwork" is gone — the employment line is one true clause with no gray area. The batch line adds mentorship. The stack answers only what WE use (the customer BYOK offer removed — they asked what we use, not what we sell). "When version" drops the demo-login echo and names forums (Hacker News, Product Hunt) as presence. "Who writes code" now leads with everything built in-house by me + agents (design, development, coding, testing, user analysis) and spotlights the independent Claude-based security review._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -70,11 +72,28 @@ _(Verified in production auth 2026-07-23: `explore@supaprod.ai` exists and has a
 Cadence is now Supaprod. I renamed it after submitting, and the form will
 not let me change the name; same company, live at https://supaprod.ai.
 
-Since submitting, the product went from an early spine to running end to
-end, and the proof is that Supaprod is building Supaprod on its own: it
-plans its roadmap, its agents write the code behind a merge gate no agent
-can cross, and it grades what actually shipped.
+The journey so far: a decade of living this problem as a PM, a month of
+nights and weekends on a prototype, then seven weeks of building it for
+real. In that time it went from an early spine to running end to end. It
+is almost there, not finished; I am shaping the last stretch with users,
+not assumptions. The strongest proof of progress: Supaprod is building
+Supaprod on its own. It plans its roadmap, its agents write the code
+behind a merge gate no agent can cross, and it grades what actually
+shipped.
 
+Where I stand today: the beta is live, and building and listening run in
+parallel. I talk to users constantly and their feedback goes straight
+back in: design iterations, new roadmap items, and rework on whatever
+they do not love.
+
+Next: public launch, a few weeks out.
+```
+
+_[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
+
+**📌 Preserved reference — the what-Supaprod-does telling (founder-loved, v4 of this field).** NOT for this field: the question asks progress, and this answers "what does it do." Use it for README, deck, pitch, or anywhere the product needs explaining (canonical short forms: [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3; also stored in `README.md`):
+
+```
 Code is commoditized; agents build whatever you point them at, cheaply.
 The scarce thing left is knowing what to build and whether the call was
 right. That is what Supaprod does: it reads everything you already know
@@ -89,13 +108,7 @@ Supaprod shows you how you decided last time and whether it worked. Your
 product judgment compounds in the system instead of living in someone's
 head. YC's own recent RFS essays have been circling this same company from
 different angles; I read that as confirmation.
-
-I keep building, with the beta live for users today; I talk to users
-constantly, and their feedback goes straight back into the build, in a
-loop.
 ```
-
-_[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
 
 #### "How long have each of you been working on this? How much of that has been full-time?"
 
@@ -105,12 +118,13 @@ _[FOUNDER slot: if real user conversations or beta users exist by paste day, add
 ```
 Seven weeks on this build, seven days a week; the repo shows about 4,000
 commits over that stretch, and a month of nights and weekends on the
-prototype before that. Full-time in every sense but the paperwork: I built
-this alongside a product role that is winding down, and quitting is
-decided, not contingent on this application. I am building this either way;
-what the batch adds is speed, the right network, and honest
-course-correction.
+prototype before that. Completely full-time: I am on a break from my
+product role, and leaving it for good is already decided, not contingent
+on this application. I am building this either way; what the batch adds
+is speed, the right network, mentorship, and honest course-correction.
 ```
+
+_(The employment line states whatever is literally true the day you paste — "on a break" / "on sabbatical" / "my notice is in; last day [date]" — pick the true one, keep it one clause, no gray area. Rehearse the same words for the interview.)_
 
 #### "What tech stack are you using…?"
 
@@ -123,7 +137,7 @@ runs the agentic workflows; I direct them in parallel through Conductor,
 with Lovable and Antigravity in the mix.
 AI models: model-agnostic by design. Every AI call goes through one runtime
 chokepoint (budget, cache, guardrails, tracing, fallback), so Claude, GPT,
-Gemini, DeepSeek, or local models plug in; enterprises can bring their own keys.
+Gemini, DeepSeek, or local models plug in.
 Frontend: TanStack Start (React 19) with Tailwind.
 Backend and data: Supabase Postgres with row-level security; pgvector for
 retrieval; pg_cron schedules the autonomous engine.
@@ -146,9 +160,10 @@ _(Confirm the exact Kimi model name on paste day — the live field currently sa
 - **PASTE THIS:**
 
 ```
-It is usable today and open for beta users: https://supaprod.ai, with the
-demo login above. Public launch is a few weeks out; you will see Supaprod
-on Product Hunt and Hacker News, among other channels.
+It is usable today and open for beta users at https://supaprod.ai. It is
+almost done, not finished; the last stretch is being shaped by user
+feedback. Public launch is a few weeks out; you will see Supaprod on
+forums like Hacker News and Product Hunt.
 ```
 
 **Demo video slot on this form:** see Surface 5.
@@ -165,13 +180,15 @@ File nothing. No investment taken, not fundraising; the surface exists for chang
 - **PASTE THIS:**
 
 ```
-I direct all of it; AI agents write the code: primarily Claude Code, Codex,
-and Kimi K3, with HyperAgent for the agentic workflows. No non-founder has
-touched it. A separate Claude-based reviewer audits the codebase for
-security and checks the work against my build register, independent of the
-agents that build. This is the whole point of Supaprod (Cadence's new
-name): one person directing a fleet of agents, with receipts for everything
-they did.
+Everything is built in-house by me and my AI agents: design, development,
+coding, testing, and the analysis of what users do with it. I direct the
+work and make every call; the agents execute, primarily Claude Code,
+Codex, and Kimi K3 for code and HyperAgent for the agentic workflows. No
+non-founder has touched it. And the code does not go unchecked: a separate
+Claude-based reviewer, independent of the agents that build, audits the
+codebase for security and verifies the work against my build register.
+Building this way is the whole point of Supaprod (Cadence's new name): one
+person directing a fleet of agents, with receipts for everything they did.
 ```
 
 #### "Are you looking for a cofounder?"
