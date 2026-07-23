@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { base64ToBytes, base64UrlToBytes, bytesToBase64Url } from "../crypto.server";
-import { resolveProviderAuth, type ResolvedAuth } from "../resolve.server";
+import { resolveProviderAuth, type ResolvedAuth, type ProviderAuthCache } from "../resolve.server";
 import type { ConnectorAdapter, ResourceItem, ValidateResult } from "./types.server";
 
 const GH_API = "https://api.github.com";
@@ -324,6 +324,8 @@ export async function resolveGitHub(args: {
   /** Product-scoped repo binding override (BYO-P1b); most specific, wins over workspace. */
   productId?: string | null;
   userClient?: SupabaseClient;
+  /** Optional per-run cache to avoid redundant credential chain re-queries across multiple GitHub tool calls. */
+  cache?: ProviderAuthCache;
 }): Promise<{
   token: string;
   repo: string;
@@ -337,6 +339,7 @@ export async function resolveGitHub(args: {
     productId: args.productId,
     provider: "github",
     resourceKind: "repo",
+    cache: args.cache,
   });
   if (!resolved.auth) throw new Error(NOT_CONNECTED_ERROR);
   const token = bearerOf(resolved.auth);

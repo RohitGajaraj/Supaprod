@@ -633,6 +633,7 @@ export async function runAgentLoop(
 
   const steps: LoopStep[] = [];
   const approvalsQueued = 0;
+  const authCache = new Map();
   const ctx: ToolCtx = {
     supabase,
     userId,
@@ -641,6 +642,7 @@ export async function runAgentLoop(
     traceId,
     missionId: input.missionId ?? null,
     workspaceId,
+    authCache,
   };
   // MA-2: use the pre-resolved model from above (already persisted in agent_runs).
   const model = resolvedModel;
@@ -1519,6 +1521,7 @@ export async function resumeAgentLoop(
     console.error("approval outcome injection failed:", e);
   }
 
+  const authCache = new Map();
   const ctx: ToolCtx = {
     supabase,
     userId: run.user_id,
@@ -1527,6 +1530,7 @@ export async function resumeAgentLoop(
     traceId,
     missionId: run.mission_id ?? null,
     workspaceId: run.workspace_id ?? null,
+    authCache,
   };
   const halted: { kind: string; reason: string } | null = null;
   const finalize = async (finalMsg: string) => {

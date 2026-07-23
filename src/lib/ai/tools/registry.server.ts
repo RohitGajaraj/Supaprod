@@ -48,6 +48,8 @@ export type ToolCtx = {
   stepIndex?: number | null;
   missionId?: string | null;
   workspaceId?: string | null;
+  /** Per-run cache for provider auth to avoid redundant credential chain re-queries across multiple tool calls within the same agent run. */
+  authCache?: Map<string, unknown>;
 };
 
 export type ToolDef<S extends z.ZodTypeAny = z.ZodTypeAny> = {
@@ -96,6 +98,7 @@ async function requireGithub(ctx: ToolCtx) {
     workspaceId: ctx.workspaceId,
     productId,
     userClient: ctx.supabase,
+    cache: ctx.authCache,
   });
 }
 
