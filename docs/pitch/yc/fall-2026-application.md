@@ -21,6 +21,8 @@
 > _Status: the Fall 2026 application is in (YC portal id `6e83e72d-8136-4cad-87…`). The portal now shows only **Update your application** with five surfaces — Progress Update, Fundraising Update, Team Update, Founder Video, Demo Video (founder screenshots, 2026-07-23). Everything else (7f, 9a, 9b, 9c, the 50-char, company name) is locked with whatever was live at submit — and for the Progress and Team fields that is still the ① PREVIOUS text ("three weeks ago… Cadence… no users… 6 weeks away"). **So these five surfaces are the only place the current truth and the sharpened positioning ever reach a partner. Written for the real read: tens of thousands of applications per batch, under five minutes per file including videos — first sentence carries the whole answer, numbers argue, nothing is volunteered twice.**_
 >
 > _Numbers pulled live 2026-07-23: repo **3,979 commits · 387 migrations**; register **401 specced / 362 shipped** (`scripts/dashboard-tally.sh` reproduces it); homepage counters **83 missions run · 26 decisions recorded · 16 outcomes graded · 840 AI calls**. The counters are STRICT: the 2026-07-22 seeding correctly flagged the demo workspaces (Sample sandbox, Explore workspace, Helio Labs `10000000-…`) as samples, so the public numbers dropped from the 145/81/54 in column ③. That is the Receipts law doing its job (undercount, never inflate) — the copy below quotes the strict numbers and says so out loud. Raw totals including seeded content are 151/103/86/4,333; never quote those. **Re-pull every number the hour you paste — the counters render live and a partner can check them.**_
+>
+> _Founder pass #2 (2026-07-23, plan-approved): hard numbers are OUT of the pasted copy — they live on the interview numbers card ([`interview-prep.md`](./interview-prep.md) §2) — except the ~4,000-commits line in "how long." The listening/user spotlight is in. The audit is phrased as what it actually was (a Claude-based review, not an outside firm). No solo-founder self-reference anywhere. Product Hunt / Hacker News appear as presence, not the distribution strategy. And every field below now shows ON THE FORM NOW vs PASTE THIS side by side, so paste day is compare-and-go._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -41,77 +43,110 @@ The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American 
 
 ### Surface 1 — Progress Update (the crown field; it carries everything)
 
-**Product link:** `https://supaprod.ai`
+#### Product link
 
-**Login credentials (single-line field):**
+- On the form now: `https://cadence-flow-beta.lovable.app`
+- **PASTE THIS:** `https://supaprod.ai`
+
+#### Login credentials (single-line field)
+
+- On the form now: `demo2@redcadence.app / Cadence!Demo2026 (You can als…)`
+- **PASTE THIS:**
 
 ```
-explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace; or sign up with any email — you are in a working workspace in about a minute)
+explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace; or sign up with any email; you are in a working workspace in about a minute)
 ```
 
 _(Verified in production auth 2026-07-23: `explore@supaprod.ai` exists and has a workspace. GATE: one incognito login on supaprod.ai before pasting. Fallback if it fails: `demo2@redcadence.app / Cadence!Demo2026`, then fix. `ember@supaprod.ai` stays reserved for investors; the redcadence logins go internal-only once this pastes.)_
 
-**"How far along are you?"** — replaces the stale "Early… I started three weeks ago" text:
+#### "How far along are you?"
+
+- On the form now (stale): _"Early, and I will be honest about it. I started three weeks ago, solo, putting in about 35 to 40 hours a week… no users or revenue. Three weeks, alone, from idea to a working core taking shape."_
+- **PASTE THIS:**
 
 ```
-Since submitting I renamed Cadence to Supaprod (https://supaprod.ai) and the
-product went from an early spine to working end to end. The proof: Supaprod
-builds Supaprod. It plans its own roadmap, its agents write the code behind a
-merge gate no agent can cross, and it grades its own shipped outcomes. Seven
-weeks of build, about 4,000 commits, solo.
+Cadence is now Supaprod. I renamed it after submitting, and the form will
+not let me change the name; same company, live at https://supaprod.ai.
 
-The homepage counters render live from the database: 83 missions run, 26
-decisions recorded with receipts, 16 shipped outcomes graded. Counted
-strictly: seeded demo workspaces are excluded, so those numbers can only
-undercount. The build register: 401 features specced, 362 shipped. An outside
-AI code auditor checked the register against the code in July, and it held.
+Since submitting, the product went from an early spine to running end to
+end, and the proof is that Supaprod is building Supaprod on its own: it
+plans its roadmap, its agents write the code behind a merge gate no agent
+can cross, and it grades what actually shipped. The numbers on the homepage
+render live from that loop.
 
-YC has asked for this company three times in two RFS cycles: a "Cursor for
-product managers" (Spring 2026), an "AI operating system for companies" and a
-"company brain" (Summer 2026). They are one product: you cannot be the brain
-without owning the loop that makes the outcomes, and the product org is where
-that loop is tightest. The Fall RFS asks for multiplayer AI, shared agents a
-team can watch, redirect, and hand off. That is how this fleet runs: every
-action signed, every run open to a trace, merges behind gates a human
-controls.
+Why this matters now: code is commoditized. Agents build whatever you point
+them at, cheaply. The scarce thing left is knowing what to build and whether
+the call was right. That is the layer I own, in three pieces. The door is
+"Cursor for product managers": one place where product work runs. The body
+is an operating system for the product org: signals come in, decisions get
+made with the evidence attached, agents execute, outcomes get checked. The
+part that compounds is the brain: Supaprod records how you decide, what
+evidence moved you, which bets paid, so it learns your taste, not just your
+tasks. That record cannot be copied; it can only accumulate. YC's own RFS
+essays described each piece: a "Cursor for product managers" (Spring 2026),
+an "AI operating system for companies" and a "company brain" (Summer 2026).
+This fall's multiplayer-AI request describes how it runs day to day: shared
+agents a team can watch, redirect, and hand off, safe to share because
+every action carries a receipt.
 
-Doors are open: self-serve signup is live, the demo login above works, and I
-am recruiting the first beta cohort from a named list of 25 PMs and founders.
-Public launch in weeks, not months.
+The beta is live today. The job now is putting it in real users' hands and
+rebuilding the roadmap around what they say.
 ```
 
-**"How long have each of you been working on this? How much of that has been full-time?"** — replaces "Three weeks… 35 to 40 hours a week":
+_[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
+
+#### "How long have each of you been working on this? How much of that has been full-time?"
+
+- On the form now (stale): _"Three weeks of active building, solo, around 35 to 40 hours a week. I am fully committed to this…"_
+- **PASTE THIS:**
 
 ```
 Seven weeks on this build, seven days a week; the repo shows about 4,000
 commits over that stretch, and a month of nights and weekends on the
 prototype before that. Full-time in every sense but the paperwork: I built
-this alongside a product role that is winding down, and quitting is decided,
-not contingent on this application. The batch changes my speed and my zip
-code, not my direction.
+this alongside a product role that is winding down, and quitting is
+decided, not contingent on this application. I am building this either way;
+what the batch adds is speed, the right network, and honest
+course-correction.
 ```
 
-**"What tech stack are you using…?"** — replaces the current text (same substance, tighter, current tools):
+#### "What tech stack are you using…?"
+
+- On the form now: _the old mix (Cursor-era tools; missing PostHog, Sentry, Conductor)._
+- **PASTE THIS:**
 
 ```
-Built almost entirely with Claude Code, plus Lovable, Cursor, and
-Antigravity. Frontend: TanStack Start (React 19, Vite), Tailwind, shadcn.
-Data: Supabase Postgres with row-level security, pgvector, and pg_cron
-driving the autonomous engine. Deployed on Cloudflare Workers.
-Model-agnostic by design: every AI call goes through one runtime chokepoint
-(budget, cache, guardrails, tracing, fallback), so Claude, GPT, Gemini,
-DeepSeek, or local models plug in, and users can bring their own keys.
+Coding agents: Claude Code, Codex, and Kimi K3 write the code; HyperAgent
+runs the agentic workflows; I direct them in parallel through Conductor,
+with Lovable and Antigravity in the mix.
+AI models: model-agnostic by design. Every AI call goes through one runtime
+chokepoint (budget, cache, guardrails, tracing, fallback), so Claude, GPT,
+Gemini, DeepSeek, or local models plug in, and users bring their own keys.
+Frontend: TanStack Start (React 19) with Tailwind.
+Backend and data: Supabase Postgres with row-level security; pgvector for
+retrieval; pg_cron schedules the autonomous engine.
+Deployment: Cloudflare Workers.
+Observability: the system captures its own telemetry by design, every agent
+action and AI call logged as a receipt, extended with PostHog for product
+analytics and Sentry for failure capture.
 ```
 
-**"Are people using your product?"** — keep **No** unless outside users are literally in on paste day. (No + "usable today" below is consistent: availability is not adoption. If beta users land first, flip to Yes and state the true count in the adjacent field — never a padded one.)
+_(Confirm the exact Kimi model name on paste day — the live field currently says just "Kimi.")_
 
-**"When will you have a version people can use?"** — replaces "roughly 6 weeks… about three months":
+#### "Are people using your product?" (radio)
+
+- On the form now: **No**.
+- **KEEP: No** — unless outside users are literally in on paste day. No + "usable today" below is consistent: availability is not adoption. If beta users land first, flip to Yes and state the true count.
+
+#### "When will you have a version people can use?"
+
+- On the form now (stale): _"I'll put an early version in front of first beta users within roughly (6 weeks), then bring the full end-to-end platform up and running over about the next three months."_
+- **PASTE THIS:**
 
 ```
-It is usable today: https://supaprod.ai, with the demo login above, and
-self-serve signup is already on. I am recruiting the first beta cohort now
-from a named list of 25 PMs and founders. Public launch is weeks away, not
-months.
+It is usable today and open for beta users: https://supaprod.ai, with the
+demo login above. Public launch is a few weeks out; you will see Supaprod
+on Product Hunt and Hacker News, among other channels.
 ```
 
 **Demo video slot on this form:** see Surface 5.
@@ -122,24 +157,29 @@ File nothing. No investment taken, not fundraising; the surface exists for chang
 
 ### Surface 3 — Team Update
 
-**"Who writes code, or does other technical work on your product?"** — replaces the "prototype… point of Cadence" text:
+#### "Who writes code, or does other technical work on your product?"
+
+- On the form now (stale): _"…what you are seeing is a prototype I have built that way… This is also the whole point of Cadence…"_
+- **PASTE THIS:**
 
 ```
-I direct all of it; AI agents write the code. I run parallel Claude Code
-lanes with one model reviewing what the build models produce, and every
-change passes typecheck, build, and review before merge. Seven weeks in:
-about 4,000 commits, 387 database migrations, and when an outside AI code
-auditor reviewed the codebase against my build register, the register held.
-No non-founder has touched it. This is the whole point of Supaprod
-(Cadence's new name): one person directing a fleet of agents, with receipts
-for everything they did.
+I direct all of it; AI agents write the code: primarily Claude Code, Codex,
+and Kimi K3, with HyperAgent for the agentic workflows. No non-founder has
+touched it. A separate Claude-based reviewer audits the codebase for
+security and checks the work against my build register, independent of the
+agents that build. This is the whole point of Supaprod (Cadence's new
+name): one person directing a fleet of agents, with receipts for everything
+they did.
 ```
 
-**"Are you looking for a cofounder?"** — KEEP the live text unchanged; it already reads secure: "Solo, and moving fast. Open to a cofounder who shares the vision and energy and adds a fresh perspective I do not have. For now, solo."
+#### "Are you looking for a cofounder?"
+
+- On the form now: "Solo, and moving fast. Open to a cofounder who shares the vision and energy and adds a fresh perspective I do not have. For now, solo."
+- **KEEP unchanged** — it already reads secure.
 
 ### Surface 4 — Founder Video (≤1:00; replaces the 2:54 currently attached)
 
-Re-record per [`video-scripts.md`](./video-scripts.md) Part 1 — the bullet card now opens with the rename line and the "Supaprod builds Supaprod" proof. One take, webcam, look at the lens, bullets not script. This video and the Progress Update are where the rename is said out loud.
+Re-record per [`video-scripts.md`](./video-scripts.md) Part 1 — the bullet card now opens with the rename line and the "Supaprod is building Supaprod" proof. One take, webcam, look at the lens, bullets not script. This video and the Progress Update are where the rename is said out loud.
 
 ### Surface 5 — Demo Video (≤3:00 / 100 MB per the form; replaces the 11:46)
 
@@ -157,7 +197,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 ### Paste-day checklist (in this order)
 
 1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
-2. Re-pull the four homepage counters, `git rev-list --count HEAD`, and `bash scripts/dashboard-tally.sh`; sync every number above to that hour; confirm the beta-list count (25) is still true.
+2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except "about 4,000 commits" in the how-long answer — re-check it with `git rev-list --count HEAD` the day you paste. Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
 3. Paste the Progress Update fields; set the radio truthfully; save.
 4. Paste the Team Update; save.
 5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.

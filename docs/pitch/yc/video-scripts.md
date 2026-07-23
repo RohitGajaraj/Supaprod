@@ -14,7 +14,7 @@
 - Ten years in product: ISRO at 21 → the AI platform 200+ banks build on
 - The wall I hit: agents did MORE of my work, I could explain LESS of it — accountable for everything, able to prove nothing
 - So I built the layer that was missing: agents run the lifecycle, every action has a receipt, every decision gets checked against what happened
-- Proof: Supaprod builds Supaprod — about [4,000] commits in [seven] weeks, one person directing the fleet, every change receipted
+- Proof: Supaprod is building Supaprod on its own — about [4,000] commits in [seven] weeks, one person directing the fleet, every change receipted
 - Seven weeks, seven days a week; beta opening now, public launch weeks away; going all the way in, full-time, regardless of anything
 - Close: "Agents do the work. You answer for it. Supaprod is how you answer."
 
