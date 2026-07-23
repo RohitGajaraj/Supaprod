@@ -101,6 +101,10 @@ _[FOUNDER slot: if real user conversations or beta users exist by paste day, add
 **📌 Preserved reference — the what-Supaprod-does telling (founder-loved, v4 of this field).** NOT for this field: the question asks progress, and this answers "what does it do." Use it for README, deck, pitch, or anywhere the product needs explaining (canonical short forms: [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3; also stored in `README.md`):
 
 ```
+Supaprod is building Supaprod on its own: it plans its own roadmap, its
+agents write the code behind a merge gate no agent can cross, and it
+grades what actually shipped.
+
 Code is commoditized; agents build whatever you point them at, cheaply.
 The scarce thing left is knowing what to build and whether the call was
 right. That is what Supaprod does: it reads everything you already know
@@ -115,6 +119,10 @@ Supaprod shows you how you decided last time and whether it worked. Your
 product judgment compounds in the system instead of living in someone's
 head. YC's own recent RFS essays have been circling this same company from
 different angles; I read that as confirmation.
+
+I keep building, with the beta live for users today; I talk to users
+constantly, and their feedback goes straight back into the build, in a
+loop.
 ```
 
 #### "How long have each of you been working on this? How much of that has been full-time?"
