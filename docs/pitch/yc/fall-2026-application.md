@@ -217,7 +217,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 ### Paste-day checklist (in this order)
 
 1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
-2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except "about 4,000 commits" in the how-long answer — re-check it with `git rev-list --count HEAD` the day you paste. Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
+2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except the commit count, which appears in BOTH "how far along" ("4,000+ commits and counting") and "how long" ("about 4,000 commits") — run `git rev-list --count HEAD` the day you paste: if it reads under 4,000, write "about 4,000" in both places; only write "4,000+" once the repo actually shows it (3,986 on 2026-07-23; at the current pace it crosses within a day). Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
 3. Paste the Progress Update fields; set the radio truthfully; save.
 4. Paste the Team Update; save.
 5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.
