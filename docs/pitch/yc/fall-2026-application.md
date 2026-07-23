@@ -29,6 +29,8 @@
 > _Founder pass #4 (2026-07-23): **answer the question asked** — every field re-audited for drift. "How far along" now answers PROGRESS (the journey: decade of pain → prototype → seven weeks → beta live with building and listening in parallel, design iterations, roadmap reshaped by feedback → launch next), not what the product does; the loved what-it-does telling is preserved right below that field and in `README.md`. "Almost done, not finished" replaces any fully-done claim. "Full-time in every sense but the paperwork" is gone — the employment line is one true clause with no gray area. The batch line adds mentorship. The stack answers only what WE use (the customer BYOK offer removed — they asked what we use, not what we sell). "When version" drops the demo-login echo and names forums (Hacker News, Product Hunt) as presence. "Who writes code" now leads with everything built in-house by me + agents (design, development, coding, testing, user analysis) and spotlights the independent Claude-based security review._
 >
 > _Founder pass #5 (2026-07-23): stack made explicit and audited legit — Language: TypeScript end to end (verified: server functions in the same TanStack Start app, no other backend language); Backend named as its own line; Deployment verified real (wrangler.jsonc + the Cloudflare Vite plugin compile the app into a Worker; serverless at the edge; published through Lovable); PostHog/Sentry verified present in the observability layer + the form allows "planning to use." "When version" softened: "live and open for beta users; people can get their hands on it" — never "fully usable/done."_
+>
+> _Founder pass #6 (2026-07-23): "when version" now leads with the DATE — "By the second week of September (six weeks from now)" — target first, current standing second (confidence + drive), and the how-far-along close carries the same date so a cross-reading partner sees one consistent target. The tech stack is FOUNDER-FINALIZED in his own structure (Backend and data merged with TypeScript named; bare "Cloudflare Workers"; "feature gates" added to the chokepoint list). Two corrections applied to his paste: "featuregate" smoothed to "feature gates," and "users bring their own keys" kept OUT per his own round-4 ruling (the question asks what WE use, not what we offer customers) — restore it only if he re-rules._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -89,7 +91,7 @@ parallel. I talk to users constantly and their feedback goes straight
 back in: design iterations, new roadmap items, and rework on whatever
 they do not love.
 
-Next: public launch, a few weeks out.
+Next: public launch, second week of September.
 ```
 
 _[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
@@ -139,16 +141,12 @@ Coding agents: Claude Code, Codex, and Kimi K3 write the code; HyperAgent
 runs the agentic workflows; I direct them in parallel through Conductor,
 with Lovable and Antigravity in the mix.
 AI models: model-agnostic by design. Every AI call goes through one runtime
-chokepoint (budget, cache, guardrails, tracing, fallback), so Claude, GPT,
-Gemini, DeepSeek, or local models plug in.
-Language: TypeScript end to end, one codebase for frontend and backend.
-Frontend: React 19 on TanStack Start, with Tailwind.
-Backend: TypeScript server functions in the same app; all the agent and
-AI logic lives there.
-Database: Supabase Postgres with row-level security; pgvector for
-retrieval; pg_cron schedules the autonomous engine.
-Deployment: Cloudflare Workers (serverless, runs at the edge), published
-through Lovable.
+chokepoint (budget, cache, guardrails, tracing, fallback, feature gates),
+so Claude, GPT, Gemini, DeepSeek, or local models plug in.
+Frontend: TanStack Start (React 19) with Tailwind.
+Backend and data: TypeScript and Supabase Postgres with row-level
+security; pgvector for retrieval; pg_cron schedules the autonomous engine.
+Deployment: Cloudflare Workers.
 Observability: the system captures its own telemetry by design, every agent
 action and AI call logged as a receipt, extended with PostHog for product
 analytics and Sentry for failure capture.
@@ -167,11 +165,14 @@ _(Confirm the exact Kimi model name on paste day — the live field currently sa
 - **PASTE THIS:**
 
 ```
-It is live and open for beta users today; people can get their hands on
-it at https://supaprod.ai. It is almost done, not finished; the last
-stretch is being shaped by user feedback. Public launch is a few weeks
-out; you will see Supaprod on forums like Hacker News and Product Hunt.
+By the second week of September (six weeks from now), Supaprod launches
+publicly; you will see it on forums like Hacker News and Product Hunt.
+It is already live and open for beta users today; people can get their
+hands on it at https://supaprod.ai, and the last stretch is being shaped
+by their feedback.
 ```
+
+_(Paste-day sync: the date must be the real target that day. If the launch date moves, update it here AND in the how-far-along close, and keep the "(six weeks from now)" parenthetical matching the actual gap.)_
 
 **Demo video slot on this form:** see Surface 5.
 
