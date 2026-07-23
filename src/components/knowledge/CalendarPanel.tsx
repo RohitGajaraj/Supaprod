@@ -318,6 +318,16 @@ export function CalendarPanel({
 
   const list = (events.data?.events ?? []) as unknown as EventRow[];
 
+  // Memoize openItem callback so MonthGrid re-renders only when buckets/cursor change,
+  // not on every parent render (which happens at data-sync frequency).
+  const openItem = useCallback(
+    (it: DayItem) => {
+      if (it.kind === "meeting") onMeetingChange(it.id);
+      else if (it.event) openEditor(it.event);
+    },
+    [onMeetingChange],
+  );
+
   // Memoize item aggregation and filtering to avoid expensive filter/sort/groupBy
   // chains on every render. The component re-renders at data-sync frequency; without
   // memo, allItems/feed/pastCount/buckets recompute even when data hasn't changed.
@@ -371,11 +381,6 @@ export function CalendarPanel({
 
     return { allItems: all, feed: feedItems, pastCount: past, buckets: buck };
   }, [meetings.data?.meetings, list]);
-
-  function openItem(it: DayItem) {
-    if (it.kind === "meeting") onMeetingChange(it.id);
-    else if (it.event) openEditor(it.event);
-  }
 
   const loading = events.isLoading || meetings.isLoading;
   const loadError = (events.error ?? meetings.error) as Error | null;
