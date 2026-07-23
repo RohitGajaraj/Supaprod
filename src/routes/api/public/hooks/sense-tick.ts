@@ -137,7 +137,7 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
               // workspace has no credential or its tier lacks inflow, so this never throws.
               // Run all ingestors in parallel instead of serially
               const ingestResults = await Promise.all(
-                PULL_INGESTORS.map(c => c.ingest(ws.owner_id, ws.id).catch(() => null))
+                PULL_INGESTORS.map((c) => c.ingest(ws.owner_id, ws.id).catch(() => null)),
               );
               const connectors: Record<string, { inserted: number; source: string }> = {};
               for (let i = 0; i < PULL_INGESTORS.length; i++) {

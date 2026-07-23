@@ -57,6 +57,51 @@ describe("Tempo v5 font guardrail (DESIGN-TEMPO.md SS3)", () => {
     expect(files.some((f) => f.endsWith("styles.css"))).toBe(true);
   });
 
+  // Positive control: verify the scanner actually catches banned fonts, not just
+  // that the codebase happens to be clean. Tests the scanner logic itself.
+  describe("positive control — fixture injection", () => {
+    it("detects Newsreader when present in test fixture", () => {
+      const testCode = `
+        /* This comment mentions Newsreader but should be stripped */
+        const fontName = "Newsreader";
+        font-family: Newsreader, serif;
+      `;
+      const stripped = stripComments(testCode);
+      expect(/Newsreader/.test(stripped)).toBe(true);
+    });
+
+    it("strips block comments and then detects injected Schibsted Grotesk", () => {
+      const testCode = `
+        /* font-family: Schibsted Grotesk */ comment mentions it
+        /* font-family: Schibsted+Grotesk */ comment mentions it with plus
+        const realUse = "Schibsted Grotesk"; // This line mentions it
+      `;
+      const stripped = stripComments(testCode);
+      // After stripping comments, the const line should remain and match the pattern
+      expect(/Schibsted[\s+]Grotesk/.test(stripped)).toBe(true);
+    });
+
+    it("verifies stripComments removes //-style line comments", () => {
+      const testCode = `
+        // line comment with Newsreader banned
+        const x = "Newsreader"; // another comment with it
+        const y = "safe";
+      `;
+      const stripped = stripComments(testCode);
+      // The "safe" line should be intact, comments should be gone
+      expect(stripped).toContain('const y = "safe"');
+      // Line comments should be gone
+      expect(stripped).not.toContain("line comment with Newsreader banned");
+    });
+
+    it("verifies stripComments removes /* */ block comments", () => {
+      const testCode = `/* start */ const x = "real"; /* Newsreader here */`;
+      const stripped = stripComments(testCode);
+      expect(stripped).toContain('const x = "real"');
+      expect(stripped).not.toContain("Newsreader");
+    });
+  });
+
   for (const face of BANNED_FACES) {
     it(`never reintroduces the retired "${face.name}" face outside comments`, () => {
       const offenders: string[] = [];
