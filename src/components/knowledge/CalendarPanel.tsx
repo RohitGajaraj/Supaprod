@@ -16,7 +16,7 @@ import {
   Link2,
   Plus,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import {
   listCalendarEvents,
@@ -312,6 +312,9 @@ export function CalendarPanel({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // Memoize the quick-add callback to support React.memo on MonthGrid
+  const handleQuickAdd = useCallback((d: Date) => mQuickAdd.mutate(d), [mQuickAdd]);
 
   const list = (events.data?.events ?? []) as unknown as EventRow[];
 
@@ -733,7 +736,7 @@ export function CalendarPanel({
           setSelDay={setSelDay}
           buckets={buckets}
           onOpenItem={openItem}
-          onQuickAdd={(d) => mQuickAdd.mutate(d)}
+          onQuickAdd={handleQuickAdd}
           quickAddPending={mQuickAdd.isPending}
         />
       ) : view === "year" ? (
@@ -933,7 +936,7 @@ export function CalendarPanel({
 }
 
 /* —— Month — contribution-style pixel month (reference). —— */
-function MonthGrid({
+const MonthGrid = React.memo(function MonthGrid({
   cursor,
   setCursor,
   selDay,
@@ -1200,7 +1203,7 @@ function MonthGrid({
       ) : null}
     </div>
   );
-}
+});
 
 /* —— Year — GitHub-contribution-style occupancy from real events only.
    Founder ruling 2026-06-12: the grid runs January → today ONLY — the latest
@@ -1208,7 +1211,7 @@ function MonthGrid({
    pending future months never render (the year fills in as it happens).
    The synced window (last 30 days of meetings + the synced events ahead)
    renders shaded; days inside the year but outside it stay open. —— */
-function YearGrid({ buckets }: { buckets: Record<string, DayItem[]> }) {
+const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<string, DayItem[]> }) {
   const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const today = new Date();
@@ -1394,7 +1397,7 @@ function YearGrid({ buckets }: { buckets: Record<string, DayItem[]> }) {
       </div>
     </div>
   );
-}
+});
 
 /* —— Event editor — production update/delete mutations, quiet-Ember chrome. —— */
 function EventEditor({

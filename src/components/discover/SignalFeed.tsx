@@ -286,10 +286,15 @@ export function SignalFeed() {
   }
 
   const rows = signals.data?.signals ?? [];
-  const weekAgo = Date.now() - WEEK_MS;
-  const thisWeekCount = rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
-  const themeIds = new Set(themeById.keys());
-  const unclusteredCount = rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
+  // Memoize derived counts to avoid recalculating filters every render
+  const thisWeekCount = useMemo(() => {
+    const weekAgo = Date.now() - WEEK_MS;
+    return rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
+  }, [rows]);
+  const unclusteredCount = useMemo(() => {
+    const themeIds = new Set(themeById.keys());
+    return rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
+  }, [rows, themeById]);
 
   const openSignal = openSignalId ? rows.find((s) => s.id === openSignalId) : undefined;
   const openRecord: SignalRecord | null = openSignal

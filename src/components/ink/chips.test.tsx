@@ -359,7 +359,11 @@ describe("VerdictChip render output", () => {
   });
 
   test("merges custom className with default classes", () => {
-    const el = VerdictChip({ tone: "pass", children: "Test", className: "custom-class" }) as ReactElement;
+    const el = VerdictChip({
+      tone: "pass",
+      children: "Test",
+      className: "custom-class",
+    }) as ReactElement;
     const className = el.props?.className as string;
     expect(className).toContain("custom-class");
     expect(className).toContain("inline-flex");

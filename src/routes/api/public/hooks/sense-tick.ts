@@ -135,9 +135,14 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
               // Inside-out customer-voice fleet: iterate the PULL_INGESTORS registry so a
               // new connector needs no edit here. Each fails safe (source "none") when the
               // workspace has no credential or its tier lacks inflow, so this never throws.
+              // Run all ingestors in parallel instead of serially
+              const ingestResults = await Promise.all(
+                PULL_INGESTORS.map(c => c.ingest(ws.owner_id, ws.id).catch(() => null))
+              );
               const connectors: Record<string, { inserted: number; source: string }> = {};
-              for (const c of PULL_INGESTORS) {
-                const r = await c.ingest(ws.owner_id, ws.id).catch(() => null);
+              for (let i = 0; i < PULL_INGESTORS.length; i++) {
+                const c = PULL_INGESTORS[i];
+                const r = ingestResults[i];
                 connectors[c.provider] = {
                   inserted: r?.inserted ?? 0,
                   source: r?.source ?? "none",
@@ -211,9 +216,15 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
     .limit(SCAN_LIMIT);
   if (error || !data) return 0;
 
-  let updated = 0;
+  // Collect all updates, then batch-upsert instead of serial UPDATEs
+  const rowsToUpdate: Array<{
+    id: string;
+    tags: string[];
+    sentiment: string | null;
+  }> = [];
+
   for (const row of data) {
-    if (updated >= MAX_TAG_UPDATES) break;
+    if (rowsToUpdate.length >= MAX_TAG_UPDATES) break;
     const tags = Array.isArray(row.tags) ? (row.tags as string[]) : [];
     const hasSentiment =
       row.sentiment === "positive" || row.sentiment === "neutral" || row.sentiment === "negative";
@@ -226,13 +237,19 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
       sentiment: row.sentiment,
     });
     if (!u || !u.changed) continue;
-    const { error: upErr } = await supabaseAdmin
-      .from("signals")
-      .update({ tags: u.tags, sentiment: u.sentiment })
-      .eq("id", row.id);
-    if (!upErr) updated++;
+    rowsToUpdate.push({
+      id: row.id,
+      tags: u.tags,
+      sentiment: u.sentiment,
+    });
   }
-  return updated;
+
+  // Batch upsert: single round-trip instead of 250 serial UPDATEs
+  if (rowsToUpdate.length === 0) return 0;
+  const { error: upErr } = await supabaseAdmin
+    .from("signals")
+    .upsert(rowsToUpdate, { onConflict: "id" });
+  return upErr ? 0 : rowsToUpdate.length;
 }
 
 /** Insert the demo feed for a near-empty workspace, idempotently (by exact content match),

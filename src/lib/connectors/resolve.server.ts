@@ -50,6 +50,14 @@ export type ResolvedConnector = {
   source: "workspace_binding" | "user_connection" | "env" | "none";
 };
 
+/**
+ * Per-run cache for provider auth resolution. Shared across multiple tool calls
+ * within an agent loop step to avoid re-querying the full credential chain
+ * (workspace binding → connection → workspace membership) for the same provider.
+ * Keyed by (userId, workspaceId || "", provider) tuple to handle multi-workspace scenarios.
+ */
+export type ProviderAuthCache = Map<string, ResolvedConnector>;
+
 // New tables are absent from the generated Database types — untyped cast
 // precedent per src/lib/outcome.functions.ts.
 type ConnectionRow = {
@@ -262,8 +270,15 @@ export async function resolveProviderAuth(args: {
    * Strategy: pricing-strategy.md §3.3 (2026-06-27).
    */
   requiredCapability?: ConnectorCapability;
+  /**
+   * Optional per-run cache to avoid re-querying the credential chain
+   * (workspace binding → connection → workspace membership) for the same provider
+   * across multiple tool calls within an agent loop. Keyed by
+   * (userId, workspaceId || "", provider).
+   */
+  cache?: ProviderAuthCache;
 }): Promise<ResolvedConnector> {
-  const { userClient, userId, workspaceId, productId, provider, resourceKind, requiredCapability } =
+  const { userClient, userId, workspaceId, productId, provider, resourceKind, requiredCapability, cache } =
     args;
 
   // Tier gate — checked BEFORE any credential work so we never materialize auth
@@ -280,6 +295,20 @@ export async function resolveProviderAuth(args: {
     // Throws with user-readable upgrade prompt if tier is insufficient.
     assertConnectorCapability(tier, requiredCapability);
   }
+
+  // Check per-run auth cache before doing credential chain queries
+  let cacheKey: string | null = null;
+  if (cache && userId) {
+    cacheKey = `${userId}|${workspaceId ?? ""}|${provider}|${productId ?? ""}|${resourceKind ?? ""}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+  }
+
+  // Helper to cache and return resolved connectors
+  const cacheAndReturn = (result: ResolvedConnector): ResolvedConnector => {
+    if (cache && cacheKey) cache.set(cacheKey, result);
+    return result;
+  };
 
   // 0. Product-scoped binding (BYO-P1b). Most specific — overrides workspace.
   if (productId && workspaceId) {
@@ -320,7 +349,7 @@ export async function resolveProviderAuth(args: {
           } else {
             const auth = await materializeAuth(conn as ConnectionRow, provider);
             if (auth) {
-              return {
+              return cacheAndReturn({
                 auth,
                 binding: {
                   id: binding.id,
@@ -330,7 +359,7 @@ export async function resolveProviderAuth(args: {
                   createdBy: binding.created_by,
                 },
                 source: "workspace_binding",
-              };
+              });
             }
           }
         }
@@ -384,7 +413,7 @@ export async function resolveProviderAuth(args: {
           } else {
             const auth = await materializeAuth(conn as ConnectionRow, provider);
             if (auth) {
-              return {
+              return cacheAndReturn({
                 auth,
                 binding: {
                   id: binding.id,
@@ -394,7 +423,7 @@ export async function resolveProviderAuth(args: {
                   createdBy: binding.created_by,
                 },
                 source: "workspace_binding",
-              };
+              });
             }
           }
         }
@@ -417,7 +446,7 @@ export async function resolveProviderAuth(args: {
       const conn = !error && rows ? (rows[0] as ConnectionRow | undefined) : undefined;
       if (conn) {
         const auth = await materializeAuth(conn, provider);
-        if (auth) return { auth, binding: null, source: "user_connection" };
+        if (auth) return cacheAndReturn({ auth, binding: null, source: "user_connection" });
       }
     } catch (e) {
       console.warn(`[connectors] user connection resolution failed for ${provider}:`, e);
@@ -429,8 +458,8 @@ export async function resolveProviderAuth(args: {
   const envToken = spec.envFallback ? process.env[spec.envFallback.tokenEnv] : undefined;
   if (envToken) {
     console.warn(`[connectors] deprecated env fallback: ${provider}`);
-    return { auth: { kind: "env", token: envToken }, binding: null, source: "env" };
+    return cacheAndReturn({ auth: { kind: "env", token: envToken }, binding: null, source: "env" });
   }
 
-  return { auth: null, binding: null, source: "none" };
+  return cacheAndReturn({ auth: null, binding: null, source: "none" });
 }

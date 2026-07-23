@@ -11,6 +11,7 @@
 // designed empty slate; no functional or server change. Tempo v5 color
 // audit (2026-07-11): glacier retired to neutral gray outside literal
 // status/link uses per the machine-voice narrowing.
+import { useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -147,12 +148,17 @@ export function ApprovalsPanel() {
 
   const all = q.data?.approvals ?? [];
   // Pending first (soonest expiry on top), resolved history below.
-  const pending = all
-    .filter((a) => a.status === "pending")
-    .sort((x, y) => (x.expires_at ?? "9999").localeCompare(y.expires_at ?? "9999"));
-  const resolved = all.filter((a) => a.status !== "pending");
-  const rows = [...pending, ...resolved];
-  const lowRisk = pending.filter((a) => a.risk === "low");
+  // Memoize derived arrays to avoid recalculating filter/sort every render
+  const pending = useMemo(
+    () =>
+      all
+        .filter((a) => a.status === "pending")
+        .sort((x, y) => (x.expires_at ?? "9999").localeCompare(y.expires_at ?? "9999")),
+    [all],
+  );
+  const resolved = useMemo(() => all.filter((a) => a.status !== "pending"), [all]);
+  const rows = useMemo(() => [...pending, ...resolved], [pending, resolved]);
+  const lowRisk = useMemo(() => pending.filter((a) => a.risk === "low"), [pending]);
   const median = q.data?.medianResponseMs;
 
   return (

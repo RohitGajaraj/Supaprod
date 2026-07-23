@@ -240,22 +240,39 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               .lt("created_at", cutoff)
               .order("created_at", { ascending: false })
               .limit(REPLAN_BATCH * 8);
+
+            // Batch fetch counts for all candidates instead of per-candidate queries (N+1 fix)
+            const missionIds = (unplannedCandidates ?? []).map((m: any) => m.id);
+            const { data: allSteps } = await admin
+              .from("mission_steps")
+              .select("mission_id")
+              .in("mission_id", missionIds);
+            const stepCountByMission = new Map<string, number>();
+            for (const step of (allSteps ?? []) as { mission_id: string }[]) {
+              const key = step.mission_id;
+              stepCountByMission.set(key, (stepCountByMission.get(key) ?? 0) + 1);
+            }
+
+            const { data: allActiveRuns } = await admin
+              .from("agent_runs")
+              .select("mission_id")
+              .in("mission_id", missionIds)
+              .in("status", ["queued", "running", "waiting_approval"]);
+            const activeRunCountByMission = new Map<string, number>();
+            for (const run of (allActiveRuns ?? []) as { mission_id: string }[]) {
+              const key = run.mission_id;
+              activeRunCountByMission.set(key, (activeRunCountByMission.get(key) ?? 0) + 1);
+            }
+
             const toReplan: MissionLite[] = [];
             const toAbandon: string[] = [];
             for (const m of (unplannedCandidates ?? []) as (MissionLite & {
               created_at: string;
             })[]) {
-              const { count: stepCount } = await admin
-                .from("mission_steps")
-                .select("id", { count: "exact", head: true })
-                .eq("mission_id", m.id);
-              if ((stepCount ?? 0) > 0) continue;
-              const { count: activeRuns } = await admin
-                .from("agent_runs")
-                .select("id", { count: "exact", head: true })
-                .eq("mission_id", m.id)
-                .in("status", ["queued", "running", "waiting_approval"]);
-              if ((activeRuns ?? 0) > 0) continue;
+              const stepCount = stepCountByMission.get(m.id) ?? 0;
+              if (stepCount > 0) continue;
+              const activeRuns = activeRunCountByMission.get(m.id) ?? 0;
+              if (activeRuns > 0) continue;
               // Genuinely unplanned. Abandon it if it has been stuck past the
               // threshold; otherwise re-plan it (newest first, up to the cap).
               if (m.created_at < abandonCutoff) {

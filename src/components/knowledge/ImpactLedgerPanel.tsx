@@ -6,7 +6,7 @@
 // highlights, name customization, copy-to-clipboard + download, and the full
 // inline markdown preview. BrainStatTrio stays the condensed strip; this
 // panel is the deeper dive, not a duplicate of it.
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, Check, Download } from "lucide-react";
@@ -71,6 +71,14 @@ function downloadMarkdown(markdown: string) {
 export function ImpactLedgerPanel() {
   const [name, setName] = useState("");
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timer on unmount to prevent setState after unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const fGet = useServerFn(getImpactLedger);
   const query = useQuery({
@@ -82,7 +90,12 @@ export function ImpactLedgerPanel() {
     try {
       await navigator.clipboard.writeText(markdown);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      // Clear any existing timer before setting a new one
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setCopied(false);
+        timerRef.current = null;
+      }, 1600);
     } catch {
       /* clipboard unavailable; the markdown preview below is still selectable */
     }

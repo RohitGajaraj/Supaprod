@@ -825,6 +825,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
   const checkpoint = async (stepIndex: number) => {
     if (!runId) return;
     try {
+      // O(n²) fix: store only the latest conversation message and step delta,
+      // not the entire accumulated conv/steps arrays. Full history is already
+      // in agent_run_steps and agent_run_messages; checkpoint is for recovery state only.
+      const latestMessage = conv[conv.length - 1] ?? null;
+      const latestStep = steps[steps.length - 1] ?? null;
       await supabase.from("agent_run_checkpoints").upsert(
         {
           run_id: runId,
@@ -837,8 +842,10 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             model,
             traceId,
             goal: s.goal,
-            conv,
-            steps,
+            latestMessage,
+            latestStep,
+            stepCount: steps.length,
+            messageCount: conv.length,
             approvalsQueued,
             recalledMemories: s.recalledMemories,
             injectedApprovalIds: s.injectedApprovalIds,
