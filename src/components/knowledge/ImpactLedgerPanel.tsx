@@ -82,7 +82,7 @@ export function ImpactLedgerPanel() {
 
   const fGet = useServerFn(getImpactLedger);
   const query = useQuery({
-    queryKey: ["impact-ledger", name.trim()],
+    queryKey: ["impact-ledger"],
     queryFn: () => fGet({ data: { name: name.trim() || undefined } }),
   });
 

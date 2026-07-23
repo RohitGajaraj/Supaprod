@@ -244,7 +244,7 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
     });
   }
 
-  // Batch upsert: single round-trip instead of 250 serial UPDATEs
+  // Batch upsert: single round-trip instead of serial UPDATEs
   if (rowsToUpdate.length === 0) return 0;
   const { error: upErr } = await supabaseAdmin
     .from("signals")
