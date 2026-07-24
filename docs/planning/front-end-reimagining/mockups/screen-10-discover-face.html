@@ -1748,10 +1748,27 @@ ol {
 }
 
 /* ---- The evidence face body ---------------------------------------- */
+/* The face pins its footer: the sweep receipt and the one ember CTA
+   never scroll away; the body scrolls under them. Two columns: the
+   themes lead (the sweep's story), the raw feed rides beside it so
+   the triage rows stay in reach. */
 
+.d10-face {
+  overflow: hidden;
+}
+.d10-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
 .d10-body {
-  padding: 14px var(--sp-8) 2px;
-  max-width: 940px;
+  padding: 14px var(--sp-6) 10px;
+}
+.d10-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr);
+  gap: var(--sp-6);
+  align-items: start;
 }
 .d10-lede {
   display: flex;
@@ -2013,11 +2030,11 @@ ol {
   font-size: 11.5px;
 }
 .d10-teach {
-  margin-left: auto;
+  display: block;
+  margin-top: 8px;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-faint);
-  white-space: nowrap;
 }
 .d10-more-row {
   display: flex;
@@ -2487,7 +2504,8 @@ ol {
             </div>
           </div>
 
-          <div class="sp-canvas-face">
+          <div class="sp-canvas-face d10-face">
+            <div class="d10-scroll">
             <div class="d10-body">
 
               <!-- Lede: the sweep in one line + the source filters.
@@ -2506,6 +2524,9 @@ ol {
               <div class="d10-explainer">
                 Signals feed themes; themes feed bets. You usually decide at the bet level. Promote or dismiss here when you already know.
               </div>
+
+              <div class="d10-cols">
+              <div>
 
               <!-- THEMES -->
               <div class="d10-sec-head">
@@ -2604,6 +2625,9 @@ ol {
 
               </div>
 
+              </div>
+              <div>
+
               <!-- SIGNALS: the raw feed, newest first, with the triage
                    action rows. Full anatomy on the three newest; the
                    rest are one J/K away. -->
@@ -2625,8 +2649,8 @@ ol {
                     <button class="sp-btn" title="Creates a bet from this one signal; Prioritize ranks it against the field">Make this a bet <span class="sp-kbd">B</span></button>
                     <button class="sp-btn sp-btn-ghost" title="Attaches this signal to the billing case forming at 02 Decide">Add to BET-35</button>
                     <button class="sp-btn sp-btn-ghost" title="Dismisses with a 5-second undo; the reason is optional">Dismiss <span class="sp-kbd">D</span></button>
-                    <span class="d10-teach">dismiss teaches Watch &middot; the sweep learns what you ignore</span>
                   </div>
+                  <span class="d10-teach">dismiss teaches Watch &middot; the sweep learns what you ignore</span>
                 </div>
 
                 <div class="d10-signal">
@@ -2662,10 +2686,16 @@ ol {
                 <div class="d10-more-row">+ 34 more, newest first &middot; nothing filtered &middot; <span class="d10-door">show them</span></div>
               </div>
 
+              </div>
+              </div>
+
+            </div>
             </div>
 
-            <!-- Footer: the sweep receipt, Prioritize's honest rank
-                 progress, the frame's ONE ember CTA, the forward door. -->
+            <!-- Footer, pinned: the sweep receipt, Prioritize's honest
+                 rank progress, the frame's ONE ember CTA, the forward
+                 door. The body scrolls under it; the ember never
+                 leaves the frame. -->
             <div class="sp-face-footer d10-footer">
               <div class="sp-receipt-line">
                 <span class="sp-receipt-check">&#10003;</span>

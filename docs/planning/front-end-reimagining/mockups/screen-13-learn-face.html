@@ -1806,8 +1806,8 @@ ol {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 9px;
+  padding-top: 8px;
   border-top: 1px dashed var(--ink-hairline);
 }
 .lf-gap-copy {
@@ -1890,16 +1890,20 @@ ol {
 
 /* ---- Round 3.1 density additions ---------------------------------- */
 
-/* Digest body: the rest-body rhythm (screen-2): tighter head so the
-   face footer stays above the fold at 1440x900. */
+/* Digest body: the rest-body rhythm (screen-2): tighter head, wider
+   measure, so the face footer stays above the fold at 1440x900. */
 .lf-digest-body {
   padding: 14px var(--sp-8) 2px;
+  max-width: 980px;
 }
 .lf-digest-body .sp-doc-h {
   margin: 4px 0 8px;
 }
 .lf-digest-body .sp-doc-sub {
-  margin: 14px 0 7px;
+  margin: 12px 0 6px;
+}
+.lf-digest-body .lf-intro-line {
+  max-width: none;
 }
 
 /* Mono fact strip under the digest headline (screen-2's rest-facts
@@ -1924,8 +1928,8 @@ ol {
    the machine DIM tier so the 41% hero keeps the one full hue. The
    mono numerals survive grayscale without the fills. */
 .lf-days {
-  margin-top: 11px;
-  padding-top: 9px;
+  margin-top: 8px;
+  padding-top: 7px;
   border-top: 1px solid var(--ink-hairline-soft);
 }
 .lf-days-caption {
@@ -1934,14 +1938,14 @@ ol {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .lf-day-row {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr) 122px;
   gap: 12px;
   align-items: center;
-  padding: 2px 0;
+  padding: 1px 0;
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--ink-subtle);
@@ -2362,19 +2366,6 @@ ol {
 
             <div class="sp-day-divider">Monday, July 20</div>
 
-            <!-- The overnight sweep, its own receipt: the 37 the
-                 briefing leans on has a timestamped source. -->
-            <div class="sp-thread-item is-machine">
-              <div class="sp-thread-meta">
-                <span class="sp-agent-chip">Watch</span>
-                <span class="sp-thread-time">6:00am</span>
-              </div>
-              <div class="sp-receipt-line">
-                <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Swept your sources overnight. <span class="sp-mono">37</span> signals read, nothing urgent; the theme read lands this morning.</span>
-              </div>
-            </div>
-
             <div class="sp-briefing-card">
               <div class="sp-thread-meta">
                 <span class="sp-agent-chip">Chief of Staff</span>
@@ -2382,7 +2373,7 @@ ol {
                 <span class="sp-thread-time">8:30am</span>
               </div>
               <div class="lf-briefing-copy">
-                The weekend held: no rollbacks, error rate flat, and <span class="sp-mono">41%</span> of replies used a saved reply by Sunday. Memory holds the contract you set June 30: <span class="sp-mono">40%</span> in <span class="sp-mono">14</span> days; the evidence already clears it. Measure's <span class="sp-mono">9:00</span> read becomes your one call today.
+                The weekend held: no rollbacks, error rate flat, and <span class="sp-mono">41%</span> of replies used a saved reply by Sunday. The <span class="sp-mono">6:00am</span> sweep read <span class="sp-mono">37</span> signals, nothing urgent. Memory holds the contract you set June 30: <span class="sp-mono">40%</span> in <span class="sp-mono">14</span> days. Measure's <span class="sp-mono">9:00</span> read becomes your one call today.
               </div>
             </div>
 
@@ -2465,7 +2456,7 @@ ol {
                 <span class="sp-strip-sep">&middot;</span>
                 <span><span class="lf-fact-num">0</span> rollbacks</span>
                 <span class="sp-strip-sep">&middot;</span>
-                <span>window Fri <span class="lf-fact-num">4:12pm</span> to Sun <span class="lf-fact-num">11:59pm</span></span>
+                <span>day <span class="lf-fact-num">3</span> of <span class="lf-fact-num">14</span></span>
               </div>
 
               <div class="sp-doc-sub">The contract, against the evidence</div>
@@ -2545,9 +2536,6 @@ ol {
                   <div class="sp-receipt-line is-blocked">
                     <span class="sp-receipt-check">&#9675;</span>
                     <span class="sp-receipt-text">Analytics partial: saved-reply inserts counted; response time stays unmeasured until a feed is connected.</span>
-                  </div>
-                  <div class="lf-provenance">
-                    Counted by Measure from Relay's own reply events &middot; recounts nightly &middot; nothing here is modeled or extrapolated
                   </div>
                 </div>
 

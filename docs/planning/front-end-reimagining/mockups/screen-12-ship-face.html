@@ -1696,8 +1696,6 @@ ol {
    the release truth (record, path, rollout); right is the launch
    (kit, plan, the armed check). State reads left, GTM reads right. */
 .sf-face-body {
-  flex: 1;
-  min-height: 0;
   padding: 14px var(--sp-6) 4px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1987,6 +1985,15 @@ ol {
   line-height: 1.55;
   color: var(--ink-body);
 }
+.sf-thread-quiet {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  text-align: center;
+}
 .sf-log-line {
   margin-top: 10px;
   padding-top: 8px;
@@ -2271,7 +2278,7 @@ ol {
                 <span class="sp-thread-time">8:30am</span>
               </div>
               <div class="sf-briefing-copy">
-                Atlas today: Engineer lands the webhook retries this morning; Review replays staging right after. If it comes back green you get one promote call before lunch. Memory holds the mandate: DEC-22 promised zero dropped events. The <span class="sp-mono">6:00am</span> sweep also filed <span class="sp-mono">SIG-214</span> and <span class="sp-mono">SIG-221</span>; both ride the next loop, not this release.
+                Atlas today: Engineer lands the webhook retries this morning; Review replays staging right after. Green means one promote call before lunch. Memory holds the mandate: DEC-22 promised zero dropped events.
               </div>
             </div>
 
@@ -2300,7 +2307,7 @@ ol {
               </div>
               <div class="sp-receipt-line">
                 <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Changeset applied. CI green, <span class="sp-mono">14</span> files, preview up. <span class="sp-receipt-action" title="Door: preview.atlas.heliolabs.dev, new tab">Open the preview</span>.</span>
+                <span class="sp-receipt-text">Changeset applied. CI green, <span class="sp-mono">14</span> files, preview up.</span>
               </div>
             </div>
 
@@ -2308,7 +2315,7 @@ ol {
                  the gate owns this frame. Honest time, no bar. -->
             <div class="sp-pulse-line" style="padding:2px 12px">
               <span class="sp-pulse-dot"></span>
-              <span>Announce is drafting the launch kit. <span class="sp-pulse-time">About 3 minutes</span></span>
+              <span>Announce is drafting the launch kit. <span class="sp-pulse-time">About 3 min</span></span>
             </div>
 
             <!-- The gate card: rendering 3 of 3. Copy contract: what
@@ -2456,7 +2463,7 @@ ol {
                 <div class="sp-doc-sub">The launch plan</div>
                 <div class="sf-why">
                   <div class="sp-doc-block">
-                    Retries because <span class="sp-mono">DEC-22</span> promised zero dropped events. Announce derived the positioning from the decision's own why, not from feature copy.
+                    Retries because <span class="sp-mono">DEC-22</span> promised zero dropped events. Announce derived the positioning from the decision's own why.
                   </div>
                   <span class="sp-gate-receipt-link" title="Door: the decision record in the Brain">DEC-22</span>
                 </div>
@@ -2704,6 +2711,12 @@ ol {
                 <span class="sp-receipt-check">&#10003;</span>
                 <span class="sp-receipt-text">Shipped to production at <span class="sp-mono">12:15pm</span>. Rollback is one click for <span class="sp-mono">24</span> hours. Launch kit ready: <span class="sp-mono">4</span> drafts. <span class="sp-receipt-action" title="Door: the kit drafts on this face">Review the drafts</span>.</span>
               </div>
+            </div>
+
+            <!-- The honest quiet line: calm, not empty. The next beat
+                 is named, with its date. -->
+            <div class="sf-thread-quiet">
+              The <span class="sp-mono">Aug 3</span> check comes back to this thread. Nothing else needs you here.
             </div>
 
           </div>
