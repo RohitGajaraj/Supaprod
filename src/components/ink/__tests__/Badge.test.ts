@@ -193,7 +193,14 @@ describe("Badge — variant: info (narrow: machine/agent status only)", () => {
 // ---------------------------------------------------------------------------
 
 describe("Badge — variant smoke matrix (all 6 render without error)", () => {
-  const variants: BadgeVariant[] = ["default", "primary", "success", "warning", "destructive", "info"];
+  const variants: BadgeVariant[] = [
+    "default",
+    "primary",
+    "success",
+    "warning",
+    "destructive",
+    "info",
+  ];
 
   for (const variant of variants) {
     test(`variant="${variant}" renders`, () => {
@@ -251,7 +258,14 @@ describe("Badge — shapes", () => {
 // ---------------------------------------------------------------------------
 
 describe("Badge — variant × size cross-product", () => {
-  const variants: BadgeVariant[] = ["default", "primary", "success", "warning", "destructive", "info"];
+  const variants: BadgeVariant[] = [
+    "default",
+    "primary",
+    "success",
+    "warning",
+    "destructive",
+    "info",
+  ];
   const sizes: BadgeSize[] = ["sm", "md"];
 
   for (const variant of variants) {
@@ -270,9 +284,7 @@ describe("Badge — variant × size cross-product", () => {
 describe("Badge — icon slot", () => {
   test("renders icon before text content", () => {
     const icon = React.createElement("span", { "data-testid": "badge-icon" }, "•");
-    const { container } = render(
-      React.createElement(Badge, { icon, children: "Status" }),
-    );
+    const { container } = render(React.createElement(Badge, { icon, children: "Status" }));
     const iconEl = container.querySelector("[data-testid='badge-icon']");
     expect(iconEl).toBeTruthy();
   });
@@ -369,7 +381,14 @@ describe("badgeVariants — CVA export", () => {
   });
 
   test("all 6 variants produce different class strings", () => {
-    const variants: BadgeVariant[] = ["default", "primary", "success", "warning", "destructive", "info"];
+    const variants: BadgeVariant[] = [
+      "default",
+      "primary",
+      "success",
+      "warning",
+      "destructive",
+      "info",
+    ];
     const classStrings = variants.map((v) => badgeVariants({ variant: v }));
     const unique = new Set(classStrings);
     expect(unique.size).toBe(6);

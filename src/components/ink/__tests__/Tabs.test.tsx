@@ -346,7 +346,11 @@ describe("Tabs — forwardRef", () => {
       React.createElement(
         Tabs,
         { defaultValue: "a" },
-        React.createElement(TabsList, { ref }, React.createElement(TabsTrigger, { value: "a" }, "A")),
+        React.createElement(
+          TabsList,
+          { ref },
+          React.createElement(TabsTrigger, { value: "a" }, "A"),
+        ),
         React.createElement(TabsContent, { value: "a" }, "Content A"),
       ),
     );
@@ -412,11 +416,7 @@ describe("Tabs — edge cases", () => {
   test("empty TabsList renders without error", () => {
     expect(() =>
       render(
-        React.createElement(
-          Tabs,
-          { defaultValue: "none" },
-          React.createElement(TabsList, null),
-        ),
+        React.createElement(Tabs, { defaultValue: "none" }, React.createElement(TabsList, null)),
       ),
     ).not.toThrow();
   });

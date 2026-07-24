@@ -18,7 +18,9 @@ import { Spinner } from "../Spinner";
 // Helpers
 // ---------------------------------------------------------------------------
 
-function renderSpinner(props: React.ComponentPropsWithoutRef<"div"> & { size?: "sm" | "md" | "lg" } = {}) {
+function renderSpinner(
+  props: React.ComponentPropsWithoutRef<"div"> & { size?: "sm" | "md" | "lg" } = {},
+) {
   const { container } = render(React.createElement(Spinner, props));
   return container.querySelector("div") as HTMLDivElement;
 }
@@ -117,9 +119,7 @@ describe("Spinner — size variants", () => {
 
   test("invalid size prop does not crash (TypeScript prevents it, runtime graceful)", () => {
     // At runtime, an unknown size would fall through to undefined; test that no exception is thrown.
-    expect(() =>
-      render(React.createElement(Spinner, { size: "xl" as never })),
-    ).not.toThrow();
+    expect(() => render(React.createElement(Spinner, { size: "xl" as never }))).not.toThrow();
   });
 });
 
@@ -142,16 +142,12 @@ describe("Spinner — data-motion=off reduces motion", () => {
   });
 
   test("when data-motion=off attribute is set, element still renders", () => {
-    const { container } = render(
-      React.createElement(Spinner, { "data-motion": "off" }),
-    );
+    const { container } = render(React.createElement(Spinner, { "data-motion": "off" }));
     expect(container.querySelector("div")).toBeTruthy();
   });
 
   test("data-motion=off attribute is forwarded through ...props spread", () => {
-    const { container } = render(
-      React.createElement(Spinner, { "data-motion": "off" }),
-    );
+    const { container } = render(React.createElement(Spinner, { "data-motion": "off" }));
     const el = container.querySelector("div");
     expect(el?.getAttribute("data-motion")).toBe("off");
   });
