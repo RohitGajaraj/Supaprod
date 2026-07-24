@@ -1,0 +1,3500 @@
+<!--
+  SCREEN 16: Settings : You + Workspace (Round 3.1)
+
+  THE MOMENT: Monday July 20 at Helio Labs, 12:40pm. Atlas 1.9 live
+  at 100% since 12:15; Measure watching the rollout; the one open
+  gate is the DEC-19 challenge. Mo steps out of the room to check
+  what may interrupt him, then sharpens one line of the workspace
+  brief before the next mission reads it.
+
+  STATE SHOWN:
+    Frame A (12:40pm) = rest, dormant-clean. You > Profile active;
+      the Notifications rules beside it; everything saved; ZERO
+      ember by design.
+    Frame B (12:41pm) = one dirty field. Workspace > Brief & voice;
+      the positioning line edited 12:38, unsaved; the save is the
+      frame's one ember locus.
+
+  FUNCTIONAL CONTRACT:
+    Primary question: A: "what does Supaprod know about me, and what
+      may interrupt me?" B: "what do the agents believe we are
+      building, and is it still true?"
+    Primary action(s): A: none pending (fields batch into one dormant
+      save; toggles write on flip). B: save the brief (supersedes v2,
+      on the record; the next mission reads v3).
+    Lineage in/out: in: the account menu's Profile door, the TopBar
+      Settings door, and legacy deep links (?section= brief / plan /
+      you / agents) per settings-sections.ts. Out: DEC-19 > Approvals;
+      LRN-13 > the Brain; BET-31 / BET-35 / BET-22 rows > the 02
+      Decide board; the J1 chip > the Relay room; Memory card >
+      /brain; Brand and Products previews > their panes. Every chip
+      names its door in a title; doors are listed under each frame.
+    Agents & attribution: no agent acts on this surface; the Working
+      strip keeps the machine honest (Measure watching the Atlas
+      rollout, dim tier). Chief of Staff is named as the briefing's
+      assembler; the brief card names who saved v2 and when.
+    Focus/collapse: none. Settings is a non-room surface: no Spine,
+      no docked composer (6c.4b); Ask lives in the TopBar with its
+      visible cmd-J hint and summons a transient overlay (annotated
+      once, rail section 5).
+    Empty/loading/blocked: honest GAPs written out: account deletion
+      has no endpoint yet (the row says what happens today); a failed
+      profile read never renders blank editable fields; a failed
+      toggle write reverts the switch and says so. Comet renders its
+      honest "fresh, no missions yet" state in the Products preview.
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. The 16-door recluster as one calm rail: five named groups, their
+     one-line descriptions verbatim from settings-sections.ts. Does
+     it answer "where would X live?" in a glance, no Advanced fold?
+  2. Ember discipline under its hardest test: nothing dirty renders
+     ZERO ember (Frame A); one changed field makes the save the
+     single warm point (Frame B). Is dormant-clean legible, or flat?
+  3. The J-BRIEF as a product surface, not a form: versioned top-bet
+     rows dooring to their BET records, supersession in plain words,
+     the footer proving where the brief goes. Does editing strategy
+     feel consequential?
+  4. Notification rules as plain sentences with one honest constant
+     (in-app is always on) instead of a matrix. Enough control?
+  5. Color aliveness off Mission Control: orbs, the official Google
+     G, verdict green on real verdicts, Vellum only where memory
+     speaks, machine blue only where the machine works. Alive,
+     without breaking the one-ember law?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #1 10-second comprehension (both panes state their job in one lede)
+  #5 costs quiet (zero figures; Plan & Usage stays its own pane)
+  #6 every capability sensibly placed (the five-group, 16-door
+     recluster rendered verbatim from settings-sections.ts)
+  #8 design stage does design (Brand: the kit FEEDS the Design
+     stage; nothing configures design here)
+  #10 explain where needed (doors and consequences on every
+     clickable; the summon annotated once)
+  #13 one primary action per screen (B: the save; A: honestly none),
+     nav stays 4 doors
+
+  RESTRAINT NOTE: deliberately NOT added: a second ember (Frame A
+  ships with zero); a notification matrix grid; 2FA or session
+  theater (not wired, not drawn); open kebabs; money figures (Plan &
+  Usage owns them); a docked composer; Pixel type (zero uses);
+  starfield (not sanctioned here); fake delete-account plumbing (the
+  GAP is written out instead).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : Settings : You + Workspace</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==================================================================
+   SCREEN 16: Settings : You + Workspace (screen styles only).
+   Shell = screen-7's settings shell reused exactly. No Spine, no
+   docked composer (6c.4b). Two labeled frames + the behavior rail.
+   ================================================================== */
+
+/* ---- Page scaffold: labeled frames ------------------------------- */
+.lf-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.jf-frame-label .jf-label-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+/* Mockup-only annotation block under each frame. */
+.jf-note {
+  width: var(--sp-frame-w);
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--ink-subtle);
+}
+.jf-note b {
+  color: var(--ink-body);
+  font-weight: 500;
+}
+/* Numbered in-frame pins + legend (reviewer chrome). */
+.jf-pin {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--ink-subtle);
+  border-radius: 50%;
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-subtle);
+  z-index: 90;
+}
+.jf-legend {
+  width: var(--sp-frame-w);
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--ink-subtle);
+}
+.jf-legend-key {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--ink-subtle);
+  border-radius: 50%;
+  font-size: 9px;
+  flex: none;
+  margin-top: 2px;
+}
+.jf-legend b {
+  color: var(--ink-body);
+  font-weight: 500;
+}
+.jf-gap {
+  height: 26px;
+}
+
+/* ---- The settings shell (screen-7, reused exactly) ---------------- */
+.set-main {
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+.set-nav {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  padding: 12px 10px 10px;
+}
+.set-nav-group {
+  margin-top: 10px;
+}
+.set-nav-group:first-child {
+  margin-top: 0;
+}
+.set-nav-group-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 10px 2px;
+}
+/* Group descriptions, verbatim from settings-sections.ts. */
+.set-nav-desc {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  padding: 0 10px 4px;
+}
+.set-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.set-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.set-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+.set-nav-note {
+  margin-top: auto;
+  padding: 14px 10px 2px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.set-nav-note a {
+  color: var(--ink-subtle);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+}
+.set-nav-note a:hover {
+  color: var(--ink-body);
+}
+.set-body {
+  padding: 14px var(--sp-6) var(--sp-6);
+  max-width: 1120px;
+  width: 100%;
+}
+.set-lede {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.set-lede .sp-mono {
+  color: var(--ink-text);
+}
+.set-lede-hint {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 4px;
+}
+/* Toggle: neutral by design. Affordance, not emphasis. */
+.set-toggle {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  position: relative;
+  flex: none;
+  cursor: pointer;
+}
+.set-toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-subtle);
+}
+.set-toggle.is-on {
+  background: #2b2b31;
+}
+[data-theme="light"] .set-toggle.is-on {
+  background: #d9d9de;
+}
+.set-toggle.is-on::after {
+  left: auto;
+  right: 2px;
+  background: var(--ink-text);
+}
+
+/* ---- Pane scaffolding ---------------------------------------------- */
+.st-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+  align-items: start;
+}
+.st-cols.is-brief {
+  grid-template-columns: minmax(0, 1.58fr) minmax(0, 1fr);
+}
+/* Cards sit one step deeper than the pane canvas. */
+.st-card {
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 15px;
+  min-width: 0;
+}
+.st-card + .st-card {
+  margin-top: 12px;
+}
+.st-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  margin-bottom: 8px;
+}
+.st-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.st-foot {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin-top: 10px;
+}
+
+/* ---- Identity: the orb library (6d.4) ------------------------------ */
+.st-orb {
+  --o1: #3a2318;
+  --o2: #38301a;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  color: var(--ink-text);
+  border: 1px solid var(--ink-hairline);
+  background-image:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.16) 0%, transparent 48%),
+    linear-gradient(140deg, var(--o1) 0%, var(--o2) 100%);
+  flex: none;
+}
+.st-orb.is-b { --o1: #1a2634; --o2: #222c1f; }
+.st-orb.is-c { --o1: #331d20; --o2: #3a2318; }
+.st-orb.is-d { --o1: #222c1f; --o2: #1f242c; }
+.st-orb.is-e { --o1: #1f242c; --o2: #1a2634; }
+.st-orb.is-f { --o1: #38301a; --o2: #222c1f; }
+[data-theme="light"] .st-orb { --o1: #f0e0d2; --o2: #ece5cf; }
+[data-theme="light"] .st-orb.is-b { --o1: #dbe5f0; --o2: #e0e8d8; }
+[data-theme="light"] .st-orb.is-c { --o1: #eedad6; --o2: #f0e0d2; }
+[data-theme="light"] .st-orb.is-d { --o1: #e0e8d8; --o2: #e2e6ec; }
+[data-theme="light"] .st-orb.is-e { --o1: #e2e6ec; --o2: #dbe5f0; }
+[data-theme="light"] .st-orb.is-f { --o1: #ece5cf; --o2: #e0e8d8; }
+.st-orb-lg { width: 40px; height: 40px; font-size: 12px; }
+.st-orb-sm { width: 30px; height: 30px; font-size: 9.5px; cursor: pointer; }
+.st-orb-sm.is-picked {
+  box-shadow:
+    0 0 0 2px var(--ink-bg),
+    0 0 0 3.5px var(--ink-subtle);
+}
+.st-id-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.st-id-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.st-id-sub {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 2px;
+}
+.st-orb-pick {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+}
+/* The TopBar avatar wears the same orb. */
+.sp-avatar.st-orb {
+  background-color: transparent;
+}
+
+/* ---- Fields --------------------------------------------------------- */
+.st-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 14px;
+  margin-top: 9px;
+}
+.st-field {
+  min-width: 0;
+}
+.st-field-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 5px;
+}
+.st-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.st-input {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-area {
+  display: block;
+  height: auto;
+  padding: 7px 11px;
+  line-height: 1.55;
+  white-space: normal;
+}
+.st-input.is-mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.st-hint {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  margin-top: 3px;
+}
+.st-field.is-dirty .st-input {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+[data-theme="light"] .st-field.is-dirty .st-input {
+  border-color: rgba(0, 0, 0, 0.24);
+}
+.st-dirty-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--chip-fg);
+  background: var(--chip-soft);
+  border: 1px solid var(--chip-border);
+  white-space: nowrap;
+}
+.st-supersede {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+.st-error {
+  font-size: 11px;
+  color: var(--verdict-fail);
+  margin-top: 4px;
+}
+.st-field.is-invalid .st-input {
+  border-color: rgba(229, 83, 75, 0.5);
+}
+
+/* ---- Rows: security, notifications, products, bets ----------------- */
+.st-rows > .st-row:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+.st-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+}
+.st-row-main {
+  min-width: 0;
+  flex: 1;
+}
+.st-row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.st-row-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+  margin-top: 2px;
+}
+.st-row-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+.st-row-right {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+.st-verify {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--verdict-pass);
+  white-space: nowrap;
+}
+.st-mono-field {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  cursor: text;
+}
+.st-google-g {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+/* ---- Segmented control (appearance, density) ----------------------- */
+.st-seg {
+  display: inline-flex;
+  gap: 6px;
+}
+.st-seg button {
+  height: 26px;
+  padding: 0 11px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.st-seg button:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.st-seg button.is-on {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.st-seg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 2px;
+}
+.st-seg-k {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-text);
+  width: 92px;
+  flex: none;
+}
+
+/* ---- Save bar ------------------------------------------------------- */
+.st-savebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.st-savebar-note {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ---- Quiet danger --------------------------------------------------- */
+.st-danger {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  margin-top: 10px;
+}
+.st-danger-link {
+  font-size: 12px;
+  color: var(--ink-subtle);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.st-danger-link:hover {
+  color: var(--verdict-fail);
+  border-bottom-color: rgba(229, 83, 75, 0.4);
+}
+.st-danger-sub {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* ---- Top bets (versioned rows) -------------------------------------- */
+.st-bet {
+  padding: 7px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  cursor: pointer;
+}
+.st-bet:hover .st-bet-text {
+  color: var(--ink-text);
+}
+.st-bet-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.st-bet-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-bet-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  padding-left: 58px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.st-bet-sub .st-watch {
+  color: var(--ink-subtle);
+}
+.st-bet-ver {
+  margin-left: auto;
+}
+.st-kept {
+  color: var(--verdict-pass);
+}
+/* Memory speaking in a bet row: the Vellum tick. */
+.st-vellum-tick {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid var(--voice-memory-border);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ---- Sibling previews (Brand / Products / Memory) ------------------- */
+.st-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 11.5px;
+  color: var(--ink-body);
+}
+.st-slot-k {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  width: 46px;
+  flex: none;
+}
+.st-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.st-card.st-vellum {
+  border-color: var(--voice-memory-border);
+}
+
+/* ---- Behavior rail --------------------------------------------------- */
+.st-rail {
+  width: var(--sp-frame-w);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  background: var(--ink-bg);
+  padding: 20px 24px 24px;
+  margin-top: 14px;
+}
+.st-rail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.st-rail-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-body);
+}
+.st-rail-ref {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.st-rail-sub {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-subtle);
+  max-width: 960px;
+  margin-top: 6px;
+}
+.st-rail-sec {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ink-hairline-soft);
+}
+.st-rail-sec-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.st-sec-ref {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-faint);
+  margin-left: 8px;
+}
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.st-grid.is-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.st-spec {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 10px 12px;
+  min-width: 0;
+}
+.st-spec-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 9px;
+}
+.st-spec-note {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin-top: 9px;
+}
+/* Frozen states for specimens. */
+.st-demo-hover {
+  background: #202024 !important;
+  color: var(--ink-text) !important;
+}
+[data-theme="light"] .st-demo-hover {
+  background: #ececee !important;
+}
+/* Focus-visible per 6d.7: hairline ring, 2px gap, never a box. */
+.st-demo-focus {
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 3px var(--ink-input-ring);
+}
+.st-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.st-skel .ink-skeleton {
+  height: 11px;
+  display: block;
+}
+/* The Ask summon specimen (6c.4b), rendered as its end frame. */
+.st-summon {
+  max-width: 560px;
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+[data-theme="light"] .st-summon {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+}
+.st-summon-input {
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+.st-summon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+/* Light-theme proof band. */
+.st-light-band {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  overflow: hidden;
+  margin-top: 12px;
+}
+.st-light-inner {
+  background: var(--ink-bg);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.st-card > .st-field + .st-field {
+  margin-top: 10px;
+}
+.st-btn-sm {
+  height: 28px;
+  font-size: 12px;
+}
+.st-btn-xs {
+  height: 26px;
+  font-size: 11.5px;
+}
+.st-chip-sm {
+  height: 24px;
+  font-size: 11.5px;
+}
+.st-kebab-xs {
+  width: 22px;
+  height: 22px;
+}
+/* Motion + keys */
+.st-mk {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 24px;
+  margin-top: 12px;
+}
+.st-col-caption {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 4px;
+}
+.st-motion-row {
+  display: grid;
+  grid-template-columns: 150px 92px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+.st-motion-name {
+  font-size: 11.5px;
+  color: var(--ink-body);
+}
+.st-motion-budget {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.st-key-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.st-key-desc {
+  color: var(--ink-subtle);
+}
+</style>
+</head>
+<body>
+
+<div class="lf-page">
+
+  <!-- ================================================================
+       FRAME A : YOU > PROFILE, DORMANT-CLEAN : Monday Jul 20, 12:40pm
+       Everything saved. ZERO ember by design: the save turns ember
+       only when something is dirty. The one open gate (DEC-19) shows
+       only as the slate Approvals count and one honest sentence in
+       the gate rule. Machine presence = the Working strip, dim.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame A &middot; You: profile and alerts, dormant-clean</span>
+    <span class="jf-label-sub">Settings &middot; Helio Labs &middot; Monday Jul 20 &middot; 12:40pm &middot; everything saved &middot; zero ember by design</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell" style="grid-template-rows: var(--sp-topbar-h) minmax(0, 1fr) auto;">
+
+      <!-- REGION 1: TopBar v2 (brief section 3). Settings active.
+           Ask carries its visible cmd-J hint: summoned, never docked. -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+  <defs>
+    <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+    </linearGradient>
+    <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+    </radialGradient>
+  </defs>
+  <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
+</svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: switch workspace or product">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item" href="#" title="Door: /m, the Relay room">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: /approvals. 1 = the DEC-19 challenge, one count, one source.">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#" title="Door: /brain, the workspace record">Brain</a>
+          <a class="sp-nav-item is-active" href="#" title="Door: /settings. You are here.">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Door: summons the Ask overlay. Esc dismisses.">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts &middot; ?">?</button>
+          <button class="sp-avatar st-orb" title="Door: the account menu. Your orb, everywhere.">MO</button>
+        </div>
+      </header>
+
+      <!-- MAIN: the rail (5 groups, 16 doors, settings-sections.ts
+           verbatim) + the You pane. No Spine, no composer. -->
+      <div class="sp-main set-main">
+
+        <aside class="sp-thread set-nav">
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">You</div>
+            <div class="set-nav-desc">Your profile, look, and alerts.</div>
+            <a class="set-nav-item is-active" title="Door: /settings?section=profile. This pane.">Profile</a>
+            <a class="set-nav-item" title="Door: /settings?section=notifications. Moves focus to the Notifications column.">Notifications</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Workspace</div>
+            <div class="set-nav-desc">What you are building, your brand, and your team.</div>
+            <a class="set-nav-item" title="Door: /settings?section=workspace. Legacy ?section=brief lands here too.">Brief &amp; voice</a>
+            <a class="set-nav-item" title="Door: /settings?section=brand. The kit the Design stage consumes.">Brand</a>
+            <a class="set-nav-item" title="Door: /settings?section=products. Relay, Atlas, Comet, Beacon.">Products</a>
+            <a class="set-nav-item" title="Door: /settings?section=memory. A pointer pane: Memory lives in the Brain.">Memory</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Agents</div>
+            <div class="set-nav-desc">Your AI staff: what they may do, on whose approval, and which models.</div>
+            <a class="set-nav-item" title="Door: /settings?section=staff, the roster">Roster</a>
+            <a class="set-nav-item" title="Door: /settings?section=autonomy">Autonomy &amp; approvals</a>
+            <a class="set-nav-item" title="Door: /settings?section=ai">Models &amp; keys</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Connections &amp; Data</div>
+            <div class="set-nav-desc">What flows in, what external agents can read, and what we store.</div>
+            <a class="set-nav-item" title="Door: /settings?section=connections. Legacy ?section=calendar lands here too.">Sources</a>
+            <a class="set-nav-item" title="Door: /settings?section=sync">Sync &amp; bindings</a>
+            <a class="set-nav-item" title="Door: /settings?section=interop">Agent access</a>
+            <a class="set-nav-item" title="Door: /settings?section=data">Your data</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Plan &amp; Usage</div>
+            <div class="set-nav-desc">Your plan, credits, and whether the agents are healthy.</div>
+            <a class="set-nav-item" title="Door: /settings?section=billing. Legacy ?section=plan lands here too.">Plan</a>
+            <a class="set-nav-item" title="Door: /settings?section=credits">Credits</a>
+            <a class="set-nav-item" title="Door: /settings?section=health">Diagnostics</a>
+          </div>
+
+          <div class="set-nav-note">
+            Old links land: <a title="Legacy alias, resolves to the workspace pane">?section=brief</a> opens Brief &amp; voice. Admin console lives under your avatar.
+          </div>
+        </aside>
+
+        <!-- The You pane: one pane, two columns. Profile owns the
+             left; Notifications the right; ?section= moves focus. -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">Settings</span>
+            <span class="sp-surface-title">Profile</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link: /settings?section=profile">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details">&#8942;</button>
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Copy link</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="set-body">
+
+              <div class="set-lede">
+                Your name, your look, and what may interrupt you. Agents greet you as <span class="sp-mono">Mo</span> and hold email outside <span class="sp-mono">9:00</span> to <span class="sp-mono">18:00</span>.
+              </div>
+              <div class="set-lede-hint">
+                Fields batch into one save at the column&#8217;s end. Toggles write the moment you flip them, with a receipt.
+              </div>
+
+              <div class="st-cols">
+
+                <!-- LEFT COLUMN: identity, sign-in, appearance, the save -->
+                <div>
+
+                  <div class="st-card">
+                    <div class="st-chiprow">
+                      <span class="sp-kicker">Identity &amp; appearance</span>
+                      <span class="st-time">saved Jul 2</span>
+                    </div>
+
+                    <div class="st-id-row">
+                      <span class="st-orb st-orb-lg">MO</span>
+                      <div>
+                        <div class="st-id-name">Mo Osman</div>
+                        <div class="st-id-sub">AI Product Manager &middot; Helio Labs &middot; Owner</div>
+                      </div>
+                    </div>
+
+                    <div class="st-orb-pick">
+                      <button class="st-orb st-orb-sm is-picked" title="Your orb: two muted hues mixed into the surface. It follows you everywhere." aria-pressed="true"></button>
+                      <button class="st-orb st-orb-sm is-b" title="Pick this orb: applies on click, everywhere at once" aria-pressed="false"></button>
+                      <button class="st-orb st-orb-sm is-c" title="Pick this orb" aria-pressed="false"></button>
+                      <button class="st-orb st-orb-sm is-d" title="Pick this orb" aria-pressed="false"></button>
+                      <button class="st-orb st-orb-sm is-e" title="Pick this orb" aria-pressed="false"></button>
+                      <button class="st-orb st-orb-sm is-f" title="Pick this orb" aria-pressed="false"></button>
+                      <button class="sp-btn sp-btn-ghost st-btn-sm" title="Door: file picker. PNG or JPG, square, up to 2MB. The orb stays your fallback.">Upload an image</button>
+                    </div>
+
+                    <div class="st-fields">
+                      <div class="st-field">
+                        <div class="st-field-label">Full name</div>
+                        <div class="st-input">Mo Osman</div>
+                        <div class="st-hint">For documents and stakeholder updates.</div>
+                      </div>
+                      <div class="st-field">
+                        <div class="st-field-label">Display name</div>
+                        <div class="st-input">Mo</div>
+                        <div class="st-hint">How Supaprod and your agents greet you.</div>
+                      </div>
+                      <div class="st-field">
+                        <div class="st-field-label">Role</div>
+                        <div class="st-input">AI Product Manager</div>
+                        <div class="st-hint">Rides along when agents write on your behalf.</div>
+                      </div>
+                      <div class="st-field">
+                        <div class="st-field-label">Timezone</div>
+                        <div class="st-input is-mono">America/New_York</div>
+                        <div class="st-hint">Every time here renders in this zone.</div>
+                      </div>
+                    </div>
+
+                    <div style="margin-top:10px;padding-top:6px;border-top:1px solid var(--ink-hairline-soft)">
+                      <div class="st-seg-row">
+                        <span class="st-seg-k">Theme</span>
+                        <div class="st-seg" role="group" aria-label="Theme">
+                          <button class="is-on" aria-pressed="true" title="Consequence: the product flips on click. Same control as the account menu.">Dark</button>
+                          <button aria-pressed="false" title="Auto follows your device">Auto</button>
+                          <button aria-pressed="false" title="Consequence: the whole product flips on click">Light</button>
+                        </div>
+                      </div>
+                      <div class="st-seg-row">
+                        <span class="st-seg-k">Density</span>
+                        <div class="st-seg" role="group" aria-label="Density">
+                          <button class="is-on" aria-pressed="true" title="The default rhythm. Active now; clicking it changes nothing.">Comfortable</button>
+                          <button aria-pressed="false" title="Consequence: lists drop one row of breathing room. Type stays the same.">Compact</button>
+                        </div>
+                      </div>
+                      <div class="st-hint" style="margin-top:5px">Auto follows your device. Dark is the default. One mechanism with the account menu.</div>
+                    </div>
+                  </div>
+
+                  <div class="st-card">
+                    <div class="st-chiprow">
+                      <span class="sp-kicker">Sign-in &amp; security</span>
+                      <span class="st-time">password changed Mar 4</span>
+                    </div>
+                    <div class="st-rows">
+                      <div class="st-row" style="align-items:baseline">
+                        <div class="st-row-title">Email <span class="sp-mono" style="font-size:11px;font-weight:400;color:var(--ink-body);margin-left:6px">mo@heliolabs.dev</span></div>
+                        <div class="st-row-right"><span class="st-verify">&#10003; verified</span></div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">
+                            <svg class="st-google-g" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.2 1.13-.84 2.08-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.87 2.69-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.8.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/></svg>
+                            Google connected
+                          </div>
+                          <div class="st-row-sub">You sign in with Google; your password is the backup.</div>
+                        </div>
+                        <div class="st-row-right">
+                          <button class="sp-btn sp-btn-ghost st-btn-xs" title="Consequence: you would sign in with email and password only. Asks once.">Disconnect</button>
+                        </div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Password</div>
+                          <div class="st-row-sub">Last changed Mar 4, 2026.</div>
+                        </div>
+                        <div class="st-row-right">
+                          <button class="sp-btn sp-btn-ghost st-btn-xs" title="Door: two inline fields open below (current, new). Never a modal.">Change password</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="st-danger">
+                      <a class="st-danger-link" title="Door: a dry confirm opens inline (rail, section 5). Nothing happens on this click alone.">Delete your account</a>
+                      <span class="st-danger-sub">Erases your sign-in and profile. The workspace record stays.</span>
+                    </div>
+                  </div>
+
+                  <div class="st-savebar">
+                    <button class="sp-btn is-disabled" aria-disabled="true" title="Dormant: nothing is dirty. Turns ember the moment a field changes.">Save changes</button>
+                    <span class="st-savebar-note">everything saved &middot; last change Jul 2, 4:18pm</span>
+                  </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: the notification rules + honest constants -->
+                <div>
+
+                  <div class="st-card">
+                    <div class="st-chiprow">
+                      <span class="sp-kicker">Notifications</span>
+                      <span class="st-time">?section=notifications</span>
+                    </div>
+                    <div class="st-row-body" style="margin:0 0 4px">
+                      Plain rules, not a matrix. In-app is always on; email is your choice, and it honors your quiet hours.
+                    </div>
+                    <div class="st-rows">
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Your gates</div>
+                          <div class="st-row-body">A gate waits on you: email goes out within a minute.</div>
+                          <div class="st-row-sub">In-app is always on; the Approvals count never sleeps. Waiting now: <span class="sp-artifact-chip" title="Door: Approvals. The DEC-19 challenge, the same single gate the count shows.">DEC-19</span></div>
+                        </div>
+                        <div class="st-row-right"><span class="set-toggle is-on" role="switch" aria-checked="true" title="Email on gates: on. Writes on flip."></span></div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Daily briefing</div>
+                          <div class="st-row-body">The morning brief arrives as one email digest.</div>
+                          <div class="st-row-sub">at <span class="st-mono-field" title="Editable. Tomorrow's digest honors the new time.">8:30am</span> <span class="sp-agent-chip" title="Door: this morning's 8:30am briefing in the Thread">Chief of Staff</span> assembles it from the night's record.</div>
+                        </div>
+                        <div class="st-row-right"><span class="set-toggle is-on" role="switch" aria-checked="true" title="Email digest: on. The in-app briefing renders either way."></span></div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Agents finished work</div>
+                          <div class="st-row-body">Receipts land in-app only. Email stays quiet.</div>
+                          <div class="st-row-sub">Turn on to get an email per finished mission. Most people leave this off.</div>
+                        </div>
+                        <div class="st-row-right"><span class="set-toggle" role="switch" aria-checked="false" title="Email per finished mission: off"></span></div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Mentions</div>
+                          <div class="st-row-body">A teammate mentions you in a thread: email within a minute.</div>
+                          <div class="st-row-sub">Applies across Helio Labs threads and gate notes.</div>
+                        </div>
+                        <div class="st-row-right"><span class="set-toggle is-on" role="switch" aria-checked="true" title="Email on mentions: on. Writes on flip."></span></div>
+                      </div>
+                      <div class="st-row">
+                        <div class="st-row-main">
+                          <div class="st-row-title">Quiet hours</div>
+                          <div class="st-row-body">Outside <span class="st-mono-field" title="Editable. Also your working hours.">09:00</span> to <span class="st-mono-field" title="Editable. Also your working hours.">18:00</span> nothing emails you.</div>
+                          <div class="st-row-sub">Held email queues and sends when the window opens. The digest waits too.</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="st-foot">
+                      Quiet hours hold every email, gates included. The Approvals count still shows the moment you open the app; urgency lives here, not in your inbox.
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Working strip: the machine stays visible even in Settings.
+           Dim tier; no full-hue locus: nothing is live HERE, honestly. -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>measure &middot; watching the rollout &middot; 25m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>atlas 1.9 at 100% since 12:15pm &middot; no rollbacks</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary" title="Door: the Relay room's working lanes">1 agent working, 1 waiting on you</span>
+      </div>
+
+    </div>
+
+    <!-- In-frame annotation pins (reviewer chrome; legend below) -->
+    <span class="jf-pin" style="left:1252px;top:38px">1</span>
+    <span class="jf-pin" style="left:222px;top:104px">2</span>
+    <span class="jf-pin" style="left:566px;top:484px">3</span>
+    <span class="jf-pin" style="left:256px;top:838px">4</span>
+    <span class="jf-pin" style="left:1364px;top:258px">5</span>
+  </div>
+
+  <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>Ask, summoned (6c.4b).</b> Settings is not speak-primary, so no docked composer. Ask is the constant TopBar button with its visible <span class="sp-mono">&#8984;J</span> hint; <span class="sp-mono">&#8984;J</span> drops a transient overlay (rail, section 5), Esc dismisses, focus returns. Same spot on every screen: discoverability by constancy, not size.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>The rail is settings-sections.ts, verbatim.</b> Five groups, 16 doors, each group's one-line description under its label. Both You doors land on this pane: Profile owns the left column, Notifications the right; <span class="sp-mono">?section=</span> moves focus to the matching column header. No Advanced fold.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>One mechanism.</b> The Dark / Auto / Light segmented control is the same object the account menu carries; both write one preference and the flip is instant (class A). Density beside it: compact drops one row of breathing room, type stays the same.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>The honest absence of ember.</b> Save changes turns ember only when something is dirty; this frame is rendered clean, so the frame carries ZERO ember, by design. Toggles never wait for it: they write on flip with a receipt.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>One count, one source.</b> The nav's Approvals count (1), the "waiting now" sentence, and the strip's "1 waiting on you" are one gate object: the DEC-19 challenge. Deciding it anywhere clears all three. The <span class="sp-mono">DEC-19</span> chip doors to Approvals.</span></span>
+
+  <div class="jf-note">
+    <span><b>Lineage doors, Frame A</b> &middot; DEC-19 opens Approvals (the challenge gate) &middot; Chief of Staff opens this morning's 8:30am briefing in the Thread &middot; the strip summary opens the Relay room's lanes &middot; every rail door names its <span class="sp-mono">?section=</span> id in its tooltip &middot; the avatar opens the account menu (screen 15 renders it open) &middot; "Change password" opens two inline fields, never a modal &middot; "Delete your account" opens the dry confirm (rail, section 5): honest GAP, no delete endpoint yet.</span>
+    <span><b>Keys &amp; motion, Frame A</b> &middot; Tab walks fields in reading order, column by column &middot; &#8593;/&#8595; walks the rail, Enter opens &middot; Space flips a focused toggle (optimistic; failure reverts) &middot; <span class="sp-mono">&#8984;J</span> summons Ask, Esc dismisses &middot; G A Approvals, G B Brain, G T threads &middot; theme flip instant (class A); the toggle knob slides 90ms; nothing else moves at rest.</span>
+  </div>
+
+  <div class="jf-gap"></div>
+
+  <!-- ================================================================
+       FRAME B : WORKSPACE > BRIEF & VOICE, ONE DIRTY FIELD : 12:41pm
+       The J-BRIEF surface. The positioning line was edited at 12:38
+       and is unsaved: the save action (top right of the brief card)
+       is THE one ember locus of this frame. Vellum appears exactly
+       where memory speaks (the LRN-13 tick, the Memory pointer card).
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame B &middot; Workspace: Brief &amp; voice, one line dirty</span>
+    <span class="jf-label-sub">Settings &middot; Helio Labs &middot; Monday Jul 20 &middot; 12:41pm &middot; positioning edited 12:38pm, unsaved &middot; the save is the one ember</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell" style="grid-template-rows: var(--sp-topbar-h) minmax(0, 1fr) auto;">
+
+      <!-- REGION 1: TopBar v2, identical anatomy. Count stays 1. -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+  <defs>
+    <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+    </linearGradient>
+    <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+    </radialGradient>
+  </defs>
+  <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
+</svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: switch workspace or product. The brief is workspace-scoped.">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item" href="#" title="Door: /m, the Relay room">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: /approvals. Still 1: the DEC-19 challenge.">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#" title="Door: /brain, the workspace record">Brain</a>
+          <a class="sp-nav-item is-active" href="#" title="Door: /settings. You are here.">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Door: summons the Ask overlay. Esc dismisses.">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts &middot; ?">?</button>
+          <button class="sp-avatar st-orb" title="Door: the account menu">MO</button>
+        </div>
+      </header>
+
+      <!-- MAIN: same rail, Workspace group active on Brief & voice. -->
+      <div class="sp-main set-main">
+
+        <aside class="sp-thread set-nav">
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">You</div>
+            <div class="set-nav-desc">Your profile, look, and alerts.</div>
+            <a class="set-nav-item" title="Door: /settings?section=profile">Profile</a>
+            <a class="set-nav-item" title="Door: /settings?section=notifications">Notifications</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Workspace</div>
+            <div class="set-nav-desc">What you are building, your brand, and your team.</div>
+            <a class="set-nav-item is-active" title="Door: /settings?section=workspace. This pane; legacy ?section=brief lands here.">Brief &amp; voice</a>
+            <a class="set-nav-item" title="Door: ?section=brand. Previewed at right.">Brand</a>
+            <a class="set-nav-item" title="Door: ?section=products. Previewed at right.">Products</a>
+            <a class="set-nav-item" title="Door: ?section=memory. Previewed at right.">Memory</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Agents</div>
+            <div class="set-nav-desc">Your AI staff: what they may do, on whose approval, and which models.</div>
+            <a class="set-nav-item" title="Door: /settings?section=staff, the roster">Roster</a>
+            <a class="set-nav-item" title="Door: /settings?section=autonomy">Autonomy &amp; approvals</a>
+            <a class="set-nav-item" title="Door: /settings?section=ai">Models &amp; keys</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Connections &amp; Data</div>
+            <div class="set-nav-desc">What flows in, what external agents can read, and what we store.</div>
+            <a class="set-nav-item" title="Door: /settings?section=connections">Sources</a>
+            <a class="set-nav-item" title="Door: /settings?section=sync">Sync &amp; bindings</a>
+            <a class="set-nav-item" title="Door: /settings?section=interop">Agent access</a>
+            <a class="set-nav-item" title="Door: /settings?section=data">Your data</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Plan &amp; Usage</div>
+            <div class="set-nav-desc">Your plan, credits, and whether the agents are healthy.</div>
+            <a class="set-nav-item" title="Door: /settings?section=billing">Plan</a>
+            <a class="set-nav-item" title="Door: /settings?section=credits">Credits</a>
+            <a class="set-nav-item" title="Door: /settings?section=health">Diagnostics</a>
+          </div>
+
+          <div class="set-nav-note">
+            Old links land: <a title="Legacy alias, resolves to the workspace pane">?section=brief</a> opens Brief &amp; voice. Admin console lives under your avatar.
+          </div>
+        </aside>
+
+        <!-- The Brief & voice pane: the J-BRIEF at left, sibling
+             doors previewed at right. -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">Settings</span>
+            <span class="sp-surface-title">Brief &amp; voice</span>
+            <span class="sp-artifact-chip" title="One field is dirty. Saving writes v3; v2 stays on the record.">unsaved &middot; 1 field</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link: /settings?section=workspace">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details">&#8942;</button>
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Version history</button>
+                  <button class="sp-menu-item">Copy link</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="set-body">
+
+              <div class="set-lede">
+                What Helio Labs is building, for whom, and the bets you are riding. Every mission&#8217;s prompt carries this brief; change a line and the next mission reads it.
+              </div>
+              <div class="set-lede-hint">
+                Versions are kept. Edits supersede prior rows, on the record; nothing is overwritten silently.
+              </div>
+
+              <div class="st-cols is-brief">
+
+                <!-- LEFT: the J-BRIEF card. The save is THE ember. -->
+                <div class="st-card">
+                  <div class="st-chiprow">
+                    <span class="sp-kicker" style="white-space:nowrap">The brief</span>
+                    <span class="st-time">v2 &middot; Jul 12 by Mo</span>
+                    <button class="sp-btn sp-btn-accent st-btn-sm" style="margin-left:12px" title="Consequence: writes v3, on the record; the next mission reads it. Enter saves too.">Save the brief &middot; the next mission uses it</button>
+                    <button class="sp-btn sp-btn-ghost st-btn-sm" title="Consequence: the line returns to v2. Nothing is recorded.">Discard</button>
+                  </div>
+
+                  <div class="st-field" style="margin-top:2px">
+                    <div class="st-field-label">Vision <span class="st-count">147 chars</span></div>
+                    <div class="st-input st-area">Support teams should not add headcount to add answer quality. Helio Labs builds the support stack that answers, routes, and learns from every ship.</div>
+                    <div class="st-hint">One paragraph. What this workspace exists to do.</div>
+                  </div>
+
+                  <div class="st-field">
+                    <div class="st-field-label">Target user (ICP) <span class="st-count">145 chars</span></div>
+                    <div class="st-input st-area">Support leads at 20 to 200 person B2B SaaS companies. They own the queue and the tooling budget, ship weekly, and answer for first response time.</div>
+                    <div class="st-hint">Who you are building for. Agents anchor on this.</div>
+                  </div>
+
+                  <div class="st-field is-dirty">
+                    <div class="st-field-label">Positioning line <span class="st-dirty-chip">edited 12:38pm &middot; unsaved</span> <span class="st-count">57 chars</span></div>
+                    <div class="st-input">The support stack that answers itself and shows its work.</div>
+                    <div class="st-supersede">saves as v3 &middot; v2 &#8220;The support stack that closes its own loop.&#8221; stays on the record</div>
+                  </div>
+
+                  <div class="st-field">
+                    <div class="st-field-label">Voice anchor <span class="st-count">89 chars</span></div>
+                    <div class="st-input st-area">Direct, evidence-first, no hype. Challenge weak assumptions. Short declarative sentences.</div>
+                    <div class="st-hint">Tone and stance, injected with the brief into every mission&#8217;s prompt. Leave empty to skip.</div>
+                  </div>
+
+                  <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--ink-hairline)">
+                    <div class="st-field-label" style="margin-bottom:1px">Top bets <span class="st-count">3 riding</span></div>
+                    <div class="st-hint" style="margin:0 0 2px">Edits supersede prior rows, on the record. Each row is a door to its record on the 02 Decide board.</div>
+                    <div class="st-rows">
+                      <div class="st-bet" title="Door: BET-31 on the 02 Decide board, with its watched assumptions">
+                        <div class="st-bet-line"><span class="sp-artifact-chip">BET-31</span><span class="st-bet-text">Shared replies are the wedge: support knowledge belongs to the workspace.</span></div>
+                        <div class="st-bet-sub"><span class="st-watch">3 on watch &middot; 1 confirmed</span><span class="st-vellum-tick" title="Door: LRN-13 in the Brain, written 9:12am: shared replies beat personal 7 to 1">LRN-13</span><span class="st-bet-ver">v3 &middot; edited Jul 12</span></div>
+                      </div>
+                      <div class="st-bet" title="Door: BET-35 on the 02 Decide board. Kept this morning.">
+                        <div class="st-bet-line"><span class="sp-artifact-chip">BET-35</span><span class="st-bet-text">The billing queue triages itself: rules first, model second, a human on the edge cases.</span></div>
+                        <div class="st-bet-sub"><span class="st-watch">2 on watch</span><span class="st-kept">&#10003; kept today</span><span class="st-bet-ver">v1 &middot; added Jul 20</span></div>
+                      </div>
+                      <div class="st-bet" title="Door: BET-22 on the 02 Decide board">
+                        <div class="st-bet-line"><span class="sp-artifact-chip">BET-22</span><span class="st-bet-text">Atlas grows on reliability, not surface: webhooks that never drop beat features nobody trusts.</span></div>
+                        <div class="st-bet-sub"><span class="st-watch">1 on watch</span><span class="st-bet-ver">v2 &middot; edited Jun 30</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="st-foot" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px">
+                    The brief rides in every mission&#8217;s prompt. See it applied: run
+                    <button class="sp-journey-chip st-chip-sm" title="Door: starts J1 in the Relay room; the saved brief rides in the prompt">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
+                  </div>
+                </div>
+
+                <!-- RIGHT: sibling-door previews; each card IS a door. -->
+                <div>
+
+                  <div class="st-card" title="Door: /settings?section=brand">
+                    <div class="st-chiprow">
+                      <span class="sp-kicker">Brand</span>
+                      <span class="st-time">updated Jun 12</span>
+                    </div>
+                    <div class="st-row-body" style="margin:0">The brand kit feeds the Design stage. Design consumes it there; nothing configures design here.</div>
+                    <div style="margin-top:8px">
+                      <div class="st-slot"><span class="st-slot-k">logo</span><span class="sp-mono" style="font-size:11px">helio-mark.svg</span></div>
+                      <div class="st-slot"><span class="st-slot-k">colors</span>
+                        <span class="st-swatch" style="background:#12314e" title="#12314e &middot; deep navy"></span>
+                        <span class="st-swatch" style="background:#f4f1ea" title="#f4f1ea &middot; bone"></span>
+                        <span class="st-swatch" style="background:#3f6f4f" title="#3f6f4f &middot; moss"></span>
+                        <span class="sp-mono" style="font-size:10px;color:var(--ink-faint)">3 locked</span>
+                      </div>
+                      <div class="st-slot"><span class="st-slot-k">type</span><span class="sp-mono" style="font-size:11px">Inter &middot; IBM Plex Mono</span></div>
+                    </div>
+                    <div class="st-foot" style="margin-top:8px">
+                      <a style="color:var(--ink-subtle);border-bottom:1px solid var(--ink-hairline);cursor:pointer" title="Door: the Brand pane: the kit, usage rules, exports">Open Brand</a>
+                      <span style="margin-left:6px">PROTO-12 rendered with this kit Thursday.</span>
+                    </div>
+                  </div>
+
+                  <div class="st-card" title="Door: /settings?section=products">
+                    <div class="st-chiprow">
+                      <span class="sp-kicker">Products</span>
+                      <span class="st-time">4 in the workspace</span>
+                    </div>
+                    <div class="st-rows">
+                      <div class="st-row" style="align-items:center">
+                        <div class="st-row-main">
+                          <div class="st-row-title" style="font-size:12px">Relay</div>
+                          <div class="st-row-sub" style="margin-top:1px">support tooling &middot; mid-loop</div>
+                        </div>
+                        <div class="st-row-right"><span class="st-time" style="margin:0">created Mar 3</span>
+                          <span class="sp-kebab"><button class="sp-icon-btn st-kebab-xs" title="Rename, Archive. Archiving hides it from the switcher; the record stays in the Brain.">&#8942;</button><div class="sp-details-menu"><button class="sp-menu-item">Rename</button><button class="sp-menu-item">Archive</button></div></span>
+                        </div>
+                      </div>
+                      <div class="st-row" style="align-items:center">
+                        <div class="st-row-main">
+                          <div class="st-row-title" style="font-size:12px">Atlas</div>
+                          <div class="st-row-sub" style="margin-top:1px">webhooks &middot; 1.9 live today, 12:15pm</div>
+                        </div>
+                        <div class="st-row-right"><span class="st-time" style="margin:0">created Apr 21</span>
+                          <span class="sp-kebab"><button class="sp-icon-btn st-kebab-xs" title="Rename, Archive (menu anatomy: the Relay row)">&#8942;</button></span>
+                        </div>
+                      </div>
+                      <div class="st-row" style="align-items:center">
+                        <div class="st-row-main">
+                          <div class="st-row-title" style="font-size:12px">Comet</div>
+                          <div class="st-row-sub" style="margin-top:1px">fresh &middot; no missions yet</div>
+                        </div>
+                        <div class="st-row-right"><span class="st-time" style="margin:0">created Jul 8</span>
+                          <span class="sp-kebab"><button class="sp-icon-btn st-kebab-xs" title="Rename, Archive (menu anatomy: the Relay row)">&#8942;</button></span>
+                        </div>
+                      </div>
+                      <div class="st-row" style="align-items:center">
+                        <div class="st-row-main">
+                          <div class="st-row-title" style="font-size:12px">Beacon</div>
+                          <div class="st-row-sub" style="margin-top:1px">imported Jun 27 &middot; from your old tracker</div>
+                        </div>
+                        <div class="st-row-right"><span class="st-time" style="margin:0">imported</span>
+                          <span class="sp-kebab"><button class="sp-icon-btn st-kebab-xs" title="Rename, Archive (menu anatomy: the Relay row)">&#8942;</button></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Memory pointer: the approved relocation. Vellum. -->
+                  <div class="st-card st-vellum" title="Door: /brain. The Memory rail door lands on this pointer pane.">
+                    <div class="st-chiprow">
+                      <span class="sp-memory-chip">Memory</span>
+                      <span class="st-time">moved Jul 19</span>
+                    </div>
+                    <div class="st-row-title" style="font-size:13px">Memory lives in the Brain &#8594;</div>
+                    <div class="st-row-body" style="margin-top:4px">The ledger of what the loop knows: its decisions, its learnings, and the review gate for new memories. One home now; manage it there.</div>
+                    <div class="st-foot" style="margin-top:8px">
+                      <a style="color:var(--ink-subtle);border-bottom:1px solid var(--ink-hairline);cursor:pointer" title="Door: /brain">Open the Brain</a>
+                      <span style="margin-left:6px">The door stays so old bookmarks land somewhere true.</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Working strip: identical to Frame A, one minute later. -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>measure &middot; watching the rollout &middot; 26m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>atlas 1.9 at 100% since 12:15pm &middot; no rollbacks</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary" title="Door: the Relay room's working lanes">1 agent working, 1 waiting on you</span>
+      </div>
+
+    </div>
+
+    <!-- In-frame annotation pins (reviewer chrome; legend below) -->
+    <span class="jf-pin" style="left:830px;top:180px">1</span>
+    <span class="jf-pin" style="left:705px;top:444px">2</span>
+    <span class="jf-pin" style="left:880px;top:690px">3</span>
+    <span class="jf-pin" style="left:1398px;top:452px">4</span>
+    <span class="jf-pin" style="left:1398px;top:678px">5</span>
+  </div>
+
+  <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>The one ember.</b> With a dirty field, the save is the frame&#8217;s single warm point: &#8220;Save the brief &middot; the next mission uses it&#8221; states its consequence in the verb. Discard sits plain beside it. Everything else on this frame is ink, slate, vellum, or dim blue.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>Dirty, honestly.</b> The positioning line carries its slate &#8220;edited 12:38pm &middot; unsaved&#8221; chip, the live char count, and the supersession line in mono: saves as v3, v2 stays on the record. Navigating away keeps the draft; the header chip persists.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>Versioned bets, doored.</b> Each row doors to its BET record on the 02 Decide board; watched-assumption counts come from those records. The Vellum <span class="sp-mono">LRN-13</span> tick is memory speaking (the 9:12am learning confirmed BET-31&#8217;s core assumption); the green tick on BET-35 is a real verdict (kept this morning), never decoration.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>Sibling doors previewed.</b> Brand, Products, and Memory render as one-glance previews so the Workspace group explains itself without four clicks. Brand states the consumption contract (the kit FEEDS the Design stage); Products keeps its kebabs closed; Comet&#8217;s &#8220;fresh &middot; no missions yet&#8221; is the honest empty.</span></span>
+  <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>The approved relocation.</b> The Memory door stays in the rail, but its pane is a pointer: Memory lives in the Brain. The card wears the Vellum hairline + Memory chip pair, the only memory grammar in the product; old bookmarks land somewhere true instead of a dead end.</span></span>
+
+  <div class="jf-note">
+    <span><b>Lineage doors, Frame B</b> &middot; BET-31 / BET-35 / BET-22 open their records on the 02 Decide board &middot; LRN-13 opens the learning in the Brain &middot; the journey chip starts J1 with the brief in the prompt &middot; Brand preview opens ?section=brand &middot; Products opens ?section=products (kebab: Rename, Archive) &middot; the Memory card opens /brain &middot; &#8220;Version history&#8221; in the kebab lists v1, v2, pending v3 &middot; the header&#8217;s unsaved chip and the field&#8217;s dirty chip are one state, one source.</span>
+    <span><b>Keys &amp; motion, Frame B</b> &middot; Enter saves while a field has focus; Esc blurs without discarding &middot; Tab walks Vision &#8594; ICP &#8594; Positioning &#8594; Voice &#8594; bets &middot; the save is optimistic (class A): the verb disables, then the receipt replaces it in place (rail, section 4) &middot; no entrance animation; the pane is already still.</span>
+  </div>
+
+  <div class="jf-gap"></div>
+
+  <!-- ================================================================
+       BEHAVIOR RAIL (brief 6b.3): the state grammar of Settings.
+       The frames above stay believable; every core component's other
+       lives are specified here, card-spec style. Mockup annotation,
+       not product chrome. Specimens repeat the ember save only in
+       isolation; each frame above carries at most one ember.
+       ================================================================ -->
+  <section class="st-rail" aria-label="Behavior rail: component states, keys, motion">
+    <div class="st-rail-head">
+      <span class="st-rail-kicker">Behavior rail &middot; Settings: You + Workspace</span>
+      <span class="st-rail-ref">hover / focus / active / disabled / loading / empty / error / success &middot; motion 5.1 &middot; keys &middot; theme proof</span>
+    </div>
+    <p class="st-rail-sub">
+      What the engineer implements without asking: the field&#8217;s full ring including the refuse-to-lose read failure, the flip-to-write toggle, the one-mechanism segmented control, the rail door and its deep-link contract, the dormant-to-ember save, the dry danger confirm with its honest GAP, and the summoned Ask. Every specimen uses the live tokens: implementable by inspection.
+    </p>
+
+    <!-- 1. The field -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">1 &middot; The field <span class="st-sec-ref">identity + brief fields &middot; fields batch into the save; errors replace hints</span></div>
+      <div class="st-grid">
+        <div class="st-spec">
+          <div class="st-spec-label">rest &middot; hover</div>
+          <div class="st-field">
+            <div class="st-field-label">Display name</div>
+            <div class="st-input">Mo</div>
+            <div class="st-hint">How Supaprod and your agents greet you.</div>
+          </div>
+          <div class="st-spec-note">Hairline border on the raised surface. Hover warms the border one step; no motion.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">focus-visible</div>
+          <div class="st-field">
+            <div class="st-field-label">Display name</div>
+            <div class="st-input st-demo-focus">Mo</div>
+            <div class="st-hint">How Supaprod and your agents greet you.</div>
+          </div>
+          <div class="st-spec-note">A hairline ring with a 2px gap (6d.7): findable, never a shouting box. Identical on every interactive element here; ember rings stay with gate verbs in the room.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">dirty</div>
+          <div class="st-field is-dirty">
+            <div class="st-field-label">Positioning line <span class="st-dirty-chip">unsaved</span> <span class="st-count">57 chars</span></div>
+            <div class="st-input">The support stack that answers itself and shows its work.</div>
+          </div>
+          <div class="st-spec-note">Border strengthens one step, the slate chip names the state, the count goes live, the header mirrors it: one dirty state, one source.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">invalid</div>
+          <div class="st-field is-invalid">
+            <div class="st-field-label">Display name</div>
+            <div class="st-input" style="color:var(--ink-faint)"></div>
+            <div class="st-error">Agents need something to call you.</div>
+          </div>
+          <div class="st-spec-note">Validates on blur, never per keystroke. <span class="sp-mono">role="alert"</span> via <span class="sp-mono">aria-describedby</span>; the border warms to verdict red, the label stays calm; any keystroke clears it.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">loading &middot; shaped like the form</div>
+          <div class="st-skel">
+            <span class="ink-skeleton" style="width:34%"></span>
+            <span class="ink-skeleton" style="width:92%;height:26px"></span>
+            <span class="ink-skeleton" style="width:58%"></span>
+          </div>
+          <div class="st-spec-note">Label, field, hint: shaped like the arriving form. Calm 1.6s opacity breath; static at 0.7 under reduced motion. Never a spinner.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">read failed &middot; refuse-to-lose</div>
+          <div class="sp-card" style="padding:10px 12px">
+            <div class="sp-card-body">Couldn&#8217;t load your profile. Editing is off so a blank save can&#8217;t overwrite the real one.</div>
+            <div class="sp-card-actions" style="margin-top:8px"><button class="sp-btn st-btn-xs">Try again</button></div>
+          </div>
+          <div class="st-spec-note">The route&#8217;s wired contract: a failed read NEVER renders blank editable fields. Plain reason + one recovery verb.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. The toggle -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">2 &middot; The toggle <span class="st-sec-ref">notification rules &middot; writes on flip, never waits for the save</span></div>
+      <div class="st-grid">
+        <div class="st-spec">
+          <div class="st-spec-label">off &middot; on &middot; focus-visible</div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="set-toggle" role="switch" aria-checked="false"></span>
+            <span class="set-toggle is-on" role="switch" aria-checked="true"></span>
+            <span class="set-toggle is-on st-demo-focus" role="switch" aria-checked="true"></span>
+          </div>
+          <div class="st-spec-note">Neutral by design: affordance, not emphasis. The knob slides 90ms (class A); Space flips a focused switch. No green: state is position, legible in grayscale.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">writing &middot; the optimistic second</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="set-toggle is-on is-disabled" role="switch" aria-checked="true"></span>
+            <span class="sp-mono" style="font-size:10px;color:var(--ink-subtle)">writing&hellip;</span>
+          </div>
+          <div class="st-spec-note">Flips immediately, disables for the write so a double-tap cannot race it. No spinner on the control.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">write failed &middot; the revert</div>
+          <div class="sp-receipt-line is-blocked" style="font-size:12px">
+            <span class="sp-receipt-check">&#9675;</span>
+            <span class="sp-receipt-text">Didn&#8217;t save. The switch is back where it was. <span class="sp-receipt-action">Try again</span>.</span>
+          </div>
+          <div class="st-spec-note">The switch reverts visibly and the receipt says so under the row. No toast theater; the row is the truth.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">success &middot; the receipt</div>
+          <div class="sp-receipt-line" style="font-size:12px">
+            <span class="sp-receipt-check">&#10003;</span>
+            <span class="sp-receipt-text">Saved. Gate emails now send within a minute.</span>
+          </div>
+          <div class="st-spec-note">Past-tense proof naming the consequence, not &#8220;Success!&#8221;. Renders under the row for 4s, then settles into the sub-line.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">the honest constant</div>
+          <div class="st-row" style="border-top:none;padding:0">
+            <div class="st-row-main">
+              <div class="st-row-title" style="font-size:12px">In-app gate alerts</div>
+              <div class="st-row-sub">Always on. Not a control: the Approvals count is the product&#8217;s one pull point.</div>
+            </div>
+          </div>
+          <div class="st-spec-note">Where there is no choice, no control is drawn. A disabled toggle would promise a choice; the sentence tells the truth.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">empty &middot; nothing configured</div>
+          <div class="sp-warm-slot" style="padding:14px 12px">
+            <div class="sp-warm-slot-line" style="font-size:12px">All email is off. The product still shows everything; your inbox just stays quiet.</div>
+          </div>
+          <div class="st-spec-note">All-off is a valid choice, stated warmly, never a nag. No re-enable upsell.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Segmented control + the rail door -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">3 &middot; Segmented control &amp; the rail door <span class="st-sec-ref">one mechanism with the account menu &middot; the deep-link contract</span></div>
+      <div class="st-grid">
+        <div class="st-spec">
+          <div class="st-spec-label">segmented: rest &middot; hover &middot; focus</div>
+          <div class="st-seg">
+            <button class="is-on" aria-pressed="true">Dark</button>
+            <button class="st-demo-hover" aria-pressed="false">Auto</button>
+            <button class="st-demo-focus" aria-pressed="false">Light</button>
+          </div>
+          <div class="st-spec-note">Active = raised fill + text ink, exactly the account menu&#8217;s control: one preference, two anchors, zero drift. The flip is instant; reduced motion changes nothing because nothing moves.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">rail door: rest &middot; hover &middot; active &middot; focus</div>
+          <div style="display:flex;flex-direction:column;gap:2px;max-width:200px">
+            <a class="set-nav-item">Brand</a>
+            <a class="set-nav-item" style="color:var(--ink-body);background:var(--ink-raised)">Products</a>
+            <a class="set-nav-item is-active">Brief &amp; voice</a>
+            <a class="set-nav-item st-demo-focus">Memory</a>
+          </div>
+          <div class="st-spec-note">26px doors; hover and active share the raised fill, active adds text ink. &#8593;/&#8595; walks, Enter opens; the URL is the state: <span class="sp-mono">?section=</span> ids.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">the deep-link contract</div>
+          <div class="sp-doc-block" style="font-family:var(--font-mono);font-size:10.5px;line-height:1.8">
+            ?section=brief &#8594; workspace<br />
+            ?section=plan &#8594; billing<br />
+            ?section=you &#8594; profile<br />
+            ?section=agents &#8594; staff<br />
+            unknown &#8594; profile (the default)
+          </div>
+          <div class="st-spec-note">Legacy aliases resolve, group ids land on their first door, nothing 404s inside Settings. The in-frame rail note says this in plain words.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. The save: dormant to ember -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">4 &middot; The save: dormant to ember and back <span class="st-sec-ref">the one-ember rule under edit &middot; specimens isolated here</span></div>
+      <div class="st-grid">
+        <div class="st-spec">
+          <div class="st-spec-label">dormant &middot; nothing dirty</div>
+          <div class="st-savebar" style="margin-top:0">
+            <button class="sp-btn is-disabled" aria-disabled="true">Save changes</button>
+            <span class="st-savebar-note">everything saved</span>
+          </div>
+          <div class="st-spec-note">Frame A&#8217;s state: disabled ink, stated in mono. A dormant save never wears ember; the frame carries zero.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">dirty &middot; the ember returns</div>
+          <div class="st-savebar" style="margin-top:0">
+            <button class="sp-btn sp-btn-accent st-btn-sm">Save the brief &middot; the next mission uses it</button>
+            <span class="st-savebar-note">1 field &middot; saves as v3</span>
+          </div>
+          <div class="st-spec-note">The verb names the consequence, the mono names the version. Enter saves from any focused field.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">saving &middot; the second in between</div>
+          <div class="st-savebar" style="margin-top:0">
+            <button class="sp-btn sp-btn-accent is-disabled st-btn-sm">Saving&hellip;</button>
+            <span class="st-savebar-note">writing v3</span>
+          </div>
+          <div class="st-spec-note">Optimistic: dirty chips clear immediately; both verbs disable so a double-click cannot write twice.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">saved &middot; the receipt</div>
+          <div class="sp-receipt-line" style="font-size:12px">
+            <span class="sp-receipt-check">&#10003;</span>
+            <span class="sp-receipt-text">Saved. <span class="sp-mono">v3</span> is on the record; the next mission reads it.</span>
+          </div>
+          <div class="st-spec-note">Replaces the save bar for 4s, then the bar returns dormant. The header flips to <span class="sp-mono">v3 &middot; saved 12:41pm</span>.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">save failed &middot; the recovery</div>
+          <div class="sp-receipt-line is-blocked" style="font-size:12px">
+            <span class="sp-receipt-check">&#9675;</span>
+            <span class="sp-receipt-text">Didn&#8217;t save. Your edit is kept locally. <span class="sp-receipt-action">Try again</span>.</span>
+          </div>
+          <div class="st-spec-note">The draft survives the failure and the retry; no re-typing, no silent loss.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">leaving dirty &middot; refuse-to-lose</div>
+          <div class="sp-card" style="padding:10px 12px">
+            <div class="sp-card-body">You have an unsaved line. It stays as a local draft and the header keeps its chip until you save or discard.</div>
+          </div>
+          <div class="st-spec-note">No blocking dialog on navigation. The draft is durable; the dirty chip is the reminder.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. The danger confirm + the Ask summon -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">5 &middot; The dry danger confirm &amp; the summoned Ask <span class="st-sec-ref">danger disclosed at the moment of need &middot; 6c.4b summon</span></div>
+      <div class="st-grid">
+        <div class="st-spec">
+          <div class="st-spec-label">danger: rest</div>
+          <div class="st-danger" style="border-top:none;padding-top:0;margin-top:0">
+            <a class="st-danger-link">Delete your account</a>
+            <span class="st-danger-sub">Erases your sign-in and profile.</span>
+          </div>
+          <div class="st-spec-note">A quiet text row, not a red button. Red is spent only once the consequence is armed.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">danger: the dry confirm, open</div>
+          <div>
+            <div class="st-row-body" style="margin:0 0 6px">Type <span class="sp-mono">mo@heliolabs.dev</span> to confirm. Helio Labs and its record stay with the workspace.</div>
+            <div class="st-input is-mono" style="color:var(--ink-faint)">mo@heliol</div>
+            <div class="st-savebar" style="margin-top:8px">
+              <button class="sp-btn sp-btn-destructive is-disabled" aria-disabled="true">Delete my account</button>
+              <button class="sp-btn sp-btn-ghost st-btn-sm">Keep it</button>
+            </div>
+          </div>
+          <div class="st-spec-note">Inline, never a modal. The destructive verb stays disabled until the email matches; Esc or Keep it closes with nothing armed.</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">danger: the honest GAP</div>
+          <div class="sp-card" style="padding:10px 12px">
+            <div class="sp-card-body">No delete endpoint exists yet. Today the confirm ends in a signed deletion request, stated on the button itself. Never a dead control.</div>
+          </div>
+          <div class="st-spec-note">Claim never outruns wiring: the UI says what happens today; the copy flips to the real verb when the endpoint lands.</div>
+        </div>
+        <div class="st-spec" style="grid-column: span 2">
+          <div class="st-spec-label">ask, summoned &middot; the end frame</div>
+          <div class="st-summon">
+            <div class="st-summon-input">Ask anything, or name the work. The room can run it from here.</div>
+            <div class="st-summon-row">
+              <button class="sp-journey-chip st-chip-sm">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
+              <button class="sp-journey-chip st-chip-sm">How did Atlas 1.9 land? <span class="sp-chip-arrow">&#8594;</span></button>
+              <span style="margin-left:auto" class="sp-kbd">Esc</span>
+            </div>
+          </div>
+          <div class="st-spec-note"><span class="sp-mono">&#8984;J</span> (or the TopBar Ask) drops this overlay from the TopBar edge: 120ms translate + fade (class A), scrim at 40%. It is the SAME composer the room docks: same placeholder grammar, same journey chips, contextual to the surface. Esc dismisses; focus returns to the element that had it. Settings, Library, Threads, and the Engine room never dock it: speaking is not primary there (6c.4b).</div>
+        </div>
+        <div class="st-spec">
+          <div class="st-spec-label">theme proof &middot; same DOM, tokens flipped</div>
+          <div class="st-light-band">
+            <div class="st-light-inner" data-theme="light">
+              <div class="st-field">
+                <div class="st-field-label">Display name</div>
+                <div class="st-input">Mo</div>
+                <div class="st-hint">How your agents greet you.</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding-top:18px">
+                <span class="set-toggle is-on" role="switch" aria-checked="true"></span>
+                <span class="st-dirty-chip">unsaved</span>
+              </div>
+              <div class="st-savebar" style="margin-top:14px">
+                <button class="sp-btn sp-btn-accent st-btn-sm">Save the brief</button>
+              </div>
+            </div>
+          </div>
+          <div class="st-spec-note">Light is a token flip, never a redesign: hairlines, slate chips, orbs, and the ember verb resolve from the same variables.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motion budget + keys -->
+    <div class="st-rail-sec">
+      <div class="st-rail-sec-title">6 &middot; Motion &amp; keys <span class="st-sec-ref">budget table 5.1 &middot; Settings spends no class C anywhere</span></div>
+      <div class="st-mk">
+        <div>
+          <div class="st-col-caption">Motion on this screen</div>
+          <div class="st-motion-row">
+            <span class="st-motion-name">Doors, buttons, chips</span>
+            <span class="st-motion-budget">A &middot; 0&ndash;120ms</span>
+            <span>Background steps on hover, nothing else. A click never waits for an entrance; state is optimistic.</span>
+          </div>
+          <div class="st-motion-row">
+            <span class="st-motion-name">Toggle knob</span>
+            <span class="st-motion-budget">A &middot; 90ms</span>
+            <span>Transform only. The write is optimistic; failure reverts the knob with the same 90ms.</span>
+          </div>
+          <div class="st-motion-row">
+            <span class="st-motion-name">Ask summon</span>
+            <span class="st-motion-budget">A &middot; 120ms</span>
+            <span>Translate + fade from the TopBar edge, --ink-ease. Esc reverses; reduced motion renders it in place, already open.</span>
+          </div>
+          <div class="st-motion-row">
+            <span class="st-motion-name">Theme flip</span>
+            <span class="st-motion-budget">none &middot; 0ms</span>
+            <span>Instant token swap. Transition theater on a theme change reads as lag; there is none.</span>
+          </div>
+          <div class="st-motion-row">
+            <span class="st-motion-name">Save receipt</span>
+            <span class="st-motion-budget">B &middot; 150ms</span>
+            <span>Fades in where the save bar was, holds 4s, returns. The only class B here; no class C exists in Settings.</span>
+          </div>
+        </div>
+        <div>
+          <div class="st-col-caption">Keys on this screen</div>
+          <div class="st-key-row"><span class="sp-kbd">&#8984;J</span><span class="st-key-desc">summon Ask (the TopBar button is the same door)</span></div>
+          <div class="st-key-row"><span class="sp-kbd">&#8593;</span><span class="sp-kbd">&#8595;</span><span class="st-key-desc">walk the rail</span><span style="width:6px"></span><span class="sp-kbd">&#9166;</span><span class="st-key-desc">open the door / save from a focused field</span></div>
+          <div class="st-key-row"><span class="sp-kbd">Space</span><span class="st-key-desc">flip a focused toggle or segmented option</span></div>
+          <div class="st-key-row"><span class="sp-kbd">Esc</span><span class="st-key-desc">dismiss the summon; blur a field without discarding; close the dry confirm</span></div>
+          <div class="st-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">A</span><span class="st-key-desc">Approvals</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">B</span><span class="st-key-desc">Brain</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">T</span><span class="st-key-desc">past threads</span></div>
+          <div class="st-key-row"><span class="sp-kbd">?</span><span class="st-key-desc">the context-filtered shortcut map</span></div>
+          <div class="st-col-caption" style="margin-top:14px">Tooltips</div>
+          <div class="st-key-row"><span class="st-key-desc" style="color:var(--ink-faint)">400ms dwell on hover, instant on keyboard focus; mono, below the element. Every door names its destination and consequence, exactly as the frames&#8217; title annotations.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

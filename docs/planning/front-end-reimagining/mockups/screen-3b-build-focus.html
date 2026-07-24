@@ -1,0 +1,3196 @@
+<!--
+  SCREEN 3B: Build, the board + the focus state
+
+  THE MOMENT: Monday July 20, 11:45am, room Relay. The workspace is
+  genuinely parallel: Engineer resumed guest checkout at 11:36 with
+  Review's Wednesday notes, a second Engineer run writes tests for
+  the saved-replies polish born from LRN-13, Review reads Comet's
+  pricing diff, the rate-limit fix merged at 10:12, and Atlas REL-20
+  sits staged at 10% since 11:40, CI green, waiting on the promote.
+  Frame A is the Build face as a state-column board (the approved
+  Conductor grammar). Two minutes later the user opens the
+  guest-checkout card; Frame B is the deep-work focus state. This
+  file DEFINES the focus-collapse pattern (brief section 6).
+
+  STATE SHOWN: Frame A (11:45am) = active: the board, 1 needs you,
+  2 working, 1 in review, 1 done today; docked composer quiet.
+  Frame B (11:47am) = focus: collapsed panes, no docked composer,
+  the gate object not yet live.
+
+  TIMELINE RESOLUTION (spec conflict, resolved per brief section 4):
+  the older per-screen spec placed the board on Wednesday 11:35am,
+  but its Needs-you column cites the Atlas promote gate, which is
+  Monday canon (11:40 staged; 11:52 approved). Both frames sit
+  Monday Jul 20 (11:45am / 11:47am), inside the open gate window.
+  Wednesday survives only as honest history: Review's Wednesday
+  4:40pm notes drive today's resume, and Wednesday's one failing
+  test (the guest receipt email) is the line that goes green in
+  Frame B's terminal. Approvals = 2 in both frames: the Atlas promote
+  gate + the DEC-19 challenge (born 9:12am, still open).
+
+  FUNCTIONAL CONTRACT:
+    Primary question: A: what is building, and what needs me?
+      B: is this change right, and when can I merge?
+    Primary action(s): A: promote Atlas (the gate), or open a build
+      into deep work. B: keep / send back hunks; Approve and merge
+      arrives only when CI finishes.
+    Lineage in/out: in: SPEC-47 (03 Plan), PROTO-12 (04 Design),
+      LRN-13 (Brain), REL-20 (06 Ship). Out: PR #222 toward 06 Ship;
+      the promote releases Announce's launch kit; the merged fix
+      offers "Ship it". Every chip doors somewhere, annotated.
+    Agents & attribution: Engineer (two runs), Review, Chief of
+      Staff, Announce (queued on the promote), Memory (the June
+      adapter call, Vellum). Mono chips; survives grayscale.
+    Focus/collapse (defined here): Thread to a 48px rail (back glyph
+      + unread tick, day-timestamp dots); Spine to the 18px slim
+      strip; Canvas takes the width; the Working strip NEVER
+      collapses; Escape or the rail restores.
+    Empty/loading/blocked: behavior rail; Working's empty line is
+      faces.tsx's emptyLine verbatim; the five-slot cap renders a
+      queued card; blocked = "GitHub token expired. Reconnect."
+
+  DATA HONESTY (no invented states): Needs you = pending_approvals
+  > 0. Working = agent_runs.status running. In review = changeset
+  pr_open. Done today = changeset merged today. Card facts are
+  BuildSession fields (branch, file_count, pr_number, the diff stat
+  from changes[], ci.checks): nothing here exists outside faces.tsx
+  + BuildMissionRow.tsx data.
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. The Conductor grammar: four state columns from run + changeset
+     + gate state. Calm command of a parallel workspace, not Jira?
+  2. One ember per frame, tested hard: A carries the promote card;
+     B deliberately carries NO live ember (Approve and merge dim
+     until CI green). Is affordance without emphasis legible?
+  3. The focus-collapse pattern: 48px rail with unread tick and day
+     dots, 18px spine, the strip persisting. Lossless re-entry?
+  4. Machine truth at two scales: A's one live pulse against three
+     strip verbs; B's caret as the only full hue. And continuity:
+     Wednesday's failing receipt-email test is Monday's green
+     terminal line. Parallel, honest, remembering?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #1 the column names teach the operating model in 10 seconds
+  #2 journey-first: slice caps; every column ends in a forward door
+  #4 the machine's work always visible (board, strip, diff, terminal)
+  #5 costs quiet (Details behind the closed kebab holds cost+driver)
+  #7 native Build: branches, checks, sandbox, PRs inside Supaprod
+  #11 delight inside enterprise texture (deck verbs, dry receipts)
+  #13 one primary action per frame; Approvals the single pull point
+
+  RESTRAINT NOTE: no drag on the board (columns are states; cards
+  move when data moves); no percentage progress; changed-lines bars,
+  not a chart; no confetti on done; zero Pixel; no starfield; the
+  terminal stays dark in both themes (a material choice); the merge
+  verb is never faked live.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : 05 Build : the board + the focus state</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==================================================================
+   SCREEN 3B: Build, the board + the focus state
+   Frame A = the state-column board (Conductor grammar), Mon 11:45am.
+   Frame B = the deep-work focus state (the canonical collapsed-pane
+   exhibit, brief section 6), Mon 11:47am.
+   ================================================================== */
+
+/* Screen-5's labeled-frames scaffold. */
+.bf-page { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0 48px; }
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.jf-frame-label .jf-label-sub { text-transform: none; letter-spacing: 0.02em; color: var(--ink-faint); }
+.bf-doors {
+  width: var(--sp-frame-w);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  color: var(--ink-faint);
+  margin-bottom: 26px;
+}
+.bf-doors b { font-weight: 400; color: var(--ink-subtle); }
+
+/* ---- Frame A: the board ------------------------------------------- */
+
+.bf-prod-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--chip-dim);
+  background: var(--chip-faint);
+  border: 1px solid var(--chip-border);
+  white-space: nowrap;
+  flex: none;
+}
+.bf-board-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--sp-4) var(--sp-5) 0; }
+.bf-board { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); align-items: start; }
+.bf-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bf-col-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 2px 6px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.bf-col-count { margin-left: auto; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.bf-card {
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 10px 12px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  cursor: pointer;
+  transition: background var(--ink-fast) var(--ink-ease),
+    border-color var(--ink-fast) var(--ink-ease);
+}
+.bf-card:hover { background: var(--ink-raised); border-color: var(--ink-hairline); }
+.bf-card.is-gate { background: var(--voice-human-faint); border-color: var(--voice-human-border); cursor: default; }
+.bf-card-title { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--ink-text); }
+.bf-card-verb { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-subtle); }
+.bf-card-verb.is-live { color: var(--voice-machine-dim); }
+.bf-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--voice-machine); flex: none; }
+.bf-quiet-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); flex: none; }
+.bf-card-facts {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.bf-card-facts .bf-branch { color: var(--ink-subtle); }
+.bf-add { color: var(--verdict-pass); }
+.bf-del { color: var(--verdict-fail); }
+.bf-card-evidence { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.bf-flag-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--chip-dim);
+  background: var(--chip-soft);
+  border: 1px solid var(--chip-border);
+  white-space: nowrap;
+}
+.bf-gate-reco { font-size: 12px; line-height: 1.5; color: var(--ink-body); }
+.bf-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.bf-card-actions .sp-btn { height: 26px; padding: 0 10px; font-size: 11.5px; }
+.bf-receipt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.bf-receipt-chip .bf-check { color: var(--verdict-pass); font-size: 9px; }
+/* Done cards: the forward door, small and quiet. */
+.bf-card .sp-journey-chip { height: 22px; padding: 0 9px; font-size: 11px; }
+
+/* Face footer: receipt left, the honest cap right. */
+.bf-footer-row { display: flex; align-items: center; gap: 16px; }
+.bf-footer-row .sp-receipt-line { flex: 1; min-width: 0; }
+.bf-cap-note { font-size: 12px; color: var(--ink-subtle); white-space: nowrap; }
+.bf-cap-count { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.bf-composer-quiet { padding: 10px var(--sp-5) 12px; }
+.bf-quiet-box { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; }
+.bf-quiet-box .sp-composer-input { flex: 1; min-width: 0; }
+.bf-quiet-box .sp-journey-chip { flex: none; }
+
+/* ---- Frame B: the deep-work focus state ---------------------------
+   THIS BLOCK DEFINES THE FOCUS-COLLAPSE PATTERN (brief section 6).
+   Other Round-3 screens reuse these class names as-is. */
+
+/* The collapsed Thread: 48px. Top: back glyph + unread tick.
+   Bottom: the day's timestamps as dots. The whole rail is one door:
+   click (or Escape) restores. */
+.sp-thread-rail {
+  width: 48px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 14px;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  cursor: pointer;
+}
+.sp-thread-rail:hover { background: var(--ink-panel); }
+.sp-rail-back {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid var(--ink-hairline);
+  background: transparent;
+  color: var(--ink-body);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sp-rail-tick {
+  position: absolute;
+  top: -7px;
+  right: -8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--chip-fg);
+  background: var(--chip-soft);
+  border: 1px solid var(--chip-border);
+  font-variant-numeric: tabular-nums;
+}
+.sp-rail-dots { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 9px; }
+.sp-rail-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint); }
+.sp-rail-dot.is-unread { background: var(--chip-fg); }
+.sp-rail-dot.is-live { background: var(--voice-machine-dim); }
+
+/* The collapsed Spine: 18px, seven dots + the active label. The
+   working dot rides DIM: the caret owns the live hue in focus. */
+.sp-spine-strip.is-slim { display: flex; align-items: center; gap: 10px; height: 26px; padding: 0 var(--sp-5); }
+.sp-slim-dots { display: flex; align-items: center; gap: 10px; }
+.sp-slim-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-faint); cursor: pointer; }
+.sp-slim-dot.is-done { background: var(--ink-subtle); }
+.sp-slim-dot.is-active { width: 6px; height: 6px; background: var(--voice-machine-dim); }
+.sp-slim-label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--voice-machine-dim); white-space: nowrap; }
+.sp-slim-note { margin-left: auto; font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; }
+
+/* Focus main: the rail + the full-width canvas. */
+.bf-main-focus { grid-template-columns: 48px minmax(0, 1fr); }
+.bf-focus-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3) var(--sp-5) 0; }
+.bf-focus-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: var(--sp-3); }
+.bf-left { display: flex; flex-direction: column; gap: var(--sp-3); min-height: 0; }
+.bf-panel { background: var(--ink-bg); border: 1px solid var(--ink-hairline-soft); border-radius: var(--ink-radius-control); }
+.bf-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.bf-panel-head .bf-head-count {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.bf-file-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 66px;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+  cursor: pointer;
+}
+.bf-file-row:hover { background: var(--ink-raised); }
+.bf-file-row.is-open { background: var(--ink-raised); color: var(--ink-text); }
+.bf-file-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bf-file-dir { color: var(--ink-faint); }
+.bf-file-bar { height: 3px; border-radius: 2px; background: var(--ink-raised); position: relative; overflow: hidden; }
+.bf-file-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 2px; background: var(--voice-machine-dim); }
+.bf-file-counts { display: flex; gap: 6px; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.bf-files-total {
+  padding: 6px 11px 8px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.bf-note-row { display: flex; gap: 8px; padding: 5px 11px; font-size: 11.5px; line-height: 1.45; color: var(--ink-body); }
+.bf-note-row:last-child { padding-bottom: 9px; }
+.bf-note-glyph { flex: none; font-size: 10px; color: var(--verdict-pass); padding-top: 1px; }
+.bf-note-row.is-open { color: var(--ink-subtle); }
+.bf-note-row.is-open .bf-note-glyph { color: var(--voice-machine-dim); font-size: 8px; }
+.bf-note-time {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The work column: diff, checks, terminal. */
+.bf-work { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; min-height: 0; }
+.bf-diff-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-text);
+  border-bottom: 1px solid var(--ink-hairline-soft);
+}
+.bf-diff-file .bf-caret-glyph { color: var(--ink-faint); font-size: 9px; }
+.bf-diff-file.is-collapsed {
+  color: var(--ink-subtle);
+  border-bottom: none;
+  border-top: 1px solid var(--ink-hairline-soft);
+  cursor: pointer;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.bf-diff-file.is-collapsed:hover { background: var(--ink-raised); }
+.bf-diff-file .bf-file-counts { margin-left: auto; }
+.bf-hunk-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.bf-hunk-tools { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.bf-hunk-btn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  background: transparent;
+  color: var(--ink-subtle);
+  font-size: 10px;
+  cursor: pointer;
+}
+.bf-hunk-btn:hover { background: var(--ink-raised); color: var(--ink-text); }
+.bf-diff-body { font-family: var(--font-mono); font-size: 11px; line-height: 1.55; padding: 1px 0 6px; overflow-x: auto; }
+.bf-dline { display: flex; white-space: pre; padding: 0 12px; color: var(--ink-body); }
+.bf-dline .bf-gutter { width: 16px; flex: none; color: var(--ink-faint); user-select: none; }
+.bf-dline.is-add { background: rgba(74, 194, 107, 0.07); color: var(--ink-text); }
+.bf-dline.is-add .bf-gutter { color: var(--verdict-pass); }
+.bf-dline.is-del { background: rgba(229, 83, 75, 0.06); color: var(--ink-subtle); }
+.bf-dline.is-del .bf-gutter { color: var(--verdict-fail); }
+
+.bf-checks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  padding: 0 2px;
+}
+.bf-check { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.bf-check .bf-check-glyph { font-size: 10px; }
+.bf-check.is-pass .bf-check-glyph { color: var(--verdict-pass); }
+.bf-check.is-running { color: var(--voice-machine-dim); }
+.bf-check.is-running .bf-check-glyph { font-size: 8px; }
+.bf-check-more { color: var(--ink-faint); cursor: pointer; border-bottom: 1px solid var(--ink-hairline); }
+.bf-ci-sum { margin-left: auto; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* The terminal is a MATERIAL: dark in both themes, fixed text
+   colors, sandbox badge. The caret = Frame B's machine locus. */
+.bf-term { background: #08090a; border: 1px solid var(--ink-hairline-soft); border-radius: var(--ink-radius-control); flex: none; }
+.bf-term-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: #a6adb8;
+}
+.bf-sandbox-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #8b929c;
+  cursor: default;
+}
+.bf-term-time { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: #676d76; font-variant-numeric: tabular-nums; }
+.bf-term-body { padding: 6px 12px 8px; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: #8b929c; overflow-x: auto; }
+.bf-tline { white-space: pre; }
+.bf-tline .bf-t-pass { color: var(--verdict-pass); }
+.bf-tline .bf-t-ms { color: #676d76; }
+.bf-tline.is-streaming { color: #c6ccd4; }
+
+.bf-runline {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-bg);
+  padding: 9px 6px 10px;
+}
+.bf-run-step { flex: 1; min-width: 0; padding: 0 10px; border-left: 1px solid var(--ink-hairline-soft); }
+.bf-run-step:first-child { border-left: none; }
+.bf-run-time { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.bf-run-text { margin-top: 2px; font-size: 11px; line-height: 1.4; color: var(--ink-subtle); }
+.bf-run-step.is-now .bf-run-time,
+.bf-run-step.is-now .bf-run-text {
+  color: var(--voice-machine-dim);
+}
+.bf-mem-tick {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  border-radius: 3px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid var(--voice-memory-border);
+  margin-left: 5px;
+}
+
+.bf-approve-dim {
+  background: transparent;
+  border: 1px solid var(--voice-human-border);
+  color: var(--voice-human-dim);
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+.bf-footer-note { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
+
+.bf-head-facts {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.bf-head-facts .bf-branch { color: var(--ink-subtle); }
+
+/* ---- The behavior rail (brief 6b.3) ------------------------------- */
+
+.bf-rail {
+  width: var(--sp-frame-w);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  background: var(--ink-bg);
+  padding: 22px 26px 26px;
+}
+.bf-rail-head { display: flex; align-items: baseline; gap: 12px; }
+.bf-rail-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-subtle); }
+.bf-rail-ref { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); }
+.bf-rail-sub { margin-top: 6px; font-size: 12.5px; line-height: 1.55; color: var(--ink-subtle); max-width: 940px; }
+.bf-rail-sec { margin-top: 20px; }
+.bf-rail-sec-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 10px;
+}
+.bf-rail-sec-title .bf-sec-ref { text-transform: none; letter-spacing: 0.02em; color: var(--ink-faint); }
+.bf-rail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.bf-rail-cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--sp-8); align-items: start; }
+.bf-spec {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-panel);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.bf-spec-stage { flex: 1; min-width: 0; }
+.bf-spec-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--ink-body); }
+.bf-spec-note { font-size: 11.5px; line-height: 1.5; color: var(--ink-subtle); }
+/* State demos mimic the live tokens exactly. */
+.bf-demo-hover { background: var(--ink-raised) !important; border-color: var(--ink-hairline) !important; }
+/* Focus-visible, 6d.7: a 1px ring at a 2px gap, never a box. */
+.bf-demo-focus { outline: none; box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 3px var(--ink-focus-ring); }
+.bf-demo-disabled { opacity: 0.45; pointer-events: none; }
+.bf-demo-tip {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  font-size: 11px;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.bf-reject-ask {
+  margin-top: 8px;
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.bf-skel { display: flex; flex-direction: column; gap: 8px; }
+.bf-skel .ink-skeleton { height: 10px; }
+.bf-motion-row {
+  display: grid;
+  grid-template-columns: 158px 122px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 2px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+.bf-motion-row:first-of-type { border-top: none; }
+.bf-motion-name { font-size: 12px; font-weight: 500; color: var(--ink-text); }
+.bf-motion-budget {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bf-key-row { display: flex; align-items: center; gap: 9px; padding: 4px 0; font-size: 12px; color: var(--ink-body); }
+.bf-key-row .bf-key-desc { color: var(--ink-subtle); }
+/* Mini anatomy diagrams (the collapse pattern). */
+.bf-anat { display: flex; gap: 12px; align-items: stretch; }
+.bf-anat-callout { font-family: var(--font-mono); font-size: 9.5px; line-height: 1.6; color: var(--ink-faint); }
+.bf-anat-callout b { font-weight: 400; color: var(--ink-subtle); }
+.bf-anat .sp-thread-rail { height: 196px; border: 1px solid var(--ink-hairline); border-radius: var(--ink-radius-control); cursor: default; }
+</style>
+</head>
+<body>
+
+<div class="bf-page">
+
+  <!-- ================================================================
+       FRAME A : THE BOARD : Monday Jul 20, 11:45am
+       THE ember locus: the Atlas promote card (one object with the
+       Approvals count). THE machine locus: the guest-checkout card's
+       live dot (node 05 + the strip's first verb, the same work).
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame A &middot; the board</span>
+    <span class="jf-label-sub">05 Build &middot; Relay room, all products &middot; Monday Jul 20 &middot; 11:45am &middot; 2 running, 1 in review, 1 waiting on you, 1 merged</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell">
+
+      <!-- REGION 1: TopBar v2. Approvals (2) = the Atlas promote gate
+           + the DEC-19 challenge (born 9:12am, still open at 11:45).
+           one object with the board's Needs-you card. Ask carries
+           its summon key here too: constancy (6c.4c). -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
+          </svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: the workspace's products. Switching changes the room.">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item is-active" href="#" title="You are here: the room.">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: the Approvals tray (G A). 2 open: the Atlas promote gate + the DEC-19 challenge.">Approvals <span class="sp-tray-count">2</span></a>
+          <a class="sp-nav-item" href="#" title="Door: the Brain (G B)">Brain</a>
+          <a class="sp-nav-item" href="#" title="Door: Settings">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Focuses the docked composer below: one input, never two boxes.">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts">?</button>
+          <button class="sp-avatar" title="Account">MO</button>
+        </div>
+      </header>
+
+      <!-- REGION 2: Spine. The slice: an approved spec in, a merged
+           change out. Node 05, the board's live dot, and the strip's
+           first verb are ONE work item. The Atlas gate rides its
+           lane ember-dim; the full ember is the board card. -->
+      <div class="sp-spine-strip">
+        <div class="sp-spine">
+          <span class="sp-spine-cap">Starts from: an approved spec</span>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Not in this journey. Door: 01 evidence face.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">01</span>
+            <span class="sp-spine-node-label">Discover</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Not in this journey. Door: 02 Decide.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">02</span>
+            <span class="sp-spine-node-label">Decide</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done" title="Door: the spec, 03 Plan face">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">03</span>
+            <span class="sp-spine-node-label">Plan</span>
+            <span class="sp-artifact-chip" title="Door: opens SPEC-47 on the 03 Plan face">SPEC-47</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done" title="Door: the prototype, 04 Design face">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">04</span>
+            <span class="sp-spine-node-label">Design</span>
+            <span class="sp-artifact-chip" title="Door: opens PROTO-12 on the 04 Design face">PROTO-12</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <!-- 05: full hue by is-working, same work as the board's
+               live dot; the PULSE rides the card alone (one per frame). -->
+          <div class="sp-spine-node is-working" title="This face. Hover shows the current verb.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">05</span>
+            <span class="sp-spine-node-label">Build</span>
+            <span class="sp-spine-node-state">covering the resend path</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Queued: opens on merge. Door: 06 Ship face.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">06</span>
+            <span class="sp-spine-node-label">Ship</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Queued: reads after launch. Door: 07 Learn.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">07</span>
+            <span class="sp-spine-node-label">Learn</span>
+          </div>
+
+          <span class="sp-spine-edge"></span>
+          <span class="sp-spine-cap">Ends with: a merged change</span>
+        </div>
+
+        <div class="sp-spine-return">
+          <span class="sp-spine-return-label">what Learn records feeds the next loop</span>
+        </div>
+
+        <!-- Concurrent journeys: the lanes and the board are the SAME
+             missions; the board is the Build face's rendering of them.
+             Clicking a lane swaps the Canvas focus. -->
+        <div class="sp-spine-lanes">
+          <span class="sp-lane is-focused" title="This lane owns the Canvas."><span class="sp-lane-dot is-machine"></span>Relay &middot; guest checkout &middot; at 05 Build</span>
+          <span class="sp-lane" title="Door: focuses this build on the board."><span class="sp-lane-dot is-machine"></span>Relay &middot; saved replies polish &middot; at 05 Build</span>
+          <span class="sp-lane" title="Door: the review card; the diff is one click deeper."><span class="sp-lane-dot"></span>Comet &middot; pricing page copy &middot; in review</span>
+          <span class="sp-lane" title="Door: the promote gate (same object as the count)."><span class="sp-lane-dot is-gate"></span>Atlas &middot; webhook retries &middot; at 06 Ship &middot; your move</span>
+        </div>
+      </div>
+
+      <!-- REGION 3 + 4: Thread (narrating the working mission) +
+           Canvas (the board). -->
+      <div class="sp-main">
+
+        <!-- REGION 3: Thread. Monday's build story: the merge
+             receipt, the resume with Review's notes, the human's one
+             steer, the tests receipt, the pulse in dim tier. -->
+        <aside class="sp-thread">
+          <div class="sp-thread-scroll">
+
+            <div class="sp-day-divider">Monday, July 20</div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Engineer</span>
+                <span class="sp-thread-time">10:12am</span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Rate-limit fix merged at <span class="sp-mono">10:12am</span>. <span class="sp-mono">4</span> files, <span class="sp-mono">12</span> checks green, PR <span class="sp-mono">#221</span>.</span>
+              </div>
+            </div>
+
+            <!-- Memory speaking: the Vellum chip carries recognition;
+                 the row surface stays plain (card law). -->
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Engineer</span>
+                <span class="sp-memory-chip" title="Door: the June payments decision in the Brain">Memory</span>
+                <span class="sp-thread-time">11:36am</span>
+              </div>
+              Resumed guest checkout with Review's <span class="sp-mono">3</span> notes from Wednesday. Memory holds the June call: vendors stay behind one adapter, so the receipt email reuses the existing sender.
+            </div>
+
+            <div class="sp-thread-item is-human">
+              <div class="sp-thread-meta">
+                <span class="sp-kicker" style="font-size:9.5px">You</span>
+                <span class="sp-thread-time">11:38am</span>
+              </div>
+              Ship the receipt email fix first. The polish can wait for the afternoon.
+            </div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Engineer</span>
+                <span class="sp-thread-time">11:42am</span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Tests written at <span class="sp-mono">11:42am</span>. <span class="sp-mono">6</span> cases cover the receipt path.</span>
+              </div>
+            </div>
+
+            <!-- Live activity rides the dim tier here; the full hue
+                 belongs to the board card's live dot. -->
+            <div class="sp-pulse-line" style="padding:2px 12px">
+              <span class="sp-pulse-dot"></span>
+              <span>Engineer is covering the resend path. <span class="sp-pulse-time">Started 9 minutes ago</span></span>
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- REGION 4: Canvas, the Build face as the board. Columns
+             derive from run + changeset + gate state (header note).
+             The ONE kebab holds Details (cost, driver), closed. -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">05 Build</span>
+            <span class="sp-surface-title">The build board</span>
+            <span class="sp-state-chip is-working"><span class="sp-state-dot"></span>Building</span>
+            <span class="bf-prod-chip" title="Scope: every product's builds in one view. Click: only Relay. The switcher up top changes the room; this only filters the board.">All products</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link: a stable deep link to this face">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details: cost, driver, trace. Nothing inline.">&#8942;</button>
+                <!-- Closed. Cost (task-shaped credits), the quiet
+                     driver line, and the run trace live here. -->
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Copy link</button>
+                  <button class="sp-menu-item">Open the trace</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="bf-board-body">
+              <div class="bf-board">
+
+                <!-- Column 1: gate presence. THE ember locus. -->
+                <section class="bf-col" aria-label="Needs you">
+                  <header class="bf-col-head" title="pending_approvals &gt; 0. Cards arrive when a gate opens, never by hand.">
+                    <span>Needs you</span>
+                    <span class="bf-col-count">1</span>
+                  </header>
+
+                  <div class="bf-card is-gate">
+                    <div class="sp-card-chiprow">
+                      <span class="sp-agent-chip">Engineer</span>
+                      <span class="bf-prod-chip" title="Door: switches the room to Atlas">Atlas</span>
+                      <span class="sp-card-time">11:40am</span>
+                    </div>
+                    <div class="bf-card-title">Webhook retries staged to 10%</div>
+                    <div class="bf-gate-reco">CI green on <span class="sp-mono">4f2c9ab</span>. <span class="sp-mono">400</span> replays, <span class="sp-mono">0</span> dropped. Promoting takes 1.9 to every account; Announce sends the launch kit.</div>
+                    <div class="bf-card-evidence">
+                      <span class="sp-artifact-chip" title="Door: the release record, 06 Ship face (Atlas)">REL-20</span>
+                      <span class="bf-flag-chip" title="The gate, named. Slate: chips never wear ember.">promote waits</span>
+                    </div>
+                    <div class="bf-card-facts"><span class="bf-branch">studio/m-2467</span><span>6 files</span><span><span class="bf-add">+241</span> <span class="bf-del">&#8722;58</span></span></div>
+                    <div class="bf-card-actions">
+                      <button class="sp-btn sp-btn-accent" title="Promotes 10% to 100%; Announce sends the launch kit.">Promote to 100% <span class="sp-kbd">1</span></button>
+                      <button class="sp-btn sp-btn-ghost" title="Door: expands the evidence into the Canvas (replays, CI, diff)">Open the evidence</button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Column 2: runs running; one live hue only. -->
+                <section class="bf-col" aria-label="Working">
+                  <header class="bf-col-head" title="agent_runs.status = running. The verb is the run's current deck line.">
+                    <span>Working</span>
+                    <span class="bf-col-count">2</span>
+                  </header>
+
+                  <div class="bf-card" title="Door: the deep-work focus state (Frame B). Enter opens it too.">
+                    <div class="sp-card-chiprow">
+                      <span class="sp-agent-chip">Engineer</span>
+                      <span class="sp-card-time">9 min</span>
+                    </div>
+                    <div class="bf-card-title">Guest checkout</div>
+                    <div class="bf-card-verb is-live"><span class="bf-live-dot ink-working"></span>live &middot; covering the resend path</div>
+                    <div class="bf-card-evidence">
+                      <span class="sp-artifact-chip" title="Door: the spec this build implements, 03 Plan face">SPEC-47</span>
+                      <span class="bf-flag-chip" title="Door: Review's notes, inside the focus state.">review notes &middot; 2 of 3 done</span>
+                    </div>
+                    <div class="bf-card-facts"><span class="bf-branch" title="Click copies the branch; the kebab holds Open on GitHub.">studio/m-2481</span><span>14 files</span><span><span class="bf-add">+184</span> <span class="bf-del">&#8722;41</span></span></div>
+                  </div>
+
+                  <div class="bf-card" title="Door: focuses this build.">
+                    <div class="sp-card-chiprow">
+                      <span class="sp-agent-chip">Engineer</span>
+                      <span class="sp-card-time">4 min</span>
+                    </div>
+                    <div class="bf-card-title">Saved replies polish</div>
+                    <div class="bf-card-verb"><span class="bf-quiet-dot"></span>writing tests</div>
+                    <div class="bf-card-evidence">
+                      <span class="sp-artifact-chip" title="Door: the learning behind this, Brain (9:12am)">LRN-13</span>
+                      <span class="bf-flag-chip" title="changeset draft: no pull request yet">changeset draft</span>
+                    </div>
+                    <div class="bf-card-facts"><span class="bf-branch">studio/m-2489</span><span>3 files</span><span><span class="bf-add">+46</span> <span class="bf-del">&#8722;8</span></span></div>
+                  </div>
+                </section>
+
+                <!-- Column 3: changeset pr_open. -->
+                <section class="bf-col" aria-label="In review">
+                  <header class="bf-col-head" title="changeset pr_open. Review holds them until merged or sent back.">
+                    <span>In review</span>
+                    <span class="bf-col-count">1</span>
+                  </header>
+
+                  <div class="bf-card" title="Door: the PR diff in the focus state.">
+                    <div class="sp-card-chiprow">
+                      <span class="sp-agent-chip">Review</span>
+                      <span class="bf-prod-chip" title="Door: switches the room to Comet">Comet</span>
+                      <span class="sp-card-time">11:21am</span>
+                    </div>
+                    <div class="bf-card-title">Pricing page copy</div>
+                    <div class="bf-card-verb"><span class="bf-quiet-dot"></span>Review has it</div>
+                    <div class="bf-card-evidence">
+                      <span class="sp-artifact-chip" title="Door: the PR diff (Comet repo)">PR #6</span>
+                      <span class="bf-receipt-chip"><span class="bf-check">&#10003;</span>checks green</span>
+                    </div>
+                    <div class="bf-card-facts"><span class="bf-branch">studio/m-2453</span><span>6 files</span><span><span class="bf-add">+212</span> <span class="bf-del">&#8722;38</span></span></div>
+                  </div>
+                </section>
+
+                <!-- Column 4: merged today; the forward door. -->
+                <section class="bf-col" aria-label="Done today">
+                  <header class="bf-col-head" title="Merged today. Older receipts live in the Thread and Brain.">
+                    <span>Done today</span>
+                    <span class="bf-col-count">1</span>
+                  </header>
+
+                  <div class="bf-card" title="Door: the merged diff, read-only.">
+                    <div class="sp-card-chiprow">
+                      <span class="sp-agent-chip">Engineer</span>
+                      <span class="sp-card-time">10:12am</span>
+                    </div>
+                    <div class="bf-card-title">Rate-limit fix</div>
+                    <div class="bf-card-evidence">
+                      <span class="bf-receipt-chip"><span class="bf-check">&#10003;</span>merged 10:12am</span>
+                      <span class="sp-artifact-chip" title="Door: the merged PR (Relay repo)">PR #221</span>
+                    </div>
+                    <div class="bf-card-facts"><span>4 files</span><span><span class="bf-add">+96</span> <span class="bf-del">&#8722;22</span></span><span>12 checks green</span></div>
+                    <div class="sp-next-line">
+                      <button class="sp-journey-chip" title="Door: arms the Ship journey on this merge.">Ship it <span class="sp-chip-arrow">&#8594;</span></button>
+                    </div>
+                  </div>
+                </section>
+
+              </div>
+            </div>
+
+            <!-- Footer: latest receipt + the honest cap. -->
+            <div class="sp-face-footer bf-footer-row">
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Atlas staged to <span class="sp-mono">10%</span> at <span class="sp-mono">11:40am</span>. CI green on <span class="sp-mono">4f2c9ab</span>.</span>
+              </div>
+              <span class="bf-cap-note">Dispatch another build. Builds run in parallel, five at a time.</span>
+              <span class="bf-cap-count" title="The Working column is the count: build slots, not agents.">2 of 5 slots in use</span>
+              <button class="sp-journey-chip" title="Door: arms the Build journey with the spec picker.">Build this feature <span class="sp-chip-arrow">&#8594;</span></button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- REGION 5a: Working strip. Three live verbs; the summary
+           matches the board. NEVER collapses (ruling 3). -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>engineer &middot; covering the resend path &middot; 9m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>engineer &middot; writing tests for saved replies &middot; 4m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>review &middot; reading the pricing page diff &middot; 24m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary" title="Door: the board, scrolled to what waits">3 agents working, 1 waiting on you</span>
+      </div>
+
+      <!-- REGION 5b: the docked composer, quiet (6c.4a): the stage
+           face is speak-primary. The TopBar Ask focuses this same
+           input: one input model, never two boxes. -->
+      <div class="sp-composer bf-composer-quiet">
+        <div class="sp-composer-box bf-quiet-box ink-input-focus">
+          <input class="sp-composer-input" type="text" placeholder="Ask, or name the work. Try: why does the promote wait on me" />
+          <button class="sp-journey-chip" title="Door: arms the Build journey with the spec picker.">Build this feature</button>
+          <button class="sp-journey-chip" title="Door: arms the Learn journey on the last ship.">How did it land?</button>
+          <span class="sp-kbd" title="The same key summons Ask anywhere; here it focuses the dock.">&#8984;J</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Approvals tray: closed (screen-4 shows it open). Its one
+         card = the Needs-you card = the count: one object, one
+         source; deciding anywhere clears every rendering. -->
+  </div>
+
+  <div class="bf-doors">
+    <b>Lineage doors, Frame A</b> &middot; SPEC-47 opens the spec (03 Plan) &middot; PROTO-12 the prototype (04 Design) &middot; LRN-13 the learning (Brain, 9:12am) &middot; REL-20 the release record (06 Ship, Atlas) &middot; PR #221 / PR #6 their diffs (per-repo numbering; Comet's repo is fresh) &middot; branch chips copy; Open on GitHub in the kebab &middot; every board card opens the focus state (Frame B) &middot; "Ship it" arms the Ship journey &middot; lanes swap the Canvas focus &middot; the promote is ONE object: topbar count, Needs-you card, Atlas lane, tray card; deciding anywhere clears all. Approvals 2 = the Atlas promote gate + the DEC-19 challenge (born 9:12am).<br />
+    <b>Keys &amp; consequence, Frame A</b> &middot; Enter opens the focused card &middot; J/K walk a column, arrows cross columns &middot; G A tray; 1 promotes, 2 sends back, H defers with a resurface condition &middot; &#8984;J focuses the docked composer (the TopBar Ask focuses the same input; never two boxes) &middot; the board does not drag: columns are STATES; cards move when run, changeset, or gate state moves &middot; the live pulse, node 05, and the strip's first verb are one work item rendered three ways.
+  </div>
+
+  <!-- ================================================================
+       FRAME B : THE DEEP-WORK FOCUS STATE : Monday Jul 20, 11:47am
+       Thread = the 48px rail (unread tick 2). Spine = the slim
+       strip. Canvas owns the width. NO docked composer (6c.4b).
+       THE machine locus: the terminal caret. Ember: deliberately
+       NOT live (Approve and merge dim until CI green).
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame B &middot; the focus state</span>
+    <span class="jf-label-sub">deep work on studio/m-2481 &middot; 11:47am &middot; rail + slim spine, no docked composer &middot; the gate object is not yet live</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell">
+
+      <!-- REGION 1: TopBar v2, unchanged by focus. Approvals still
+           2 (promote + DEC-19 challenge; the promote clears at 11:52,
+           dropping count to 1). In focus, Ask = the summon: a
+           transient overlay drops from this TopBar, Escape dismisses
+           (annotated below the frame). -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
+          </svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: the workspace's products. Switching changes the room.">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item is-active" href="#" title="You are here. Clicking restores the room from focus.">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: the tray (G A). Still 2: the Atlas promote gate + the DEC-19 challenge.">Approvals <span class="sp-tray-count">2</span></a>
+          <a class="sp-nav-item" href="#" title="Door: the Brain (G B)">Brain</a>
+          <a class="sp-nav-item" href="#" title="Door: Settings">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Summons the Ask overlay from this TopBar; Escape dismisses.">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts">?</button>
+          <button class="sp-avatar" title="Account">MO</button>
+        </div>
+      </header>
+
+      <!-- REGION 2: the Spine, collapsed to the slim strip: seven
+           dots + the active label. The working dot rides DIM: the
+           caret owns the live hue. -->
+      <div class="sp-spine-strip is-slim">
+        <div class="sp-slim-dots">
+          <span class="sp-slim-dot" title="01 Discover &middot; exits focus into it"></span>
+          <span class="sp-slim-dot" title="02 Decide &middot; exits focus into it"></span>
+          <span class="sp-slim-dot is-done" title="03 Plan, done (SPEC-47) &middot; exits focus into it"></span>
+          <span class="sp-slim-dot is-done" title="04 Design, done (PROTO-12) &middot; exits focus into it"></span>
+          <span class="sp-slim-dot is-active" title="05 Build, working: this face"></span>
+          <span class="sp-slim-dot" title="06 Ship, queued &middot; exits focus into it"></span>
+          <span class="sp-slim-dot" title="07 Learn, queued &middot; exits focus into it"></span>
+        </div>
+        <span class="sp-slim-label">05 Build</span>
+        <span class="sp-slim-note">Esc or the rail restores the room</span>
+      </div>
+
+      <!-- REGION 3 + 4: the collapsed rail + the full-width Canvas. -->
+      <div class="sp-main bf-main-focus">
+
+        <!-- The 48px Thread rail. Top: back glyph + the unread
+             tick (2 = the 11:46 and 11:47 items). Bottom: the day's
+             timestamps as dots. The rail IS the restore door. -->
+        <aside class="sp-thread-rail" title="The Thread, collapsed. Click (or Escape) restores it.">
+          <button class="sp-rail-back" title="Back to the Thread; the tick opens the first unread.">
+            &#8592;
+            <span class="sp-rail-tick">2</span>
+          </button>
+          <div class="sp-rail-dots">
+            <span class="sp-rail-dot" title="10:12am &middot; rate-limit fix merged. Click restores here."></span>
+            <span class="sp-rail-dot" title="11:36am &middot; resumed with Review's notes"></span>
+            <span class="sp-rail-dot" title="11:38am &middot; you: the receipt fix first"></span>
+            <span class="sp-rail-dot" title="11:42am &middot; tests written, 6 cases"></span>
+            <span class="sp-rail-dot is-unread" title="11:46am &middot; unread: polish tests written (8 cases)"></span>
+            <span class="sp-rail-dot is-unread" title="11:47am &middot; unread: launch kit queued behind the promote"></span>
+          </div>
+        </aside>
+
+        <!-- REGION 4: the Canvas at full width. The ONE kebab holds
+             Details: cost + the quiet driver line, closed. -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">05 Build</span>
+            <span class="sp-surface-title">Guest checkout</span>
+            <span class="sp-agent-chip">Engineer</span>
+            <span class="sp-state-chip is-working"><span class="sp-state-dot"></span>Building</span>
+            <span class="sp-artifact-chip" title="Door: the spec this build implements, 03 Plan face">SPEC-47</span>
+            <div class="bf-head-facts">
+              <span class="bf-branch" title="Click copies the branch; the kebab holds Open on GitHub.">studio/m-2481</span>
+              <span>14 files</span>
+              <span><span class="bf-add">+184</span> <span class="bf-del">&#8722;41</span></span>
+            </div>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link: a stable deep link to this run">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details holds cost + driver. Quiet, one gesture deeper.">&#8942;</button>
+                <!-- Closed. Details: task-shaped credits, the quiet
+                     driver line, the run trace, Open on GitHub,
+                     Pause the run. Nothing of this renders inline. -->
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Open on GitHub</button>
+                  <button class="sp-menu-item">Pause the run</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="bf-focus-body">
+              <div class="bf-focus-grid">
+
+                <!-- Left: files changing (bars = lines touched) +
+                     Review's notes, the reason this run exists. -->
+                <div class="bf-left">
+                  <div class="bf-panel">
+                    <div class="bf-panel-head">Files changing <span class="bf-head-count">14</span></div>
+                    <!-- Rows are doors to their diff; bars = lines touched, never progress. -->
+                    <div class="bf-file-row" title="Door: focuses this file's diff in the work column."><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>receipt-email.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:100%"></span></span><span class="bf-file-counts"><span class="bf-add">+42</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/lib/email/templates/</span>guest-receipt.tsx</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:67%"></span></span><span class="bf-file-counts"><span class="bf-add">+28</span></span></div>
+                    <div class="bf-file-row is-open" title="This file's diff is open in the work column."><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>session.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:64%"></span></span><span class="bf-file-counts"><span class="bf-add">+18</span><span class="bf-del">&#8722;9</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>GuestCheckout.tsx</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:64%"></span></span><span class="bf-file-counts"><span class="bf-add">+21</span><span class="bf-del">&#8722;6</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">__tests__/</span>receipt-email.test.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:57%"></span></span><span class="bf-file-counts"><span class="bf-add">+24</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/lib/email/</span>sender.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:38%"></span></span><span class="bf-file-counts"><span class="bf-add">+12</span><span class="bf-del">&#8722;4</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/lib/cart/</span>guest-cart.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:33%"></span></span><span class="bf-file-counts"><span class="bf-add">+9</span><span class="bf-del">&#8722;5</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">__tests__/</span>guest-checkout.test.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:33%"></span></span><span class="bf-file-counts"><span class="bf-add">+8</span><span class="bf-del">&#8722;6</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/routes/</span>checkout.guest.tsx</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:21%"></span></span><span class="bf-file-counts"><span class="bf-add">+7</span><span class="bf-del">&#8722;2</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>routes.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:19%"></span></span><span class="bf-file-counts"><span class="bf-add">+6</span><span class="bf-del">&#8722;2</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>AddressForm.tsx</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:17%"></span></span><span class="bf-file-counts"><span class="bf-add">+4</span><span class="bf-del">&#8722;3</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/lib/email/</span>index.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:10%"></span></span><span class="bf-file-counts"><span class="bf-add">+3</span><span class="bf-del">&#8722;1</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/checkout/</span>confirm.tsx</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:7%"></span></span><span class="bf-file-counts"><span class="bf-add">+1</span><span class="bf-del">&#8722;2</span></span></div>
+                    <div class="bf-file-row"><span class="bf-file-path"><span class="bf-file-dir">src/lib/analytics/</span>events.ts</span><span class="bf-file-bar"><span class="bf-file-fill" style="width:5%"></span></span><span class="bf-file-counts"><span class="bf-add">+1</span><span class="bf-del">&#8722;1</span></span></div>
+                    <div class="bf-files-total">+184 &nbsp;&#8722;41 &nbsp;across 14 files &middot; this session</div>
+                  </div>
+
+                  <div class="bf-panel">
+                    <div class="bf-panel-head">Review's notes <span class="bf-head-count">Wednesday 4:40pm</span></div>
+                    <div class="bf-note-row"><span class="bf-note-glyph">&#10003;</span><span>Send the receipt exactly once per order</span><span class="bf-note-time">11:39</span></div>
+                    <div class="bf-note-row"><span class="bf-note-glyph">&#10003;</span><span>Keep the guest email on the session, not the cart</span><span class="bf-note-time">11:43</span></div>
+                    <div class="bf-note-row is-open"><span class="bf-note-glyph">&#9679;</span><span>Cover the resend path in the suite</span><span class="bf-note-time">running</span></div>
+                  </div>
+                </div>
+
+                <!-- Work column: the diff (first file expanded,
+                     per-hunk controls), CI, terminal. The caret is
+                     THE machine locus of this frame. -->
+                <div class="bf-work">
+
+                  <div class="bf-panel">
+                    <div class="bf-diff-file">
+                      <span class="bf-caret-glyph">&#9662;</span>
+                      <span>src/checkout/session.ts</span>
+                      <span class="bf-file-counts"><span class="bf-add">+18</span><span class="bf-del">&#8722;9</span></span>
+                    </div>
+
+                    <div class="bf-hunk-head">
+                      <span>@@ confirmOrder: send the receipt after payment settles @@</span>
+                      <div class="bf-hunk-tools">
+                        <button class="bf-hunk-btn" title="Keep this hunk (Enter). It settles into the changeset.">&#10003;</button>
+                        <button class="bf-hunk-btn" title="Send back with one line (X); Engineer revises in this run.">&#10007;</button>
+                      </div>
+                    </div>
+                    <div class="bf-diff-body">
+                      <div class="bf-dline"><span class="bf-gutter"></span>  const settled = await payments.confirm(session);</div>
+                      <div class="bf-dline"><span class="bf-gutter"></span>  await track("order.confirmed", settled.id);</div>
+                      <div class="bf-dline is-del"><span class="bf-gutter">-</span>  return settled;</div>
+                      <div class="bf-dline is-add"><span class="bf-gutter">+</span>  await sendGuestReceipt(settled.order); // exactly once, safe on retry</div>
+                      <div class="bf-dline is-add"><span class="bf-gutter">+</span>  return settled;</div>
+                    </div>
+
+                    <div class="bf-hunk-head">
+                      <span>@@ createSession: keep the guest email on the session @@</span>
+                      <span style="margin-left:auto;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-subtle)"><span style="color:var(--verdict-pass)">&#10003;</span> kept &middot; 11:47am</span>
+                    </div>
+                    <div class="bf-diff-body">
+                      <div class="bf-dline is-add"><span class="bf-gutter">+</span>  const receiptTo = input.guestEmail ?? null;</div>
+                      <div class="bf-dline is-add"><span class="bf-gutter">+</span>  return persistSession({ owner, cart, receiptTo, ...input });</div>
+                    </div>
+
+                    <div class="bf-diff-file is-collapsed" title="Door: expands the hunks in place; the list never reflows.">
+                      <span class="bf-caret-glyph">&#9656;</span>
+                      <span>src/checkout/receipt-email.ts</span>
+                      <span class="bf-file-counts"><span class="bf-add">+42</span></span>
+                    </div>
+                    <div class="bf-diff-file is-collapsed" title="Door: expands the remaining files.">
+                      <span class="bf-caret-glyph">&#9656;</span>
+                      <span>12 more files</span>
+                    </div>
+                  </div>
+
+                  <!-- CI: dry facts; running checks machine dim. -->
+                  <div class="bf-checks">
+                    <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>typecheck</span>
+                    <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>lint</span>
+                    <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>unit</span>
+                    <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>receipt-email</span>
+                    <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>integration</span>
+                    <span class="bf-check-more" title="Door: expands the full check list in place">26 more green</span>
+                    <span class="bf-check is-running"><span class="bf-check-glyph">&#9679;</span>e2e-guest-flow</span>
+                    <span class="bf-check is-running"><span class="bf-check-glyph">&#9679;</span>visual-regression</span>
+                    <span class="bf-check is-running"><span class="bf-check-glyph">&#9679;</span>bundle-size</span>
+                    <span class="bf-ci-sum">34 checks &middot; 31 green &middot; 3 running</span>
+                  </div>
+
+                  <!-- The terminal. Wednesday's one failing test is
+                       today's fourth green line: the room remembers. -->
+                  <div class="bf-term">
+                    <div class="bf-term-head">
+                      <span>$ bun test src/checkout --filter receipt</span>
+                      <span class="bf-sandbox-chip" title="Commands run in an isolated sandbox. Nothing touches production.">Sandbox</span>
+                      <span class="bf-term-time">11:44am</span>
+                    </div>
+                    <div class="bf-term-body">
+                      <div class="bf-tline"><span class="bf-t-pass">&#10003;</span> receipt email sends exactly once per order <span class="bf-t-ms">96ms</span></div>
+                      <div class="bf-tline"><span class="bf-t-pass">&#10003;</span> resend endpoint is idempotent, replays are safe <span class="bf-t-ms">61ms</span></div>
+                      <div class="bf-tline"><span class="bf-t-pass">&#10003;</span> order receipt email sends for guest orders <span class="bf-t-ms">88ms</span></div>
+                      <div class="bf-tline is-streaming ink-caret">running: guest checkout end to end</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- The run timeline; the Vellum tick marks where
+                   memory grounded a choice. -->
+              <div class="bf-runline">
+                <div class="bf-run-step">
+                  <div class="bf-run-time">11:36</div>
+                  <div class="bf-run-text">Resumed with Review's 3 notes</div>
+                </div>
+                <div class="bf-run-step">
+                  <div class="bf-run-time">11:38</div>
+                  <div class="bf-run-text">You: the receipt fix first</div>
+                </div>
+                <div class="bf-run-step">
+                  <div class="bf-run-time">11:39</div>
+                  <div class="bf-run-text">Receipt hook written<span class="bf-mem-tick" title="Door: the June payments decision (Brain).">Memory</span></div>
+                </div>
+                <div class="bf-run-step">
+                  <div class="bf-run-time">11:42</div>
+                  <div class="bf-run-text">Tests written, 6 cases; the checkout suite follows at 11:44</div>
+                </div>
+                <div class="bf-run-step is-now">
+                  <div class="bf-run-time">11:47</div>
+                  <div class="bf-run-text">Streaming the end-to-end run</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer: the receipt + the gate object NOT yet live:
+                 affordance without emphasis; ignites on CI green. -->
+            <div class="sp-face-footer bf-footer-row">
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text"><span class="sp-mono">31</span> of <span class="sp-mono">34</span> checks green at <span class="sp-mono">11:47am</span>. The pull request opens when the last three finish.</span>
+              </div>
+              <span class="bf-footer-note">the merge verb goes live on green</span>
+              <button class="sp-btn sp-btn-ghost" title="Door: the sandbox preview of this branch, new tab.">Open the preview</button>
+              <button class="sp-btn bf-approve-dim" title="Not yet: 3 checks still running. Ignites on CI green + the PR." aria-disabled="true">Approve and merge</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- REGION 5: the Working strip NEVER collapses (ruling 3).
+           No composer row in this state. -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>engineer &middot; running the checkout suite &middot; 11m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>engineer &middot; running the polish tests &middot; 6m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>review &middot; reading the pricing page diff &middot; 26m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary" title="Door: restores the room, board scrolled to what waits">3 agents working, 1 waiting on you</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bf-doors">
+    <b>Lineage doors, Frame B</b> &middot; the 48px rail: click anywhere (or Escape) restores the Thread at its live position; the unread tick (2) opens the first unread; each day dot restores at that timestamp &middot; slim spine dots name their stage on hover; clicking one exits focus into that face &middot; SPEC-47 opens the spec (03 Plan) &middot; studio/m-2481 copies; Open on GitHub in the kebab &middot; the Memory tick opens the June decision (Brain) &middot; "26 more green" expands the check list in place &middot; a file row focuses its diff in the work column, in place &middot; the kebab holds Details: credits + the quiet driver line, never inline (spec 7) &middot; Approve and merge is DIM because the gate object is not yet live: it ignites on CI green + the open PR, and Needs-you gains this same object, same count.<br />
+    <b>Keys &amp; consequence, Frame B</b> &middot; Esc closes the Ask overlay first if open; the next Esc restores the room (class B ~200ms; reduced motion snaps) &middot; &#8984;J summons the Ask overlay from the TopBar (6c.4b: no docked composer in deep work) &middot; J/K walk hunks; Enter keeps; X sends back with one line, same run &middot; the caret is the one full hue; the slim working dot deliberately rides dim &middot; the Working strip never collapses.
+  </div>
+
+  <!-- ================================================================
+       BEHAVIOR RAIL (brief 6b.3): the state grammar. The frames stay
+       believable; the rail carries the other lives, card-spec style.
+       Ember verbs below are isolated specimens.
+       ================================================================ -->
+  <section class="bf-rail" aria-label="Behavior rail: component states, keys, motion">
+    <div class="bf-rail-head">
+      <span class="bf-rail-kicker">Behavior rail &middot; 05 Build, board + focus</span>
+      <span class="bf-rail-ref">hover / focus / active / disabled / loading / empty / error / success &middot; motion budget spec 5.1 &middot; keys</span>
+    </div>
+    <p class="bf-rail-sub">
+      The board card's full ring, the honest column states including the cap, the collapse pattern this file defines, the hunk verbs, and the exact moment the merge verb may ignite. Every demo uses the live state's tokens: implementable by inspection.
+    </p>
+
+    <!-- 1. The board card's lives -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">1 &middot; The board card <span class="bf-sec-ref">card law 1.9 &middot; the root is ONE real button; gate verbs are flex siblings, never nested (BuildMissionRow law)</span></div>
+      <div class="bf-rail-grid">
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">rest &middot; hover &middot; focus-visible</div>
+          <div class="bf-spec-stage">
+            <div class="bf-card" style="cursor:default;margin-bottom:10px">
+              <div class="sp-card-chiprow">
+                <span class="sp-agent-chip">Engineer</span>
+                <span class="sp-card-time">9 min</span>
+              </div>
+              <div class="bf-card-title">Guest checkout</div>
+              <div class="bf-card-verb is-live"><span class="bf-live-dot"></span>live &middot; covering the resend path</div>
+              <div class="bf-card-facts"><span class="bf-branch">studio/m-2481</span><span>14 files</span><span><span class="bf-add">+184</span> <span class="bf-del">&#8722;41</span></span></div>
+            </div>
+            <div class="bf-card bf-demo-hover bf-demo-focus" style="cursor:default">
+              <div class="bf-card-title">Saved replies polish</div>
+              <div class="bf-card-verb"><span class="bf-quiet-dot"></span>writing tests</div>
+            </div>
+          </div>
+          <div class="bf-spec-note">One internal grid, no edge strips; the verb is the run's deck line, the time honest elapsed. Hover (below) flips surface tokens: no lift, no shadow, class A. Focus-visible: the 1px ring at a 2px gap (6d.7).</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">the gate card &middot; the one ember</div>
+          <div class="bf-spec-stage">
+            <div class="bf-card is-gate">
+              <div class="bf-card-title">Webhook retries staged to 10%</div>
+              <div class="bf-card-evidence"><span class="bf-flag-chip">promote waits</span></div>
+              <div class="bf-card-actions">
+                <button class="sp-btn sp-btn-accent">Promote to 100% <span class="sp-kbd">1</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="bf-spec-note">Ember wash + one accent verb; the chip stays slate. With two gates, only the queue's head wears the wash; J/K moves the head.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">loading &middot; read error</div>
+          <div class="bf-spec-stage">
+            <div class="bf-card" style="cursor:default;margin-bottom:8px">
+              <div class="bf-skel">
+                <span class="ink-skeleton" style="width:62%;height:13px"></span>
+                <span class="ink-skeleton" style="width:84%"></span>
+              </div>
+            </div>
+            <div class="bf-card" style="cursor:default">
+              <div class="sp-card-body" style="padding:0">Could not read the build.</div>
+              <div class="sp-card-actions"><button class="sp-btn">Try again</button></div>
+            </div>
+          </div>
+          <div class="bf-spec-note">Loading: a skeleton shaped like the card, 1.6s opacity breath, static at 0.7 under reduced motion, never a spinner. Error: faces.tsx verbatim, plain reason + one recovery verb; the other columns keep rendering.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">done &middot; receipt + forward door</div>
+          <div class="bf-spec-stage">
+            <div class="bf-card" style="cursor:default">
+              <div class="sp-card-chiprow">
+                <span class="sp-agent-chip">Engineer</span>
+                <span class="sp-card-time">10:12am</span>
+              </div>
+              <div class="bf-card-title">Rate-limit fix</div>
+              <div class="bf-card-evidence"><span class="bf-receipt-chip"><span class="bf-check">&#10003;</span>merged 10:12am</span></div>
+              <div class="sp-next-line" style="margin-top:4px">
+                <button class="sp-journey-chip">Ship it <span class="sp-chip-arrow">&#8594;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="bf-spec-note">Done celebrates with a receipt chip and a forward door, nothing louder. The card leaves at midnight; the receipt stays in the Thread.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. The column's honest states -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">2 &middot; The column's honest states <span class="bf-sec-ref">columns are STATES: cards move when data moves; deliberately no drag</span></div>
+      <div class="bf-rail-grid">
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">empty columns &middot; two registers</div>
+          <div class="bf-spec-stage">
+            <div class="sp-warm-slot" style="padding:12px">
+              <div class="sp-warm-slot-line" style="font-size:12px">Nothing building. Approve a spec and Engineer writes the change on an isolated branch.</div>
+              <div class="sp-warm-slot-action" style="margin-top:9px"><button class="sp-btn">Build this feature</button></div>
+            </div>
+          </div>
+          <div class="bf-spec-note">Working empties to the WarmSlot, faces.tsx's emptyLine verbatim: who acts next + the action that creates the data. Needs-you empties to a calm sentence ("Nothing waits on you. Builds run until a gate opens."): absence there is the good state.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">the cap &middot; 5 of 5, the sixth queues</div>
+          <div class="bf-spec-stage">
+            <div class="bf-card" style="cursor:default">
+              <div class="sp-card-chiprow"><span class="sp-agent-chip">Engineer</span><span class="sp-card-time">queued</span></div>
+              <div class="bf-card-title">Audit trail export</div>
+              <div class="bf-card-verb"><span class="bf-quiet-dot"></span>starts when a slot frees</div>
+            </div>
+            <div class="bf-cap-count" style="margin-top:8px;display:block">5 of 5 slots in use &middot; dispatch queues the next</div>
+          </div>
+          <div class="bf-spec-note">The cap renders honestly: a queued card with a plain verb, never a fake sixth pulse. Dispatch queues, and says so before you click.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">blocked &middot; the one error costume</div>
+          <div class="bf-spec-stage" style="display:flex;align-items:center">
+            <div class="sp-receipt-line is-blocked" style="flex:1">
+              <span class="sp-receipt-check">&#9675;</span>
+              <span class="sp-receipt-text">GitHub token expired. <span class="sp-receipt-action">Reconnect</span> to resume.</span>
+            </div>
+          </div>
+          <div class="bf-spec-note">Plain reason + recovery verb, the only error shape outside the Engine Room. The run keeps its place in Working; Reconnect doors to Settings &gt; Connections and the run resumes once the token lands.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. The focus-collapse pattern (defined by this file) -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">3 &middot; The focus-collapse pattern <span class="bf-sec-ref">brief section 6: defined here; other screens reuse these classes as-is</span></div>
+      <div class="bf-rail-grid">
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">the 48px thread rail &middot; anatomy</div>
+          <div class="bf-spec-stage">
+            <div class="bf-anat">
+              <div class="sp-thread-rail">
+                <button class="sp-rail-back">&#8592;<span class="sp-rail-tick">2</span></button>
+                <div class="sp-rail-dots">
+                  <span class="sp-rail-dot"></span>
+                  <span class="sp-rail-dot"></span>
+                  <span class="sp-rail-dot is-unread"></span>
+                  <span class="sp-rail-dot is-unread"></span>
+                </div>
+              </div>
+              <div class="bf-anat-callout"><b>top</b>: back-to-thread glyph;<br />the tick is the unread count<br /><br /><b>bottom</b>: the day's timestamps<br />as dots; unread ride the chip<br />tier; click one to restore<br />at that moment</div>
+            </div>
+          </div>
+          <div class="bf-spec-note">The whole rail is one door: click (or Esc) restores the Thread at its live position. Every pixel is a door or a count.</div>
+        </div>
+
+        <div class="bf-spec" style="grid-column: span 2">
+          <div class="bf-spec-label">collapse &middot; restore &middot; the summon &middot; what never collapses</div>
+          <div class="bf-spec-stage">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="sp-btn">Ask <span class="sp-kbd">&#8984;J</span></button>
+              <span class="bf-demo-tip">&#8984;J drops a transient overlay from the TopBar &middot; Escape dismisses &middot; same input, summoned</span>
+            </div>
+            <div class="sp-working-strip" style="border:1px solid var(--ink-hairline);border-radius:8px;margin-bottom:10px">
+              <span class="sp-pulse-dot"></span>
+              <span>engineer &middot; running the checkout suite &middot; 11m</span>
+              <span class="sp-strip-sep">&middot;</span>
+              <span class="sp-strip-summary">3 working, 1 waiting</span>
+            </div>
+            <span class="bf-anat-callout"><b>enter</b>: opening a card collapses Thread &#8594; rail and Spine &#8594; slim strip (seven dots + the active label; a dot exits focus into its stage) in ONE class-B reflow, ~200ms. <b>leave</b>: Esc, the rail, a slim dot, or any TopBar door restores. <b>Esc order</b>: overlay first, then the room. <b>reduced motion</b>: the finished frame. The strip persists (ruling 3); the composer leaves.</span>
+          </div>
+          <div class="bf-spec-note">One annotation for the whole pattern (6c.4b): deep-work surfaces carry NO docked composer; Ask lives in the TopBar and summons. Presence is earned by primary use.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. The review instruments -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">4 &middot; The review instruments <span class="bf-sec-ref">hunk verbs &middot; CI truth &middot; the terminal as material</span></div>
+      <div class="bf-rail-grid">
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">hunk controls &middot; hover, focus, kept</div>
+          <div class="bf-spec-stage">
+            <div class="bf-hunk-head" style="border:1px solid var(--ink-hairline-soft);border-radius:6px;padding:6px 10px;margin-bottom:8px">
+              <span>@@ confirmOrder: send the receipt @@</span>
+              <div class="bf-hunk-tools">
+                <button class="bf-hunk-btn" style="background:var(--ink-raised);color:var(--verdict-pass);border-color:var(--ink-hairline)">&#10003;</button>
+                <button class="bf-hunk-btn bf-demo-focus">&#10007;</button>
+              </div>
+            </div>
+            <div class="bf-hunk-head" style="border:1px solid var(--ink-hairline-soft);border-radius:6px;padding:6px 10px">
+              <span>@@ createSession: keep the guest email @@</span>
+              <span style="margin-left:auto;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-subtle)"><span style="color:var(--verdict-pass)">&#10003;</span> kept &middot; 11:48am</span>
+            </div>
+          </div>
+          <div class="bf-spec-note">At rest both glyphs sit in ink; hover lets keep borrow verdict green; the ring marks keyboard focus. Keeping resolves the controls to a mono receipt IN PLACE: the diff never reflows; no separate apply step.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">sent back &middot; one line, same run</div>
+          <div class="bf-spec-stage">
+            <div class="bf-reject-ask">What should change here? One line, handed to Engineer.</div>
+          </div>
+          <div class="bf-spec-note">Send back continues the SAME run with your note (gate law 6.3), never a new task. The hunk dims until the revision lands; Esc backs out, nothing sent.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">a check fails &middot; the machine recovers</div>
+          <div class="bf-spec-stage">
+            <div class="bf-checks" style="padding:0">
+              <span class="bf-check is-pass"><span class="bf-check-glyph">&#10003;</span>typecheck</span>
+              <span class="bf-check"><span class="bf-check-glyph" style="color:var(--verdict-fail)">&#10007;</span>e2e-guest-flow</span>
+            </div>
+            <div class="sp-pulse-line" style="margin-top:8px">
+              <span class="sp-pulse-dot"></span>
+              <span style="font-size:11.5px">Engineer is reading the failure. <span class="sp-pulse-time">About 2 minutes</span></span>
+            </div>
+          </div>
+          <div class="bf-spec-note">No red banner: the glyph carries the verdict, the failing name doors to its log, Engineer patches unasked. Approve stays dim throughout.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">terminal &middot; settled + the badge</div>
+          <div class="bf-spec-stage">
+            <div class="bf-term">
+              <div class="bf-term-head">
+                <span>$ bun test src/checkout</span>
+                <span class="bf-sandbox-chip">Sandbox</span>
+                <span class="bf-term-time">exit 0 &middot; 34s</span>
+              </div>
+              <div class="bf-term-body">
+                <div class="bf-tline"><span class="bf-t-pass">&#10003;</span> 42 tests passed <span class="bf-t-ms">0 failed</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="bf-spec-note">Settled runs keep exit code + duration; the caret leaves with the stream. The terminal is a MATERIAL: dark in both themes, text fixed. The badge tooltip (400ms dwell, instant on focus): "Commands run in an isolated sandbox. Nothing touches production."</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 5. The gate's arrival: when the merge verb may ignite -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">5 &middot; The gate's arrival <span class="bf-sec-ref">the ember lifecycle of Approve and merge</span></div>
+      <div class="bf-rail-grid">
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">live &middot; the ember arrives</div>
+          <div class="bf-spec-stage">
+            <div class="sp-gate-actions" style="margin-top:0">
+              <button class="sp-btn sp-btn-accent">Approve and merge <span class="sp-kbd">1</span></button>
+              <button class="sp-btn">Send back <span class="sp-kbd">2</span></button>
+            </div>
+          </div>
+          <div class="bf-spec-note">Frame B holds the DIM state; CI green + the open PR ignite the verb: the gate object is born and appears in Needs-you, the tray, and the count at once. One source.</div>
+        </div>
+
+        <div class="bf-spec">
+          <div class="bf-spec-label">merging &middot; disabled in between</div>
+          <div class="bf-spec-stage">
+            <div class="sp-gate-actions" style="margin-top:0">
+              <button class="sp-btn sp-btn-accent bf-demo-disabled">Approve and merge</button>
+              <button class="sp-btn bf-demo-disabled">Send back</button>
+            </div>
+            <div class="sp-pulse-line" style="margin-top:10px">
+              <span class="sp-pulse-dot"></span>
+              <span style="font-size:11.5px">Merging. The receipt lands in the Thread. <span class="sp-pulse-time">About 30 seconds</span></span>
+            </div>
+          </div>
+          <div class="bf-spec-note">Optimistic response, then the pair disables: a double-click cannot merge twice. No spinner, no progress theater.</div>
+        </div>
+
+        <div class="bf-spec" style="grid-column: span 3">
+          <div class="bf-spec-label">merged &middot; the receipt flip + the forward door</div>
+          <div class="bf-spec-stage" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div class="sp-receipt-line" style="flex:1;min-width:340px">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Merged at <span class="sp-mono">12:03pm</span>. PR <span class="sp-mono">#222</span>, <span class="sp-mono">14</span> files, <span class="sp-mono">34</span> checks green. Rollback is one click for 24 hours.</span>
+            </div>
+            <button class="sp-journey-chip">Ship it <span class="sp-chip-arrow">&#8594;</span></button>
+          </div>
+          <div class="bf-spec-note">Approving spends the room's ONE class-C beat (&le;900ms): the verb resolves to this receipt, node 06 fills machine, the strip verb flips, the card crosses to Done today. Reduced motion renders the finished receipt.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 6. Motion budget + the keyboard map -->
+    <div class="bf-rail-sec">
+      <div class="bf-rail-sec-title">6 &middot; Motion &amp; keys <span class="bf-sec-ref">budget table spec 5.1 &middot; collapse/restore is class B; approval is the one class C</span></div>
+      <div class="bf-rail-cols">
+
+        <div>
+          <div class="bf-anat-callout" style="margin-bottom:6px"><b>Motion on this screen</b></div>
+          <div class="bf-motion-row">
+            <span class="bf-motion-name">Hover, press, tray</span>
+            <span class="bf-motion-budget">A &middot; 0&ndash;120ms</span>
+            <span>Surface tokens flip; transform/opacity only or nothing. A click never waits for an entrance.</span>
+          </div>
+          <div class="bf-motion-row">
+            <span class="bf-motion-name">Board arrival</span>
+            <span class="bf-motion-budget">B &middot; 150&ndash;250ms</span>
+            <span>Cards stagger 60&ndash;90ms with --ink-ease. A card changing column is one class-B move; the board itself is the notification, no toast.</span>
+          </div>
+          <div class="bf-motion-row">
+            <span class="bf-motion-name">Collapse &amp; restore</span>
+            <span class="bf-motion-budget">B &middot; ~200ms</span>
+            <span>Thread to rail and spine to slim strip in one reflow, both ways; the strip never moves. Reduced motion snaps to the end frame.</span>
+          </div>
+          <div class="bf-motion-row">
+            <span class="bf-motion-name">The live breath</span>
+            <span class="bf-motion-budget">2.4s loop</span>
+            <span>One pulse per frame: the board's live dot (A) or the caret (B). The second run never pulses; ambience stays dim-tier.</span>
+          </div>
+          <div class="bf-motion-row">
+            <span class="bf-motion-name">Approval, reserved</span>
+            <span class="bf-motion-budget">C &middot; &le;900ms</span>
+            <span>The one choreographed beat, only when the live verb fires. Never while dim.</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="bf-anat-callout" style="margin-bottom:6px"><b>Keys on this screen</b></div>
+          <div class="bf-key-row"><span class="sp-kbd">&#9166;</span><span class="bf-key-desc">Open the focused card (board) &middot; keep the focused hunk (diff)</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">J</span><span class="sp-kbd">K</span><span class="bf-key-desc">Walk cards in a column &middot; walk hunks in the diff</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">X</span><span class="bf-key-desc">Send the focused hunk back with one line</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">Esc</span><span class="bf-key-desc">Close the Ask overlay if open, else restore the room</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">&#8984;J</span><span class="bf-key-desc">Ask: docked in the room, summoned in focus</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">A</span><span class="bf-key-desc">Approvals</span><span class="sp-kbd">G</span><span class="sp-kbd">B</span><span class="bf-key-desc">Brain</span><span class="sp-kbd">G</span><span class="sp-kbd">1&ndash;7</span><span class="bf-key-desc">walk the spine</span></div>
+          <div class="bf-key-row"><span class="sp-kbd">1</span><span class="sp-kbd">2</span><span class="sp-kbd">H</span><span class="bf-key-desc">Promote / send back / later, on the tray card</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

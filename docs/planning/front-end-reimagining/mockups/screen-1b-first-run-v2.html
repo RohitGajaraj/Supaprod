@@ -1,0 +1,3425 @@
+<!--
+  SCREEN 1B: screen-1b-first-run-v2.html : First run v2 : the room wakes
+
+  THE MOMENT: Friday July 24, 4:32pm. A brand-new user answered /start's one
+  question with one sentence ("A support tool for small teams. We're drowning
+  in tickets.") and pressed Continue. This file is the ten seconds and the
+  first minute AFTER that press, in their OWN fresh workspace: their words
+  visibly picked up, agents visibly moving, the first call teed up. Helio
+  Labs appears only as the quiet sample door. The founder judged v1 (screen-1)
+  as having no surprise and no felt moment; v2 answers with two frames that
+  are one story: the machine wakes on your sentence, then hands you the wheel.
+
+  STATE SHOWN:
+    Frame A (4:32pm, t+8s)  = active/waking. 01 Discover is the one full-hue
+      machine locus (Watch, "reading what you said"); no gate exists yet, so
+      the honest ember state is NONE: the primary-CTA slot renders the DIM
+      forming gate ("Your first call is forming"). Ambient ember lives only
+      in the spine caps and the forming slot's dashed dim tier; no solid
+      ember anywhere in the frame.
+    Frame B (4:33pm, t+60s) = gated. 01 done ("your goal, read"), 02 Decide
+      is THE ember locus: the first gate card ("Where should we start?"),
+      three honest verbs, one count (1) in every rendering. No full-hue
+      machine locus; agents ride the dim tier while the human decides.
+
+  FUNCTIONAL CONTRACT:
+    Primary question: what just happened with my sentence, and what is my
+      first move?
+    Primary action(s): Frame A: none demanded (watch the room wake; the
+      composer accepts anything). Frame B: answer the first gate: Sweep my
+      sources (1) / Draft the first bet (2) / Show me around (H).
+    Lineage in/out: in: the /start sentence (MissionOnboarding saves it as
+      the workspace brief's mission, BRIEF-1). Out: BRIEF-1 chip opens the
+      brief in Settings (editable whenever, as /start promised); the gate's
+      three verbs door to Settings connections, the 02 Decide face, and the
+      guided tour; the sample door opens the seeded Helio Labs workspace,
+      read-only, nothing of yours changes. Every chip's door is annotated
+      in the doors block under each frame.
+    Agents & attribution: Chief of Staff (sets up the room, first receipt),
+      Watch (reads the goal, drafts the three starting points), Prioritize
+      (Frame B, pre-reading the goal in the strip so verb 2 starts warm).
+      Attribution rides mono agent chips; grayscale-safe.
+    Focus/collapse: none. First run is a full-shell room state; nothing has
+      earned collapse yet. The Working strip never collapses.
+    Empty/loading/blocked: Approvals honestly ZERO in Frame A (no badge, and
+      the closed tray holds the WarmSlot naming who acts next); the forming
+      gate is a designed loading state, not a fake control; "no sources
+      connected yet, so this is reasoning, not evidence" is said out loud in
+      Watch's receipt; Brain holds nothing yet so no memory chip appears
+      anywhere (Vellum would be a lie on minute one). Full state ring in the
+      BEHAVIOR RAIL below the frames (brief 6b.3).
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. The 10-second test, felt: at t+8s do their OWN words (thread echo +
+     canvas headline) plus one working locus read as "it heard me, it is
+     moving" before any body copy is read?
+  2. The honest-zero discipline: Frame A shows no Approvals badge, a dim
+     forming gate, no memory chips, no invented signals. Does nothing-to-
+     decide still feel alive rather than empty?
+  3. The first gate as anticipatory design: the product made the first move
+     and asks ONE question with three honest verbs, each naming its
+     consequence. Would a stranger know exactly what happens on each key?
+  4. One ember per frame as a story beat: A carries none (machine's beat),
+     B carries exactly one (your beat). Does the arc land?
+  5. The starter map: seven plain sentences tuned to THIS goal, each honest
+     about what it needs (a source, a repo, a first yes). Is this the
+     "what will this thing do for me" answer in one glance?
+  6. The one Pixel moment ("Say it. Agents move. You make the calls.") with
+     its deliberate monospace fallback: earned, or cut it?
+  7. The behavior rail: implementable by inspection?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #1  10-second comprehension (the room wakes on their sentence; anatomy
+      teaches: spine = loop, thread = talk, canvas = work, strip = agents)
+  #2  journey-first (caps answer where this starts and ends; the starter
+      map names all seven stages honestly; nothing dead-ends)
+  #3  one input model (the docked composer is the only input box; TopBar
+      Ask focuses the same dock, never a second box)
+  #4  machine work visible (live locus, streaming receipt, working strip)
+  #10 explain where needed (one explainer under the map; tour is verb H,
+      opt-in, never a forced overlay)
+  #11 delight and stickiness (the wake choreography, the forming gate, the
+      first-call tee-up; zero confetti, zero AI cliches)
+  #12 brand-new user's eyes first (their words echoed, their goal named,
+      sample data quarantined behind one slate door)
+  #13 one primary action per screen (A: none demanded; B: the gate),
+      nav = 4 doors, human steps are gates
+
+  RESTRAINT NOTE: deliberately NOT added: a checklist onboarding, progress
+  percentages, a product tour modal, fake sample metrics in the user's own
+  room, a second ember anywhere (Frame A has zero), memory/Vellum chips
+  (Brain is empty on minute one), a starfield in either frame (this file's
+  spec sanctions none; the room is a working surface from second one, so the
+  aliveness comes from the working locus, not decoration), confetti or
+  celebration copy, em dashes in UI strings (humanized-output rule), and a
+  raised composer (first run is speak-primary, so the dock stays quiet,
+  single-line, hairline, with its always-visible command chip).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : first run v2 : the room wakes</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==== SCREEN 1B: first run v2, the room wakes (fw-) =================
+   Two 1440x900 frames + behavior rail. Everything below consumes the
+   shared tokens only; light theme is the token flip, no second CSS. */
+
+/* Page scaffold: screen-5's labeled-frames pattern. */
+.fw-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.jf-frame-label .jf-label-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+.fw-divider {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.fw-divider::before,
+.fw-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+/* Mockup-only annotation block under each frame: lineage doors
+   (ruling 4 extended to every clickable, brief 6c.3) + keys/motion. */
+.fw-doors {
+  width: var(--sp-frame-w);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  color: var(--ink-faint);
+  margin-bottom: 26px;
+}
+.fw-doors b {
+  font-weight: 400;
+  color: var(--ink-subtle);
+}
+
+/* ---- TopBar v2 additions (brief section 3) ------------------------ */
+/* The account button: the app's orb library (brief 6d.4), a calm
+   two-hue gradient mixed into the surface, never a saturated disc. */
+.fw-avatar-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-hairline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-text);
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.16) 0%, transparent 48%),
+    linear-gradient(140deg, #1a2634 0%, #222c1f 100%);
+  cursor: pointer;
+}
+[data-theme="light"] .fw-avatar-btn {
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.55) 0%, transparent 48%),
+    linear-gradient(140deg, #dbe5ef 0%, #e2e8da 100%);
+}
+/* The fresh-workspace note beside the switcher: honest, mono, quiet. */
+.fw-ws-note {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ---- The wake face (Frame A canvas) -------------------------------- */
+.fw-wake-body {
+  position: relative;
+  padding: 26px var(--sp-8) 2px;
+  max-width: 1000px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+/* No starfield here: this file's spec sanctions none. Both frames are
+   working surfaces from second one; aliveness is the machine locus,
+   the caret, and the pulse lines, never decoration. */
+/* The one Pixel moment of this file (ruling 7; brief 6b.2). Fallback
+   truth (6d.3): --font-pixel resolves to monospace when Geist Pixel
+   is absent, so the line is DESIGNED for that fallback too: small,
+   uppercase, wide-tracked, it reads as an intentional set line in
+   either font. Never used again anywhere in this file. */
+.fw-pixel-line {
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-body);
+  margin-bottom: 14px;
+}
+/* Brand moment (6d.1): the mark itself is the verbatim epitrochoid and
+   NEVER rotates. The wake gets the landing's glint treatment as an
+   ambient ring layer behind the static mark: 150s linear revolve.
+   Static under prefers-reduced-motion. */
+.fw-brandrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.fw-brandmoment {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.fw-brandmoment::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--ink-hairline) 40deg,
+    transparent 80deg,
+    transparent 200deg,
+    var(--ink-hairline-soft) 250deg,
+    transparent 300deg
+  );
+  animation: fw-ambient 150s linear infinite;
+}
+@keyframes fw-ambient {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw-brandmoment::before {
+    animation: none;
+  }
+}
+.fw-goal-kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Their goal, echoed as the headline: sans display scale (6d.3), no
+   Pixel on load-bearing text. */
+.fw-goal-h {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--ink-text);
+  margin: 2px 0 6px;
+  max-width: 760px;
+}
+.fw-goal-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  max-width: 640px;
+}
+.fw-goal-sub .sp-mono {
+  font-size: inherit;
+  color: var(--ink-text);
+}
+
+/* The working triple, forming live (CanvasFace contract, spec 9.2):
+   plan / reading / output as three quiet columns. */
+.fw-triple {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px minmax(0, 1.25fr);
+  gap: var(--sp-4);
+  margin-top: 22px;
+  align-items: stretch;
+}
+.fw-tcol {
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fw-tcol-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 10px;
+}
+.fw-tcol-head .fw-tcol-time {
+  margin-left: auto;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+/* Plan steps: what Watch does with just a sentence. */
+.fw-step {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+.fw-step-glyph {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  width: 14px;
+  flex: none;
+  text-align: center;
+}
+.fw-step.is-now {
+  color: var(--voice-machine);
+}
+.fw-step.is-now .fw-step-glyph {
+  color: var(--voice-machine);
+}
+.fw-step.is-done {
+  color: var(--ink-body);
+}
+.fw-step.is-done .fw-step-glyph {
+  color: var(--verdict-pass);
+}
+/* Reading chips: honest about how little exists on minute one. */
+.fw-read-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+  margin: 0 6px 6px 0;
+  white-space: nowrap;
+}
+.fw-read-none {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+/* Output: first questions streaming. The caret shares the live work
+   of the 01 node; text arrives line by line (class B, 150-250ms,
+   60-90ms stagger). */
+.fw-out-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.fw-out-line .fw-out-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  width: 14px;
+  flex: none;
+  text-align: center;
+}
+.fw-out-line.is-streaming {
+  color: var(--ink-subtle);
+}
+.fw-out-ghost {
+  height: 13px;
+  border-radius: 5px;
+  margin: 5px 0 0 23px;
+}
+
+/* The forming gate: the primary-CTA slot rendered honestly BEFORE a
+   gate exists. Ember's ambient dim tier only (pending-but-not-urgent,
+   spec 2.1); never a solid, never a button. Flips to the real gate
+   card in place when the call is ready (class C arrival, once). */
+.fw-forming {
+  margin-top: 22px;
+  border: 1px dashed var(--voice-human-border);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fw-forming-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-human-dim);
+  opacity: 0.7;
+  flex: none;
+}
+.fw-forming-line {
+  flex: 1;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--voice-human-dim);
+}
+.fw-forming-line .fw-forming-help {
+  display: block;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+.fw-forming-eta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The sample door: quiet, slate, bottom of the face. Never the hero. */
+.fw-sample-door {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px 12px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  margin-top: auto;
+}
+.fw-sample-line {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+.fw-sample-line .fw-sample-help {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 1px;
+}
+.fw-sample-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--chip-dim);
+  background: var(--chip-faint);
+  border: 1px solid var(--chip-border);
+  white-space: nowrap;
+  flex: none;
+}
+
+/* ---- Thread pieces -------------------------------------------------- */
+.fw-you {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.fw-you-src {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+/* The echo note under their sentence: "you said it" made literal. */
+.fw-echo-note {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.fw-stream-text {
+  color: var(--ink-body);
+}
+
+/* ---- Frame B: the first gate card ----------------------------------- */
+/* The three verbs replace the approve trio for this one gate only:
+   a path choice, not an approval. Ember rides verb 1 alone. */
+.fw-gate-verbs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+.fw-verb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fw-verb-row .sp-btn {
+  flex: none;
+  min-width: 168px;
+  justify-content: flex-start;
+}
+.fw-verb-row .sp-btn .sp-kbd {
+  margin-left: auto;
+}
+.fw-verb-consequence {
+  flex: 1;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-subtle);
+  min-width: 0;
+}
+/* Gate card meta line (screen-4 grammar). */
+.fw-card-origin {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.fw-card-log {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Face state chip on the gate face: the gate object's rendering, worn
+   SLATE (Addendum 1.3 extended: zero ember chips; ember stays on the
+   verb and the spine node). Extends the overrides block's selector
+   list; does not touch the shared block. */
+.fw-needs-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* The dot stays currentColor (slate): zero ember chips. Ember marks
+   only the spine 02 node and the gate card's first verb. */
+
+/* ---- Frame B: the starter map (canvas) ------------------------------ */
+.fw-map-body {
+  padding: 22px var(--sp-8) 2px;
+  max-width: 1000px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.fw-map-kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.fw-map-h {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-text);
+  margin: 4px 0 6px;
+}
+.fw-map-sub {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  max-width: 680px;
+}
+.fw-map-list {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  overflow: hidden;
+  background: var(--ink-bg);
+  margin-top: 16px;
+}
+.fw-map-row {
+  display: grid;
+  grid-template-columns: 26px 78px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 14px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.fw-map-row:first-child {
+  border-top: none;
+}
+.fw-map-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.fw-map-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.fw-map-what {
+  color: var(--ink-body);
+  min-width: 0;
+}
+.fw-map-what .sp-mono {
+  font-size: inherit;
+  color: var(--ink-text);
+}
+.fw-map-when {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  justify-self: end;
+}
+/* The now row: 02 is where the loop stands; text weight, not a second
+   ember (the gate locus lives in the Thread card + spine node). */
+.fw-map-row.is-now .fw-map-name {
+  color: var(--ink-text);
+}
+.fw-map-row.is-now .fw-map-when {
+  color: var(--chip-fg);
+}
+.fw-map-row.is-later .fw-map-what,
+.fw-map-row.is-later .fw-map-name {
+  color: var(--ink-subtle);
+}
+.fw-map-foot {
+  margin-top: 10px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+/* Show the receipts: progressive disclosure, rendered CLOSED (6c.2). */
+.fw-expander {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-subtle);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.fw-expander:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.fw-expander .fw-exp-caret {
+  font-size: 9px;
+  color: var(--ink-faint);
+}
+
+/* ---- Behavior rail (brief 6b.3) -------------------------------------- */
+.fw-rail {
+  width: var(--sp-frame-w);
+  margin-top: 30px;
+  border-top: 1px solid var(--ink-hairline);
+  padding-top: 20px;
+}
+.fw-rail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.fw-rail-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.fw-rail-ref {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.fw-rail-sub {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-subtle);
+  max-width: 860px;
+  margin-top: 8px;
+}
+.fw-rail-sec {
+  margin-top: 26px;
+}
+.fw-rail-sec-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 12px;
+}
+.fw-sec-ref {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-faint);
+  margin-left: 10px;
+}
+.fw-rail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+.fw-spec {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-panel);
+}
+.fw-spec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 10px;
+}
+.fw-spec-stage {
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px;
+  flex: none;
+}
+.fw-spec-note {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+}
+.fw-spec-note .sp-mono {
+  font-size: inherit;
+  color: var(--ink-body);
+}
+/* Demo pseudo-states, frozen for the mockup. */
+.fw-demo-hover {
+  background: #202024;
+}
+[data-theme="light"] .fw-demo-hover {
+  background: var(--ink-raised);
+}
+.fw-demo-hover.sp-btn-accent {
+  background: var(--voice-human-hover);
+}
+/* Focus-visible per 6d.7: hairline ring + 2px gap, never a thick box. */
+.fw-demo-focus {
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 3px var(--ink-input-ring);
+}
+.fw-demo-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.fw-demo-tip {
+  margin-left: 10px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 11px;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.fw-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fw-skel .ink-skeleton {
+  height: 12px;
+  display: block;
+}
+.fw-drop-ring {
+  border: 1px dashed var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.fw-foot {
+  width: var(--sp-frame-w);
+  margin: 26px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-subtle);
+}
+</style>
+</head>
+<body>
+
+<div class="fw-page">
+
+  <!-- ================================================================
+       FRAME A : THE ROOM WAKES : 4:32pm, eight seconds after /start
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame A &middot; the room wakes</span>
+    <span class="jf-label-sub">t+8s after /start's one question &middot; their own fresh workspace &middot; 01 Discover reading the goal &middot; no gate exists yet &middot; 4:32pm</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell">
+
+      <!-- ==========================================================
+           REGION 1: TopBar v2 (brief section 3). The mark is the
+           canonical epitrochoid, VERBATIM, static at this size
+           (6d.1); gradient ids suffixed -a for this instance so two
+           frames never collide. Approvals carries NO badge: the
+           honest zero. Nothing waits on a user who arrived 8 seconds
+           ago, and the absence IS the state.
+           ========================================================== -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-a" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-a" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-a)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-a)"/>
+          </svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <!-- The switcher shows their workspace honestly: named at signup,
+             no product inside it yet (MissionOnboarding collects one
+             sentence, nothing else). Door: the workspace menu, where the
+             Helio Labs sample also lives. -->
+        <button class="sp-product-switcher">Priya&rsquo;s workspace <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <span class="fw-ws-note">day one</span>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item is-active" href="#">Mission Control</a>
+          <a class="sp-nav-item" href="#">Approvals</a>
+          <a class="sp-nav-item" href="#">Brain</a>
+          <a class="sp-nav-item" href="#">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts">?</button>
+          <button class="fw-avatar-btn" title="Account &middot; opens the account menu">PS</button>
+        </div>
+      </header>
+
+      <!-- ==========================================================
+           REGION 2: Spine. The whole loop, always: 01 is THE one
+           full-hue machine locus (Watch on their sentence); 02-07
+           dim but present, so eight seconds in the product already
+           shows its whole shape. Caps in plain words answer where
+           this starts and how it ends.
+           ========================================================== -->
+      <div class="sp-spine-strip">
+        <div class="sp-spine">
+          <span class="sp-spine-cap">Starts from: your one sentence</span>
+          <span class="sp-spine-edge"></span>
+
+          <!-- 01: the machine locus of Frame A -->
+          <div class="sp-spine-node is-working" title="Watch is reading your goal. Click: the 01 Discover face below, already open.">
+            <span class="sp-spine-node-dot ink-working"></span>
+            <span class="sp-spine-node-num">01</span>
+            <span class="sp-spine-node-label">Discover</span>
+            <span class="sp-spine-node-state">reading what you said</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Your first call arrives here. Nothing to decide yet.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">02</span>
+            <span class="sp-spine-node-label">Decide</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Draft writes specs here, after your first yes">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">03</span>
+            <span class="sp-spine-node-label">Plan</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="On by default; togglable in Settings">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">04</span>
+            <span class="sp-spine-node-label">Design</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Runs when a repo is connected">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">05</span>
+            <span class="sp-spine-node-label">Build</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">06</span>
+            <span class="sp-spine-node-label">Ship</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">07</span>
+            <span class="sp-spine-node-label">Learn</span>
+          </div>
+
+          <span class="sp-spine-edge"></span>
+          <span class="sp-spine-cap">Ends with: calls you make</span>
+        </div>
+
+        <div class="sp-spine-return">
+          <span class="sp-spine-return-label">what Learn records feeds the next loop</span>
+        </div>
+
+        <div class="sp-spine-lanes">
+          <span class="sp-lane is-focused" title="Lanes focus one slice of work. This is your only lane today; it is already focused. Products you add appear beside it."><span class="sp-lane-dot is-machine"></span>your workspace &middot; a support tool for small teams &middot; at 01 Discover &middot; 8s in</span>
+        </div>
+      </div>
+
+      <!-- ==========================================================
+           REGION 3 + 4: Main = Thread + Canvas.
+           ========================================================== -->
+      <div class="sp-main">
+
+        <!-- ------------------------------------------------------
+             REGION 3: Thread. Their sentence is the FIRST human
+             item, echoed exactly: "you said it" made literal. Then
+             the Chief of Staff's first receipt, still streaming
+             (the file's one caret; it belongs to the same wake as
+             the 01 node). No kebab on a streaming item; Details
+             arrives with the finished receipt.
+             ------------------------------------------------------ -->
+        <aside class="sp-thread">
+          <div class="sp-thread-scroll">
+
+            <div class="sp-day-divider">Friday, July 24</div>
+
+            <div class="sp-thread-item is-human">
+              <div class="sp-thread-meta">
+                <span class="fw-you">You</span>
+                <span class="fw-you-src">from /start</span>
+                <span class="sp-thread-time">4:32pm</span>
+              </div>
+              A support tool for small teams. We&rsquo;re drowning in tickets.
+              <div class="fw-echo-note">your words, kept exactly &middot; saved as <span class="sp-artifact-chip" title="Opens your brief in Settings. Reword it whenever; every agent reads it first.">BRIEF-1</span></div>
+            </div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Chief of Staff</span>
+                <span class="sp-thread-time">4:32pm</span>
+              </div>
+              <span class="fw-stream-text ink-caret">Setting up your room. Watch starts with your goal; nothing else is connected yet, and that is fine.</span>
+            </div>
+
+            <!-- Ambient live line: dim tier; the full hue stays on
+                 the spine's 01 node -->
+            <div class="sp-pulse-line" style="padding:2px 12px">
+              <span class="sp-pulse-dot"></span>
+              <span>Watch is reading your goal. <span class="sp-pulse-time">Started 8 seconds ago</span></span>
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- ------------------------------------------------------
+             REGION 4: Canvas, the welcome face. Their goal is the
+             headline; beneath it the working triple forms live
+             (plan / reading / output). The primary-CTA slot renders
+             the DIM forming gate: the honest state of nothing-to-
+             decide. One quiet sample door at the bottom, slate,
+             never the hero.
+             ------------------------------------------------------ -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">01 Discover</span>
+            <span class="sp-surface-title">Your goal, being read</span>
+            <span class="sp-agent-chip">Watch</span>
+            <span class="sp-state-chip is-working"><span class="sp-state-dot"></span>Reading</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link to this face">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details">&#8942;</button>
+                <!-- Closed. Cost and the driver line live in here,
+                     one deliberate gesture deeper (spec 7). -->
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Copy link</button>
+                  <button class="sp-menu-item">Open the trace</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="fw-wake-body">
+              <!-- No starfield: the spec sanctions none for this file.
+                   The wake's aliveness is real work: the 01 locus, the
+                   streaming caret, the forming triple. -->
+
+              <!-- The file's ONE Pixel moment + the brand moment.
+                   The mark is the verbatim epitrochoid (ids -h),
+                   static; the ambient ring behind it revolves at
+                   150s (glint treatment, 6d.1), never the path. -->
+              <div class="fw-brandrow">
+                <span class="fw-brandmoment">
+                  <svg viewBox="0 0 100 100" width="30" height="30" fill="none" style="overflow:visible;position:relative" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="spk-pet-h" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+                      </linearGradient>
+                      <radialGradient id="spk-core-h" cx="42%" cy="36%" r="72%">
+                        <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+                      </radialGradient>
+                    </defs>
+                    <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-h)" stroke-width="3.2" stroke-linejoin="round"/>
+                    <circle cx="50" cy="50" r="7" fill="url(#spk-core-h)"/>
+                  </svg>
+                </span>
+                <span class="sp-pixel fw-pixel-line" style="margin-bottom:0">Say it. Agents move. You make the calls.</span>
+              </div>
+
+              <div class="fw-goal-kicker">Priya&rsquo;s workspace &middot; first run &middot; 4:32pm</div>
+              <h1 class="fw-goal-h">&ldquo;A support tool for small teams.&rdquo;</h1>
+              <p class="fw-goal-sub">
+                Your words, working. Watch is turning one sentence into a starting point; the first questions are forming on the right. Add anything below, or just watch.
+              </p>
+
+              <!-- The working triple, forming live (spec 9.2) -->
+              <div class="fw-triple">
+
+                <div class="fw-tcol">
+                  <div class="fw-tcol-head">What Watch does with one sentence <span class="fw-tcol-time">8s in</span></div>
+                  <div class="fw-step is-done"><span class="fw-step-glyph">&#10003;</span>Read your goal. 10 words, kept exactly.</div>
+                  <div class="fw-step is-now"><span class="fw-step-glyph">&#9679;</span>Sketch the space it lives in.</div>
+                  <div class="fw-step"><span class="fw-step-glyph">3</span>Draft the first questions.</div>
+                  <div class="fw-step"><span class="fw-step-glyph">4</span>Propose where to start.</div>
+                </div>
+
+                <div class="fw-tcol">
+                  <div class="fw-tcol-head">Reading</div>
+                  <div>
+                    <span class="fw-read-chip" title="Opens your brief in Settings">your goal &middot; BRIEF-1</span>
+                  </div>
+                  <div class="fw-read-none">
+                    Nothing else is connected yet. That is the whole list, honestly. Connect a source any time and this column fills on the next sweep.
+                  </div>
+                </div>
+
+                <div class="fw-tcol">
+                  <div class="fw-tcol-head">First questions, forming</div>
+                  <div class="fw-out-line"><span class="fw-out-num">1</span>Who files most of the tickets: customers directly, or your own team relaying them?</div>
+                  <div class="fw-out-line"><span class="fw-out-num">2</span>Where do they land today: a shared inbox, Zendesk, a Slack channel?</div>
+                  <div class="fw-out-line is-streaming"><span class="fw-out-num">3</span>What does drowning look like in numbers, roughly</div>
+                  <!-- Next line arriving: skeleton shaped like a question -->
+                  <span class="ink-skeleton fw-out-ghost" style="width:62%"></span>
+                </div>
+
+              </div>
+
+              <!-- The primary-CTA slot: the DIM forming gate. Honest
+                   ember-ambient (pending, not urgent); flips in place
+                   to the Frame B gate card when the call is ready.
+                   Not clickable, and drawn so it cannot read as a
+                   button: dashed hairline, no verb, no solid ember. -->
+              <div class="fw-forming">
+                <span class="fw-forming-dot"></span>
+                <span class="fw-forming-line">
+                  Your first call is forming&hellip;
+                  <span class="fw-forming-help">When Watch finishes reading, it brings one question here: where to start. Nothing needs you yet.</span>
+                </span>
+                <span class="fw-forming-eta">about a minute</span>
+              </div>
+
+              <!-- The quiet sample door. Slate, one line, bottom. -->
+              <div class="fw-sample-door">
+                <span class="fw-sample-chip">Sample</span>
+                <span class="fw-sample-line">
+                  Or walk through a workspace we already filled. Helio Labs is a sample company with a finished loop in it.
+                  <span class="fw-sample-help">Read-only, real worked data. Your room keeps working while you look; nothing of yours changes.</span>
+                </span>
+                <button class="sp-btn">Open Helio Labs</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ==========================================================
+           REGION 5a: Working strip, alive on second one. Dim machine
+           tier; the summary states the honest zero on the human side.
+           ========================================================== -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>chief of staff &middot; setting up &middot; watch &middot; reading your goal &middot; 8s</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary">2 agents on your sentence, nothing waiting on you yet</span>
+      </div>
+
+      <!-- ==========================================================
+           REGION 5b: Composer, DOCKED (6c.4a: first-run is speak-
+           primary). Quiet single line, hairline surface, the
+           always-visible command chip, journey chips that fit
+           minute one. No elevation theatrics.
+           ========================================================== -->
+      <div class="sp-composer">
+        <div class="sp-composer-box ink-input-focus">
+          <input class="sp-composer-input" type="text" placeholder="Add anything. A doc, a competitor, a frustration." />
+          <div class="sp-composer-row">
+            <div class="sp-composer-chips">
+              <button class="sp-journey-chip" title="Runs 01 to 02; ends at your call">What should we build next? <span class="sp-chip-arrow">&#8594;</span></button>
+              <button class="sp-journey-chip" title="Runs 02 only; ends with a verdict">Tear an idea down <span class="sp-chip-arrow">&#8594;</span></button>
+              <button class="sp-journey-chip" title="Opens Settings &gt; Connections; the next sweep reads it">Connect a source <span class="sp-chip-arrow">&#8594;</span></button>
+            </div>
+            <span class="sp-kbd" title="Focuses this box from anywhere in the room">&#8984;J</span>
+            <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         Approvals tray: closed, honestly empty. The WarmSlot names
+         who acts next and when; no gate object exists in Frame A.
+         ============================================================ -->
+    <aside class="sp-tray">
+      <div class="sp-tray-header">
+        <span class="sp-tray-title">Waiting on you</span>
+        <div class="sp-tray-hints">
+          <span class="sp-kbd">J</span><span class="sp-kbd">K</span>
+        </div>
+      </div>
+      <div class="sp-tray-body">
+        <div class="sp-warm-slot">
+          <div class="sp-warm-slot-line">Nothing needs you yet. Watch brings your first call here in about a minute.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="fw-doors">
+    <b>Doors &amp; consequences, Frame A</b> &middot; Priya&rsquo;s workspace &#9662; opens the workspace menu (rename, the Helio Labs sample, sign out lives under the avatar, never here) &middot; Approvals opens the tray (empty WarmSlot; no badge because the honest count is zero) &middot; Brain opens the record (empty today; it fills as calls are made) &middot; Settings opens /settings &middot; Ask focuses the docked composer (&#8984;J, the one hint everywhere; same box, never a second input) &middot; &#8635; opens past threads (G T; holds one thread: this one) &middot; ? opens the shortcut map &middot; PS opens the account menu &middot; spine 01 opens this face; 02&ndash;07 peek their stage (hover) and say what would wake them &middot; the lane line focuses its slice of work; yours is the only lane and already focused, so today it is a no-op (annotated in its tooltip) &middot; BRIEF-1 opens your brief in Settings; the next sweep re-reads it &middot; journey chips: each names its slice in its tooltip and pre-lights it on the spine &middot; Open Helio Labs switches to the sample workspace, read-only &middot; the forming gate is NOT clickable (annotated above); the working-strip summary opens the activity peek &middot; kebab holds Details (cost, driver, trace), closed.<br />
+    <b>Keys &amp; motion, Frame A</b> &middot; &#8984;J (or the TopBar Ask) focuses the composer &middot; &#8984;&#9166; sends &middot; G 1..7 walks the spine, G A Approvals, G B Brain &middot; wake choreography: thread items arrive class B (150&ndash;250ms, 60&ndash;90ms stagger, --ink-ease); the triple&rsquo;s output lines stream one by one; the ONE class C beat of this frame is reserved for the forming gate&rsquo;s flip to a real gate card (Frame B; 700&ndash;900ms, once) &middot; the 01 node pulse is ink-working (2.4s); the brand ring revolves at 150s; both freeze under prefers-reduced-motion, resolving to the finished frame &middot; tooltips: 400ms dwell, instant on keyboard focus.
+  </div>
+
+  <!-- ================================================================
+       LABELED DIVIDER between the two frames
+       ================================================================ -->
+  <div class="fw-divider">The same room, 52 seconds later: the goal is read, three ways to start are drafted, and the first call waits on you</div>
+
+  <!-- ================================================================
+       FRAME B : THE FIRST CALL : 4:33pm, one minute after /start
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame B &middot; the first call</span>
+    <span class="jf-label-sub">t+60s &middot; 01 done ("your goal, read") &middot; 02 Decide is the ember locus &middot; one count (1) in every rendering &middot; 4:33pm</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell">
+
+      <!-- ==========================================================
+           REGION 1: TopBar v2. Identical chrome (nothing relearns);
+           mark instance -b. The Approvals badge appears the moment
+           the first gate exists: 1, the same number as the spine
+           node, the tray, and the strip. One count, one source.
+           ========================================================== -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
+          </svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher">Priya&rsquo;s workspace <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <span class="fw-ws-note">day one</span>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item is-active" href="#">Mission Control</a>
+          <a class="sp-nav-item" href="#">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#">Brain</a>
+          <a class="sp-nav-item" href="#">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts">?</button>
+          <button class="fw-avatar-btn" title="Account &middot; opens the account menu">PS</button>
+        </div>
+      </header>
+
+      <!-- ==========================================================
+           REGION 2: Spine. 01 done with its artifact (the read goal);
+           02 is the gate object's spine rendering, carrying the one
+           count. No full-hue machine locus in this frame: the human
+           has the floor.
+           ========================================================== -->
+      <div class="sp-spine-strip">
+        <div class="sp-spine">
+          <span class="sp-spine-cap">Starts from: your one sentence</span>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done" title="Done: your goal, read. Click: what Watch took from it.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">01</span>
+            <span class="sp-spine-node-label">Discover</span>
+            <span class="sp-spine-node-state">your goal, read</span>
+            <span class="sp-artifact-chip" title="Opens your brief in Settings">BRIEF-1</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <!-- 02: THE ember locus. Clicking opens the gate card,
+               never a dashboard. Same object as the nav badge, the
+               thread card, and the tray. -->
+          <div class="sp-spine-node is-gate" title="Your first call. Opens the gate card in the thread.">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">02</span>
+            <span class="sp-spine-node-label">Decide</span>
+            <span class="sp-spine-node-state">where to start</span>
+            <span class="sp-tray-count">1</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Draft writes the spec after your first yes">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">03</span>
+            <span class="sp-spine-node-label">Plan</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="On by default; togglable in Settings">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">04</span>
+            <span class="sp-spine-node-label">Design</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Runs when a repo is connected">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">05</span>
+            <span class="sp-spine-node-label">Build</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">06</span>
+            <span class="sp-spine-node-label">Ship</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">07</span>
+            <span class="sp-spine-node-label">Learn</span>
+          </div>
+
+          <span class="sp-spine-edge"></span>
+          <span class="sp-spine-cap">Ends with: calls you make</span>
+        </div>
+
+        <div class="sp-spine-return">
+          <span class="sp-spine-return-label">what Learn records feeds the next loop</span>
+        </div>
+
+        <div class="sp-spine-lanes">
+          <span class="sp-lane is-focused" title="Lanes focus one slice of work. This is your only lane today; it is already focused. Its dot carries the gate&rsquo;s ambient tier."><span class="sp-lane-dot is-gate"></span>your workspace &middot; where to start &middot; at 02 Decide &middot; your move</span>
+        </div>
+      </div>
+
+      <!-- ==========================================================
+           REGION 3 + 4: Main = Thread + Canvas.
+           ========================================================== -->
+      <div class="sp-main">
+
+        <!-- ------------------------------------------------------
+             REGION 3: Thread. The first minute, whole: their echo,
+             the room-ready receipt, Watch's honest reasoning-not-
+             evidence receipt, then the FIRST GATE CARD: the ember
+             locus of this frame. Three verbs, each with its
+             consequence in plain words. Anticipation rides the dim
+             tier below it (Prioritize pre-reading).
+             ------------------------------------------------------ -->
+        <aside class="sp-thread">
+          <div class="sp-thread-scroll">
+
+            <div class="sp-day-divider">Friday, July 24</div>
+
+            <div class="sp-thread-item is-human">
+              <div class="sp-thread-meta">
+                <span class="fw-you">You</span>
+                <span class="fw-you-src">from /start</span>
+                <span class="sp-thread-time">4:32pm</span>
+              </div>
+              A support tool for small teams. We&rsquo;re drowning in tickets.
+              <div class="fw-echo-note">your words, kept exactly &middot; saved as <span class="sp-artifact-chip" title="Opens your brief in Settings. Reword it whenever; every agent reads it first.">BRIEF-1</span></div>
+            </div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Chief of Staff</span>
+                <span class="sp-thread-time">4:32pm</span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Room ready. Your goal is the first thing every agent reads.</span>
+              </div>
+            </div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Watch</span>
+                <span class="sp-thread-time">4:33pm</span>
+                <span class="sp-kebab" style="margin-left:auto">
+                  <button class="sp-icon-btn" title="Details" style="width:22px;height:22px">&#8942;</button>
+                  <!-- Closed. Cost and the driver line live in here. -->
+                  <div class="sp-details-menu">
+                    <button class="sp-menu-item">Details</button>
+                    <button class="sp-menu-item">Copy link</button>
+                    <button class="sp-menu-item">Open the trace</button>
+                  </div>
+                </span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">From one sentence: <span class="sp-mono">3</span> ways to start. No sources are connected yet, so this is reasoning, not evidence. Connect one and I sweep for real.</span>
+              </div>
+            </div>
+
+            <!-- THE FIRST GATE CARD: the ember locus. A path choice,
+                 not an approval, so the verbs remap for this one
+                 gate (annotated; the approve trio returns from the
+                 second gate on). Ember rides verb 1 alone. -->
+            <div class="sp-gate-card">
+              <div class="sp-card-chiprow">
+                <span class="sp-agent-chip">Watch</span>
+                <span class="fw-card-origin">your workspace &middot; 02 Decide</span>
+                <span class="sp-card-time">4:33pm</span>
+              </div>
+              <div class="sp-gate-headline">Where should we start?</div>
+              <div class="sp-gate-reco">
+                Three honest ways in. Pick one and the room moves; nothing runs without you.
+              </div>
+              <div class="fw-gate-verbs">
+                <div class="fw-verb-row">
+                  <button class="sp-btn sp-btn-accent">Sweep my sources <span class="sp-kbd">1</span></button>
+                  <span class="fw-verb-consequence">Connect Zendesk, GitHub, or Slack. Watch reads tonight; your first bets come from evidence.</span>
+                </div>
+                <div class="fw-verb-row">
+                  <button class="sp-btn">Draft the first bet <span class="sp-kbd">2</span></button>
+                  <span class="fw-verb-consequence">Prioritize writes the case from your goal alone. You approve or send it back at this same gate.</span>
+                </div>
+                <div class="fw-verb-row">
+                  <button class="sp-btn">Show me around <span class="sp-kbd">H</span></button>
+                  <span class="fw-verb-consequence">A five-stop tour of the room, on the Helio Labs sample. Skippable at any step; this call keeps.</span>
+                </div>
+              </div>
+              <div class="fw-card-log">Your pick is this workspace&rsquo;s first record. It opens Brain.</div>
+            </div>
+
+            <!-- Anticipatory ambience, dim tier: option 2 starts warm -->
+            <div class="sp-pulse-line" style="padding:2px 12px">
+              <span class="sp-pulse-dot"></span>
+              <span>Prioritize is pre-reading your goal, so a first bet starts warm. <span class="sp-pulse-time">Started 20 seconds ago</span></span>
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- ------------------------------------------------------
+             REGION 4: Canvas, the starter map. What the loop will
+             do at each stage FOR THIS GOAL: seven plain sentences,
+             each honest about what it needs before it can run. The
+             gate object's face rendering is the slate state chip;
+             ember stays on the card verb and the spine node.
+             ------------------------------------------------------ -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">02 Decide</span>
+            <span class="sp-surface-title">Where to start</span>
+            <span class="sp-agent-chip">Watch</span>
+            <span class="sp-state-chip fw-needs-chip"><span class="sp-state-dot"></span>Your first call</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link to this face">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details">&#8942;</button>
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Copy link</button>
+                  <button class="sp-menu-item">Open the trace</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="fw-map-body">
+              <div class="fw-map-kicker">Priya&rsquo;s workspace &middot; the loop, for this goal</div>
+              <h1 class="fw-map-h">What the loop does with a support tool.</h1>
+              <p class="fw-map-sub">
+                Seven stages, one plain sentence each. This is the map, not a promise: every row says what it needs from you before it can run for real.
+              </p>
+
+              <div class="fw-map-list">
+                <div class="fw-map-row">
+                  <span class="fw-map-num">01</span>
+                  <span class="fw-map-name">Discover</span>
+                  <span class="fw-map-what">Watch reads your ticket sources and clusters what customers actually ask.</span>
+                  <span class="fw-map-when">tonight, if you connect a source</span>
+                </div>
+                <div class="fw-map-row is-now">
+                  <span class="fw-map-num">02</span>
+                  <span class="fw-map-name">Decide</span>
+                  <span class="fw-map-what">Prioritize ranks what would cut the queue most; every bet is your call at a gate.</span>
+                  <span class="fw-map-when">now &middot; your call</span>
+                </div>
+                <div class="fw-map-row">
+                  <span class="fw-map-num">03</span>
+                  <span class="fw-map-name">Plan</span>
+                  <span class="fw-map-what">Draft writes the spec, with an outcome contract you can hold it to later.</span>
+                  <span class="fw-map-when">after your first yes</span>
+                </div>
+                <div class="fw-map-row">
+                  <span class="fw-map-num">04</span>
+                  <span class="fw-map-name">Design</span>
+                  <span class="fw-map-what">Design shows a working mock of the triage screen before any code exists.</span>
+                  <span class="fw-map-when">on by default</span>
+                </div>
+                <div class="fw-map-row is-later">
+                  <span class="fw-map-num">05</span>
+                  <span class="fw-map-name">Build</span>
+                  <span class="fw-map-what">Engineer writes the change in a sandbox, tests first, behind your merge gate.</span>
+                  <span class="fw-map-when">when you connect a repo</span>
+                </div>
+                <div class="fw-map-row is-later">
+                  <span class="fw-map-num">06</span>
+                  <span class="fw-map-name">Ship</span>
+                  <span class="fw-map-what">Releases go out staged, with one-click rollback for the first 24 hours.</span>
+                  <span class="fw-map-when">when a build exists</span>
+                </div>
+                <div class="fw-map-row is-later">
+                  <span class="fw-map-num">07</span>
+                  <span class="fw-map-name">Learn</span>
+                  <span class="fw-map-what">Measure reads whether ticket load actually fell, and says so either way.</span>
+                  <span class="fw-map-when">after your first ship</span>
+                </div>
+              </div>
+
+              <div class="fw-map-foot">
+                Nothing on this map runs by itself. Agents move between gates; drafts stay drafts until you say otherwise; nothing sends itself.
+              </div>
+
+              <!-- Plumbing behind a closed expander (6c.2): what each
+                   stage needs stays one gesture deeper. -->
+              <button class="fw-expander" title="Expands in place; the map stays put">
+                <span class="fw-exp-caret">&#9656;</span> Show what each stage needs &middot; connections, permissions, what stays off
+              </button>
+            </div>
+
+            <div class="sp-face-footer" style="display:flex;align-items:center;gap:16px">
+              <div class="sp-receipt-line" style="flex:1">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Drafted <span class="sp-mono">3</span> starting points from your goal at <span class="sp-mono">4:33pm</span>.</span>
+              </div>
+              <button class="sp-journey-chip" title="Scrolls the thread to the gate card and focuses verb 1">Open the first call <span class="sp-chip-arrow">&#8594;</span></button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ==========================================================
+           REGION 5a: Working strip. Dim tier only: the gate is the
+           screen's pull. The summary counts match the tray and nav.
+           ========================================================== -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>prioritize &middot; pre-reading your goal &middot; 20s</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>watch &middot; waiting on your call</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary">1 agent working, 1 waiting on you</span>
+      </div>
+
+      <!-- ==========================================================
+           REGION 5b: Composer, docked and quiet. The chips turn into
+           the questions a first-minute user actually has.
+           ========================================================== -->
+      <div class="sp-composer">
+        <div class="sp-composer-box ink-input-focus">
+          <input class="sp-composer-input" type="text" placeholder="Ask about the map, or answer the call in your own words." />
+          <div class="sp-composer-row">
+            <div class="sp-composer-chips">
+              <button class="sp-journey-chip" title="Ask answers inline; the gate stays put">How do gates work? <span class="sp-chip-arrow">&#8594;</span></button>
+              <button class="sp-journey-chip" title="Ask answers inline, with the connect door">What counts as a source? <span class="sp-chip-arrow">&#8594;</span></button>
+              <button class="sp-journey-chip" title="Opens Settings &gt; Connections; the next sweep reads it">Connect a source <span class="sp-chip-arrow">&#8594;</span></button>
+            </div>
+            <span class="sp-kbd" title="Focuses this box from anywhere in the room">&#8984;J</span>
+            <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         Approvals tray: CLOSED. The one card inside is the same gate
+         object as the nav badge, spine node, and thread card: one
+         count (1), one source; deciding from any clears all.
+         ============================================================ -->
+    <aside class="sp-tray">
+      <div class="sp-tray-header">
+        <span class="sp-tray-title">Waiting on you</span>
+        <span class="sp-gate-chip">1</span>
+        <div class="sp-tray-hints">
+          <span class="sp-kbd">J</span><span class="sp-kbd">K</span>
+        </div>
+      </div>
+      <div class="sp-tray-body">
+        <div class="sp-gate-card">
+          <div class="sp-card-chiprow">
+            <span class="sp-agent-chip">Watch</span>
+            <span class="fw-card-origin">your workspace &middot; 02 Decide</span>
+            <span class="sp-card-time">4:33pm</span>
+          </div>
+          <div class="sp-gate-headline">Where should we start?</div>
+          <div class="sp-gate-reco">Sweep your sources, draft the first bet from the goal alone, or take the tour. Same card as the thread; deciding here clears it there.</div>
+          <div class="sp-gate-actions">
+            <button class="sp-btn sp-btn-accent">Sweep my sources <span class="sp-kbd">1</span></button>
+            <button class="sp-btn">Draft the first bet <span class="sp-kbd">2</span></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="fw-doors">
+    <b>Doors &amp; consequences, Frame B</b> &middot; Approvals (1) opens the tray; the count is the gate object&rsquo;s ambient rendering, identical at the nav, spine 02, tray chip, and strip summary &middot; spine 01 opens the read-goal face; BRIEF-1 opens your brief in Settings &middot; spine 02 opens the gate card in the thread, never a dashboard &middot; the lane line focuses its slice; yours is the only lane, already focused (tooltip says so) &middot; gate verb 1 opens Settings &gt; Connections scoped to Zendesk / GitHub / Slack, then Watch sweeps tonight (consequence stated on the card) &middot; verb 2 starts Prioritize on the goal alone; its case returns to this same gate &middot; verb H starts the five-stop tour on the sample; Escape exits, the call keeps &middot; "Open the first call" scrolls the thread to the card and focuses verb 1 &middot; the map&rsquo;s expander discloses per-stage needs in place, closed by default &middot; composer chips: the two questions answer inline via Ask; Connect a source doors to Settings &gt; Connections &middot; kebabs hold Details (cost, driver, trace), closed everywhere.<br />
+    <b>Keys &amp; motion, Frame B</b> &middot; 1 / 2 / H act on the gate card; Enter opens the evidence face (the map, already open here); J/K would traverse a longer queue &middot; &#8984;J (or the TopBar Ask) focuses the composer &middot; G 1..7, G A, G B as everywhere &middot; the gate card ARRIVED via this room&rsquo;s one class C beat (700&ndash;900ms: the forming slot resolves, the card grows from it, spine 02 fills ember within 1s); verbs respond optimistically (class A, 0&ndash;120ms); under prefers-reduced-motion the sequence resolves directly to this finished frame &middot; no second choreographed beat exists in this frame.
+  </div>
+
+  <!-- ================================================================
+       BEHAVIOR RAIL (brief 6b.3): the state grammar of first run v2.
+       The frames above stay believable; every core component's other
+       lives are specified here, card-spec style. Mockup annotation,
+       not product chrome. Specimens may repeat the ember verb in
+       isolation; each frame above carries at most one ember locus.
+       ================================================================ -->
+  <section class="fw-rail" aria-label="Behavior rail: component states, keys, motion">
+    <div class="fw-rail-head">
+      <span class="fw-rail-kicker">Behavior rail &middot; first run v2</span>
+      <span class="fw-rail-ref">hover / focus / active / disabled / loading / empty / error / success &middot; motion budget spec 5.1 &middot; keys</span>
+    </div>
+    <p class="fw-rail-sub">
+      What the engineer implements without asking: the first gate&rsquo;s full verb ring, the docked composer&rsquo;s five lives, the forming-gate lifecycle with its one choreographed arrival, and the honest empty and error shapes of a workspace that is sixty seconds old. Every specimen uses the live tokens, so the rail is implementable by inspection.
+    </p>
+
+    <!-- 1. The first gate's verb ring -->
+    <div class="fw-rail-sec">
+      <div class="fw-rail-sec-title">1 &middot; The first gate&rsquo;s verb ring <span class="fw-sec-ref">GateChip 6.3, remapped ONCE for the path choice; the approve trio returns from the second gate on</span></div>
+      <div class="fw-rail-grid">
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">rest</div>
+          <div class="fw-spec-stage">
+            <div class="sp-gate-actions" style="margin-top:0">
+              <button class="sp-btn sp-btn-accent">Sweep my sources <span class="sp-kbd">1</span></button>
+              <button class="sp-btn">Draft the first bet <span class="sp-kbd">2</span></button>
+              <button class="sp-btn sp-btn-ghost">Show me around <span class="sp-kbd">H</span></button>
+            </div>
+          </div>
+          <div class="fw-spec-note">Ember rides exactly one verb: the recommended path. Keys 1/2/H map in order and never reorder; the tour is reachable but never the hero. Enter opens the evidence face (the starter map).</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">hover &middot; focus-visible</div>
+          <div class="fw-spec-stage">
+            <div class="sp-gate-actions" style="margin-top:0">
+              <button class="sp-btn sp-btn-accent fw-demo-hover">Sweep my sources <span class="sp-kbd">1</span></button>
+              <button class="sp-btn fw-demo-focus">Draft the first bet <span class="sp-kbd">2</span></button>
+            </div>
+          </div>
+          <div class="fw-spec-note">Hover steps one token (class A, no motion). Focus-visible is the subtle ring (6d.7): 2px surface gap + 1px hairline ring, identical on every interactive element in both frames; never a thick outline box.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">pressed &middot; choosing</div>
+          <div class="fw-spec-stage">
+            <div class="sp-gate-actions" style="margin-top:0">
+              <button class="sp-btn sp-btn-accent fw-demo-disabled">Sweep my sources <span class="sp-kbd">1</span></button>
+              <button class="sp-btn fw-demo-disabled">Draft the first bet <span class="sp-kbd">2</span></button>
+              <button class="sp-btn sp-btn-ghost fw-demo-disabled">Show me around <span class="sp-kbd">H</span></button>
+            </div>
+            <div class="sp-pulse-line" style="margin-top:10px">
+              <span class="sp-pulse-dot"></span>
+              <span>Opening Connections. <span class="sp-pulse-time">About 2 seconds</span></span>
+            </div>
+          </div>
+          <div class="fw-spec-note">The verb responds optimistically; the ring disables so a double press cannot choose twice. No spinner on the button, no fake progress anywhere.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">chosen &middot; the receipt flip</div>
+          <div class="fw-spec-stage">
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Chose: sweep my sources, at <span class="sp-mono">4:36pm</span>. Connections is open; Watch reads tonight. <span class="sp-receipt-action">Change your pick</span>.</span>
+            </div>
+          </div>
+          <div class="fw-spec-note">The card flips in place to its receipt; the thread never reshuffles. The count (1) decrements everywhere at once: nav, spine 02, tray, strip. One count, one source.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">failed &middot; the recovery</div>
+          <div class="fw-spec-stage">
+            <div class="sp-receipt-line is-blocked">
+              <span class="sp-receipt-check">&#9675;</span>
+              <span class="sp-receipt-text">Connections did not open. Your pick is kept. <span class="sp-receipt-action">Try again</span>.</span>
+            </div>
+          </div>
+          <div class="fw-spec-note">Plain reason + recovery verb, the only error shape outside the Engine Room. The chosen path survives the retry; the user never re-decides.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">left alone &middot; the patient state</div>
+          <div class="fw-spec-stage">
+            <div class="sp-pulse-line is-queued">
+              <span class="sp-pulse-dot"></span>
+              <span>watch &middot; waiting on your call &middot; no expiry</span>
+            </div>
+          </div>
+          <div class="fw-spec-note">The first gate never expires and never nags: the strip keeps <span class="sp-mono">1 waiting on you</span>, the badge stays, and tomorrow&rsquo;s briefing re-offers the same three verbs. Closing the tab loses nothing.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. The docked composer's five lives -->
+    <div class="fw-rail-sec">
+      <div class="fw-rail-sec-title">2 &middot; The docked composer&rsquo;s five lives <span class="fw-sec-ref">6c.4a: docked ONLY where speaking is primary (this surface); elsewhere the TopBar Ask + &#8984;J summon a transient overlay, Escape dismisses</span></div>
+      <div class="fw-rail-grid">
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">rest</div>
+          <div class="fw-spec-stage">
+            <div class="sp-composer-box" style="padding:10px 12px 8px">
+              <input class="sp-composer-input" type="text" placeholder="Add anything. A doc, a competitor, a frustration." />
+              <div class="sp-composer-row" style="margin-top:8px">
+                <span class="sp-kbd" title="Focuses this box from anywhere">&#8984;J</span>
+                <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">Quiet single line on a hairline surface: no glow, no stolen canvas height. The &#8984;J chip is always visible; discoverability comes from constancy, not size.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">focused</div>
+          <div class="fw-spec-stage">
+            <div class="sp-composer-box" style="padding:10px 12px 8px;box-shadow:0 0 0 1px var(--ink-input-ring)">
+              <input class="sp-composer-input" type="text" placeholder="Add anything. A doc, a competitor, a frustration." />
+              <div class="sp-composer-row" style="margin-top:8px">
+                <span class="sp-kbd">&#8984;J</span>
+                <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">&#8984;J (or the TopBar Ask) focuses; the 1px input ring appears with zero motion. Journey chips stay reachable by Tab; Escape returns focus to the room without clearing the draft.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">filled &middot; send armed</div>
+          <div class="fw-spec-stage">
+            <div class="sp-composer-box" style="padding:10px 12px 8px">
+              <input class="sp-composer-input" type="text" value="Our tickets live in a shared Gmail inbox" />
+              <div class="sp-composer-row" style="margin-top:8px">
+                <span class="sp-kbd">&#8984;J</span>
+                <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">Send stays a neutral verb by design: ember belongs to the gate, and the composer never competes with it. &#8984;&#9166; sends; the box clears optimistically.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">drag-over &middot; a file</div>
+          <div class="fw-spec-stage">
+            <div class="sp-composer-box fw-drop-ring" style="padding:10px 12px 8px">
+              <input class="sp-composer-input" type="text" placeholder="Drop it. Watch reads files too." />
+              <div class="sp-composer-row" style="margin-top:8px">
+                <span class="sp-kbd">&#8984;J</span>
+                <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">Dropping a doc, a CSV, or a screenshot attaches it to the thread and Watch reads it on the spot: the placeholder&rsquo;s promise (&ldquo;a doc, a competitor, a frustration&rdquo;) is wired, not poetry.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">sent &middot; the answer arrives in the thread</div>
+          <div class="fw-spec-stage">
+            <div class="sp-thread-item is-machine" style="padding:8px 10px">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Chief of Staff</span>
+                <span class="sp-thread-time">4:34pm</span>
+              </div>
+              <span class="fw-stream-text">Noted. A shared Gmail inbox counts as a source; connecting it takes about a minute.</span>
+            </div>
+          </div>
+          <div class="fw-spec-note">Replies land as thread items (class B arrival, 150&ndash;250ms), never inside the box: one input, one conversation, zero duplicate surfaces.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">elsewhere &middot; the summon (annotated once)</div>
+          <div class="fw-spec-stage">
+            <button class="sp-btn">Ask <span class="sp-kbd">&#8984;J</span></button>
+            <span class="fw-demo-tip">&#8984;J drops the same box from the TopBar &middot; Escape dismisses</span>
+          </div>
+          <div class="fw-spec-note">On Settings, Library, Threads, Engine room, and deep-work states there is NO docked composer: the constant TopBar button summons a transient overlay. Same input, different posture; presence is earned per surface.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. The forming gate, honest empties, and the error shapes -->
+    <div class="fw-rail-sec">
+      <div class="fw-rail-sec-title">3 &middot; The forming gate, honest empties, and the error shapes <span class="fw-sec-ref">WarmSlot 6.7 &middot; the one class C beat &middot; reduced motion resolves to the finished frame</span></div>
+      <div class="fw-rail-grid">
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">forming &middot; ember&rsquo;s ambient tier</div>
+          <div class="fw-spec-stage">
+            <div class="fw-forming" style="margin-top:0">
+              <span class="fw-forming-dot"></span>
+              <span class="fw-forming-line">Your first call is forming&hellip;<span class="fw-forming-help">Nothing needs you yet.</span></span>
+              <span class="fw-forming-eta">about a minute</span>
+            </div>
+          </div>
+          <div class="fw-spec-note">Dashed hairline, dim ember text, no verb: it cannot be mistaken for a button. Announced politely to screen readers (aria-live="polite"); the estimate is honest or absent, never a countdown.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">ready &middot; the one class C arrival</div>
+          <div class="fw-spec-stage">
+            <div class="sp-gate-card" style="padding:10px 12px">
+              <div class="sp-card-chiprow" style="margin-bottom:6px">
+                <span class="sp-agent-chip">Watch</span>
+                <span class="sp-card-time">4:33pm</span>
+              </div>
+              <div class="sp-gate-headline" style="margin-bottom:0">Where should we start?</div>
+            </div>
+          </div>
+          <div class="fw-spec-note">700&ndash;900ms, once: the dashed slot resolves, the card grows from it (spatial consistency), spine 02 fills ember within 1s, the strip verb flips to <span class="sp-mono">waiting on your call</span>. Reduced motion cuts straight to this end state.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">no goal &middot; they walked in empty</div>
+          <div class="fw-spec-stage">
+            <div class="sp-warm-slot" style="padding:16px 14px">
+              <div class="sp-warm-slot-line" style="font-size:12.5px">No goal yet, and that is fine. Say one sentence and the room wakes on it; or look around first.</div>
+              <div class="sp-warm-slot-action" style="margin-top:10px">
+                <button class="sp-btn sp-btn-accent">Say it now</button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">/start&rsquo;s &ldquo;Walk me in&rdquo; path: the canvas renders the WarmSlot (its single action keeps ember) instead of the wake; the composer placeholder becomes the /start question. Nothing pretends a goal exists.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">loading &middot; the map, shaped</div>
+          <div class="fw-spec-stage">
+            <div class="fw-skel">
+              <span class="ink-skeleton" style="width:34%"></span>
+              <span class="ink-skeleton" style="width:88%"></span>
+              <span class="ink-skeleton" style="width:81%"></span>
+              <span class="ink-skeleton" style="width:85%"></span>
+            </div>
+          </div>
+          <div class="fw-spec-note">Skeleton shaped like the arriving rows (kicker + three rows), calm opacity breath at 1.6s, static at 0.7 under reduced motion. Never a spinner, never a percentage.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">read failed &middot; the recovery</div>
+          <div class="fw-spec-stage">
+            <div class="sp-card">
+              <div class="sp-card-chiprow">
+                <span class="sp-agent-chip">Watch</span>
+                <span class="sp-card-time">4:33pm</span>
+              </div>
+              <div class="sp-card-body">Could not finish reading your goal. Your sentence is safe.</div>
+              <div class="sp-card-actions">
+                <button class="sp-btn">Try again</button>
+              </div>
+            </div>
+          </div>
+          <div class="fw-spec-note">The wake&rsquo;s wired error contract: plain reason, one recovery verb, and the reassurance that matters most on minute one (their words are not lost). The thread echo stays untouched.</div>
+        </div>
+
+        <div class="fw-spec">
+          <div class="fw-spec-label">chips are doors &middot; hover tooltip</div>
+          <div class="fw-spec-stage" style="display:flex;align-items:center">
+            <span class="sp-artifact-chip" style="cursor:pointer">BRIEF-1</span>
+            <span class="fw-demo-tip">Opens your brief &middot; Settings &middot; reword it whenever</span>
+          </div>
+          <div class="fw-spec-note">Every chip names its door: tooltip on 400ms dwell, instant on keyboard focus. Journey chips additionally pre-light their spine slice on hover, the cheapest answer to &ldquo;what will this do&rdquo;.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="fw-foot">
+    Dark is the default; <span class="sp-mono">data-theme="light"</span> flips every token above with no second stylesheet. Grayscale test: attribution rides the mono agent chips, state rides glyphs and text, and the one gate survives as the only bordered call to action. All timestamps sit inside the first minute after 4:32pm; nothing on either frame claims data that a sixty-second-old workspace could not have.
+  </div>
+
+</div>
+
+</body>
+</html>

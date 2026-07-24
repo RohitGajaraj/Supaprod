@@ -1,0 +1,3652 @@
+<!--
+  SCREEN 17: Settings : Connections & Data + Plan & Usage
+
+  THE MOMENT: Monday July 20, about 12:45pm at Helio Labs. Atlas 1.9
+  went to 100% at 12:15pm and Measure is watching the rollout. The
+  founder steps out of the room for two minutes of housekeeping:
+  what is this workspace connected to, who else can read it, and
+  what did the morning's work actually draw down. DEC-19's challenge
+  still waits in Approvals (count 1) the whole time.
+
+  STATE SHOWN:
+    Frame A (12:45pm) = Connections & Data, Sources active. Rest
+      state: four healthy sources, two products bound, two external
+      read grants, the data controls. One ember: Connect a source.
+    Frame B (12:46pm) = Plan & Usage, Credits active. Rest state:
+      THE one pane in the entire product where money renders
+      (brief ruling 1.8, spec section 7). Deliberately quiet:
+      zero ember in the frame, by design.
+
+  FUNCTIONAL CONTRACT:
+    Primary question:
+      A: what flows in, what can external agents read, what do we
+         store, and is any of it broken?
+      B: what plan are we on, where did the credits go, and are the
+         agents healthy?
+    Primary action(s):
+      A: connect a source (the frame's one ember; everything else
+         is ledger reading, revoking, and exporting).
+      B: none by design. Reading money is never the product's
+         requested next move; threshold and hard cap edit inline,
+         top-ups are a quiet ghost door.
+    Lineage in/out:
+      In: the TopBar Settings door; /settings?section= deep links
+      (every rail door below carries its real section id from
+      src/lib/settings-sections.ts; legacy ids like ?section=plan
+      still land).
+      Out: GitHub row opens its connector detail (?connector=github)
+      ... "Open sync" goes to /sync ... history rows carry artifact
+      chips: SPEC-47 to the 05 Build face, REL-20 to 06 Ship, LK-3
+      to the launch kit in 06, SPEC-52 to 03 Plan, BET-29 to the 02
+      board ... Diagnostics hands off to the engine room trace.
+      Every chip and control carries its door in a title annotation
+      and the doors are listed under each frame.
+    Agents & attribution: Watch (the 6:00am sweep, 37 signals),
+      Measure (watching the Atlas rollout, working strip), Announce
+      (assembling launch kit LK-3). External agents appear only in
+      the Agent access ledger, as plain revocable sentences. All
+      attribution rides mono chips; grayscale-safe.
+    Focus/collapse: none. Settings is a configuration room: no
+      Spine, and per brief 6c.4b NO docked composer. Ask lives as
+      the constant TopBar button with its visible cmd-J hint;
+      cmd-J summons a transient overlay (specimen in the behavior
+      rail). The Working strip never collapses, even here.
+    Empty/loading/blocked: Comet honestly unbound in Sync &
+      bindings; the full non-happy grammar (token expired, OAuth
+      wait, no sources yet, metering off, billing not wired, cap
+      reached, revoke confirm/failure) is specified in the
+      BEHAVIOR RAIL below the frames per brief 6b.3.
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. The recluster holding at production truth: five named groups,
+     sixteen doors, verbatim from settings-sections.ts, readable in
+     one glance, with the ?section= deep-link contract preserved
+     and stated where an engineer will see it.
+  2. Sources as receipts, not logos: each row answers what it
+     reads, whether it is healthy, and when it last spoke, in one
+     line, chip-only recognition (Option A), kebab closed.
+  3. Agent access turned outward: external read scopes as plain
+     revocable sentences plus the two machine doors (the A2A agent
+     card, the MCP endpoint). Is this the right shape for
+     "agents are manageable" beyond our own walls?
+  4. The money rule made architecture: Frame B is the product's
+     single money surface, and even here ember is refused. Money
+     never wears the needs-you color. Does the quiet hold?
+  5. Diagnostics without theater: one honest sentence per
+     subsystem, one timestamp each, zero graphs. Enough to trust?
+  6. The behavior rail: connect, revoke, threshold, and cap state
+     rings implementable by inspection, or decoration?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #5 costs are quiet (this pane is the single sanctioned exception;
+     everywhere else cost lives behind the closed kebab's Details)
+  #6 every capability accessible, sensibly placed (5 groups, 16
+     doors, deep links intact, nothing reachable only by magic)
+  #9 agents are manageable (the external ledger: A2A + MCP read
+     scopes, granted at the moment of need, revoked here)
+  #4 the machine's work always visible (the Working strip persists
+     into Settings; sweeps and reads render as receipts)
+  #13 decade-proof (nav stays 4 doors; Settings is one room; money
+     quarantined to one pane that nothing else links into casually)
+
+  RESTRAINT NOTE: no logo art in source rows (chip-only, Option A);
+  no usage charts anywhere (the spend-order meter is two labeled
+  hairline segments, not a plot); no upsell banner on the money
+  pane; Buy a top-up is a quiet ghost; Delete is a dry typed
+  confirm, never a red modal drama; zero Pixel; no starfield
+  (not sanctioned here); diagnostics refuses invented numbers;
+  the one class-C motion budget is deliberately UNSPENT in
+  Settings, stated in the rail.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : Settings : Connections + Plan &amp; Usage</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==================================================================
+   SCREEN 17: Settings : Connections & Data + Plan & Usage
+   Two labeled frames (screen-5 pattern) on the screen-7 settings
+   shell, plus the behavior rail (brief 6b.3).
+   ================================================================== */
+
+/* Page scaffold: screen-5's labeled-frames pattern. */
+.sc-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.jf-frame-label .jf-label-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+/* Mockup-only annotation block under each frame: the doors (ruling
+   4 extended to every clickable, 6c.3), the money rule, the keys. */
+.sc-doors {
+  width: var(--sp-frame-w);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  color: var(--ink-faint);
+  margin-bottom: 26px;
+}
+.sc-doors b {
+  font-weight: 400;
+  color: var(--ink-subtle);
+}
+
+/* ---- The settings shell, reused exactly from screen-7 ------------- */
+
+/* Settings has no Spine and, per 6c.4b, no docked composer: it is a
+   configuration room, not the loop. The Working strip stays so the
+   machine never goes invisible. Shell rows: TopBar / main / strip. */
+.sc-shell {
+  grid-template-rows: var(--sp-topbar-h) minmax(0, 1fr) auto;
+}
+.set-main {
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+.set-nav {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  padding: 14px 10px 12px;
+}
+.set-nav-group {
+  margin-top: 16px;
+}
+.set-nav-group:first-child {
+  margin-top: 0;
+}
+.set-nav-group-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 10px 5px;
+}
+/* The active group's one-line description, straight from the
+   SettingsGroup.desc field in settings-sections.ts. */
+.set-nav-desc {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+  padding: 0 10px 6px;
+}
+.set-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.set-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.set-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+.set-nav-note {
+  margin-top: auto;
+  padding: 14px 10px 2px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.set-nav-note a {
+  color: var(--ink-subtle);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+}
+.set-nav-note a:hover {
+  color: var(--ink-body);
+}
+.set-body {
+  padding: 14px var(--sp-6) var(--sp-6);
+  max-width: 1120px;
+  width: 100%;
+}
+.set-lede {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.set-lede .sp-mono {
+  color: var(--ink-text);
+}
+.set-lede-hint {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 4px;
+}
+.set-lede-hint a {
+  color: var(--ink-subtle);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+}
+.set-lede-hint a:hover {
+  color: var(--ink-body);
+}
+
+/* TopBar avatar renders as a button (the account-menu anchor). */
+button.sp-avatar {
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---- Screen-17 pieces --------------------------------------------- */
+
+/* Section band: mono kicker left, mono fact right, then the card. */
+.sc-sec {
+  margin-top: 18px;
+}
+.sc-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.sc-sec-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.sc-sec-fact {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.sc-sec-lede {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  margin-bottom: 8px;
+  max-width: 760px;
+}
+/* THE one full-hue machine element per frame: the lead data numeral
+   (spec 2.1: data numerals are the machine speaking). Everything
+   else stays ink or dim. */
+.sc-hero-num {
+  font-family: var(--font-mono);
+  color: var(--voice-machine);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Source chip: chip-only recognition (Option A, founder-closed).
+   Slate mechanics per Addendum 1.3, same anatomy as every chip. */
+.sp-source-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--chip-fg);
+  background: var(--chip-soft);
+  border: 1px solid var(--chip-border);
+  white-space: nowrap;
+  flex: none;
+}
+
+/* The sources card: one grid shared by header and rows so columns
+   never drift (screen-7 roster discipline). */
+.sc-card {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-bg);
+  overflow: hidden;
+}
+.sc-src-cols,
+.sc-src-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 112px 168px 30px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+}
+.sc-src-cols {
+  height: 28px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-panel);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sc-src-row {
+  height: 42px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  cursor: pointer;
+}
+.sc-src-row:hover {
+  background: var(--ink-panel);
+}
+.sc-src-scope {
+  font-size: 12.5px;
+  color: var(--ink-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-src-scope .sp-mono {
+  color: var(--ink-text);
+}
+/* Real connection state wears the verdict layer: green on a live,
+   verified link. The word rides beside the dot, so the state
+   survives grayscale (spec 2.5). */
+.sc-src-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.sc-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verdict-pass);
+  flex: none;
+}
+.sc-status-dot.is-off {
+  background: var(--ink-faint);
+}
+.sc-src-last {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* Closed expander row: the sweep log stays one gesture deep (6c.2:
+   plumbing behind closed expanders). */
+.sc-expander {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.sc-expander:hover {
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sc-expander .sc-exp-chev {
+  font-size: 9px;
+}
+.sc-expander .sc-exp-fact {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+/* The ember row: the frame's ONE human-move locus. Consequence
+   rides the helper line, never the button (GateChip copy law). */
+.sc-ember-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--ink-panel);
+}
+.sc-ember-help {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+}
+
+/* Two-column band: Sync & bindings beside Agent access. */
+.sc-two-col {
+  display: grid;
+  grid-template-columns: 1.06fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.sc-panel {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-bg);
+  padding: 12px 14px;
+  min-width: 0;
+}
+.sc-bind-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12.5px;
+  color: var(--ink-body);
+}
+.sc-bind-row:first-of-type {
+  border-top: none;
+}
+.sc-bind-product {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  min-width: 52px;
+  flex: none;
+}
+.sc-bind-what {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-bind-what .sp-mono {
+  color: var(--ink-text);
+}
+.sc-bind-when {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.sc-bind-row.is-thin .sc-bind-what {
+  color: var(--ink-faint);
+}
+.sc-panel-foot {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+}
+.sc-panel-foot a {
+  color: var(--ink-body);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+}
+.sc-panel-foot a:hover {
+  color: var(--ink-text);
+}
+
+/* Agent access: plain revocable sentences + the machine doors. */
+.sc-grant {
+  padding: 9px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+}
+.sc-grant:first-of-type {
+  border-top: none;
+}
+.sc-grant-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.sc-grant-when {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.sc-grant-sentence {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sc-grant-row2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+.sc-grant-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.sc-revoke {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.sc-revoke:hover {
+  color: var(--verdict-fail);
+  border-bottom-color: var(--verdict-fail);
+}
+/* The machine doors: copyable mono endpoints external agents read. */
+.sc-endpoint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+}
+.sc-endpoint .sc-ep-label {
+  color: var(--ink-faint);
+  min-width: 74px;
+  flex: none;
+  letter-spacing: 0.04em;
+}
+.sc-endpoint .sc-ep-copy {
+  margin-left: auto;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 11px;
+}
+.sc-endpoint .sc-ep-copy:hover {
+  color: var(--ink-body);
+}
+
+/* Your data: three quiet rows, one grid. */
+.sc-data-row {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+}
+.sc-data-row:last-child {
+  border-bottom: none;
+}
+.sc-data-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sc-data-desc {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+.sc-btn-danger-quiet {
+  color: var(--verdict-fail);
+}
+
+/* ---- Frame B: the money pane -------------------------------------- */
+
+.sc-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+}
+.sc-plan-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+}
+.sc-plan-fact {
+  font-size: 12.5px;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.sc-plan-fact .sp-mono {
+  color: var(--ink-text);
+}
+.sc-plan-renews {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Credits: balance hero + grants + spend-order meter. */
+.sc-credit-band {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.28fr);
+  gap: 16px;
+  padding: 14px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+}
+.sc-balance-num {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: var(--voice-machine);
+  font-variant-numeric: tabular-nums;
+}
+.sc-balance-label {
+  font-size: 12.5px;
+  color: var(--ink-body);
+  margin-top: 3px;
+}
+.sc-balance-sub {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  margin-top: 8px;
+  max-width: 300px;
+}
+.sc-grant-line {
+  display: grid;
+  grid-template-columns: 92px 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sc-grant-line:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.sc-grant-kind {
+  font-weight: 500;
+  color: var(--ink-text);
+  white-space: nowrap;
+}
+.sc-grant-amt {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sc-grant-note {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-grant-when2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* The spend-order meter: two labeled hairline segments, never a
+   chart. Fill rides the machine DIM tier so the balance numeral
+   keeps the frame's one full hue. */
+.sc-meter {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.sc-meter-fill {
+  height: 100%;
+  background: var(--voice-machine-dim);
+  opacity: 0.55;
+}
+
+/* History: task-shaped rows, rounded credits, artifact-chip doors. */
+.sc-hist-cols,
+.sc-hist-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 64px 84px 30px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+}
+.sc-hist-cols {
+  height: 26px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-panel);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sc-hist-row {
+  height: 34px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+}
+.sc-hist-row:hover {
+  background: var(--ink-panel);
+}
+.sc-hist-task {
+  font-size: 12.5px;
+  color: var(--ink-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-hist-credits {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sc-hist-when {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.sc-hist-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+}
+.sc-hist-foot .sc-hist-foot-law {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* Threshold + hard cap: two quiet fields with stated consequences. */
+.sc-caps-band {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 12px 14px 13px;
+  border-top: 1px solid var(--ink-hairline-soft);
+}
+.sc-cap-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sc-cap-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 7px;
+}
+.sc-input {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  width: 76px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid var(--ink-hairline);
+  background: var(--ink-panel);
+  color: var(--ink-text);
+  text-align: right;
+}
+.sc-input:focus {
+  outline: none;
+  border-color: var(--ink-input-ring);
+}
+.sc-cap-unit {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sc-cap-consequence {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  margin-top: 6px;
+  max-width: 330px;
+}
+
+/* Diagnostics: one honest sentence per subsystem. No graphs. */
+.sc-diag-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+}
+.sc-diag-row:last-child {
+  border-bottom: none;
+}
+.sc-diag-sys {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  white-space: nowrap;
+}
+.sc-diag-line {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sc-diag-line .sp-mono {
+  color: var(--ink-text);
+}
+.sc-diag-when {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- The behavior rail (brief 6b.3) ------------------------------- */
+
+.sc-rail {
+  width: var(--sp-frame-w);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  background: var(--ink-bg);
+  padding: 22px 26px 26px;
+}
+.sc-rail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.sc-rail-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.sc-rail-ref {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.sc-rail-sub {
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  max-width: 940px;
+}
+.sc-rail-sec {
+  margin-top: 20px;
+}
+.sc-rail-sec-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 10px;
+}
+.sc-rail-sec-title .sc-sec-ref {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+.sc-rail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.sc-rail-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--sp-8);
+  align-items: start;
+}
+.sc-spec {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-panel);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.sc-spec-stage {
+  flex: 1;
+  min-width: 0;
+}
+.sc-spec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--ink-body);
+}
+.sc-spec-note {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+/* Static state demos, each on the live state's exact tokens. */
+.sc-demo-hover {
+  background: var(--voice-human-hover) !important;
+}
+.sc-demo-pressed {
+  background: var(--voice-human-dim) !important;
+}
+.sc-demo-row-hover {
+  background: var(--ink-raised);
+}
+/* Focus grammar (6d.7): quiet controls wear the subtle hairline
+   ring, 1px at 2px offset. The ember locus alone keeps the shared
+   ember ring (the overrides block's "ember keeps focus rings"). */
+.sc-demo-focus-quiet {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 3px var(--ink-input-ring);
+}
+.sc-demo-focus-ember {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.sc-demo-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.sc-demo-tip {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  font-size: 11px;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.sc-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc-skel .ink-skeleton {
+  height: 10px;
+}
+.sc-confirm {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-bg);
+  padding: 9px 11px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sc-confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.sc-field-error {
+  font-size: 11px;
+  color: var(--verdict-fail);
+  margin-top: 5px;
+}
+.sc-field-ok {
+  font-size: 11px;
+  color: var(--verdict-pass);
+  margin-top: 5px;
+}
+/* The Ask summon specimen: the transient overlay cmd-J drops from
+   the TopBar on every non-room surface (6c.4b). */
+.sc-summon {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-raised);
+  padding: 10px 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+.sc-summon-input {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+.sc-summon-input .sc-summon-caret {
+  width: 1.5px;
+  height: 14px;
+  background: var(--ink-body);
+  flex: none;
+}
+.sc-summon-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+}
+/* Motion + keys tables. */
+.sc-motion-row {
+  display: grid;
+  grid-template-columns: 168px 118px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 2px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+}
+.sc-motion-row:first-of-type {
+  border-top: none;
+}
+.sc-motion-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sc-motion-budget {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sc-key-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sc-key-row .sc-key-desc {
+  color: var(--ink-subtle);
+}
+</style>
+</head>
+<body>
+
+<div class="sc-page">
+
+  <!-- ================================================================
+       FRAME A : CONNECTIONS & DATA : Monday Jul 20, 12:45pm
+       Sources active. Four healthy sources, the bindings ledger, the
+       external-agent ledger, the data controls. ONE ember: Connect a
+       source. One full-hue machine element: the 37 numeral. Greens
+       ride only real, verified connection state.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame A &middot; Connections &amp; Data</span>
+    <span class="jf-label-sub">Sources active &middot; Monday Jul 20 &middot; 12:45pm &middot; four sources healthy &middot; Atlas 1.9 half an hour into full rollout</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell sc-shell">
+
+      <!-- REGION 1: TopBar v2. Settings is the active door. The
+           Approvals count (1) is the DEC-19 challenge: the same gate
+           object everywhere it renders. Ask lives here, constant,
+           with its visible summon hint: Settings has no docked
+           composer (6c.4b). -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+  <defs>
+    <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+    </linearGradient>
+    <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+    </radialGradient>
+  </defs>
+  <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
+</svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: switch product room &middot; Settings stays workspace-wide">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item" href="#" title="Door: /m, the room at its current stage">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: the tray &middot; 1 waits: the DEC-19 challenge">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#" title="Door: /brain, the workspace record">Brain</a>
+          <a class="sp-nav-item is-active" href="#" title="You are here: /settings">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Door: summons the Ask overlay, right here &middot; Settings has no docked composer">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Door: past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Door: the shortcut map for this screen">?</button>
+          <button class="sp-avatar" title="Door: account menu &middot; admin console and sign out live here">MO</button>
+        </div>
+      </header>
+
+      <!-- MAIN: the reclustered settings rail + the Connections
+           canvas. No Spine (room instrument), no docked composer
+           (6c.4b). The rail below is VERBATIM settings-sections.ts:
+           five groups, sixteen doors, each a stable ?section= link. -->
+      <div class="sp-main set-main">
+
+        <aside class="sp-thread set-nav">
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">You</div>
+            <a class="set-nav-item" title="Door: /settings?section=profile">Profile</a>
+            <a class="set-nav-item" title="Door: /settings?section=notifications">Notifications</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Workspace</div>
+            <a class="set-nav-item" title="Door: /settings?section=workspace">Brief &amp; voice</a>
+            <a class="set-nav-item" title="Door: /settings?section=brand">Brand</a>
+            <a class="set-nav-item" title="Door: /settings?section=products">Products</a>
+            <a class="set-nav-item" title="Door: /settings?section=memory &middot; a pointer pane: the ledger itself lives in Brain">Memory</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Agents</div>
+            <a class="set-nav-item" title="Door: /settings?section=staff &middot; the 13-agent roster">Roster</a>
+            <a class="set-nav-item" title="Door: /settings?section=autonomy &middot; the emergency stop lives here">Autonomy &amp; approvals</a>
+            <a class="set-nav-item" title="Door: /settings?section=ai">Models &amp; keys</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Connections &amp; Data</div>
+            <div class="set-nav-desc">What flows in, what external agents can read, and what we store.</div>
+            <a class="set-nav-item is-active" title="You are here: /settings?section=connections">Sources</a>
+            <a class="set-nav-item" title="Door: /settings?section=sync &middot; scrolls to the bindings ledger below">Sync &amp; bindings</a>
+            <a class="set-nav-item" title="Door: /settings?section=interop &middot; scrolls to the external-agent ledger below">Agent access</a>
+            <a class="set-nav-item" title="Door: /settings?section=data &middot; scrolls to export and delete below">Your data</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Plan &amp; Usage</div>
+            <a class="set-nav-item" title="Door: /settings?section=billing">Plan</a>
+            <a class="set-nav-item" title="Door: /settings?section=credits &middot; the one money surface (Frame B)">Credits</a>
+            <a class="set-nav-item" title="Door: /settings?section=health">Diagnostics</a>
+          </div>
+
+          <div class="set-nav-note">
+            Every door here is a stable deep link: <a title="The ?section= contract from settings-sections.ts; legacy ids like ?section=plan still land">/settings?section=&hellip;</a> Old links keep landing.
+          </div>
+        </aside>
+
+        <!-- The Connections & Data canvas. SurfaceHeader anatomy,
+             static state (no chip): nothing here is working or
+             gated; the pane is a ledger. Kebab closed. -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">Settings</span>
+            <span class="sp-surface-title">Connections &amp; Data</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Door: copies /settings?section=connections">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details (closed): sweep schedule, retention, connector limits">&#8942;</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="set-body">
+
+              <!-- Beat 1, the story: what flows in and whether it is
+                   healthy. The 37 is the frame's one full-hue machine
+                   element: a real count from the 6:00am sweep. -->
+              <div class="set-lede">
+                What flows in, what external agents can read, and what we store. <span class="sp-mono">4</span> sources connected, all healthy. Watch read <span class="sc-hero-num">37</span> signals across them this morning.
+              </div>
+              <div class="set-lede-hint">
+                Sources feed the whole workspace. Which repo or board each product acts on is decided under <a title="Scrolls to Sync &amp; bindings below; same pane">Sync &amp; bindings</a>, below.
+              </div>
+
+              <!-- SOURCES: the card grid. Chip-only recognition
+                   (Option A), status word beside the green dot so
+                   state survives grayscale, mono last-event right,
+                   kebab closed on every row. -->
+              <div class="sc-sec" id="sources">
+                <div class="sc-sec-head">
+                  <span class="sc-sec-title">Sources</span>
+                  <span class="sc-sec-fact">sweeps nightly at 6:00am &middot; next in 17h 15m</span>
+                </div>
+                <div class="sc-card">
+                  <div class="sc-src-cols">
+                    <span>Source</span>
+                    <span>What it reads</span>
+                    <span>State</span>
+                    <span style="text-align:right">Last spoke</span>
+                    <span></span>
+                  </div>
+
+                  <div class="sc-src-row" title="Door: the GitHub connector detail, /settings?section=connections&amp;connector=github">
+                    <span class="sp-source-chip">GitHub</span>
+                    <span class="sc-src-scope"><span class="sp-mono">helio/relay</span> + <span class="sp-mono">helio/atlas</span> &middot; pushes, pull requests, CI checks</span>
+                    <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                    <span class="sc-src-last">last event 11:40am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): event log, pause reads, disconnect">&#8942;</button></span>
+                  </div>
+
+                  <div class="sc-src-row" title="Door: the Zendesk connector detail, ?connector=zendesk">
+                    <span class="sp-source-chip">Zendesk</span>
+                    <span class="sc-src-scope">support tickets &middot; <span class="sp-mono">214</span> read this cycle</span>
+                    <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                    <span class="sc-src-last">last sweep 6:00am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): read scope, pause reads, disconnect">&#8942;</button></span>
+                  </div>
+
+                  <div class="sc-src-row" title="Door: the Slack connector detail, ?connector=slack">
+                    <span class="sp-source-chip">Slack</span>
+                    <span class="sc-src-scope"><span class="sp-mono">#support</span> only &middot; Watch reads, never posts</span>
+                    <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                    <span class="sc-src-last">last sweep 6:00am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): channel scope, pause reads, disconnect">&#8942;</button></span>
+                  </div>
+
+                  <div class="sc-src-row" title="Door: the Linear connector detail, ?connector=linear">
+                    <span class="sp-source-chip">Linear</span>
+                    <span class="sc-src-scope"><span class="sp-mono">helio</span> team &middot; issues and comments</span>
+                    <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                    <span class="sc-src-last">connected Fri</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): team scope, pause reads, disconnect">&#8942;</button></span>
+                  </div>
+
+                  <!-- Plumbing stays behind a closed expander (6c.2):
+                       the raw sweep log is one gesture deep. -->
+                  <div class="sc-expander" title="Door: expands the sweep log inline; the full trace lives in the engine room">
+                    <span class="sc-exp-chev">&#9656;</span>
+                    <span>Show the sweep log</span>
+                    <span class="sc-exp-fact">last 14 sweeps &middot; 0 failures</span>
+                  </div>
+
+                  <!-- THE ember locus of Frame A: one human move, its
+                       consequence stated in plain words beside it. -->
+                  <div class="sc-ember-row">
+                    <button class="sp-btn sp-btn-accent" title="Door: the connector picker &middot; consequence: Watch reads it on the next sweep">Connect a source</button>
+                    <span class="sc-ember-help">Watch reads on the next sweep after you connect. Nothing is read before you say so.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SYNC & BINDINGS beside AGENT ACCESS: two ledgers,
+                   one band. Bindings honest-when-thin (Comet has
+                   nothing); access is the agent-friendly surface. -->
+              <div class="sc-sec">
+                <div class="sc-two-col">
+
+                  <div id="sync">
+                    <div class="sc-sec-head">
+                      <span class="sc-sec-title">Sync &amp; bindings</span>
+                      <span class="sc-sec-fact">2 of 4 products bound</span>
+                    </div>
+                    <div class="sc-panel">
+                      <div class="sc-bind-row" title="Door: Relay's binding detail on /sync">
+                        <span class="sc-bind-product">Relay</span>
+                        <span class="sc-bind-what">acts on <span class="sp-mono">helio/relay</span> and the Zendesk inbox</span>
+                        <span class="sc-bind-when">bound Jul 2</span>
+                      </div>
+                      <div class="sc-bind-row" title="Door: Atlas's binding detail on /sync">
+                        <span class="sc-bind-product">Atlas</span>
+                        <span class="sc-bind-what">acts on <span class="sp-mono">helio/atlas</span></span>
+                        <span class="sc-bind-when">bound Jul 8</span>
+                      </div>
+                      <div class="sc-bind-row is-thin" title="Honest thin state: nothing bound, and the one action that fixes it">
+                        <span class="sc-bind-product">Comet</span>
+                        <span class="sc-bind-what">nothing bound yet. Pick what its agents act on.</span>
+                        <button class="sp-btn sp-btn-ghost" style="height:24px;font-size:11.5px;margin-left:auto" title="Door: the binding picker on /sync, scoped to Comet">Bind</button>
+                      </div>
+                      <div class="sc-bind-row" title="Beacon came in as an archive import: read-only by nature, said plainly">
+                        <span class="sc-bind-product">Beacon</span>
+                        <span class="sc-bind-what">imported archive &middot; read-only, nothing to bind</span>
+                        <span class="sc-bind-when">imported Jun 12</span>
+                      </div>
+                      <div class="sc-panel-foot">
+                        <a title="Door: /sync &middot; per-product bindings and conflicts, the one bindings home">Open sync, per-product bindings, and conflicts &#8594;</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="interop">
+                    <div class="sc-sec-head">
+                      <span class="sc-sec-title">Agent access</span>
+                      <span class="sc-sec-fact">2 external grants</span>
+                    </div>
+                    <!-- The agent-friendly surface: what agents OUTSIDE
+                         this workspace may read, as plain sentences.
+                         The A2A card + MCP endpoint below are the
+                         machine doors external agents discover. -->
+                    <div class="sc-panel">
+                      <div class="sc-grant">
+                        <div class="sc-grant-head">
+                          <span class="sp-agent-chip">Claude</span>
+                          <span class="sp-artifact-chip" title="Transport: Model Context Protocol">MCP</span>
+                          <span class="sc-grant-when">granted Jul 8</span>
+                        </div>
+                        <div class="sc-grant-sentence">Your Claude can read specs, decisions, and learnings from this workspace. It cannot write anything here.</div>
+                        <div class="sc-grant-row2">
+                          <span class="sc-grant-meta">last read Fri 4:02pm &middot; 61 reads total</span>
+                          <span class="sc-revoke" title="Door: a dry confirm &middot; consequence: reads stop within a minute">Revoke</span>
+                        </div>
+                      </div>
+                      <div class="sc-grant">
+                        <div class="sc-grant-head">
+                          <span class="sp-agent-chip">Acme compliance</span>
+                          <span class="sp-artifact-chip" title="Transport: agent-to-agent">A2A</span>
+                          <span class="sc-grant-when">granted Fri 5:10pm</span>
+                        </div>
+                        <div class="sc-grant-sentence">Acme's compliance agent can read release notes and audit receipts for Relay only. Nothing else is visible to it.</div>
+                        <div class="sc-grant-row2">
+                          <span class="sc-grant-meta">first read Sat 9:14am &middot; 3 reads total</span>
+                          <span class="sc-revoke" title="Door: a dry confirm &middot; consequence: reads stop within a minute">Revoke</span>
+                        </div>
+                      </div>
+                      <div class="sc-endpoint">
+                        <span class="sc-ep-label">agent card</span>
+                        <span>a2a.supaprod.com/helio-labs/agent.json</span>
+                        <span class="sc-ep-copy" title="Door: copies the A2A card URL external agents discover scopes from">&#10697;</span>
+                      </div>
+                      <div class="sc-endpoint">
+                        <span class="sc-ep-label">mcp</span>
+                        <span>mcp.supaprod.com/helio-labs</span>
+                        <span class="sc-ep-copy" title="Door: copies the MCP endpoint; new clients ask for a grant on first read">&#10697;</span>
+                      </div>
+                      <div class="sc-panel-foot">
+                        Grants are made when an agent first asks, one scope at a time. Write scopes do not exist; when they do, each one starts as a gate here, never a default.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- YOUR DATA: export, the storage sentence, delete.
+                   Delete is a dry typed confirm, not a drama. -->
+              <div class="sc-sec" id="data">
+                <div class="sc-sec-head">
+                  <span class="sc-sec-title">Your data</span>
+                  <span class="sc-sec-fact">stored: threads, artifacts, decisions, memory, receipts</span>
+                </div>
+                <div class="sc-card">
+                  <div class="sc-data-row">
+                    <span class="sc-data-name">Export everything</span>
+                    <span class="sc-data-desc">Threads, decisions, memory, and receipts as JSON and Markdown. Builds in the background; the link lands in your email, usually under 10 minutes.</span>
+                    <button class="sp-btn sp-btn-ghost" title="Door: starts the export job &middot; consequence: an email with the download link">Export all</button>
+                  </div>
+                  <div class="sc-data-row">
+                    <span class="sc-data-name">Who processes it</span>
+                    <span class="sc-data-desc">Model providers see prompts in flight, never your stored record. The subprocessor list names every one.</span>
+                    <button class="sp-btn sp-btn-ghost" title="Door: the subprocessor list, one page, plain names">See the list</button>
+                  </div>
+                  <div class="sc-data-row">
+                    <span class="sc-data-name">Delete this workspace</span>
+                    <span class="sc-data-desc">Asks you to type <span class="sp-mono">helio-labs</span>, then holds a 30-day grace window before anything is destroyed. Exports still work during the window.</span>
+                    <button class="sp-btn sp-btn-ghost sc-btn-danger-quiet" title="Door: the typed confirm &middot; consequence: a 30-day grace window, then deletion">Delete&hellip;</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Working strip: the machine stays visible even in Settings.
+           Same counts as the room; dim ambient tier; the "1 waiting
+           on you" is the same DEC-19 gate as the Approvals count. -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>measure &middot; watching the atlas rollout &middot; 30m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>announce &middot; assembling the atlas launch kit &middot; 53m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary">2 agents working, 1 waiting on you</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="sc-doors">
+    <b>Lineage &amp; doors, Frame A</b> &middot; rail doors are the verbatim 16 sections of settings-sections.ts, each a stable ?section= deep link (connections, sync, interop, data, billing, credits, health &hellip;); legacy ids (?section=plan, ?section=brief) still land &middot; each source row opens its connector detail (?connector=github &hellip;) with the event log and disconnect inside; its kebab (closed) holds pause reads / disconnect &middot; "Show the sweep log" expands inline, full trace in the engine room &middot; "Connect a source" opens the connector picker; consequence stated beside it: Watch reads on the next sweep &middot; Bind (Comet) and "Open sync" go to /sync, the one bindings home &middot; Revoke opens a dry confirm; reads stop within a minute &middot; the agent-card and MCP rows copy the machine doors external agents discover &middot; Export all starts a background job that emails the link &middot; Delete opens the typed confirm with a 30-day grace window.<br />
+    <b>Ask on this surface (annotated once, 6c.4b)</b> &middot; Settings has NO docked composer. Ask is the constant TopBar button with its visible &#8984;J hint; &#8984;J summons a transient overlay that drops from the TopBar (input pre-focused, Esc dismisses): the summon specimen and motion budget are in the behavior rail below.<br />
+    <b>Voice discipline, Frame A</b> &middot; ember appears exactly once (Connect a source); the Approvals count and every chip wear slate; connection greens ride only real verified state, with the word beside the dot so grayscale survives; the one full-hue machine element is the 37 numeral (this morning's real sweep count); the working strip stays dim ambient blue.
+  </div>
+
+  <!-- ================================================================
+       FRAME B : PLAN & USAGE : Monday Jul 20, 12:46pm
+       Credits active. THE one place money renders in the entire
+       product. Deliberately quiet: ZERO ember in the frame. The one
+       full-hue machine element is the balance numeral.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame B &middot; Plan &amp; Usage</span>
+    <span class="jf-label-sub">Credits active &middot; Monday Jul 20 &middot; 12:46pm &middot; the ONE pane in the product where money renders (ruling 1.8)</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell sc-shell">
+
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+  <defs>
+    <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+    </linearGradient>
+    <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+    </radialGradient>
+  </defs>
+  <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
+</svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Door: switch product room &middot; Settings stays workspace-wide">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item" href="#" title="Door: /m, the room at its current stage">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: the tray &middot; 1 waits: the DEC-19 challenge">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#" title="Door: /brain, the workspace record">Brain</a>
+          <a class="sp-nav-item is-active" href="#" title="You are here: /settings">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Door: summons the Ask overlay, right here &middot; Settings has no docked composer">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Door: past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Door: the shortcut map for this screen">?</button>
+          <button class="sp-avatar" title="Door: account menu &middot; admin console and sign out live here">MO</button>
+        </div>
+      </header>
+
+      <div class="sp-main set-main">
+
+        <aside class="sp-thread set-nav">
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">You</div>
+            <a class="set-nav-item" title="Door: /settings?section=profile">Profile</a>
+            <a class="set-nav-item" title="Door: /settings?section=notifications">Notifications</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Workspace</div>
+            <a class="set-nav-item" title="Door: /settings?section=workspace">Brief &amp; voice</a>
+            <a class="set-nav-item" title="Door: /settings?section=brand">Brand</a>
+            <a class="set-nav-item" title="Door: /settings?section=products">Products</a>
+            <a class="set-nav-item" title="Door: /settings?section=memory &middot; a pointer pane: the ledger itself lives in Brain">Memory</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Agents</div>
+            <a class="set-nav-item" title="Door: /settings?section=staff &middot; the 13-agent roster">Roster</a>
+            <a class="set-nav-item" title="Door: /settings?section=autonomy &middot; the emergency stop lives here">Autonomy &amp; approvals</a>
+            <a class="set-nav-item" title="Door: /settings?section=ai">Models &amp; keys</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Connections &amp; Data</div>
+            <a class="set-nav-item" title="Door: /settings?section=connections (Frame A)">Sources</a>
+            <a class="set-nav-item" title="Door: /settings?section=sync">Sync &amp; bindings</a>
+            <a class="set-nav-item" title="Door: /settings?section=interop">Agent access</a>
+            <a class="set-nav-item" title="Door: /settings?section=data">Your data</a>
+          </div>
+
+          <div class="set-nav-group">
+            <div class="set-nav-group-label">Plan &amp; Usage</div>
+            <div class="set-nav-desc">Your plan, credits, and whether the agents are healthy.</div>
+            <a class="set-nav-item" title="Door: /settings?section=billing &middot; scrolls to the Plan card above Credits">Plan</a>
+            <a class="set-nav-item is-active" title="You are here: /settings?section=credits">Credits</a>
+            <a class="set-nav-item" title="Door: /settings?section=health &middot; scrolls to Diagnostics below">Diagnostics</a>
+          </div>
+
+          <div class="set-nav-note">
+            Every door here is a stable deep link: <a title="The ?section= contract from settings-sections.ts; legacy ids like ?section=plan still land">/settings?section=&hellip;</a> Old links keep landing.
+          </div>
+        </aside>
+
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">Settings</span>
+            <span class="sp-surface-title">Plan &amp; Usage</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Door: copies /settings?section=credits">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details (closed): billing emails, invoice history, tax id">&#8942;</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="set-body">
+
+              <!-- Beat 1, the story: the money rule said in product
+                   copy, then the balance. This lede is REAL UI copy:
+                   it teaches cost-quiet where the costs live. -->
+              <div class="set-lede">
+                Your plan, credits, and whether the agents are healthy. Costs live on this pane and nowhere else: Mission Control never shows a price.
+              </div>
+              <div class="set-lede-hint">
+                Any run's cost detail stays one gesture deep: the kebab on its receipt opens Details. This pane is the ledger those details roll up into.
+              </div>
+
+              <!-- PLAN: one calm row. Managing it is a door, not a
+                   pitch. No ember anywhere on this pane. -->
+              <div class="sc-sec" id="billing">
+                <div class="sc-sec-head">
+                  <span class="sc-sec-title">Plan</span>
+                  <span class="sc-sec-fact">workspace-wide &middot; billed monthly</span>
+                </div>
+                <div class="sc-card">
+                  <div class="sc-plan-row">
+                    <span class="sc-plan-name">Pro</span>
+                    <span class="sc-plan-fact"><span class="sp-mono">3</span> seats, all in use</span>
+                    <span class="sc-plan-fact">$49 per seat, monthly</span>
+                    <span class="sc-plan-renews">renews Aug 1</span>
+                    <button class="sp-btn sp-btn-ghost" title="Door: the Stripe billing portal, new tab &middot; card, invoices, and receipts live there, not here">Manage plan</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CREDITS: balance hero (the frame's one full-hue
+                   machine element), grants with the spend order made
+                   visible, task-shaped history, then the two guard
+                   rails. Rounded credits, never tokens. -->
+              <div class="sc-sec" id="credits">
+                <div class="sc-sec-head">
+                  <span class="sc-sec-title">Credits</span>
+                  <span class="sc-sec-fact">cycle Jul 1 &ndash; Aug 1 &middot; 148.0 spent</span>
+                </div>
+                <div class="sc-card">
+
+                  <div class="sc-credit-band">
+                    <div>
+                      <div class="sc-balance-num">1,352</div>
+                      <div class="sc-balance-label">credits left this cycle</div>
+                      <div class="sc-balance-sub">The beta grant is spent first; <span class="sp-mono">352</span> of its <span class="sp-mono">500</span> remain. Your monthly <span class="sp-mono">1,000</span> is untouched.</div>
+                      <div style="margin-top:12px">
+                        <button class="sp-btn sp-btn-ghost" title="Door: the bundle picker &middot; top-ups never expire mid-cycle; buying is never the product's asked-for next move, so this stays a quiet door">Buy a top-up</button>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="sc-grant-line">
+                        <span class="sc-grant-kind">Beta grant</span>
+                        <span class="sc-grant-amt">500</span>
+                        <span class="sc-grant-note">expires Aug 31 &middot; spent first</span>
+                        <span class="sc-grant-when2">148.0 used</span>
+                      </div>
+                      <div class="sc-meter" title="Spend order, not a chart: the expiring grant drains before the monthly touches">
+                        <span class="sc-meter-fill" style="display:block;width:29.6%"></span>
+                      </div>
+                      <div class="sc-grant-line">
+                        <span class="sc-grant-kind">Monthly</span>
+                        <span class="sc-grant-amt">1,000</span>
+                        <span class="sc-grant-note">renews Aug 1 &middot; comes with Pro</span>
+                        <span class="sc-grant-when2">0 used</span>
+                      </div>
+                      <div class="sc-meter">
+                        <span class="sc-meter-fill" style="display:block;width:0%"></span>
+                      </div>
+                      <div class="sc-grant-line">
+                        <span class="sc-grant-kind">Top-ups</span>
+                        <span class="sc-grant-amt">0</span>
+                        <span class="sc-grant-note">none this cycle &middot; they never expire</span>
+                        <span class="sc-grant-when2">&nbsp;</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sc-hist-cols">
+                    <span>This cycle's work</span>
+                    <span>Artifact</span>
+                    <span style="text-align:right">Credits</span>
+                    <span style="text-align:right">When</span>
+                    <span></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Ship REL-20 &middot; staging and promote checks</span>
+                    <span><span class="sp-artifact-chip" title="Door: the release record, 06 Ship face">REL-20</span></span>
+                    <span class="sc-hist-credits">1.5</span>
+                    <span class="sc-hist-when">11:40am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words, files touched, tools used, Driver: Supaprod native">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Launch kit &middot; first draft</span>
+                    <span><span class="sp-artifact-chip" title="Door: the launch kit draft, 06 Ship face">LK-3</span></span>
+                    <span class="sc-hist-credits">0.8</span>
+                    <span class="sc-hist-when">11:52am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Weekend read &middot; saved-replies outcomes</span>
+                    <span><span class="sp-artifact-chip" title="Door: the spec and its outcome contract, 03 Plan face">SPEC-52</span></span>
+                    <span class="sc-hist-credits">0.5</span>
+                    <span class="sc-hist-when">9:00am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Morning sweep &middot; 37 signals clustered</span>
+                    <span><span class="sp-artifact-chip" title="Door: the nightly sweep loop record">LOOP-2</span></span>
+                    <span class="sc-hist-credits">0.5</span>
+                    <span class="sc-hist-when">6:00am</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Build SPEC-47 &middot; scaffold, code, tests</span>
+                    <span><span class="sp-artifact-chip" title="Door: the merged diff, 05 Build face">SPEC-47</span></span>
+                    <span class="sc-hist-credits">2.0</span>
+                    <span class="sc-hist-when">Wed</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-row">
+                    <span class="sc-hist-task">Teardown &middot; the other side argued</span>
+                    <span><span class="sp-artifact-chip" title="Door: the bet and its teardown, 02 Decide board">BET-29</span></span>
+                    <span class="sc-hist-credits">0.5</span>
+                    <span class="sc-hist-when">Wed</span>
+                    <span class="sp-kebab"><button class="sp-icon-btn" style="width:22px;height:22px" title="Details (closed): drivers in plain words">&#8942;</button></span>
+                  </div>
+                  <div class="sc-hist-foot">
+                    <span>+ <span class="sp-mono">58</span> more runs this cycle, <span class="sp-mono">142.2</span> credits. The full ledger goes out with Your data exports.</span>
+                    <span class="sc-hist-foot-law" title="Spec 7.4, the honesty rule: never a debit without a named artifact in the Thread">every debit names its artifact</span>
+                  </div>
+
+                  <div class="sc-caps-band">
+                    <div>
+                      <div class="sc-cap-label">Alert me early</div>
+                      <div class="sc-cap-row">
+                        <span class="sc-cap-unit">under</span>
+                        <input class="sc-input" value="200" aria-label="Alert threshold in credits" title="Field: whole credits &middot; consequence: one email plus a line in the morning briefing, once per cycle" />
+                        <span class="sc-cap-unit">credits left</span>
+                      </div>
+                      <div class="sc-cap-consequence">One email and a line in the morning briefing, once per cycle. Never a popup mid-run.</div>
+                    </div>
+                    <div>
+                      <div class="sc-cap-label">Hard cap</div>
+                      <div class="sc-cap-row">
+                        <span class="sc-cap-unit">at</span>
+                        <input class="sc-input" value="3,000" aria-label="Hard cap in credits per cycle" title="Field: whole credits per cycle &middot; consequence: agents pause at the cap; nothing runs past it" />
+                        <span class="sc-cap-unit">credits per cycle</span>
+                      </div>
+                      <div class="sc-cap-consequence">Agents pause at the cap; a paused run holds its place and resumes when credits return. Nothing runs past it.</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- DIAGNOSTICS: one honest sentence per subsystem, one
+                   timestamp each, zero graphs. The green dot carries
+                   real checks; the words survive grayscale. -->
+              <div class="sc-sec" id="health">
+                <div class="sc-sec-head">
+                  <span class="sc-sec-title">Diagnostics</span>
+                  <span class="sc-sec-fact">checked continuously &middot; words, not graphs</span>
+                </div>
+                <div class="sc-card">
+                  <div class="sc-diag-row">
+                    <span class="sc-diag-sys"><span class="sc-status-dot"></span>Agents</span>
+                    <span class="sc-diag-line">Healthy. <span class="sp-mono">2</span> running now; the last run finished clean at <span class="sp-mono">12:15pm</span>, the Atlas promote.</span>
+                    <span class="sc-diag-when">13 on roster</span>
+                  </div>
+                  <div class="sc-diag-row">
+                    <span class="sc-diag-sys"><span class="sc-status-dot"></span>Sync</span>
+                    <span class="sc-diag-line">Idle. Last sweep <span class="sp-mono">6:00am</span>, all four sources answered; the next reads at <span class="sp-mono">6:00am</span> tomorrow.</span>
+                    <span class="sc-diag-when">0 conflicts</span>
+                  </div>
+                  <div class="sc-diag-row">
+                    <span class="sc-diag-sys"><span class="sc-status-dot"></span>Models</span>
+                    <span class="sc-diag-line">Capability classes resolving normally. No provider incidents in the last <span class="sp-mono">7</span> days.</span>
+                    <span class="sc-diag-when">2 providers</span>
+                  </div>
+                  <div class="sc-diag-row">
+                    <span class="sc-diag-sys"><span class="sc-status-dot"></span>Connections</span>
+                    <span class="sc-diag-line"><span class="sp-mono">4</span> of <span class="sp-mono">4</span> healthy. The full picture is one door left, under Sources.</span>
+                    <span class="sc-diag-when">last event 11:40am</span>
+                  </div>
+                  <div class="sc-hist-foot" style="border-top:1px solid var(--ink-hairline-soft)">
+                    <span>Something off that these lines don't explain? The engine room keeps the full trace.</span>
+                    <span class="sc-hist-foot-law" style="cursor:pointer;color:var(--ink-subtle);border-bottom:1px solid var(--ink-hairline)" title="Door: the engine room's run traces, one per run">open the trace</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>measure &middot; watching the atlas rollout &middot; 31m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>announce &middot; assembling the atlas launch kit &middot; 54m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary">2 agents working, 1 waiting on you</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="sc-doors">
+    <b>THE MONEY RULE (ruling 1.8, spec section 7), stated where it is obeyed</b> &middot; this pane is the ONLY place in the entire product where money renders: no credits, tokens, or dollars on any mission, run, gate card, chat response, receipt, or toast anywhere else; per-run cost lives one deliberate gesture deep behind the CLOSED kebab (Details: task-shaped credits, plain-language drivers, "Driver: Supaprod native"); this pane is the ledger those details roll up into. Credits render task-shaped and rounded (2.0, 0.8, 0.5), never raw tokens; every debit names its artifact; model economics stay invisible. The lede line above ("Costs live on this pane and nowhere else") is real product copy, teaching the rule at the only place it can be seen.<br />
+    <b>Lineage &amp; doors, Frame B</b> &middot; Manage plan opens the Stripe billing portal in a new tab (card, invoices, receipts live there, never in-app) &middot; Buy a top-up opens the bundle picker (quiet ghost by design) &middot; history rows carry artifact-chip doors: REL-20 to 06 Ship, LK-3 to the launch kit in 06, SPEC-52 to 03 Plan, LOOP-2 to the sweep record, SPEC-47 to 05 Build, BET-29 to the 02 Decide board &middot; each history kebab (closed) opens Details with the drivers &middot; threshold and cap edit inline and save on blur (states in the rail) &middot; "open the trace" hands off to the engine room.<br />
+    <b>Voice discipline, Frame B (deliberately quiet)</b> &middot; this frame's ember count is ZERO: reading money is never the product's requested next move, so no control here wears the needs-you color; the needs-you signal stays with the DEC-19 challenge in Approvals (count 1, slate chip). The one full-hue machine element is the balance numeral (a real count); diagnostics greens ride real checks with the words beside them; the spend meter uses the machine DIM tier so the balance keeps the frame's only full hue.
+  </div>
+
+  <!-- ================================================================
+       BEHAVIOR RAIL (brief 6b.3): the state grammar of Settings.
+       The frames above stay believable; every core component's other
+       lives are specified here, card-spec style. Mockup annotation,
+       not product chrome. Ember verbs repeat below only as isolated
+       specimens; each frame above holds its locus count exactly.
+       ================================================================ -->
+  <section class="sc-rail" aria-label="Behavior rail: component states, keys, motion">
+    <div class="sc-rail-head">
+      <span class="sc-rail-kicker">Behavior rail &middot; Settings: Connections + Plan &amp; Usage</span>
+      <span class="sc-rail-ref">hover / focus / active / disabled / loading / empty / error / success &middot; motion budget spec 5.1 &middot; keys</span>
+    </div>
+    <p class="sc-rail-sub">
+      What the engineer implements without asking: the source row's full ring, the connect flow from click to receipt, the money pane's guard-rail fields with their honest degrades (metering off, billing not wired, cap reached), the revoke ritual, and the Ask summon this surface uses instead of a docked composer. Every specimen uses the live state's exact tokens, so the rail is implementable by inspection.
+    </p>
+
+    <!-- 1. The source row's state ring -->
+    <div class="sc-rail-sec">
+      <div class="sc-rail-sec-title">1 &middot; The source row <span class="sc-sec-ref">rest / hover / focus-visible / reading / broken / gone &middot; error shape per ReceiptLine 6.4</span></div>
+      <div class="sc-rail-grid">
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">rest &middot; connected</div>
+          <div class="sc-spec-stage">
+            <div class="sc-card" style="border-color:var(--ink-hairline-soft)">
+              <div class="sc-src-row" style="border-bottom:none">
+                <span class="sp-source-chip">GitHub</span>
+                <span class="sc-src-scope"><span class="sp-mono">helio/relay</span> &middot; pushes, PRs, CI</span>
+                <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                <span class="sc-src-last">11:40am</span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+          <div class="sc-spec-note">Chip-only recognition (Option A). The state word rides beside the green dot so the row survives grayscale. Timestamps mono, right-aligned, tabular.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">hover &middot; focus-visible &middot; tooltip</div>
+          <div class="sc-spec-stage">
+            <div class="sc-card" style="border-color:var(--ink-hairline-soft)">
+              <div class="sc-src-row sc-demo-row-hover" style="border-bottom:none">
+                <span class="sp-source-chip">Zendesk</span>
+                <span class="sc-src-scope">support tickets &middot; <span class="sp-mono">214</span> read</span>
+                <span class="sc-src-status"><span class="sc-status-dot"></span>connected</span>
+                <span class="sc-src-last">6:00am</span>
+                <span class="sp-kebab"><button class="sp-icon-btn sc-demo-focus-quiet" style="width:22px;height:22px" title="Focus demo">&#8942;</button></span>
+              </div>
+            </div>
+            <div style="margin-top:8px"><span class="sc-demo-tip" style="margin-left:0">Details (closed): read scope, pause reads, disconnect</span></div>
+          </div>
+          <div class="sc-spec-note">Hover raises the row one surface step and reveals the kebab, 0ms (class A). Focus-visible on quiet controls is the subtle hairline ring, 1px at 2px offset (6d.7), never a thick box. The kebab's tooltip (shown) surfaces after a 300ms hold, naming what the closed menu holds.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">reading now &middot; the live tier</div>
+          <div class="sc-spec-stage">
+            <div class="sc-card" style="border-color:var(--ink-hairline-soft)">
+              <div class="sc-src-row" style="border-bottom:none">
+                <span class="sp-source-chip">Slack</span>
+                <span class="sc-src-scope"><span class="sp-mono">#support</span> &middot; sweep in progress</span>
+                <span class="sc-src-status" style="color:var(--voice-machine)"><span class="sp-pulse-dot ink-working"></span>reading</span>
+                <span class="sc-src-last">now</span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+          <div class="sc-spec-note">During a sweep the state cell alone escalates to machine blue with the working pulse; the frame's one-full-hue budget moves here while it lasts. Green returns when the sweep closes.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">broken &middot; the recovery</div>
+          <div class="sc-spec-stage">
+            <div class="sp-receipt-line is-blocked">
+              <span class="sp-receipt-check">&#9675;</span>
+              <span class="sp-receipt-text">GitHub token expired. Reconnect to resume. <span class="sp-receipt-action">Reconnect</span>.</span>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--ink-faint)">row state: <span style="color:var(--verdict-fail)">broken</span> &middot; last good event kept &middot; sweeps skip it and say so in the briefing</div>
+          </div>
+          <div class="sc-spec-note">The one error shape outside the engine room: plain reason + recovery verb, no apology theater. The row holds its place; nothing vanishes while broken.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">loading &middot; shaped like the list</div>
+          <div class="sc-spec-stage">
+            <div class="sc-card" style="border-color:var(--ink-hairline-soft);padding:10px 14px">
+              <div class="sc-skel">
+                <span class="ink-skeleton" style="width:52%"></span>
+                <span class="ink-skeleton" style="width:78%"></span>
+                <span class="ink-skeleton" style="width:64%"></span>
+              </div>
+            </div>
+          </div>
+          <div class="sc-spec-note">Skeleton shaped like the rows it becomes, calm 1.6s opacity breath, static at 0.7 under reduced motion. Never a spinner, never a jumping layout.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">empty &middot; no sources yet</div>
+          <div class="sc-spec-stage">
+            <div class="sp-warm-slot" style="padding:14px 12px">
+              <div class="sp-warm-slot-line" style="font-size:12px">Nothing to read yet. Connect a source and Watch starts on the next sweep.</div>
+              <div class="sp-warm-slot-action" style="margin-top:9px">
+                <button class="sp-btn sp-btn-accent" style="height:26px;font-size:12px">Connect a source</button>
+              </div>
+            </div>
+          </div>
+          <div class="sc-spec-note">The WarmSlot, never a bare no-results: it names who acts next and carries the one action that creates the data. This is the first-run state of the whole pane.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. Connect a source: the ember's ring -->
+    <div class="sc-rail-sec">
+      <div class="sc-rail-sec-title">2 &middot; Connect a source <span class="sc-sec-ref">the pane's one ember &middot; OAuth is honest waiting, not progress theater</span></div>
+      <div class="sc-rail-grid">
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">rest &middot; hover &middot; pressed &middot; focus-visible</div>
+          <div class="sc-spec-stage">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="sp-btn sp-btn-accent">Connect a source</button>
+              <button class="sp-btn sp-btn-accent sc-demo-hover">Connect a source</button>
+              <button class="sp-btn sp-btn-accent sc-demo-pressed">Connect a source</button>
+              <button class="sp-btn sp-btn-accent sc-demo-focus-ember">Connect a source</button>
+            </div>
+          </div>
+          <div class="sc-spec-note">Hover steps to the hover token, pressed to the dim token; both 0ms, no motion. The ember locus alone keeps the ember focus ring (the overrides law: ember keeps focus rings); every quiet control wears the hairline ring instead.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">waiting on consent &middot; loading</div>
+          <div class="sc-spec-stage">
+            <button class="sp-btn sp-btn-accent sc-demo-disabled">Connecting&hellip;</button>
+            <div class="sp-pulse-line" style="margin-top:10px">
+              <span class="sp-pulse-dot"></span>
+              <span>Waiting on GitHub's consent screen. <span class="sp-pulse-time">Cancel any time</span></span>
+            </div>
+          </div>
+          <div class="sc-spec-note">The click responds optimistically, then the button disables so a double-click cannot open two consent windows. Honest waiting: no percentage, no fake countdown.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">connected &middot; declined</div>
+          <div class="sc-spec-stage">
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Connected. Watch reads it on the next sweep, <span class="sp-mono">6:00am</span> tomorrow.</span>
+            </div>
+            <div class="sp-receipt-line is-blocked" style="margin-top:8px">
+              <span class="sp-receipt-check">&#9675;</span>
+              <span class="sp-receipt-text">GitHub said no. Nothing was connected. <span class="sp-receipt-action">Try again</span>.</span>
+            </div>
+          </div>
+          <div class="sc-spec-note">Success is a receipt that repeats the consequence promised beside the button. Decline is plain: what happened, what did not, the one recovery verb. The row then appears via a 150ms class-B arrival.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. The money pane's guard rails -->
+    <div class="sc-rail-sec">
+      <div class="sc-rail-sec-title">3 &middot; Credits, threshold, cap <span class="sc-sec-ref">the guard-rail fields + the three honest degrades, all from route truth</span></div>
+      <div class="sc-rail-grid">
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">threshold field &middot; focus &middot; saved</div>
+          <div class="sc-spec-stage">
+            <div class="sc-cap-row" style="margin-top:0">
+              <span class="sc-cap-unit">under</span>
+              <input class="sc-input sc-demo-focus-quiet" value="200" aria-label="Threshold demo" />
+              <span class="sc-cap-unit">credits left</span>
+            </div>
+            <div class="sc-field-ok">&#10003; Saved. The alert arms once per cycle.</div>
+          </div>
+          <div class="sc-spec-note">Edits save on blur or Enter; the tick confirms quietly and fades after 2s (class A). No Save button for a one-number field.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">threshold &middot; invalid value</div>
+          <div class="sc-spec-stage">
+            <div class="sc-cap-row" style="margin-top:0">
+              <span class="sc-cap-unit">under</span>
+              <input class="sc-input" value="5,000" aria-label="Invalid threshold demo" style="border-color:var(--verdict-fail)" />
+              <span class="sc-cap-unit">credits left</span>
+            </div>
+            <div class="sc-field-error">The alert must sit under your hard cap (3,000).</div>
+          </div>
+          <div class="sc-spec-note">Validation is one plain sentence at the field, on blur, never a toast. The old value is kept until a valid one lands; Esc restores it.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">cap reached &middot; the pause</div>
+          <div class="sc-spec-stage">
+            <div class="sp-receipt-line is-blocked">
+              <span class="sp-receipt-check">&#9675;</span>
+              <span class="sp-receipt-text">Cap reached at <span class="sp-mono">3,000</span>. Agents are paused; runs resume when the cycle renews Aug 1 or the cap rises. Nothing was lost.</span>
+            </div>
+          </div>
+          <div class="sc-spec-note">The cap is a pause, not a failure: paused runs hold their place. The same line renders in the room's working strip, without any number, as "paused at your cap".</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">balance loading</div>
+          <div class="sc-spec-stage">
+            <div class="sc-skel">
+              <span class="ink-skeleton" style="width:34%;height:26px"></span>
+              <span class="ink-skeleton" style="width:60%"></span>
+              <span class="ink-skeleton" style="width:82%"></span>
+            </div>
+          </div>
+          <div class="sc-spec-note">Shaped like the hero it becomes: numeral, label, grant rows. History rows arrive beneath with the 60&ndash;90ms class-B stagger.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">metering off &middot; honest degrade</div>
+          <div class="sc-spec-stage">
+            <div class="sc-confirm">Metering is off while we finish the credits rollout. Top-ups are recorded and will count once metering turns on.</div>
+          </div>
+          <div class="sc-spec-note">Route truth, rendered as-is: when the meter is not yet live the pane says so instead of showing zeros that look like data. No fake balance ever renders.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">billing not wired &middot; honest degrade</div>
+          <div class="sc-spec-stage">
+            <div class="sc-confirm">Billing isn't connected yet. Your plan shows; nothing can charge. <span style="color:var(--ink-subtle)">Manage plan appears once billing is live.</span></div>
+          </div>
+          <div class="sc-spec-note">The route degrades honestly until payment keys exist: the plan renders, the portal door hides, and the copy says why. Claim never outruns wiring.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. The revoke ritual + the Ask summon -->
+    <div class="sc-rail-sec">
+      <div class="sc-rail-sec-title">4 &middot; Revoke, and the Ask summon <span class="sc-sec-ref">a dry confirm, never a drama &middot; 6c.4b: the non-room Ask pattern, annotated once</span></div>
+      <div class="sc-rail-grid">
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">revoke &middot; rest &middot; hover</div>
+          <div class="sc-spec-stage">
+            <div style="display:flex;gap:18px;align-items:center">
+              <span class="sc-revoke" style="margin-left:0">Revoke</span>
+              <span class="sc-revoke" style="margin-left:0;color:var(--verdict-fail);border-bottom-color:var(--verdict-fail)">Revoke</span>
+            </div>
+          </div>
+          <div class="sc-spec-note">Rest is quiet ink; hover shows the verdict red so destructive intent is visible before the click, never after. Focus-visible wears the hairline ring.</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">the dry confirm &middot; revoking &middot; done</div>
+          <div class="sc-spec-stage">
+            <div class="sc-confirm">
+              Stop Claude's reads? Access ends within a minute. Everything it already read stays read.
+              <div class="sc-confirm-actions">
+                <button class="sp-btn" style="height:26px;font-size:12px">Revoke access</button>
+                <button class="sp-btn sp-btn-ghost" style="height:26px;font-size:12px">Keep</button>
+              </div>
+            </div>
+            <div class="sp-receipt-line" style="margin-top:8px">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Revoked. Claude's reads stop within a minute.</span>
+            </div>
+          </div>
+          <div class="sc-spec-note">Inline confirm, consequence stated, both verbs plain (no ember: revoking is not the needs-you move). While the write runs both verbs disable; failure keeps the grant visible with "Try again".</div>
+        </div>
+
+        <div class="sc-spec">
+          <div class="sc-spec-label">&#8984;J &middot; the Ask summon overlay</div>
+          <div class="sc-spec-stage">
+            <div class="sc-summon">
+              <div class="sc-summon-input">
+                <span class="sc-summon-caret"></span>
+                <span>Ask, or say what to do next&hellip;</span>
+                <span class="sp-kbd" style="margin-left:auto">Esc</span>
+              </div>
+              <div class="sc-summon-chips">
+                <button class="sp-journey-chip" style="height:22px;font-size:11px">Why did credits dip Wednesday? <span class="sp-chip-arrow">&#8594;</span></button>
+                <button class="sp-journey-chip" style="height:22px;font-size:11px">Connect a source <span class="sp-chip-arrow">&#8594;</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="sc-spec-note">Settings has no docked composer (6c.4b). &#8984;J (or the TopBar Ask) drops this overlay from the TopBar in 120ms, input pre-focused, journey chips scoped to this pane; Esc dismisses. Same spot on every non-room surface: discoverability by constancy.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 5. Motion budget + the keyboard map -->
+    <div class="sc-rail-sec">
+      <div class="sc-rail-sec-title">5 &middot; Motion &amp; keys <span class="sc-sec-ref">budget table spec 5.1 &middot; Settings deliberately spends no class-C</span></div>
+      <div class="sc-rail-cols">
+
+        <div>
+          <div class="sc-spec-label" style="margin-bottom:6px">Motion on this screen</div>
+          <div class="sc-motion-row">
+            <span class="sc-motion-name">Kebabs, hovers, fields</span>
+            <span class="sc-motion-budget">A &middot; 0&ndash;120ms</span>
+            <span>Opacity/transform only, or nothing. Most of Settings animates nothing; state applies optimistically on every click.</span>
+          </div>
+          <div class="sc-motion-row">
+            <span class="sc-motion-name">Pane and section arrival</span>
+            <span class="sc-motion-budget">B &middot; 150&ndash;250ms</span>
+            <span>Opening a rail door swaps the pane with a 60&ndash;90ms section stagger, --ink-ease; the rail highlight itself moves instantly.</span>
+          </div>
+          <div class="sc-motion-row">
+            <span class="sc-motion-name">The Ask summon</span>
+            <span class="sc-motion-budget">A &middot; 120ms</span>
+            <span>Drops from the TopBar, input focused before the motion ends; Esc reverses it in the same budget.</span>
+          </div>
+          <div class="sc-motion-row">
+            <span class="sc-motion-name">Signature moments</span>
+            <span class="sc-motion-budget">C &middot; none</span>
+            <span>Deliberately unspent here: the product's choreography belongs to the room's gates, not to configuration. Connecting a source earns a receipt, not a ceremony.</span>
+          </div>
+          <div class="sc-motion-row">
+            <span class="sc-motion-name">Reduced motion</span>
+            <span class="sc-motion-budget">&mdash;</span>
+            <span>Everything resolves to its finished frame; the strip's pulse dot and skeletons hold steady.</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="sc-spec-label" style="margin-bottom:6px">Keys on this screen</div>
+          <div class="sc-key-row"><span class="sp-kbd">&#8984;J</span><span class="sc-key-desc">Summon Ask (the TopBar button does the same)</span></div>
+          <div class="sc-key-row"><span class="sp-kbd">&#8593;</span><span class="sp-kbd">&#8595;</span><span class="sc-key-desc">Walk the settings rail</span><span style="width:6px"></span><span class="sp-kbd">&#9166;</span><span class="sc-key-desc">open the door</span></div>
+          <div class="sc-key-row"><span class="sp-kbd">Tab</span><span class="sc-key-desc">Through every control in DOM order; focus always visible</span></div>
+          <div class="sc-key-row"><span class="sp-kbd">Esc</span><span class="sc-key-desc">Close a kebab, cancel a confirm, restore a field, dismiss the summon</span></div>
+          <div class="sc-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">A</span><span class="sc-key-desc">Approvals</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">B</span><span class="sc-key-desc">Brain</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">1&ndash;7</span><span class="sc-key-desc">back to the spine</span></div>
+          <div class="sc-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">T</span><span class="sc-key-desc">Past threads (the history glyph beside Ask)</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

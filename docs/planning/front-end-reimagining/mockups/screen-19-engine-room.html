@@ -1,0 +1,3653 @@
+<!--
+  SCREEN 19: Engine room, Pulse depth (Round 3.1)
+
+  THE MOMENT: Monday July 20 at Helio Labs, 1:00pm. The morning loop
+  has run its course: SPEC-52 attested at 9:05am, LRN-13 written at
+  9:12am, the case for BET-35 built at 10:05am, REL-20 staged at
+  11:40am, the promote gate cleared at 11:52am, Atlas 1.9 live at
+  100% since 12:15pm. Mo followed a receipt's "Open the trace" door
+  into Pulse to answer one question before the afternoon: is the
+  machine still good? The Quality room is open; one run is peeked;
+  Measure is still watching the rollout.
+
+  STATE SHOWN: active depth. Glance strip rendered with all four
+  rooms healthy; the Quality room open on its front view (Right
+  now); the run trc-2478 peeked at L1 drawer depth; the live run
+  trc-2481 pulsing. One frame, dark default, light theme flips on
+  data-theme="light".
+
+  FUNCTIONAL CONTRACT:
+    Primary question: is the machine still good, and what exactly
+      ran to make it so?
+    Primary action(s): read the room's verdict, open a run's peek,
+      then "Open the full trace" (the L2 door into Record). Nothing
+      here needs a decision; deciding lives in Approvals.
+    Lineage in/out: in: a receipt's "Open the trace" kebab door
+      (screens 3/12), Settings' Diagnostics door (screen 17), the
+      G E registry shortcut. Out: suite rows drill to
+      ?room=quality&view=suites&suite=<id>; scorecard rows to
+      ?view=calibration&agent=<slug>; trace rows peek at L1 and
+      door onward to ?room=record&view=traces&trace=<id> (L2); the
+      artifact chips door to their homes: REL-20 (06 Ship), SPEC-62
+      (03 Plan), BET-35 (02 Decide), LRN-13 and DEC-22 (Brain),
+      LOOP-2 (Brain, runs pane). Every run doors back to
+      the mission or receipt it served.
+    Agents & attribution: Measure (live, watching the rollout: the
+      ONE machine locus), Engineer (the peeked run), Review (suite
+      runs), Prioritize, Watch, Draft: all as mono agent chips.
+      Memory speaks once, as the Vellum-chipped DEC-22 house rule
+      inside the peeked run's first step.
+    Focus/collapse: none. Pulse is a reading room in the non-room
+      shell: no Spine, no Thread, no docked composer. The Working
+      strip stays. The peek drawer slides from the right edge and
+      never moves the list; Esc closes it, then Esc again returns
+      to the glance (the code's back contract).
+    Empty/loading/blocked: carried by the behavior rail: room-card
+      skeleton and failed-summary retry, a suite that never ran, a
+      day with no runs, a failed run with its recovery verb, an
+      expired trace body (30-day retention, receipt kept). In the
+      frame itself the honest gaps are written in place: Spend
+      shows no figure (cost-quiet), spec-structure shows "no run
+      today" rather than a padded zero.
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. The honest zero: this frame carries NO ember anywhere. Nothing
+     here asks for a decision, so nothing wears the human's color;
+     the one open gate (the DEC-19 challenge) stays a slate count
+     in the TopBar. Does the room read calm and trustworthy rather
+     than dead? (The aliveness is carried by verdict green on real
+     pass rates, machine blue on the one live run, Vellum on the
+     one memory citation, slate chips as texture.)
+  2. Depth grammar: glance (four rooms, one honest line each) to
+     room (Quality open) to row (runs, suites, scorecards) to peek
+     (trc-2478) to the named L2 door. Does the four-level contract
+     from the code (glance, room, sub-tab, row detail) survive the
+     recomposition into one calm surface?
+  3. The recomposed front view: the code splits Quality across
+     seven thin tabs; this mockup's "Right now" answers the room's
+     question in one pass (verdict, suites, trust, the runs behind
+     the numbers) while the rail keeps every deeper tab. Right
+     call, or too much in one view?
+  4. The scorecard rows as the trust ledger: "12 of 14 approved
+     this month" is the exact line a gate card cites as track
+     record (screen 4). Does showing its source here make the gate
+     cards more believable?
+  5. Cost-quiet under pressure: Spend's card shows state, not
+     figures, and says so. The peeked run's cost sits behind its
+     closed kebab. Does the engine room hold the line the rest of
+     the product promises?
+  6. The behavior rail: does the state grammar (hover, focus,
+     pressed, disabled, loading, empty, error, success) plus the
+     keyboard map and motion budget make this implementable
+     without a single question?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #4 the machine's work always visible: every run is a replayable
+     record with steps, timings, and a sandbox badge; the live run
+     pulses in the same list.
+  #5 costs quiet: zero figures anywhere, even in the Spend card;
+     cost lives behind the peek's closed kebab and screen-17.
+  #6 every capability placed: evals, calibration, drift, traces,
+     guardrails, and the ledger all have one home (/engine-room)
+     with plain labels over technical terms.
+  #7 native build: the trace list's foot names the driver once,
+     quietly: "Driver: Supaprod native".
+  #13 nav stays 4 doors; Pulse is depth behind receipts and
+     Settings, never a fifth destination.
+
+  SPEC-VS-LAW CONFLICTS RESOLVED (per the Round-3 brief, which wins)
+  a. The code renders room questions in Geist Pixel (RoomDetail h2);
+     6b.2/6d.3 rule Pixel to zero uses here, so questions render in
+     the sans display scale. b. The code's Spend glance prints real
+     dollar figures; ruling 8 (cost-quiet) holds in mockups, so the
+     card states its condition and names where figures live.
+     c. The code keeps traces only under Record; this frame shows
+     the runs that fed Quality's checks inside the Quality room and
+     annotates the full archive's home (Record, Every run). d. The
+     TopBar contract's sample Ask hint (A) yields to 6c.4b's visible
+     command-J summon hint. e. Per-file law: EMBER NONE overrides
+     ruling 1's "else the primary CTA" fallback; the honest zero is
+     the design.
+
+  RESTRAINT NOTE: deliberately NOT added: any ember (nothing to
+  decide here), a docked composer (Pulse is not speak-primary), a
+  fifth nav door, Pixel type, charts or sparklines (no invented
+  series; the drift answer is a sentence), a trace search field
+  (the archive in Record owns search), starfield (not sanctioned
+  here), toasts, open kebabs, and any cost or token figure.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : Pulse</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==================================================================
+   SCREEN 19: Engine room, Pulse depth (Round 3.1)
+   One frame (Monday Jul 20, 1:00pm), then the lineage doors, then
+   the behavior rail (6b.3). Non-room shell: TopBar, glance strip,
+   rail + room, working strip. No Spine, no Thread, no composer.
+   ================================================================== */
+
+.er-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.jf-frame-label .jf-label-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+/* Mockup-only annotation block under the frame: lineage doors and
+   the standing annotations, spelled out (ruling 4 extended by 6c.3
+   to every clickable). */
+.er-doors {
+  width: var(--sp-frame-w);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.er-doors b {
+  font-weight: 400;
+  color: var(--ink-subtle);
+}
+
+/* ---- TopBar extras: the Pulse crumb ------------------------------- */
+/* The route renders TopBar crumbs [workspace, "Pulse"]; in the shell
+   the crumb rides after the product switcher, quiet. */
+.er-crumb-sep {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.er-crumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-body);
+}
+
+/* ---- The glance strip: four rooms, one honest line each ----------- */
+.er-glance {
+  padding: 10px 20px 12px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.er-glance-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.er-glance-hint {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.er-glance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+/* Room card: card law 1.9. Plain ink surface, hairline border, the
+   internal grid: kicker row (name left, state word right), the one
+   honest line, the room's question. No edge strips, no decoration.
+   Hover lifts to raised (150ms, background only); Enter opens. */
+.er-room-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 13px 11px;
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  text-align: left;
+  transition: background var(--ink-fast) var(--ink-ease);
+}
+.er-room-card:hover {
+  background: var(--ink-raised);
+}
+.er-room-card.is-open {
+  background: var(--ink-raised);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+[data-theme="light"] .er-room-card.is-open {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+.er-room-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.er-room-state {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.er-room-state.is-healthy {
+  color: var(--verdict-pass);
+}
+.er-room-state.is-watch {
+  color: var(--ink-body);
+}
+/* The one honest line. Counts are mono blue numerals (6c.1): real
+   data speaks in the machine's data tone without becoming a working
+   locus (nothing pulses in the strip). */
+.er-room-line {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  line-height: 1.35;
+}
+.er-room-line .er-num {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--voice-machine);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.er-room-sub {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-subtle);
+}
+.er-room-q {
+  margin-top: 1px;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+/* ---- Main: the persistent room rail + the open room --------------- */
+.er-main {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  min-height: 0;
+  position: relative;
+}
+.er-rail {
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  padding: 12px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+.er-rail-group-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 9px 5px;
+}
+.er-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 27px;
+  padding: 0 9px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-body);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.er-rail-item:hover {
+  background: var(--ink-raised);
+}
+.er-rail-item.is-active {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.er-rail-glyph {
+  width: 13px;
+  flex: none;
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+/* Sub-views of the open room: the code's ROOM_TAB_META, plain labels
+   on the surface, technical terms under the room's foot line. */
+.er-rail-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 2px 0 4px;
+  padding-left: 17px;
+  border-left: 1px solid var(--ink-hairline-soft);
+  margin-left: 13px;
+}
+.er-rail-subitem {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.er-rail-subitem:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.er-rail-subitem.is-active {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+
+/* ---- The open room ------------------------------------------------ */
+.er-room {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+  /* The peek drawer occupies the right 392px; the room composes its
+     content inside the remaining width so nothing hides beneath. */
+  padding-right: 392px;
+}
+.er-room-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.er-room-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.er-q {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-text);
+  line-height: 1.2;
+}
+.er-verdict {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.er-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-body);
+  max-width: 430px;
+}
+/* The health word: a real verdict from the same report as the
+   number, so it may wear verdict green. Survives grayscale as a
+   word. */
+.er-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--verdict-pass);
+  height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--ink-hairline);
+  border-radius: 11px;
+  white-space: nowrap;
+  flex: none;
+}
+.er-health .er-health-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* The pass-rate lead (screen-13's founder-praised numeric treatment,
+   adapted): a real rate wears verdict green; the copy carries the
+   one miss and its recovery, so the number never has to lie. */
+.er-hero {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  max-width: 380px;
+  flex: none;
+}
+.er-hero-num {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--verdict-pass);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+.er-hero-copy {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.er-hero-copy .sp-mono {
+  color: var(--ink-text);
+}
+.er-hero-door {
+  display: inline;
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+}
+.er-hero-door:hover {
+  color: var(--ink-body);
+  border-bottom-color: var(--ink-hairline);
+}
+
+/* Section scaffolding: kicker head, right meta, then rows. */
+.er-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.er-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.er-sec-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.er-sec-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- The eval-suite table (suite, pass rate, last run: all mono) -- */
+.er-table {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-bg);
+  overflow: hidden;
+}
+.er-tr {
+  display: grid;
+  grid-template-columns: 138px minmax(0, 1fr) 74px 52px 84px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  height: 30px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--ink-fast) var(--ink-ease);
+}
+.er-tr:last-child {
+  border-bottom: none;
+}
+.er-tr:hover {
+  background: var(--ink-raised);
+}
+.er-tr.is-head {
+  height: 24px;
+  cursor: default;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.er-tr.is-head:hover {
+  background: transparent;
+}
+.er-td-suite {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.er-td-what {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.er-td-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-body);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.er-td-mono.is-faint {
+  color: var(--ink-faint);
+}
+.er-pass-ok {
+  color: var(--verdict-pass);
+}
+.er-fail-x {
+  color: var(--verdict-fail);
+  font-size: 10px;
+}
+
+/* ---- Scorecard rows: the trust ledger a gate card cites ----------- */
+.er-score {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-bg);
+  overflow: hidden;
+}
+.er-score-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  height: 30px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--ink-fast) var(--ink-ease);
+}
+.er-score-row:last-child {
+  border-bottom: none;
+}
+.er-score-row:hover {
+  background: var(--ink-raised);
+}
+.er-score-line {
+  font-size: 12px;
+  color: var(--ink-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The approval history ticks: real gate verdicts, so pass green may
+   speak; a sent-back tick stays structural (outline) so the story
+   survives grayscale beside the ratio text. */
+.er-ticks {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+.er-tick {
+  width: 5px;
+  height: 10px;
+  border-radius: 1.5px;
+  background: var(--verdict-pass);
+  opacity: 0.55;
+}
+.er-tick.is-back {
+  background: transparent;
+  border: 1px solid var(--ink-hairline);
+  opacity: 1;
+}
+.er-score-ratio {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---- The trace list: the runs behind today's numbers --------------- */
+.er-traces {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-bg);
+  overflow: hidden;
+}
+.er-trace-row {
+  display: grid;
+  grid-template-columns: 12px 62px 86px minmax(0, 1fr) auto 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 30px;
+  border-bottom: 1px solid var(--ink-hairline-soft);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--ink-fast) var(--ink-ease);
+}
+.er-trace-row:hover {
+  background: var(--ink-raised);
+}
+.er-trace-row.is-selected {
+  background: var(--ink-raised);
+}
+.er-trace-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--verdict-pass);
+  justify-self: center;
+}
+.er-trace-id {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.er-trace-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.er-trace-line > span:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.er-trace-dur {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.er-trace-time {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+/* The ONE full-hue machine locus of the frame: the live run. Solid
+   machine text on the verb, ink-working pulse on the dot; the word
+   "live" carries it in grayscale. Static ring under reduced motion
+   (shared block). */
+.er-trace-row.is-live .er-trace-dot {
+  background: var(--voice-machine);
+}
+.er-trace-row.is-live .er-trace-line {
+  color: var(--voice-machine);
+}
+.er-trace-row.is-live .er-trace-dur,
+.er-trace-row.is-live .er-trace-time {
+  color: var(--voice-machine-dim);
+}
+.er-list-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 14px 8px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+.er-list-foot .er-foot-door {
+  margin-left: auto;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.er-list-foot .er-foot-door:hover {
+  color: var(--ink-body);
+}
+
+/* The room's foot: the founder naming model. Plain label on the
+   surface, the engine's term underneath, never in front. */
+.er-room-foot {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 10px 0 12px;
+}
+.er-room-foot b {
+  font-weight: 400;
+  color: var(--ink-subtle);
+}
+
+/* ---- The trace peek: L1 drawer depth ------------------------------- */
+/* Slides from the right edge (spatial consistency), 120ms transform
+   plus opacity, Class A. The list never moves. Esc closes. */
+.er-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 392px;
+  background: var(--ink-raised);
+  border-left: 1px solid var(--ink-hairline);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+}
+[data-theme="light"] .er-drawer {
+  background: var(--ink-panel);
+}
+.er-peek-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+.er-peek-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.er-peek-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.er-peek-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.er-peek-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  line-height: 1.35;
+}
+.er-peek-mission {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+}
+.er-peek-verdict {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--verdict-pass);
+  font-variant-numeric: tabular-nums;
+}
+.er-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-panel);
+  padding: 9px 11px 10px;
+}
+[data-theme="light"] .er-steps {
+  background: var(--ink-bg);
+}
+.er-step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-body);
+}
+.er-step-num {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+}
+.er-step-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.er-step .sp-mono {
+  color: var(--ink-text);
+}
+/* Memory speaks once: the Vellum pair (vellum chip + faint wash on
+   the cited line only). Never card decoration. */
+.er-mem-cite {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 3px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--voice-memory-faint);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-body);
+}
+.er-mem-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--voice-memory-dim);
+  background: transparent;
+  border: 1px solid var(--voice-memory-border);
+  white-space: nowrap;
+  flex: none;
+}
+/* The streamed command: screen-3's terminal texture. Sandboxed and
+   says so. The terminal stays dark in both themes, like a real one. */
+.er-term {
+  grid-column: 2 / -1;
+  margin-top: 4px;
+  background: #08090a;
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+}
+.er-term-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: #a1a1aa;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.er-sandbox-chip {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #71717a;
+  flex: none;
+  margin-left: auto;
+}
+.er-term-body {
+  padding: 6px 10px 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #71717a;
+  overflow-x: auto;
+}
+.er-tline {
+  white-space: pre;
+}
+.er-tline .er-t-pass {
+  color: var(--verdict-pass);
+}
+.er-peek-receipt {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-panel);
+  padding: 8px 11px;
+}
+[data-theme="light"] .er-peek-receipt {
+  background: var(--ink-bg);
+}
+.er-peek-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.er-peek-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 16px 11px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.er-peek-foot .er-foot-right {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ==================================================================
+   The behavior rail (6b.3): a document, not a frame. Specimens at
+   real size, states frozen with explicit classes, one annotation
+   per cell.
+   ================================================================== */
+.bx-rail {
+  width: var(--sp-frame-w);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  padding: 26px 32px 30px;
+  margin-bottom: 26px;
+}
+.bx-intro {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  max-width: 880px;
+  margin: 8px 0 22px;
+}
+.bx-sec {
+  margin-bottom: 26px;
+}
+.bx-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.bx-sec-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+.bx-sec-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.bx-sec-ref {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+.bx-grid {
+  display: grid;
+  gap: 12px;
+}
+.bx-grid.is-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bx-grid.is-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.bx-grid.is-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.bx-cell {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-panel);
+  padding: 10px 12px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+.bx-state {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.bx-note {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin-top: auto;
+}
+.bx-note .sp-mono {
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+/* Frozen interaction states (mockup-only): what :hover,
+   :focus-visible, [disabled], and the loading swap render as. */
+.bx-hover {
+  background: var(--ink-raised) !important;
+}
+.bx-focus {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.bx-disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.bx-skel-line {
+  height: 9px;
+}
+/* Specimen chrome: rows shown outside their table keep the table's
+   surface so the state reads true. */
+.bx-rowbox {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-bg);
+  overflow: hidden;
+}
+.bx-rowbox .er-tr,
+.bx-rowbox .er-trace-row,
+.bx-rowbox .er-score-row {
+  border-bottom: none;
+}
+/* A failed run: verdict red on the glyph and the reason, recovery
+   verb inline. The row stays ink; the state is the content. */
+.er-trace-row.is-failed .er-trace-dot {
+  background: var(--verdict-fail);
+}
+.er-trace-row.is-failed .er-trace-line {
+  color: var(--ink-body);
+}
+.er-retry-verb {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-text);
+  border-bottom: 1px solid var(--ink-hairline);
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* The Ask summon specimen (6c.4b): the transient overlay, rendered
+   in miniature at real component scale. */
+.bx-summon {
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  background: var(--ink-raised);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bx-summon-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-bg);
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+.bx-summon-input .bx-caret-ghost {
+  color: var(--ink-text);
+}
+.bx-summon-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bx-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding-top: 18px;
+}
+.bx-foot-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 10px;
+}
+.bx-krow {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 3px 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.bx-krow .bx-keys {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<div class="er-page">
+
+  <!-- ==============================================================
+       THE FRAME: Monday Jul 20, 1:00pm. /engine-room, Quality open,
+       one run peeked, one run live. Non-room shell: no Spine, no
+       Thread, no docked composer (6c.4b), breadcrumb "Pulse".
+       ============================================================== -->
+  <div class="jf-frame-label">
+    <span>Frame &middot; Pulse, the engine room &middot; Mon Jul 20, 1:00pm</span>
+    <span class="jf-label-sub">/engine-room &middot; glance &#8594; Quality room &#8594; run rows &#8594; trc-2478 peeked (L1) &middot; zero ember by design &middot; one machine locus</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell" style="grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto;">
+
+      <!-- ==========================================================
+           REGION 1: TopBar v2 (brief section 3). Pulse is NOT a
+           fifth door: no nav item is active; the crumb after the
+           product switcher names the surface. Entry doors into this
+           surface: any receipt kebab's "Open the trace", Settings'
+           Diagnostics pane, and G E. The Approvals count (1) is the
+           DEC-19 challenge, this frame's only open gate, rendered
+           at the ambient slate tier: nothing on this surface asks
+           for a decision. Ask lives here (6c.4b): the button plus
+           its visible command-J hint; the summon overlay behavior
+           is specified in the rail, section 6.
+           ========================================================== -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+  <defs>
+    <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+    </linearGradient>
+    <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+    </radialGradient>
+  </defs>
+  <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
+</svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher" title="Switch product &middot; re-scopes Pulse to that product's engine">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <span class="er-crumb-sep">/</span>
+        <span class="er-crumb">Pulse</span>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item" href="#" title="Door: /m &middot; the product's room">Mission Control</a>
+          <a class="sp-nav-item" href="#" title="Door: the tray &middot; the one open gate, the DEC-19 challenge">Approvals <span class="sp-tray-count">1</span></a>
+          <a class="sp-nav-item" href="#" title="Door: /brain &middot; what the company knows">Brain</a>
+          <a class="sp-nav-item" href="#" title="Door: /settings &middot; Diagnostics doors back here">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn" title="Ask anything &middot; summons the overlay from this bar; Escape dismisses">Ask <span class="sp-kbd">&#8984;J</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts &middot; ?">?</button>
+          <button class="sp-avatar" title="Account">MO</button>
+        </div>
+      </header>
+
+      <!-- ==========================================================
+           REGION 2: the glance strip. Four rooms, one honest line
+           each (engine-room-glance.ts builders). Counts are mono
+           blue numerals; the state word is a real verdict from the
+           same report as the number. Spend deliberately carries NO
+           figure: cost-quiet (ruling 8) holds even in the engine
+           room; its card states its condition and names where the
+           figures live. Each card is a door: ?room=<key>. Quality
+           is open, so its card wears the open state.
+           ========================================================== -->
+      <div class="er-glance">
+        <div class="er-glance-head">
+          <span>The glance &middot; every room in one honest line</span>
+          <span class="er-glance-hint">Esc from any depth returns here <span class="sp-kbd">Esc</span></span>
+        </div>
+        <div class="er-glance-grid">
+
+          <button class="er-room-card" title="Door: /engine-room?room=spend &middot; opens the Spend room; figures render there only as Settings' Plan &amp; Usage allows">
+            <span class="er-room-kicker">Spend <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line">Inside the monthly cap</span>
+            <span class="er-room-sub">Figures live behind this door.</span>
+            <span class="er-room-q">What is this costing me?</span>
+          </button>
+
+          <button class="er-room-card is-open" aria-current="true" title="Open now &middot; ?room=quality">
+            <span class="er-room-kicker">Quality <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">34</span> checks green today</span>
+            <span class="er-room-sub">No drift in 14 days.</span>
+            <span class="er-room-q">Is the machine still good?</span>
+          </button>
+
+          <button class="er-room-card" title="Door: /engine-room?room=safety &middot; guardrails, emergency controls, the agent roster">
+            <span class="er-room-kicker">Safety <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">11</span> guardrails on</span>
+            <span class="er-room-sub">0 incidents in 30 days.</span>
+            <span class="er-room-q">What is it allowed to do?</span>
+          </button>
+
+          <button class="er-room-card" title="Door: /engine-room?room=record &middot; receipts, every run, your decisions">
+            <span class="er-room-kicker">Record <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">212</span> runs this week</span>
+            <span class="er-room-sub">Ledger intact.</span>
+            <span class="er-room-q">What exactly happened?</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- ==========================================================
+           REGION 3: the persistent room rail + the open Quality
+           room. The rail is the code's RoomRail (196px): rooms plus
+           the open room's sub-views, plain labels on the surface
+           (founder naming model 2026-07-07); the technical terms
+           sit at the room's foot, never in front. The peek drawer
+           overlays the right 392px; the room composes inside the
+           remaining width so nothing hides beneath it.
+           ========================================================== -->
+      <div class="er-main">
+
+        <aside class="er-rail">
+          <div>
+            <div class="er-rail-group-label">Pulse</div>
+            <button class="er-rail-item" title="Door: /engine-room &middot; the four-room glance">
+              <span class="er-rail-glyph">&#9638;</span>Overview
+            </button>
+          </div>
+          <div>
+            <div class="er-rail-group-label">Rooms</div>
+            <button class="er-rail-item" title="Door: ?room=spend &middot; state without figures; the room renders figures only as Settings' Plan &amp; Usage allows">
+              <span class="er-rail-glyph">&#9675;</span>Spend
+            </button>
+            <button class="er-rail-item is-active" aria-current="true" title="Open &middot; ?room=quality">
+              <span class="er-rail-glyph">&#9679;</span>Quality
+            </button>
+            <div class="er-rail-sub">
+              <button class="er-rail-subitem is-active" title="?view=score &middot; this view">Right now</button>
+              <button class="er-rail-subitem" title="?view=calibration &middot; pass rate per AI surface">By surface</button>
+              <button class="er-rail-subitem" title="?view=suites &middot; the checks we run">What we test</button>
+              <button class="er-rail-subitem" title="?view=drift &middot; is quality slipping over time">Is it slipping?</button>
+              <button class="er-rail-subitem" title="?view=self-improvement &middot; what the machine flags about itself">What to fix</button>
+              <button class="er-rail-subitem" title="?view=prompts &middot; the instructions agents run on">Its instructions</button>
+              <button class="er-rail-subitem" title="?view=proof &middot; adversarial stress tests">Stress tests</button>
+            </div>
+            <button class="er-rail-item" title="Door: ?room=safety &middot; guardrails, emergency controls, the agent roster">
+              <span class="er-rail-glyph">&#9675;</span>Safety
+            </button>
+            <button class="er-rail-item" title="Door: ?room=record &middot; the full run archive lives here">
+              <span class="er-rail-glyph">&#9675;</span>Record
+            </button>
+          </div>
+        </aside>
+
+        <section class="er-room">
+          <div class="er-room-scroll">
+
+            <!-- The room head: the question, the one verdict line
+                 (same report as the glance card, so they can never
+                 disagree), and the pass-rate lead. Healthy is a real
+                 verdict word, so it may wear verdict green. -->
+            <header class="er-room-head">
+              <div>
+                <h1 class="er-q">Is the machine still good?</h1>
+                <div class="er-verdict">Pass rate 97% across 35 checks today &middot; no drift</div>
+                <div class="er-desc">How well the machine is scoring today, who is earning trust at your gates, and the runs behind the numbers.</div>
+              </div>
+              <div class="er-hero">
+                <span class="er-hero-num">97%</span>
+                <span class="er-hero-copy"><span class="sp-mono">34 of 35</span> checks green today. The one miss is teardown-rigor's counter-case depth; Review queued a re-run for 2:00pm and filed the gap under <span class="er-hero-door" title="Door: ?view=self-improvement &middot; opens the fix queue with this gap on top">What to fix</span>.</span>
+              </div>
+              <span class="er-health" style="margin-top:2px"><span class="er-health-dot"></span>Healthy</span>
+            </header>
+
+            <!-- The eval-suite table: suite, pass rate, last run, all
+                 mono. Each row is a door: ?view=suites&suite=<id>;
+                 opening keeps this room's head (drill contract).
+                 spec-structure shows "no run today" rather than a
+                 padded zero: numbers are real or absent. -->
+            <div class="er-sec">
+              <div class="er-sec-head">
+                <span class="er-sec-title">What we test</span>
+                <span class="er-sec-meta">6 suites &middot; re-runs on every staged change</span>
+              </div>
+              <div class="er-table">
+                <div class="er-tr is-head">
+                  <span>Suite</span><span>What it guards</span>
+                  <span style="text-align:right">Today</span>
+                  <span style="text-align:right">Pass</span>
+                  <span style="text-align:right">Last run</span>
+                </div>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=reply-tone &middot; every check, its cases, its history">
+                  <span class="er-td-suite">reply-tone</span>
+                  <span class="er-td-what">saved replies stay in the house voice</span>
+                  <span class="er-td-mono">12 of 12</span>
+                  <span class="er-td-mono er-pass-ok">100%</span>
+                  <span class="er-td-mono">9:05am</span>
+                </button>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=signal-triage">
+                  <span class="er-td-suite">signal-triage</span>
+                  <span class="er-td-what">signals cluster to the themes they belong to</span>
+                  <span class="er-td-mono">8 of 8</span>
+                  <span class="er-td-mono er-pass-ok">100%</span>
+                  <span class="er-td-mono">6:14am</span>
+                </button>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=webhook-replay &middot; born with SPEC-62, first ran today">
+                  <span class="er-td-suite">webhook-replay</span>
+                  <span class="er-td-what">no webhook event dropped or doubled</span>
+                  <span class="er-td-mono">6 of 6</span>
+                  <span class="er-td-mono er-pass-ok">100%</span>
+                  <span class="er-td-mono">11:52am</span>
+                </button>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=briefing-grounding">
+                  <span class="er-td-suite">briefing-grounding</span>
+                  <span class="er-td-what">the briefing cites only records that exist</span>
+                  <span class="er-td-mono">5 of 5</span>
+                  <span class="er-td-mono er-pass-ok">100%</span>
+                  <span class="er-td-mono">8:31am</span>
+                </button>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=teardown-rigor &middot; opens on the failing case">
+                  <span class="er-td-suite">teardown-rigor</span>
+                  <span class="er-td-what">teardown verdicts survive the counter-case</span>
+                  <span class="er-td-mono">3 of 4 <span class="er-fail-x">&#10007;1</span></span>
+                  <span class="er-td-mono">75%</span>
+                  <span class="er-td-mono">10:02am</span>
+                </button>
+                <button class="er-tr" title="Door: ?view=suites&amp;suite=spec-structure &middot; re-runs on the next staged spec">
+                  <span class="er-td-suite">spec-structure</span>
+                  <span class="er-td-what">specs carry testable requirements</span>
+                  <span class="er-td-mono is-faint">no run today</span>
+                  <span class="er-td-mono er-pass-ok">100%</span>
+                  <span class="er-td-mono">Fri 4:31pm</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- The trust ledger: the exact line a gate card cites as
+                 track record (screen 4's "12 of 14 approved"). Rows
+                 door to ?view=calibration&agent=<slug>. Ticks are
+                 real gate verdicts: filled = approved, outlined =
+                 sent back with notes. -->
+            <div class="er-sec">
+              <div class="er-sec-head">
+                <span class="er-sec-title">Who is earning trust</span>
+                <span class="er-sec-meta">last 30 days &middot; counted from your gate decisions</span>
+              </div>
+              <div class="er-score">
+                <button class="er-score-row" title="Door: ?view=calibration&amp;agent=engineer &middot; every approval, sent-back note, and eval behind this line">
+                  <span class="sp-agent-chip">Engineer</span>
+                  <span class="er-score-line">12 of 14 approved this month, 2 sent back with notes</span>
+                  <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+                  <span class="er-score-ratio">86%</span>
+                </button>
+                <button class="er-score-row" title="Door: ?view=calibration&amp;agent=draft">
+                  <span class="sp-agent-chip">Draft</span>
+                  <span class="er-score-line">9 of 11 approved this month, 2 revised on your notes</span>
+                  <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+                  <span class="er-score-ratio">82%</span>
+                </button>
+                <button class="er-score-row" title="Door: ?view=calibration&amp;agent=watch &middot; kept means you never had to unwind a cluster; the strip shows the newest 14 of 31">
+                  <span class="sp-agent-chip">Watch</span>
+                  <span class="er-score-line">31 of 31 clusters kept on review</span>
+                  <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+                  <span class="er-score-ratio">100%</span>
+                </button>
+                <button class="er-score-row" title="Door: ?view=calibration&amp;agent=measure &middot; confirmed means the outcome later matched the read">
+                  <span class="sp-agent-chip">Measure</span>
+                  <span class="er-score-line">6 of 6 reads confirmed by later outcomes</span>
+                  <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+                  <span class="er-score-ratio">100%</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- The runs behind today's numbers. Mono ids, honest
+                 durations, every row doors back to the mission or
+                 receipt it served (its trailing chip). The live row
+                 is the frame's ONE machine locus. trc-2478 is
+                 selected: its peek stands open at the right edge.
+                 The full archive stays in Record (Every run); this
+                 list is scoped to the runs that fed this room. -->
+            <div class="er-sec">
+              <div class="er-sec-head">
+                <span class="er-sec-title">The runs behind today's numbers</span>
+                <span class="er-sec-meta">7 shown of 41 today &middot; filtered to runs that fed this room</span>
+              </div>
+              <div class="er-traces">
+                <button class="er-trace-row is-live" title="Live &middot; Space peeks the run as it streams; the row pulses until the contract check closes">
+                  <span class="er-trace-dot ink-working"></span>
+                  <span class="er-trace-id">trc-2481</span>
+                  <span class="sp-agent-chip">Measure</span>
+                  <span class="er-trace-line"><span>watching the Atlas 1.9 rollout at 100%</span><span class="sp-artifact-chip" title="Door: REL-20's release record, 06 Ship">REL-20</span></span>
+                  <span class="er-trace-dur">live</span>
+                  <span class="er-trace-time">45m</span>
+                </button>
+                <button class="er-trace-row" title="Space peeks &middot; Enter opens the full trace in Record">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2479</span>
+                  <span class="sp-agent-chip">Review</span>
+                  <span class="er-trace-line"><span>ran webhook-replay, 6 checks green</span><span class="sp-artifact-chip" title="Door: REL-20's release record, 06 Ship">REL-20</span></span>
+                  <span class="er-trace-dur">4m 42s</span>
+                  <span class="er-trace-time">11:52am</span>
+                </button>
+                <button class="er-trace-row is-selected" aria-expanded="true" title="Peeked &middot; the drawer at the right edge is this run; Esc closes it">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2478</span>
+                  <span class="sp-agent-chip">Engineer</span>
+                  <span class="er-trace-line"><span>staged REL-20 behind the promote gate</span><span class="sp-artifact-chip" title="Door: REL-20's release record, 06 Ship">REL-20</span></span>
+                  <span class="er-trace-dur">11m 05s</span>
+                  <span class="er-trace-time">11:40am</span>
+                </button>
+                <button class="er-trace-row" title="Space peeks &middot; the case this run built sits on the Decide board">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2477</span>
+                  <span class="sp-agent-chip">Prioritize</span>
+                  <span class="er-trace-line"><span>built the case for BET-35, keep or kill</span><span class="sp-artifact-chip" title="Door: BET-35 on the 02 Decide board">BET-35</span></span>
+                  <span class="er-trace-dur">3m 41s</span>
+                  <span class="er-trace-time">10:05am</span>
+                </button>
+                <button class="er-trace-row" title="Space peeks &middot; the failing case opens inside teardown-rigor">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2476</span>
+                  <span class="sp-agent-chip">Review</span>
+                  <span class="er-trace-line"><span>ran teardown-rigor, 3 of 4 green <span class="er-fail-x">&#10007;1</span></span><span class="sp-artifact-chip" title="Door: BET-35 on the 02 Decide board &middot; the case this run stress-tested">BET-35</span></span>
+                  <span class="er-trace-dur">2m 55s</span>
+                  <span class="er-trace-time">10:02am</span>
+                </button>
+                <button class="er-trace-row" title="Space peeks &middot; the learning this run wrote lives in the Brain">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2474</span>
+                  <span class="sp-agent-chip">Measure</span>
+                  <span class="er-trace-line"><span>read the weekend, wrote the learning</span><span class="sp-artifact-chip" title="Door: LRN-13 in the Brain">LRN-13</span></span>
+                  <span class="er-trace-dur">2m 06s</span>
+                  <span class="er-trace-time">9:00am</span>
+                </button>
+                <button class="er-trace-row" title="Space peeks &middot; the sweep runs nightly as LOOP-2">
+                  <span class="er-trace-dot"></span>
+                  <span class="er-trace-id">trc-2471</span>
+                  <span class="sp-agent-chip">Watch</span>
+                  <span class="er-trace-line"><span>swept the connected channels, 37 signals</span><span class="sp-artifact-chip" title="Door: LOOP-2 in the Brain's runs pane">LOOP-2</span></span>
+                  <span class="er-trace-dur">4m 12s</span>
+                  <span class="er-trace-time">6:00am</span>
+                </button>
+                <div class="er-list-foot">
+                  <span>Driver: Supaprod native &middot; every run above executed on the owned engine, sandboxed</span>
+                  <span class="er-foot-door" title="Door: ?room=record&amp;view=traces &middot; every run, searchable, 30-day bodies plus permanent receipts">Every run &#8594; Record</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- The founder naming model: plain label above,
+                 technical term underneath, never in front. -->
+            <div class="er-room-foot">
+              <b>Right now</b> &middot; the engine calls this Eval pass rate
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================
+             The trace peek: L1 drawer depth. Slides from the right
+             edge (Class A, 120ms, transform + opacity); the list
+             never moves. Esc closes; J/K move the selection and the
+             peek follows. Steps carry honest timings; the streamed
+             command wears the sandbox badge; memory speaks once as
+             the Vellum-chipped house rule. "Open the full trace" is
+             the L2 door. The kebab stays closed: cost and driver
+             detail live in there, one deliberate gesture deeper.
+             ======================================================== -->
+        <aside class="er-drawer" role="dialog" aria-label="Run trc-2478">
+          <div class="er-peek-head">
+            <span class="er-peek-kicker">Run</span>
+            <span class="er-trace-id" style="font-size:11px">trc-2478</span>
+            <span class="sp-agent-chip">Engineer</span>
+            <span class="sp-card-time" style="margin-left:auto">11:29 to 11:40am</span>
+            <div class="sp-kebab">
+              <button class="sp-icon-btn" title="Details &middot; cost and driver live here, rounded, never inline">&#8942;</button>
+              <div class="sp-details-menu">
+                <button class="sp-menu-item">Details</button>
+                <button class="sp-menu-item">Copy trace link</button>
+                <button class="sp-menu-item">Export this run</button>
+              </div>
+            </div>
+            <button class="sp-icon-btn" title="Close &middot; Esc">&#10005;</button>
+          </div>
+          <div class="er-peek-scroll">
+            <div>
+              <div class="er-peek-title">Staged REL-20, webhook retries</div>
+              <div class="er-peek-mission">For <span class="sp-artifact-chip" title="Door: SPEC-62 in 03 Plan &middot; the spec this run built">SPEC-62</span> on Atlas &middot; tests first, then the change</div>
+            </div>
+            <div class="er-peek-verdict">&#10003; all 6 checks green &middot; 11m 05s end to end</div>
+
+            <div class="er-steps">
+              <div class="er-step">
+                <span class="er-step-num">01</span>
+                <span>Read <span class="sp-mono">SPEC-62</span> and the house rule <span class="sp-mono">DEC-22</span></span>
+                <span class="er-step-time">0:04</span>
+                <span class="er-mem-cite" title="Door: DEC-22 in the Brain &middot; the standing decision this run obeyed"><span class="er-mem-chip">Memory</span><span>Webhooks promise zero dropped events. Decided Jun 8, held since.</span></span>
+              </div>
+              <div class="er-step">
+                <span class="er-step-num">02</span>
+                <span>Planned the change &middot; <span class="sp-mono">3</span> files</span>
+                <span class="er-step-time">0:26</span>
+              </div>
+              <div class="er-step">
+                <span class="er-step-num">03</span>
+                <span>Wrote <span class="sp-mono">6</span> cases before touching the change</span>
+                <span class="er-step-time">1:44</span>
+              </div>
+              <div class="er-step">
+                <span class="er-step-num">04</span>
+                <span>Replayed the 48 hour window against the change</span>
+                <span class="er-step-time">6:12</span>
+                <span class="er-term">
+                  <span class="er-term-head"><span>$ bun run replay --events 400 --since 48h</span><span class="er-sandbox-chip">Sandbox</span></span>
+                  <span class="er-term-body">
+                    <span class="er-tline" style="display:block"><span class="er-t-pass">&#10003;</span> 400 replayed &middot; 0 dropped &middot; 0 doubled</span>
+                    <span class="er-tline" style="display:block"><span class="er-t-pass">&#10003;</span> retry backoff held under the burst case</span>
+                  </span>
+                </span>
+              </div>
+              <div class="er-step">
+                <span class="er-step-num">05</span>
+                <span>Committed <span class="sp-mono">4f2c9ab</span> &middot; CI green</span>
+                <span class="er-step-time">2:31</span>
+              </div>
+              <div class="er-step">
+                <span class="er-step-num">06</span>
+                <span>Staged, and handed to the promote gate</span>
+                <span class="er-step-time">11:40am</span>
+              </div>
+            </div>
+
+            <div class="er-peek-receipt">
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">The promote gate cleared at <span class="sp-mono">11:52am</span>. Atlas 1.9 went to 100% at <span class="sp-mono">12:15pm</span>.</span>
+              </div>
+            </div>
+
+            <div class="er-peek-actions">
+              <button class="sp-btn" title="Door: ?room=record&amp;view=traces&amp;trace=trc-2478 &middot; the replayable record, step by step">Open the full trace <span class="sp-kbd">&#9166;</span></button>
+              <button class="sp-btn sp-btn-ghost" title="Door: REL-20's receipt in 06 Ship &middot; the same run, seen from the release">Open its receipt</button>
+            </div>
+          </div>
+          <div class="er-peek-foot">
+            <span title="Doors: REL-20 (06 Ship) &middot; SPEC-62 (03 Plan) &middot; Atlas (the product switcher's scope)">Belongs to <span style="color:var(--ink-subtle)">REL-20 &middot; SPEC-62 &middot; Atlas</span></span>
+            <span class="er-foot-right">body kept 30 days &middot; receipt permanent</span>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ==========================================================
+           REGION 4: the Working strip. Ambient machine tier, never
+           collapsed. The summary's waiting count is the same one
+           gate as the TopBar Approvals pill.
+           ========================================================== -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>measure &middot; watching the rollout &middot; 45m</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary" title="Door: the Approvals tray &middot; the DEC-19 challenge">1 agent working, 1 waiting on you</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==============================================================
+       Lineage doors + standing annotations (mockup-only, ruling 4
+       extended by 6c.3 to every clickable).
+       ============================================================== -->
+  <div class="er-doors">
+    <b>Lineage doors</b> &middot; entry (no fifth door): a receipt kebab's "Open the trace" (screens 3/12), Settings &#8594; Diagnostics, and <b>G E</b>; the breadcrumb "Pulse" names the surface &middot; glance cards open their rooms (?room=spend/quality/safety/record; Enter opens, Esc returns to the glance) &middot; rail sub-views ride ?view= (score / calibration / suites / drift / self-improvement / prompts / proof); switching a view clears any open drill, the code's inherited contract &middot; suite rows drill to ?view=suites&amp;suite=&lt;id&gt; and keep the room head (teardown-rigor opens on its failing case) &middot; scorecard rows drill to ?view=calibration&amp;agent=&lt;slug&gt;; this table is the SOURCE of the gate cards' track-record line ("Engineer's last 12 of 14 approved", screen 4) &middot; trace rows: Space peeks at L1, Enter opens the L2 door ?room=record&amp;view=traces&amp;trace=&lt;id&gt; (GAP: the code's drill params carry suite/agent/surface today; ?trace= is specified here and lands with this build) &middot; trailing chips door to the record each run served: REL-20 (06 Ship), SPEC-62 (03 Plan, from the peek's mission line), BET-35 (02 Decide), LRN-13 and DEC-22 (Brain), LOOP-2 (Brain, runs pane) &middot; "Every run &#8594; Record" opens the full archive; search lives there, not here &middot; the peek's "Open its receipt" lands on the same run from the release's side &middot; the working strip's summary opens the Approvals tray (the DEC-19 challenge, the same count as the TopBar's 1).
+  </div>
+  <div class="er-doors">
+    <b>Annotations</b> &middot; EMBER: none, deliberately. Nothing on this surface asks for a decision, so nothing wears the human's color; the honest zero is the design, and the one open gate stays a slate TopBar count. If a run failed in a way that needed a call, it would arrive as a gate in Approvals, never as a red button here &middot; MACHINE LOCUS: exactly one, the live run trc-2481 (solid blue verb, pulsing dot, 2.4s breath, static ring under reduced-motion); the strip's dim verb line is the same work at the ambient tier, one object, one story &middot; ASK (6c.4b): Pulse is not speak-primary, so there is NO docked composer; Ask is the constant TopBar button with its visible &#8984;J hint, and &#8984;J summons a transient overlay that drops from the TopBar (Escape dismisses; rail section 6 freezes its states) &middot; COST-QUIET: Spend's card carries no figure and says where figures live; the peeked run's cost sits behind its closed kebab, rounded, task-shaped &middot; MEMORY: one Vellum citation (DEC-22) inside the peek's first step; nothing else claims the memory voice &middot; HONEST GAPS: spec-structure "no run today" is real absence, not zero; trace bodies compact to receipts after 30 days and the peek's foot says so; drift is a sentence ("no drift in 14 days"), never an invented sparkline &middot; the technical foot line renders the founder naming model: plain label in front, engine term underneath.
+  </div>
+
+  <!-- ==============================================================
+       BEHAVIOR RAIL (6b.3): the state grammar of this surface.
+       A document, not a frame: specimens at real size, states
+       frozen with explicit classes, one annotation per cell.
+       ============================================================== -->
+  <div class="jf-frame-label">
+    <span>Behavior rail &middot; Pulse's components, state by state</span>
+    <span class="jf-label-sub">card-spec idiom &middot; hover / focus / pressed / disabled / loading / empty / error / success &middot; motion per the three-class budget</span>
+  </div>
+
+  <div class="bx-rail">
+
+    <p class="bx-intro">
+      How this surface behaves, component by component. Two standing rules govern everything below: interactions respond first and animate after (optimistic state, sub-100ms perceived), and <b style="font-weight:600;color:var(--ink-text)">disabled is a moment, not a state</b>: a control dims only while its own write is in flight; anything longer becomes a receipt or a blocked line with a recovery verb. A dead backend must never read as "all clear": a room whose summary fails says so and offers one retry.
+    </p>
+
+    <!-- 1: the room card -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">1</span>
+        <span class="bx-sec-title">The room card (glance strip)</span>
+        <span class="bx-sec-ref">door ?room= &middot; numbers real or absent &middot; card law 1.9</span>
+      </div>
+      <div class="bx-grid is-4">
+        <div class="bx-cell">
+          <span class="bx-state">Rest</span>
+          <button class="er-room-card" tabindex="-1">
+            <span class="er-room-kicker">Record <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">212</span> runs this week</span>
+            <span class="er-room-sub">Ledger intact.</span>
+            <span class="er-room-q">What exactly happened?</span>
+          </button>
+          <div class="bx-note">One honest line per room. The count is a mono blue numeral; the state word is the same report's verdict.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Hover</span>
+          <button class="er-room-card bx-hover" tabindex="-1">
+            <span class="er-room-kicker">Record <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">212</span> runs this week</span>
+            <span class="er-room-sub">Ledger intact.</span>
+            <span class="er-room-q">What exactly happened?</span>
+          </button>
+          <div class="bx-note">Surface lifts to raised. <span class="sp-mono">150ms var(--ink-ease)</span>, background only, no motion.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Focus-visible</span>
+          <button class="er-room-card bx-focus" tabindex="-1">
+            <span class="er-room-kicker">Record <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">212</span> runs this week</span>
+            <span class="er-room-sub">Ledger intact.</span>
+            <span class="er-room-q">What exactly happened?</span>
+          </button>
+          <div class="bx-note">The shared ring: 2px gap + 4px ring. <span class="sp-mono">1..4</span> jumps rooms; <span class="sp-mono">Enter</span> opens; the room body swaps in at Class B.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Loading</span>
+          <div class="er-room-card" style="cursor:default">
+            <span class="er-room-kicker">Record</span>
+            <span class="ink-skeleton bx-skel-line" style="width:70%"></span>
+            <span class="ink-skeleton bx-skel-line" style="width:46%"></span>
+            <span class="er-room-q">What exactly happened?</span>
+          </div>
+          <div class="bx-note">Skeleton shaped like the arriving line, 1.6s opacity breath. The question renders immediately; the number never fakes.</div>
+        </div>
+      </div>
+      <div class="bx-grid is-4" style="margin-top:12px">
+        <div class="bx-cell">
+          <span class="bx-state">Error (summary failed)</span>
+          <div class="er-room-card" style="cursor:default">
+            <span class="er-room-kicker">Record</span>
+            <span class="er-room-line" style="font-weight:500;color:var(--ink-body)">This room's summary did not load.</span>
+            <span class="er-room-sub"><span class="er-retry-verb">Retry</span></span>
+            <span class="er-room-q">What exactly happened?</span>
+          </div>
+          <div class="bx-note">A failed read says so and offers one retry. It never wears an empty state's clothes, and never reads "all clear".</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Watch (not shown in frame)</span>
+          <div class="er-room-card" style="cursor:default">
+            <span class="er-room-kicker">Quality <span class="er-room-state is-watch">Watch</span></span>
+            <span class="er-room-line"><span class="er-num">3</span> checks failing</span>
+            <span class="er-room-sub">Next: open What we test to see which checks are failing.</span>
+            <span class="er-room-q">Is the machine still good?</span>
+          </div>
+          <div class="bx-note">Watch is a neutral word plus the single next step, plain-spoken. Never ember: guidance is not a gate.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Open (aria-current)</span>
+          <button class="er-room-card is-open" tabindex="-1">
+            <span class="er-room-kicker">Quality <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line"><span class="er-num">34</span> checks green today</span>
+            <span class="er-room-sub">No drift in 14 days.</span>
+            <span class="er-room-q">Is the machine still good?</span>
+          </button>
+          <div class="bx-note">Raised surface, stronger hairline, nothing else. The open room's card and rail item agree; one source.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Spend, always</span>
+          <button class="er-room-card" tabindex="-1">
+            <span class="er-room-kicker">Spend <span class="er-room-state is-healthy">Healthy</span></span>
+            <span class="er-room-line">Inside the monthly cap</span>
+            <span class="er-room-sub">Figures live behind this door.</span>
+            <span class="er-room-q">What is this costing me?</span>
+          </button>
+          <div class="bx-note">Cost-quiet holds even here: state without figures, and the card says where figures live. No exception states exist.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2: the eval suite row -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">2</span>
+        <span class="bx-sec-title">The eval-suite row</span>
+        <span class="bx-sec-ref">door ?view=suites&amp;suite=&lt;id&gt; &middot; all figures mono, tabular</span>
+      </div>
+      <div class="bx-grid is-2">
+        <div class="bx-cell">
+          <span class="bx-state">Rest</span>
+          <div class="bx-rowbox">
+            <button class="er-tr" tabindex="-1">
+              <span class="er-td-suite">reply-tone</span>
+              <span class="er-td-what">saved replies stay in the house voice</span>
+              <span class="er-td-mono">12 of 12</span>
+              <span class="er-td-mono er-pass-ok">100%</span>
+              <span class="er-td-mono">9:05am</span>
+            </button>
+          </div>
+          <div class="bx-note">Mono suite id, plain guard phrase, then today's count, the rate, the last run. Verdict green only on a real 100%.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Hover + focus-visible</span>
+          <div class="bx-rowbox">
+            <button class="er-tr bx-hover bx-focus" tabindex="-1">
+              <span class="er-td-suite">reply-tone</span>
+              <span class="er-td-what">saved replies stay in the house voice</span>
+              <span class="er-td-mono">12 of 12</span>
+              <span class="er-td-mono er-pass-ok">100%</span>
+              <span class="er-td-mono">9:05am</span>
+            </button>
+          </div>
+          <div class="bx-note">Row lifts to raised; the ring rides the row. <span class="sp-mono">J/K</span> moves, <span class="sp-mono">Enter</span> drills; the drill keeps the room head and <span class="sp-mono">Esc</span> returns.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">One check amiss</span>
+          <div class="bx-rowbox">
+            <button class="er-tr" tabindex="-1">
+              <span class="er-td-suite">teardown-rigor</span>
+              <span class="er-td-what">teardown verdicts survive the counter-case</span>
+              <span class="er-td-mono">3 of 4 <span class="er-fail-x">&#10007;1</span></span>
+              <span class="er-td-mono">75%</span>
+              <span class="er-td-mono">10:02am</span>
+            </button>
+          </div>
+          <div class="bx-note">The miss is a red glyph plus count, nothing louder; the rate drops to body ink. Opening lands on the failing case first.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Never ran (empty)</span>
+          <div class="bx-rowbox">
+            <button class="er-tr" tabindex="-1" style="cursor:default">
+              <span class="er-td-suite">csat-pulse</span>
+              <span class="er-td-what">arrives with BET-36 if it survives revise</span>
+              <span class="er-td-mono is-faint">no runs yet</span>
+              <span class="er-td-mono is-faint">&middot;</span>
+              <span class="er-td-mono is-faint">&middot;</span>
+            </button>
+          </div>
+          <div class="bx-note">A suite that never ran states it and names what creates the data. Counts are suppressed, never zeroed; no door until a run exists.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3: the scorecard row -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">3</span>
+        <span class="bx-sec-title">The agent scorecard row</span>
+        <span class="bx-sec-ref">door ?view=calibration&amp;agent= &middot; feeds the gate cards' track record</span>
+      </div>
+      <div class="bx-grid is-2">
+        <div class="bx-cell">
+          <span class="bx-state">Rest</span>
+          <div class="bx-rowbox">
+            <button class="er-score-row" tabindex="-1">
+              <span class="sp-agent-chip">Engineer</span>
+              <span class="er-score-line">12 of 14 approved this month, 2 sent back with notes</span>
+              <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+              <span class="er-score-ratio">86%</span>
+            </button>
+          </div>
+          <div class="bx-note">Ticks are your real gate verdicts, newest right: filled approved, outlined sent back. This exact sentence is what a gate card cites.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Hover + focus-visible</span>
+          <div class="bx-rowbox">
+            <button class="er-score-row bx-hover bx-focus" tabindex="-1">
+              <span class="sp-agent-chip">Engineer</span>
+              <span class="er-score-line">12 of 14 approved this month, 2 sent back with notes</span>
+              <span class="er-ticks"><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick is-back"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span><span class="er-tick"></span></span>
+              <span class="er-score-ratio">86%</span>
+            </button>
+          </div>
+          <div class="bx-note">Hovering a tick tips its verdict: <span class="sp-mono">"Sent back Jul 9 &middot; SPEC-58 &middot; your note: split the migration"</span>. Enter drills to the agent's calibration.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Empty (no gated work yet)</span>
+          <div class="bx-rowbox">
+            <button class="er-score-row" tabindex="-1" style="cursor:default">
+              <span class="sp-agent-chip">Announce</span>
+              <span class="er-score-line" style="color:var(--ink-subtle)">Nothing through your gates yet. The first launch kit will start this line.</span>
+              <span class="er-ticks"></span>
+              <span class="er-score-ratio" style="color:var(--ink-faint)">&middot;</span>
+            </button>
+          </div>
+          <div class="bx-note">An agent with no record says who writes the first entry. No ratio until there is one; nothing fakes a 100%.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Loading</span>
+          <div class="bx-rowbox">
+            <div class="er-score-row" style="cursor:default">
+              <span class="sp-agent-chip">Draft</span>
+              <span class="ink-skeleton bx-skel-line" style="width:60%"></span>
+              <span></span>
+              <span class="ink-skeleton bx-skel-line" style="width:32px;justify-self:end"></span>
+            </div>
+          </div>
+          <div class="bx-note">The chip renders immediately (identity is cheap); the record and ratio arrive together or not at all.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: the trace row -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">4</span>
+        <span class="bx-sec-title">The trace row</span>
+        <span class="bx-sec-ref">Space peeks (L1) &middot; Enter opens Record (L2) &middot; the one machine locus</span>
+      </div>
+      <div class="bx-grid is-2">
+        <div class="bx-cell">
+          <span class="bx-state">Live (the frame's locus)</span>
+          <div class="bx-rowbox">
+            <button class="er-trace-row is-live" tabindex="-1">
+              <span class="er-trace-dot ink-working"></span>
+              <span class="er-trace-id">trc-2481</span>
+              <span class="sp-agent-chip">Measure</span>
+              <span class="er-trace-line"><span>watching the Atlas 1.9 rollout at 100%</span></span>
+              <span class="er-trace-dur">live</span>
+              <span class="er-trace-time">45m</span>
+            </button>
+          </div>
+          <div class="bx-note">Solid machine verb, pulsing dot (<span class="sp-mono">2.4s ink-working</span>; static 3px ring under reduced motion). The word "live" carries grayscale. Max one per frame.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Done (rest)</span>
+          <div class="bx-rowbox">
+            <button class="er-trace-row" tabindex="-1">
+              <span class="er-trace-dot"></span>
+              <span class="er-trace-id">trc-2479</span>
+              <span class="sp-agent-chip">Review</span>
+              <span class="er-trace-line"><span>ran webhook-replay, 6 checks green</span><span class="sp-artifact-chip">REL-20</span></span>
+              <span class="er-trace-dur">4m 42s</span>
+              <span class="er-trace-time">11:52am</span>
+            </button>
+          </div>
+          <div class="bx-note">Green dot is the run's real verdict. The trailing chip is the door back to the record this run served.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Selected (peek open)</span>
+          <div class="bx-rowbox">
+            <button class="er-trace-row is-selected" tabindex="-1">
+              <span class="er-trace-dot"></span>
+              <span class="er-trace-id">trc-2478</span>
+              <span class="sp-agent-chip">Engineer</span>
+              <span class="er-trace-line"><span>staged REL-20 behind the promote gate</span><span class="sp-artifact-chip">REL-20</span></span>
+              <span class="er-trace-dur">11m 05s</span>
+              <span class="er-trace-time">11:40am</span>
+            </button>
+          </div>
+          <div class="bx-note">Raised surface while its peek stands open. <span class="sp-mono">J/K</span> moves the selection and the peek follows; the list never scrolls under it.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Failed run (error + recovery)</span>
+          <div class="bx-rowbox">
+            <button class="er-trace-row is-failed" tabindex="-1">
+              <span class="er-trace-dot"></span>
+              <span class="er-trace-id">trc-1893</span>
+              <span class="sp-agent-chip">Watch</span>
+              <span class="er-trace-line"><span>sweep stopped: Zendesk token expired</span><span class="er-retry-verb">Reconnect to resume</span></span>
+              <span class="er-trace-dur">0m 41s</span>
+              <span class="er-trace-time">Jul 6</span>
+            </button>
+          </div>
+          <div class="bx-note">Plain reason plus one recovery verb, the ReceiptLine blocked shape. The verb doors to Settings connections; no apology theater, no red wash.</div>
+        </div>
+      </div>
+      <div class="bx-grid is-2" style="margin-top:12px">
+        <div class="bx-cell">
+          <span class="bx-state">Empty day</span>
+          <div class="bx-rowbox" style="padding:12px 14px">
+            <div class="sp-warm-slot" style="border:none;padding:0;background:transparent">
+              <div class="sp-warm-slot-line">No runs yet today. Watch's sweep starts the day at <span class="sp-mono">6:00am</span>; yesterday's runs are one filter away.</div>
+            </div>
+          </div>
+          <div class="bx-note">The WarmSlot shape: who acts next and when, plus the one control that shows data (the day filter). Never a bare "No results".</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Loading</span>
+          <div class="bx-rowbox" style="padding:8px 14px;display:flex;flex-direction:column;gap:9px">
+            <span class="ink-skeleton bx-skel-line" style="width:88%"></span>
+            <span class="ink-skeleton bx-skel-line" style="width:74%"></span>
+            <span class="ink-skeleton bx-skel-line" style="width:81%"></span>
+          </div>
+          <div class="bx-note">Three row-shaped lines, 1.6s breath, then rows arrive at Class B (200ms, 60ms stagger). Never a spinner over a blank panel.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: the trace peek drawer -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">5</span>
+        <span class="bx-sec-title">The trace peek (L1 drawer)</span>
+        <span class="bx-sec-ref">slides from the right edge, 120ms &middot; Esc closes &middot; L2 = the full trace</span>
+      </div>
+      <div class="bx-grid is-3">
+        <div class="bx-cell">
+          <span class="bx-state">Loading</span>
+          <div style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-panel);background:var(--ink-raised);padding:12px;display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="er-peek-kicker">Run</span>
+              <span class="er-trace-id">trc-2477</span>
+              <span class="sp-agent-chip">Prioritize</span>
+            </div>
+            <span class="ink-skeleton bx-skel-line" style="width:64%"></span>
+            <span class="ink-skeleton bx-skel-line" style="width:90%"></span>
+            <span class="ink-skeleton bx-skel-line" style="width:82%"></span>
+          </div>
+          <div class="bx-note">The head renders from the row's own data (id, agent) in the first frame; steps stream in as the body loads. Opening is optimistic.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Body expired (honest GAP)</span>
+          <div style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-panel);background:var(--ink-raised);padding:12px;display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="er-peek-kicker">Run</span>
+              <span class="er-trace-id">trc-1204</span>
+              <span class="sp-agent-chip">Draft</span>
+              <span class="sp-card-time" style="margin-left:auto">Jun 12</span>
+            </div>
+            <div style="font-size:11.5px;line-height:1.5;color:var(--ink-body)">This run's step-by-step body was kept 30 days and has compacted. Its receipt, verdict, and lineage are permanent.</div>
+            <div><button class="sp-btn sp-btn-ghost" tabindex="-1">Open its receipt</button></div>
+          </div>
+          <div class="bx-note">Retention is a stated boundary, not an error costume. The receipt door always works; nothing dead-ends.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Success (the L2 door taken)</span>
+          <div style="border:1px solid var(--ink-hairline);border-radius:var(--ink-radius-panel);background:var(--ink-raised);padding:12px;display:flex;flex-direction:column;gap:9px">
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Opened in Record. The room swaps to <span class="sp-mono">Every run</span> with <span class="sp-mono">trc-2478</span> expanded; Esc walks back here.</span>
+            </div>
+          </div>
+          <div class="bx-note">The L2 swap is Class B (200ms fade-up); the peek closes itself, selection preserved, so back never loses the reading position.</div>
+        </div>
+      </div>
+      <div class="bx-grid is-3" style="margin-top:12px">
+        <div class="bx-cell">
+          <span class="bx-state">Sandbox badge (always on streamed commands)</span>
+          <span class="er-term" style="grid-column:auto;margin-top:0">
+            <span class="er-term-head"><span>$ bun run replay --events 400 --since 48h</span><span class="er-sandbox-chip">Sandbox</span></span>
+            <span class="er-term-body"><span class="er-tline" style="display:block"><span class="er-t-pass">&#10003;</span> 400 replayed &middot; 0 dropped &middot; 0 doubled</span></span>
+          </span>
+          <div class="bx-note">Every streamed command names its cage. The badge is structural (chip), so the promise survives grayscale. The terminal stays dark in both themes.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Disabled (a moment)</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="sp-btn bx-disabled" tabindex="-1">Re-run this suite</button>
+            <span style="font-size:11px;color:var(--ink-faint)">while trc-2481 holds the suite lock</span>
+          </div>
+          <div class="bx-note">Dimmed only while a live run holds the lock; the reason sits beside the control. The moment it frees, the verb wakes; nothing stays gray without a reason.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Kebab (closed, always)</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="sp-kebab">
+              <button class="sp-icon-btn" tabindex="-1">&#8942;</button>
+            </div>
+            <span style="font-size:11px;line-height:1.5;color:var(--ink-faint)">Details &middot; the run's cost (rounded, task-shaped), driver detail, export</span>
+          </div>
+          <div class="bx-note">Cost never renders inline anywhere in Pulse. One deliberate gesture deeper, per the cost-quiet rule; mockups render menus closed.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6: Ask, summoned -->
+    <section class="bx-sec">
+      <div class="bx-sec-head">
+        <span class="bx-sec-num">6</span>
+        <span class="bx-sec-title">Ask, summoned (6c.4b: no docked composer here)</span>
+        <span class="bx-sec-ref">TopBar constant &middot; &#8984;J overlay &middot; Escape dismisses</span>
+      </div>
+      <div class="bx-grid is-3">
+        <div class="bx-cell">
+          <span class="bx-state">Constant (TopBar, every screen)</span>
+          <div><button class="sp-btn" tabindex="-1">Ask <span class="sp-kbd">&#8984;J</span></button></div>
+          <div class="bx-note">Discoverability by constancy: the same spot on every surface, hint always visible. Presence is earned by primary use, and Pulse is a reading room.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Summoned (&#8984;J)</span>
+          <div class="bx-summon">
+            <div class="bx-summon-input"><span style="color:var(--ink-faint)">&#8981;</span><span>Ask about this room. Try: <span class="bx-caret-ghost">why did teardown-rigor miss?</span></span></div>
+            <div class="bx-summon-chips">
+              <button class="sp-journey-chip" tabindex="-1">Why did teardown-rigor miss?</button>
+              <button class="sp-journey-chip" tabindex="-1">What ran while I was out?</button>
+            </div>
+          </div>
+          <div class="bx-note">Drops from the TopBar (Class A, 120ms, transform + opacity), scrims nothing, pre-scoped to this room with journey chips. Escape or any click outside dismisses.</div>
+        </div>
+        <div class="bx-cell">
+          <span class="bx-state">Answered, then gone</span>
+          <div class="bx-summon">
+            <div class="sp-receipt-line">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Answers land in a thread and file under <span class="sp-mono">/threads</span>, revisitable. The overlay never becomes a second composer on screen.</span>
+            </div>
+          </div>
+          <div class="bx-note">One input model, everywhere: the overlay IS the composer, summoned. Never two input boxes on one screen; the search field of Record's archive is a filter, not an input.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The keyboard map + motion budget -->
+    <div class="bx-foot">
+      <div>
+        <div class="bx-foot-title">Keyboard, whole surface</div>
+        <div class="bx-krow"><span class="bx-keys">G E</span><span>open Pulse from anywhere (registry entry; no fifth nav door)</span></div>
+        <div class="bx-krow"><span class="bx-keys">1..4</span><span>jump to Spend / Quality / Safety / Record</span></div>
+        <div class="bx-krow"><span class="bx-keys">J / K</span><span>move through the focused list (suites, scorecards, runs)</span></div>
+        <div class="bx-krow"><span class="bx-keys">Space</span><span>peek the focused run (L1); the list stays put</span></div>
+        <div class="bx-krow"><span class="bx-keys">Enter</span><span>open the row's door (suite drill, agent calibration, the full trace)</span></div>
+        <div class="bx-krow"><span class="bx-keys">Esc</span><span>close the peek, then the room, then rest at the glance (innermost first)</span></div>
+        <div class="bx-krow"><span class="bx-keys">&#8984;J</span><span>summon Ask; Escape dismisses</span></div>
+        <div class="bx-krow"><span class="bx-keys">G T &middot; ?</span><span>past threads &middot; the shortcut overlay</span></div>
+      </div>
+      <div>
+        <div class="bx-foot-title">Motion budget (three classes, nothing else moves)</div>
+        <div class="bx-krow"><span class="bx-keys">Class A</span><span>peek open/close and the Ask summon: 120ms, transform + opacity, from their own edge</span></div>
+        <div class="bx-krow"><span class="bx-keys">Class B</span><span>room and view swaps, list arrival: 200ms fade-up, 60ms stagger, <span class="sp-mono">var(--ink-ease)</span></span></div>
+        <div class="bx-krow"><span class="bx-keys">Class C</span><span>none on this surface: no signature moment lives here (nothing to approve)</span></div>
+        <div class="bx-krow"><span class="bx-keys">Always on</span><span>the live run's 2.4s pulse, the ONE moving element; hovers are background-only at 150ms</span></div>
+        <div class="bx-krow"><span class="bx-keys">Reduced</span><span>pulse becomes a static 3px ring; skeletons hold at 0.7 opacity; swaps land on the finished frame</span></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>
