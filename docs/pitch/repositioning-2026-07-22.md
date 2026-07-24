@@ -1,6 +1,19 @@
-# Repositioning — the triple-RFS intersection (2026-07-22)
+# Repositioning — the triple-RFS intersection (2026-07-22, addendum 2026-07-24)
 
 > _Status: **RATIFIED — founder sign-off 2026-07-22** ("reposition the documents at the root level: README.md, AGENTS.md, CLAUDE.md and so on"). Propagated same session: `README.md` (header, one-paragraph, positioning statement #6, moat validation), `AGENTS.md` §0, `CLAUDE.md` §1.45, [`one-pager.md`](./one-pager.md) (category line + intersection claim), `docs/strategy/session-decisions.md`. Next: the YC application third column ([`yc/fall-2026-application.md`](./yc/fall-2026-application.md)) and the deck draw from §3. Research provenance: live ycombinator.com/rfs fetch 2026-07-22, Wayback 2026-03-13 (Spring RFS), speedrun.a16z.com + FAQ + Substack, fresh competitor sweep 2026-07-22._
+
+## 0. ⭐ Addendum: the 2026-07-24 investor-deck canon (founder-ratified)
+
+Ratified during the deck build (frozen v19: [`investor-deck/`](./investor-deck/README.md)). Same triple-RFS spine, same door -> body -> brain telling order; these are the sharper surface words. Where wording differs from §3, this section wins on decks and investor surfaces; §5's per-surface vocabulary rules still govern YC copy.
+
+- **Hero tagline (deck / site / og):** "Agents that know what to build, ship it, and remember." Support line: "One agentic operating system, every call on the record." Journey kicker: `signal -> shipped -> remembered` (supersedes "Signal to shipped").
+- **The three layers speak as:** 01 the director (tells you what to build) · 02 the operating system (runs the whole lifecycle) · 03 the company brain (remembers, and it guides). Brain canon: it compounds; next time it tells you what is right, and warns before you repeat what was wrong. Banned framing: "where the record lives" (reads as storage).
+- **Launch date on every external surface: September 2026** (supersedes August).
+- **Sizing ladder (retires the $18B TAM and the ~$8B PM-software answer):** TAM $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded). SAM $2B -> $12B/yr (launch pricing to value pricing; Motion 1 Transform: 650K existing teams; Motion 2 Create: 500K new agent-native orgs by 2030). SOM ~$47M ARR (the agent-native tenth). Arithmetic: deck appendix B.
+- **The own-engine ruling (§3), surface form:** not a wrapper; the models are interchangeable parts; the system is ours: the loop, the gates, the ledger.
+- **Founder facts on non-YC surfaces:** "Intellect, a leading BFSI technology OEM"; role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM; education TUM only. Contacts: founder@supaprod.ai · investors@supaprod.ai · linkedin.com/in/rohit-gajaraj.
+- **Deck-only never list (does NOT bind YC copy):** no YC mentions, no commit counts or register numbers, no "Cursor for PMs" phrasing, self-build implicit. YC surfaces keep §5's rules: the door anchor stays allowed, and real verifiable numbers are required.
+
 
 ## 1. The founder's directive
 

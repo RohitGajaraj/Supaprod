@@ -1,5 +1,15 @@
 # The YC application — Fall 2026 (previous vs new, field by field)
 
+> **⭐ NOT YET SUBMITTED (founder, 2026-07-24) — apply the deck-session canon in the pre-submit pass.** Every text surface below is still editable; nothing is locked. Before pasting any column into the portal, sweep it against the 2026-07-24 canon (full version: [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §0; deck: [`../investor-deck/`](../investor-deck/README.md)):
+>
+> 1. **Launch date: September 2026** everywhere forward-looking (supersedes August / "weeks away").
+> 2. **Market sizing answers use the work-budget ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded, the work paid as headcount); SAM $2B -> $12B/yr (650K existing teams + 500K new agent-native orgs by 2030, launch to value pricing); SOM ~$47M ARR (the agent-native tenth). Retire "$8B PM software" and "$18B" wherever they appear.
+> 3. **The brain guides, it is never storage:** "every decision is recorded with its evidence and graded against what happened; it compounds, tells you what is right next time, and warns before you repeat what was wrong." Use this beat wherever the memory layer is explained.
+> 4. **Engine wording (own-engine ruling):** our own build engine runs frontier models via API in the customer's repo; never "we dispatch to Cursor/Devin".
+> 5. **Numbers card must be re-verified the morning of submission** (register, commits, missions move daily; the deck-session snapshot was 401 specced / 362 shipped and ~4,000 commits in 7 weeks).
+> 6. **Employer framing:** legal name in form fields is fine; in prose, "Intellect, a leading BFSI technology OEM serving 200+ financial institutions across 70+ countries." Role arc: ISRO associate PM -> Infineon PM -> Intellect senior AI PM.
+> 7. The door anchor ("Cursor for PMs") stays allowed on YC surfaces per §5 of the repositioning memo; the deck-only never list does not bind this file.
+
 > _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Reviews are rolling — the 10-minute interview can land any time once the application is read, so interview-ready means ready the day you submit (YC's posted outer bound: decisions by Aug 28, batch Oct–Dec in San Francisco, $500K standard deal)._
 >
 > **How to use this file:** five columns now. ① PREVIOUS (the rolled-over application) and ② NEW (2026-07-10) sit field-by-field below; ③ the ⭐ SUBMIT SHEET (2026-07-22) and ④ 🔥 THE NEXT ITERATION (2026-07-22) were the submit-day rewrites. **The application is SUBMITTED. The 🚨 UPDATE SHEET (⑤, 2026-07-23) is the only operative column now — YC's portal exposes exactly five editable surfaces, and ⑤ maps them one to one. Columns ①–④ stay untouched as the historical record and as interview prep (a partner may quote the locked text back at you).** Anything in `[square brackets]` is a slot you fill or confirm on paste day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).

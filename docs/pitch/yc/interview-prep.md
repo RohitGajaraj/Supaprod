@@ -2,6 +2,15 @@
 
 > _Created: 2026-07-10. Reviews are ROLLING — the interview invite can land any time after you submit, so be interview-ready the day the application goes in: **10 minutes, Zoom, 2–4 partners, rapid fire (8–15+ questions), no slides, decision the same day** (acceptance by phone, rejection by email with feedback; occasionally a same-day second interview with different partners; YC's posted outer bound is decisions by Aug 28). Sources: [`research-findings.md`](./research-findings.md) §3.4 and https://www.ycombinator.com/interviews. Written answers live in [`../qa-bank.md`](../qa-bank.md); this file is the SPOKEN versions — say them out loud, don't memorize them word-for-word (memorized speeches are a named kill factor). Answers with `[slots]` state whatever is TRUE on interview day — never a promised date._
 
+> **⭐ 2026-07-24 canon updates (from the investor-deck session) — apply before any interview:**
+>
+> - **"How big can this get?" now answers with the work budget, spoken form:** "Product-management work is a three-hundred-billion-dollar-a-year budget paid as salaries. The tools category alone reaches twelve billion by 2035, but we price the work: at a tenth of one PM's cost per team, the reachable pool is about twelve billion a year across existing teams and the new agent-native companies being born. What I can defend today: the first hundred teams." (Retires the "~$8B PM software" line in the numbers card.)
+> - **The brain beat, whenever memory comes up:** "it does not just remember; it compounds. Next time it tells you what is right, and warns you before you repeat what was wrong."
+> - **Launch date: September 2026** in every answer (supersedes "weeks away" August framing).
+> - **The §2 numbers card is stale against the deck-session snapshot** (3,400+/[8] weeks vs ~4,000/7 weeks; register 385/293 vs 401 specced / 362 shipped). Refresh from live sources the morning of — the card's own rule.
+> - Tagline available as a natural opener anywhere: "agents that know what to build, ship it, and remember."
+
+
 ## 1. The rules of the room
 
 1. **Answer, then stop.** 15–45 seconds. Partners interrupting you is good — it means they're engaged. Monologues kill.
