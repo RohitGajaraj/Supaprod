@@ -1,6 +1,6 @@
 # AGENTS.md — Operations & Engineering Manual
 
-> _Created: 2026-06-03 · Last updated: 2026-07-10_
+> _Created: 2026-06-03 · Last updated: 2026-07-24_
 
 > **Canonical, tool-agnostic source of truth for every agent and human working in this repo.**
 > Read natively by Google Antigravity, Gemini CLI, OpenAI Codex, Cursor, and the agents behind Lovable. Claude Code reads [`CLAUDE.md`](./CLAUDE.md) (a thin pointer to this file). Antigravity/Gemini precedence notes live in [`GEMINI.md`](./GEMINI.md).
@@ -13,6 +13,19 @@
 > **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
 
 ---
+
+## ⭐ Investor canon (founder-ratified 2026-07-24, the deck session)
+
+Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-deck/`](./docs/pitch/investor-deck/README.md) (frozen deck v19, brand assets vault, usage notes). Supersedes conflicting outward-facing copy anywhere in this repo. Works with, not against, the 2026-07-22 triple-RFS positioning: same three layers, sharper words.
+
+- **Tagline (hero, all surfaces):** "Agents that know what to build, ship it, and remember." Support line: "One agentic operating system, every call on the record." Journey kicker: `signal -> shipped -> remembered` (supersedes "Signal to shipped").
+- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold #e8b44c) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
+- **The brain is never storage.** Banned framing: "where the record lives". Canon: it compounds; next time it tells you what is right, and warns before you repeat what was wrong.
+- **Public launch date on every external surface: September 2026** (supersedes August / "~Aug 4" phrasing).
+- **Market sizing ladder (retires the unsourced $18B TAM everywhere):** TAM $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded). SAM $2B -> $12B/yr (launch pricing to value pricing; Motion 1 Transform: 650K existing teams; Motion 2 Create: 500K new agent-native orgs by 2030). SOM ~$47M ARR (the agent-native tenth at launch pricing). Full arithmetic: deck appendix B.
+- **Engine positioning: not a wrapper.** The models are interchangeable parts; the system is ours: the loop, the gates, the ledger. Our own build engine runs frontier models via API in the customer's repo. Never say we dispatch work to Cursor, Lovable, or Devin; they are the era's proof, not our subcontractors.
+- **Investor-material never list:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only (user-zero framing allowed), no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM" (never "Intellect Design Arena"), founder role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM, education shows TUM only.
+- **Contact canon:** founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) · linkedin.com/in/rohit-gajaraj.
 
 ## 0. What we are building
 
