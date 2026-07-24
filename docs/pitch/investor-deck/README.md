@@ -4,7 +4,9 @@ Frozen v19, 2026-07-24. Built and reviewed slide by slide in the Hyperagent deck
 
 ## Files
 - supaprod-investor-deck.html: the complete deck. Self-contained: Geist, Geist Mono, and Geist Pixel Square embedded, landing-page logo SVG inline, founder portrait inline. Works offline, can be embedded on supaprod.ai as-is.
-- og-supaprod-final.png: the replacement social share image (1200x630). To go live, copy it over public/og-supaprod.png (the current one still renders the retired Cadence wordmark).
+
+## The og image
+The refreshed social share image (1200x630, pixel wordmark, starfield, ember core) lives in the deck thread below because binary uploads corrupt through the commit API. Download og-supaprod-final.png from the thread and copy it over public/og-supaprod.png. The current public/og-supaprod.png still renders the retired Cadence wordmark and should be replaced before launch.
 
 ## Usage
 - Present: open the HTML, arrow keys or swipe. Escape closes the fullscreen portal.
