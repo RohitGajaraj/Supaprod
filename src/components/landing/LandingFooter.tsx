@@ -100,6 +100,11 @@ export function LandingFooter() {
             <h4 className="text-white font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-gray-500">
               <li>
+                <a href="/brief" className="hover:text-gray-300 transition-colors">
+                  Brief
+                </a>
+              </li>
+              <li>
                 <a
                   href="https://x.com/RohitGajaraj"
                   target="_blank"

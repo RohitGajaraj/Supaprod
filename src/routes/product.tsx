@@ -13,6 +13,7 @@ import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { SectionAlternate } from "@/components/landing/SectionAlternate";
 import { FramedVisual } from "@/components/landing/FramedVisual";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "How Supaprod Builds Your Product · Supaprod";
 const DESC =
   "Discover signals, decide what matters, define specs, build with agents, ship to production, then learn from outcomes. All in one loop, all receipts.";
@@ -23,10 +24,21 @@ export const Route = createFileRoute("/product")({
     meta: [
       { title: TITLE },
       { name: "description", content: DESC },
+      { name: "robots", content: "index, follow" },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE}/product` },
+      { property: "og:image", content: `${SITE}/og-supaprod.png` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Supaprod, your AI product team" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
+      { name: "twitter:image", content: `${SITE}/og-supaprod.png` },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/product` }],
   }),
   component: ProductPage,
 });

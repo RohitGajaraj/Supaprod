@@ -24,6 +24,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as BriefRouteImport } from './routes/brief'
 import { Route as ArdRouteImport } from './routes/ard'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -250,6 +251,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BriefRoute = BriefRouteImport.update({
+  id: '/brief',
+  path: '/brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArdRoute = ArdRouteImport.update({
@@ -1085,6 +1091,7 @@ const ApiPublicA2aAgentsSupaprodCardRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ard': typeof ArdRoute
+  '/brief': typeof BriefRoute
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -1253,6 +1260,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ard': typeof ArdRoute
+  '/brief': typeof BriefRoute
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -1421,6 +1429,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ard': typeof ArdRoute
+  '/brief': typeof BriefRoute
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -1591,6 +1600,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ard'
+    | '/brief'
     | '/demo'
     | '/forgot-password'
     | '/login'
@@ -1759,6 +1769,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ard'
+    | '/brief'
     | '/demo'
     | '/forgot-password'
     | '/login'
@@ -1926,6 +1937,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/ard'
+    | '/brief'
     | '/demo'
     | '/forgot-password'
     | '/login'
@@ -2096,6 +2108,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ArdRoute: typeof ArdRoute
+  BriefRoute: typeof BriefRoute
   DemoRoute: typeof DemoRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -2293,6 +2306,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brief': {
+      id: '/brief'
+      path: '/brief'
+      fullPath: '/brief'
+      preLoaderRoute: typeof BriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ard': {
@@ -3562,6 +3582,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ArdRoute: ArdRoute,
+  BriefRoute: BriefRoute,
   DemoRoute: DemoRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
