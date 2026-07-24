@@ -24,15 +24,19 @@ export function CommandBar({
 }) {
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   async function submit() {
     const intent = value.trim();
     if (!intent || busy || disabled) return;
     setBusy(true);
+    setSubmitError(null);
     try {
       await onSubmit(intent);
       setValue("");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Try again.");
     } finally {
       setBusy(false);
     }
@@ -79,7 +83,7 @@ export function CommandBar({
       />
       <div className="mt-1 flex items-center justify-between">
         <span className="ink-mono text-[11px] text-[var(--ink-faint)]">
-          {busy ? "Handing to agents" : "Enter to start"}
+          {busy ? "Handing to agents" : submitError ? submitError : "Enter to start"}
         </span>
         <button
           type="button"
