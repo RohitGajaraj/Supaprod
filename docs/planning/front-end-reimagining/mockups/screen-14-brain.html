@@ -85,9 +85,9 @@
   7. The behavior rail: does the state grammar (hover, focus,
      loading, blocked, success, the disabled-is-a-moment rule)
      read as one system an engineer can implement without asking?
-  8. Frame B: the Pixel headline over the sanctioned starfield,
-     one honest sentence, one ember action. Earned, or too much
-     theater for an empty room?
+  8. Frame B: the sans display headline over the sanctioned
+     starfield, one honest sentence, one ember action. Earned, or
+     too much theater for an empty room?
 
   CHARTER REQUIREMENTS DEMONSTRATED
   #1 10-second comprehension (hero counts + two labeled columns +
@@ -101,16 +101,19 @@
      not in a hidden cron page; the Graph names its own gap; new
      loops name their own boundary)
 
-  RESTRAINT NOTE: no gold anywhere except the mark's center bead
-  (memory wears Vellum); no pulsing machine locus and no live
+  RESTRAINT NOTE: no gold anywhere (memory wears Vellum; the
+  mark's core is the canonical SVG's own ember radial, nothing
+  else warm in the chrome); no pulsing machine locus and no live
   PulseLine (nothing runs in this room at 12:30; the strip says
   so); no fake graph canvas (six auto-laid nodes and an honest
   annotation instead); no loop-creation controls (the boundary is
   named instead); no second gate (the house rule is shown already
   adopted so the Approvals count stays 1 = the DEC-19 review);
-  Frame B suppresses counts instead of showing zeros; Frame A
-  carries zero Pixel; the file's one Pixel moment is Frame B's
-  headline; no confetti, no mascot, no purple.
+  Frame B suppresses counts instead of showing zeros; Pixel uses
+  in this file = 0 (the 6b.2 default; 6d.3: the pixel stack falls
+  back to monospace in a standalone file, so Frame B's headline
+  rides the sans display scale instead); no confetti, no mascot,
+  no purple.
 -->
 <!doctype html>
 <html lang="en">
@@ -1625,7 +1628,6 @@ ol {
 
 /* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
 
-
 /* ============================================================
    ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
    Memory = Vellum. Chips = slate silver. Ember only at the locus.
@@ -1729,10 +1731,20 @@ ol {
   flex: none;
 }
 
-/* The brand-mark dots follow the ink ramp so the light theme keeps
-   the mark (dark dots on white) without a second SVG. */
-.br-mark-dots {
-  fill: var(--ink-text);
+/* The TopBar mark is the verbatim epitrochoid (6d.1): its own silver
+   gradient + ember core, theme-independent, fully static at 20px.
+   No screen CSS touches it. */
+
+/* Ask dock (6c.4a): the Brain is speak-primary (ask-the-record), so
+   the composer stays DOCKED and quiet, with the always-visible ⌘J
+   chip on the input line (same pattern as the stage faces). */
+.br-input-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.br-input-line .sp-composer-input {
+  flex: 1;
 }
 
 /* Page scaffold: screen-5's labeled-frames pattern. */
@@ -2252,7 +2264,7 @@ ol {
     opacity: 0.08;
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.24;
   }
 }
 .br-twinkle-a {
@@ -2302,11 +2314,15 @@ ol {
   width: 560px;
   padding: 36px 36px 32px;
 }
-/* The file's ONE Pixel moment. */
-.br-pixel-h {
-  font-family: var(--font-pixel);
-  font-size: 30px;
-  letter-spacing: 0.04em;
+/* The headline rides the SANS display scale (6d.3: --font-pixel
+   falls back to monospace in a standalone file and reads broken
+   there, so Pixel uses in this file = 0; the 6b.2 default, same
+   call as the sibling files). The words carry the moment. */
+.br-zero-h {
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--ink-text);
   margin-bottom: 12px;
 }
@@ -2523,17 +2539,19 @@ ol {
            card below: one count, one source. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g class="br-mark-dots">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The verbatim seven-petal epitrochoid (6d.1). TopBar mark
+               is fully static: no rotation, no glint at this size. -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-a" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-a" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-a)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-a)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2546,7 +2564,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Door: focuses the docked composer below (the Brain is speak-primary, so &#8984;J lands here, not in an overlay)">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2563,7 +2581,7 @@ ol {
           <div class="br-hero-kicker">The Brain &middot; Helio Labs</div>
           <h1 class="br-hero-title">What Helio Labs knows</h1>
           <div class="br-hero-counts">
-            <b>41</b> decisions<span class="br-count-sep">&middot;</span><b>12</b> learnings<span class="br-count-sep">&middot;</span><b>6</b> house rules<span class="br-count-sep">&middot;</span><b>3</b> playbooks<span class="br-count-sep">&middot;</span><b>218</b> signals distilled<span class="br-count-sep">&middot;</span><span>last write 12:15pm</span>
+            <b>41</b> decisions<span class="br-count-sep">&middot;</span><b>12</b> learnings<span class="br-count-sep">&middot;</span><b>6</b> house rules<span class="br-count-sep">&middot;</span><b>3</b> playbooks<span class="br-count-sep">&middot;</span><b>218</b> signals distilled<span class="br-count-sep">&middot;</span><span>last write 11:52am</span>
           </div>
         </div>
         <div class="br-scope" role="tablist" aria-label="Scope">
@@ -2845,10 +2863,15 @@ ol {
       </div>
 
       <!-- REGION 5: Composer, re-tuned to this room: ask-over-memory.
-           Same one input model; the placeholder names the act. -->
+           Same one input model; the placeholder names the act. Docked
+           and QUIET (6c.4a: the Brain is speak-primary): single-line,
+           hairline surface, the &#8984;J chip always visible. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask the record. Try: why did we deprioritize macros?" />
+          <div class="br-input-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask the record. Try: why did we deprioritize macros?" />
+            <span class="sp-kbd" title="&#8984;J focuses this composer from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
               <button class="sp-journey-chip" title="Answers from decisions, learnings, and house rules, cited">What do we believe about billing?</button>
@@ -2863,14 +2886,14 @@ ol {
   </div>
 
   <div class="br-doors">
-    <b>Lineage doors, Frame A</b> &middot; DEC-19 / DEC-22 / DEC-44 / DEC-45 drill in place (?decision=, the hero and counts stay; Esc or the tab returns) &middot; Review the challenge opens the DEC-19 review: the SAME gate object as the Approvals count (1) and screen-13's teaser &middot; DEC-28 opens the superseded record, kept as history &middot; LRN-12 / LRN-13 open learning records (?learning=) &middot; REL-19 / REL-20 open the release records (06 Ship, screen 12) &middot; BET-31 / BET-37 open the 02 Decide board (screen 11) &middot; SPEC-52 opens the spec (03 Plan) &middot; SIG-88 / SIG-214 / SIG-221 open the evidence face (01 Discover) &middot; Thread May 14 opens /threads (screen 9) &middot; the morning ledger's ids door to the same records as the cards &middot; LOOP-2 / LOOP-5 stay here: Pause is the control, receipts are the ledger, "findings land in your queue" names the boundary; new loops arrive as gates, never from a form here &middot; scope chips re-scope this room per product &middot; keyboard: <b>1..4</b> tabs, <b>J/K</b> moves through the record, <b>Enter</b> opens, <b>Esc</b> closes a drill, <b>A</b> focuses Ask, <b>G B</b> opens this room &middot; annotation: the Graph inset is read-only and auto-laid; the full Graph tab ships post-YC (honest GAP, no fake canvas).
+    <b>Lineage doors, Frame A</b> &middot; DEC-19 / DEC-22 / DEC-44 / DEC-45 drill in place (?decision=, the hero and counts stay; Esc or the tab returns) &middot; Review the challenge opens the DEC-19 review: the SAME gate object as the Approvals count (1) and screen-13's teaser &middot; DEC-28 opens the superseded record, kept as history &middot; LRN-12 / LRN-13 open learning records (?learning=) &middot; REL-19 / REL-20 open the release records (06 Ship, screen 12) &middot; BET-31 / BET-37 open the 02 Decide board (screen 11) &middot; SPEC-52 opens the spec (03 Plan) &middot; SIG-88 / SIG-214 / SIG-221 open the evidence face (01 Discover) &middot; Thread May 14 opens /threads (screen 9) &middot; the morning ledger's ids door to the same records as the cards &middot; LOOP-2 / LOOP-5 stay here: Pause is the control, receipts are the ledger, "findings land in your queue" names the boundary; new loops arrive as gates, never from a form here &middot; scope chips re-scope this room per product &middot; keyboard: <b>1..4</b> tabs, <b>J/K</b> moves through the record, <b>Enter</b> opens, <b>Esc</b> closes a drill, <b>&#8984;J</b> focuses the docked composer (docked because the Brain is speak-primary, ask-the-record, 6c.4a; elsewhere &#8984;J summons the TopBar overlay), <b>G B</b> opens this room &middot; annotation: the Graph inset is read-only and auto-laid; the full Graph tab ships post-YC (honest GAP, no fake canvas).
   </div>
 
   <!-- ================================================================
        FRAME B : THE BRAIN AT ZERO : a fresh workspace, day one
        The sanctioned starfield frame (Brain idle). Counts suppressed,
-       not zeroed. One Pixel headline (the file's only Pixel), one
-       honest sentence, ONE ember action. No spine, no thread.
+       not zeroed. One sans display headline (Pixel = 0 per 6b.2/6d.3),
+       one honest sentence, ONE ember action. No spine, no thread.
        ================================================================ -->
   <div class="jf-frame-label">
     <span>Frame B &middot; the brain at zero</span>
@@ -2911,17 +2934,20 @@ ol {
            exists (the count renders only when true). -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g class="br-mark-dots">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The verbatim epitrochoid again (6d.1), ids suffixed -b so
+               the two frames' gradients stay unique. Static here too:
+               the empty room earns no loader theater. -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2934,7 +2960,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Door: focuses the docked composer below (the Brain is speak-primary, so &#8984;J lands here, not in an overlay)">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2943,13 +2969,14 @@ ol {
 
       <!-- The zero state: WarmSlot, never a bare empty. Counts are
            suppressed, not zeroed: an empty record has no numbers to
-           show. The Pixel headline is the file's one brand moment;
-           the ember action is the frame's one locus. The ghost row
+           show. The headline is the frame's brand beat on the sans
+           display scale (6d.3: no Pixel in a standalone file); the
+           ember action is the frame's one locus. The ghost row
            names what will land, without faking a single datum. -->
       <div class="br-zero-main">
         <div class="br-zero-kicker">The Brain &middot; Helio Labs</div>
         <div class="sp-warm-slot br-zero-slot">
-          <div class="br-pixel-h sp-pixel">The company brain</div>
+          <div class="br-zero-h">The company brain</div>
           <p class="sp-warm-slot-line">Nothing remembered yet. The first decision you approve starts the record.</p>
           <div class="sp-warm-slot-action">
             <button class="sp-btn sp-btn-accent sp-btn-md" title="Runs J1: Watch reads, Prioritize ranks, the first call comes to you as a gate">Run: What should we build next? <span class="sp-kbd">&#9166;</span></button>
@@ -2972,12 +2999,16 @@ ol {
         <span class="sp-strip-summary">0 agents working, 0 waiting on you</span>
       </div>
 
-      <!-- Composer: the same one input. The placeholder stays honest
-           about an empty record instead of teasing questions it
-           cannot answer yet. -->
+      <!-- Composer: the same one input, docked and quiet (6c.4a), the
+           &#8984;J chip visible from day one. The placeholder stays
+           honest about an empty record instead of teasing questions
+           it cannot answer yet. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything. Answers cite the record as it grows." />
+          <div class="br-input-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything. Answers cite the record as it grows." />
+            <span class="sp-kbd" title="&#8984;J focuses this composer from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
               <button class="sp-journey-chip" title="Door: Settings, connected sources; Watch sweeps on the next run">Connect a source</button>
@@ -3329,7 +3360,7 @@ ol {
         <div class="bx-key-row"><span class="sp-kbd">J</span><span class="sp-kbd">K</span><span class="bx-key-what">move focus through the record</span></div>
         <div class="bx-key-row"><span class="sp-kbd">&#9166;</span><span class="bx-key-what">open the focused record in place (drill)</span></div>
         <div class="bx-key-row"><span class="sp-kbd">Esc</span><span class="bx-key-what">close the drill, back to the list</span></div>
-        <div class="bx-key-row"><span class="sp-kbd">A</span><span class="bx-key-what">focus Ask (the composer; same input, ask-over-memory here)</span></div>
+        <div class="bx-key-row"><span class="sp-kbd">&#8984;J</span><span class="bx-key-what">focus the docked composer (the one input; ask-over-memory here)</span></div>
         <div class="bx-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">B</span><span class="bx-key-what">open this room from anywhere</span></div>
         <div class="bx-key-row"><span class="sp-kbd">?</span><span class="bx-key-what">the context-filtered shortcut map</span></div>
       </div>

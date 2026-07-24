@@ -60,8 +60,9 @@
 
   WHAT THE FOUNDER SHOULD EVALUATE
   1. Frame A as a public page: does the landing grammar (ink, grid,
-     two-depth starfield, the mark, one Pixel title) read as the same
-     brand as / while staying a working form, not a poster?
+     two-depth starfield, the verbatim epitrochoid mark with its quiet
+     glint, the sans display title) read as the same brand as / while
+     staying a working form, not a poster?
   2. The error moment: mistyped password at 8:24 AM. Is the copy calm,
      is the recovery door obvious, does nothing shame the user?
   3. Founder complaint #1: every account door now lives behind the
@@ -98,7 +99,8 @@
   or feature sell on /login (the landing already did that job); no
   starfield in Frame B (working surface); no SAML/SSO or magic-link
   chrome the backend does not have; no red on Sign out; no Pixel
-  anywhere but Frame A's title (the file's one Pixel moment); no
+  anywhere, zero uses (6d.3: Pixel falls back to broken monospace in
+  standalone files; titles ride the sans display scale); no
   Approvals count pill in Frame B (zero gates at rest: the absence IS
   the state); the closed Approvals tray markup omitted (off-canvas,
   invisible, nothing to review); no shortcut keys invented for menu
@@ -1709,7 +1711,10 @@ ol {
   color: var(--ink-body);
   font-weight: 500;
 }
-/* The two focus-rule swatches: rendered ring states, spec-accurate. */
+/* The two focus-rule swatches: rendered ring states, spec-accurate.
+   6d.7 subtlety law: a 1px hairline ring at a 2px offset plus a faint
+   outer glow, never a thick high-contrast outline box. These swatches
+   supersede the shared block's older 2px-thick .ink-focus ring. */
 .jf-focus-demo {
   display: flex;
   align-items: center;
@@ -1728,7 +1733,8 @@ ol {
   align-items: center;
   box-shadow:
     0 0 0 2px var(--ink-focus-gap),
-    0 0 0 4px var(--voice-human);
+    0 0 0 3px var(--ink-focus-ring),
+    0 0 0 7px rgba(255, 107, 44, 0.09);
 }
 .jf-demo-input {
   height: 26px;
@@ -1841,23 +1847,90 @@ ol {
   justify-content: center;
   padding-bottom: 26px;
 }
+/* The hero mark: the verbatim seven-petal epitrochoid (6d.1).
+   Brand-moment treatment per the landing's MarkGlint: an ambient
+   sheen layer revolving at 150s linear + ONE specular glint orbiting
+   the petal band at 36s. Both are overlay pseudo-layers; the logo
+   PATH itself never rotates. Reduced motion parks both (static mark).
+   The TopBar mark in Frame B gets NONE of this: fully static. */
+.auth-mark-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+}
 .auth-mark {
   display: block;
-  margin-bottom: 20px;
   filter: drop-shadow(0 0 16px rgba(244, 244, 245, 0.16));
 }
 [data-theme="light"] .auth-mark {
   filter: none;
 }
-[data-theme="light"] .auth-mark .auth-mark-petals {
-  fill: #18181b;
+.auth-mark-amb {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, rgba(244, 244, 245, 0.05) 40deg,
+    transparent 80deg, transparent 360deg);
+  animation: authMarkAmbient 150s linear infinite;
 }
-/* The file's ONE Pixel moment. */
+.auth-mark-glint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.65);
+  filter: blur(1.5px);
+  animation: authMarkGlint 36s linear infinite;
+}
+@keyframes authMarkAmbient {
+  to { transform: rotate(360deg); }
+}
+/* The glint rides the petal band: radius 40/100 of the box = 19px. */
+@keyframes authMarkGlint {
+  from { transform: rotate(0deg) translateY(-19px); }
+  to { transform: rotate(360deg) translateY(-19px); }
+}
+[data-theme="light"] .auth-mark-amb {
+  background: conic-gradient(from 0deg,
+    transparent 0deg, rgba(24, 24, 27, 0.04) 40deg,
+    transparent 80deg, transparent 360deg);
+}
+[data-theme="light"] .auth-mark-glint {
+  background: rgba(24, 24, 27, 0.35);
+  filter: blur(1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-mark-amb,
+  .auth-mark-glint {
+    animation: none;
+    display: none;
+  }
+}
+/* The mark survives the light flip: the silver stroke's near-white
+   end stops invert to warm ink via CSS stop-color (the SVG markup
+   itself stays verbatim, 6d.1). Mid stop and ember core untouched.
+   Covers both instances: -a (Frame A hero), -b (Frame B TopBar). */
+[data-theme="light"] #spk-pet-a stop:nth-child(1),
+[data-theme="light"] #spk-pet-a stop:nth-child(3),
+[data-theme="light"] #spk-pet-b stop:nth-child(1),
+[data-theme="light"] #spk-pet-b stop:nth-child(3) {
+  stop-color: #34322d;
+}
+/* The title: SANS display scale (6d.3). Pixel is banned on auth:
+   --font-pixel falls back to broken monospace in standalone files
+   (the founder's "disaligning font"). Pixel uses in this file: zero. */
 .auth-title {
-  font-family: var(--font-pixel);
-  font-size: 30px;
-  font-weight: 400;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--ink-text);
 }
 .auth-sub {
@@ -1960,17 +2033,11 @@ ol {
   width: 100%;
   justify-content: center;
 }
+/* The official 4-color Google G (6d.2), 18px, inline before the
+   label. Never a lone letter g. */
 .auth-g {
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--ink-hairline);
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  color: var(--ink-subtle);
+  width: 18px;
+  height: 18px;
   flex: none;
 }
 .auth-footlinks {
@@ -1993,24 +2060,33 @@ ol {
 
 /* ---- FRAME B: the account menu over Mission Control at rest ------- */
 
-/* The TopBar mark's petals ride the ink text ramp so the brand
-   survives the light flip (screen-9 hardcodes #f4f4f5 and loses its
-   petals on white; CSS wins over the SVG presentation attribute).
-   The gold center bead is untouched: gold lives only in the bead. */
-.sp-topbar-brand svg g {
-  fill: var(--ink-text);
-}
+/* TopBar mark: the verbatim epitrochoid at 20px, fully static (6d.1).
+   Its light-flip stop override lives with Frame A's mark rules. */
 
-/* Pressed avatar: achromatic pressed state (brighter ring + raised
-   fill), never the ember focus ring; the frame's one ember stays the
-   rest CTA. */
+/* Avatars ride the app's orb library (6d.4, Avatar.tsx): a soft
+   two-hue gradient muted heavily into the surface, initials in
+   primary text color. Calm tints, never saturated discs; the muted
+   pair reads as ink in grayscale, so the menu stays grayscale-clean. */
+.sp-avatar,
+.acct-id-avatar {
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.16) 0%, transparent 48%),
+    linear-gradient(140deg, #3a2318 0%, #38301a 100%);
+  color: var(--ink-text);
+}
+[data-theme="light"] .sp-avatar,
+[data-theme="light"] .acct-id-avatar {
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.5) 0%, transparent 48%),
+    linear-gradient(140deg, #f0e0d4 0%, #ece6d2 100%);
+}
+/* Pressed avatar: a brighter hairline ring on the calm orb, never
+   the ember focus ring; the frame's one ember stays the rest CTA. */
 .sp-avatar.is-pressed {
-  background: #202024;
   border-color: rgba(255, 255, 255, 0.28);
   color: var(--ink-text);
 }
 [data-theme="light"] .sp-avatar.is-pressed {
-  background: #e4e4e7;
   border-color: rgba(0, 0, 0, 0.28);
 }
 /* The menu: 240px, right-aligned under the avatar, ACHROMATIC
@@ -2036,18 +2112,18 @@ ol {
   gap: 10px;
   padding: 8px 8px 10px;
 }
+/* Identity orb: sizing only; the orb fill + initials color come from
+   the 6d.4 recipe block above. Email below stays mono dim. */
 .acct-id-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--ink-raised);
   border: 1px solid var(--ink-hairline);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--ink-body);
   flex: none;
 }
 .acct-id-name {
@@ -2334,6 +2410,10 @@ ol {
   width: var(--sp-frame-w);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* 6d.6 spacing economy: each mini HUGS its content. align-items:
+     start kills the grid's default equal-height stretch, so the
+     shorter routes carry no dead band below their CTA. */
+  align-items: start;
   gap: 18px;
 }
 .jf-mini {
@@ -2359,7 +2439,7 @@ ol {
   letter-spacing: 0.02em;
   text-transform: none;
 }
-/* Titles stay Sans: the file's Pixel budget is spent on Frame A. */
+/* Titles stay Sans: Pixel uses in this file = zero (6d.3). */
 .jf-mini-title {
   font-size: 16px;
   font-weight: 600;
@@ -2570,10 +2650,13 @@ ol {
 .br-btn-hover {
   background: var(--voice-human-hover);
 }
+/* Focus-visible at 6d.7 subtlety: 1px ember hairline, 2px offset,
+   faint outer glow. Never the older thick double ring. */
 .br-btn-focus {
   box-shadow:
     0 0 0 2px var(--ink-focus-gap),
-    0 0 0 4px var(--ink-focus-ring);
+    0 0 0 3px var(--ink-focus-ring),
+    0 0 0 7px rgba(255, 107, 44, 0.09);
 }
 .br-btn-disabled {
   opacity: 0.45;
@@ -2598,7 +2681,8 @@ ol {
 .br-item-focus {
   box-shadow:
     0 0 0 2px var(--ink-focus-gap),
-    0 0 0 4px var(--ink-focus-ring);
+    0 0 0 3px var(--ink-focus-ring),
+    0 0 0 7px rgba(255, 107, 44, 0.09);
 }
 .br-avatar-hover {
   border-color: rgba(255, 255, 255, 0.2);
@@ -2671,7 +2755,8 @@ ol {
        FRAME A : /login : the public page grammar, signed out.
        Sunday Jul 19, 8:24 AM. Mo mistyped his password once; the
        inline error is showing with its recovery door. ONE ember on
-       the frame: the Sign in CTA. ONE Pixel moment: the page title.
+       the frame: the Sign in CTA. Zero Pixel (6d.3): the title rides
+       the sans display scale.
        Ground truth (login.tsx): Supabase email+password, Lovable
        Google OAuth, /forgot-password, the ?next= invite chain.
        GAP rendered honestly: no SAML SSO (none in production), no
@@ -2691,23 +2776,32 @@ ol {
     </div>
 
     <div class="auth-center">
-      <!-- The 7-dot mark. Gold lives ONLY in the mark's center bead. -->
-      <svg class="auth-mark" width="40" height="40" viewBox="0 0 16 16" aria-hidden="true">
-        <g class="auth-mark-petals" fill="#f4f4f5">
-          <circle cx="8" cy="2.4" r="1.15"/>
-          <circle cx="12.4" cy="4.5" r="1.15"/>
-          <circle cx="13.5" cy="9.3" r="1.15"/>
-          <circle cx="10.4" cy="13.1" r="1.15"/>
-          <circle cx="5.6" cy="13.1" r="1.15"/>
-          <circle cx="2.5" cy="9.3" r="1.15"/>
-          <circle cx="3.6" cy="4.5" r="1.15"/>
-        </g>
-        <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
-      </svg>
+      <!-- The mark: the verbatim seven-petal epitrochoid (6d.1),
+           silver-gradient stroke + ember radial core. Brand-moment
+           glint treatment via the overlay layers below (ambient 150s,
+           specular glint 36s); the logo PATH itself never rotates,
+           and reduced motion parks everything. Gradient ids suffixed
+           -a so multiple instances in this file stay unique. -->
+      <div class="auth-mark-wrap">
+        <svg class="auth-mark" viewBox="0 0 100 100" width="48" height="48" fill="none" style="overflow:visible" aria-label="Supaprod">
+          <defs>
+            <linearGradient id="spk-pet-a" x1="15%" y1="0%" x2="85%" y2="100%">
+              <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+            </linearGradient>
+            <radialGradient id="spk-core-a" cx="42%" cy="36%" r="72%">
+              <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+            </radialGradient>
+          </defs>
+          <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-a)" stroke-width="3.2" stroke-linejoin="round"/>
+          <circle cx="50" cy="50" r="7" fill="url(#spk-core-a)"/>
+        </svg>
+        <span class="auth-mark-amb" aria-hidden="true"></span>
+        <span class="auth-mark-glint" aria-hidden="true"></span>
+      </div>
 
-      <!-- The file's one Pixel moment -->
+      <!-- Sans display title: zero Pixel on auth (6d.3) -->
       <h1 class="auth-title">Sign in</h1>
-      <div class="auth-sub">Your product team of agents is where you left it.</div>
+      <div class="auth-sub">Sign in to get back to what your agents are doing.</div>
 
       <div class="auth-card">
         <form>
@@ -2734,8 +2828,9 @@ ol {
 
         <div class="auth-divider">or</div>
 
-        <!-- Plain ink: OAuth is a door, not the frame's move -->
-        <button class="sp-btn sp-btn-md auth-google" type="button"><span class="auth-g">G</span>Continue with Google</button>
+        <!-- Plain ink: OAuth is a door, not the frame's move. The G
+             is the official 4-color mark (6d.2), never a lone letter. -->
+        <button class="sp-btn sp-btn-md auth-google" type="button"><svg class="auth-g" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.2 1.13-.84 2.08-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.87 2.69-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.8.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/></svg>Continue with Google</button>
 
         <!-- Doors: left > /forgot-password, right > /signup -->
         <div class="auth-footlinks">
@@ -2767,13 +2862,13 @@ ol {
     <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>The eye toggle.</b> <span class="sp-mono">aria-pressed</span> button, tooltip "Show password" / "Hide password" (400ms hover delay, mono, below). Toggling never drops focus from the field and never re-triggers validation.</span></span>
     <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>The inline error.</b> <span class="sp-mono">role="alert"</span>, tied to the field via <span class="sp-mono">aria-describedby</span>; the field border warms to verdict red but the label and ring stay calm. Any keystroke in either field clears it (login.tsx already does this). The recovery door "reset it" lives inside the sentence &#8594; /forgot-password with the typed email carried along. No shake, no toast theater.</span></span>
     <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>Submit.</b> Enter anywhere in the form submits. Busy state: label becomes "Signing in" with the 12px ring spinner, and BOTH paths disable (<span class="sp-mono">busy = loadingEmail || loadingGoogle</span>, the live double-submit hardening). Success is a FULL browser navigation to /m, never the SPA transition &#8212; the SPA path was observed stranding fresh accounts as a blank Suspense tree mid gate-redirect (login.tsx, 2026-07-09); engineers keep this.</span></span>
-    <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>Doors.</b> "Forgot password?" &#8594; /forgot-password &middot; "New here? The beta is open." &#8594; /signup &middot; the quiet mono footer &#8594; /privacy, /terms, /security (public-page continuity). A logged-out invitee arrives here as /login?next=/join/$token and is returned to the accept page after signing in (safeNextPath open-redirect guard: internal absolute paths only).</span></span>
-    <span><b>Focus rules (rendered spec swatches):</b> buttons and links take the ember double ring (0 0 0 2px ink gap, 0 0 0 4px ember); text inputs take the calm white ring (0 0 0 1px rgba 255/.3):</span>
+    <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>Doors.</b> "Forgot password?" &#8594; /forgot-password &middot; "New here? The beta is open." &#8594; /signup &middot; "Continue with Google" &#8594; Google's OAuth consent, then back signed-in to /m (same post-login rest as the password path) &middot; the quiet mono footer &#8594; /privacy, /terms, /security (public-page continuity). A logged-out invitee arrives here as /login?next=/join/$token and is returned to the accept page after signing in (safeNextPath open-redirect guard: internal absolute paths only).</span></span>
+    <span><b>Focus rules (rendered spec swatches, 6d.7 subtlety):</b> buttons and links take a 1px ember hairline at a 2px offset with a faint outer glow (0 0 0 2px ink gap, 0 0 0 3px ember, 0 0 0 7px ember at 9%); text inputs take the calm 1px white ring (rgba 255/.3). Findable, never shouting; no thick outline boxes anywhere:</span>
     <div class="jf-focus-demo">
       <span class="jf-demo-btn">Sign in</span>
       <span class="jf-demo-input">mo@heliolabs.dev</span>
     </div>
-    <span><b>Motion budget:</b> near stars breathe 10s ease-in-out (opacity only); input ring and button hover 150ms var(--ink-ease); nothing else moves. Reduced motion: stars park at 0.7 opacity, spinner parks at 45&deg; and the "Signing in" label carries the state alone.</span>
+    <span><b>Motion budget:</b> near stars breathe 10s ease-in-out (opacity only); the mark's brand-moment treatment rides two overlay layers (ambient sheen revolving 150s linear, one specular glint orbiting the petal band 36s linear) while the logo PATH itself never rotates (6d.1); input ring and button hover 150ms var(--ink-ease); nothing else moves. Reduced motion: stars park at 0.7 opacity, both mark layers park (fully static mark), spinner parks at 45&deg; and the "Signing in" label carries the state alone.</span>
     <span><b>Honesty:</b> real flows only (Supabase password + Google OAuth per login.tsx); no SAML SSO or magic-link chrome because the backend has neither. This mockup leads with the password form where the live page leads with Google &#8212; a deliberate reorder so the frame has ONE ember move; the OAuth door stays plain ink either way. Starfield is sanctioned here: auth is a brand moment, not a working surface.</span>
   </div>
 
@@ -2800,17 +2895,20 @@ ol {
            shown pressed. No Approvals pill: zero gates at rest. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g fill="#f4f4f5">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The verbatim epitrochoid (6d.1), fully STATIC at TopBar
+               scale: no glint, no ambient layer, nothing rotates.
+               Gradient ids suffixed -b (unique per instance). -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2823,7 +2921,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Door: focuses the docked composer below (⌘J on this rest surface)">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar is-pressed" title="Account" aria-expanded="true">MO</button>
@@ -3108,7 +3206,10 @@ ol {
       <!-- REGION 5b: Composer, docked (the one input). -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: how did saved replies land?" />
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: how did saved replies land?" style="flex:1;min-width:0" />
+            <span class="sp-kbd" title="&#8984;J focuses this composer from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
               <button class="sp-journey-chip">What should we build next?</button>
@@ -3125,7 +3226,9 @@ ol {
 
     <!-- ==============================================================
          The account menu, OPEN, anchored under the pressed avatar.
-         ACHROMATIC: ink ramps only, grayscale-clean by construction.
+         ACHROMATIC rows: ink ramps only, grayscale-clean by
+         construction; the identity orb is the one calm tint (6d.4
+         avatar recipe, muted into the surface, passes grayscale).
          Doors: Profile > /settings?section=profile &middot; Appearance
          flips data-theme in place &middot; Keyboard shortcuts > the ?
          overlay &middot; Invite your team > Settings' team pane (its
@@ -3171,8 +3274,8 @@ ol {
   </div>
 
   <div class="jf-note">
-    <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>The avatar is a button.</b> <span class="sp-mono">aria-haspopup="menu"</span>, <span class="sp-mono">aria-expanded</span> tracks the popover. Pressed state is achromatic (brighter ring + raised fill), never the ember focus ring &#8212; opening a menu is not the frame's move. Click, Enter, Space, or ArrowDown opens; ArrowDown seats focus on the first row.</span></span>
-    <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>Identity header.</b> Name in Sans 600; email and "Helio Labs &middot; Owner" in mono on the ink ramp. Not interactive: identity is a fact, not a door (Profile below is the door). The workspace line doubles as the answer to "which account am I in" &#8212; the product switcher stays product-scoped.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>The avatar is a button.</b> <span class="sp-mono">aria-haspopup="menu"</span>, <span class="sp-mono">aria-expanded</span> tracks the popover. The face is the app's orb (6d.4): two muted hues sunk into the surface, initials in primary ink, never a saturated disc. Pressed state is a brighter hairline ring on the same calm orb, never the ember focus ring &#8212; opening a menu is not the frame's move. Click, Enter, Space, or ArrowDown opens; ArrowDown seats focus on the first row.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>Identity header.</b> The 28px orb follows the avatar library recipe (6d.4, Avatar.tsx): soft two-hue gradient muted into the panel, initials in primary text color. Name in Sans 600; email and "Helio Labs &middot; Owner" in mono dim on the ink ramp. Not interactive: identity is a fact, not a door (Profile below is the door). The workspace line doubles as the answer to "which account am I in" &#8212; the product switcher stays product-scoped.</span></span>
     <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>Appearance, inline.</b> Dark / Auto / Light segmented control flips <span class="sp-mono">data-theme</span> in place, no settings round-trip, menu stays open (the one row that does not close on activate). Auto follows the OS via <span class="sp-mono">prefers-color-scheme</span>. Left/Right arrows move the active segment while the row has focus. Persisted per user, applied before first paint (no flash).</span></span>
     <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>Admin console.</b> Renders ONLY for platform admins (server-side role check; ordinary owners never receive the row or the divider above it &#8212; absence, not a disabled state). The mono "platform" chip is ink, not slate: the whole menu is grayscale-clean.</span></span>
     <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>Sign out.</b> Plain ink: leaving is safe, no red, no confirm dialog (sessions are cheap to re-enter; destructive-action chrome is for destruction). Activating it ends the session and lands on /login &#8212; Frame A.</span></span>
@@ -3184,9 +3287,10 @@ ol {
   <!-- ================================================================
        VARIANT BAND : the sibling auth moments as card-spec minis,
        one route per card, one ember CTA per route. Titles stay Sans:
-       the file's Pixel budget was spent on Frame A's "Sign in".
-       Each mini sits on the same public grammar (ink canvas,
-       hairline, hero radius) at card scale.
+       zero Pixel in this file (6d.3). Each mini HUGS its content
+       (6d.6: no equal-height stretch, no dead bands) and sits on the
+       same public grammar (ink canvas, hairline, hero radius) at
+       card scale.
        ================================================================ -->
   <div class="jf-frame-label">
     <span>Variant band</span>
@@ -3199,7 +3303,7 @@ ol {
     <div class="jf-mini">
       <div class="jf-mini-route"><span>/signup</span><span class="jf-mini-state">empty form</span></div>
       <div class="jf-mini-title">Create your account</div>
-      <div class="jf-mini-sub">Your team's loop starts with one login.</div>
+      <div class="jf-mini-sub">One account creates your team's workspace. Invites come after.</div>
       <label class="auth-label" for="v-name">Name</label>
       <div class="auth-field">
         <input class="auth-input" id="v-name" type="text" placeholder="Your name" />
@@ -3212,7 +3316,6 @@ ol {
       <div class="auth-field" style="margin-bottom:4px">
         <input class="auth-input" id="v-pass" type="password" placeholder="12+ characters" />
       </div>
-      <div style="flex:1"></div>
       <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Create account</button>
       <!-- Honest consequence, on the helper line, never the button -->
       <div class="jf-mini-foot">Creating an account starts the beta checkout.</div>
@@ -3227,7 +3330,6 @@ ol {
       <div class="auth-field" style="margin-bottom:4px">
         <input class="auth-input" id="v-remail" type="email" value="mo@heliolabs.dev" />
       </div>
-      <div style="flex:1"></div>
       <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Send the reset link</button>
       <!-- The post-submit receipt: past tense, honest, no toast -->
       <div class="sp-receipt-line jf-sent">
@@ -3240,9 +3342,8 @@ ol {
     <div class="jf-mini">
       <div class="jf-mini-route"><span>/join/$token</span><span class="jf-mini-state">logged-out invitee</span></div>
       <div class="jf-mini-title">Mo invited you to Helio Labs</div>
-      <div class="jf-mini-sub">Accept and you land in the workspace with your teammates, the products, and the loop already running.</div>
+      <div class="jf-mini-sub">Accept and you land in the workspace with your teammates, the products, and the work already in progress.</div>
       <div class="jf-mini-invite">invited by mo@heliolabs.dev &middot; Owner</div>
-      <div style="flex:1"></div>
       <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Accept the invite</button>
       <!-- Ground truth: logged-out invitees route through
            /login?next=/join/$token and come straight back here
@@ -3253,7 +3354,7 @@ ol {
   </div>
 
   <div class="jf-note">
-    <span><b>Band rules:</b> one ember CTA per route (the band shows three routes side by side, never three embers on one screen); titles stay Sans (Pixel budget spent on Frame A); the signup footnote and the sign-in-first helper are consequence lines, never button copy. The reset receipt is the only verdict green above the rail.</span>
+    <span><b>Band rules:</b> one ember CTA per route (the band shows three routes side by side, never three embers on one screen); titles stay Sans (zero Pixel in this file, 6d.3); each mini hugs its content with no dead band below the CTA (6d.6); the signup footnote and the sign-in-first helper are consequence lines, never button copy. The reset receipt is the only verdict green above the rail.</span>
     <span><b>Band behavior:</b> /signup validates on submit, not on keystroke (first-touch typing is never punished); its busy label is "Creating your account" and success hands off to the beta checkout, then lands on /onboarding. /forgot-password disables the field after send and swaps the CTA for the receipt; "Send it again" returns after <span class="sp-mono">30s</span> (rate-limit honesty, not a dead button). /join/$token greets by name from the token alone; an invalid or spent token renders the expired state in the rail below, never a blank page.</span>
   </div>
 
@@ -3274,7 +3375,7 @@ ol {
       <span class="br-rail-ref">values mirror the shared block &middot; login.tsx is ground truth for busy/disabled</span>
     </div>
     <p class="br-rail-sub">
-      Every state below is rendered with the literal style it takes at runtime, so this rail reads without a pointer. One system-wide split carries the whole screen: actions take the ember double ring, text fields take the calm white ring, and a busy form disables every path at once.
+      Every state below is rendered with the literal style it takes at runtime, so this rail reads without a pointer. One system-wide split carries the whole screen: actions take the hairline ember ring (1px at a 2px offset, faint glow, 6d.7), text fields take the calm 1px white ring, and a busy form disables every path at once.
     </p>
 
     <div class="br-grid">
@@ -3340,7 +3441,7 @@ ol {
         <div class="br-states">
           <div class="br-state">
             <span class="br-state-tag">rest</span>
-            <span><button class="sp-btn sp-btn-md" tabindex="-1" style="width:100%;justify-content:center"><span class="auth-g">G</span>Continue with Google</button></span>
+            <span><button class="sp-btn sp-btn-md" tabindex="-1" style="width:100%;justify-content:center"><svg class="auth-g" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.2 1.13-.84 2.08-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.87 2.69-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.8.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/></svg>Continue with Google</button></span>
           </div>
           <div class="br-state">
             <span class="br-state-tag">loading</span>
@@ -3361,7 +3462,7 @@ ol {
             </span>
           </div>
         </div>
-        <div class="br-cell-foot">The OAuth door never wears ember: it is a door, not the route's move. Its redirect leaves the page, so its loading state is the last thing seen; the button never re-enables mid-redirect.</div>
+        <div class="br-cell-foot">The OAuth door never wears ember: it is a door, not the route's move. It carries the official 4-color G (6d.2), 18px, inline before the label, never a lone letter. Its redirect leaves the page, so its loading state is the last thing seen; the button never re-enables mid-redirect.</div>
       </div>
 
       <!-- 4: the menu row -->
@@ -3390,7 +3491,7 @@ ol {
             </span>
           </div>
         </div>
-        <div class="br-cell-foot">Hover and keyboard focus render the same raised fill; focus-visible adds the double ring. Rows activate on Enter/Space and close the menu &#8212; except Appearance, which flips <span class="sp-mono">data-theme</span> in place and stays open.</div>
+        <div class="br-cell-foot">Hover and keyboard focus render the same raised fill; focus-visible adds the hairline ember ring (6d.7). Rows activate on Enter/Space and close the menu &#8212; except Appearance, which flips <span class="sp-mono">data-theme</span> in place and stays open.</div>
       </div>
 
       <!-- 5: the avatar button -->
@@ -3415,7 +3516,7 @@ ol {
             <span><button class="sp-avatar br-item-focus" tabindex="-1">MO</button></span>
           </div>
         </div>
-        <div class="br-cell-foot">Pressed holds for as long as the menu is open (<span class="sp-mono">aria-expanded="true"</span>) and releases with it. The pressed treatment is achromatic on purpose: opening a menu is never the frame's ember move.</div>
+        <div class="br-cell-foot">The face is the 6d.4 orb: two muted hues sunk into the surface, initials in primary ink. Pressed holds for as long as the menu is open (<span class="sp-mono">aria-expanded="true"</span>) and releases with it. Pressed stays a calm ring change on purpose: opening a menu is never the frame's ember move.</div>
       </div>
 
       <!-- 6: form outcomes -->
@@ -3463,7 +3564,7 @@ ol {
           <div class="br-table">
             <div class="br-trow"><span class="br-tkey">auth forms</span><span>No bare empty state exists: an empty form IS the entry, with its label, placeholder, and one CTA. The WarmSlot rule applies inside the app, not here.</span></div>
             <div class="br-trow"><span class="br-tkey">account menu</span><span>No loading skeleton, ever: identity is client-side before the shell paints, so the menu opens complete or not at all. A skeleton here would fake a wait that does not exist.</span></div>
-            <div class="br-trow"><span class="br-tkey">offline / 500</span><span>Network failure on submit re-enables the form and renders the same calm error shape: "Something broke on our side. Your email and password are still here &#8212; try again." Input values are never cleared.</span></div>
+            <div class="br-trow"><span class="br-tkey">offline / 500</span><span>Network failure on submit re-enables the form and renders the same calm error shape: "Something broke on our side. Your email and password are still here. Try again." Input values are never cleared.</span></div>
           </div>
         </div>
         <div class="br-cell-foot">The expired card keeps the card law: chip row, body, action row, no decoration, no ember (recovery is never the route's primary move). Recovery always names WHO acts next and WHERE.</div>
@@ -3480,7 +3581,9 @@ ol {
           <div class="br-trow"><span class="br-tkey">spinner</span><span>0.8s linear &middot; 12px ring, currentColor</span></div>
           <div class="br-trow"><span class="br-tkey">theme flip</span><span>token swap, no transition: an honest cut</span></div>
           <div class="br-trow"><span class="br-tkey">starfield</span><span>10s opacity breathe &middot; Frame A only</span></div>
-          <div class="br-trow"><span class="br-tkey">reduced motion</span><span>stars park at 0.7, spinner parks at 45&deg;, menu appears at rest &#8212; every state stays fully legible</span></div>
+          <div class="br-trow"><span class="br-tkey">mark ambient</span><span>150s linear revolve &middot; overlay sheen only; the logo path never rotates (6d.1)</span></div>
+          <div class="br-trow"><span class="br-tkey">mark glint</span><span>36s linear orbit of the petal band &middot; Frame A hero only; the TopBar mark is fully static</span></div>
+          <div class="br-trow"><span class="br-tkey">reduced motion</span><span>stars park at 0.7, both mark layers park (static mark), spinner parks at 45&deg;, menu appears at rest &#8212; every state stays fully legible</span></div>
         </div>
       </div>
 
@@ -3488,7 +3591,7 @@ ol {
   </div>
 
   <div class="jf-note" style="margin-bottom:8px">
-    <span><b>Rail rules:</b> every value above mirrors the shared block (hover #202024, focus double ring, input ring rgba 255/.3) or login.tsx ground truth (busy disables both paths; loading labels "Signing in" / "Opening Google"); nothing is invented chrome. The rail is spec scaffolding: none of it ships as product UI.</span>
+    <span><b>Rail rules:</b> every value above mirrors the shared block (hover #202024, input ring rgba 255/.3) or login.tsx ground truth (busy disables both paths; loading labels "Signing in" / "Opening Google"), except focus-visible, which renders at 6d.7 hairline subtlety (1px ember at a 2px offset + faint glow) and supersedes the shared block's older 2px ring; nothing is invented chrome. The rail is spec scaffolding: none of it ships as product UI.</span>
   </div>
 
 </div>

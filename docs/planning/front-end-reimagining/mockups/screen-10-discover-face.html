@@ -2137,6 +2137,23 @@ ol {
   color: var(--ink-subtle);
 }
 
+/* ---- The quiet dock (brief 6c.4a) ---------------------------------- */
+/* Stage faces are speak-primary, so the composer stays docked: one
+   line, hairline surface, no glow, and the summon chip always visible.
+   Cmd+J focuses the dock from anywhere in the room. */
+.d10-ask-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.d10-ask-line .sp-composer-input {
+  flex: 1;
+  width: auto;
+}
+.d10-ask-line .sp-kbd {
+  flex: none;
+}
+
 /* ---- The behavior rail (brief 6b.3) -------------------------------- */
 
 .br-band {
@@ -2297,17 +2314,19 @@ ol {
            the closed tray. Same number everywhere it renders. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g fill="#f4f4f5">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The canonical seven-petal epitrochoid (brief 6d.1),
+               fully static at this size; never dots, never rotating. -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2320,7 +2339,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Summons the Ask overlay (⌘J); Escape dismisses">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2353,7 +2372,7 @@ ol {
           </div>
           <span class="sp-spine-edge"></span>
 
-          <div class="sp-spine-node is-queued">
+          <div class="sp-spine-node is-queued" title="Queued. G 3 opens 03 Plan's face, empty until a bet is approved">
             <span class="sp-spine-node-dot"></span>
             <span class="sp-spine-node-num">03</span>
             <span class="sp-spine-node-label">Plan</span>
@@ -2367,21 +2386,21 @@ ol {
           </div>
           <span class="sp-spine-edge"></span>
 
-          <div class="sp-spine-node is-queued">
+          <div class="sp-spine-node is-queued" title="Queued. G 5 opens 05 Build's face">
             <span class="sp-spine-node-dot"></span>
             <span class="sp-spine-node-num">05</span>
             <span class="sp-spine-node-label">Build</span>
           </div>
           <span class="sp-spine-edge"></span>
 
-          <div class="sp-spine-node is-queued">
+          <div class="sp-spine-node is-queued" title="Queued. G 6 opens 06 Ship's face">
             <span class="sp-spine-node-dot"></span>
             <span class="sp-spine-node-num">06</span>
             <span class="sp-spine-node-label">Ship</span>
           </div>
           <span class="sp-spine-edge"></span>
 
-          <div class="sp-spine-node is-queued">
+          <div class="sp-spine-node is-queued" title="Queued. G 7 opens 07 Learn's face">
             <span class="sp-spine-node-dot"></span>
             <span class="sp-spine-node-num">07</span>
             <span class="sp-spine-node-label">Learn</span>
@@ -2438,7 +2457,7 @@ ol {
               </div>
               <div class="sp-receipt-line">
                 <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">The weekend read is on the record. <span class="sp-mono">LRN-13</span> written: shared replies beat personal <span class="sp-mono">7</span> to <span class="sp-mono">1</span>. The billing evidence challenges <span class="sp-mono">DEC-19</span>; it resurfaces with today's ranking.</span>
+                <span class="sp-receipt-text">The weekend read is on the record. <span class="sp-mono d10-door" title="Opens LRN-13 in Brain: the learning and what it cites">LRN-13</span> written: shared replies beat personal <span class="sp-mono">7</span> to <span class="sp-mono">1</span>. The billing evidence challenges <span class="sp-mono d10-door" title="Opens DEC-19 in Brain: the May call this evidence challenges">DEC-19</span>; it resurfaces with today's ranking.</span>
               </div>
             </div>
 
@@ -2467,7 +2486,7 @@ ol {
               </div>
               <div class="sp-receipt-line">
                 <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Swept. <span class="sp-mono">37</span> signals from <span class="sp-mono">4</span> sources, clustered into <span class="sp-mono">4</span> themes. Billing confusion leads with <span class="sp-mono">22</span>. <span class="sp-receipt-action">Open the themes</span>.</span>
+                <span class="sp-receipt-text">Swept. <span class="sp-mono">37</span> signals from <span class="sp-mono">4</span> sources, clustered into <span class="sp-mono">4</span> themes. Billing confusion leads with <span class="sp-mono">22</span>. <span class="sp-receipt-action" title="Jumps the Canvas to the themes on this face">Open the themes</span>.</span>
               </div>
             </div>
 
@@ -2559,37 +2578,37 @@ ol {
                       <span class="d10-member-quote">Charged twice after the plan switch. Which invoice is real?</span>
                       <span class="d10-member-time">7:02am</span>
                     </div>
-                    <div class="d10-member">
+                    <div class="d10-member" title="Enter opens SIG-221's drawer">
                       <span class="d10-member-src">github</span>
                       <span class="d10-member-id">SIG-221</span>
                       <span class="d10-member-quote">Webhook payload missing plan_id since 1.8</span>
                       <span class="d10-member-time">6:48am</span>
                     </div>
-                    <div class="d10-member">
+                    <div class="d10-member" title="Enter opens SIG-209's drawer">
                       <span class="d10-member-src">zendesk</span>
                       <span class="d10-member-id">SIG-209</span>
                       <span class="d10-member-quote">Invoice shows the old seat price after the upgrade</span>
                       <span class="d10-member-time">Sun 11:38pm</span>
                     </div>
-                    <div class="d10-member">
+                    <div class="d10-member" title="Enter opens SIG-205's drawer">
                       <span class="d10-member-src">zendesk</span>
                       <span class="d10-member-id">SIG-205</span>
                       <span class="d10-member-quote">Why did my bill change mid-cycle?</span>
                       <span class="d10-member-time">Sun 9:12pm</span>
                     </div>
-                    <div class="d10-member">
+                    <div class="d10-member" title="Enter opens SIG-198's drawer">
                       <span class="d10-member-src">sales</span>
                       <span class="d10-member-id">SIG-198</span>
                       <span class="d10-member-quote">Northwind paused: finance cannot reconcile the June invoices</span>
                       <span class="d10-member-time">Fri 3:20pm</span>
                     </div>
-                    <div class="d10-member">
+                    <div class="d10-member" title="Enter opens SIG-186's drawer">
                       <span class="d10-member-src">watchtwr</span>
                       <span class="d10-member-id">SIG-186</span>
                       <span class="d10-member-quote">Pricing-change complaints trending in the community forum</span>
                       <span class="d10-member-time">Thu 2:11pm</span>
                     </div>
-                    <div class="d10-members-more">+ 16 more in this theme &middot; <span class="d10-door">open all 22</span></div>
+                    <div class="d10-members-more">+ 16 more in this theme &middot; <span class="d10-door" title="Opens the filtered list: every member signal of this theme">open all 22</span></div>
                   </div>
                   <div class="d10-theme-foot">
                     <button class="sp-btn sp-btn-ghost" title="Skips the rank: the theme becomes a bet now; Prioritize attaches the case afterward">Bet on this now</button>
@@ -2660,11 +2679,11 @@ ol {
                     <span class="sp-card-time">6:48am</span>
                   </div>
                   <p class="d10-signal-quote">Webhook payload missing plan_id since 1.8.</p>
-                  <div class="d10-signal-theme">In: <span class="d10-door">Billing confusion after the June price change</span></div>
+                  <div class="d10-signal-theme">In: <span class="d10-door" title="Scrolls to the theme above">Billing confusion after the June price change</span></div>
                   <div class="d10-signal-actions">
-                    <button class="sp-btn">Make this a bet</button>
-                    <button class="sp-btn sp-btn-ghost">Add to BET-35</button>
-                    <button class="sp-btn sp-btn-ghost">Dismiss</button>
+                    <button class="sp-btn" title="Creates a bet from this one signal; Prioritize ranks it against the field">Make this a bet</button>
+                    <button class="sp-btn sp-btn-ghost" title="Attaches this signal to the billing case forming at 02 Decide">Add to BET-35</button>
+                    <button class="sp-btn sp-btn-ghost" title="Dismisses with a 5-second undo; dismissing teaches Watch">Dismiss</button>
                   </div>
                 </div>
 
@@ -2675,15 +2694,15 @@ ol {
                     <span class="sp-card-time">Fri 4:51pm</span>
                   </div>
                   <p class="d10-signal-quote">Acme wants exportable audit trails for every seat change.</p>
-                  <div class="d10-signal-theme">In: <span class="d10-door">CSV export asks from audit teams</span></div>
+                  <div class="d10-signal-theme">In: <span class="d10-door" title="Scrolls to the collapsed theme above and expands it">CSV export asks from audit teams</span></div>
                   <div class="d10-signal-actions">
-                    <button class="sp-btn">Make this a bet</button>
+                    <button class="sp-btn" title="Creates a bet from this one signal; Prioritize ranks it against the field">Make this a bet</button>
                     <button class="sp-btn sp-btn-ghost" title="No bet is forming for this theme yet; picks one from the open bets">Add to a bet <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
-                    <button class="sp-btn sp-btn-ghost">Dismiss</button>
+                    <button class="sp-btn sp-btn-ghost" title="Dismisses with a 5-second undo; dismissing teaches Watch">Dismiss</button>
                   </div>
                 </div>
 
-                <div class="d10-more-row">+ 34 more, newest first &middot; nothing filtered &middot; <span class="d10-door">show them</span></div>
+                <div class="d10-more-row">+ 34 more, newest first &middot; nothing filtered &middot; <span class="d10-door" title="Expands the full list in place; J/K keeps walking">show them</span></div>
               </div>
 
               </div>
@@ -2722,16 +2741,21 @@ ol {
         <span class="sp-strip-summary">1 agent working, 1 waiting on you</span>
       </div>
 
-      <!-- REGION 5b: Composer, the one input. -->
+      <!-- REGION 5b: Composer. Docked because a stage face is
+           speak-primary (6c.4a): one line, hairline, no glow, the
+           summon chip always visible. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: what is behind the billing spike?" />
+          <div class="d10-ask-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: what is behind the billing spike?" />
+            <span class="sp-kbd" title="Cmd+J focuses the dock from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
-              <button class="sp-journey-chip">What should we build next?</button>
-              <button class="sp-journey-chip">Tear this idea down</button>
-              <button class="sp-journey-chip">Just write the PRD</button>
-              <button class="sp-journey-chip">How did it land?</button>
+              <button class="sp-journey-chip" title="Starts J1, the loop this face serves: evidence to a ranked bet">What should we build next?</button>
+              <button class="sp-journey-chip" title="Enters J2 with the composer pre-filled: Challenge tears the idea down">Tear this idea down</button>
+              <button class="sp-journey-chip" title="Enters J3: a spec from a bare idea, no upstream data required">Just write the PRD</button>
+              <button class="sp-journey-chip" title="Opens 07 Learn: Measure's read on what shipped">How did it land?</button>
             </div>
             <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
           </div>
@@ -2762,9 +2786,9 @@ ol {
             Review passed the diff: <span class="sp-mono" style="color:var(--ink-text)">400</span> events replayed, <span class="sp-mono" style="color:var(--ink-text)">0</span> dropped. Merging goes to main; Ship stages <span class="sp-mono" style="color:var(--ink-text)">REL-20</span> next.
           </div>
           <div class="sp-gate-receipts">
-            <span class="sp-gate-receipt-link">commit 4f2c9ab</span>
-            <span class="sp-gate-receipt-link">REL-20</span>
-            <span class="sp-gate-receipt-link">Review: 0 blockers</span>
+            <span class="sp-gate-receipt-link" title="Opens the diff at 4f2c9ab">commit 4f2c9ab</span>
+            <span class="sp-gate-receipt-link" title="Opens REL-20, the Atlas release this merge feeds">REL-20</span>
+            <span class="sp-gate-receipt-link" title="Opens Review's full report">Review: 0 blockers</span>
           </div>
           <div class="sp-gate-actions">
             <button class="sp-btn sp-btn-accent">Merge the change <span class="sp-kbd">1</span></button>
@@ -2777,7 +2801,7 @@ ol {
   </div>
 
   <div class="jf-note">
-    <span><b>Keyboard paths (frame A):</b> G 1..7 walks the spine &middot; J/K walks the signal list &middot; Enter opens a signal's drawer &middot; Space peeks (the list stays put) &middot; E expands a theme (accordion: the open one collapses) &middot; B makes the focused signal a bet &middot; D dismisses with a 5s undo &middot; A opens Ask &middot; G A opens Approvals.</span>
+    <span><b>Keyboard paths (frame A):</b> G 1..7 walks the spine &middot; J/K walks the signal list &middot; Enter opens a signal's drawer &middot; Space peeks (the list stays put) &middot; E expands a theme (accordion: the open one collapses) &middot; B makes the focused signal a bet &middot; D dismisses with a 5s undo &middot; A opens Ask &middot; &#8984;J focuses the docked composer (its chip stays visible, 6c.4a) &middot; G A opens Approvals.</span>
     <span><b>Motion:</b> theme expand is class B: 200ms height + fade on --ink-ease, member rows stagger 60ms; dismiss is class A: 120ms row collapse, the undo receipt replaces it in place; source-chip filtering refilters in under 100ms with no animation; the 02 node's ink-working pulse is the only looping motion on the frame.</span>
     <span><b>Tooltips (earned only):</b> the Dismiss verb ("teaches Watch"), the skipped 04 node, the +9 trend figure, the rank-progress line. <b>Progressive disclosure:</b> signal action rows sit at ghost weight until the card is hovered or focused (rendered in the rail); the three collapsed themes are the glyph-row fidelity of the same object.</span>
   </div>
@@ -2795,20 +2819,23 @@ ol {
   <div class="sp-frame">
     <div class="sp-shell">
 
-      <!-- TopBar: no Approvals badge; the absence IS the state. -->
+      <!-- TopBar: no Approvals badge; the absence IS the state.
+           The mark is the canonical seven-petal epitrochoid (brief 6d.1),
+           fully static at this size; gradient ids suffixed -b so the two
+           instances in this file stay unique. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g fill="#f4f4f5">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2821,7 +2848,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Summons the Ask overlay (⌘J); Escape dismisses">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2835,7 +2862,7 @@ ol {
           <span class="sp-spine-cap">Starts from: your idea or your sources</span>
           <span class="sp-spine-edge"></span>
 
-          <div class="sp-spine-node is-queued">
+          <div class="sp-spine-node is-queued" title="Every node is a door: G 1 to 7 opens its face, honest and empty until the loop reaches it">
             <span class="sp-spine-node-dot"></span>
             <span class="sp-spine-node-num">01</span>
             <span class="sp-spine-node-label">Discover</span>
@@ -2953,7 +2980,7 @@ ol {
                   <div class="sp-warm-slot-action">
                     <!-- Door: /settings?section=connections (account
                          connections + workspace bindings live there) -->
-                    <button class="sp-btn sp-btn-md sp-btn-accent">Connect a source</button>
+                    <button class="sp-btn sp-btn-md sp-btn-accent" title="Opens /settings?section=connections; Watch runs the first sweep the night after">Connect a source</button>
                   </div>
                 </div>
 
@@ -3007,16 +3034,21 @@ ol {
         <span class="sp-strip-summary">nothing waiting on you</span>
       </div>
 
-      <!-- Composer: the chips fit a brand-new product. -->
+      <!-- Composer: the chips fit a brand-new product. Same quiet
+           dock as frame A (6c.4a): one line, hairline, visible summon
+           chip, no glow. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: we are building a status page for indie teams" />
+          <div class="d10-ask-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: we are building a status page for indie teams" />
+            <span class="sp-kbd" title="Cmd+J focuses the dock from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
-              <button class="sp-journey-chip">Teach it your product</button>
-              <button class="sp-journey-chip">What should we build next?</button>
-              <button class="sp-journey-chip">Just write the PRD</button>
-              <button class="sp-journey-chip">Tear this idea down</button>
+              <button class="sp-journey-chip" title="Feeds Memory the product basics; the Brain cites them from then on">Teach it your product</button>
+              <button class="sp-journey-chip" title="Starts J1; with nothing connected it asks for a source first, honestly">What should we build next?</button>
+              <button class="sp-journey-chip" title="Enters J3: a spec from a bare idea, no upstream data required">Just write the PRD</button>
+              <button class="sp-journey-chip" title="Enters J2: Challenge stress-tests the idea before you commit">Tear this idea down</button>
             </div>
             <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
           </div>
@@ -3043,7 +3075,7 @@ ol {
   </div>
 
   <div class="jf-note">
-    <span><b>Doors (frame B):</b> "Connect a source" opens /settings?section=connections (account connections + workspace bindings, the one Connect button of the Engine-Room doctrine). After a source connects, the WarmSlot swaps to a single dim PulseLine: "First sweep tonight at 2:00am." The "Just write the PRD" chip enters J3 with nothing upstream, per the journey catalog.</span>
+    <span><b>Doors (frame B):</b> "Connect a source" opens /settings?section=connections (account connections + workspace bindings, the one Connect button of the Engine-Room doctrine). After a source connects, the WarmSlot swaps to a single dim PulseLine: "First sweep tonight at 2:00am." The "Just write the PRD" chip enters J3 with nothing upstream, per the journey catalog. G 1..7 walks the spine here too: every node opens its face, honest and empty.</span>
     <span><b>Honesty:</b> no Memory chip in the briefing (nothing is in memory yet); the preview cells are text, not disabled chrome; the strip names the real trigger ("the night after your first source connects"), never a fake schedule.</span>
   </div>
 
@@ -3255,6 +3287,7 @@ ol {
           <span class="br-key-row"><span class="sp-kbd">&#9166;</span> open the drawer &middot; <span class="sp-kbd">Space</span> peek, list stays put</span>
           <span class="br-key-row"><span class="sp-kbd">E</span> expand theme &middot; <span class="sp-kbd">B</span> make a bet &middot; <span class="sp-kbd">D</span> dismiss</span>
           <span class="br-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">1</span>..<span class="sp-kbd">7</span> spine &middot; <span class="sp-kbd">G</span><span class="sp-kbd">A</span> approvals &middot; <span class="sp-kbd">A</span> ask</span>
+          <span class="br-key-row"><span class="sp-kbd">&#8984;J</span> focuses the docked composer; the chip rides the dock, always visible</span>
         </div>
 
         <div class="br-state">tooltip anatomy (hover 400ms; Escape closes)</div>

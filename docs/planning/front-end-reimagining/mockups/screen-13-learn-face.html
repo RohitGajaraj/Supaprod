@@ -34,8 +34,10 @@
       rides mono agent chips; memory content rides the Vellum
       treatment (vellum hairline + Memory chip), never card
       decoration.
-    Focus/collapse: none. Both frames are full-shell room states;
-      the closing ritual is a reading moment, not deep work.
+    Focus/collapse: no pane collapse (the closing ritual is a
+      reading moment, not deep work). Beat 3 progressive-discloses
+      instead: the receipt list, concentration table, and provenance
+      render CLOSED behind "Show the receipts" on Frame A (6c.2).
     Empty/loading/blocked: the response-time feed is honestly absent
       in BOTH frames: "recorded, not measured" plus the one action
       that would create the data (Connect analytics). No fake
@@ -57,16 +59,24 @@
      without a diagram or a celebration?
   4. One ember per frame: Frame A = the gate object (spine node 07 +
      the Landed verb); Frame B = the DEC-19 review teaser (its
-     Review verb). Everything else slate, ink, vellum, or dim blue.
+     Review verb). Everything else slate, ink, vellum, machine blue
+     on real counts, or verdict green on the recorded outcome: the
+     3-4 quiet voices of 6c.1, with the lead cards one surface step
+     raised. Alive without a second ember?
   5. The Vellum memory grammar carrying three different jobs
      (a cited contract, a fresh learning, a briefing citation)
      without ever becoming decoration.
-  6. The Pixel moment: one dry caption ("This call held up.") at the
-     digest head of Frame B. Earned, or one too many? (It is the
-     "confirmed outcome" line from the delight budget, spec 5.4.)
-  7. Evidence density as trust: the by-day climb (13 to 40 to 52),
-     the concentration table, and the mono provenance line. Is this
-     enough receipt texture to attest on without leaving the room?
+  6. The verdict caption ("This call held up.", the spec 5.4
+     confirmed-outcome line) at the digest head of Frame B: one dry
+     sans display line, verdict green only on the word "landed".
+     Pixel uses are zero (6d.3: the pixel stack falls back to broken
+     monospace in a standalone file). Still earned, still dry?
+  7. Three-beat focus (6c.2): the contract-versus-evidence lead,
+     then the one action, then the receipts CLOSED behind "Show the
+     receipts" (the by-day climb stays in the lead card; the checks,
+     concentration table, and provenance disclose in place, spec'd
+     open in the behavior rail). Is beat 3 still enough receipt
+     texture to attest on without leaving the room?
   8. The behavior rail: does it read as the definitive state spec an
      engineer implements without asking, or as decoration?
 
@@ -82,11 +92,13 @@
 
   RESTRAINT NOTE: no chart chrome (the by-day read is three hairline
   rows with mono numerals, not a plotted chart; the fills ride the
-  machine DIM tier so the 41% hero keeps the frame's one full hue);
-  no confetti or celebration on "landed" (the Pixel caption is one
-  dry line); the lit return speaks in the memory voice, not a second
-  ember; no invented response-time metrics; Frame A carries zero
-  Pixel; no starfield (not sanctioned for this surface); the
+  machine DIM tier and real counts ride blue mono numerals, 6c.1,
+  so the 34px hero stays the loudest machine element); no confetti
+  or celebration on "landed" (the caption is one dry sans line;
+  Pixel uses are zero per 6d.3); the lit return speaks in the memory
+  voice, not a second ember; no invented response-time metrics; the
+  receipts were re-tiered behind a closed expander, never deleted
+  (6c.2); no starfield (not sanctioned for this surface); the
   behavior rail repeats the ember verb only in isolation as spec
   specimens, never as a second locus in a frame.
 -->
@@ -1658,12 +1670,6 @@ ol {
   background: var(--chip-soft);
 }
 
-/* The brand-mark dots follow the ink ramp so the light theme keeps
-   the mark (dark dots on white) without a second SVG. */
-.lf-mark-dots {
-  fill: var(--ink-text);
-}
-
 /* Page scaffold: screen-5's labeled-frames pattern. */
 .lf-page {
   display: flex;
@@ -1829,15 +1835,19 @@ ol {
   max-width: 620px;
 }
 
-/* Frame B: the one Pixel moment of the file. Dry, small, earned. */
-.lf-pixel-caption {
-  font-family: var(--font-pixel);
+/* Frame B: the dry verdict caption. Sans display scale, NOT Pixel:
+   --font-pixel falls back to monospace in a standalone file and
+   renders broken (6d.3), so the line earns its weight from type
+   scale alone. Pixel uses in this file: zero (6b.2 default). */
+.lf-held-caption {
+  font-family: var(--font-sans);
   font-size: 21px;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--ink-text);
   margin: 4px 0 6px;
 }
-.lf-pixel-sub {
+.lf-held-sub {
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--ink-subtle);
@@ -1888,6 +1898,79 @@ ol {
   color: var(--ink-body);
 }
 
+/* ---- Round 3.1c aliveness + focus (brief 6c, founder 2026-07-24) --- */
+
+/* Beat 1 sits one surface step above the face (6c.1 elevation):
+   chrome < panel < raised. Only the lead cards ride it. */
+.lf-raise {
+  background: var(--ink-raised);
+}
+
+/* Real counts inside card bodies: blue mono numerals (6c.1). */
+.lf-num {
+  color: var(--voice-machine);
+}
+
+/* A recorded verdict speaks verdict green (6c.1), never a banner:
+   one word in the receipt, the header state chip, nothing else. */
+.lf-verdict {
+  color: var(--verdict-pass);
+}
+.sp-state-chip.is-done.lf-chip-recorded {
+  color: var(--verdict-pass);
+}
+
+/* Beat 3 renders CLOSED (6c.2): the receipts expander. A chrome-
+   quiet row; click discloses in place, class B (150-250ms,
+   --ink-ease), the chevron rotates 90deg, the record keeps the
+   state. The open state is specified in the behavior rail, sec 3. */
+.lf-expander {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  background: transparent;
+  text-align: left;
+}
+.lf-expander:hover {
+  background: var(--ink-raised);
+}
+.lf-exp-chev {
+  font-size: 9px;
+  color: var(--ink-faint);
+  flex: none;
+}
+.lf-exp-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.lf-exp-sum {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The dock stays quiet (6c.4a): one input line with the small
+   always-visible command chip; no elevation theatrics. */
+.lf-input-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lf-input-line .sp-composer-input {
+  flex: 1;
+}
+
 /* ---- Round 3.1 density additions ---------------------------------- */
 
 /* Digest body: the rest-body rhythm (screen-2): tighter head, wider
@@ -1919,8 +2002,10 @@ ol {
   color: var(--ink-subtle);
   font-variant-numeric: tabular-nums;
 }
+/* Real counts ride blue mono numerals (6c.1): the machine speaking
+   as data. The 34px hero stays the loudest machine element. */
 .lf-fact-num {
-  color: var(--ink-text);
+  color: var(--voice-machine);
 }
 
 /* Adoption by day, inside the evidence card: three hairline rows.
@@ -1954,7 +2039,7 @@ ol {
 .lf-day-bar {
   height: 4px;
   border-radius: 2px;
-  background: var(--ink-raised);
+  background: var(--ink-panel); /* a step down inside the raised card */
   position: relative;
   overflow: hidden;
 }
@@ -2144,16 +2229,22 @@ ol {
   line-height: 1.5;
   color: var(--ink-subtle);
 }
+/* A specimen that needs the room: spans two rail columns. */
+.lf-spec-wide {
+  grid-column: span 2;
+}
 /* Static state demos: each mimics the live state's exact tokens, so
    the rail is implementable by inspection. */
 .lf-demo-hover {
   background: var(--voice-human-hover) !important;
 }
+/* Focus-visible per 6d.7: a 2px bg gap then a 1px hairline ember
+   ring. Findable, never a thick outline box. */
 .lf-demo-focus {
   outline: none;
   box-shadow:
     0 0 0 2px var(--ink-focus-gap),
-    0 0 0 4px var(--ink-focus-ring);
+    0 0 0 3px var(--ink-focus-ring);
 }
 .lf-demo-disabled {
   opacity: 0.45;
@@ -2249,17 +2340,18 @@ ol {
            gate object as spine node 07 and the Thread gate card. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g class="lf-mark-dots">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The seven-petal epitrochoid mark (6d.1), verbatim; fully static at TopBar size. -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-a" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-a" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-a)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-a)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2272,7 +2364,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Door: focuses the docked composer below (⌘J lands here on stage faces)">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2434,9 +2526,9 @@ ol {
               <span class="sp-kebab">
                 <button class="sp-icon-btn" title="Details">&#8942;</button>
                 <div class="sp-details-menu">
-                  <button class="sp-menu-item">Details</button>
-                  <button class="sp-menu-item">Open the trace</button>
-                  <button class="sp-menu-item">Export the digest</button>
+                  <button class="sp-menu-item" title="Door: the record's detail pane; driver and cost lines live here, quiet">Details</button>
+                  <button class="sp-menu-item" title="Door: the run trace in the Engine room">Open the trace</button>
+                  <button class="sp-menu-item" title="Consequence: downloads this digest as a file; nothing changes in the room">Export the digest</button>
                 </div>
               </span>
             </div>
@@ -2464,8 +2556,9 @@ ol {
 
                 <!-- Memory card: Vellum treatment (vellum hairline +
                      Memory chip). The contract is the product
-                     remembering what "good" was defined to mean. -->
-                <div class="sp-card lf-vellum">
+                     remembering what "good" was defined to mean.
+                     Beat 1 rides the raised surface (6c.1). -->
+                <div class="sp-card lf-vellum lf-raise">
                   <div class="sp-card-chiprow">
                     <span class="sp-memory-chip">Memory</span>
                     <span class="lf-card-label">The contract</span>
@@ -2480,10 +2573,11 @@ ol {
                   </div>
                 </div>
 
-                <!-- Evidence card: the one full-hue machine element
-                     of this frame is the data numeral. The gap is
-                     stated, with the action that creates the data. -->
-                <div class="sp-card">
+                <!-- Evidence card: the loudest machine element of this
+                     frame is the data numeral; real counts ride blue
+                     mono (6c.1). The gap is stated, with the action
+                     that creates the data. Beat 1, raised surface. -->
+                <div class="sp-card lf-raise">
                   <div class="sp-card-chiprow">
                     <span class="sp-agent-chip">Measure</span>
                     <span class="lf-card-label">The evidence</span>
@@ -2491,7 +2585,7 @@ ol {
                   </div>
                   <div class="lf-hero-row">
                     <span class="lf-hero-num">41%</span>
-                    <span class="lf-hero-copy">of replies used a saved reply by day <span class="sp-mono">3</span>. <span class="sp-mono">1,204</span> inserts since Friday's ship.</span>
+                    <span class="lf-hero-copy">of replies used a saved reply by day <span class="sp-mono">3</span>. <span class="sp-mono lf-num">1,204</span> inserts since Friday's ship.</span>
                   </div>
                   <!-- The next question, pre-answered: spike or climb?
                        Three hairline rows, machine-dim fills, mono
@@ -2515,46 +2609,28 @@ ol {
                     </div>
                   </div>
                   <div class="lf-gap-line">
-                    <span class="lf-gap-copy">Response time: recorded, not measured. The feed has no source connected.</span>
-                    <button class="sp-btn sp-btn-ghost">Connect analytics</button>
+                    <span class="lf-gap-copy">Response time: recorded, not measured. The feed has no source connected; connect one and the next sweep reads it.</span>
+                    <button class="sp-btn sp-btn-ghost" title="Door: /settings?section=connections &middot; consequence: the next sweep reads response time into this digest">Connect analytics</button>
                   </div>
                 </div>
 
               </div>
 
-              <div class="sp-doc-sub">What the evidence shows</div>
-              <div class="lf-cols">
-                <div class="lf-evidence-rows" style="margin-top:0">
-                  <div class="sp-receipt-line">
-                    <span class="sp-receipt-check">&#10003;</span>
-                    <span class="sp-receipt-text">Shipped from main: all <span class="sp-mono">9</span> requirements of SPEC-52 are live. <span class="sp-receipt-action" title="Door: the merged diff, 05 Build face">Open the diff</span>.</span>
-                  </div>
-                  <div class="sp-receipt-line">
-                    <span class="sp-receipt-check">&#10003;</span>
-                    <span class="sp-receipt-text"><span class="sp-mono">REL-19</span> rolled out Friday <span class="sp-mono">4:12pm</span> to <span class="sp-mono">100%</span>. No rollbacks all weekend. <span class="sp-receipt-action" title="Door: the release record, 06 Ship face">Open the release</span>.</span>
-                  </div>
-                  <div class="sp-receipt-line is-blocked">
-                    <span class="sp-receipt-check">&#9675;</span>
-                    <span class="sp-receipt-text">Analytics partial: saved-reply inserts counted; response time stays unmeasured until a feed is connected.</span>
-                  </div>
-                </div>
-
-                <!-- Where the use concentrated: Measure counts what it
-                     can prove. The tail line quietly points at the
-                     morning's SIG-214: Learn feeding the next Discover. -->
-                <div>
-                  <div class="lf-col-caption">Top saved replies by use</div>
-                  <div class="lf-use-row"><span>Refund timeline</span><span class="lf-use-count">212</span></div>
-                  <div class="lf-use-row"><span>Password reset steps</span><span class="lf-use-count">187</span></div>
-                  <div class="lf-use-row"><span>Plan-switch billing</span><span class="lf-use-count">154</span></div>
-                  <div class="lf-use-tail">+ <span style="color:var(--ink-subtle)">31</span> more in the tail &middot; billing leads; <span class="sp-artifact-chip" title="Door: opens the signal, 01 Discover" style="cursor:pointer">SIG-214</span> at 7:02am says the same</div>
-                </div>
-              </div>
+              <!-- Beat 3, rendered CLOSED (6c.2, the overwhelm cure):
+                   the receipt list, the concentration table, and the
+                   provenance line disclose in place. The open state,
+                   verbatim, is specified in the behavior rail, section
+                   3. Density re-tiered, never deleted. -->
+              <button class="lf-expander" title="Door: discloses in place on this face &middot; consequence: nothing leaves the room; the record keeps the open state per user">
+                <span class="lf-exp-chev">&#9656;</span>
+                <span class="lf-exp-label">Show the receipts</span>
+                <span class="lf-exp-sum">2 checks &middot; 1 honest gap &middot; top replies by use &middot; how this read was made</span>
+              </button>
             </div>
 
             <div class="sp-face-footer lf-footer-row">
               <div class="lf-footer-line">One record waits: how saved replies landed. It sits in the Thread and in Approvals; recording from either clears both.</div>
-              <button class="sp-btn sp-btn-md">Open Approvals <span class="sp-kbd">G A</span></button>
+              <button class="sp-btn sp-btn-md" title="Door: the Approvals tray &middot; the same record; recording there clears here too">Open Approvals <span class="sp-kbd">G A</span></button>
             </div>
           </div>
         </section>
@@ -2572,18 +2648,24 @@ ol {
         <span class="sp-strip-summary">nothing running &middot; 1 waiting on you</span>
       </div>
 
-      <!-- REGION 5b: Composer. The same input the TopBar Ask button
-           focuses; journey chips are spine previews. -->
+      <!-- REGION 5b: Composer, DOCKED because a stage face is
+           speak-primary (6c.4a): quiet single line, hairline surface,
+           the small always-visible command chip, journey chips as
+           spine previews. Non-room surfaces summon Ask from the
+           TopBar with the same key instead. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: record how saved replies landed" />
+          <div class="lf-input-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: record how saved replies landed" />
+            <span class="sp-kbd" title="&#8984;J focuses this composer from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
               <button class="sp-journey-chip" title="J7: opens this record">How did it land?</button>
               <button class="sp-journey-chip" title="J1: runs the 01-02 slice">What should we build next?</button>
               <button class="sp-journey-chip" title="J-REPORT: drafts the stakeholder update">Update stakeholders</button>
             </div>
-            <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+            <button class="sp-btn sp-composer-send" title="Runs what you typed; the answer lands in this room's thread">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
           </div>
         </div>
       </div>
@@ -2592,8 +2674,8 @@ ol {
   </div>
 
   <div class="lf-doors">
-    <b>Lineage doors, Frame A</b> &middot; SPEC-52 opens the spec (03 Plan face) &middot; REL-19 opens the release record (06 Ship face) &middot; PR-217 opens the merged diff (05 Build face) &middot; BET-31 opens the bet (02 Decide board) &middot; SIG-214 opens the signal (01 Discover) &middot; "contract 40% / 14d" opens the outcome contract inside SPEC-52 &middot; the 07 spine node, the Approvals count, and the gate card are one object: one count (1), one source, recording from any clears all.<br />
-    <b>Keys &amp; motion, Frame A</b> &middot; 1/2/3 record Landed/Mixed/Missed from the gate card &middot; Enter opens the evidence face &middot; G A Approvals &middot; G B Brain &middot; A focuses the composer &middot; the verbs respond optimistically (class A, 0&ndash;120ms, no entrance animation) &middot; Mixed and Missed disclose one plain question before the write (behavior rail, section 1) &middot; tooltips on chips: 400ms dwell, instant on keyboard focus.
+    <b>Lineage doors, Frame A</b> &middot; SPEC-52 opens the spec (03 Plan face) &middot; REL-19 opens the release record (06 Ship face) &middot; PR-217 opens the merged diff (05 Build face) &middot; BET-31 opens the bet (02 Decide board) &middot; SIG-214 opens the signal (01 Discover; it sits behind Show the receipts) &middot; "contract 40% / 14d" opens the outcome contract inside SPEC-52 &middot; Connect analytics doors /settings?section=connections and its consequence is stated inline: the next sweep reads it (6c.3) &middot; Show the receipts discloses beat 3 in place, closed by default (6c.2; open state in the behavior rail, section 3) &middot; the 07 spine node, the Approvals count, and the gate card are one object: one count (1), one source, recording from any clears all.<br />
+    <b>Keys &amp; motion, Frame A</b> &middot; 1/2/3 record Landed/Mixed/Missed from the gate card &middot; Enter opens the evidence face &middot; G A Approvals &middot; G B Brain &middot; &#8984;J or A focuses the docked composer (docked only because a stage face is speak-primary, 6c.4a; elsewhere &#8984;J summons the TopBar overlay) &middot; the verbs respond optimistically (class A, 0&ndash;120ms, no entrance animation) &middot; Mixed and Missed disclose one plain question before the write (behavior rail, section 1) &middot; tooltips on chips: 400ms dwell, instant on keyboard focus.
   </div>
 
   <!-- ================================================================
@@ -2614,17 +2696,18 @@ ol {
            cleared, and the DEC-19 review it raised took its place. -->
       <header class="sp-topbar">
         <div class="sp-topbar-brand">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <g class="lf-mark-dots">
-              <circle cx="8" cy="2.4" r="1.15"/>
-              <circle cx="12.4" cy="4.5" r="1.15"/>
-              <circle cx="13.5" cy="9.3" r="1.15"/>
-              <circle cx="10.4" cy="13.1" r="1.15"/>
-              <circle cx="5.6" cy="13.1" r="1.15"/>
-              <circle cx="2.5" cy="9.3" r="1.15"/>
-              <circle cx="3.6" cy="4.5" r="1.15"/>
-            </g>
-            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          <!-- The seven-petal epitrochoid mark (6d.1), verbatim; fully static at TopBar size. -->
+          <svg viewBox="0 0 100 100" width="20" height="20" fill="none" style="overflow:visible" aria-label="Supaprod">
+            <defs>
+              <linearGradient id="spk-pet-b" x1="15%" y1="0%" x2="85%" y2="100%">
+                <stop offset="0%" stop-color="#f2f0ed"/><stop offset="52%" stop-color="#7d786f"/><stop offset="100%" stop-color="#f2f0ed"/>
+              </linearGradient>
+              <radialGradient id="spk-core-b" cx="42%" cy="36%" r="72%">
+                <stop offset="0%" stop-color="#ffb894"/><stop offset="56%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#c24d1c"/>
+              </radialGradient>
+            </defs>
+            <path d="M90.0 50.0 L89.5 47.6 L88.0 45.6 L85.6 43.9 L82.6 43.0 L79.0 42.9 L75.1 43.8 L71.2 45.6 L67.6 48.2 L64.5 51.7 L62.0 55.8 L60.4 60.3 L59.6 64.9 L59.8 69.4 L60.8 73.5 L62.5 77.1 L64.8 79.8 L67.5 81.6 L70.2 82.5 L72.8 82.3 L74.9 81.3 L76.5 79.4 L77.2 76.9 L77.0 74.1 L75.8 71.1 L73.6 68.2 L70.5 65.7 L66.7 63.8 L62.4 62.7 L57.7 62.4 L53.0 63.0 L48.4 64.5 L44.4 66.8 L40.9 69.7 L38.3 73.1 L36.7 76.7 L36.0 80.2 L36.2 83.4 L37.2 86.1 L38.9 88.0 L41.1 89.0 L43.5 89.0 L45.9 88.0 L48.0 86.1 L49.6 83.3 L50.4 79.8 L50.5 75.9 L49.6 71.7 L47.8 67.6 L45.1 63.7 L41.7 60.4 L37.7 57.8 L33.4 56.1 L28.9 55.2 L24.7 55.3 L20.8 56.2 L17.6 57.8 L15.3 60.0 L13.8 62.5 L13.4 65.0 L14.0 67.4 L15.4 69.3 L17.7 70.5 L20.5 70.9 L23.7 70.4 L27.0 68.9 L30.1 66.5 L32.8 63.2 L34.9 59.2 L36.2 54.7 L36.7 50.0 L36.2 45.3 L34.9 40.8 L32.8 36.8 L30.1 33.5 L27.0 31.1 L23.7 29.6 L20.5 29.1 L17.7 29.5 L15.4 30.7 L14.0 32.6 L13.4 35.0 L13.8 37.5 L15.3 40.0 L17.6 42.2 L20.8 43.8 L24.7 44.7 L28.9 44.8 L33.4 43.9 L37.7 42.2 L41.7 39.6 L45.1 36.3 L47.8 32.4 L49.6 28.3 L50.5 24.1 L50.4 20.2 L49.6 16.7 L48.0 13.9 L45.9 12.0 L43.5 11.0 L41.1 11.0 L38.9 12.0 L37.2 13.9 L36.2 16.6 L36.0 19.8 L36.7 23.3 L38.3 26.9 L40.9 30.3 L44.4 33.2 L48.4 35.5 L53.0 37.0 L57.7 37.6 L62.4 37.3 L66.7 36.2 L70.5 34.3 L73.6 31.8 L75.8 28.9 L77.0 25.9 L77.2 23.1 L76.5 20.6 L74.9 18.7 L72.8 17.7 L70.2 17.5 L67.5 18.4 L64.8 20.2 L62.5 22.9 L60.8 26.5 L59.8 30.6 L59.6 35.1 L60.4 39.7 L62.0 44.2 L64.5 48.3 L67.6 51.8 L71.2 54.4 L75.1 56.2 L79.0 57.1 L82.6 57.0 L85.6 56.1 L88.0 54.4 L89.5 52.4 L90.0 50.0 Z" stroke="url(#spk-pet-b)" stroke-width="3.2" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="7" fill="url(#spk-core-b)"/>
           </svg>
           <span class="sp-brand-name">Supaprod</span>
         </div>
@@ -2637,7 +2720,7 @@ ol {
           <a class="sp-nav-item" href="#">Settings</a>
         </nav>
         <div class="sp-topbar-right">
-          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-btn" title="Door: focuses the docked composer below (⌘J lands here on stage faces)">Ask <span class="sp-kbd">&#8984;J</span></button>
           <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
           <button class="sp-icon-btn" title="Shortcuts">?</button>
           <button class="sp-avatar" title="Account">MO</button>
@@ -2749,7 +2832,7 @@ ol {
               </div>
               <div class="sp-receipt-line">
                 <span class="sp-receipt-check">&#10003;</span>
-                <span class="sp-receipt-text">Outcome recorded: landed. <span class="sp-mono">1</span> learning written, <span class="sp-mono">1</span> assumption challenged. <span class="sp-receipt-action" title="Door: this face, what changed on the Canvas">See what changed</span>.</span>
+                <span class="sp-receipt-text">Outcome recorded: <span class="lf-verdict">landed</span>. <span class="sp-mono">1</span> learning written, <span class="sp-mono">1</span> assumption challenged. <span class="sp-receipt-action" title="Door: this face, what changed on the Canvas">See what changed</span>.</span>
               </div>
             </div>
 
@@ -2762,10 +2845,10 @@ ol {
                 <span class="sp-card-time">9:12am</span>
               </div>
               <div class="sp-card-body">
-                Shared replies beat personal ones <span class="sp-mono">7</span> to <span class="sp-mono">1</span>. Written to memory, importance high.
+                Shared replies beat personal ones <span class="sp-mono lf-num">7</span> to <span class="sp-mono lf-num">1</span>. Written to memory, importance high.
               </div>
               <div class="sp-card-actions">
-                <button class="sp-btn sp-btn-ghost">Open in the Brain <span class="sp-kbd">G B</span></button>
+                <button class="sp-btn sp-btn-ghost" title="Door: the Brain, LRN-13 pinned with its evidence">Open in the Brain <span class="sp-kbd">G B</span></button>
               </div>
             </div>
 
@@ -2806,15 +2889,15 @@ ol {
             <span class="sp-stage-marker">07 Learn</span>
             <span class="sp-surface-title">Growth digest</span>
             <span class="sp-agent-chip">Measure</span>
-            <span class="sp-state-chip is-done"><span class="sp-state-dot"></span>Recorded 9:12am</span>
+            <span class="sp-state-chip is-done lf-chip-recorded"><span class="sp-state-dot"></span>Recorded 9:12am</span>
             <div class="sp-header-cluster">
               <button class="sp-icon-btn" title="Copy link">&#10697;</button>
               <span class="sp-kebab">
                 <button class="sp-icon-btn" title="Details">&#8942;</button>
                 <div class="sp-details-menu">
-                  <button class="sp-menu-item">Details</button>
-                  <button class="sp-menu-item">Open the trace</button>
-                  <button class="sp-menu-item">Export the digest</button>
+                  <button class="sp-menu-item" title="Door: the record's detail pane; driver and cost lines live here, quiet">Details</button>
+                  <button class="sp-menu-item" title="Door: the run trace in the Engine room">Open the trace</button>
+                  <button class="sp-menu-item" title="Consequence: downloads this digest as a file; nothing changes in the room">Export the digest</button>
                 </div>
               </span>
             </div>
@@ -2823,22 +2906,24 @@ ol {
           <div class="sp-canvas-face">
             <div class="sp-face-body lf-digest-body">
               <div class="sp-doc-id">SPEC-52 &middot; SAVED REPLIES &middot; OUTCOME RECORDED 9:12AM</div>
-              <!-- The one Pixel moment of this file. -->
-              <div class="lf-pixel-caption sp-pixel">This call held up.</div>
-              <p class="lf-pixel-sub">Recorded landed: <span class="sp-mono">41%</span> against the <span class="sp-mono">40%</span> contract, <span class="sp-mono">11</span> days early. Here is what the loop did with your answer.</p>
+              <!-- The dry verdict caption, sans display scale (6d.3:
+                   Pixel falls back to broken monospace standalone;
+                   zero Pixel uses in this file). No celebration. -->
+              <div class="lf-held-caption">This call held up.</div>
+              <p class="lf-held-sub">Recorded <span class="lf-verdict">landed</span>: <span class="sp-mono lf-num">41%</span> against the <span class="sp-mono lf-num">40%</span> contract, <span class="sp-mono">11</span> days early. Here is what the loop did with your answer.</p>
               <div class="lf-record-line">Recorded by you at 9:12am &middot; kept in Brain with the evidence pinned &middot; that's 13 of 15 calls held up this year</div>
 
               <div class="sp-doc-sub">What the loop learned</div>
               <div class="lf-cards-col">
 
-                <div class="sp-card lf-vellum">
+                <div class="sp-card lf-vellum lf-raise">
                   <div class="sp-card-chiprow">
                     <span class="sp-memory-chip">Memory</span>
                     <span class="sp-artifact-chip" title="Door: opens the learning in the Brain">LRN-13</span>
                     <span class="sp-card-time">9:12am</span>
                   </div>
                   <div class="sp-card-body">
-                    Shared replies beat personal ones <span class="sp-mono">7</span> to <span class="sp-mono">1</span>. Importance high: it will be cited the next time ranking or grounding touches reply tooling.
+                    Shared replies beat personal ones <span class="sp-mono lf-num">7</span> to <span class="sp-mono lf-num">1</span>. Importance high: it will be cited the next time ranking or grounding touches reply tooling.
                   </div>
                   <div class="sp-card-evidence">
                     <span class="sp-gate-receipt-link" title="Door: opens the spec, 03 Plan face">SPEC-52</span>
@@ -2853,7 +2938,7 @@ ol {
                     <span class="sp-card-time">9:12am</span>
                   </div>
                   <div class="sp-card-body">
-                    Auto-triage billing: confidence <span class="sp-mono">7</span> &#8594; <span class="sp-mono">8</span>. This outcome backs the pattern the bet leans on: small, measured support tooling shipped in days.
+                    Auto-triage billing: confidence <span class="sp-mono lf-num">7</span> &#8594; <span class="sp-mono lf-num">8</span>. This outcome backs the pattern the bet leans on: small, measured support tooling shipped in days.
                   </div>
                 </div>
 
@@ -2865,7 +2950,10 @@ ol {
               <div class="sp-doc-sub">What went upstream</div>
               <div class="lf-cards-col">
 
-                <div class="sp-card">
+                <!-- The challenge is half of Frame B's story (beat 1):
+                     it rides the raised surface beside LRN-13 (6c.1);
+                     the BET-35 re-score stays panel-level support. -->
+                <div class="sp-card lf-raise">
                   <div class="sp-card-chiprow">
                     <span class="sp-agent-chip">Challenge</span>
                     <span class="lf-up-arrow" title="This challenge travels the return edge to 02 Decide">&#8593; 02 Decide</span>
@@ -2909,17 +2997,21 @@ ol {
         <span class="sp-strip-summary">nothing running &middot; 1 waiting on you</span>
       </div>
 
-      <!-- REGION 5b: Composer. The forward door leads the chips now. -->
+      <!-- REGION 5b: Composer. The forward door leads the chips now.
+           Docked per 6c.4a (stage face); the command chip stays visible. -->
       <div class="sp-composer">
         <div class="sp-composer-box ink-input-focus">
-          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: what should we build next?" />
+          <div class="lf-input-line">
+            <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: what should we build next?" />
+            <span class="sp-kbd" title="&#8984;J focuses this composer from anywhere in the room">&#8984;J</span>
+          </div>
           <div class="sp-composer-row">
             <div class="sp-composer-chips">
               <button class="sp-journey-chip" title="J1: runs the 01-02 slice; the ranking reads LRN-13 this time">What should we build next?</button>
               <button class="sp-journey-chip" title="J2: the adversarial teardown">Tear this idea down</button>
               <button class="sp-journey-chip" title="J-REPORT: drafts the stakeholder update">Update stakeholders</button>
             </div>
-            <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+            <button class="sp-btn sp-composer-send" title="Runs what you typed; the answer lands in this room's thread">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
           </div>
         </div>
       </div>
@@ -2929,7 +3021,7 @@ ol {
 
   <div class="lf-doors">
     <b>Lineage doors, Frame B</b> &middot; LRN-13 opens the learning (Brain) &middot; DEC-19 opens the decision record (Brain) &middot; BET-35 and BET-31 open their bets (02 Decide board) &middot; SPEC-52 opens the spec (03 Plan) &middot; REL-19 opens the release (06 Ship) &middot; PR-217 opens the diff (05 Build) &middot; annotation: the lit return edge and the glint on 01 are the END-FRAME of the once-only return animation (journey-catalog Part C #6); the dashed "1 challenged" tick on 02 is where the DEC-19 review lands upstream; the review itself is the frame's one gate: same object as the Approvals count (1).<br />
-    <b>Keys &amp; motion, Frame B</b> &middot; 1 opens the DEC-19 review &middot; H defers it (resurfaces with tomorrow's briefing) &middot; G B opens the Brain on LRN-13 &middot; the return choreography is this screen's ONE class-C beat, &le;900ms total: gate flips to receipt &#8594; the 07&ndash;01 edge draws (~450ms, --ink-ease) &#8594; 01 glints and settles (~300ms) &#8594; the challenge tick fades in on 02 (150ms) &middot; it never re-fires on revisit &middot; reduced motion renders exactly this held end-frame.
+    <b>Keys &amp; motion, Frame B</b> &middot; 1 opens the DEC-19 review &middot; H defers it (resurfaces with tomorrow's briefing) &middot; G B opens the Brain on LRN-13 &middot; &#8984;J or A focuses the docked composer &middot; the return choreography is this screen's ONE class-C beat, &le;900ms total: gate flips to receipt &#8594; the 07&ndash;01 edge draws (~450ms, --ink-ease) &#8594; 01 glints and settles (~300ms) &#8594; the challenge tick fades in on 02 (150ms) &middot; it never re-fires on revisit &middot; reduced motion renders exactly this held end-frame.
   </div>
 
   <!-- ================================================================
@@ -2974,7 +3066,7 @@ ol {
               <button class="sp-btn">Missed <span class="sp-kbd">3</span></button>
             </div>
           </div>
-          <div class="lf-spec-note">Hover steps to the hover token, no motion (class A, 0ms). Focus-visible: 2px bg gap + 2px ember ring, identical on every interactive element in the room.</div>
+          <div class="lf-spec-note">Hover steps to the hover token, no motion (class A, 0ms). Focus-visible: 2px bg gap + 1px hairline ember ring (6d.7: findable, never a thick box), identical on every interactive element in the room, ghost buttons and expanders included.</div>
         </div>
 
         <div class="lf-spec">
@@ -3086,9 +3178,74 @@ ol {
       </div>
     </div>
 
-    <!-- 3. Doors, tooltips, and the memory grammar -->
+    <!-- 3. The receipts expander: beat 3, rendered closed in the frame -->
     <div class="lf-rail-sec">
-      <div class="lf-rail-sec-title">3 &middot; Doors, tooltips, and the memory grammar <span class="lf-sec-ref">ruling 4: every chip is a door &middot; ruling 9: Vellum is recognition, not decoration</span></div>
+      <div class="lf-rail-sec-title">3 &middot; The receipts expander <span class="lf-sec-ref">6c.2: Frame A renders it CLOSED &middot; disclosure class B, 150&ndash;250ms, --ink-ease &middot; chevron rotates 90deg &middot; Esc closes</span></div>
+      <div class="lf-rail-grid">
+
+        <div class="lf-spec">
+          <div class="lf-spec-label">closed &middot; rest, then hover + focus-visible</div>
+          <div class="lf-spec-stage">
+            <button class="lf-expander" style="margin-top:0">
+              <span class="lf-exp-chev">&#9656;</span>
+              <span class="lf-exp-label">Show the receipts</span>
+              <span class="lf-exp-sum">2 checks &middot; 1 honest gap &middot; top replies by use</span>
+            </button>
+            <button class="lf-expander lf-demo-focus" style="margin-top:8px;background:var(--ink-raised)">
+              <span class="lf-exp-chev">&#9656;</span>
+              <span class="lf-exp-label">Show the receipts</span>
+              <span class="lf-exp-sum">hover fills raised; focus adds the hairline ring</span>
+            </button>
+          </div>
+          <div class="lf-spec-note">The summary line keeps the scent while closed: the counts, the honest gap, the table's subject. Toggling never scrolls the face, and the record keeps the open state per user.</div>
+        </div>
+
+        <div class="lf-spec lf-spec-wide">
+          <div class="lf-spec-label">open &middot; the plumbing, verbatim</div>
+          <div class="lf-spec-stage">
+            <button class="lf-expander" style="margin-top:0">
+              <span class="lf-exp-chev">&#9662;</span>
+              <span class="lf-exp-label">Hide the receipts</span>
+              <span class="lf-exp-sum">disclosed in place, above the face footer</span>
+            </button>
+            <div class="lf-cols" style="margin-top:10px">
+              <div class="lf-evidence-rows" style="margin-top:0">
+                <div class="sp-receipt-line">
+                  <span class="sp-receipt-check">&#10003;</span>
+                  <span class="sp-receipt-text">Shipped from main: all <span class="sp-mono">9</span> requirements of SPEC-52 are live. <span class="sp-receipt-action" title="Door: the merged diff, 05 Build face">Open the diff</span>.</span>
+                </div>
+                <div class="sp-receipt-line">
+                  <span class="sp-receipt-check">&#10003;</span>
+                  <span class="sp-receipt-text"><span class="sp-mono">REL-19</span> rolled out Friday <span class="sp-mono">4:12pm</span> to <span class="sp-mono">100%</span>. No rollbacks all weekend. <span class="sp-receipt-action" title="Door: the release record, 06 Ship face">Open the release</span>.</span>
+                </div>
+                <div class="sp-receipt-line is-blocked">
+                  <span class="sp-receipt-check">&#9675;</span>
+                  <span class="sp-receipt-text">Analytics partial: saved-reply inserts counted; response time stays unmeasured until a feed is connected.</span>
+                </div>
+              </div>
+
+              <!-- Where the use concentrated: Measure counts what it
+                   can prove. The tail line quietly points at the
+                   morning's SIG-214: Learn feeding the next Discover. -->
+              <div>
+                <div class="lf-col-caption">Top saved replies by use</div>
+                <div class="lf-use-row"><span>Refund timeline</span><span class="lf-use-count">212</span></div>
+                <div class="lf-use-row"><span>Password reset steps</span><span class="lf-use-count">187</span></div>
+                <div class="lf-use-row"><span>Plan-switch billing</span><span class="lf-use-count">154</span></div>
+                <div class="lf-use-tail">+ <span style="color:var(--ink-subtle)">31</span> more in the tail &middot; billing leads; <span class="sp-artifact-chip" title="Door: opens the signal, 01 Discover" style="cursor:pointer">SIG-214</span> at 7:02am says the same</div>
+              </div>
+            </div>
+            <div class="lf-provenance">How this read was made: Measure, 9:00am, from the reply log &middot; <span class="sp-mono">2,937</span> replies, Friday 4:12pm to Sunday 11:59pm &middot; saved-reply inserts counted per reply &middot; response time excluded: no source connected.</div>
+          </div>
+          <div class="lf-spec-note">Everything Frame A holds behind the closed row: the two checks, the honest gap, where the use concentrated, and the provenance line. Beat 3 in full, one disclosure away; nothing was deleted to cure the overwhelm (6c.2).</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. Doors, tooltips, and the memory grammar -->
+    <div class="lf-rail-sec">
+      <div class="lf-rail-sec-title">4 &middot; Doors, tooltips, and the memory grammar <span class="lf-sec-ref">ruling 4: every chip is a door &middot; ruling 9: Vellum is recognition, not decoration</span></div>
       <div class="lf-rail-grid">
 
         <div class="lf-spec">
@@ -3126,9 +3283,9 @@ ol {
       </div>
     </div>
 
-    <!-- 4. Motion budget + the keyboard map -->
+    <!-- 5. Motion budget + the keyboard map -->
     <div class="lf-rail-sec">
-      <div class="lf-rail-sec-title">4 &middot; Motion &amp; keys <span class="lf-sec-ref">budget table spec 5.1 &middot; the return is journey-catalog Part C #6</span></div>
+      <div class="lf-rail-sec-title">5 &middot; Motion &amp; keys <span class="lf-sec-ref">budget table spec 5.1 &middot; the return is journey-catalog Part C #6</span></div>
       <div class="lf-rail-cols">
 
         <div>
@@ -3144,13 +3301,18 @@ ol {
             <span>Items stagger 60&ndash;90ms with --ink-ease. Simultaneous arrival reads as a dump; the stagger reads as orchestration.</span>
           </div>
           <div class="lf-motion-row">
+            <span class="lf-motion-name">Show the receipts</span>
+            <span class="lf-motion-budget">B &middot; 150&ndash;250ms</span>
+            <span>Height discloses in place with --ink-ease; the chevron rotates 90deg; the face never scrolls on toggle. Esc closes an open expander.</span>
+          </div>
+          <div class="lf-motion-row">
             <span class="lf-motion-name">The return, once</span>
             <span class="lf-motion-budget">C &middot; &le;900ms</span>
             <span>9:12am only: the gate flips to its receipt &#8594; the 07&ndash;01 edge draws (~450ms) &#8594; 01 glints and settles (~300ms) &#8594; the challenge tick fades in on 02 (150ms). Never re-fires on revisit; the whole class-C budget of both frames is spent here.</span>
           </div>
           <div class="lf-motion-row">
             <span class="lf-motion-name">Reduced motion</span>
-            <span class="lf-motion-budget">&mdash;</span>
+            <span class="lf-motion-budget">static</span>
             <span>Resolves to the finished frame: the lit edge, the glint, and the tick render static, exactly as Frame B holds them.</span>
           </div>
         </div>
@@ -3161,7 +3323,7 @@ ol {
           <div class="lf-key-row"><span class="sp-kbd">&#9166;</span><span class="lf-key-desc">Open the evidence face</span></div>
           <div class="lf-key-row"><span class="sp-kbd">H</span><span class="lf-key-desc">Later: defers, resurfaces with tomorrow's briefing</span></div>
           <div class="lf-key-row"><span class="sp-kbd">G</span><span class="sp-kbd">A</span><span class="lf-key-desc">Approvals</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">B</span><span class="lf-key-desc">Brain</span><span style="width:6px"></span><span class="sp-kbd">G</span><span class="sp-kbd">1&ndash;7</span><span class="lf-key-desc">walk the spine</span></div>
-          <div class="lf-key-row"><span class="sp-kbd">A</span><span class="lf-key-desc">Focus the composer (the same input the TopBar Ask opens)</span></div>
+          <div class="lf-key-row"><span class="sp-kbd">&#8984;J</span><span class="lf-key-desc">Focus the docked composer</span><span style="width:6px"></span><span class="sp-kbd">A</span><span class="lf-key-desc">also focuses it (the TopBar Ask button)</span></div>
           <div class="lf-key-row"><span class="sp-kbd">J</span><span class="sp-kbd">K</span><span class="lf-key-desc">Traverse the tray</span><span style="width:6px"></span><span class="sp-kbd">Esc</span><span class="lf-key-desc">close tray/peek; back out of Mixed/Missed</span></div>
         </div>
 
