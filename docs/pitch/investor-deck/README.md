@@ -1,9 +1,9 @@
 # Supaprod Investor Deck
 
-Frozen v19, 2026-07-24. Built and reviewed slide by slide in the Hyperagent deck thread.
+Frozen v20, 2026-07-24 (cover hint ruling applied). Built and reviewed slide by slide in the Hyperagent deck thread.
 
 ## Files
-- supaprod-investor-deck.html: the complete deck. Self-contained: Geist, Geist Mono, and Geist Pixel Square embedded, landing-page logo SVG inline, founder portrait inline. Works offline, can be embedded on supaprod.ai as-is.
+- supaprod-pre-seed-investor-deck.html: the complete deck. Self-contained: Geist, Geist Mono, and Geist Pixel Square embedded, landing-page logo SVG inline, founder portrait inline. Works offline, can be embedded on supaprod.ai as-is.
 - brand-assets.html: the assets vault. All og images and founder portraits embedded as data URIs with download buttons (binary files corrupt through the commit API, so they ship inside this text-safe page). Open it from the repo and download the exact original bytes.
 
 ## The og image

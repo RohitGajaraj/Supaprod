@@ -20,6 +20,7 @@
 | [**yc/interview-prep.md**](./yc/interview-prep.md)               | The interview lands (Aug–Sep, 10 min, rapid fire) — the numbers card, spoken one-breath answers to the top 25 + the 12 brutal ones, the 90-second screen-share path, and the drill plan.                                                                                                  |
 | [**yc/application-strategy.md**](./yc/application-strategy.md)   | You're thinking about YC positioning — partner psychology, the positioning ladder, do/don't, and the additive narrative candidates ("What Cursor did for writing code, Supaprod does for deciding what to build").                                                                         |
 | [**yc/video-scripts.md**](./yc/video-scripts.md)                 | You're recording — the founder video (1:00, bullet card per YC's no-script rule) and the demo video (~2:10, exact ON-SCREEN / YOU-SAY shot list with the rewind/miss-record beat that nobody else can film).                                                                              |
+| [**investor-deck/**](./investor-deck/README.md)                 | **You need the pre-seed investor deck (frozen 2026-07-24)** — the self-contained HTML (14 story slides + 2 appendices, print-to-PDF wired), the brand assets vault (og images, founder portraits, downloadable originals), and the 2026-07-24 canon it carries: the tagline system, the work-budget sizing ladder, the September launch date. |
 
 ## The routing doctrine (standing rule, founder 2026-07-10 — wired into CLAUDE.md + AGENTS.md)
 
