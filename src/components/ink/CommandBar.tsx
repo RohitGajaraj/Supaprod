@@ -36,7 +36,8 @@ export function CommandBar({
       await onSubmit(intent);
       setValue("");
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Try again.");
+      const message = err instanceof Error ? err.message : "Something went wrong. Try again.";
+      setSubmitError(message);
     } finally {
       setBusy(false);
     }

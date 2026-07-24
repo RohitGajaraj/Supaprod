@@ -29,12 +29,17 @@ export function MemoryRow({
   className?: string;
 }) {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
     if (!onDelete || pending) return;
     setPending(true);
+    setError(null);
     try {
       await onDelete();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete memory entry. Try again.";
+      setError(message);
     } finally {
       setPending(false);
     }
@@ -61,6 +66,11 @@ export function MemoryRow({
           <span aria-hidden>·</span>
           <span>{dateLabel}</span>
         </div>
+        {error ? (
+          <p className="ink-mono mt-1 text-[10.5px] text-[var(--ink-madder)]" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
       {onDelete ? (
         <button

@@ -57,12 +57,17 @@ export function ApprovalCard({
   className?: string;
 }) {
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function act(kind: "approve" | "reject") {
     if (pending) return;
     setPending(kind);
+    setError(null);
     try {
       await (kind === "approve" ? onApprove(item.id) : onReject(item.id));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Try again.";
+      setError(message);
     } finally {
       setPending(null);
     }
@@ -124,6 +129,12 @@ export function ApprovalCard({
 
       {item.impact ? (
         <p className="ink-mono mt-2.5 text-[11px] text-[var(--ink-subtle)]">{item.impact}</p>
+      ) : null}
+
+      {error ? (
+        <p className="ink-mono mt-2.5 text-[11px] text-[var(--ink-madder)]" role="alert">
+          {error}
+        </p>
       ) : null}
 
       <footer className="mt-3.5 flex items-end justify-between gap-3 border-t border-[var(--ink-hairline-soft)] pt-3">

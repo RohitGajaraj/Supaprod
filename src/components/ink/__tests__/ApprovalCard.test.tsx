@@ -358,6 +358,132 @@ describe("ApprovalCard Component", () => {
     });
   });
 
+  describe("Error Handling (CRITICAL: silent-failure fix)", () => {
+    test("displays error message when onApprove throws Error object", async () => {
+      const onApprove = mock(async () => {
+        throw new Error("Network timeout during approval");
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+
+      fireEvent.click(approveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Network timeout during approval")).toBeTruthy();
+      });
+    });
+
+    test("displays error message when onReject throws Error object", async () => {
+      const onReject = mock(async () => {
+        throw new Error("Permission denied on rejection");
+      });
+      render(<ApprovalCard item={mockItem} onApprove={async () => {}} onReject={onReject} />);
+      const rejectBtn = screen.getByText("Reject");
+
+      fireEvent.click(rejectBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Permission denied on rejection")).toBeTruthy();
+      });
+    });
+
+    test("displays fallback message when non-Error object is thrown", async () => {
+      const onApprove = mock(async () => {
+        // eslint-disable-next-line no-throw-literal
+        throw "Unknown error";
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+
+      fireEvent.click(approveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Something went wrong. Try again.")).toBeTruthy();
+      });
+    });
+
+    test("error message has role=alert for accessibility", async () => {
+      const onApprove = mock(async () => {
+        throw new Error("Test error");
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+
+      fireEvent.click(approveBtn);
+
+      await waitFor(() => {
+        const errorMsg = screen.getByRole("alert");
+        expect(errorMsg).toBeTruthy();
+        expect(errorMsg.textContent).toContain("Test error");
+      });
+    });
+
+    test("clears previous error when retry succeeds after failure", async () => {
+      let callCount = 0;
+      const onApprove = mock(async () => {
+        callCount++;
+        if (callCount === 1) {
+          throw new Error("First attempt failed");
+        }
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+
+      // First click fails
+      fireEvent.click(approveBtn);
+      await waitFor(() => {
+        expect(screen.getByText("First attempt failed")).toBeTruthy();
+      });
+
+      // Second click succeeds
+      fireEvent.click(approveBtn);
+      await waitFor(() => {
+        expect(screen.queryByText("First attempt failed")).toBeNull();
+      });
+    });
+
+    test("re-enables buttons after error (clears pending state on error)", async () => {
+      const onApprove = mock(async () => {
+        throw new Error("Approval failed");
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+      const rejectBtn = screen.getByText("Reject");
+
+      fireEvent.click(approveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Approval failed")).toBeTruthy();
+      });
+
+      // Buttons should be re-enabled after error
+      await waitFor(() => {
+        expect(approveBtn.hasAttribute("disabled")).toBe(false);
+        expect(rejectBtn.hasAttribute("disabled")).toBe(false);
+      });
+    });
+
+    test("shows 'Approving' text even during approval that will error", async () => {
+      const onApprove = mock(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        throw new Error("Delayed error");
+      });
+      render(<ApprovalCard item={mockItem} onApprove={onApprove} onReject={async () => {}} />);
+      const approveBtn = screen.getByText("Approve");
+
+      fireEvent.click(approveBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText("Approving")).toBeTruthy();
+      });
+
+      // After error resolves, should show error message
+      await waitFor(() => {
+        expect(screen.getByText("Delayed error")).toBeTruthy();
+      });
+    });
+  });
+
   describe("Edge Cases", () => {
     test("handles very long title", () => {
       const longTitle = "A".repeat(500);
