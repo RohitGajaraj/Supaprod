@@ -1,0 +1,3497 @@
+<!--
+  SCREEN 15: Auth + account menu
+
+  THE MOMENT: Sunday morning, Jul 19, Helio Labs. 8:24 AM Mo signs back
+  in on his personal laptop (one mistyped password first), lands on
+  Mission Control at rest per the post-login ruling, and at 8:41 AM
+  presses his avatar to flip the theme before reading the Briefing.
+
+  STATE SHOWN:
+    Frame A: /login on the PUBLIC page grammar, signed out, inline
+             password error visible (Sun 8:24 AM).
+    Frame B: /m Relay at rest (screen-2's Sunday state, abbreviated),
+             TopBar avatar PRESSED, account menu OPEN (Sun 8:41 AM).
+    Variant band: /signup, /forgot-password, /join/$token as
+             card-spec style minis, one per route.
+    Behavior rail (Round 3.1, brief 6b.3): the auth + account state
+             grammar, component by component: rest / hover /
+             focus-visible / pressed / disabled / loading / empty /
+             error / success, plus the motion budget and the
+             keyboard map. Numbered pins inside the frames key into
+             the legends below them; pins are reviewer chrome,
+             never product UI.
+
+  FUNCTIONAL CONTRACT:
+    Primary question: A "how do I get back in"; B "where do my account
+      doors live"; band "what do the sibling auth moments look like".
+    Primary action(s): A sign in (one ember CTA). B is a menu frame:
+      Profile, theme flip, shortcuts, invite, admin, sign out; the
+      frame's own primary action stays the rest CTA "Start the loop".
+      Band: create account / send the reset link / accept the invite.
+    Lineage in/out: /login doors to /signup ("The beta is open."),
+      /forgot-password ("Forgot password?", and "reset it" inside the
+      error), and on success to /m (Addendum 1.1 #7 post-login rest,
+      which IS Frame B). /join/$token routes a logged-out invitee to
+      /login?next=/join/$token and back (the open-redirect guard in
+      login.tsx). Menu doors: Profile > /settings?section=profile,
+      Appearance > in-place theme flip (data-theme token swap),
+      Keyboard shortcuts > the ? overlay, Invite your team >
+      Settings' team pane (issues the /join/$token links), Admin
+      console > the platform console (renders for platform admins
+      only), Sign out > /login.
+    Agents & attribution: none act on auth surfaces; humans only.
+      Frame B keeps the resting attribution untouched: Chief of Staff
+      + Memory on the Briefing, Watch and Measure in the strip; zero
+      full-hue machine loci anywhere (rest).
+    Focus/collapse: n/a (no stage work). The menu closes on Escape or
+      an outside click; the avatar's pressed state releases with it.
+    Empty/loading/blocked: the inline password error carries its
+      recovery door ("reset it"); the reset mini shows the honest sent
+      receipt; submit goes busy ("Signing in" + spinner, BOTH paths
+      disabled: the double-submit hardening already live in
+      login.tsx); the expired invite renders its recovery ("Ask Mo
+      to send a fresh one") in the behavior rail; the account menu
+      has NO loading skeleton on purpose: identity is already
+      client-side when the shell renders, so the menu opens complete
+      or not at all. GAP states rendered honestly: no SAML SSO button
+      (no SAML in production), no magic-link, no fake providers; the
+      signup footnote says plainly that an account starts the beta
+      checkout.
+
+  WHAT THE FOUNDER SHOULD EVALUATE
+  1. Frame A as a public page: does the landing grammar (ink, grid,
+     two-depth starfield, the mark, one Pixel title) read as the same
+     brand as / while staying a working form, not a poster?
+  2. The error moment: mistyped password at 8:24 AM. Is the copy calm,
+     is the recovery door obvious, does nothing shame the user?
+  3. Founder complaint #1: every account door now lives behind the
+     avatar. Is the 240px menu complete (profile, appearance,
+     shortcuts, invite, admin, sign out) and ACHROMATIC, so the rest
+     frame keeps exactly one ember (Start the loop)?
+  4. Sign out in plain ink: leaving is safe, no red. Agree?
+  5. The Appearance row's inline Dark/Auto/Light segmented control:
+     right to flip theme without a settings round-trip?
+  6. The variant band: are /signup, /forgot-password, /join/$token
+     each honest and complete at card scale (footnote, sent receipt,
+     sign-in-first helper)?
+  7. The behavior rail: does the state grammar (busy submit that
+     disables both paths, calm inline errors, the no-red sign out,
+     the no-skeleton menu) read as one system an engineer can build
+     without asking a question?
+
+  CHARTER REQUIREMENTS DEMONSTRATED
+  #1 10-second comprehension (each auth moment is one card, one verb)
+  #3 one input model (forms are forms; no composer on auth surfaces)
+  #5 costs quiet (nothing priced anywhere near auth)
+  #13 one primary action per screen (Sign in / Start the loop / one
+      CTA per band mini); nav stays 4 doors; account doors live in
+      the avatar menu, never in nav
+  Addendum 1.1 #7 (post-login landing = Mission Control at rest:
+      Frame A resolves into Frame B)
+
+  IMPLEMENTATION TARGETS: RoomChrome.tsx + MissionShellView.tsx (the
+  TopBar avatar becomes the menu anchor); login.tsx / AuthScaffold.tsx
+  already carry Frame A's real flows (Supabase password, Lovable
+  Google OAuth, forgot/reset, /join/$token invite chain).
+
+  RESTRAINT NOTE: what was deliberately NOT added: no marketing copy
+  or feature sell on /login (the landing already did that job); no
+  starfield in Frame B (working surface); no SAML/SSO or magic-link
+  chrome the backend does not have; no red on Sign out; no Pixel
+  anywhere but Frame A's title (the file's one Pixel moment); no
+  Approvals count pill in Frame B (zero gates at rest: the absence IS
+  the state); the closed Approvals tray markup omitted (off-canvas,
+  invisible, nothing to review); no shortcut keys invented for menu
+  rows beyond the established ? overlay; no toast chrome mocked (the
+  live toast is a transport detail, the receipt is the design); no
+  "remember me" checkbox (the session already persists; a control
+  that changes nothing is a lie); no password strength meter on
+  signup (the 12+ floor is the rule; a meter would grade what the
+  backend does not).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Supaprod : Auth and account</title>
+<style>
+/* ==================================================================
+   SUPAPROD MISSION CONTROL MOCKUPS : _shared.css
+   Foundation stylesheet for every founder-gate mockup.
+   Source of truth: src/styles/ink.css (Ink v6) + design-language-spec.md.
+   Usage rule (binding): copy this ENTIRE block verbatim into your
+   mockup's <style> tag, then add screen-specific styles BELOW a
+   comment line. Never modify this block.
+   Voice grammar: ember = the human's move (one locus per screen),
+   machine blue = agents at work (one full-hue locus, dim/faint for
+   ambience), memory = the Brain speaking, nowhere else.
+   The one ember locus is the gate OBJECT: its spine node, thread
+   card, tray card, and face state chip are the same object with one
+   count from one source (spec 6.3). No purple. No inline costs.
+   CARD LAW (Addendum 1.1, binding): cards are plain ink surfaces,
+   hairline border, token radius, nothing decorative. NO colored
+   edge strips or highlighter bars, ever. One internal grid: chip
+   row (label left, mono time right), body, optional evidence chips,
+   action row. Voice comes from chips and content, never from card
+   decoration. Timestamps are right-aligned mono in the chip row,
+   never floating mid-content.
+   ================================================================== */
+
+/* ---- 1. Tokens (Ink v6, ported, plus the five-tier voice ramps) -- */
+
+:root {
+  /* Surfaces */
+  --ink-bg: #0a0a0a;
+  --ink-panel: #0d0d0e;
+  --ink-raised: #18181b;
+  --ink-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Text ramp (zinc) */
+  --ink-text: #f4f4f5;
+  --ink-body: #a1a1aa;
+  --ink-subtle: #71717a;
+  --ink-faint: #52525b;
+
+  /* Structure */
+  --ink-hairline: rgba(255, 255, 255, 0.09);
+  --ink-hairline-soft: rgba(255, 255, 255, 0.05);
+  --ink-grid-fine: rgba(255, 255, 255, 0.038);
+  --ink-grid-coarse: rgba(255, 255, 255, 0.06);
+
+  /* Ember: the human's move. Brand color. */
+  --voice-human: #ff6b2c;
+  --voice-human-hover: #ff8344;
+  --voice-human-dim: #c25a2b;
+  --voice-human-border: rgba(255, 107, 44, 0.4);
+  --voice-human-soft: rgba(255, 107, 44, 0.12);
+  --voice-human-faint: rgba(255, 107, 44, 0.06);
+
+  /* Machine blue: the agents at work. 8.64:1 on ink. */
+  --voice-machine: #6cb0f5;
+  --voice-machine-dim: #4d7fb3;
+  --voice-machine-border: rgba(108, 176, 245, 0.35);
+  --voice-machine-soft: rgba(108, 176, 245, 0.14);
+  --voice-machine-faint: rgba(108, 176, 245, 0.07);
+
+  /* Memory gold: the Brain speaking. Gold ban intact everywhere else. */
+  --voice-memory: #e8b44c;
+  --voice-memory-dim: #a8842f;
+  --voice-memory-border: rgba(232, 180, 76, 0.35);
+  --voice-memory-soft: rgba(232, 180, 76, 0.12);
+  --voice-memory-faint: rgba(232, 180, 76, 0.06);
+
+  /* Verdicts (badges, checks, outcomes only; never prose or chrome).
+     --verdict-working is retired: working IS the machine speaking. */
+  --verdict-pass: #4ac26b;
+  --verdict-fail: #e5534b;
+
+  /* Focus */
+  --ink-focus-gap: var(--ink-bg);
+  --ink-focus-ring: var(--voice-human);
+  --ink-input-ring: rgba(255, 255, 255, 0.3);
+
+  /* Geometry */
+  --ink-radius-control: 8px;
+  --ink-radius-panel: 12px;
+  --ink-radius-hero: 14px;
+  --ink-control-sm: 32px;
+  --ink-control-md: 36px;
+  --ink-control-lg: 40px;
+
+  /* Motion (state, never decoration) */
+  --ink-ease: cubic-bezier(0.23, 1, 0.3, 1);
+  --ink-fast: 150ms;
+  --ink-slow: 250ms;
+
+  /* Type roles (self-contained: Geist when installed, honest fallbacks) */
+  --font-sans:
+    "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shell layout constants */
+  --sp-topbar-h: 52px;
+  --sp-thread-w: 380px;
+  --sp-frame-w: 1440px;
+  --sp-frame-h: 900px;
+}
+
+[data-theme="light"] {
+  --ink-bg: #ffffff;
+  --ink-panel: #fafafa;
+  --ink-raised: #f4f4f5;
+  --ink-overlay: rgba(255, 255, 255, 0.85);
+
+  --ink-text: #18181b;
+  --ink-body: #52525b;
+  --ink-subtle: #71717a;
+  --ink-faint: #a1a1aa;
+
+  --ink-hairline: rgba(0, 0, 0, 0.09);
+  --ink-hairline-soft: rgba(0, 0, 0, 0.05);
+  --ink-grid-fine: rgba(0, 0, 0, 0.03);
+  --ink-grid-coarse: rgba(0, 0, 0, 0.05);
+
+  --voice-human: #f05a1a;
+  --voice-human-hover: #d94e12;
+  --voice-human-dim: #b34d15;
+  --voice-human-border: rgba(240, 90, 26, 0.45);
+  --voice-human-soft: rgba(240, 90, 26, 0.1);
+  --voice-human-faint: rgba(240, 90, 26, 0.05);
+
+  --voice-machine: #2e6ed6;
+  --voice-machine-dim: #5b86bd;
+  --voice-machine-border: rgba(46, 110, 214, 0.35);
+  --voice-machine-soft: rgba(46, 110, 214, 0.12);
+  --voice-machine-faint: rgba(46, 110, 214, 0.06);
+
+  --voice-memory: #b8860b;
+  --voice-memory-dim: #96700a;
+  --voice-memory-border: rgba(184, 134, 11, 0.4);
+  --voice-memory-soft: rgba(184, 134, 11, 0.12);
+  --voice-memory-faint: rgba(184, 134, 11, 0.06);
+
+  --verdict-pass: #1a7f37;
+  --verdict-fail: #cf222e;
+
+  --ink-focus-gap: var(--ink-bg);
+  --ink-input-ring: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- 2. Reset and base -------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  background: #050505;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500; /* dark-surface legibility: body at 500, not 400 */
+  letter-spacing: 0.01em;
+  color: var(--ink-body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: start center;
+  padding: 32px 0;
+  min-height: 100vh;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ul,
+ol {
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink-raised);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- 3. Type roles ------------------------------------------------ */
+
+.sp-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sp-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+/* Brand moments only. One Pixel moment per surface, maximum. */
+.sp-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0;
+}
+/* Inline emphasis inside prose: mono numerals inherit the line's
+   size and line-height so an emphasized number never breaks line
+   flow, wraps oddly, or wobbles the baseline (Addendum 1.1 craft). */
+.sp-receipt-text .sp-mono,
+.sp-gate-reco .sp-mono,
+.sp-gate-headline .sp-mono,
+.sp-doc-p .sp-mono,
+.sp-doc-block .sp-mono,
+.sp-doc-list .sp-mono,
+.sp-card-body .sp-mono,
+.sp-thread-item .sp-mono,
+.sp-briefing-card .sp-mono,
+.sp-warm-slot-line .sp-mono {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+}
+
+/* ---- 4. Crafted pieces from Ink v6 (ported verbatim in spirit) ---- */
+
+.ink-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.ink-input-focus:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.ink-input-focus textarea:focus,
+.ink-input-focus input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Working pulse (machine voice). Static ring under reduced motion. */
+@keyframes ink-working {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--voice-machine-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--voice-machine-soft);
+  }
+}
+.ink-working {
+  animation: ink-working 2.4s var(--ink-ease) infinite;
+}
+
+/* Skeletons: shaped like arriving content, calm opacity breath. */
+@keyframes ink-skeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.ink-skeleton {
+  background: var(--ink-raised);
+  border-radius: 6px;
+  animation: ink-skeleton 1.6s ease-in-out infinite;
+}
+
+/* Streaming caret for live agent output. */
+@keyframes ink-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ink-caret::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--voice-machine);
+  animation: ink-caret 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-working {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--voice-machine-soft);
+  }
+  .ink-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+  .ink-caret::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---- 5. The shell layout grid ------------------------------------- */
+/* Rows: TopBar 52px / Spine strip / Main / Working strip / Composer.
+   Main: Thread 380px left, Canvas right (Canvas is 60%+ of the room). */
+
+.sp-frame {
+  width: var(--sp-frame-w);
+  height: var(--sp-frame-h);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  overflow: hidden;
+  position: relative;
+}
+.sp-shell {
+  display: grid;
+  grid-template-rows: var(--sp-topbar-h) auto minmax(0, 1fr) auto auto;
+  height: 100%;
+}
+.sp-main {
+  display: grid;
+  grid-template-columns: var(--sp-thread-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* TopBar: chrome recedes, one step dimmer than the Canvas. */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sp-brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: 0.01em;
+}
+.sp-topbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ink-hairline);
+}
+.sp-product-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12px;
+  color: var(--ink-body);
+}
+.sp-product-switcher:hover {
+  background: var(--ink-raised);
+}
+.sp-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--sp-4);
+}
+.sp-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  color: var(--ink-subtle);
+}
+.sp-nav-item:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+.sp-nav-item.is-active {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+/* Waiting-on-you count: same object as the gate, ambient ember tier. */
+.sp-tray-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+}
+.sp-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.sp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+}
+
+/* ---- 6. Buttons ---------------------------------------------------- */
+/* Verb + object, sentence case, three words or fewer. One name per
+   action, product-wide (canonical action registry). */
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--ink-control-sm);
+  padding: 0 12px;
+  border-radius: var(--ink-radius-control);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  transition: background var(--ink-fast) var(--ink-ease);
+  white-space: nowrap;
+}
+.sp-btn:hover {
+  background: #202024;
+}
+.sp-btn-accent {
+  background: var(--voice-human);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.sp-btn-accent:hover {
+  background: var(--voice-human-hover);
+}
+.sp-btn-secondary {
+  background: transparent;
+  color: var(--ink-body);
+}
+.sp-btn-secondary:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.sp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-subtle);
+}
+.sp-btn-ghost:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+.sp-btn-destructive {
+  background: transparent;
+  border-color: rgba(229, 83, 75, 0.4);
+  color: var(--verdict-fail);
+}
+.sp-btn-destructive:hover {
+  background: rgba(229, 83, 75, 0.08);
+}
+.sp-btn-md {
+  height: var(--ink-control-md);
+  padding: 0 14px;
+  font-size: 13px;
+}
+.sp-btn-lg {
+  height: var(--ink-control-lg);
+  padding: 0 16px;
+  font-size: 13px;
+}
+/* Inline keyboard hint: shortcuts teach themselves. */
+.sp-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  background: transparent;
+}
+.sp-btn-accent .sp-kbd {
+  border-color: rgba(10, 10, 10, 0.35);
+  color: rgba(10, 10, 10, 0.7);
+}
+.sp-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ink-radius-control);
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+.sp-icon-btn:hover {
+  background: var(--ink-raised);
+  color: var(--ink-body);
+}
+
+/* ---- 7. The Spine (primitive 6.6) --------------------------------- */
+/* Always whole: a journey lights its slice, untouched stages stay dim
+   but present. Five node states: is-working, is-gate, is-done,
+   is-queued, is-skipped. The gate is ON the spine. */
+
+.sp-spine-strip {
+  padding: 10px var(--sp-5) 8px;
+  border-bottom: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-spine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+/* Entry and exit caps: plain words, the answer to "where do I start
+   and how do I end". Caps are ember's ambient tier. */
+.sp-spine-cap {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--voice-human-dim);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-spine-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-spine-node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.sp-spine-node-label {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+.sp-spine-node-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-spine-node-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+/* Working now: THE one full-hue machine locus of the screen. */
+.sp-spine-node.is-working .sp-spine-node-dot {
+  background: var(--voice-machine);
+  border-color: transparent;
+}
+.sp-spine-node.is-working .sp-spine-node-label {
+  color: var(--voice-machine);
+}
+.sp-spine-node.is-working .sp-spine-node-state {
+  color: var(--voice-machine-dim);
+}
+/* Your move: the gate object's spine rendering. Clicking opens the
+   gate card, never a dashboard. */
+.sp-spine-node.is-gate {
+  background: var(--voice-human-faint);
+  border-color: var(--voice-human-border);
+}
+.sp-spine-node.is-gate .sp-spine-node-dot {
+  background: var(--voice-human);
+  border-color: transparent;
+}
+.sp-spine-node.is-gate .sp-spine-node-label {
+  color: var(--voice-human);
+}
+.sp-spine-node.is-gate .sp-spine-node-state {
+  color: var(--voice-human-dim);
+}
+/* Done: check plus artifact chip; click jumps the Canvas there. */
+.sp-spine-node.is-done .sp-spine-node-label {
+  color: var(--ink-body);
+}
+.sp-spine-node.is-done .sp-spine-node-dot {
+  background: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+}
+.sp-spine-node.is-done .sp-spine-node-dot::before {
+  content: "\2713";
+  font-size: 10px;
+  color: var(--ink-subtle);
+}
+.sp-artifact-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+/* Queued: dim but present. */
+.sp-spine-node.is-queued {
+  opacity: 0.75;
+}
+.sp-spine-node.is-queued .sp-spine-node-label {
+  color: var(--ink-faint);
+}
+/* Skipped: slim labeled pass-through, never hidden, never fake. */
+.sp-spine-node.is-skipped {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+.sp-spine-node.is-skipped .sp-spine-node-label {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.sp-spine-node.is-skipped .sp-spine-node-state {
+  color: var(--ink-faint);
+}
+/* Edge between stages. */
+.sp-spine-edge {
+  flex: 1;
+  min-width: 10px;
+  height: 1px;
+  background: var(--ink-hairline);
+}
+/* The drawn 07 to 01 return edge: the loop you can SEE. */
+.sp-spine-return {
+  position: relative;
+  height: 9px;
+  margin: 3px 220px 0;
+  border: 1px solid var(--ink-hairline-soft);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+.sp-spine-return::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-left: 1px solid var(--ink-hairline);
+  border-top: 1px solid var(--ink-hairline);
+  transform: rotate(45deg);
+}
+.sp-spine-return-label {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  transform: translateX(-50%);
+  background: var(--ink-bg);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+/* Concurrent journeys: thin lanes under the strip. One lane owns the
+   Canvas; clicking another swaps focus. */
+.sp-spine-lanes {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sp-lane {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  white-space: nowrap; /* a lane never wraps mid-phrase (craft bar) */
+  flex: none;
+}
+.sp-lane.is-focused {
+  border-color: var(--ink-hairline);
+  color: var(--ink-body);
+  background: var(--ink-panel);
+}
+.sp-lane-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+.sp-lane-dot.is-machine {
+  background: var(--voice-machine-dim);
+}
+.sp-lane-dot.is-gate {
+  background: var(--voice-human-dim);
+}
+
+/* ---- 8. SurfaceHeader (primitive 6.1) ------------------------------ */
+/* One identical header anatomy across every face, room, and drawer. */
+
+.sp-surface-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 var(--sp-5);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-stage-marker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.sp-surface-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The agent attribution atom: mono chip, leading the line, survives
+   grayscale via the name itself. Ambient machine tier. */
+.sp-agent-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-machine-dim);
+  background: var(--voice-machine-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+/* Typed state chip: one TS union renders everywhere, so the same
+   state never has two names. */
+.sp-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-body);
+  white-space: nowrap;
+  flex: none;
+}
+.sp-state-chip .sp-state-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.sp-state-chip.is-working {
+  color: var(--voice-machine);
+  border-color: var(--voice-machine-border);
+  background: var(--voice-machine-faint);
+}
+.sp-state-chip.is-needs-you {
+  color: var(--voice-human);
+  border-color: var(--voice-human-border);
+  background: var(--voice-human-faint);
+}
+.sp-state-chip.is-done {
+  color: var(--ink-body);
+}
+.sp-state-chip.is-blocked {
+  color: var(--ink-body);
+  border-style: dashed;
+}
+.sp-header-cluster {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- 9. PulseLine (primitive 6.2) ---------------------------------- */
+/* The single way "the machine is working" is written anywhere.
+   Anatomy: [agent chip] [verb phrase] [object] [honest time].
+   Default is the ambient dim tier; .is-live is the one full-hue
+   locus and carries the pulse. Never a fake countdown, never a bar. */
+
+.sp-pulse-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--voice-machine-dim);
+}
+.sp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--voice-machine-dim);
+  flex: none;
+}
+.sp-pulse-line.is-live {
+  color: var(--voice-machine);
+}
+.sp-pulse-line.is-live .sp-pulse-dot {
+  background: var(--voice-machine);
+}
+.sp-pulse-line.is-queued {
+  color: var(--ink-faint);
+}
+.sp-pulse-line.is-queued .sp-pulse-dot {
+  background: var(--ink-faint);
+}
+.sp-pulse-line.is-bridging {
+  color: var(--ink-subtle);
+}
+.sp-pulse-line.is-bridging .sp-pulse-dot {
+  background: transparent;
+  border: 1px dashed var(--ink-subtle);
+}
+.sp-pulse-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The always-on Working strip: lives in the dim tier, escalates only
+   at the active locus. Idle shape: "N agents working, 1 waiting on
+   you", clickable. */
+.sp-working-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 var(--sp-5);
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--voice-machine-dim);
+}
+.sp-strip-sep {
+  color: var(--ink-faint);
+}
+.sp-strip-summary {
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-strip-summary:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 10. GateChip and the gate card (primitive 6.3) ---------------- */
+/* The ONLY thing ember ever marks. Chip, card, and face are the same
+   object: one count, one source. Every ember string answers: what
+   waits, why it is your call, what approving sets in motion. */
+
+.sp-gate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 11px;
+  color: var(--voice-human);
+  background: var(--voice-human-faint);
+  border: 1px solid var(--voice-human-border);
+  white-space: nowrap;
+}
+/* The gate card is a plain ink surface (Addendum 1.1): the ember
+   lives in the gate chip and the Approve verb, never in card
+   decoration. Anatomy: chip row (gate chip left, mono time right),
+   headline + recommendation, evidence chips, action row. */
+.sp-gate-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+/* Gate verbs compress slightly so all three sit on one row at 380px. */
+.sp-gate-actions .sp-btn {
+  padding: 0 9px;
+  font-size: 12px;
+}
+.sp-gate-headline {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  margin-bottom: 6px;
+}
+.sp-gate-reco {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-gate-receipts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-gate-receipt-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  cursor: pointer;
+}
+.sp-gate-receipt-link:hover {
+  color: var(--ink-body);
+  border-color: var(--ink-hairline);
+  background: var(--ink-raised);
+}
+/* The consequence pair rides helper text, never the button. */
+.sp-gate-consequence {
+  font-size: 11.5px;
+  color: var(--ink-subtle);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.sp-gate-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sp-gate-evidence-link {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sp-gate-evidence-link:hover {
+  color: var(--ink-body);
+}
+
+/* ---- 11. ReceiptLine (primitive 6.4) ------------------------------- */
+/* Past-tense proof: artifact + what is in it + the one next step.
+   Counts in mono. The blocked variant is the only error shape outside
+   the Engine Room: plain reason + recovery verb. */
+
+.sp-receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.sp-receipt-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+  flex: none;
+}
+.sp-receipt-line.is-blocked .sp-receipt-check {
+  color: var(--ink-subtle);
+}
+.sp-receipt-text .sp-mono {
+  color: var(--ink-text);
+}
+.sp-receipt-action {
+  color: var(--ink-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ink-hairline);
+}
+.sp-receipt-action:hover {
+  border-bottom-color: var(--ink-subtle);
+}
+
+/* ---- 12. NextLine (primitive 6.5) ---------------------------------- */
+/* The forward door: nothing dead-ends, ever. Hovering a chip
+   pre-lights the Spine slice it would run. */
+
+.sp-next-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 13px;
+  border: 1px solid var(--ink-hairline);
+  font-size: 12px;
+  color: var(--ink-body);
+  background: transparent;
+  white-space: nowrap;
+  transition: border-color var(--ink-fast) var(--ink-ease);
+}
+.sp-journey-chip:hover {
+  color: var(--ink-text);
+  border-color: var(--ink-subtle);
+}
+.sp-journey-chip .sp-chip-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* ---- 13. WarmSlot (primitive 6.7) ---------------------------------- */
+/* Empty states are journey entries: one honest sentence naming who
+   acts next and when, plus the one action that creates the data. */
+
+.sp-warm-slot {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 26px 24px;
+  text-align: center;
+}
+.sp-warm-slot-line {
+  font-size: 13px;
+  color: var(--ink-body);
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.sp-warm-slot-action {
+  margin-top: 14px;
+  display: inline-flex;
+}
+
+/* ---- 13b. The card grid (Addendum 1.1, binding for every card) ----- */
+/* Plain ink surface: hairline border, token radius, no decoration.
+   Internal grid, top to bottom: chip row (label chips left, one mono
+   timestamp right), body, optional evidence chips, action row.
+   Every card in the product is this anatomy; voices ride the chips. */
+
+.sp-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+.sp-card-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 8px;
+}
+/* The one timestamp: right-aligned, mono, in the chip row. */
+.sp-card-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-card-body {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-card-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sp-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* ---- 14. The Thread ------------------------------------------------ */
+
+.sp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-thread-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sp-day-divider::before,
+.sp-day-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.sp-thread-item {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.sp-thread-item.is-machine {
+  background: var(--voice-machine-faint);
+}
+.sp-thread-item.is-human {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  color: var(--ink-text);
+}
+/* Memory-citing row: attribution rides the memory chip in the chip
+   row, never card decoration (Addendum 1.1: edge strips are banned).
+   The card surface stays plain ink. */
+.sp-memory-chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--voice-memory-dim);
+  background: var(--voice-memory-faint);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+}
+.sp-thread-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.sp-thread-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.sp-briefing-card {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+}
+
+/* ---- 15. The Canvas ------------------------------------------------ */
+/* Working surfaces sit one step brighter than chrome. */
+
+.sp-canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--ink-panel);
+}
+.sp-canvas-face {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sp-face-body {
+  padding: var(--sp-6) var(--sp-8);
+  max-width: 880px;
+}
+.sp-doc-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.sp-doc-h {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin: 6px 0 12px;
+}
+.sp-doc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-text);
+  margin: 20px 0 8px;
+}
+.sp-doc-p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-body);
+}
+.sp-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+}
+/* List rows are block flow with a hung number, NOT flex: inline mono
+   emphasis inside the sentence must never split into separate boxes
+   or break line flow (Addendum 1.1 craft; screen-4 field rows). */
+.sp-doc-list li {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.sp-doc-list .sp-li-num {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.sp-doc-block {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-control);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.sp-face-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-hairline-soft);
+  padding: 14px var(--sp-8) 16px;
+}
+
+/* ---- 16. The Composer ---------------------------------------------- */
+/* The one input: ask, act, navigate, create. Journey chips are spine
+   previews. */
+
+.sp-composer {
+  padding: 12px var(--sp-5) 16px;
+  border-top: 1px solid var(--ink-hairline);
+  background: var(--ink-bg);
+}
+.sp-composer-box {
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px 10px;
+}
+.sp-composer-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-text);
+}
+.sp-composer-input::placeholder {
+  color: var(--ink-faint);
+}
+.sp-composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sp-composer-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.sp-composer-send {
+  margin-left: auto;
+}
+
+/* ---- 17. Approvals tray (slide-over) ------------------------------- */
+/* Class A chrome: 120ms transform only. Cards inside reuse
+   .sp-gate-card. J/K traverses; 1/2/3/H act. */
+
+.sp-tray {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+}
+.sp-tray.is-open {
+  transform: none;
+}
+.sp-tray-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ink-hairline);
+  flex: none;
+}
+.sp-tray-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.sp-tray-hints {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.sp-tray-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- 18. Drawer and peek ------------------------------------------- */
+/* Peek is one level (hover or space, list stays put); the room is
+   two. Drawers slide from their edge: spatial consistency. */
+
+.sp-drawer {
+  position: absolute;
+  top: var(--sp-topbar-h);
+  right: 0;
+  bottom: 0;
+  width: 560px;
+  background: var(--ink-panel);
+  border-left: 1px solid var(--ink-hairline);
+  transform: translateX(105%);
+  transition: transform 120ms var(--ink-ease);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sp-drawer.is-open {
+  transform: none;
+}
+.sp-peek-card {
+  position: absolute;
+  width: 340px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 12px 14px;
+  z-index: 50;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+
+/* ---- 19. Kebab and the Details affordance -------------------------- */
+/* Costs are quiet: no figures inline anywhere. Cost, drivers, and the
+   driver line live inside Details, one deliberate gesture deeper.
+   Mockups render the menu CLOSED. */
+
+/* Structure rule: .sp-kebab is a WRAPPER (div or span) holding the
+   trigger button and the menu as siblings; never nest the menu inside
+   the button element. */
+.sp-kebab {
+  position: relative;
+  display: inline-flex;
+}
+.sp-details-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  min-width: 200px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  padding: 5px;
+  z-index: 60;
+}
+.sp-details-menu.is-open {
+  display: block;
+}
+.sp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-body);
+  text-align: left;
+}
+.sp-menu-item:hover {
+  background: var(--ink-panel);
+  color: var(--ink-text);
+}
+
+/* ==== END OF SHARED BLOCK. Screen-specific styles go below. ======== */
+
+/* ============================================================
+   ADDENDA OVERRIDES (founder-locked; Round 3 baseline)
+   Memory = Vellum. Chips = slate silver. Ember only at the locus.
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --voice-memory: #d3c39c;
+  --voice-memory-dim: #8f8060;
+  --voice-memory-border: rgba(211, 195, 156, 0.32);
+  --voice-memory-soft: #211c10;
+  --voice-memory-faint: #16130b;
+  --chip-fg: #b9c4d4;
+  --chip-dim: #79828f;
+  --chip-border: rgba(185, 196, 212, 0.28);
+  --chip-soft: #171b21;
+  --chip-faint: #101317;
+}
+[data-theme="light"] {
+  --voice-memory: #7d6c42;
+  --voice-memory-dim: #a8996f;
+  --voice-memory-border: rgba(125, 108, 66, 0.35);
+  --voice-memory-soft: #f2eddf;
+  --voice-memory-faint: #f8f5ec;
+  --chip-fg: #3f4c60;
+  --chip-dim: #77839a;
+  --chip-border: rgba(63, 76, 96, 0.28);
+  --chip-soft: #edf0f4;
+  --chip-faint: #f5f7fa;
+}
+/* Chips wear slate (Addendum 1.3). Verify these selectors against the
+   shared block you embedded and extend if your screen adds chip kinds. */
+.sp-gate-chip, .sp-tray-count, .sp-artifact-chip, .sp-label-chip, .sp-source-chip {
+  color: var(--chip-fg);
+  border-color: var(--chip-border);
+  background: var(--chip-soft);
+}
+/* Ember KEEPS: .sp-btn-accent, spine .is-gate node treatment, spine caps,
+   focus rings, the WarmSlot single action. Nothing else. */
+
+/* END SHARED */
+
+/* ==================================================================
+   SCREEN 15: Auth + account menu (Round 3)
+   ================================================================== */
+
+/* ---- Review-page scaffolding (outside the frames) ----------------- */
+
+.jf-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.jf-frame-label {
+  width: var(--sp-frame-w);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin: 34px 0 10px;
+}
+.jf-frame-label:first-child {
+  margin-top: 0;
+}
+.jf-frame-label .jf-label-sub {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+/* Annotation strips: reviewer chrome, never part of the frame. */
+.jf-note {
+  width: var(--sp-frame-w);
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--ink-subtle);
+}
+.jf-note b {
+  color: var(--ink-body);
+  font-weight: 500;
+}
+/* The two focus-rule swatches: rendered ring states, spec-accurate. */
+.jf-focus-demo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 4px 0 2px;
+}
+.jf-demo-btn {
+  height: 26px;
+  padding: 0 11px;
+  border-radius: var(--ink-radius-control);
+  background: var(--voice-human);
+  color: #0a0a0a;
+  font-size: 11.5px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--voice-human);
+}
+.jf-demo-input {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--ink-radius-control);
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+
+/* ---- FRAME A: /login on the public page grammar ------------------- */
+
+.auth-frame {
+  background: var(--ink-bg);
+}
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+/* Engineering grid, mask-faded so rules dissolve, never terminate
+   (rauno rule, landing record section 1). */
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ink-grid-fine) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink-grid-fine) 1px, transparent 1px),
+    linear-gradient(var(--ink-grid-coarse) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink-grid-coarse) 1px, transparent 1px);
+  background-size:
+    48px 48px,
+    48px 48px,
+    240px 240px,
+    240px 240px;
+  -webkit-mask-image: radial-gradient(ellipse 120% 92% at 50% 28%, black 0%, transparent 82%);
+  mask-image: radial-gradient(ellipse 120% 92% at 50% 28%, black 0%, transparent 82%);
+}
+/* Two-depth starfield: silver on ink, deterministic hand-set field
+   (the mockup twin of LandingBackdrop's seeded LCG). Shadows ride
+   currentColor so the light theme flips them with one rule. */
+.auth-star {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.auth-stars-far {
+  width: 1px;
+  height: 1px;
+  color: rgba(244, 244, 245, 0.38);
+  box-shadow:
+    18px 44px, 64px 128px, 132px 76px, 96px 342px, 44px 512px,
+    150px 610px, 84px 736px, 208px 208px, 246px 486px, 302px 132px,
+    288px 688px, 356px 300px, 402px 96px, 384px 560px, 348px 812px,
+    458px 224px, 494px 434px, 470px 760px, 560px 120px, 610px 66px,
+    688px 152px, 760px 84px, 838px 128px, 902px 212px, 948px 96px,
+    1006px 168px, 1052px 320px, 1096px 128px, 1148px 246px, 1190px 92px,
+    1236px 388px, 1282px 176px, 1330px 300px, 1376px 116px, 1404px 452px,
+    1354px 620px, 1120px 780px, 980px 844px;
+}
+.auth-stars-near {
+  width: 2px;
+  height: 2px;
+  color: rgba(244, 244, 245, 0.5);
+  animation: authBreathe 10s ease-in-out infinite;
+  box-shadow:
+    84px 92px, 190px 424px, 60px 664px, 250px 306px, 312px 850px,
+    402px 692px, 366px 172px, 496px 60px, 660px 96px, 806px 176px,
+    872px 64px, 962px 420px, 1030px 92px, 1100px 560px, 1160px 156px,
+    1216px 700px, 1276px 480px, 1322px 96px, 1388px 668px, 1420px 264px,
+    218px 736px, 1064px 820px;
+}
+[data-theme="light"] .auth-stars-far {
+  color: rgba(24, 24, 27, 0.26);
+}
+[data-theme="light"] .auth-stars-near {
+  color: rgba(24, 24, 27, 0.38);
+}
+@keyframes authBreathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-stars-near { animation: none; opacity: 0.7; }
+}
+/* Text protection: type never sits on visible texture (founder law).
+   Radial ink scrim behind the whole auth column. */
+.auth-scrim {
+  position: absolute;
+  left: 50%;
+  top: 96px;
+  width: 820px;
+  height: 700px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, var(--ink-bg) 48%, transparent 78%);
+}
+.auth-center {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 26px;
+}
+.auth-mark {
+  display: block;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 16px rgba(244, 244, 245, 0.16));
+}
+[data-theme="light"] .auth-mark {
+  filter: none;
+}
+[data-theme="light"] .auth-mark .auth-mark-petals {
+  fill: #18181b;
+}
+/* The file's ONE Pixel moment. */
+.auth-title {
+  font-family: var(--font-pixel);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--ink-text);
+}
+.auth-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-body);
+}
+.auth-card {
+  width: 400px;
+  margin-top: 26px;
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  padding: 22px 22px 18px;
+}
+.auth-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin: 0 0 6px;
+}
+.auth-field {
+  position: relative;
+  margin-bottom: 14px;
+}
+.auth-input {
+  width: 100%;
+  height: var(--ink-control-md);
+  padding: 0 12px;
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-control);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-text);
+  outline: none;
+}
+.auth-input::placeholder {
+  color: var(--ink-faint);
+}
+.auth-input.is-invalid {
+  border-color: rgba(229, 83, 75, 0.45);
+}
+.auth-eye {
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--ink-subtle);
+}
+.auth-eye:hover {
+  color: var(--ink-body);
+  background: var(--ink-raised);
+}
+/* The inline error: verdict red on the message only, calm recovery
+   door inside the sentence. No apology theater. */
+.auth-error {
+  margin: -6px 0 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--verdict-fail);
+}
+.auth-error-door {
+  color: inherit;
+  border-bottom: 1px solid rgba(229, 83, 75, 0.4);
+  cursor: pointer;
+}
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ink-hairline-soft);
+}
+.auth-google {
+  width: 100%;
+  justify-content: center;
+}
+.auth-g {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ink-hairline);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-subtle);
+  flex: none;
+}
+.auth-footlinks {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+}
+.auth-footlinks a {
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.auth-footlinks a:hover {
+  color: var(--ink-body);
+  border-bottom-color: var(--ink-hairline);
+}
+
+/* ---- FRAME B: the account menu over Mission Control at rest ------- */
+
+/* The TopBar mark's petals ride the ink text ramp so the brand
+   survives the light flip (screen-9 hardcodes #f4f4f5 and loses its
+   petals on white; CSS wins over the SVG presentation attribute).
+   The gold center bead is untouched: gold lives only in the bead. */
+.sp-topbar-brand svg g {
+  fill: var(--ink-text);
+}
+
+/* Pressed avatar: achromatic pressed state (brighter ring + raised
+   fill), never the ember focus ring; the frame's one ember stays the
+   rest CTA. */
+.sp-avatar.is-pressed {
+  background: #202024;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--ink-text);
+}
+[data-theme="light"] .sp-avatar.is-pressed {
+  background: #e4e4e7;
+  border-color: rgba(0, 0, 0, 0.28);
+}
+/* The menu: 240px, right-aligned under the avatar, ACHROMATIC
+   (grayscale-clean: ink ramps only, no voice hue anywhere inside). */
+.acct-menu {
+  position: absolute;
+  top: 56px;
+  right: 14px;
+  width: 240px;
+  background: var(--ink-panel);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-panel);
+  padding: 6px;
+  z-index: 80;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+[data-theme="light"] .acct-menu {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+.acct-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 10px;
+}
+.acct-id-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-body);
+  flex: none;
+}
+.acct-id-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-text);
+  line-height: 1.35;
+}
+.acct-id-line {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-subtle);
+  line-height: 1.5;
+}
+.acct-sep {
+  height: 1px;
+  background: var(--ink-hairline-soft);
+  margin: 4px 2px;
+}
+.acct-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--ink-body);
+  text-align: left;
+  cursor: pointer;
+}
+.acct-item:hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.acct-item-right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Inline theme control: flips data-theme in place, no settings trip. */
+.acct-seg {
+  margin-left: auto;
+  display: inline-flex;
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: 6px;
+  padding: 1px;
+}
+.acct-seg button {
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: var(--ink-subtle);
+}
+.acct-seg button.is-active {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+/* Achromatic role chip (ink, not slate: the menu is grayscale-clean). */
+.acct-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--ink-hairline);
+  color: var(--ink-subtle);
+}
+
+/* ---- Rest-room pieces, ported from screen-2 for the abbreviated
+        Sunday frame (screen styles, shared block untouched) ---------- */
+
+.rest-spine .sp-spine-edge {
+  min-width: 6px;
+}
+.rest-body {
+  padding: 14px var(--sp-8) 2px;
+  max-width: 980px;
+}
+.rest-body .sp-doc-sub {
+  margin: 12px 0 7px;
+}
+.rest-body .sp-doc-h {
+  margin: 4px 0 8px;
+}
+.rest-facts {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+.rest-facts .rest-fact-num {
+  color: var(--ink-text);
+}
+.rest-stage-list {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  overflow: hidden;
+  background: var(--ink-bg);
+}
+.rest-stage-row {
+  display: grid;
+  grid-template-columns: 26px 74px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 4px 14px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.rest-stage-row:first-child {
+  border-top: none;
+}
+.rest-stage-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.rest-stage-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-body);
+  white-space: nowrap;
+}
+.rest-stage-receipt {
+  color: var(--ink-body);
+  min-width: 0;
+}
+.rest-stage-receipt .sp-mono {
+  color: var(--ink-text);
+}
+.rest-stage-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+.rest-stage-check {
+  color: var(--verdict-pass);
+  font-size: 11px;
+}
+.rest-stage-row.is-off {
+  opacity: 0.62;
+}
+.rest-stage-row.is-off .rest-stage-receipt {
+  color: var(--ink-subtle);
+}
+.rest-stage-row.is-quiet .rest-stage-receipt {
+  color: var(--ink-subtle);
+}
+.rest-stage-row.is-quiet .rest-stage-name {
+  color: var(--ink-subtle);
+}
+.rest-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-6);
+  align-items: start;
+}
+.rest-ship-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 2px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.rest-ship-row:first-of-type {
+  border-top: none;
+}
+.rest-ship-title {
+  color: var(--ink-text);
+  font-weight: 500;
+}
+.rest-ship-note {
+  display: block;
+  color: var(--ink-subtle);
+  font-size: 12px;
+  margin-top: 1px;
+}
+.rest-ship-date {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* Memory highlights: Vellum rides the mono source line via the
+   overridden memory tokens, never card decoration. */
+.rest-mem-row {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.rest-mem-row + .rest-mem-row {
+  margin-top: 6px;
+}
+.rest-mem-row .sp-mono {
+  color: var(--ink-text);
+}
+.rest-mem-src {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--voice-memory-dim);
+}
+.rest-more-line {
+  padding: 6px 2px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+.rest-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.rest-footer-line {
+  flex: 1;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-body);
+}
+.rest-footer-help {
+  display: block;
+  color: var(--ink-subtle);
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+.rest-briefing-copy {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+.rest-briefing-copy .sp-mono {
+  color: var(--ink-text);
+}
+.rest-provenance {
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+}
+.rest-thread-quiet {
+  border: 1px dashed var(--ink-hairline);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  text-align: center;
+}
+/* Memory card treatment (Round 3 ruling 9): the Briefing cites
+   memory, so it wears the Vellum hairline + the Memory chip. */
+.vellum-card {
+  border-color: var(--voice-memory-border);
+}
+
+/* ---- The variant band: /signup, /forgot-password, /join/$token ---- */
+
+.jf-variants {
+  width: var(--sp-frame-w);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.jf-mini {
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  padding: 20px 22px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.jf-mini-route {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin-bottom: 16px;
+}
+.jf-mini-route .jf-mini-state {
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+/* Titles stay Sans: the file's Pixel budget is spent on Frame A. */
+.jf-mini-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-text);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.jf-mini-sub {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  margin-bottom: 14px;
+}
+.jf-mini .auth-input {
+  background: var(--ink-panel);
+}
+.jf-mini-foot {
+  margin-top: 12px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+}
+.jf-mini-invite {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  margin-bottom: 14px;
+}
+.jf-sent {
+  margin-top: 12px;
+}
+
+/* ---- In-frame annotation pins (Round 3.1, brief 6b.3) -------------
+   Reviewer chrome, never product UI: an 18px dashed mono marker
+   keyed to the legend under the frame. Dashed + faint so no one
+   mistakes it for a control; grayscale-clean by construction. */
+
+.jf-pin {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--ink-subtle);
+  border-radius: 50%;
+  background: var(--ink-bg);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-subtle);
+  z-index: 90;
+}
+.jf-legend {
+  display: flex;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--ink-subtle);
+}
+.jf-legend-key {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--ink-subtle);
+  border-radius: 50%;
+  font-size: 9px;
+  flex: none;
+  margin-top: 2px;
+}
+.jf-legend b {
+  color: var(--ink-body);
+  font-weight: 500;
+}
+
+/* ---- Frame A: the quiet public footer ----------------------------- */
+/* Every public page carries the same three mono doors, bottom edge,
+   faint: continuity with the landing, zero competition with the form. */
+
+.auth-pubfoot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  z-index: 2;
+}
+.auth-pubfoot a {
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.auth-pubfoot a:hover {
+  color: var(--ink-subtle);
+  border-bottom-color: var(--ink-hairline);
+}
+
+/* ---- The behavior rail (Round 3.1, brief 6b.3) --------------------
+   Card-spec grammar: labeled cells, each holding real components
+   rendered in a named state. States are shown with literal styles
+   (the hover/focus/pressed values written out) so the rail reads
+   without a pointer. The rail is spec chrome, outside the frames:
+   its ember swatches do not count against the one-locus law. */
+
+.br-rail {
+  width: var(--sp-frame-w);
+  background: var(--ink-bg);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--ink-radius-hero);
+  padding: 22px 24px 24px;
+}
+.br-rail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.br-rail-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+.br-rail-ref {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+.br-rail-sub {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-subtle);
+  max-width: 880px;
+  margin-bottom: 18px;
+}
+.br-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.br-cell {
+  border: 1px solid var(--ink-hairline-soft);
+  border-radius: var(--ink-radius-panel);
+  padding: 14px 16px;
+  min-width: 0;
+}
+.br-cell.is-wide {
+  grid-column: span 2;
+}
+.br-cell-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: 2px;
+}
+.br-cell-target {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.br-states {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.br-state {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.br-state-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.br-state-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+  margin-top: 3px;
+}
+.br-cell-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+}
+
+/* Specimen state renderings: the interactive styles written out as
+   static classes so every state is visible at once. Values mirror
+   the shared block's own hover/focus/disabled rules exactly. */
+
+.br-btn-hover {
+  background: var(--voice-human-hover);
+}
+.br-btn-focus {
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.br-btn-disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.br-ghost-hover {
+  background: #202024;
+}
+[data-theme="light"] .br-ghost-hover {
+  background: #e4e4e7;
+}
+.br-input-focus {
+  box-shadow: 0 0 0 1px var(--ink-input-ring);
+}
+.br-input-disabled {
+  opacity: 0.5;
+}
+.br-item-hover {
+  background: var(--ink-raised);
+  color: var(--ink-text);
+}
+.br-item-focus {
+  box-shadow:
+    0 0 0 2px var(--ink-focus-gap),
+    0 0 0 4px var(--ink-focus-ring);
+}
+.br-avatar-hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--ink-text);
+}
+[data-theme="light"] .br-avatar-hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+.br-eye-pressed {
+  color: var(--ink-text);
+  background: var(--ink-raised);
+}
+
+/* The busy spinner: 12px ring, currentColor, 0.8s linear. Under
+   reduced motion it parks at a fixed angle and the label carries
+   the state alone. */
+@keyframes br-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.br-spin {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  opacity: 0.8;
+  animation: br-spin 0.8s linear infinite;
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .br-spin {
+    animation: none;
+    transform: rotate(45deg);
+  }
+}
+
+/* The motion + keyboard tables inside the rail. */
+.br-table {
+  display: flex;
+  flex-direction: column;
+}
+.br-trow {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 1px solid var(--ink-hairline-soft);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-body);
+}
+.br-trow:first-child {
+  border-top: none;
+}
+.br-trow .br-tkey {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+</style>
+</head>
+<body>
+
+<div class="jf-page">
+
+  <!-- ================================================================
+       FRAME A : /login : the public page grammar, signed out.
+       Sunday Jul 19, 8:24 AM. Mo mistyped his password once; the
+       inline error is showing with its recovery door. ONE ember on
+       the frame: the Sign in CTA. ONE Pixel moment: the page title.
+       Ground truth (login.tsx): Supabase email+password, Lovable
+       Google OAuth, /forgot-password, the ?next= invite chain.
+       GAP rendered honestly: no SAML SSO (none in production), no
+       magic-link; absent, not faked.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame A &middot; /login</span>
+    <span class="jf-label-sub">public page grammar &middot; signed out, failed password &middot; Sun Jul 19, 8:24 AM</span>
+  </div>
+
+  <div class="sp-frame auth-frame">
+    <div class="auth-backdrop">
+      <div class="auth-grid"></div>
+      <div class="auth-star auth-stars-far"></div>
+      <div class="auth-star auth-stars-near"></div>
+      <div class="auth-scrim"></div>
+    </div>
+
+    <div class="auth-center">
+      <!-- The 7-dot mark. Gold lives ONLY in the mark's center bead. -->
+      <svg class="auth-mark" width="40" height="40" viewBox="0 0 16 16" aria-hidden="true">
+        <g class="auth-mark-petals" fill="#f4f4f5">
+          <circle cx="8" cy="2.4" r="1.15"/>
+          <circle cx="12.4" cy="4.5" r="1.15"/>
+          <circle cx="13.5" cy="9.3" r="1.15"/>
+          <circle cx="10.4" cy="13.1" r="1.15"/>
+          <circle cx="5.6" cy="13.1" r="1.15"/>
+          <circle cx="2.5" cy="9.3" r="1.15"/>
+          <circle cx="3.6" cy="4.5" r="1.15"/>
+        </g>
+        <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+      </svg>
+
+      <!-- The file's one Pixel moment -->
+      <h1 class="auth-title">Sign in</h1>
+      <div class="auth-sub">Your product team of agents is where you left it.</div>
+
+      <div class="auth-card">
+        <form>
+          <label class="auth-label" for="a-email">Work email</label>
+          <div class="auth-field">
+            <input class="auth-input" id="a-email" type="email" value="mo@heliolabs.dev" autocomplete="email" />
+          </div>
+
+          <label class="auth-label" for="a-pass">Password</label>
+          <div class="auth-field" style="margin-bottom:8px">
+            <input class="auth-input is-invalid" id="a-pass" type="text" value="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" style="padding-right:36px" aria-invalid="true" aria-describedby="a-err" />
+            <button class="auth-eye" type="button" aria-label="Show password" title="Show password">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+
+          <!-- Inline error with its recovery door: "reset it" doors to
+               /forgot-password with the typed email carried along. -->
+          <p class="auth-error" id="a-err" role="alert">That password didn't match. Try again or <span class="auth-error-door">reset it</span>.</p>
+
+          <!-- THE one ember locus of this frame -->
+          <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" type="submit">Sign in <span class="sp-kbd">&#9166;</span></button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <!-- Plain ink: OAuth is a door, not the frame's move -->
+        <button class="sp-btn sp-btn-md auth-google" type="button"><span class="auth-g">G</span>Continue with Google</button>
+
+        <!-- Doors: left > /forgot-password, right > /signup -->
+        <div class="auth-footlinks">
+          <a>Forgot password?</a>
+          <a>New here? The beta is open.</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- The quiet public footer: the same three mono doors every
+         public page carries. Faint on purpose; zero competition
+         with the form. -->
+    <div class="auth-pubfoot">
+      <a>Privacy</a>
+      <a>Terms</a>
+      <a>Security</a>
+    </div>
+
+    <!-- In-frame annotation pins (reviewer chrome; legend below) -->
+    <span class="jf-pin" style="left:934px;top:393px">1</span>
+    <span class="jf-pin" style="left:934px;top:461px">2</span>
+    <span class="jf-pin" style="left:934px;top:490px">3</span>
+    <span class="jf-pin" style="left:934px;top:528px">4</span>
+    <span class="jf-pin" style="left:934px;top:643px">5</span>
+  </div>
+
+  <div class="jf-note">
+    <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>Tab order and focus.</b> One loop: email &#8594; password &#8594; eye toggle &#8594; Sign in &#8594; Continue with Google &#8594; Forgot password? &#8594; New here? Autofocus lands on email (or on password when the email arrives prefilled from a reset link). Inputs take the calm white ring; typing is not a gate.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>The eye toggle.</b> <span class="sp-mono">aria-pressed</span> button, tooltip "Show password" / "Hide password" (400ms hover delay, mono, below). Toggling never drops focus from the field and never re-triggers validation.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>The inline error.</b> <span class="sp-mono">role="alert"</span>, tied to the field via <span class="sp-mono">aria-describedby</span>; the field border warms to verdict red but the label and ring stay calm. Any keystroke in either field clears it (login.tsx already does this). The recovery door "reset it" lives inside the sentence &#8594; /forgot-password with the typed email carried along. No shake, no toast theater.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>Submit.</b> Enter anywhere in the form submits. Busy state: label becomes "Signing in" with the 12px ring spinner, and BOTH paths disable (<span class="sp-mono">busy = loadingEmail || loadingGoogle</span>, the live double-submit hardening). Success is a FULL browser navigation to /m, never the SPA transition &#8212; the SPA path was observed stranding fresh accounts as a blank Suspense tree mid gate-redirect (login.tsx, 2026-07-09); engineers keep this.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>Doors.</b> "Forgot password?" &#8594; /forgot-password &middot; "New here? The beta is open." &#8594; /signup &middot; the quiet mono footer &#8594; /privacy, /terms, /security (public-page continuity). A logged-out invitee arrives here as /login?next=/join/$token and is returned to the accept page after signing in (safeNextPath open-redirect guard: internal absolute paths only).</span></span>
+    <span><b>Focus rules (rendered spec swatches):</b> buttons and links take the ember double ring (0 0 0 2px ink gap, 0 0 0 4px ember); text inputs take the calm white ring (0 0 0 1px rgba 255/.3):</span>
+    <div class="jf-focus-demo">
+      <span class="jf-demo-btn">Sign in</span>
+      <span class="jf-demo-input">mo@heliolabs.dev</span>
+    </div>
+    <span><b>Motion budget:</b> near stars breathe 10s ease-in-out (opacity only); input ring and button hover 150ms var(--ink-ease); nothing else moves. Reduced motion: stars park at 0.7 opacity, spinner parks at 45&deg; and the "Signing in" label carries the state alone.</span>
+    <span><b>Honesty:</b> real flows only (Supabase password + Google OAuth per login.tsx); no SAML SSO or magic-link chrome because the backend has neither. This mockup leads with the password form where the live page leads with Google &#8212; a deliberate reorder so the frame has ONE ember move; the OAuth door stays plain ink either way. Starfield is sanctioned here: auth is a brand moment, not a working surface.</span>
+  </div>
+
+  <!-- ================================================================
+       FRAME B : /m : Mission Control at rest (screen-2's Sunday
+       state, abbreviated), avatar PRESSED, account menu OPEN.
+       Sunday Jul 19, 8:41 AM: Mo just signed in (Frame A resolved
+       here), read nothing yet, and opened his avatar to flip theme.
+       The menu is ACHROMATIC; the frame's ONE ember stays the rest
+       CTA "Start the loop". Zero gates, so the Approvals door
+       carries no count: the absence IS the state. This frame fixes
+       founder complaint #1 (no account door existed); implementation
+       target: RoomChrome.tsx + MissionShellView.tsx.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Frame B &middot; /m</span>
+    <span class="jf-label-sub">Relay at rest &middot; avatar pressed, account menu open &middot; Sun Jul 19, 8:41 AM</span>
+  </div>
+
+  <div class="sp-frame">
+    <div class="sp-shell">
+
+      <!-- REGION 1: TopBar v2. Avatar is a BUTTON (the menu anchor),
+           shown pressed. No Approvals pill: zero gates at rest. -->
+      <header class="sp-topbar">
+        <div class="sp-topbar-brand">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <g fill="#f4f4f5">
+              <circle cx="8" cy="2.4" r="1.15"/>
+              <circle cx="12.4" cy="4.5" r="1.15"/>
+              <circle cx="13.5" cy="9.3" r="1.15"/>
+              <circle cx="10.4" cy="13.1" r="1.15"/>
+              <circle cx="5.6" cy="13.1" r="1.15"/>
+              <circle cx="2.5" cy="9.3" r="1.15"/>
+              <circle cx="3.6" cy="4.5" r="1.15"/>
+            </g>
+            <circle cx="8" cy="8" r="1.5" fill="#e8b44c"/>
+          </svg>
+          <span class="sp-brand-name">Supaprod</span>
+        </div>
+        <div class="sp-topbar-divider"></div>
+        <button class="sp-product-switcher">Helio Labs / Relay <span style="color:var(--ink-faint);font-size:9px">&#9662;</span></button>
+        <nav class="sp-topbar-nav">
+          <a class="sp-nav-item is-active" href="#">Mission Control</a>
+          <a class="sp-nav-item" href="#">Approvals</a>
+          <a class="sp-nav-item" href="#">Brain</a>
+          <a class="sp-nav-item" href="#">Settings</a>
+        </nav>
+        <div class="sp-topbar-right">
+          <button class="sp-btn">Ask <span class="sp-kbd">A</span></button>
+          <button class="sp-icon-btn" title="Past threads &middot; G T">&#8635;</button>
+          <button class="sp-icon-btn" title="Shortcuts">?</button>
+          <button class="sp-avatar is-pressed" title="Account" aria-expanded="true">MO</button>
+        </div>
+      </header>
+
+      <!-- REGION 2: Spine at rest (screen-2 canon): the saved-replies
+           loop closed 01-06 with artifact receipts, Design honestly
+           off, 07 Learn queued on a weekend of traffic. -->
+      <div class="sp-spine-strip">
+        <div class="sp-spine rest-spine">
+          <span class="sp-spine-cap">Starts from: a ticket spike</span>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">01</span>
+            <span class="sp-spine-node-label">Discover</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">02</span>
+            <span class="sp-spine-node-label">Decide</span>
+            <span class="sp-artifact-chip">BET-31</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">03</span>
+            <span class="sp-spine-node-label">Plan</span>
+            <span class="sp-artifact-chip">SPEC-52</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-skipped" title="Design stage is off for this journey: turn on in Settings">
+            <span class="sp-spine-node-num">04</span>
+            <span class="sp-spine-node-label">Design</span>
+            <span class="sp-spine-node-state">off</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">05</span>
+            <span class="sp-spine-node-label">Build</span>
+            <span class="sp-artifact-chip">PR-217</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-done">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">06</span>
+            <span class="sp-spine-node-label">Ship</span>
+            <span class="sp-artifact-chip">REL-19</span>
+          </div>
+          <span class="sp-spine-edge"></span>
+
+          <div class="sp-spine-node is-queued" title="Measure reads once the release has a weekend of traffic">
+            <span class="sp-spine-node-dot"></span>
+            <span class="sp-spine-node-num">07</span>
+            <span class="sp-spine-node-label">Learn</span>
+            <span class="sp-spine-node-state">Mon 9am</span>
+          </div>
+
+          <span class="sp-spine-edge"></span>
+          <span class="sp-spine-cap">Ends with: outcomes read</span>
+        </div>
+
+        <div class="sp-spine-return">
+          <span class="sp-spine-return-label">what Learn records feeds the next loop</span>
+        </div>
+
+        <div class="sp-spine-lanes">
+          <span class="sp-lane is-focused"><span class="sp-lane-dot"></span>Relay &middot; saved replies &middot; shipped Friday &middot; Learn reads Monday</span>
+        </div>
+      </div>
+
+      <!-- REGION 3 + 4 -->
+      <div class="sp-main">
+
+        <!-- Thread at rest, abbreviated from screen-2. -->
+        <aside class="sp-thread">
+          <div class="sp-thread-scroll">
+
+            <div class="sp-day-divider">Friday, July 17</div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Announce</span>
+                <span class="sp-thread-time">4:12pm</span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Shipped to production at <span class="sp-mono">4:12pm</span>. Rollout at <span class="sp-mono">100%</span>, no rollbacks. <span class="sp-receipt-action">See the release</span>.</span>
+              </div>
+              <div class="rest-provenance">Decided by you. Built by Engineer. Shipped 4:12pm.</div>
+            </div>
+
+            <div class="sp-day-divider">Saturday, July 18</div>
+
+            <div class="sp-thread-item is-machine">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Watch</span>
+                <span class="sp-thread-time">2:07am</span>
+              </div>
+              <div class="sp-receipt-line">
+                <span class="sp-receipt-check">&#10003;</span>
+                <span class="sp-receipt-text">Swept your sources. <span class="sp-mono">14</span> signals read, nothing urgent.</span>
+              </div>
+            </div>
+
+            <div class="sp-day-divider">Sunday, July 19</div>
+
+            <!-- The Briefing cites memory: Vellum hairline + Memory
+                 chip (the Round 3 memory treatment), surface plain. -->
+            <div class="sp-briefing-card vellum-card">
+              <div class="sp-thread-meta">
+                <span class="sp-agent-chip">Chief of Staff</span>
+                <span class="sp-memory-chip">Memory</span>
+                <span class="sp-thread-time">8:30am</span>
+              </div>
+              <div class="rest-briefing-copy">
+                Saved replies held through the weekend: no rollbacks, error rate flat. This morning's sweep read <span class="sp-mono">9</span> new signals, nothing urgent. Memory logged the shared-over-personal call from SPEC-52. Measure reads the first real numbers Monday at <span class="sp-mono">9am</span>. Nothing needs you today.
+              </div>
+            </div>
+
+            <div class="rest-thread-quiet">
+              Nothing needs you. The Chief of Staff will bring the next call here.
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- Canvas: the rest face, abbreviated. The face footer holds
+             the frame's ONE ember locus (Start the loop). -->
+        <section class="sp-canvas">
+          <div class="sp-surface-header">
+            <span class="sp-stage-marker">Relay</span>
+            <span class="sp-surface-title">The product at a glance</span>
+            <span class="sp-agent-chip">Chief of Staff</span>
+            <span class="sp-state-chip"><span class="sp-state-dot"></span>All quiet</span>
+            <div class="sp-header-cluster">
+              <button class="sp-icon-btn" title="Copy link">&#10697;</button>
+              <span class="sp-kebab">
+                <button class="sp-icon-btn" title="Details">&#8942;</button>
+                <div class="sp-details-menu">
+                  <button class="sp-menu-item">Details</button>
+                  <button class="sp-menu-item">Open the trace</button>
+                </div>
+              </span>
+            </div>
+          </div>
+
+          <div class="sp-canvas-face">
+            <div class="rest-body">
+              <div class="sp-doc-id">RELAY &middot; SUPPORT INBOX FOR SMALL TEAMS</div>
+              <h1 class="sp-doc-h">Quiet since Friday's ship. Learn reads Monday.</h1>
+              <div class="rest-facts">
+                <span><span class="rest-fact-num">3</span> shipped this quarter</span>
+                <span class="sp-strip-sep">&middot;</span>
+                <span><span class="rest-fact-num">41</span> decisions in memory</span>
+                <span class="sp-strip-sep">&middot;</span>
+                <span><span class="rest-fact-num">12</span> of <span class="rest-fact-num">14</span> calls held up</span>
+                <span class="sp-strip-sep">&middot;</span>
+                <span>last sweep <span class="rest-fact-num">2:04am</span> today</span>
+              </div>
+
+              <div class="sp-doc-sub">The loop, stage by stage</div>
+              <div class="rest-stage-list">
+                <div class="rest-stage-row">
+                  <span class="rest-stage-num">01</span>
+                  <span class="rest-stage-name">Discover</span>
+                  <span class="rest-stage-receipt">Swept this morning at <span class="sp-mono">2:04am</span>. <span class="sp-mono">9</span> new signals, nothing urgent.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">SIG-88</span><span class="rest-stage-check">&#10003;</span></span>
+                </div>
+                <div class="rest-stage-row">
+                  <span class="rest-stage-num">02</span>
+                  <span class="rest-stage-name">Decide</span>
+                  <span class="rest-stage-receipt">Bet placed July <span class="sp-mono">8</span>. Saved replies ranked first of <span class="sp-mono">6</span> candidates.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">BET-31</span><span class="rest-stage-check">&#10003;</span></span>
+                </div>
+                <div class="rest-stage-row">
+                  <span class="rest-stage-num">03</span>
+                  <span class="rest-stage-name">Plan</span>
+                  <span class="rest-stage-receipt">Spec approved July <span class="sp-mono">12</span>. <span class="sp-mono">9</span> requirements, both open questions closed.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">SPEC-52</span><span class="rest-stage-check">&#10003;</span></span>
+                </div>
+                <div class="rest-stage-row is-off">
+                  <span class="rest-stage-num">04</span>
+                  <span class="rest-stage-name">Design</span>
+                  <span class="rest-stage-receipt">Off for this product. Turn it on in Settings and Design joins the next loop.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">off</span></span>
+                </div>
+                <div class="rest-stage-row">
+                  <span class="rest-stage-num">05</span>
+                  <span class="rest-stage-name">Build</span>
+                  <span class="rest-stage-receipt">Merged Thursday. <span class="sp-mono">14</span> files, <span class="sp-mono">41</span> tests green, <span class="sp-mono">2</span> review rounds.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">PR-217</span><span class="rest-stage-check">&#10003;</span></span>
+                </div>
+                <div class="rest-stage-row">
+                  <span class="rest-stage-num">06</span>
+                  <span class="rest-stage-name">Ship</span>
+                  <span class="rest-stage-receipt">Shipped Friday at <span class="sp-mono">4:12pm</span>. Rollout at <span class="sp-mono">100%</span>, no rollbacks.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">REL-19</span><span class="rest-stage-check">&#10003;</span></span>
+                </div>
+                <div class="rest-stage-row is-quiet">
+                  <span class="rest-stage-num">07</span>
+                  <span class="rest-stage-name">Learn</span>
+                  <span class="rest-stage-receipt">Reads Monday at <span class="sp-mono">9am</span>, once the release has a weekend of traffic.</span>
+                  <span class="rest-stage-side"><span class="sp-artifact-chip">queued</span></span>
+                </div>
+              </div>
+
+              <div class="rest-cols">
+                <div>
+                  <div class="sp-doc-sub">Shipped</div>
+                  <div class="rest-ship-row">
+                    <span class="sp-artifact-chip">REL-19</span>
+                    <span>
+                      <span class="rest-ship-title">Saved replies</span>
+                      <span class="rest-ship-note">9 requirements live, no rollbacks.</span>
+                    </span>
+                    <span class="rest-ship-date">Jul 17</span>
+                  </div>
+                  <div class="rest-ship-row">
+                    <span class="sp-artifact-chip">REL-18</span>
+                    <span>
+                      <span class="rest-ship-title">SLA breach alerts in Slack</span>
+                      <span class="rest-ship-note">71% of workspaces turned it on in week one.</span>
+                    </span>
+                    <span class="rest-ship-date">Jul 9</span>
+                  </div>
+                  <div class="rest-more-line">+ 6 more this year &middot; all releases live in Ship</div>
+                </div>
+
+                <div>
+                  <div class="sp-doc-sub">What memory holds</div>
+                  <div class="rest-mem-row">
+                    Support teams pick shared answers over personal ones, <span class="sp-mono">61</span> to <span class="sp-mono">9</span>.
+                    <span class="rest-mem-src">from SPEC-52 grounding &middot; Jul 12</span>
+                  </div>
+                  <div class="rest-mem-row">
+                    Reply-time complaints spike after every pricing change.
+                    <span class="rest-mem-src">from 3 sweeps &middot; Jun 26</span>
+                  </div>
+                  <div class="rest-mem-row">
+                    Macros, dropped in May, came back as saved replies.
+                    <span class="rest-mem-src">decision revisited &middot; Jul 8</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- THE one ember locus of this frame, untouched by the
+                 open menu: rest still has exactly one obvious move. -->
+            <div class="sp-face-footer rest-footer">
+              <div class="rest-footer-line">
+                Nothing needs you. The next loop starts on your word.
+                <span class="rest-footer-help">Watch reads your sources first. Your next call comes at the Decide gate.</span>
+              </div>
+              <button class="sp-btn sp-btn-md sp-btn-accent">Start the loop</button>
+              <button class="sp-journey-chip">How did saved replies land? <span class="sp-chip-arrow">&#8594;</span></button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- REGION 5a: Working strip, idle but alive (never collapses). -->
+      <div class="sp-working-strip">
+        <span class="sp-pulse-dot"></span>
+        <span>all quiet &middot; next sweep of your sources at 2:00am</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span>measure &middot; waiting on a weekend of traffic &middot; reads Mon 9am</span>
+        <span class="sp-strip-sep">&middot;</span>
+        <span class="sp-strip-summary">nothing running, nothing waiting on you</span>
+      </div>
+
+      <!-- REGION 5b: Composer, docked (the one input). -->
+      <div class="sp-composer">
+        <div class="sp-composer-box ink-input-focus">
+          <input class="sp-composer-input" type="text" placeholder="Ask anything, or name the work. Try: how did saved replies land?" />
+          <div class="sp-composer-row">
+            <div class="sp-composer-chips">
+              <button class="sp-journey-chip">What should we build next?</button>
+              <button class="sp-journey-chip">Just write the PRD</button>
+              <button class="sp-journey-chip">Tear this idea down</button>
+              <button class="sp-journey-chip">How did it land?</button>
+            </div>
+            <button class="sp-btn sp-composer-send">Ask <span class="sp-kbd">&#8984;&#9166;</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==============================================================
+         The account menu, OPEN, anchored under the pressed avatar.
+         ACHROMATIC: ink ramps only, grayscale-clean by construction.
+         Doors: Profile > /settings?section=profile &middot; Appearance
+         flips data-theme in place &middot; Keyboard shortcuts > the ?
+         overlay &middot; Invite your team > Settings' team pane (its
+         invites issue the /join/$token links in the variant band)
+         &middot; Admin console > platform console, RENDERS ONLY FOR
+         PLATFORM ADMINS &middot; Sign out > /login, plain ink: leaving
+         is safe, no red.
+         ============================================================== -->
+    <div class="acct-menu" role="menu" aria-label="Account">
+      <div class="acct-id">
+        <div class="acct-id-avatar">MO</div>
+        <div>
+          <div class="acct-id-name">Mo Osman</div>
+          <div class="acct-id-line">mo@heliolabs.dev</div>
+          <div class="acct-id-line" style="color:var(--ink-faint)">Helio Labs &middot; Owner</div>
+        </div>
+      </div>
+      <div class="acct-sep"></div>
+      <button class="acct-item" role="menuitem">Profile</button>
+      <div class="acct-item" role="menuitem" aria-label="Appearance">
+        Appearance
+        <div class="acct-seg">
+          <button class="is-active">Dark</button>
+          <button>Auto</button>
+          <button>Light</button>
+        </div>
+      </div>
+      <button class="acct-item" role="menuitem">Keyboard shortcuts<span class="acct-item-right"><span class="sp-kbd">?</span></span></button>
+      <button class="acct-item" role="menuitem">Invite your team</button>
+      <div class="acct-sep"></div>
+      <!-- Renders only for platform admins; absent for everyone else -->
+      <button class="acct-item" role="menuitem">Admin console<span class="acct-item-right"><span class="acct-chip">platform</span></span></button>
+      <div class="acct-sep"></div>
+      <button class="acct-item" role="menuitem">Sign out</button>
+    </div>
+
+    <!-- In-frame annotation pins (reviewer chrome; legend below) -->
+    <span class="jf-pin" style="left:1204px;top:18px">1</span>
+    <span class="jf-pin" style="left:1158px;top:87px">2</span>
+    <span class="jf-pin" style="left:1158px;top:174px">3</span>
+    <span class="jf-pin" style="left:1158px;top:273px">4</span>
+    <span class="jf-pin" style="left:1158px;top:312px">5</span>
+  </div>
+
+  <div class="jf-note">
+    <span class="jf-legend"><span class="jf-legend-key">1</span><span><b>The avatar is a button.</b> <span class="sp-mono">aria-haspopup="menu"</span>, <span class="sp-mono">aria-expanded</span> tracks the popover. Pressed state is achromatic (brighter ring + raised fill), never the ember focus ring &#8212; opening a menu is not the frame's move. Click, Enter, Space, or ArrowDown opens; ArrowDown seats focus on the first row.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">2</span><span><b>Identity header.</b> Name in Sans 600; email and "Helio Labs &middot; Owner" in mono on the ink ramp. Not interactive: identity is a fact, not a door (Profile below is the door). The workspace line doubles as the answer to "which account am I in" &#8212; the product switcher stays product-scoped.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">3</span><span><b>Appearance, inline.</b> Dark / Auto / Light segmented control flips <span class="sp-mono">data-theme</span> in place, no settings round-trip, menu stays open (the one row that does not close on activate). Auto follows the OS via <span class="sp-mono">prefers-color-scheme</span>. Left/Right arrows move the active segment while the row has focus. Persisted per user, applied before first paint (no flash).</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">4</span><span><b>Admin console.</b> Renders ONLY for platform admins (server-side role check; ordinary owners never receive the row or the divider above it &#8212; absence, not a disabled state). The mono "platform" chip is ink, not slate: the whole menu is grayscale-clean.</span></span>
+    <span class="jf-legend"><span class="jf-legend-key">5</span><span><b>Sign out.</b> Plain ink: leaving is safe, no red, no confirm dialog (sessions are cheap to re-enter; destructive-action chrome is for destruction). Activating it ends the session and lands on /login &#8212; Frame A.</span></span>
+    <span><b>Keyboard grammar (menu open):</b> ArrowUp/ArrowDown move with wrap &middot; Home/End jump &middot; Enter/Space activate &middot; Escape closes and returns focus to the avatar &middot; Tab closes and moves on (a menu never traps Tab) &middot; outside click closes. Motion: 120ms var(--ink-ease), opacity + 4px rise, transform-origin top right; closes in 90ms; reduced motion renders it instantly at rest.</span>
+    <span><b>Founder complaint #1, fixed:</b> every account door (profile, appearance, shortcuts, invite, admin, sign out) now lives behind the avatar; nav stays 4 doors; Approvals carries no count at rest (zero gates: the absence IS the state, consistent with the strip's "nothing waiting on you"). The frame's one ember stays the rest CTA "Start the loop". Implementation target: RoomChrome.tsx + MissionShellView.tsx (the TopBar avatar becomes the button anchoring this menu). No loading skeleton: identity is client-side before the shell paints, so the menu opens complete or not at all.</span>
+    <span><b>Doors out of the menu:</b> Profile &#8594; /settings?section=profile &middot; Keyboard shortcuts &#8594; the ? overlay (same door as the topbar ? button) &middot; Invite your team &#8594; Settings' team pane, whose invites mint the /join/$token links in the band below &middot; Admin console &#8594; the platform console &middot; Sign out &#8594; /login.</span>
+  </div>
+
+  <!-- ================================================================
+       VARIANT BAND : the sibling auth moments as card-spec minis,
+       one route per card, one ember CTA per route. Titles stay Sans:
+       the file's Pixel budget was spent on Frame A's "Sign in".
+       Each mini sits on the same public grammar (ink canvas,
+       hairline, hero radius) at card scale.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Variant band</span>
+    <span class="jf-label-sub">/signup &middot; /forgot-password &middot; /join/$token &middot; card-spec minis, one ember per route</span>
+  </div>
+
+  <div class="jf-variants">
+
+    <!-- /signup -->
+    <div class="jf-mini">
+      <div class="jf-mini-route"><span>/signup</span><span class="jf-mini-state">empty form</span></div>
+      <div class="jf-mini-title">Create your account</div>
+      <div class="jf-mini-sub">Your team's loop starts with one login.</div>
+      <label class="auth-label" for="v-name">Name</label>
+      <div class="auth-field">
+        <input class="auth-input" id="v-name" type="text" placeholder="Your name" />
+      </div>
+      <label class="auth-label" for="v-email">Work email</label>
+      <div class="auth-field">
+        <input class="auth-input" id="v-email" type="email" placeholder="you@company.com" />
+      </div>
+      <label class="auth-label" for="v-pass">Password</label>
+      <div class="auth-field" style="margin-bottom:4px">
+        <input class="auth-input" id="v-pass" type="password" placeholder="12+ characters" />
+      </div>
+      <div style="flex:1"></div>
+      <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Create account</button>
+      <!-- Honest consequence, on the helper line, never the button -->
+      <div class="jf-mini-foot">Creating an account starts the beta checkout.</div>
+    </div>
+
+    <!-- /forgot-password -->
+    <div class="jf-mini">
+      <div class="jf-mini-route"><span>/forgot-password</span><span class="jf-mini-state">sent state shown</span></div>
+      <div class="jf-mini-title">Reset your password</div>
+      <div class="jf-mini-sub">We email a link. It signs you in and lets you set a new one.</div>
+      <label class="auth-label" for="v-remail">Work email</label>
+      <div class="auth-field" style="margin-bottom:4px">
+        <input class="auth-input" id="v-remail" type="email" value="mo@heliolabs.dev" />
+      </div>
+      <div style="flex:1"></div>
+      <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Send the reset link</button>
+      <!-- The post-submit receipt: past tense, honest, no toast -->
+      <div class="sp-receipt-line jf-sent">
+        <span class="sp-receipt-check">&#10003;</span>
+        <span class="sp-receipt-text">Sent. Check <span class="sp-mono">mo@heliolabs.dev</span>.</span>
+      </div>
+    </div>
+
+    <!-- /join/$token -->
+    <div class="jf-mini">
+      <div class="jf-mini-route"><span>/join/$token</span><span class="jf-mini-state">logged-out invitee</span></div>
+      <div class="jf-mini-title">Mo invited you to Helio Labs</div>
+      <div class="jf-mini-sub">Accept and you land in the workspace with your teammates, the products, and the loop already running.</div>
+      <div class="jf-mini-invite">invited by mo@heliolabs.dev &middot; Owner</div>
+      <div style="flex:1"></div>
+      <button class="sp-btn sp-btn-md sp-btn-accent auth-submit" style="margin-top:12px" type="button">Accept the invite</button>
+      <!-- Ground truth: logged-out invitees route through
+           /login?next=/join/$token and come straight back here
+           (safeNextPath open-redirect guard in login.tsx). -->
+      <div class="jf-mini-foot">Sign in first. We'll bring you back here.</div>
+    </div>
+
+  </div>
+
+  <div class="jf-note">
+    <span><b>Band rules:</b> one ember CTA per route (the band shows three routes side by side, never three embers on one screen); titles stay Sans (Pixel budget spent on Frame A); the signup footnote and the sign-in-first helper are consequence lines, never button copy. The reset receipt is the only verdict green above the rail.</span>
+    <span><b>Band behavior:</b> /signup validates on submit, not on keystroke (first-touch typing is never punished); its busy label is "Creating your account" and success hands off to the beta checkout, then lands on /onboarding. /forgot-password disables the field after send and swaps the CTA for the receipt; "Send it again" returns after <span class="sp-mono">30s</span> (rate-limit honesty, not a dead button). /join/$token greets by name from the token alone; an invalid or spent token renders the expired state in the rail below, never a blank page.</span>
+  </div>
+
+  <!-- ================================================================
+       BEHAVIOR RAIL (Round 3.1, brief 6b.3): the state grammar of
+       every core component on this screen, card-spec style. Spec
+       chrome, outside the frames: its ember swatches demonstrate
+       states and do not count against the one-locus law.
+       ================================================================ -->
+  <div class="jf-frame-label">
+    <span>Behavior rail</span>
+    <span class="jf-label-sub">state grammar &middot; rest / hover / focus / pressed / disabled / loading / error / success &middot; spec chrome, not product UI</span>
+  </div>
+
+  <div class="br-rail">
+    <div class="br-rail-head">
+      <span class="br-rail-title">How auth and account behave</span>
+      <span class="br-rail-ref">values mirror the shared block &middot; login.tsx is ground truth for busy/disabled</span>
+    </div>
+    <p class="br-rail-sub">
+      Every state below is rendered with the literal style it takes at runtime, so this rail reads without a pointer. One system-wide split carries the whole screen: actions take the ember double ring, text fields take the calm white ring, and a busy form disables every path at once.
+    </p>
+
+    <div class="br-grid">
+
+      <!-- 1: the text field -->
+      <div class="br-cell">
+        <div class="br-cell-label">Text field</div>
+        <div class="br-cell-target">.auth-input &middot; /login /signup /forgot-password</div>
+        <div class="br-states">
+          <div class="br-state">
+            <span class="br-state-tag">rest</span>
+            <input class="auth-input" type="email" placeholder="you@company.com" tabindex="-1" />
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">focus</span>
+            <input class="auth-input br-input-focus" type="email" value="mo@heliolabs.dev" tabindex="-1" />
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">invalid</span>
+            <input class="auth-input is-invalid" type="text" value="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" tabindex="-1" />
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">disabled</span>
+            <input class="auth-input br-input-disabled" type="email" value="mo@heliolabs.dev" disabled />
+          </div>
+        </div>
+        <div class="br-cell-foot">Focus ring is white, not ember: typing is not a gate. Invalid warms the border only; the message lives in the error line, tied by <span class="sp-mono">aria-describedby</span>. Disabled appears only while the form is busy.</div>
+      </div>
+
+      <!-- 2: the primary CTA -->
+      <div class="br-cell">
+        <div class="br-cell-label">Primary CTA</div>
+        <div class="br-cell-target">.sp-btn-accent &middot; one per route, the route's ember</div>
+        <div class="br-states">
+          <div class="br-state">
+            <span class="br-state-tag">rest</span>
+            <span><button class="sp-btn sp-btn-md sp-btn-accent" tabindex="-1">Sign in <span class="sp-kbd">&#9166;</span></button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">hover</span>
+            <span><button class="sp-btn sp-btn-md sp-btn-accent br-btn-hover" tabindex="-1">Sign in <span class="sp-kbd">&#9166;</span></button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">focus-visible</span>
+            <span><button class="sp-btn sp-btn-md sp-btn-accent br-btn-focus" tabindex="-1">Sign in <span class="sp-kbd">&#9166;</span></button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">loading</span>
+            <span><button class="sp-btn sp-btn-md sp-btn-accent" tabindex="-1" aria-busy="true"><span class="br-spin"></span>Signing in</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">disabled</span>
+            <span><button class="sp-btn sp-btn-md sp-btn-accent br-btn-disabled" tabindex="-1" disabled>Sign in</button></span>
+          </div>
+        </div>
+        <div class="br-cell-foot">Loading keeps the accent (the press landed; dimming now would read as failure) and drops the kbd hint. Disabled is the OTHER path's state: while Google is opening, this button dims at 45%, <span class="sp-mono">title</span> "Hold on, opening Google".</div>
+      </div>
+
+      <!-- 3: secondary door + eye toggle -->
+      <div class="br-cell">
+        <div class="br-cell-label">Secondary door &middot; eye toggle</div>
+        <div class="br-cell-target">.sp-btn plain &middot; .auth-eye aria-pressed</div>
+        <div class="br-states">
+          <div class="br-state">
+            <span class="br-state-tag">rest</span>
+            <span><button class="sp-btn sp-btn-md" tabindex="-1" style="width:100%;justify-content:center"><span class="auth-g">G</span>Continue with Google</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">loading</span>
+            <span><button class="sp-btn sp-btn-md" tabindex="-1" aria-busy="true" style="width:100%;justify-content:center"><span class="br-spin"></span>Opening Google</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">eye rest</span>
+            <span style="display:inline-flex;align-items:center;gap:10px">
+              <span class="auth-eye" style="position:static"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+              <span class="br-state-note" style="margin-top:0">tooltip "Show password" &middot; 400ms delay</span>
+            </span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">eye pressed</span>
+            <span style="display:inline-flex;align-items:center;gap:10px">
+              <span class="auth-eye br-eye-pressed" style="position:static"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+              <span class="br-state-note" style="margin-top:0"><span class="sp-mono">aria-pressed="true"</span> &middot; field shows text</span>
+            </span>
+          </div>
+        </div>
+        <div class="br-cell-foot">The OAuth door never wears ember: it is a door, not the route's move. Its redirect leaves the page, so its loading state is the last thing seen; the button never re-enables mid-redirect.</div>
+      </div>
+
+      <!-- 4: the menu row -->
+      <div class="br-cell">
+        <div class="br-cell-label">Account menu row</div>
+        <div class="br-cell-target">.acct-item &middot; RoomChrome.tsx popover</div>
+        <div class="br-states">
+          <div class="br-state">
+            <span class="br-state-tag">rest</span>
+            <span><button class="acct-item" tabindex="-1" style="width:100%">Profile</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">hover</span>
+            <span><button class="acct-item br-item-hover" tabindex="-1" style="width:100%">Profile</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">focus-visible</span>
+            <span><button class="acct-item br-item-focus" tabindex="-1" style="width:100%">Profile</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">seg control</span>
+            <span class="acct-seg" style="margin-left:0">
+              <button class="is-active" tabindex="-1">Dark</button>
+              <button tabindex="-1">Auto</button>
+              <button class="br-item-hover" tabindex="-1" style="border-radius:5px">Light</button>
+            </span>
+          </div>
+        </div>
+        <div class="br-cell-foot">Hover and keyboard focus render the same raised fill; focus-visible adds the double ring. Rows activate on Enter/Space and close the menu &#8212; except Appearance, which flips <span class="sp-mono">data-theme</span> in place and stays open.</div>
+      </div>
+
+      <!-- 5: the avatar button -->
+      <div class="br-cell">
+        <div class="br-cell-label">Avatar button</div>
+        <div class="br-cell-target">.sp-avatar &middot; the menu anchor, TopBar v2</div>
+        <div class="br-states">
+          <div class="br-state">
+            <span class="br-state-tag">rest</span>
+            <span><button class="sp-avatar" tabindex="-1">MO</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">hover</span>
+            <span><button class="sp-avatar br-avatar-hover" tabindex="-1">MO</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">pressed / open</span>
+            <span><button class="sp-avatar is-pressed" tabindex="-1" aria-expanded="true">MO</button></span>
+          </div>
+          <div class="br-state">
+            <span class="br-state-tag">focus-visible</span>
+            <span><button class="sp-avatar br-item-focus" tabindex="-1">MO</button></span>
+          </div>
+        </div>
+        <div class="br-cell-foot">Pressed holds for as long as the menu is open (<span class="sp-mono">aria-expanded="true"</span>) and releases with it. The pressed treatment is achromatic on purpose: opening a menu is never the frame's ember move.</div>
+      </div>
+
+      <!-- 6: form outcomes -->
+      <div class="br-cell">
+        <div class="br-cell-label">Form outcomes</div>
+        <div class="br-cell-target">error &middot; success &middot; consequence</div>
+        <div class="br-states" style="gap:12px">
+          <div>
+            <span class="br-state-tag">error</span>
+            <p class="auth-error" style="margin:4px 0 0" role="presentation">That password didn't match. Try again or <span class="auth-error-door">reset it</span>.</p>
+          </div>
+          <div>
+            <span class="br-state-tag">success</span>
+            <div class="sp-receipt-line" style="margin-top:4px">
+              <span class="sp-receipt-check">&#10003;</span>
+              <span class="sp-receipt-text">Sent. Check <span class="sp-mono">mo@heliolabs.dev</span>.</span>
+            </div>
+          </div>
+          <div>
+            <span class="br-state-tag">consequence</span>
+            <div class="jf-mini-foot" style="margin-top:4px">Creating an account starts the beta checkout.</div>
+          </div>
+        </div>
+        <div class="br-cell-foot">One error shape everywhere: a calm sentence with its recovery door inside it. Success is a past-tense receipt, never a toast mock. Consequences ride helper lines, never button copy.</div>
+      </div>
+
+      <!-- 7: empty / expired / recovery (wide) -->
+      <div class="br-cell is-wide">
+        <div class="br-cell-label">Expired invite &middot; the honest empty states</div>
+        <div class="br-cell-target">/join/$token &middot; invalid or spent token &middot; never a blank page</div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start">
+          <div class="sp-card">
+            <div class="sp-card-chiprow">
+              <span class="sp-kicker" style="font-size:9.5px">/join/$token</span>
+              <span class="sp-card-time">expired</span>
+            </div>
+            <div class="jf-mini-title" style="font-size:14px;margin-bottom:4px">This invite has stopped working.</div>
+            <div class="sp-card-body">
+              Invite links are single-use and expire. Ask Mo to send a fresh one from Settings &middot; Team; it arrives by email and brings you straight back here.
+            </div>
+            <div class="sp-card-actions">
+              <button class="sp-btn" tabindex="-1">Go to sign in</button>
+            </div>
+          </div>
+          <div class="br-table">
+            <div class="br-trow"><span class="br-tkey">auth forms</span><span>No bare empty state exists: an empty form IS the entry, with its label, placeholder, and one CTA. The WarmSlot rule applies inside the app, not here.</span></div>
+            <div class="br-trow"><span class="br-tkey">account menu</span><span>No loading skeleton, ever: identity is client-side before the shell paints, so the menu opens complete or not at all. A skeleton here would fake a wait that does not exist.</span></div>
+            <div class="br-trow"><span class="br-tkey">offline / 500</span><span>Network failure on submit re-enables the form and renders the same calm error shape: "Something broke on our side. Your email and password are still here &#8212; try again." Input values are never cleared.</span></div>
+          </div>
+        </div>
+        <div class="br-cell-foot">The expired card keeps the card law: chip row, body, action row, no decoration, no ember (recovery is never the route's primary move). Recovery always names WHO acts next and WHERE.</div>
+      </div>
+
+      <!-- 8: the motion budget -->
+      <div class="br-cell">
+        <div class="br-cell-label">Motion budget</div>
+        <div class="br-cell-target">state, never decoration &middot; var(--ink-ease)</div>
+        <div class="br-table">
+          <div class="br-trow"><span class="br-tkey">menu open</span><span>120ms &middot; opacity + 4px rise, origin top right</span></div>
+          <div class="br-trow"><span class="br-tkey">menu close</span><span>90ms &middot; same curve, reversed</span></div>
+          <div class="br-trow"><span class="br-tkey">hover / rings</span><span>150ms background; focus rings land instantly</span></div>
+          <div class="br-trow"><span class="br-tkey">spinner</span><span>0.8s linear &middot; 12px ring, currentColor</span></div>
+          <div class="br-trow"><span class="br-tkey">theme flip</span><span>token swap, no transition: an honest cut</span></div>
+          <div class="br-trow"><span class="br-tkey">starfield</span><span>10s opacity breathe &middot; Frame A only</span></div>
+          <div class="br-trow"><span class="br-tkey">reduced motion</span><span>stars park at 0.7, spinner parks at 45&deg;, menu appears at rest &#8212; every state stays fully legible</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="jf-note" style="margin-bottom:8px">
+    <span><b>Rail rules:</b> every value above mirrors the shared block (hover #202024, focus double ring, input ring rgba 255/.3) or login.tsx ground truth (busy disables both paths; loading labels "Signing in" / "Opening Google"); nothing is invented chrome. The rail is spec scaffolding: none of it ships as product UI.</span>
+  </div>
+
+</div>
+
+</body>
+</html>
