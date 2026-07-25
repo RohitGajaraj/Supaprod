@@ -8,10 +8,11 @@
 -- seeded identically, at its own uuid prefix.
 --
 -- THE PREFIX SCHEME. Every Helio seed row lives under the uuid prefix 10000000-.
--- Each investor workspace claims its own first group, so a row can be cloned by
--- swapping the first eight hex characters and nothing else:
+-- Each workspace claims its own first group, so a row can be cloned by swapping
+-- the first eight hex characters and nothing else:
 --     voyage   -> 20000000-        compass  -> 30000000-
 --     meridian -> 40000000-        lantern  -> 50000000-
+--     harbor   -> 60000000-        (the founder's rehearsal copy, not for a firm)
 -- The workspace id itself follows the same rule (Helio is 10000000-0000-4000-8000-
 -- 000000000000), so the clone in 20260725140000 remaps it for free.
 -- Identity rows sit in the reserved ffff second group, which no seed row uses.
@@ -33,11 +34,17 @@
 DO $$
 DECLARE
   -- email, password, display name, uuid prefix, workspace name
+  --
+  -- Four investor logins plus harbor@, the founder's own rehearsal copy. harbor@
+  -- exists so practising the walkthrough, and any agent testing, burns approvals
+  -- in a workspace nobody is being shown. Deciding a gate is a write: rehearsing
+  -- on a login that later goes to a firm hands them an already-empty queue.
   v_rows text[][] := ARRAY[
     ARRAY['voyage@supaprod.ai',   'Supaprod!Voyage2026',   'Maya Ruiz', '20000000', 'Helio Labs'],
     ARRAY['compass@supaprod.ai',  'Supaprod!Compass2026',  'Maya Ruiz', '30000000', 'Helio Labs'],
     ARRAY['meridian@supaprod.ai', 'Supaprod!Meridian2026', 'Maya Ruiz', '40000000', 'Helio Labs'],
-    ARRAY['lantern@supaprod.ai',  'Supaprod!Lantern2026',  'Maya Ruiz', '50000000', 'Helio Labs']
+    ARRAY['lantern@supaprod.ai',  'Supaprod!Lantern2026',  'Maya Ruiz', '50000000', 'Helio Labs'],
+    ARRAY['harbor@supaprod.ai',   'Supaprod!Harbor2026',   'Maya Ruiz', '60000000', 'Helio Labs']
   ];
   v_email text;
   v_password text;

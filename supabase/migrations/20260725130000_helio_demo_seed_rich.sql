@@ -1,8 +1,8 @@
 -- Helio Labs demo seed, the rich pass (founder ruling 2026-07-25, the YC session).
 --
 -- WHY. The Helio Labs showcase workspace looked alive on four tables and empty on
--- twenty. Measured against the live DB on 2026-07-25, the demo's three most
--- important beats had NO data behind them at all:
+-- twenty. Measured against the live DB on 2026-07-25, the demo's most important
+-- beats had NO data behind them:
 --   artifact_lineage   0 rows  ->  the decision-and-outcome graph, layer 03 of the
 --                                  pitch, did not exist
 --   ice_adjustments    0 rows  ->  "agents re-ranked my bets because an outcome
@@ -13,11 +13,17 @@
 --   agent_approvals    1 row, failed, 0 pending  ->  the signature approve beat had
 --                                  nothing to approve
 --
--- This seed fills them, in service of ONE story rather than for coverage: see
--- docs/pitch/demo-story.md. The narrative is Maya Ruiz, PM on Relay, and a
--- checkout bet that shipped, worked (59 to 78 percent), and also missed on tablet.
--- Every row here exists because some beat of that story has to be clickable
--- instead of asserted.
+-- WHAT THIS DOES NOT DO. It does not create products, signals, decisions,
+-- opportunities, prds, missions or learnings. Those already exist in this
+-- workspace from 20260718120000 (verified live 2026-07-25: 4 projects, 9 signals,
+-- 7 decisions, 6 opportunities, 7 prds, 3 missions, 5 learnings). The story was
+-- never missing its NOUNS. It was missing the EDGES between them, which is what
+-- this seed supplies. Re-adding those entities would duplicate them, so do not.
+--
+-- The narrative every row serves is docs/pitch/demo-story.md: Maya Ruiz, PM on
+-- Relay, and a checkout bet that shipped, worked (59 to 78 percent), and also
+-- missed on tablet. A row exists here because some beat of that story has to be
+-- clickable instead of asserted.
 --
 -- SAFETY. Additive only. Every insert carries an explicit fixed uuid in a reserved
 -- block and an ON CONFLICT guard, so this is safe to run repeatedly. It never
@@ -25,182 +31,11 @@
 -- explicit, because their column defaults (current_user_default_workspace(),
 -- auth.uid()) return NULL under a direct superuser apply.
 --
--- UUID BLOCKS (so slices never collide, and so the investor-workspace clone in
--- 20260725140000 can remap the leading 10000000- to another prefix wholesale):
---   2a01 moat        2a02 trace       2a03 gates
---   2a05 discovery   2b01 context     2b02 content     2b03 automation
---
--- CRITICAL: slices 2b01 and 2b02 (PRODUCTS, SIGNALS, DECISIONS, OPPORTUNITIES,
--- PRDS, MISSIONS, LEARNINGS) MUST be seeded BEFORE the moat/trace/gates/discovery
--- layers, because the lineage, ice_adjustments, mission_steps, etc. all reference
--- these core entities. If these are missing, the demo fails: no signals to cluster,
--- no decisions to query, no PRDs/missions/learnings to show execution.
---
--- Dependencies:
---   artifact_lineage, ice_adjustments reference: decisions, opportunities, prds
---   mission_steps reference: missions
---   learnings reference: prds, opportunities, signals (via signal_outcomes)
---   insights reference: opportunities
+-- UUID BLOCKS (so slices never collide, and so the investor-workspace clone can
+-- remap the leading 10000000- to another prefix wholesale):
+--   2a01 moat       2a02 trace     2a03 gates      2a05 discovery
+--   2b01 context    2b02 content   2b03 automation
 
--- =====================================================================
--- Helio Labs demo seed, slice 2b01: CONTEXT LAYER (PRODUCTS, PROJECTS, SIGNALS).
--- Foundation entities that everything else references.
--- =====================================================================
-
--- Products
-INSERT INTO public.products (id, workspace_id, name, description, north_star, north_star_date, status, owner_id, created_at, updated_at)
-VALUES
-  ('10000000-2b01-4000-8000-000000000001',
-   '10000000-0000-4000-8000-000000000000',
-   'Relay',
-   'Homeowner app for solar monitoring and notifications.',
-   'Increase completed checkouts by 40 percent and reduce churn from notification fatigue.',
-   now() + interval '90 days',
-   'active',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   now() - interval '40 days',
-   now() - interval '39 days')
-ON CONFLICT DO NOTHING;
-
--- Projects
-INSERT INTO public.projects (id, product_id, workspace_id, name, owner_id, created_at, updated_at)
-VALUES
-  ('10000000-2b01-4000-8000-000000000011',
-   '10000000-2b01-4000-8000-000000000001',
-   '10000000-0000-4000-8000-000000000000',
-   'Checkout Funnel',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   now() - interval '37 days',
-   now() - interval '36 days')
-ON CONFLICT DO NOTHING;
-
--- Workspace Signals (Beat 1: the scattered evidence)
-INSERT INTO public.workspace_signals (id, workspace_id, title, status, type, signal_date, user_submitted_by, model_generated, created_at, updated_at)
-VALUES
-  ('10000000-2b01-4000-8000-000000000101', '10000000-0000-4000-8000-000000000000', 'Address re-confirm screen has 34pct exit rate', 'active', 'analytics', now() - interval '29 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '29 days', now() - interval '29 days'),
-  ('10000000-2b01-4000-8000-000000000102', '10000000-0000-4000-8000-000000000000', 'Support says address re-confirm is confusing', 'active', 'support', now() - interval '28 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '28 days', now() - interval '28 days'),
-  ('10000000-2b01-4000-8000-000000000103', '10000000-0000-4000-8000-000000000000', 'App Store review: "why ask for address twice?"', 'active', 'review', now() - interval '27 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '27 days', now() - interval '27 days'),
-  ('10000000-2b01-4000-8000-000000000104', '10000000-0000-4000-8000-000000000000', 'PostHog: funnel shows 5210 starts, 1614 exits at address step', 'active', 'analytics', now() - interval '26 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', true, now() - interval '26 days', now() - interval '26 days'),
-  ('10000000-2b01-4000-8000-000000000105', '10000000-0000-4000-8000-000000000000', 'Notification mutes climbing: 22pct of new users silence in first month', 'active', 'analytics', now() - interval '29 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', true, now() - interval '29 days', now() - interval '29 days'),
-  ('10000000-2b01-4000-8000-000000000106', '10000000-0000-4000-8000-000000000000', 'Support: homeowners getting 6+ alert emails in evening storms', 'active', 'support', now() - interval '28 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '28 days', now() - interval '28 days')
-ON CONFLICT DO NOTHING;
-
--- =====================================================================
--- Helio Labs demo seed, slice 2b02: CONTENT LAYER (DECISIONS, OPPORTUNITIES, PRDS, MISSIONS, LEARNINGS).
--- The core entities that drive the story.
--- =====================================================================
-
--- Opportunities (Beat 2: the red-teamed bets)
-INSERT INTO public.opportunities (id, workspace_id, product_id, title, description, market_signal, customer_quote, external_signal_id, ice_impact, ice_confidence, ice_ease, ice_score, status, owner_id, created_at, updated_at)
-VALUES
-  -- The approved bet: confirmed address step
-  ('10000000-2b02-4000-8000-000000000001',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   'One-step address confirmation in checkout',
-   'Users abandon checkout at redundant address re-confirm. Eliminating the extra step should improve completion.',
-   'PostHog funnel: 34 pct exit at address re-confirm screen (1614 of 5210 starts)',
-   'Why ask for address twice? Just checked it at signup.',
-   'helio-relay-address-confirmation',
-   8, 0.88, 0.79, 7.0, 'approved', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '25 days', now() - interval '25 days'),
-
-  -- The digest bet: reduce mute rate
-  ('10000000-2b02-4000-8000-000000000002',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   'Grouped in-app digest for Relay alerts',
-   'Mute rate climbing (22 pct in first month). Batch alerts into in-app digest and push summary instead of individual notifications.',
-   'Support ticket cluster: 6+ alert emails in evening storms; App Store: users want batching',
-   'Can we please just send one digest at 6pm instead of spamming alerts?',
-   'helio-relay-digest',
-   7, 0.81, 0.72, 6.2, 'approved', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '25 days', now() - interval '25 days'),
-
-  -- The killed bet: crypto checkout
-  ('10000000-2b02-4000-8000-000000000005',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   'One-tap crypto add-on payment',
-   'Add crypto payment option to checkout for early adopters. Hypothesis: payment choice is the blocker.',
-   'Derived from checkout theme but not backed by direct signal',
-   NULL,
-   'helio-relay-crypto-checkout',
-   5, 0.44, 0.31, 2.9, 'killed', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '24 days', now() - interval '20 days')
-ON CONFLICT DO NOTHING;
-
--- Decisions (Beat 0: the decision record)
-INSERT INTO public.decisions (id, user_id, workspace_id, product_id, opportunity_id, title, rationale, owner_id, status, created_at, updated_at)
-VALUES
-  ('10000000-2b02-4000-8000-000000000a01',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   '10000000-2b02-4000-8000-000000000001',
-   'Eliminate redundant address re-confirm step',
-   'PostHog funnel showed address re-confirm as the highest-impact drop point (1614 of 5210). Users have already provided address at signup. Single confirmation per session is defensible.',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   'decided',
-   now() - interval '22 days',
-   now() - interval '22 days'),
-
-  ('10000000-2b02-4000-8000-000000000a02',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   '10000000-2b02-4000-8000-000000000002',
-   'Digest alerts before shipping batched push',
-   'Mute rate is the constraint. In-app grouped digest ships before APNs/FCM work so risk is contained.',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   'decided',
-   now() - interval '22 days',
-   now() - interval '22 days')
-ON CONFLICT DO NOTHING;
-
--- PRDs (Beat 3: the spec-to-build flow)
-INSERT INTO public.prds (id, user_id, workspace_id, project_id, opportunity_id, title, body_md, status, model, created_at, updated_at)
-VALUES
-  ('10000000-2b02-4000-8000-000000000p01',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000011',
-   '10000000-2b02-4000-8000-000000000001',
-   'One-step address confirmation',
-   '# Address Confirmation Redesign\n\n## Problem\nCheckout funnel shows 34% exit at redundant address re-confirm screen.\n\n## Solution\nEliminate extra step. Users provide address at signup; one confirm per session.\n\n## Success Metric\n>= 70% improvement in address-step completion rate (from 66% to ~90%).\n\n## Design Notes\nKeep inline validation, show confidence score from address verification service.\n\n## Rollback Plan\nOne-line feature flag in checkout pipeline.',
-   'review',
-   'openai/gpt-4o',
-   now() - interval '20 days',
-   now() - interval '20 days')
-ON CONFLICT DO NOTHING;
-
--- Missions (Beat 3: the build execution)
-INSERT INTO public.missions (id, user_id, workspace_id, product_id, prd_id, title, status, created_at, updated_at)
-VALUES
-  ('10000000-2b02-4000-8000-000000000m01',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   '10000000-2b02-4000-8000-000000000p01',
-   'Ship address confirmation fix',
-   'shipped',
-   now() - interval '18 days',
-   now() - interval '5 days')
-ON CONFLICT DO NOTHING;
-
--- Learnings (Beat 4 & 5: the outcomes)
-INSERT INTO public.learnings (id, user_id, workspace_id, product_id, prd_id, opportunity_id, title, content, status, owner_id, created_at, updated_at)
-VALUES
-  ('10000000-2b02-4000-8000-000000000l01',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   '10000000-0000-4000-8000-000000000000',
-   '10000000-2b01-4000-8000-000000000001',
-   '10000000-2b02-4000-8000-000000000p01',
-   '10000000-2b02-4000-8000-000000000001',
-   'Address confirmation fix: 59->78% desktop, 53->59% tablet',
-   'Completed checkouts improved 59% -> 78% on desktop (+32% relative), but tablet only moved 53% -> 59% (+11% relative). The 15-point gap was not the confirm step; root cause was landscape keyboard overlay on 10" tablets covering card field. Not surfaced by original signal set.',
-   'validated',
-   '1339eea2-e170-4e37-a581-e2bec0b676c7',
-   now() - interval '5 days',
-   now() - interval '5 days')
-ON CONFLICT DO NOTHING;
 
 -- =====================================================================
 -- Helio Labs demo seed, slice 2a01: THE MOAT.
@@ -2143,3 +1978,671 @@ INSERT INTO public.insights (
     now() - interval '26 days', now() - interval '10 days'
   )
 ON CONFLICT DO NOTHING;
+
+-- Helio Labs demo seed, slice 2b01: workspace brief, goals, tasks.
+-- Additive and idempotent. Every row carries an explicit workspace_id and user_id.
+
+-- 1. The standing workspace brief. This is the context every agent reads first.
+INSERT INTO public.workspace_briefs (
+  id, workspace_id, mission, target_user, current_focus, anti_goals, notes,
+  updated_by, researcher_targets, last_researcher_tick_at, created_at, updated_at
+) VALUES (
+  '10000000-2b01-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000000',
+  'Helio Labs makes the monitoring layer for residential solar. One gateway on the wall, one app on the phone, one honest number: what the roof made today and what it saved. We win when a homeowner stops thinking about the hardware, and when the installer who put it there never has to drive back for something the software could have handled.',
+  'Two people, and they are not the same person. The homeowner is 45 to 65, bought a 6 to 12 panel system through a regional installer, opens Relay maybe twice a week, and judges us in the first 90 seconds after sunrise. The installer is a two to nine person crew running Atlas on a rugged Android tablet in a truck with no signal on half the sites, paid per completed install, and allergic to any screen that adds a step. Beacon serves the installer back office: invoices, warranty claims, and the enterprise partners who now want SSO.',
+  'Relay checkout. Completed checkouts sat at 59 percent and the team assumed the payment step. The evidence said the redundant address re-confirm: 41 percent of abandonments happened on that screen, and session replays showed people re-typing an address they had entered two screens earlier. One confirmed address step shipped behind the checkout_single_address flag, completed checkouts moved 59 to 78 percent, and tablet came in at 63 to 67, a real but much smaller lift that we record as mixed rather than round up. Running now: ramp the flag to 100 percent, fix the tablet address summary layout, and land the grouped in-app notification digest so homeowners stop muting Relay alerts wholesale. Atlas offline checklist and Beacon SSO are live but second priority this cycle.',
+  'No new products this quarter. No installer-facing dashboard rebuild, the crews asked for fewer screens and not prettier ones. No push into commercial or utility scale solar, the sales motion is a different company. No battery or EV charger integrations until Relay retention holds above 60 percent at day 90. Do not add a step to checkout for any reason, including analytics. Do not send a notification that a homeowner cannot turn off in one tap. Do not report the checkout lift without the tablet number next to it. Comet stays a small side bet and does not take engineers off Relay.',
+  'Numbers the team treats as fact: 41,200 active homeowners, 340 installer crews, 12 enterprise partners on Beacon. Relay checkout completion 78 percent on phone and 67 percent on tablet after the change. Notification opt-out is the open wound at 22 percent of homeowners who have muted everything. Maya Ruiz owns Relay and runs the weekly evidence review on Thursdays. Priya Raman leads Relay engineering, Dev Okonjo covers Atlas and firmware, Sam Weller handles installer support and forwards the ticket clusters that usually become our best signals. Support tags to watch: checkout-abandon, alert-fatigue, offline-sync. The shared auth package that Relay and Beacon both use is a decided constraint, not an accident.',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Watch Enphase Enlighten and SolarEdge mySolarEdge release notes and app store changelogs, they set the homeowner expectation for what a solar app does. Watch Tesla Solar app reviews for the tone shift after outages. Watch Aurora Solar and Scoop for what installer field tools ship, especially offline behavior. Sources worth polling: r/solar and r/SolarDIY threads about app notifications and checkout, SEIA and Wood Mackenzie quarterly residential install numbers, NEM 3.0 policy updates in California because they change what number a homeowner cares about, and the app store review streams for Enphase, SolarEdge, and Relay itself. Also track Stripe and Shopify checkout research, our checkout problem is a commerce problem wearing a solar hat.',
+  now() - interval '2 days',
+  now() - interval '96 days',
+  now() - interval '2 days'
+)
+ON CONFLICT (workspace_id) DO NOTHING;
+
+-- 2. Goals. One achieved (the checkout lift), one on track, one at risk, two active.
+INSERT INTO public.goals (
+  id, user_id, workspace_id, title, description, target_metric, target_date,
+  status, last_worked_at, created_at, updated_at
+) VALUES
+(
+  '10000000-2b01-4000-8000-000000000011',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  '10000000-0000-4000-8000-000000000000',
+  'Lift Relay completed checkouts from 59 to 75 percent',
+  'ACHIEVED and then some, on phone. The single confirmed address step took completed checkouts from 59 to 78 percent over the 14 days after full ramp, measured on the same funnel definition. Tablet moved 63 to 67, which is a real lift but well under target, so the outcome is recorded as mixed rather than clean. Do not quote the 78 without the 67 next to it. Follow up work is the tablet address summary layout, tracked separately.',
+  'Completed checkouts, percent of sessions that reach the payment confirmation screen. Baseline 59 percent, target 75 percent, actual 78 percent phone and 67 percent tablet.',
+  (now() - interval '9 days')::date,
+  'achieved',
+  now() - interval '6 days',
+  now() - interval '71 days',
+  now() - interval '6 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000012',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  '10000000-0000-4000-8000-000000000000',
+  'Cut Relay full notification mute from 22 to 10 percent',
+  'AT RISK. 22 percent of active homeowners have muted every Relay notification, which means we cannot reach them when a panel string actually drops out. The grouped digest is the intended fix but it is still in build, the preference screen work has not started, and there is no path to measure the change before the target date without shipping to at least half the base. Either the date moves or the digest ships to 50 percent by next Friday. Maya flagged this in the Thursday review and it has not moved since.',
+  'Percent of active homeowners with all notification categories disabled. Baseline 22 percent, target 10 percent, current 22 percent, no movement in 4 weeks.',
+  (now() + interval '24 days')::date,
+  'active',
+  now() - interval '4 days',
+  now() - interval '52 days',
+  now() - interval '4 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000013',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  '10000000-0000-4000-8000-000000000000',
+  'Get the Atlas offline checklist onto all 340 installer crews',
+  'ON TRACK. 214 of 340 crews are on the build with offline queueing, and the failed-install-revisit rate for those crews dropped from 7.1 to 4.3 percent. Rollout is gated on the two-installer conflict rules landing, which is the only open blocker. Dev is running the remaining crews in waves of 40 per week, which lands the last wave with a week to spare.',
+  'Crews on the offline build. Baseline 0 of 340, current 214 of 340, target 340. Secondary metric: revisit rate under 5 percent.',
+  (now() + interval '38 days')::date,
+  'active',
+  now() - interval '3 days',
+  now() - interval '64 days',
+  now() - interval '3 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000014',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  '10000000-0000-4000-8000-000000000000',
+  'Ship Beacon SSO to the 12 enterprise installer partners',
+  'Four of the twelve partners named SSO as a renewal condition, two of them in writing. SAML first through the shared auth package, SCIM provisioning deferred to the next cycle unless a partner blocks on it. The constraint that matters: Relay stays on the same shared auth package, so any change here has to keep the homeowner login path untouched.',
+  'Enterprise partners live on SSO. Baseline 0 of 12, current 2 in pilot, target 12.',
+  (now() + interval '61 days')::date,
+  'active',
+  now() - interval '8 days',
+  now() - interval '40 days',
+  now() - interval '8 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000015',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  '10000000-0000-4000-8000-000000000000',
+  'Prove or kill Comet within one quarter',
+  'Comet is a focus timer built by two people on the side. It gets one quarter and one question: do 200 people use it 3 times a week without being asked. If the answer is no by the target date, we archive it and put the time back into Relay retention. No extra headcount, no marketing spend, no roadmap slot beyond this.',
+  'Weekly active users with 3 or more sessions. Baseline 0, current 61, kill line 200.',
+  (now() + interval '47 days')::date,
+  'active',
+  now() - interval '15 days',
+  now() - interval '33 days',
+  now() - interval '15 days'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Tasks. Split across Maya and the agent fleet so the division of work is visible.
+INSERT INTO public.tasks (
+  id, user_id, workspace_id, project_id, product_id, prd_id, title, status, priority,
+  is_deep_work, due_date, completed_at, estimate_hours, assignee_kind, agent_id,
+  seq, depends_on, risk, detail, created_at, updated_at
+) VALUES
+-- Relay checkout, the hero thread
+(
+  '10000000-2b01-4000-8000-000000000021', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Instrument every checkout step in the Relay funnel', 'done', 'high',
+  false, (now() - interval '58 days')::date, now() - interval '57 days', 4, 'agent', NULL,
+  1, '[]'::jsonb, NULL,
+  'Added step events for cart, address entry, address confirm, payment, and receipt in src/screens/checkout/. Previously only cart and receipt fired, which is why the payment step took the blame for two quarters.',
+  now() - interval '62 days', now() - interval '57 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000022', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Pull 30 days of drop-off by checkout step', 'done', 'high',
+  false, (now() - interval '55 days')::date, now() - interval '55 days', 3, 'agent', NULL,
+  2, '["10000000-2b01-4000-8000-000000000021"]'::jsonb, NULL,
+  '18,940 checkout sessions over 30 days. Abandonment by step: cart 9 percent, address entry 12 percent, address confirm 41 percent, payment 14 percent. The address confirm screen is the whole problem and nobody had looked at it.',
+  now() - interval '58 days', now() - interval '55 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000023', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Watch 12 session replays of abandoned checkouts', 'done', 'high',
+  true, (now() - interval '52 days')::date, now() - interval '52 days', 3, 'human', NULL,
+  3, '["10000000-2b01-4000-8000-000000000022"]'::jsonb, NULL,
+  'Maya watched 12 replays end to end. Nine of them show the same thing: the person reads the confirm screen, scrolls up, scrolls down, and re-types the address they already entered two screens earlier because the screen looks like a form rather than a summary. Three of them close the app on that screen.',
+  now() - interval '55 days', now() - interval '52 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000024', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Write the one confirmed address step spec', 'done', 'high',
+  true, (now() - interval '48 days')::date, now() - interval '47 days', 5, 'human', NULL,
+  4, '["10000000-2b01-4000-8000-000000000023"]'::jsonb, NULL,
+  'One address step. It shows the address as a summary row with an inline edit affordance, never as an empty form. Autocomplete stays. The separate confirm screen is deleted, not hidden behind a flag branch that we forget to clean up.',
+  now() - interval '52 days', now() - interval '47 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000025', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Remove src/screens/checkout/ConfirmAddress.tsx from the flow', 'done', 'high',
+  false, (now() - interval '43 days')::date, now() - interval '42 days', 6, 'agent', NULL,
+  5, '["10000000-2b01-4000-8000-000000000024"]'::jsonb, NULL,
+  'Deleted the route, moved validation into src/screens/checkout/AddressStep.tsx, updated the step machine in src/state/checkoutMachine.ts from 5 states to 4. Two navigation tests updated, one deep link to the confirm route now redirects to the address step.',
+  now() - interval '47 days', now() - interval '42 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000026', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Add inline edit to the address summary row', 'done', 'medium',
+  false, (now() - interval '40 days')::date, now() - interval '39 days', 5, 'agent', NULL,
+  6, '["10000000-2b01-4000-8000-000000000025"]'::jsonb, NULL,
+  'Tap the summary row, the fields expand in place, no navigation. Keyboard avoidance handled on both platforms. This is the piece that lets us delete the confirm screen without losing the ability to fix a typo.',
+  now() - interval '44 days', now() - interval '39 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000027', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Ship behind checkout_single_address at 10 percent', 'done', 'high',
+  false, (now() - interval '35 days')::date, now() - interval '35 days', 2, 'human', NULL,
+  7, '["10000000-2b01-4000-8000-000000000026"]'::jsonb, NULL,
+  '10 percent of new checkout sessions, holdout kept at the old flow for a clean read. Guardrail alerts on payment error rate and on any increase in address correction support tickets.',
+  now() - interval '39 days', now() - interval '35 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000028', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Ramp checkout_single_address to 100 percent', 'in_progress', 'high',
+  false, (now() + interval '3 days')::date, NULL, 2, 'human', NULL,
+  8, '["10000000-2b01-4000-8000-000000000027"]'::jsonb,
+  'Holding at 60 percent until the tablet layout fix lands, so tablet users are not ramped onto a worse experience than phone.',
+  'Ramped 10 to 25 to 60 percent over 12 days. Phone completion is holding at 78 percent, no payment error regression, support ticket volume flat. Last step is 60 to 100 once the tablet card fix is verified.',
+  now() - interval '35 days', now() - interval '2 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000029', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Fix the address summary card layout on tablet', 'in_progress', 'high',
+  false, (now() + interval '2 days')::date, NULL, 8, 'agent', NULL,
+  9, '["10000000-2b01-4000-8000-000000000027"]'::jsonb,
+  'This is why the outcome is mixed. Tablet lifted 63 to 67 percent against 59 to 78 on phone, and we do not yet have proof the layout is the cause.',
+  'On a 10 inch tablet the summary card stretches full width and the inline edit control lands far to the right of the address text, so it reads as decoration rather than an affordance. Constrain the card to 560px and move the edit control next to the text. Heatmaps on the ramped cohort will confirm or kill this theory.',
+  now() - interval '18 days', now() - interval '1 day'
+),
+(
+  '10000000-2b01-4000-8000-000000000030', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000011',
+  'Write the honest outcome note for the checkout change', 'todo', 'medium',
+  true, (now() + interval '5 days')::date, NULL, 2, 'human', NULL,
+  10, '["10000000-2b01-4000-8000-000000000029"]'::jsonb, NULL,
+  'Record it as mixed, not as a win. Phone 59 to 78, tablet 63 to 67, one assumption killed (payment step), one confirmed (redundant confirm screen), one open question (whether the tablet gap is layout or a different buyer). Future Maya needs the tablet number as much as the headline.',
+  now() - interval '6 days', now() - interval '6 days'
+),
+-- Relay notification digest
+(
+  '10000000-2b01-4000-8000-000000000031', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000012',
+  'Group notification events by home and hour in the digest builder', 'in_progress', 'high',
+  false, (now() + interval '4 days')::date, NULL, 10, 'agent', NULL,
+  1, '[]'::jsonb,
+  'A hard outage alert must never be swallowed into a digest. The severity bypass needs a test before this merges.',
+  'New builder in src/lib/notifications/digestBuilder.ts collapses per-panel and per-inverter events into one entry per home per hour. Severity high bypasses grouping entirely and sends immediately.',
+  now() - interval '12 days', now() - interval '1 day'
+),
+(
+  '10000000-2b01-4000-8000-000000000032', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000012',
+  'Add digest frequency to the notification preferences screen', 'todo', 'high',
+  false, (now() + interval '8 days')::date, NULL, 6, 'agent', NULL,
+  2, '["10000000-2b01-4000-8000-000000000031"]'::jsonb, NULL,
+  'Three options and no more: immediate, hourly digest, daily digest. Plus the one tap that turns a category off, which stays exactly where it is. Anything that turns this screen into a matrix of toggles gets rejected.',
+  now() - interval '10 days', now() - interval '10 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000034', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-0000000000a2', '10000000-0001-4000-8000-000000000012',
+  'Interview 5 homeowners who muted every Relay alert', 'todo', 'high',
+  true, (now() + interval '6 days')::date, NULL, 5, 'human', NULL,
+  3, '[]'::jsonb, NULL,
+  'Sam pulled 38 accounts with all categories disabled who still open the app weekly, which means they want the data and not the interruptions. Five 30 minute calls. The question to answer: would a digest have kept them on, or is the content itself the problem.',
+  now() - interval '7 days', now() - interval '7 days'
+),
+-- Atlas offline checklist
+(
+  '10000000-2b01-4000-8000-000000000036', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a1', '10000000-0000-4000-8000-0000000000a1', '10000000-0001-4000-8000-000000000001',
+  'Queue checklist writes to SQLite when the tablet is offline', 'in_progress', 'high',
+  false, (now() + interval '7 days')::date, NULL, 14, 'agent', NULL,
+  1, '[]'::jsonb,
+  'Photo attachments are the risk. A full roof checklist carries 20 to 40 images and the queue has to survive the app being killed mid upload.',
+  'Write-ahead queue in the Atlas Android client, replays on reconnect in submission order. Photos go to a local file queue with a manifest row so a partial upload resumes rather than restarts.',
+  now() - interval '21 days', now() - interval '2 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000037', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a1', '10000000-0000-4000-8000-0000000000a1', '10000000-0001-4000-8000-000000000001',
+  'Decide the conflict rules for two installers on one site', 'todo', 'high',
+  true, (now() + interval '9 days')::date, NULL, 4, 'human', NULL,
+  2, '["10000000-2b01-4000-8000-000000000036"]'::jsonb,
+  'Blocks the rollout to the remaining 126 crews. Larger crews split the roof and the ground work, so two tablets writing the same checklist is normal and not an edge case.',
+  'Options on the table: last write wins per checklist item, lock the checklist to the first tablet, or merge per item and flag only true conflicts for the crew lead. Dev leans merge per item. Needs a decision this week.',
+  now() - interval '11 days', now() - interval '11 days'
+),
+-- Atlas firmware and Beacon SSO
+(
+  '10000000-2b01-4000-8000-000000000038', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a1', '10000000-0000-4000-8000-0000000000a1', '10000000-0001-4000-8000-000000000003',
+  'Define the retry policy for gateways that drop mid firmware push', 'todo', 'medium',
+  false, (now() + interval '16 days')::date, NULL, 6, 'agent', NULL,
+  1, '[]'::jsonb,
+  'A gateway bricked by a half applied image means a truck roll, which costs more than every other bug on this list combined.',
+  'Batch push to 50 gateways at a time. On a dropped connection, hold the image, verify the checksum on reconnect, and never apply a partial. Three failed attempts moves the gateway to a manual queue that Sam works through.',
+  now() - interval '13 days', now() - interval '13 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000039', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a4', '10000000-0000-4000-8000-0000000000a4', '10000000-0001-4000-8000-000000000031',
+  'Confirm Relay stays on the shared auth package for SSO', 'done', 'high',
+  false, (now() - interval '26 days')::date, now() - interval '25 days', 3, 'human', NULL,
+  1, '[]'::jsonb, NULL,
+  'Beacon adds SAML inside the shared auth package rather than forking it. Forking would have been faster this month and expensive every month after, since the homeowner login path in Relay would then drift from the installer one. Decision recorded so nobody reopens it in six weeks.',
+  now() - interval '29 days', now() - interval '25 days'
+),
+(
+  '10000000-2b01-4000-8000-000000000040', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a4', '10000000-0000-4000-8000-0000000000a4', '10000000-0001-4000-8000-000000000031',
+  'Run the SAML pilot with the two partners who asked in writing', 'in_progress', 'medium',
+  false, (now() + interval '13 days')::date, NULL, 9, 'agent', NULL,
+  2, '["10000000-2b01-4000-8000-000000000039"]'::jsonb,
+  'Both partners run Okta, so the pilot proves less about Azure AD than the sample size suggests.',
+  'Metadata exchange done for both, one is mapping groups to Beacon roles by hand until SCIM lands. Pilot exit criteria: 30 days with zero support tickets about login.',
+  now() - interval '20 days', now() - interval '3 days'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Helio Labs demo seed, slice 2b02: written content surfaces (docs, meetings, daily_briefs).
+
+INSERT INTO docs (id, user_id, project_id, parent_id, title, icon, content_json, content_text, archived, position, created_at, updated_at, workspace_id, product_id) VALUES
+(
+  '10000000-2b02-4000-8000-000000000001',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  NULL,
+  'Relay checkout launch retro',
+  'rocket',
+  '{"type":"doc","content":[]}'::jsonb,
+  'What shipped. We removed the second address confirm from Relay checkout and replaced it with one confirmed address step that shows the saved address inline with an edit link. Rolled out to 100 percent of homeowners over four days. No rollback.
+
+Numbers. Completed checkouts moved from 59 percent to 78 percent, measured on the seven days after full rollout against the fourteen days before. Mobile carried the result, 57 to 81. Desktop 62 to 79. Tablet moved 61 to 66, well under the others, so we are recording the outcome as mixed rather than a clean win.
+
+What worked. Ade Fashola pulled 40 session replays before anyone wrote a line of spec, and the replays killed our assumption fast. Four of us were convinced the payment step was the problem, because that is where the support tickets pile up. The replays showed homeowners typing the same street address twice and then leaving. Jenna Kwon went back through 60 tickets and found the same story in the wording, people saying they already gave the address.
+
+The tablet miss. We never tested the tablet layout on real hardware. The confirmed address block wraps between 768 and 1024 wide and pushes the pay button below the fold on iPad in portrait. Bea Lindqvist caught it two days after launch on a loaner device. Priya Raman has the fix in apps/relay/src/checkout/AddressConfirmStep.tsx behind a layout change, shipping this week.
+
+What we would do differently. One, put tablet in the device matrix for any checkout change, not just phone and desktop. Two, instrument by form factor before rollout so a smaller lift shows up in the dashboard on day one instead of in a hallway conversation. Three, keep the honest label. Mixed is a useful result and we should not round it up.',
+  false,
+  1,
+  now() - interval '11 days',
+  now() - interval '4 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2'
+),
+(
+  '10000000-2b02-4000-8000-000000000002',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  NULL,
+  'Relay onboarding, what a new PM needs in week one',
+  'compass',
+  '{"type":"doc","content":[]}'::jsonb,
+  'Relay is the homeowner app. It is the surface a customer opens after an installer leaves, so it carries the whole impression of Helio Labs for the next ten years of that system. About 41,000 homes are active on it. Roughly 70 percent of sessions are mobile, 21 percent desktop, 9 percent tablet, and tablet is the one we keep forgetting.
+
+Who you work with. Priya Raman leads engineering, four engineers plus Bea Lindqvist on QA. Tomas Beck does design across Relay and Beacon. Ade Fashola owns the analytics warehouse and will run any funnel question for you same day if you ask in the morning. Jenna Kwon runs support and is the fastest source of truth in the company. Ravi Menon owns the shared auth package, so anything touching sign in goes through him. Marcus Hall runs Atlas, the installer app, and shares the device fleet with us.
+
+Where things live. App code in apps/relay. Checkout in apps/relay/src/checkout. Notification rules in apps/relay/src/notifications/policy.ts. Shared session and token code in packages/auth-core, which Beacon also uses, so read the architecture note before you change anything there.
+
+Week one, do these three things. Sit with Jenna for one support shift and read tickets in the raw, not summarised. Watch ten session replays end to end, no skipping. Install a monitor on your own house or the office array and live with the daily notification for a week.
+
+Standing rule on this team. We do not ship a claim we cannot measure, and we do not round a mixed result up to a win. The checkout retro is the worked example of both.',
+  false,
+  2,
+  now() - interval '30 days',
+  now() - interval '6 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2'
+),
+(
+  '10000000-2b02-4000-8000-000000000006',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  NULL,
+  'Install partner research notes, three field visits',
+  'clipboard',
+  '{"type":"doc","content":[]}'::jsonb,
+  'Three ride alongs with partner crews, one day each. Cascade Solar in Bend, Northline Energy outside Sacramento, and Pike Ridge Renewables in Boise. Dana Okafor set them up, Marcus Hall and I both went out. Fourteen installs watched end to end.
+
+What we saw. Crews run Atlas on a rugged tablet mounted to the van rack, gloves on, in direct sun, and half the sites have no usable signal in the crawl space or on the roof. Every crew we watched had built a workaround. Cascade photographs each panel serial with the phone camera and types the serials in later at the office, which cost their lead about 35 minutes per job. Northline keeps a paper checklist taped inside the van door and calls it the real checklist.
+
+Direct quotes worth keeping. The Cascade lead, Marisol Vega, said the app is fine when it has bars and useless when it does not, so nobody trusts it. Northline lead Rob Ainsley said he does not mind typing, he minds typing the same serial twice.
+
+What this means. The offline checklist work is not a nice to have, it is the difference between Atlas being the system of record and Atlas being paperwork done twice. Serial capture by camera should be first class, not a photo attachment. And the double entry complaint is the same shape as the checkout finding on Relay, people quit when we ask twice for something they already gave us.
+
+Open questions for the next round. How long is a realistic offline window, we saw between 20 minutes and most of a day. Does the crew lead or the apprentice own the checklist, it varied by partner. What happens when two crew members edit the same install.',
+  false,
+  3,
+  now() - interval '17 days',
+  now() - interval '9 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a1'
+),
+(
+  '10000000-2b02-4000-8000-000000000007',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  NULL,
+  'Postmortem, the slow firmware push to 8,400 monitors',
+  'alert-triangle',
+  '{"type":"doc","content":[]}'::jsonb,
+  'Summary. Firmware 4.2.1 went out to 8,400 monitors and took 31 hours to reach 95 percent instead of the 6 hours we told support to expect. No device was bricked, no data was lost, but installers and homeowners got a stale version banner for a day and a half and support took 190 tickets that we caused ourselves.
+
+Timeline. Rollout opened at 02:00 local. By 08:00 only 19 percent had taken the image. By 18:00 we were at 54 percent. Marcus Hall paused the wave at 20:00, Priya Raman and Ravi Menon dug in overnight, and the push finished the next afternoon after we widened the check in window.
+
+Cause. The scheduler in services/firmware/rollout-scheduler.go batches by fleet id and waits for a device to call home. Monitors call home every 15 minutes when the home network is healthy, but on the 2.4 GHz mesh setups common in older installs the radio sleeps and the interval stretches to well over an hour. Our 6 hour estimate came from bench devices on wired ethernet. We modelled the best case and shipped it as the expected case.
+
+What went right. The staged wave worked. Nothing shipped past the 15 percent canary without a health check, and pausing was one command.
+
+Actions. One, base rollout estimates on observed call home intervals from the fleet, not bench numbers, owner Priya. Two, expose real rollout progress to support instead of a static estimate, owner Marcus. Three, hold the stale version banner until a device is genuinely behind by two releases, owner Priya. Four, write the expected duration into the release note so support is never guessing again.',
+  false,
+  4,
+  now() - interval '8 days',
+  now() - interval '5 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a1'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO docs (id, user_id, project_id, parent_id, title, icon, content_json, content_text, archived, position, created_at, updated_at, workspace_id, product_id) VALUES
+(
+  '10000000-2b02-4000-8000-000000000003',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  '10000000-2b02-4000-8000-000000000002',
+  'Architecture note, the shared auth package behind Relay and Beacon',
+  'key',
+  '{"type":"doc","content":[]}'::jsonb,
+  'Relay and Beacon both sign users in through packages/auth-core. Relay uses it for homeowner accounts, Beacon uses it for the billing site where the same homeowner pays an invoice, plus a small number of partner admins. One package, two very different populations.
+
+What auth-core owns. Session creation and refresh in packages/auth-core/src/session.ts, the token format, device trust, and the password and magic link flows. What it does not own is authorization. Both apps decide on their own what a signed in user may see, and that split is deliberate.
+
+Why we keep it shared. A homeowner who pays an invoice on Beacon and then opens Relay expects to already be signed in. That only holds while both apps mint and read the same session. The last time the two drifted, in the era of the separate beacon-auth module, we shipped six weeks of duplicated password reset bugs and a support queue that could not tell which app a customer was actually stuck in.
+
+The SSO work. Beacon is adding SSO for partner admins, tracked separately. The decision on record is that Relay stays on the shared package. SSO lands as a new provider inside auth-core in packages/auth-core/src/providers, not as a fork, and Relay simply never offers that provider in its sign in list. Ravi Menon is the owner and any pull request touching session.ts needs his review.
+
+Constraints to respect. Token lifetime is 30 days on Relay because homeowners open the app roughly twice a month and a forced sign in reads as a broken app. Beacon runs 12 hours for admins. Those numbers are configured per app, not hardcoded in the package. Do not add a third lifetime without writing down why.',
+  false,
+  1,
+  now() - interval '21 days',
+  now() - interval '7 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2'
+),
+(
+  '10000000-2b02-4000-8000-000000000004',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  '10000000-2b02-4000-8000-000000000002',
+  'Competitive scan, home energy apps',
+  'binoculars',
+  '{"type":"doc","content":[]}'::jsonb,
+  'Scope. Seven apps a homeowner could plausibly have open next to Relay. Inverter maker apps from Enphase and SolarEdge, the Tesla app, the Sense energy monitor, two utility apps from PG and E and Xcel, and the Emporia Vue app. I installed all seven, ran each for two weeks on my own array, and wrote down what actually annoyed me rather than feature lists.
+
+Where the category is strong. The inverter apps win on trust. Panel level production, clear fault codes, and a service path that reaches the installer. Sense wins on the one thing nobody else does well, telling you which appliance just drew power, and homeowners forgive a lot of ugly UI for that.
+
+Where the category is weak, and this is our opening. Every one of these apps talks in kilowatt hours and expects the homeowner to convert that into money or into a decision. Only the utility apps mention dollars and they arrive a month late. None of them handle the moment that actually matters, which is a homeowner noticing production dropped and having no idea whether to worry, wait, or call someone.
+
+Notification behaviour is uniformly bad. Enphase sends one push per event. Emporia batches badly. Two of the seven had no way to turn a category off without turning everything off. Our grouped daily digest is genuinely better than the field right now and we should not lose that lead by adding categories carelessly.
+
+Not a threat this year. Utility apps, they ship slowly and are constrained by regulators.
+
+Worth watching. Tesla, because their homeowner app already spans production, storage, and vehicle, and that is the shape of the account view we would eventually want.',
+  false,
+  2,
+  now() - interval '24 days',
+  now() - interval '13 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2'
+),
+(
+  '10000000-2b02-4000-8000-000000000005',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  NULL,
+  '10000000-2b02-4000-8000-000000000002',
+  'Notification policy after the digest work',
+  'bell',
+  '{"type":"doc","content":[]}'::jsonb,
+  'This is the standing rule set for anything Relay sends a homeowner. It replaces the informal one push per event behaviour we shipped with in the first year. Written after the grouped digest work, owner Maya Ruiz, enforced in code at apps/relay/src/notifications/policy.ts.
+
+Three tiers, and only three.
+
+Urgent, interrupts immediately. A system is producing nothing when it should be, a battery is offline, or a payment failed and service is at risk. Urgent has a hard budget of two per week per home. If a category wants to be urgent and would break that budget, it is not urgent.
+
+Digest, the default. Everything routine goes into one grouped message per day, sent at 08:00 in the local timezone of the home. Production summary, weather adjusted expectation, any minor fault that resolved itself, firmware notes. If a day has nothing worth saying, we send nothing. A digest that fires every day out of habit trains people to swipe it away.
+
+Silent, in app only. Marketing, feature announcements, tips. These live in the app and never push. No exceptions, including for launches.
+
+How a new notification gets added. Name the decision the homeowner is supposed to make when they read it. If there is no decision, it is silent tier. Then say what happens if they never see it. If the honest answer is nothing much, it is digest tier.
+
+Measurement. We track opens, but the number that governs this policy is the notification disable rate. Before the digest, 14 percent of homes had turned Relay notifications off entirely. That figure is the health check. If it climbs again, we have added something we should not have.',
+  false,
+  3,
+  now() - interval '15 days',
+  now() - interval '3 days',
+  '10000000-0000-4000-8000-000000000000',
+  '10000000-0000-4000-8000-0000000000a2'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO meetings (id, user_id, title, start_at, end_at, stakeholder, notes, created_at, transcript, summary, action_items, decisions_made, processed_at, workspace_id) VALUES
+(
+  '10000000-2b02-4000-8000-000000000011',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Relay checkout evidence review',
+  now() - interval '26 days',
+  now() - interval '26 days' + interval '50 minutes',
+  'Maya Ruiz',
+  'Ade brought session replays. Whole meeting turned on them.',
+  now() - interval '26 days',
+  'Maya Ruiz: Before we argue, Ade has replays. Ade, put them up.
+Ade Fashola: Forty sessions, all drop offs from the last three weeks. Watch this one. She fills the address, hits continue, and here is the second screen asking her to confirm the address she just typed. She retypes it. Then she leaves.
+Priya Raman: How many of the forty do that.
+Ade Fashola: Twenty six leave on that screen. Eleven never reach payment at all.
+Jenna Kwon: That matches the tickets. People write in saying they already gave us the address. I read it as confusion about billing versus install address. It is not. They are just annoyed.
+Priya Raman: So the payment step is not the problem.
+Maya Ruiz: The payment step is where we look because that is where the tickets are labelled. The evidence says it is the address confirm.
+Tomas Beck: We can show the saved address inline with an edit link. One step, not two.
+Maya Ruiz: Then that is the change. One confirmed address step. Priya, what is the size.
+Priya Raman: Small. It is one component in the checkout folder. Two days plus QA.
+Maya Ruiz: Good. Ade, I want the funnel split by form factor before rollout.',
+  'Ade Fashola presented 40 session replays of checkout drop offs. Twenty six of the forty abandoned on the second address confirmation screen, not at payment. Jenna confirmed the support tickets say the same thing in different words. The team had assumed the payment step and the assumption did not survive the replays. Agreed to replace the redundant confirm with one confirmed address step showing the saved address inline with an edit link. Priya sized it at two days plus QA.',
+  '[{"text": "Cut the second address confirm and ship one confirmed address step with inline edit", "owner": "Priya Raman", "status": "done"}, {"text": "Split the checkout funnel by form factor before rollout", "owner": "Ade Fashola", "status": "open"}, {"text": "Retag the checkout support tickets so address issues stop landing in the payment bucket", "owner": "Jenna Kwon", "status": "done"}]'::jsonb,
+  '[{"decision": "Checkout drop off is the redundant address confirm, not the payment step", "rationale": "26 of 40 replays abandon on the confirm screen and the support tickets read the same way"}, {"decision": "Replace the two step address flow with one confirmed address step", "rationale": "Removes the double entry without losing the ability to correct the address"}]'::jsonb,
+  now() - interval '26 days' + interval '2 hours',
+  '10000000-0000-4000-8000-000000000000'
+),
+(
+  '10000000-2b02-4000-8000-000000000012',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Notification digest scoping',
+  now() - interval '19 days',
+  now() - interval '19 days' + interval '40 minutes',
+  'Jenna Kwon',
+  'Support pushed hard on the disable rate. Scope came out smaller than expected.',
+  now() - interval '19 days',
+  'Jenna Kwon: Fourteen percent of homes have Relay notifications switched off completely. Once they are off we cannot reach them for anything, including an offline battery.
+Maya Ruiz: What are they turning off, per category.
+Jenna Kwon: They cannot. It is one switch. That is part of the problem.
+Tomas Beck: Do we build per category settings first or the grouped digest first.
+Maya Ruiz: Settings are the safer build but the digest is the thing that actually reduces the count of messages. If we ship settings first, people just turn more off.
+Priya Raman: In app grouped digest is the smaller piece anyway. Email digest needs the send infrastructure and timezone handling.
+Maya Ruiz: Then in app grouped digest first, email after. And we hold the urgent tier out of the digest entirely. A dead battery does not wait until 08:00.
+Jenna Kwon: Agreed, as long as urgent stays rare.
+Maya Ruiz: Two per week per home, hard cap.',
+  'Support reported that 14 percent of homes have Relay notifications fully disabled, with no per category control available. The team weighed per category settings against a grouped digest and chose the digest first, since settings alone would likely increase opt outs. Urgent alerts stay outside the digest with a hard cap of two per week per home. Email digest deferred until send infrastructure and timezone handling are ready.',
+  '[{"text": "Build the in app grouped digest, one message per day at 08:00 local", "owner": "Priya Raman", "status": "done"}, {"text": "Draft the three tier notification policy and write it into policy.ts", "owner": "Maya Ruiz", "status": "done"}, {"text": "Report the notification disable rate weekly so we can see if it climbs", "owner": "Jenna Kwon", "status": "open"}]'::jsonb,
+  '[{"decision": "Ship the in app grouped digest first, email digest later", "rationale": "The digest reduces message volume, per category settings on their own would raise opt outs"}, {"decision": "Urgent alerts stay out of the digest and are capped at two per week per home", "rationale": "An offline battery cannot wait for the morning send"}]'::jsonb,
+  now() - interval '19 days' + interval '3 hours',
+  '10000000-0000-4000-8000-000000000000'
+),
+(
+  '10000000-2b02-4000-8000-000000000013',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Firmware 4.2.1 rollout retro with the Atlas team',
+  now() - interval '6 days',
+  now() - interval '6 days' + interval '55 minutes',
+  'Marcus Hall',
+  'Blameless. The estimate was the failure, not the rollout.',
+  now() - interval '6 days',
+  'Marcus Hall: We told support six hours. It took thirty one. Nobody lost a device, but support ate 190 tickets.
+Priya Raman: The six hours came off bench devices on wired ethernet calling home every fifteen minutes. Real homes on a 2.4 gigahertz mesh let the radio sleep. Observed median interval in the field is closer to fifty minutes and the long tail is hours.
+Ravi Menon: So the scheduler was working. It was waiting, correctly, for devices that were not going to call.
+Marcus Hall: Right. The rollout was fine. The estimate was fiction.
+Bea Lindqvist: Support had a static progress number on screen the whole time. It never moved, so they assumed it was stuck and escalated.
+Maya Ruiz: That is where most of the 190 tickets came from, not from the delay itself.
+Marcus Hall: Then two fixes. Estimates come from observed fleet call home intervals. And support sees real progress, not a static estimate.
+Priya Raman: I will also hold the stale version banner until a device is two releases behind. Nobody needs a warning on day one.',
+  'Firmware 4.2.1 reached 95 percent of 8,400 monitors in 31 hours against a 6 hour estimate. No devices were lost. The staged wave and the pause control both worked. The failure was the estimate, which was derived from bench hardware on wired ethernet rather than observed field call home intervals, plus a static progress indicator that led support to escalate. Agreed to base future estimates on fleet telemetry, expose live rollout progress to support, and delay the stale version banner.',
+  '[{"text": "Base rollout duration estimates on observed fleet call home intervals, not bench devices", "owner": "Priya Raman", "status": "open"}, {"text": "Expose live rollout progress to the support console instead of a static estimate", "owner": "Marcus Hall", "status": "open"}, {"text": "Hold the stale version banner until a device is two releases behind", "owner": "Priya Raman", "status": "open"}, {"text": "Put the expected duration in the release note for every firmware push", "owner": "Marcus Hall", "status": "open"}]'::jsonb,
+  '[{"decision": "Firmware rollout estimates come from observed field telemetry, not bench conditions", "rationale": "Bench devices on wired ethernet call home every 15 minutes, real homes on mesh wifi average closer to 50"}, {"decision": "Support sees live rollout progress during every wave", "rationale": "A frozen progress number caused most of the 190 tickets, not the delay itself"}]'::jsonb,
+  now() - interval '6 days' + interval '90 minutes',
+  '10000000-0000-4000-8000-000000000000'
+),
+(
+  '10000000-2b02-4000-8000-000000000014',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Beacon SSO kickoff with Ravi',
+  now() - interval '3 days',
+  now() - interval '3 days' + interval '45 minutes',
+  'Ravi Menon',
+  'Walked through the partner admin sign in flow for Beacon. Ravi is clear that SSO lands as a provider inside auth-core, not as a fork, and that Relay simply does not offer it in the sign in list. Open items, which identity providers the first three partners actually use, and whether partner admins keep the 12 hour token lifetime or need longer for a full working day. Needs a follow up with Dana on what Cascade and Northline run today.',
+  now() - interval '3 days',
+  NULL,
+  NULL,
+  '[]'::jsonb,
+  '[]'::jsonb,
+  NULL,
+  '10000000-0000-4000-8000-000000000000'
+),
+(
+  '10000000-2b02-4000-8000-000000000015',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Relay weekly, tablet fix and next bet',
+  now() + interval '2 days',
+  now() + interval '2 days' + interval '30 minutes',
+  'Maya Ruiz',
+  'Agenda. One, confirm the tablet layout fix is verified on real iPad hardware before we close the checkout work. Two, look at the form factor split now that Ade has it wired, and decide whether tablet needs its own follow up or whether the layout fix covers it. Three, pick the next bet, either the offline install checklist for Atlas or the email digest for Relay. Bring the numbers, not opinions.',
+  now() - interval '2 days',
+  NULL,
+  NULL,
+  '[]'::jsonb,
+  '[]'::jsonb,
+  NULL,
+  '10000000-0000-4000-8000-000000000000'
+),
+(
+  '10000000-2b02-4000-8000-000000000016',
+  '1339eea2-e170-4e37-a581-e2bec0b676c7',
+  'Install partner sync with Cascade Solar',
+  now() + interval '5 days',
+  now() + interval '5 days' + interval '60 minutes',
+  'Dana Okafor',
+  'Quarterly with Marisol Vega and her crew leads. Bring the offline checklist concept and the camera serial capture mock. Ask directly how long their worst signal outage lasts on a real job, we heard anywhere from 20 minutes to most of a day and we need a number we can design against. Also confirm whether the crew lead or the apprentice owns the checklist, since it varied across the three partners we visited.',
+  now() - interval '1 day',
+  NULL,
+  NULL,
+  '[]'::jsonb,
+  '[]'::jsonb,
+  NULL,
+  '10000000-0000-4000-8000-000000000000'
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO daily_briefs (id, user_id, brief_date, summary, focus_score, created_at, workspace_id) VALUES
+('10000000-2b02-4000-8000-000000000021', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '1 day')::date, 'Fleet produced 214 MWh overnight and into yesterday, 6 percent above the weather adjusted expectation. Checkout completion held at 78 percent for the fifth day running. The tablet layout fix is in review, so today is about getting Bea on real iPad hardware before we call the checkout work closed.', 82, now() - interval '1 day', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000022', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '2 days')::date, '31 monitors offline this morning, all in the Sacramento valley, all after the storm front. Support has the list and is not treating it as a product fault. One real signal in the noise, three of the 31 were already offline before the storm, so pull those three out and look at them properly.', 74, now() - interval '2 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000023', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '3 days')::date, 'Quiet fleet overnight, nothing above the alert threshold. The form factor split from Ade landed and it is unambiguous, mobile 57 to 81, desktop 62 to 79, tablet 61 to 66. Write the mixed result into the retro today rather than letting it soften over the week.', 91, now() - interval '3 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000024', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '4 days')::date, 'Production down 12 percent against expectation across the Boise cluster, which reads like smoke rather than hardware. Nothing to do product side. The Beacon SSO thread is waiting on you, Ravi wants a straight answer on whether Relay ever offers that provider. It does not. Send it.', 63, now() - interval '4 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000025', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '5 days')::date, 'Firmware 4.2.1 finally cleared 99 percent overnight, 43 hours after it opened. Support ticket volume is back to baseline. Today is the retro, and the useful version of it is about the estimate we gave support, not about the rollout, which worked exactly as designed.', 55, now() - interval '5 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000026', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '6 days')::date, 'Best production day of the month, 231 MWh, and zero urgent notifications sent, which is the digest policy behaving exactly as intended. Notification disable rate is down to 9 percent from 14. Nothing is on fire, so spend the day on the Atlas offline checklist scope while it is quiet.', 88, now() - interval '6 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000027', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '7 days')::date, 'Firmware push is at 54 percent after 16 hours against a 6 hour estimate, and support is escalating because the progress number on their console has not moved. Marcus paused the wave. Your job today is the message to support, not the debugging. Priya has the debugging.', 47, now() - interval '7 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000028', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '8 days')::date, 'Fleet steady, 198 MWh, no alerts. Checkout completion has now held above 76 percent for a full week, so the lift is real and not a launch bump. Bea flagged the tablet wrap on a loaner iPad yesterday, get it reproduced and sized before the weekly.', 79, now() - interval '8 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-000000000029', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '9 days')::date, 'Checkout is at 100 percent rollout as of last night, no rollback, no error spike. 74 percent completion on the first full day. Resist reading a single day as the result. Ade needs two more days before the number means anything, and the form factor split is still not wired.', 68, now() - interval '9 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-00000000002a', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '10 days')::date, 'Clean overnight, 12 monitors offline and all 12 recovered on their own. Checkout is at 50 percent rollout with completion tracking well ahead of control. Widen to 100 percent today unless Bea has something. This is the good kind of boring.', 93, now() - interval '10 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-00000000002b', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '11 days')::date, 'Two urgent alerts overnight, both batteries offline in Bend, both dispatched to Cascade already. Checkout is at 20 percent rollout, three days of data, nothing conclusive yet. Half the day is gone to the partner visit writeup, so protect the other half.', 41, now() - interval '11 days', '10000000-0000-4000-8000-000000000000'),
+('10000000-2b02-4000-8000-00000000002c', '1339eea2-e170-4e37-a581-e2bec0b676c7', (now() - interval '12 days')::date, 'Fleet produced 207 MWh, in line with expectation, no incidents. The one confirmed address step goes to 20 percent of homeowners this morning. Watch the error rate on the checkout endpoint for the first two hours, then leave it alone and let the data collect.', 71, now() - interval '12 days', '10000000-0000-4000-8000-000000000000')
+ON CONFLICT (id) DO NOTHING;
+
+-- Helio Labs demo seed, slice 2b03: automation and learned taste.
+
+INSERT INTO loops (id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at, created_at, updated_at) VALUES
+  ('10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','signal_recluster','Daily signal sweep across support tickets, app store reviews, and session replays','daily','active', now() - interval '9 hours', now() + interval '15 hours', now() - interval '41 days', now() - interval '9 hours'),
+  ('10000000-2b03-4000-8000-000000000002','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','outcome_review','Weekly outcome check on shipped Relay work','weekly','active', now() - interval '1 day', now() + interval '6 days', now() - interval '38 days', now() - interval '1 day'),
+  ('10000000-2b03-4000-8000-000000000003','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','outcome_review','Drift watch on Relay checkout funnel and Atlas sync failures','daily','active', now() - interval '3 days', now() + interval '4 hours', now() - interval '30 days', now() - interval '3 days'),
+  ('10000000-2b03-4000-8000-000000000004','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','competitor_sweep','Competitor and tariff scan for home solar monitoring','weekly','active', now() - interval '2 days', now() + interval '5 days', now() - interval '35 days', now() - interval '2 days')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO loop_runs (id, loop_id, user_id, workspace_id, started_at, finished_at, status, summary, error_message, tokens, cost_usd, created_at) VALUES
+  ('10000000-2b03-4000-8000-000000000010','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '13 days', now() - interval '13 days' + interval '4 minutes','ok','Swept 61 Relay support tickets and 22 app store reviews. 14 tickets mention the checkout address screen, 9 of them use the word again or twice. Clustered into one signal on the redundant address confirm.', NULL, 48200, 0.72, now() - interval '13 days'),
+  ('10000000-2b03-4000-8000-000000000011','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '10 days', now() - interval '10 days' + interval '3 minutes','ok','Swept 44 tickets. Nothing new on checkout. Two Atlas tickets from the Fresno crew about the checklist losing entries in a basement with no signal, filed against the offline mode work.', NULL, 33100, 0.49, now() - interval '10 days'),
+  ('10000000-2b03-4000-8000-000000000012','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '7 days', now() - interval '7 days' + interval '5 minutes','ok','Swept 57 tickets and 512 session replays. 31 replays show a tablet homeowner tapping the confirm address button twice, which suggests the button state is not obvious at that size. Raised as a follow up to the checkout ship.', NULL, 61400, 0.94, now() - interval '7 days'),
+  ('10000000-2b03-4000-8000-000000000013','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '4 days', now() - interval '4 days' + interval '3 minutes','ok','Swept 39 tickets. Notification volume complaints dropped from 11 last week to 3 after the grouped digest went out, so the digest signal is cooling.', NULL, 28700, 0.41, now() - interval '4 days'),
+  ('10000000-2b03-4000-8000-000000000014','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '2 days', now() - interval '2 days' + interval '4 minutes','ok','Swept 52 tickets. New cluster forming on Beacon: 7 installer partners asking to log in with their company account instead of a shared password. Attached to the SSO work.', NULL, 40900, 0.63, now() - interval '2 days'),
+  ('10000000-2b03-4000-8000-000000000015','10000000-2b03-4000-8000-000000000001','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '11 minutes', NULL,'running', NULL, NULL, NULL, NULL, now() - interval '11 minutes'),
+  ('10000000-2b03-4000-8000-000000000016','10000000-2b03-4000-8000-000000000002','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '12 days', now() - interval '12 days' + interval '6 minutes','ok','Checked 4 shipped items. Checkout rework is one week post release: completed checkouts at 71 percent against a 59 percent baseline. Too early to call, kept the outcome open.', NULL, 52600, 0.81, now() - interval '12 days'),
+  ('10000000-2b03-4000-8000-000000000017','10000000-2b03-4000-8000-000000000002','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '5 days', now() - interval '5 days' + interval '7 minutes','ok','Checkout rework hit the target: completed checkouts 78 percent overall against 59 percent baseline. Split by device tells a different story, tablet only moved to 66 percent. Recorded the outcome as mixed rather than met.', NULL, 74300, 1.12, now() - interval '5 days'),
+  ('10000000-2b03-4000-8000-000000000018','10000000-2b03-4000-8000-000000000002','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '1 day', now() - interval '1 day' + interval '5 minutes','ok','Digest rollout at day 9: notification opt outs down from 4.1 to 1.6 percent, daily app opens flat. Outcome met on the opt out target, no lift claimed on engagement.', NULL, 45800, 0.69, now() - interval '1 day'),
+  ('10000000-2b03-4000-8000-000000000019','10000000-2b03-4000-8000-000000000003','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '11 days', now() - interval '11 days' + interval '2 minutes','ok','No drift. Checkout step completion within 2 points of the seven day trend on every step. Atlas sync failure rate steady at 0.9 percent.', NULL, 12400, 0.18, now() - interval '11 days'),
+  ('10000000-2b03-4000-8000-00000000001a','10000000-2b03-4000-8000-000000000003','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '8 days', now() - interval '8 days' + interval '1 minute','error', NULL,'Funnel export from the analytics warehouse timed out after 60 seconds. The checkout_step_completed view was locked by the nightly rebuild. Rerun after 03:00 UTC or read from the materialised copy.', 2100, 0.02, now() - interval '8 days'),
+  ('10000000-2b03-4000-8000-00000000001b','10000000-2b03-4000-8000-000000000003','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '6 days', now() - interval '6 days' + interval '3 minutes','ok','Drift detected. Atlas sync failures jumped from 0.9 to 3.4 percent for one day, all from firmware build 2.8.1 tablets on the batch push. Back to 1.1 percent the next morning, flagged to the firmware owner rather than opened as a signal.', NULL, 18900, 0.27, now() - interval '6 days'),
+  ('10000000-2b03-4000-8000-00000000001c','10000000-2b03-4000-8000-000000000003','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '3 days', now() - interval '3 days' + interval '2 minutes','ok','Drift detected on tablet checkout only. Mobile holding at 81 percent completion, tablet sitting at 66 percent for the fourth day running. This is a real device split, not noise, and it broke the assumption that the two behave the same.', NULL, 21300, 0.31, now() - interval '3 days'),
+  ('10000000-2b03-4000-8000-00000000001d','10000000-2b03-4000-8000-000000000004','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '14 days', now() - interval '14 days' + interval '9 minutes','ok','Scanned 6 competitor apps and 3 tariff sources. No product changes worth a signal. Enphase changelog was quiet, SolarEdge shipped a copy only update.', NULL, 67200, 1.03, now() - interval '14 days'),
+  ('10000000-2b03-4000-8000-00000000001e','10000000-2b03-4000-8000-000000000004','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '9 days', now() - interval '9 days' + interval '11 minutes','ok','Enphase added a one screen checkout to their homeowner app and dropped the separate billing address form. Independent confirmation that the second address step is the industry wrong turn, not a Helio quirk. Raised a signal.', NULL, 88600, 1.38, now() - interval '9 days'),
+  ('10000000-2b03-4000-8000-00000000001f','10000000-2b03-4000-8000-000000000004','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000', now() - interval '2 days', now() - interval '2 days' + interval '8 minutes','ok','Scanned 6 competitors plus the CPUC tariff page. One change: a competitor now gates monitoring history behind a paid tier at 90 days. Noted for pricing, not a product signal.', NULL, 59400, 0.88, now() - interval '2 days')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO assumptions (id, user_id, workspace_id, decision_id, prd_id, statement, status, last_watched_at, created_at, updated_at) VALUES
+  ('10000000-2b03-4000-8000-000000000030','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000001','10000000-0001-4000-8000-000000000011','Homeowners abandoning Relay checkout are stopped by the second address confirm, not by the payment step','standing', now() - interval '5 days', now() - interval '26 days', now() - interval '5 days'),
+  ('10000000-2b03-4000-8000-000000000031','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000002','10000000-0001-4000-8000-000000000011','Collapsing to one confirmed address step lifts completed checkouts past 70 percent within two weeks','standing', now() - interval '5 days', now() - interval '24 days', now() - interval '5 days'),
+  ('10000000-2b03-4000-8000-000000000032','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000002','10000000-0001-4000-8000-000000000011','Tablet and mobile homeowners behave the same way in checkout, so one funnel number is enough to judge the change','challenged', now() - interval '3 days', now() - interval '24 days', now() - interval '3 days'),
+  ('10000000-2b03-4000-8000-000000000033','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000',NULL,'10000000-0001-4000-8000-000000000001','Installers lose connectivity rarely enough that the checklist can stay online only','challenged', now() - interval '10 days', now() - interval '33 days', now() - interval '10 days'),
+  ('10000000-2b03-4000-8000-000000000034','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000001','10000000-0001-4000-8000-000000000011','The address the homeowner gave at quote time is accurate enough to prefill and confirm once','standing', now() - interval '7 days', now() - interval '26 days', now() - interval '7 days'),
+  ('10000000-2b03-4000-8000-000000000035','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000003','10000000-0001-4000-8000-000000000012','Homeowners want fewer notifications, not different notifications','standing', now() - interval '1 day', now() - interval '19 days', now() - interval '1 day'),
+  ('10000000-2b03-4000-8000-000000000036','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000003','10000000-0001-4000-8000-000000000012','A single evening digest lands when homeowners actually check production, so nothing urgent is delayed','standing', now() - interval '1 day', now() - interval '19 days', now() - interval '1 day'),
+  ('10000000-2b03-4000-8000-000000000037','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','10000000-0a00-4000-8000-000000000005',NULL,'The shared auth package can carry Relay session needs without Relay forking it','standing', now() - interval '4 days', now() - interval '15 days', now() - interval '4 days'),
+  ('10000000-2b03-4000-8000-000000000038','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000',NULL,'10000000-0001-4000-8000-000000000031','The installer partners asking for SSO run an identity provider that speaks SAML, so we do not need a second protocol on day one','standing', now() - interval '2 days', now() - interval '12 days', now() - interval '2 days'),
+  ('10000000-2b03-4000-8000-000000000039','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000',NULL,'10000000-0001-4000-8000-000000000003','Firmware can be pushed to a whole site overnight without any homeowner action or a support call the next morning','standing', now() - interval '6 days', now() - interval '29 days', now() - interval '6 days')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO design_memory (id, user_id, workspace_id, category, title, content, rationale, source_kind, status, decided_by, decided_at, created_at) VALUES
+  ('10000000-2b03-4000-8000-000000000040','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','type','Atlas uses an outdoor theme, not the dark theme, on tablets','On the installer tablet, body text is 17 px minimum and contrast never drops below 4.5 to 1. The outdoor theme replaces the dark surface with near black on white, no translucency, no soft shadows. Serial numbers and meter readings step up to 20 px.','Three installers on the Fresno ride along could not read the panel serial field at midday on a roof and typed it wrong twice.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '21 days', now() - interval '23 days'),
+  ('10000000-2b03-4000-8000-000000000041','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','pattern','Gloved hands set the touch target floor at 56 px','Primary tap targets in Atlas are 56 px minimum with 12 px of clear space. Nothing destructive sits within 24 px of a screen edge where a gloved thumb rests while holding the tablet.','Work gloves put the real contact patch near 20 mm. At the old 44 px target, checklist items were being ticked by accident on the neighbouring row.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '20 days', now() - interval '23 days'),
+  ('10000000-2b03-4000-8000-000000000042','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','voice','Beacon billing messages state the amount, the date, then the next step','Billing copy gives the number first, the date second, the action third. No apologies, no exclamation marks, no reassurance padding. A declined payment reads: Card ending 4417 was declined on 12 March. Update it to keep monitoring active.','Homeowners forward billing messages to their installer. Anything vague turns into a support ticket for both of us.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '16 days', now() - interval '18 days'),
+  ('10000000-2b03-4000-8000-000000000043','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','principle','A confirmation step earns its place only when the action is costly or hard to undo','Confirm before charging a card, before pushing firmware to a live site, before deleting a monitoring history. Do not confirm data the user has already given us. Re confirming is not safety, it is a drop off. Removing the second address confirm in Relay checkout moved completed checkouts from 59 to 78 percent.','Learned directly from the checkout work. The step we thought protected the user was the step they quit on.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '5 days', now() - interval '11 days'),
+  ('10000000-2b03-4000-8000-000000000044','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','token','Fault colour is reserved: amber for degraded, red for stopped','Amber means a string is producing below expectation. Red means an inverter or gateway has stopped. Nothing else uses either colour, and severity is never carried by colour alone: every fault shows the state word and the affected panel count next to the swatch.','A red banner for a shaded string had homeowners calling their installer on a Sunday. Roughly one in twelve of them also cannot separate the two colours.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '14 days', now() - interval '17 days'),
+  ('10000000-2b03-4000-8000-000000000045','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','pattern','A new Relay home shows the first expected reading, never a zero','Before the first sync, the production card shows the time the first reading is expected and what the gateway is doing. It never shows 0.0 kWh, because a zero on day one reads as broken hardware.','Four support tickets in the first install week were homeowners convinced their system had failed. The system was fine, it was three hours old.','learned','approved','1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '9 days', now() - interval '13 days'),
+  ('10000000-2b03-4000-8000-000000000046','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','type','Energy figures use tabular numerals with the unit in a fixed slot','kWh and kW values render with tabular numerals and the unit pinned to its own column, so digits do not shift as production climbs through the morning.','Proposed after the daily card was seen jittering on a live dashboard. Not yet reviewed with the Relay design pair.','learned','pending',NULL,NULL, now() - interval '6 days'),
+  ('10000000-2b03-4000-8000-000000000047','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','pattern','Nothing in Atlas animates for longer than 200 ms','Field techs tap fast and repeatedly. Any transition that makes them wait reads as a dropped tap and gets tapped again, which is how we get duplicate checklist entries.','Drawn from the duplicate entry tickets on the Fresno installs. Needs a check against the shared motion tokens before it becomes a rule.','learned','pending',NULL,NULL, now() - interval '5 days'),
+  ('10000000-2b03-4000-8000-000000000048','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','pattern','Atlas confirms a ticked checklist item with haptics as well as the check mark','Every state change on the install checklist fires a short haptic pulse alongside the visual change, because gloves plus glare hide a check mark appearing.','Suggested by the install crew lead during the offline mode interviews. Battery cost on older tablets is unmeasured.','learned','pending',NULL,NULL, now() - interval '4 days'),
+  ('10000000-2b03-4000-8000-000000000049','1339eea2-e170-4e37-a581-e2bec0b676c7','10000000-0000-4000-8000-000000000000','spacing','Beacon invoice tables show five columns at most on a laptop','Invoice rows carry date, description, site, amount, status. Anything further goes behind the row expand. Partner admins reconcile dozens of sites and scan down one column at a time.','Comes from watching two partner admins reconcile March invoices. Still needs a pass with the finance team before it is settled.','learned','pending',NULL,NULL, now() - interval '3 days')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO scout_runs (id, workspace_id, target_id, kind, outcome, changed, signal_id, snapshot_id, fetch_count, detail, created_at) VALUES
+  ('10000000-2b03-4000-8000-000000000050','10000000-0000-4000-8000-000000000000',NULL,'competitor','unchanged',false,NULL,NULL,6,'Enphase, SolarEdge, Tesla, Span, SunPower and Bright homeowner apps fetched. No visible product change since the last snapshot.', now() - interval '14 days'),
+  ('10000000-2b03-4000-8000-000000000051','10000000-0000-4000-8000-000000000000',NULL,'review_source','unchanged',false,NULL,NULL,3,'Pulled 212 App Store and Play reviews across three competitors. Complaint mix unchanged: setup friction first, alerting second.', now() - interval '13 days'),
+  ('10000000-2b03-4000-8000-000000000052','10000000-0000-4000-8000-000000000000',NULL,'tariff','unchanged',false,NULL,NULL,2,'CPUC NEM 3.0 export rate tables and the PG and E rate schedule page fetched. No revision since the last check.', now() - interval '12 days'),
+  ('10000000-2b03-4000-8000-000000000053','10000000-0000-4000-8000-000000000000',NULL,'changelog','unchanged',false,NULL,NULL,5,'Five competitor changelogs fetched. Only copy edits and a version bump, nothing structural.', now() - interval '11 days'),
+  ('10000000-2b03-4000-8000-000000000054','10000000-0000-4000-8000-000000000000',NULL,'competitor','changed',true,NULL,NULL,6,'Enphase homeowner app moved to a single screen checkout and dropped the separate billing address form. Diff captured on the pricing and signup pages. Raised as a signal supporting the Relay checkout rework.', now() - interval '9 days'),
+  ('10000000-2b03-4000-8000-000000000055','10000000-0000-4000-8000-000000000000',NULL,'community','unchanged',false,NULL,NULL,4,'Scanned r solar and two installer forums for monitoring app threads. 38 new posts, none about checkout or notification volume.', now() - interval '8 days'),
+  ('10000000-2b03-4000-8000-000000000056','10000000-0000-4000-8000-000000000000',NULL,'competitor','unchanged',false,NULL,NULL,6,'Competitor apps refetched after the Enphase change. No follow on moves from the other five.', now() - interval '7 days'),
+  ('10000000-2b03-4000-8000-000000000057','10000000-0000-4000-8000-000000000000',NULL,'review_source','changed',true,NULL,NULL,3,'Review sentiment shifted on one competitor after a forced notification change: 19 one star reviews in four days, all about alert volume. Raised as a signal backing the digest work.', now() - interval '6 days'),
+  ('10000000-2b03-4000-8000-000000000058','10000000-0000-4000-8000-000000000000',NULL,'changelog','unchanged',false,NULL,NULL,5,'Changelogs fetched, no entries in the window.', now() - interval '5 days'),
+  ('10000000-2b03-4000-8000-000000000059','10000000-0000-4000-8000-000000000000',NULL,'tariff','unchanged',false,NULL,NULL,2,'Tariff pages fetched. Export rate tables identical to the last snapshot.', now() - interval '4 days'),
+  ('10000000-2b03-4000-8000-00000000005a','10000000-0000-4000-8000-000000000000',NULL,'competitor','changed',true,NULL,NULL,6,'A competitor now caps free monitoring history at 90 days and charges for the full archive. Pricing page diff captured. Routed to pricing, not opened as a product signal.', now() - interval '3 days'),
+  ('10000000-2b03-4000-8000-00000000005b','10000000-0000-4000-8000-000000000000',NULL,'community','unchanged',false,NULL,NULL,4,'Forum sweep found 27 new posts, mostly inverter hardware. Nothing that touches the Relay or Atlas roadmap.', now() - interval '2 days'),
+  ('10000000-2b03-4000-8000-00000000005c','10000000-0000-4000-8000-000000000000',NULL,'partner_docs','unchanged',false,NULL,NULL,3,'Fetched the SAML setup docs for the three identity providers our installer partners named. No breaking changes to the metadata endpoints.', now() - interval '1 day'),
+  ('10000000-2b03-4000-8000-00000000005d','10000000-0000-4000-8000-000000000000',NULL,'competitor','unchanged',false,NULL,NULL,6,'Daily competitor fetch complete. No change since yesterday.', now() - interval '4 hours')
+ON CONFLICT (id) DO NOTHING;

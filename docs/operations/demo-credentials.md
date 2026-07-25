@@ -13,6 +13,14 @@
 | `meridian@supaprod.ai` | `Supaprod!Meridian2026` | Helio Labs (`40000000-…`) | _(fill in)_ | |
 | `lantern@supaprod.ai` | `Supaprod!Lantern2026` | Helio Labs (`50000000-…`) | _(fill in)_ | |
 
+### The rehearsal copy (never send this one out)
+
+| Account | Password | Workspace | Purpose |
+| --- | --- | --- | --- |
+| `harbor@supaprod.ai` | `Supaprod!Harbor2026` | Helio Labs (`60000000-…`) | The founder's practice runs, and the account any agent uses for testing. |
+
+**Rehearse on `harbor@`, never on a login you plan to send.** Approving a gate is a write. A walkthrough practised on `voyage@` hands that firm an already-empty approval queue, which is precisely the beat the demo is built around. `harbor@` is identical in content, so practice is faithful, and it is disposable: re-run the clone for the `60000000` prefix any time to restore its pending queue.
+
 Provisioned by `supabase/migrations/20260725120000_investor_demo_accounts.sql`; content cloned by `20260725140000_clone_helio_to_investor_workspaces.sql`. Both idempotent.
 
 > [!IMPORTANT]

@@ -168,6 +168,30 @@ A story needs its character present on screen, not just in the voiceover:
 
 ---
 
+## Do we have to cover the whole lifecycle? No. (founder question, 2026-07-25)
+
+Walking the Spine 01 to 07 **is** the tour Koomen warns about. "This is Discover, this is Decide, this is Plan" is "this is the login page, this is the dashboard" wearing better nouns. Seven stops, glazed eyes, and it spends 60 seconds the demo does not have: partners give a demo 60 to 90 seconds of attention before they decide.
+
+The loop still cannot be dropped, because the loop closing IS the thesis. Both are resolved by one fact:
+
+> **The Spine displays all seven stages permanently, without a single click.** It draws `signal -> shipped -> remembered` on the product itself before a word is spoken. Lifecycle coverage happens **passively**, while the story follows ONE bet through it.
+
+Stages are the **setting the story moves through**, never destinations to visit. Maya's checkout bet has to pass through discovery, judgment, build and outcome to be a story at all, so the coverage happens whether or not anyone points at it.
+
+| Stage | Screen time | Why |
+| --- | --- | --- |
+| 01 Discover | ~25s | Earns it: the scattered evidence is the hook |
+| 02 Decide | ~25s | Earns it: something arguing back is the differentiator |
+| 03 Plan · 04 Design · 05 Build · 06 Ship | ~25s **combined** | ONE continuous motion, not four stops. Design is a passing frame, roughly three seconds |
+| 07 Learn | ~20s | Earns it: the miss is the most persuasive moment available |
+| The compounding | ~20s | Earns it: this is the part nobody else has |
+
+Four stages carry weight; three compress into a single breath. The design stage is real and must be acknowledged (the lifecycle genuinely runs plan -> design -> build -> ship), but a stage that does not change the story does not get a beat.
+
+**Verify seven, film one.** The WO-E smoke checklist ("Spine 1-7 walks every face with real data, no bounce") is a **pre-record QA pass** confirming nothing is broken or empty on camera. It is not the shot list. Do not confuse the two.
+
+**The test for any beat:** can it be phrased as something that happened to Maya? If it comes out as "and this stage does X", cut it.
+
 ## Don'ts
 
 - Never say "and over here we have…". There is no over here. There is only what happened to Maya next.
