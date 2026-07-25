@@ -25,9 +25,9 @@ function DeskCalendar() {
   return (
     <div className="flex flex-col" style={{ gap: 10 }}>
       <h3
+        className="text-label-12"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 10.5,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -37,7 +37,7 @@ function DeskCalendar() {
         Calendar
       </h3>
       <Suspense
-        fallback={<div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading calendar…</div>}
+        fallback={<div className="text-label-12" style={{ color: "var(--text-muted)" }}>Loading calendar…</div>}
       >
         <CalendarPanel meetingId={meetingId} onMeetingChange={setMeetingId} />
       </Suspense>
@@ -64,9 +64,9 @@ export function DeskRail({ bare, compact }: { bare?: boolean; compact?: boolean 
             }}
           />
           <h2
+            className="text-label-12"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
               color: "var(--text-body)",
