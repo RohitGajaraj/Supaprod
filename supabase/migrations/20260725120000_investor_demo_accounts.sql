@@ -163,3 +163,76 @@ UPDATE public.profiles p
   FROM auth.users u
  WHERE u.id = p.id
    AND u.email IN ('explore@supaprod.ai', 'ember@supaprod.ai');
+
+-- ---------------------------------------------------------------------------
+-- explore@ gets its own isolated workspace too, and ember@ is retired.
+--
+-- WHY. explore@supaprod.ai is the login printed in the YC application, so a YC
+-- partner will use it. Until now it was an ADMIN OF THE SHARED Helio Labs,
+-- alongside ember@ and the founder's own testing. That means a partner would open
+-- a workspace the founder had been working in, and if the walkthrough had ever
+-- been rehearsed there they would find an approval queue someone else already
+-- emptied. Same failure the four investor accounts were built to avoid.
+--
+-- ember@ existed as a "codename twin held back for later investor use"
+-- (20260722211500). Four named, isolated investor logins now serve that purpose
+-- properly, so ember@ is removed from the showcase workspace rather than left
+-- quietly contaminating it. The login itself is left intact and harmless.
+--
+-- Helio Labs (10000000-) becomes the MASTER TEMPLATE from here: the clone source,
+-- owned by demo@redcadence.app, not a workspace anyone demos from.
+DO $$
+DECLARE
+  v_helio   uuid := '10000000-0000-4000-8000-000000000000';
+  v_explore uuid;
+  v_ember   uuid;
+  v_ws      uuid := '70000000-0000-4000-8000-000000000000';
+  v_account uuid;
+BEGIN
+  SELECT id INTO v_explore FROM auth.users WHERE email = 'explore@supaprod.ai';
+  SELECT id INTO v_ember   FROM auth.users WHERE email = 'ember@supaprod.ai';
+
+  IF v_explore IS NOT NULL THEN
+    INSERT INTO public.workspaces (id, owner_id, name)
+    VALUES (v_ws, v_explore, 'Helio Labs')
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO public.workspace_members (workspace_id, user_id, role)
+    VALUES (v_ws, v_explore, 'owner')
+    ON CONFLICT (workspace_id, user_id) DO NOTHING;
+
+    SELECT account_id INTO v_account FROM public.workspaces WHERE id = v_ws;
+    IF v_account IS NOT NULL THEN
+      INSERT INTO public.account_credits (account_id, balance_credits, monthly_grant_credits)
+      VALUES (v_account, 5000, 5000)
+      ON CONFLICT (account_id) DO UPDATE
+        SET balance_credits = GREATEST(public.account_credits.balance_credits, 5000),
+            monthly_grant_credits = GREATEST(public.account_credits.monthly_grant_credits, 5000),
+            updated_at = now();
+    END IF;
+
+    -- Off the shared showcase workspace.
+    DELETE FROM public.workspace_members
+     WHERE workspace_id = v_helio AND user_id = v_explore;
+
+    -- Drop explore@'s other EMPTY workspaces so /m resolves one product without
+    -- a switcher. Guarded on zero projects: a workspace holding anything real is
+    -- left completely alone.
+    DELETE FROM public.workspace_members wm
+     USING public.workspaces w
+     WHERE wm.workspace_id = w.id
+       AND w.owner_id = v_explore
+       AND w.id <> v_ws
+       AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.workspace_id = w.id);
+
+    DELETE FROM public.workspaces w
+     WHERE w.owner_id = v_explore
+       AND w.id <> v_ws
+       AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.workspace_id = w.id);
+  END IF;
+
+  IF v_ember IS NOT NULL THEN
+    DELETE FROM public.workspace_members
+     WHERE workspace_id = v_helio AND user_id = v_ember;
+  END IF;
+END $$;
