@@ -13,6 +13,7 @@
     "postinstall": "bash scripts/install-git-hooks.sh || true",
     "preview": "vite preview",
     "lint": "eslint .",
+    "check:tests": "bash scripts/check-test-runner.sh",
     "format": "prettier --write .",
     "test": "bun test",
     "cost:track": "bash scripts/cost-track.sh",

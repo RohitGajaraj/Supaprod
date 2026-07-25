@@ -24,6 +24,7 @@ import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { Kbd } from "@/components/mission/primitives";
 import { AccountMenu } from "@/components/mission/AccountMenu";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useOpenRoom } from "@/hooks/use-open-room";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 
 export type RoomDoorId = "mission" | "approvals" | "brain" | "settings";
@@ -159,7 +160,7 @@ export function RoomTopBar({
         className="flex items-center rounded-[4px] transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1"
         style={{ color: "var(--ink-text)" }}
       >
-        <SupaprodWordmark size={18} textSize={13} gap={10} />
+        <SupaprodWordmark tier="chrome" />
       </button>
       <span aria-hidden className="h-[18px] w-px" style={{ background: "var(--ink-hairline)" }} />
       <ProductSwitcher />
@@ -230,6 +231,7 @@ export function RoomChromeShell({
   contentClassName?: string;
 }) {
   const navigate = useNavigate();
+  const openRoom = useOpenRoom();
   const { activeWorkspaceId, activeProductId } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const { data: queue } = useQuery({
@@ -246,11 +248,7 @@ export function RoomChromeShell({
           // Carry the room's search state across. validateSearch on the route
           // drops anything that is not a real stage/journey/panel, so arriving
           // from a legacy surface stays safe.
-          void navigate({
-            to: "/m/$productId",
-            params: { productId: activeProductId },
-            search: (prev) => prev,
-          });
+          openRoom(activeProductId, { search: (prev) => prev });
         } else {
           void navigate({ to: "/m" });
         }

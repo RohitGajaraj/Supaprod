@@ -1,26 +1,22 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, jest } from "bun:test";
+import { render, fireEvent, waitFor, act } from "@testing-library/react";
 import { CommandBar } from "./CommandBar";
 
 /**
  * CommandBar Error Handling Test Suite
  *
- * KNOWN ISSUE (documented in CommandBar.tsx lines 29-39):
- * The submit() function has a try-finally but NO catch block,
- * allowing Promise rejections from onSubmit to propagate as
- * unhandled rejections.
+ * The suite was written against a submit() that had a try-finally but NO
+ * catch, so onSubmit rejections escaped as unhandled rejections. That is
+ * fixed: submit() now catches, classifies the failure, surfaces it in a live
+ * region with a retry affordance, calls the optional onError, and clears the
+ * notice on a timer that is torn down with the component.
  *
- * This test suite documents the current buggy behavior and provides
- * a pattern for testing error handling once the bug is fixed.
- *
- * CURRENT STATE: CommandBar.submit() does:
- *   try { await onSubmit(intent); }
- *   finally { setBusy(false); }
- *
- * EXPECTED STATE (once fixed):
- *   try { await onSubmit(intent); }
- *   catch (error) { handleError(error); }
- *   finally { setBusy(false); }
+ * One case below still fails on purpose. "propagates rejection when onSubmit
+ * rejects" asserts the old bug (it requires an unhandled rejection to reach
+ * the global handler), which directly contradicts "should catch rejection and
+ * handle gracefully" further down. It cannot go green without reintroducing
+ * the bug, so it stays red as the record of what we deliberately stopped
+ * doing.
  */
 
 describe("CommandBar Error Handling (KNOWN ISSUE)", () => {
@@ -353,7 +349,11 @@ describe("CommandBar Error Handling (KNOWN ISSUE)", () => {
         expect(container.textContent).toContain("Temporary error");
       });
 
-      jest.advanceTimersByTime(5000);
+      // The dismissal is a state update with no user event behind it, so React
+      // defers the commit. act() flushes it; the assertion below is unchanged.
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
 
       expect(container.textContent).not.toContain("Temporary error");
 

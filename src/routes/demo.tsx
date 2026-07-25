@@ -325,7 +325,7 @@ function DemoPage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/75 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="inline-flex items-center no-underline text-white">
-            <SupaprodWordmark size={22} />
+            <SupaprodWordmark tier="public" />
           </Link>
           <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
             read-only demo &middot; live seeded data

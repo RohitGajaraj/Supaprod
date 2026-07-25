@@ -94,7 +94,7 @@ export function LegalPageShell({
                 color: C.text,
               }}
             >
-              <SupaprodWordmark size={20} textSize={13} />
+              <SupaprodWordmark tier="public" />
             </Link>
             <Link
               to="/"

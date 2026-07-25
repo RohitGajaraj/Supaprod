@@ -1,577 +1,963 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { render, fireEvent, waitFor, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { CalendarPanel } from "./CalendarPanel";
+import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
+import { render, fireEvent, waitFor, screen, type RenderResult } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /**
  * CalendarPanel Test Suite
  *
- * CalendarPanel is a 1707-line complex calendar UI component with:
- * - Month and year grid navigation
- * - Event CRUD operations
- * - Meeting sync with external calendars
- * - Scheduler slot proposals
- * - OAuth connection flows
+ * CalendarPanel is the Knowledge > Calendar surface: a list / Month / Year
+ * switcher over a merged feed of calendar events and meetings, plus the
+ * production mutations that ride it (two-way sync, create / update / delete,
+ * the Scheduler slot proposer, deep-work planning, and calendar OAuth).
  *
- * This test skeleton identifies the key test categories and provides
- * patterns for testing complex calendar functionality.
+ * The live seams (server functions, workspace, confirm, toasts) are replaced
+ * with mock.module, the pattern DecisionsPanel/GlobalComposer established for
+ * query-backed components. Everything else is the real thing: real TanStack
+ * Query, real mutations, real render. Retries are off so a failure surfaces
+ * immediately instead of hanging the test.
  */
 
-describe("CalendarPanel", () => {
-  // Mock dependencies
-  let mockFetchMeetings: jest.Mock;
-  let mockCreateEvent: jest.Mock;
-  let mockUpdateEvent: jest.Mock;
-  let mockDeleteEvent: jest.Mock;
-  let mockSyncCalendars: jest.Mock;
-  let mockGetAvailableSlots: jest.Mock;
+/* ---- The live seams ---- */
 
-  beforeEach(() => {
-    // Initialize mock functions
-    mockFetchMeetings = jest.fn();
-    mockCreateEvent = jest.fn();
-    mockUpdateEvent = jest.fn();
-    mockDeleteEvent = jest.fn();
-    mockSyncCalendars = jest.fn();
-    mockGetAvailableSlots = jest.fn();
+type Conn = {
+  id: string;
+  provider: "google" | "microsoft";
+  product: string;
+  account_email: string | null;
+};
 
-    // Setup default mock implementations
-    mockFetchMeetings.mockResolvedValue([]);
-    mockCreateEvent.mockResolvedValue({ id: "event-1", title: "New Event" });
-    mockUpdateEvent.mockResolvedValue({ id: "event-1", title: "Updated Event" });
-    mockDeleteEvent.mockResolvedValue(true);
-    mockSyncCalendars.mockResolvedValue({ synced: 5 });
-    mockGetAvailableSlots.mockResolvedValue([
-      { start: "2026-07-25T10:00:00Z", end: "2026-07-25T11:00:00Z" },
-    ]);
+const NO_EVENTS = { events: [] as unknown[] };
+const NO_MEETINGS = { meetings: [] as unknown[] };
+const NO_CONNS = {
+  connections: [] as Conn[],
+  providersAvailable: { google_calendar: true, microsoft_outlook: true },
+};
+
+// Per-test data + spies. The mocked modules read these at call time so a test
+// can set up its world before rendering without re-registering the mock.
+let eventsResult: () => Promise<unknown> = async () => NO_EVENTS;
+let meetingsResult: () => Promise<unknown> = async () => NO_MEETINGS;
+let connsResult: () => Promise<unknown> = async () => NO_CONNS;
+let slotsResult: () => Promise<unknown> = async () => ({ slots: [] });
+let blocksResult: () => Promise<unknown> = async () => ({ blocks: [] });
+let confirmAnswer = true;
+
+const listEventsSpy = mock(() => eventsResult());
+const listMeetingsSpy = mock((_args?: unknown) => meetingsResult());
+const listConnsSpy = mock(() => connsResult());
+const syncSpy = mock(async (_args?: unknown) => ({ count: 3 }));
+const createSpy = mock(async (_args?: unknown) => ({ ok: true }));
+const updateSpy = mock(async (_args?: unknown) => ({ ok: true }));
+const deleteSpy = mock(async (_args?: unknown) => ({ ok: true }));
+const proposeSpy = mock((_args?: unknown) => slotsResult());
+const planSpy = mock((_args?: unknown) => blocksResult());
+const startConnectSpy = mock(async (_args?: unknown) => ({
+  authorizeUrl: "https://consent.example/oauth",
+}));
+const disconnectSpy = mock(async (_args?: unknown) => ({ ok: true }));
+const confirmSpy = mock(async (_opts?: unknown) => confirmAnswer);
+const toastSuccessSpy = mock((_m?: unknown) => "1");
+const toastErrorSpy = mock((_m?: unknown) => "1");
+
+const calActual = await import("@/lib/calendar.functions");
+const connActual = await import("@/lib/calendar-connections.functions");
+const meetActual = await import("@/lib/meetings.functions");
+const notifyActual = await import("@/lib/notify");
+
+mock.module("@/hooks/use-workspace", () => ({
+  useWorkspace: () => ({ activeWorkspaceId: "workspace-1" }),
+}));
+mock.module("@/hooks/use-confirm", () => ({
+  useConfirm: () => confirmSpy,
+}));
+mock.module("@/lib/notify", () => ({
+  ...notifyActual,
+  toast: { ...notifyActual.toast, success: toastSuccessSpy, error: toastErrorSpy },
+}));
+mock.module("@/lib/calendar.functions", () => ({
+  ...calActual,
+  listCalendarEvents: listEventsSpy,
+  syncCalendar: syncSpy,
+  createCalendarEvent: createSpy,
+  updateCalendarEvent: updateSpy,
+  deleteCalendarEvent: deleteSpy,
+  proposeSlots: proposeSpy,
+  proposeWorkBlocks: planSpy,
+}));
+mock.module("@/lib/calendar-connections.functions", () => ({
+  ...connActual,
+  listMySuiteConnections: listConnsSpy,
+  startSuiteConnect: startConnectSpy,
+  disconnectSuiteConnection: disconnectSpy,
+}));
+mock.module("@/lib/meetings.functions", () => ({
+  ...meetActual,
+  listMeetings: listMeetingsSpy,
+}));
+
+const { CalendarPanel, fmtTime, whenLabel, toLocalInput } = await import("./CalendarPanel");
+
+/* ---- Harness ---- */
+
+/**
+ * Render the panel inside a throwaway QueryClient. Retries are off on both
+ * queries and mutations: a rejected server fn must fail the assertion now, not
+ * three exponential backoffs later.
+ */
+function renderPanel(
+  props: Partial<{ meetingId: string | undefined; onMeetingChange: (id?: string) => void }> = {},
+): RenderResult {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <CalendarPanel
+        meetingId={props.meetingId}
+        onMeetingChange={props.onMeetingChange ?? (() => {})}
+      />
+    </QueryClientProvider>,
+  );
+}
+
+/** The loading state is the only thing that paints the cadShimmer gradient. */
+const shimmer = (c: HTMLElement) => c.querySelector('[style*="cadShimmer"]');
+
+/**
+ * Assert an element is absent. Never write expect(node).toBeNull(): when that
+ * fails, Bun deep-serializes the whole DOM node, which takes tens of seconds
+ * and blows the surrounding waitFor budget. Compare a boolean instead.
+ */
+function expectGone(el: Element | null | undefined) {
+  expect(el == null).toBe(true);
+}
+
+/** Wait for the two feed queries to settle so the skeleton is gone. */
+async function renderLoaded(
+  props?: Parameters<typeof renderPanel>[0],
+): Promise<ReturnType<typeof renderPanel>> {
+  const view = renderPanel(props);
+  await waitFor(() => expectGone(shimmer(view.container)));
+  return view;
+}
+
+const hoursOut = (h: number) => new Date(Date.now() + h * 3600_000).toISOString();
+
+function makeEvent(over: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: "evt-1",
+    title: "Design review",
+    description: null,
+    location: null,
+    start_at: hoursOut(3),
+    end_at: hoursOut(4),
+    all_day: false,
+    hangout_link: null,
+    html_link: null,
+    organizer_email: null,
+    attendees: [],
+    ...over,
+  };
+}
+
+function makeMeeting(over: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: "mtg-1",
+    title: "Weekly sync",
+    start_at: hoursOut(5),
+    processed_at: null,
+    summary: null,
+    stakeholder: null,
+    ...over,
+  };
+}
+
+/** Click the calendar view switcher. */
+function switchTo(label: "List" | "Month" | "Year") {
+  fireEvent.click(screen.getByText(label));
+}
+
+beforeEach(() => {
+  eventsResult = async () => NO_EVENTS;
+  meetingsResult = async () => NO_MEETINGS;
+  connsResult = async () => NO_CONNS;
+  slotsResult = async () => ({ slots: [] });
+  blocksResult = async () => ({ blocks: [] });
+  confirmAnswer = true;
+  window.open = mock(() => null) as unknown as typeof window.open;
+});
+
+afterEach(() => {
+  for (const spy of [
+    listEventsSpy,
+    listMeetingsSpy,
+    listConnsSpy,
+    syncSpy,
+    createSpy,
+    updateSpy,
+    deleteSpy,
+    proposeSpy,
+    planSpy,
+    startConnectSpy,
+    disconnectSpy,
+    confirmSpy,
+    toastSuccessSpy,
+    toastErrorSpy,
+  ]) {
+    spy.mockClear();
+  }
+});
+
+/* ---- Pure formatters ---- */
+
+describe("CalendarPanel · time formatting helpers", () => {
+  it("fmtTime returns 'all day' for an all-day item, ignoring the clock", () => {
+    expect(fmtTime(new Date(2026, 6, 25, 14, 30).toISOString(), true)).toBe("all day");
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it("fmtTime renders a timed item as hour and zero-padded minute", () => {
+    const out = fmtTime(new Date(2026, 6, 25, 14, 30).toISOString(), false);
+    // Locale decides 12h vs 24h, so pin the shape and the minute, not the string.
+    expect(out).toMatch(/^\d{1,2}:\d{2}(\s\S*[AP]M)?$/i);
+    expect(out).toContain(":30");
   });
 
-  describe("render and layout", () => {
-    it("renders calendar container", () => {
-      const { container } = render(<CalendarPanel />);
-      expect(container.querySelector(".calendar-panel")).toBeTruthy();
-    });
-
-    it("renders month/year navigation controls", () => {
-      const { container } = render(<CalendarPanel />);
-      const prevButton = container.querySelector("button[aria-label*='Previous']");
-      const nextButton = container.querySelector("button[aria-label*='Next']");
-      expect(prevButton).toBeTruthy();
-      expect(nextButton).toBeTruthy();
-    });
-
-    it("renders month grid view", () => {
-      const { container } = render(<CalendarPanel />);
-      const grid = container.querySelector(".month-grid");
-      expect(grid).toBeTruthy();
-    });
-
-    it("renders event list section", () => {
-      const { container } = render(<CalendarPanel />);
-      const eventList = container.querySelector(".event-list");
-      expect(eventList).toBeTruthy();
-    });
-
-    it("renders meeting sync section when OAuth is connected", () => {
-      const { container } = render(<CalendarPanel connectedAccounts={["google-calendar"]} />);
-      const syncButton = container.querySelector("button[aria-label*='Sync']");
-      expect(syncButton).toBeTruthy();
-    });
+  it("fmtTime zero-pads a single-digit minute", () => {
+    expect(fmtTime(new Date(2026, 6, 25, 9, 5).toISOString(), false)).toContain(":05");
   });
 
-  describe("month/year navigation", () => {
-    it("displays current month and year", () => {
-      const { container } = render(<CalendarPanel />);
-      const header = container.querySelector(".calendar-header");
-      const currentDate = new Date();
-      const monthYear = currentDate.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
-      expect(header?.textContent).toContain(monthYear);
-    });
-
-    it("advances to next month on next button click", async () => {
-      const { container, rerender } = render(<CalendarPanel />);
-      const nextButton = container.querySelector("button[aria-label*='Next']") as HTMLButtonElement;
-
-      fireEvent.click(nextButton);
-
-      // After navigation, header should show next month
-      const header = container.querySelector(".calendar-header");
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      const monthYear = nextMonth.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
-      // Verify the month has changed (exact text depends on locale)
-      expect(header?.textContent).not.toContain(
-        new Date().toLocaleDateString("en-US", { month: "long" }),
-      );
-    });
-
-    it("goes back to previous month on prev button click", async () => {
-      const { container } = render(<CalendarPanel />);
-      const prevButton = container.querySelector(
-        "button[aria-label*='Previous']",
-      ) as HTMLButtonElement;
-
-      fireEvent.click(prevButton);
-
-      const header = container.querySelector(".calendar-header");
-      // Verify the month has changed
-      expect(header?.textContent).not.toContain(
-        new Date().toLocaleDateString("en-US", { month: "long" }),
-      );
-    });
-
-    it("handles year navigation when crossing month boundary", async () => {
-      const { container } = render(<CalendarPanel initialMonth={0} initialYear={2026} />);
-      const prevButton = container.querySelector(
-        "button[aria-label*='Previous']",
-      ) as HTMLButtonElement;
-
-      // Click multiple times to cross year boundary
-      for (let i = 0; i < 13; i++) {
-        fireEvent.click(prevButton);
-      }
-
-      const header = container.querySelector(".calendar-header");
-      expect(header?.textContent).toContain("2025");
-    });
+  it("whenLabel composes weekday, day of month and the delegated time", () => {
+    const iso = new Date(2026, 6, 25, 14, 30).toISOString();
+    const d = new Date(iso);
+    const weekday = d.toLocaleDateString([], { weekday: "short" });
+    expect(whenLabel(iso, false)).toBe(`${weekday} 25 · ${fmtTime(iso, false)}`);
   });
 
-  describe("month grid rendering", () => {
-    it("renders all days of current month", () => {
-      const { container } = render(<CalendarPanel />);
-      const dayCells = container.querySelectorAll(".day-cell");
-      // A full month grid should have at least 28 cells (Feb) to 31 cells (31-day months)
-      expect(dayCells.length).toBeGreaterThanOrEqual(28);
-    });
-
-    it("highlights today with special styling", () => {
-      const { container } = render(<CalendarPanel />);
-      const today = new Date().getDate();
-      const todayCell = Array.from(container.querySelectorAll(".day-cell")).find(
-        (cell) => cell.textContent?.trim() === String(today),
-      );
-      expect(todayCell?.className).toContain("today");
-    });
-
-    it("shows events on their respective date cells", () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Team Meeting",
-          start: new Date(2026, 6, 25, 10, 0),
-          end: new Date(2026, 6, 25, 11, 0),
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      const eventIndicator = container.querySelector(".event-indicator");
-      expect(eventIndicator).toBeTruthy();
-    });
-
-    it("renders grayed-out days from adjacent months", () => {
-      const { container } = render(<CalendarPanel />);
-      const adjacentDays = container.querySelectorAll(".day-cell.adjacent-month");
-      expect(adjacentDays.length).toBeGreaterThan(0);
-    });
+  it("whenLabel carries the all-day marker into the time slot", () => {
+    const iso = new Date(2026, 6, 25, 14, 30).toISOString();
+    expect(whenLabel(iso, true)).toContain("25 · all day");
   });
 
-  describe("event CRUD operations", () => {
-    it("creates new event when date is clicked", async () => {
-      const { container } = render(<CalendarPanel onCreateEvent={mockCreateEvent} />);
-      const dayCell = container.querySelector(".day-cell:not(.adjacent-month)");
-      fireEvent.click(dayCell);
-
-      await waitFor(() => {
-        expect(mockCreateEvent).toHaveBeenCalled();
-      });
-    });
-
-    it("opens event editor modal on event click", async () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Existing Event",
-          start: new Date(),
-          end: new Date(),
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      const eventElement = container.querySelector(".event-item");
-      fireEvent.click(eventElement);
-
-      await waitFor(() => {
-        expect(screen.getByRole("dialog")).toBeTruthy();
-      });
-    });
-
-    it("updates event when modal is submitted", async () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Original Title",
-          start: new Date(),
-          end: new Date(),
-        },
-      ];
-      const { container } = render(
-        <CalendarPanel events={mockEvents} onUpdateEvent={mockUpdateEvent} />,
-      );
-      const eventElement = container.querySelector(".event-item");
-      fireEvent.click(eventElement);
-
-      const titleInput = screen.getByDisplayValue("Original Title") as HTMLInputElement;
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, "Updated Title");
-
-      const submitButton = screen.getByText("Save");
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockUpdateEvent).toHaveBeenCalled();
-      });
-    });
-
-    it("deletes event when delete button is clicked", async () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Event to Delete",
-          start: new Date(),
-          end: new Date(),
-        },
-      ];
-      const { container } = render(
-        <CalendarPanel events={mockEvents} onDeleteEvent={mockDeleteEvent} />,
-      );
-      const eventElement = container.querySelector(".event-item");
-      fireEvent.click(eventElement);
-
-      const deleteButton = screen.getByText("Delete");
-      fireEvent.click(deleteButton);
-
-      // Confirm deletion if there's a confirmation dialog
-      const confirmButton = screen.queryByText("Confirm Delete");
-      if (confirmButton) {
-        fireEvent.click(confirmButton);
-      }
-
-      await waitFor(() => {
-        expect(mockDeleteEvent).toHaveBeenCalled();
-      });
-    });
+  it("toLocalInput produces a datetime-local value", () => {
+    expect(toLocalInput(new Date(2026, 6, 25, 14, 30).toISOString())).toBe("2026-07-25T14:30");
   });
 
-  describe("event list and filtering", () => {
-    it("displays all events in sidebar list", () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Meeting 1",
-          start: new Date(),
-          end: new Date(),
-        },
-        {
-          id: "2",
-          title: "Meeting 2",
-          start: new Date(),
-          end: new Date(),
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      expect(container.textContent).toContain("Meeting 1");
-      expect(container.textContent).toContain("Meeting 2");
-    });
+  it("toLocalInput zero-pads month, day, hour and minute", () => {
+    expect(toLocalInput(new Date(2026, 0, 5, 9, 5).toISOString())).toBe("2026-01-05T09:05");
+  });
 
-    it("filters events by date range when date range is selected", async () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Past Event",
-          start: new Date(2026, 5, 1),
-          end: new Date(2026, 5, 2),
-        },
-        {
-          id: "2",
-          title: "Future Event",
-          start: new Date(2026, 8, 1),
-          end: new Date(2026, 8, 2),
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
+  it("toLocalInput reads local wall time, not UTC", () => {
+    const d = new Date(2026, 6, 25, 14, 30);
+    const out = toLocalInput(d.toISOString());
+    expect(out.slice(11)).toBe(`${String(d.getHours()).padStart(2, "0")}:30`);
+  });
+});
 
-      // Select a date range
-      const startDateInput = screen.getByLabelText("Start Date") as HTMLInputElement;
-      fireEvent.change(startDateInput, { target: { value: "2026-07-01" } });
+/* ---- Chrome ---- */
 
-      const endDateInput = screen.getByLabelText("End Date") as HTMLInputElement;
-      fireEvent.change(endDateInput, { target: { value: "2026-08-31" } });
+describe("CalendarPanel · toolbar and view switcher", () => {
+  it("renders the four production actions", async () => {
+    await renderLoaded();
+    expect(screen.getByLabelText("Calendar connections")).toBeTruthy();
+    expect(screen.getByText("New event · Scheduler proposes slots")).toBeTruthy();
+    expect(screen.getByText("Plan deep work")).toBeTruthy();
+    expect(screen.getAllByText("Sync · pulls 14 days").length).toBeGreaterThan(0);
+  });
 
-      await waitFor(() => {
-        expect(container.textContent).toContain("Future Event");
-        // Past event may or may not be visible depending on filter logic
-      });
-    });
+  it("renders the List / Month / Year switcher and opens on List", async () => {
+    const { container } = await renderLoaded();
+    expect(screen.getByText("List")).toBeTruthy();
+    expect(screen.getByText("Month")).toBeTruthy();
+    expect(screen.getByText("Year")).toBeTruthy();
+    expect(container.textContent).toContain("Nothing in the next 14 days");
+  });
 
-    it("sorts events by start time", () => {
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Event 2PM",
-          start: new Date(2026, 6, 25, 14, 0),
-          end: new Date(2026, 6, 25, 15, 0),
-        },
-        {
-          id: "2",
-          title: "Event 10AM",
-          start: new Date(2026, 6, 25, 10, 0),
-          end: new Date(2026, 6, 25, 11, 0),
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      const eventList = container.querySelectorAll(".event-item");
-      expect(eventList[0]?.textContent).toContain("Event 10AM");
-      expect(eventList[1]?.textContent).toContain("Event 2PM");
+  it("persists the chosen view to localStorage", async () => {
+    await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => {
+      expect(window.localStorage.getItem("supaprod.calendar.view")).toBe("month");
     });
   });
 
-  describe("meeting sync and OAuth", () => {
-    it("shows sync button when calendar is connected", () => {
-      const { container } = render(<CalendarPanel connectedAccounts={["google-calendar"]} />);
-      const syncButton = container.querySelector("button[aria-label*='Sync']");
-      expect(syncButton).toBeTruthy();
-    });
-
-    it("syncs meetings from connected calendar on button click", async () => {
-      const { container } = render(
-        <CalendarPanel
-          connectedAccounts={["google-calendar"]}
-          onSyncMeetings={mockSyncCalendars}
-        />,
-      );
-      const syncButton = container.querySelector("button[aria-label*='Sync']") as HTMLButtonElement;
-      fireEvent.click(syncButton);
-
-      await waitFor(() => {
-        expect(mockSyncCalendars).toHaveBeenCalled();
-      });
-    });
-
-    it("displays sync status (loading/complete/error)", async () => {
-      const { container, rerender } = render(
-        <CalendarPanel connectedAccounts={["google-calendar"]} />,
-      );
-      const syncButton = container.querySelector("button[aria-label*='Sync']") as HTMLButtonElement;
-      fireEvent.click(syncButton);
-
-      // Loading state
-      expect(container.textContent).toContain("Syncing");
-
-      // After sync completes
-      await waitFor(() => {
-        expect(container.textContent).toContain("Synced");
-      });
-    });
-
-    it("opens OAuth connection flow when Connect button is clicked", async () => {
-      const mockOnConnect = jest.fn();
-      const { container } = render(<CalendarPanel onConnectCalendar={mockOnConnect} />);
-      const connectButton = container.querySelector("button[aria-label*='Connect']");
-      fireEvent.click(connectButton);
-
-      await waitFor(() => {
-        expect(mockOnConnect).toHaveBeenCalled();
-      });
-    });
+  it("restores a stored view on mount", async () => {
+    window.localStorage.setItem("supaprod.calendar.view", "year");
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("· occupancy"));
   });
 
-  describe("scheduler and slot proposals", () => {
-    it("shows available time slots when scheduler is opened", async () => {
-      const { container } = render(<CalendarPanel onGetAvailableSlots={mockGetAvailableSlots} />);
-      const schedulerButton = container.querySelector("button[aria-label*='Schedule']");
-      fireEvent.click(schedulerButton);
+  it("upgrades the pre-Ember stored 'grid' value to Month", async () => {
+    window.localStorage.setItem("supaprod.calendar.view", "grid");
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.querySelector('[aria-label="Next month"]')).toBeTruthy());
+  });
+});
 
-      await waitFor(() => {
-        expect(screen.getByText(/10:00 AM/)).toBeTruthy();
-      });
-    });
+/* ---- List view ---- */
 
-    it("proposes meeting times based on attendee availability", async () => {
-      const mockAttendees = [
-        { id: "1", name: "Alice" },
-        { id: "2", name: "Bob" },
-      ];
-      const { container } = render(
-        <CalendarPanel attendees={mockAttendees} onGetAvailableSlots={mockGetAvailableSlots} />,
-      );
-      const schedulerButton = container.querySelector("button[aria-label*='Schedule']");
-      fireEvent.click(schedulerButton);
-
-      await waitFor(() => {
-        expect(mockGetAvailableSlots).toHaveBeenCalledWith(
-          expect.objectContaining({
-            attendees: mockAttendees,
-          }),
-        );
-      });
-    });
-
-    it("creates meeting when proposed slot is accepted", async () => {
-      const { container } = render(
-        <CalendarPanel
-          onGetAvailableSlots={mockGetAvailableSlots}
-          onCreateEvent={mockCreateEvent}
-        />,
-      );
-      const schedulerButton = container.querySelector("button[aria-label*='Schedule']");
-      fireEvent.click(schedulerButton);
-
-      await waitFor(() => {
-        const slotButton = screen.getByText(/10:00 AM/);
-        fireEvent.click(slotButton);
-      });
-
-      await waitFor(() => {
-        expect(mockCreateEvent).toHaveBeenCalled();
-      });
-    });
+describe("CalendarPanel · list view", () => {
+  it("shows events and meetings from the next 14 days in one feed", async () => {
+    eventsResult = async () => ({ events: [makeEvent()] });
+    meetingsResult = async () => ({ meetings: [makeMeeting()] });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("Design review"));
+    expect(container.textContent).toContain("Weekly sync");
   });
 
-  describe("error handling", () => {
-    it("displays error message when event creation fails", async () => {
-      mockCreateEvent.mockRejectedValueOnce(new Error("Network error"));
-      const { container } = render(<CalendarPanel onCreateEvent={mockCreateEvent} />);
-      const dayCell = container.querySelector(".day-cell:not(.adjacent-month)");
-      fireEvent.click(dayCell);
-
-      await waitFor(() => {
-        expect(screen.getByText(/error/i)).toBeTruthy();
-      });
+  it("sorts the feed by start time", async () => {
+    eventsResult = async () => ({
+      events: [
+        makeEvent({ id: "late", title: "Later event", start_at: hoursOut(30) }),
+        makeEvent({ id: "early", title: "Earlier event", start_at: hoursOut(2) }),
+      ],
     });
-
-    it("displays error when sync fails", async () => {
-      mockSyncCalendars.mockRejectedValueOnce(new Error("Sync failed"));
-      const { container } = render(
-        <CalendarPanel
-          connectedAccounts={["google-calendar"]}
-          onSyncMeetings={mockSyncCalendars}
-        />,
-      );
-      const syncButton = container.querySelector("button[aria-label*='Sync']") as HTMLButtonElement;
-      fireEvent.click(syncButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/sync failed/i)).toBeTruthy();
-      });
-    });
-
-    it("retries sync on network failure", async () => {
-      mockSyncCalendars.mockRejectedValueOnce(new Error("Network error"));
-      mockSyncCalendars.mockResolvedValueOnce({ synced: 5 });
-
-      const { container } = render(
-        <CalendarPanel
-          connectedAccounts={["google-calendar"]}
-          onSyncMeetings={mockSyncCalendars}
-        />,
-      );
-      const syncButton = container.querySelector("button[aria-label*='Sync']") as HTMLButtonElement;
-      fireEvent.click(syncButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/retry/i)).toBeTruthy();
-      });
-
-      const retryButton = screen.getByText(/retry/i);
-      fireEvent.click(retryButton);
-
-      await waitFor(() => {
-        expect(mockSyncCalendars).toHaveBeenCalledTimes(2);
-      });
-    });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("Earlier event"));
+    const text = container.textContent ?? "";
+    expect(text.indexOf("Earlier event")).toBeLessThan(text.indexOf("Later event"));
   });
 
-  describe("time formatting utilities (pure functions)", () => {
-    it("formats time correctly (fmtTime)", () => {
-      // This tests a pure utility function that should be extracted
-      const date = new Date(2026, 6, 25, 14, 30);
-      // Pattern: fmtTime("14:30") => "2:30 PM"
-      expect(fmtTime(date)).toMatch(/\d{1,2}:\d{2}\s(AM|PM)/);
+  it("drops items outside the 14 day window", async () => {
+    eventsResult = async () => ({
+      events: [
+        makeEvent({ id: "old", title: "Last month", start_at: hoursOut(-24 * 30) }),
+        makeEvent({ id: "far", title: "Next quarter", start_at: hoursOut(24 * 90) }),
+        makeEvent({ id: "now", title: "In window", start_at: hoursOut(6) }),
+      ],
     });
-
-    it("generates readable when label (whenLabel)", () => {
-      const date = new Date();
-      // Pattern: whenLabel(date) => "Today", "Tomorrow", "Monday", etc.
-      const label = whenLabel(date);
-      expect(label).toBeTruthy();
-      expect(typeof label).toBe("string");
-    });
-
-    it("converts date to local input format (toLocalInput)", () => {
-      const date = new Date(2026, 6, 25);
-      // Pattern: toLocalInput(date) => "2026-07-25"
-      const result = toLocalInput(date);
-      expect(result).toMatch(/\d{4}-\d{2}-\d{2}/);
-    });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("In window"));
+    expect(container.textContent).not.toContain("Last month");
+    expect(container.textContent).not.toContain("Next quarter");
   });
 
-  describe("useMemo aggregation logic", () => {
-    it("aggregates events for allItems memo", () => {
-      const mockEvents = [
+  it("names the window in the empty state instead of claiming an empty calendar", async () => {
+    const { container } = await renderLoaded();
+    expect(container.textContent).toContain("Nothing in the next 14 days");
+    expect(container.textContent).toContain("Sync pulls the next 14 days");
+  });
+
+  it("points at the Month and Year views when older entries exist", async () => {
+    eventsResult = async () => ({
+      events: [makeEvent({ id: "old", title: "Old", start_at: hoursOut(-24 * 40) })],
+    });
+    const { container } = await renderLoaded();
+    await waitFor(() =>
+      expect(container.textContent).toContain("1 earlier entry lives in the Month and Year views"),
+    );
+  });
+
+  it("pluralizes the earlier-entries count", async () => {
+    eventsResult = async () => ({
+      events: [
+        makeEvent({ id: "o1", title: "Old 1", start_at: hoursOut(-24 * 40) }),
+        makeEvent({ id: "o2", title: "Old 2", start_at: hoursOut(-24 * 41) }),
+      ],
+    });
+    const { container } = await renderLoaded();
+    await waitFor(() =>
+      expect(container.textContent).toContain("2 earlier entries live in the Month and Year views"),
+    );
+  });
+
+  it("marks a processed meeting as extracted", async () => {
+    meetingsResult = async () => ({
+      meetings: [makeMeeting({ processed_at: new Date().toISOString() })],
+    });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("extracted"));
+  });
+
+  it("expands a meeting that carries a Historian capture", async () => {
+    meetingsResult = async () => ({
+      meetings: [makeMeeting({ summary: "Agreed to cut the export tab." })],
+    });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("Weekly sync"));
+    expect(container.textContent).not.toContain("Agreed to cut the export tab.");
+
+    fireEvent.click(screen.getByText("Weekly sync").closest('[role="button"]')!);
+    await waitFor(() => expect(container.textContent).toContain("Agreed to cut the export tab."));
+    expect(container.textContent).toContain("capture · extracted by Historian");
+  });
+
+  it("opens the meeting sheet when a meeting has no capture to expand", async () => {
+    const onMeetingChange = mock((_id?: string) => {});
+    meetingsResult = async () => ({ meetings: [makeMeeting()] });
+    await renderLoaded({ onMeetingChange });
+    await waitFor(() => expect(screen.getByText("Weekly sync")).toBeTruthy());
+
+    fireEvent.click(screen.getByText("Weekly sync").closest('[role="button"]')!);
+    expect(onMeetingChange).toHaveBeenCalledWith("mtg-1");
+  });
+
+  it("shows an event location, and falls back to the attendee count", async () => {
+    eventsResult = async () => ({
+      events: [
+        makeEvent({ id: "e1", title: "Onsite", location: "Room 4" }),
+        makeEvent({
+          id: "e2",
+          title: "Remote",
+          attendees: [{ email: "a@b.c" }, { email: "d@e.f" }],
+        }),
+      ],
+    });
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("Room 4"));
+    expect(container.textContent).toContain("2 attendees");
+  });
+
+  it("links an event back to its provider when it has an html_link", async () => {
+    eventsResult = async () => ({
+      events: [makeEvent({ html_link: "https://calendar.example/evt-1" })],
+    });
+    await renderLoaded();
+    const link = await screen.findByLabelText("Open in provider");
+    expect(link.getAttribute("href")).toBe("https://calendar.example/evt-1");
+  });
+});
+
+/* ---- Month view ---- */
+
+describe("CalendarPanel · month view", () => {
+  const monthName = () => new Date().toLocaleDateString([], { month: "long" });
+
+  it("opens on the current month with today already selected", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain(monthName()));
+    expect(container.textContent).toContain("· today");
+  });
+
+  it("renders a whole number of Monday-first weeks", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.querySelector('[aria-label="Next month"]')).toBeTruthy());
+
+    // Only in-month cells carry an aria-label; the adjacent-month spacers are
+    // unlabelled, so the grid is counted through the shared parent.
+    const labelled = Array.from(container.querySelectorAll("button")).filter((b) =>
+      b.getAttribute("aria-label")?.includes(monthName()),
+    );
+    const grid = labelled[0].parentElement!;
+    expect(grid.querySelectorAll("button").length % 7).toBe(0);
+    expect(labelled.length).toBe(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(),
+    );
+  });
+
+  it("labels each day cell with its event count", async () => {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    eventsResult = async () => ({
+      events: [makeEvent({ id: "a", start_at: today.toISOString() })],
+    });
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() =>
+      expect(
+        container.querySelector(`button[aria-label="${monthName()} ${today.getDate()} · 1 event"]`),
+      ).toBeTruthy(),
+    );
+  });
+
+  it("pads the grid with blank, disabled cells for the adjacent months", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.querySelector('[aria-label="Next month"]')).toBeTruthy());
+
+    const labelled = Array.from(container.querySelectorAll("button")).filter((b) =>
+      b.getAttribute("aria-label")?.includes(monthName()),
+    );
+    const cells = Array.from(labelled[0].parentElement!.querySelectorAll("button"));
+    const firstDayIndex = cells.indexOf(labelled[0]);
+    const lastDayIndex = cells.indexOf(labelled[labelled.length - 1]);
+
+    // The 1st sits at its Monday-first weekday offset, and everything outside
+    // the month is a blank, non-clickable spacer.
+    const now = new Date();
+    expect(firstDayIndex).toBe((new Date(now.getFullYear(), now.getMonth(), 1).getDay() + 6) % 7);
+    for (const cell of [...cells.slice(0, firstDayIndex), ...cells.slice(lastDayIndex + 1)]) {
+      expect(cell.hasAttribute("disabled")).toBe(true);
+      expect(cell.textContent?.trim()).toBe("");
+    }
+  });
+
+  it("steps back a month and clears the selection", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain("· today"));
+
+    fireEvent.click(screen.getByLabelText("Previous month"));
+    const prev = new Date();
+    prev.setDate(1);
+    prev.setMonth(prev.getMonth() - 1);
+    await waitFor(() =>
+      expect(container.textContent).toContain(prev.toLocaleDateString([], { month: "long" })),
+    );
+    expect(container.textContent).not.toContain("· today");
+  });
+
+  it("steps forward a month", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain(monthName()));
+
+    fireEvent.click(screen.getByLabelText("Next month"));
+    const next = new Date();
+    next.setDate(1);
+    next.setMonth(next.getMonth() + 1);
+    await waitFor(() =>
+      expect(container.textContent).toContain(next.toLocaleDateString([], { month: "long" })),
+    );
+  });
+
+  it("crosses the year boundary when stepping back past January", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain(monthName()));
+
+    for (let i = 0; i < 13; i++) fireEvent.click(screen.getByLabelText("Previous month"));
+
+    // 13 steps back always crosses at least one year boundary, whichever month
+    // the suite happens to run in.
+    const now = new Date();
+    const expected = new Date(now.getFullYear(), now.getMonth() - 13, 1);
+    expect(expected.getFullYear()).toBeLessThan(now.getFullYear());
+    const label = `${expected.toLocaleDateString([], { month: "long" })} ${expected.getFullYear()}`;
+    await waitFor(() => expect(container.textContent).toContain(label));
+  });
+
+  it("Today returns the cursor to this month and reselects today", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain("· today"));
+
+    fireEvent.click(screen.getByLabelText("Next month"));
+    await waitFor(() => expect(container.textContent).not.toContain("· today"));
+
+    fireEvent.click(screen.getByText("Today"));
+    await waitFor(() => expect(container.textContent).toContain("· today"));
+  });
+
+  it("says the selected day is free when nothing is on it", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() =>
+      expect(container.textContent).toContain("Nothing scheduled · a good deep-work day."),
+    );
+  });
+
+  it("lists the selected day's items and opens an event from them", async () => {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    eventsResult = async () => ({
+      events: [makeEvent({ id: "evt-1", title: "Design review", start_at: today.toISOString() })],
+    });
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain("Design review"));
+
+    const dayRow = screen
+      .getAllByText((_t, el) => el?.textContent?.endsWith("· Design review") === true)
+      .pop()!;
+    fireEvent.click(dayRow);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeTruthy());
+  });
+
+  it("quick-adds an 09:00 to 10:00 focus block on the selected day", async () => {
+    await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(screen.getByText("+ Add · syncs back")).toBeTruthy());
+
+    fireEvent.click(screen.getByText("+ Add · syncs back"));
+    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+
+    const arg = createSpy.mock.calls[0][0] as {
+      data: { summary: string; start_at: string; end_at: string };
+    };
+    const start = new Date(arg.data.start_at);
+    const end = new Date(arg.data.end_at);
+    expect(arg.data.summary).toBe("Hold · focus block");
+    expect(start.getHours()).toBe(9);
+    expect(end.getHours()).toBe(10);
+    expect(start.getDate()).toBe(new Date().getDate());
+    await waitFor(() =>
+      expect(toastSuccessSpy).toHaveBeenCalledWith("Added here · syncs to your calendar"),
+    );
+  });
+
+  it("toggles the selected day off when its cell is clicked again", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Month");
+    await waitFor(() => expect(container.textContent).toContain("· today"));
+
+    const todayCell = container.querySelector(
+      `button[aria-label^="${monthName()} ${new Date().getDate()} ·"]`,
+    )!;
+    fireEvent.click(todayCell);
+    await waitFor(() => expect(container.textContent).not.toContain("· today"));
+  });
+});
+
+/* ---- Year view ---- */
+
+describe("CalendarPanel · year view", () => {
+  it("renders the occupancy quilt for the current year", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Year");
+    await waitFor(() =>
+      expect(container.textContent).toContain(`${new Date().getFullYear()} · occupancy`),
+    );
+    expect(container.textContent).toContain("today ringed ember");
+  });
+
+  it("stops the grid at today rather than rendering the rest of the year", async () => {
+    const { container } = await renderLoaded();
+    switchTo("Year");
+    await waitFor(() => expect(container.textContent).toContain("· occupancy"));
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    for (const m of months.slice(new Date().getMonth() + 1)) {
+      expect(container.textContent).not.toContain(m);
+    }
+  });
+});
+
+/* ---- Event editor ---- */
+
+describe("CalendarPanel · event editor", () => {
+  async function openEditor() {
+    eventsResult = async () => ({ events: [makeEvent()] });
+    const view = await renderLoaded();
+    await waitFor(() => expect(screen.getByText("Design review")).toBeTruthy());
+    fireEvent.click(screen.getByText("Design review").closest('[role="button"]')!);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeTruthy());
+    return view;
+  }
+
+  it("opens the editor prefilled from the event row", async () => {
+    await openEditor();
+    expect(screen.getByRole("dialog").getAttribute("aria-label")).toBe("Edit event");
+    expect((screen.getByDisplayValue("Design review") as HTMLInputElement).value).toBe(
+      "Design review",
+    );
+  });
+
+  it("blocks Save while the title is empty", async () => {
+    await openEditor();
+    const title = screen.getByDisplayValue("Design review") as HTMLInputElement;
+    fireEvent.change(title, { target: { value: "  " } });
+    await waitFor(() =>
+      expect((screen.getByText("Save · syncs back") as HTMLButtonElement).disabled).toBe(true),
+    );
+  });
+
+  it("saves an edited event back through updateCalendarEvent", async () => {
+    await openEditor();
+    fireEvent.change(screen.getByDisplayValue("Design review"), {
+      target: { value: "Design review v2" },
+    });
+    fireEvent.click(screen.getByText("Save · syncs back"));
+
+    await waitFor(() => expect(updateSpy).toHaveBeenCalled());
+    const arg = updateSpy.mock.calls[0][0] as {
+      data: { externalId: string; summary: string };
+    };
+    expect(arg.data.externalId).toBe("evt-1");
+    expect(arg.data.summary).toBe("Design review v2");
+  });
+
+  it("closes the editor and reports the two-way sync after a save", async () => {
+    await openEditor();
+    fireEvent.click(screen.getByText("Save · syncs back"));
+    await waitFor(() => expectGone(screen.queryByRole("dialog")));
+    expect(toastSuccessSpy).toHaveBeenCalledWith("Event updated · synced back to your calendar");
+  });
+
+  it("asks for confirmation before deleting, then deletes", async () => {
+    await openEditor();
+    fireEvent.click(screen.getByText("Delete · removes everywhere"));
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    await waitFor(() => expect(deleteSpy).toHaveBeenCalled());
+    const arg = deleteSpy.mock.calls[0][0] as { data: { externalId: string } };
+    expect(arg.data.externalId).toBe("evt-1");
+  });
+
+  it("keeps the event when the confirmation is declined", async () => {
+    confirmAnswer = false;
+    await openEditor();
+    fireEvent.click(screen.getByText("Delete · removes everywhere"));
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("dismisses the editor without saving on Cancel", async () => {
+    await openEditor();
+    fireEvent.click(screen.getByText("Cancel · keeps it"));
+    await waitFor(() => expectGone(screen.queryByRole("dialog")));
+    expect(updateSpy).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a failed save as an error toast and leaves the editor open", async () => {
+    updateSpy.mockImplementationOnce(async () => {
+      throw new Error("Provider rejected the update");
+    });
+    await openEditor();
+    fireEvent.click(screen.getByText("Save · syncs back"));
+    await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith("Provider rejected the update"));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+});
+
+/* ---- Sync and connections ---- */
+
+describe("CalendarPanel · sync and connections", () => {
+  it("pulls 14 days through syncCalendar", async () => {
+    await renderLoaded();
+    fireEvent.click(screen.getAllByText("Sync · pulls 14 days")[0]);
+    await waitFor(() => expect(syncSpy).toHaveBeenCalled());
+    const arg = syncSpy.mock.calls[0][0] as { data: { calendarId: string; daysAhead: number } };
+    expect(arg.data).toEqual({ calendarId: "primary", daysAhead: 14 });
+  });
+
+  it("reports the synced count", async () => {
+    await renderLoaded();
+    fireEvent.click(screen.getAllByText("Sync · pulls 14 days")[0]);
+    await waitFor(() => expect(toastSuccessSpy).toHaveBeenCalledWith("Synced 3 events"));
+  });
+
+  it("surfaces a failed sync as an error toast", async () => {
+    syncSpy.mockImplementationOnce(async () => {
+      throw new Error("Calendar is not connected");
+    });
+    await renderLoaded();
+    fireEvent.click(screen.getAllByText("Sync · pulls 14 days")[0]);
+    await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith("Calendar is not connected"));
+  });
+
+  it("marks the connections button live once a calendar account exists", async () => {
+    connsResult = async () => ({
+      connections: [
+        { id: "c1", provider: "google", product: "calendar", account_email: "pm@example.com" },
+      ],
+      providersAvailable: { google_calendar: true, microsoft_outlook: true },
+    });
+    await renderLoaded();
+    const dot = await waitFor(() => {
+      const el = screen.getByLabelText("Calendar connections").querySelector("span.dot");
+      expect(el?.getAttribute("style")).toContain("var(--emerald)");
+      return el;
+    });
+    expect(dot).toBeTruthy();
+  });
+
+  it("opens the provider consent screen in a new tab", async () => {
+    await renderLoaded();
+    fireEvent.click(screen.getByLabelText("Calendar connections"));
+    const google = await screen.findByText(/Connect Google Calendar/);
+    fireEvent.click(google);
+
+    await waitFor(() => expect(startConnectSpy).toHaveBeenCalled());
+    const arg = startConnectSpy.mock.calls[0][0] as {
+      data: { provider: string; product: string };
+    };
+    expect(arg.data).toEqual({ provider: "google", product: "calendar" });
+    await waitFor(() =>
+      expect(window.open).toHaveBeenCalledWith(
+        "https://consent.example/oauth",
+        "_blank",
+        "noopener",
+      ),
+    );
+  });
+
+  it("confirms before disconnecting a calendar account", async () => {
+    connsResult = async () => ({
+      connections: [
+        { id: "c1", provider: "google", product: "calendar", account_email: "pm@example.com" },
+      ],
+      providersAvailable: { google_calendar: true, microsoft_outlook: true },
+    });
+    await renderLoaded();
+    fireEvent.click(screen.getByLabelText("Calendar connections"));
+    fireEvent.click(await screen.findByLabelText("Disconnect"));
+
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    await waitFor(() => expect(disconnectSpy).toHaveBeenCalled());
+    expect((disconnectSpy.mock.calls[0][0] as { data: { id: string } }).data.id).toBe("c1");
+  });
+});
+
+/* ---- Scheduler ---- */
+
+describe("CalendarPanel · scheduler slot proposals", () => {
+  const SLOTS = {
+    slots: [
+      { start_at: hoursOut(24), end_at: hoursOut(25), label: "Tomorrow 10:00" },
+      { start_at: hoursOut(48), end_at: hoursOut(49), label: "Thu 14:00" },
+    ],
+  };
+
+  it("asks the Scheduler for open time when the composer opens", async () => {
+    slotsResult = async () => SLOTS;
+    await renderLoaded();
+    fireEvent.click(screen.getByText("New event · Scheduler proposes slots"));
+    await waitFor(() => expect(proposeSpy).toHaveBeenCalled());
+    const arg = proposeSpy.mock.calls[0][0] as { data: Record<string, number> };
+    expect(arg.data).toEqual({ durationMinutes: 60, daysAhead: 7, count: 3 });
+  });
+
+  it("renders the proposed slots and preselects the first", async () => {
+    slotsResult = async () => SLOTS;
+    await renderLoaded();
+    fireEvent.click(screen.getByText("New event · Scheduler proposes slots"));
+    const first = await screen.findByText("Tomorrow 10:00");
+    expect(screen.getByText("Thu 14:00")).toBeTruthy();
+    expect(first.getAttribute("style")).toContain("var(--ink)");
+  });
+
+  it("keeps Create disabled until a title is typed", async () => {
+    slotsResult = async () => SLOTS;
+    await renderLoaded();
+    fireEvent.click(screen.getByText("New event · Scheduler proposes slots"));
+    await screen.findByText("Tomorrow 10:00");
+    expect((screen.getByText("Create · syncs back") as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("creates the event on the picked slot", async () => {
+    slotsResult = async () => SLOTS;
+    await renderLoaded();
+    fireEvent.click(screen.getByText("New event · Scheduler proposes slots"));
+    await screen.findByText("Thu 14:00");
+
+    fireEvent.click(screen.getByText("Thu 14:00"));
+    fireEvent.change(screen.getByPlaceholderText("Event title · e.g. Deep-work block"), {
+      target: { value: "Deep-work block" },
+    });
+    fireEvent.click(screen.getByText("Create · syncs back"));
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    const arg = createSpy.mock.calls[0][0] as { data: { summary: string; start_at: string } };
+    expect(arg.data.summary).toBe("Deep-work block");
+    expect(arg.data.start_at).toBe(SLOTS.slots[1].start_at);
+  });
+
+  it("closes the composer after a successful create", async () => {
+    slotsResult = async () => SLOTS;
+    await renderLoaded();
+    fireEvent.click(screen.getByText("New event · Scheduler proposes slots"));
+    await screen.findByText("Tomorrow 10:00");
+    fireEvent.change(screen.getByPlaceholderText("Event title · e.g. Deep-work block"), {
+      target: { value: "Deep-work block" },
+    });
+    fireEvent.click(screen.getByText("Create · syncs back"));
+    await waitFor(() => expectGone(screen.queryByText("Tomorrow 10:00")));
+  });
+});
+
+/* ---- Deep-work planning ---- */
+
+describe("CalendarPanel · deep-work planning", () => {
+  it("proposes a block per open deep-work task", async () => {
+    blocksResult = async () => ({
+      blocks: [
         {
-          id: "1",
-          title: "Event 1",
-          start: new Date(),
-          end: new Date(),
+          task_id: "t1",
+          title: "Ship the export fix",
+          start_at: hoursOut(24),
+          end_at: hoursOut(26),
+          label: "Wed 09:00",
         },
+      ],
+    });
+    await renderLoaded();
+    fireEvent.click(screen.getByText("Plan deep work"));
+    await waitFor(() => expect(planSpy).toHaveBeenCalled());
+    expect(await screen.findByText("Ship the export fix")).toBeTruthy();
+    expect(screen.getByText("Wed 09:00")).toBeTruthy();
+  });
+
+  it("adds a proposed block to the calendar and marks it added", async () => {
+    blocksResult = async () => ({
+      blocks: [
         {
-          id: "2",
-          title: "Event 2",
-          start: new Date(),
-          end: new Date(),
+          task_id: "t1",
+          title: "Ship the export fix",
+          start_at: hoursOut(24),
+          end_at: hoursOut(26),
+          label: "Wed 09:00",
         },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      // Verify both events are rendered (memo should aggregate them)
-      expect(container.textContent).toContain("Event 1");
-      expect(container.textContent).toContain("Event 2");
+      ],
     });
+    await renderLoaded();
+    fireEvent.click(screen.getByText("Plan deep work"));
+    fireEvent.click(await screen.findByText("Add to calendar"));
 
-    it("recalculates allItems when events dependency changes", () => {
-      const mockEvents1 = [{ id: "1", title: "Event 1", start: new Date(), end: new Date() }];
-      const { rerender } = render(<CalendarPanel events={mockEvents1} />);
+    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    const arg = createSpy.mock.calls[0][0] as { data: { summary: string } };
+    expect(arg.data.summary).toBe("Ship the export fix");
+    expect(await screen.findByText("Added")).toBeTruthy();
+  });
 
-      const mockEvents2 = [{ id: "2", title: "Event 2", start: new Date(), end: new Date() }];
-      rerender(<CalendarPanel events={mockEvents2} />);
+  it("says so honestly when there is nothing to schedule", async () => {
+    await renderLoaded();
+    fireEvent.click(screen.getByText("Plan deep work"));
+    await waitFor(() => expect(screen.getByText(/Nothing to schedule/)).toBeTruthy());
+  });
+});
 
-      // Verify memoization by checking the component re-renders correctly
-      expect(screen.queryByText("Event 1")).toBeFalsy();
-      expect(screen.getByText("Event 2")).toBeTruthy();
-    });
+/* ---- Loading and failure ---- */
 
-    it("computes pastCount for statistics", () => {
-      const pastDate = new Date();
-      pastDate.setFullYear(pastDate.getFullYear() - 1);
-      const mockEvents = [
-        {
-          id: "1",
-          title: "Past Event",
-          start: pastDate,
-          end: pastDate,
-        },
-      ];
-      const { container } = render(<CalendarPanel events={mockEvents} />);
-      const stats = container.querySelector(".calendar-stats");
-      // Should show past count in stats
-      expect(stats?.textContent).toContain("1");
-    });
+describe("CalendarPanel · loading and failure", () => {
+  it("shows the shimmer skeleton while the feed queries are in flight", () => {
+    eventsResult = () => new Promise(() => {});
+    const { container } = renderPanel();
+    expect(shimmer(container)).toBeTruthy();
+    expect(container.textContent).not.toContain("Nothing in the next 14 days");
+  });
+
+  it("names the failure and offers a retry when the feed cannot load", async () => {
+    eventsResult = async () => {
+      throw new Error("Calendar service unavailable");
+    };
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("calendar · failed to load"));
+    expect(container.textContent).toContain("Calendar service unavailable");
+    expect(screen.getByText("Retry · reloads the feed")).toBeTruthy();
+  });
+
+  it("refetches both feed queries on retry", async () => {
+    let fail = true;
+    eventsResult = async () => {
+      if (fail) throw new Error("Calendar service unavailable");
+      return { events: [makeEvent()] };
+    };
+    const { container } = await renderLoaded();
+    await waitFor(() => expect(container.textContent).toContain("calendar · failed to load"));
+
+    fail = false;
+    fireEvent.click(screen.getByText("Retry · reloads the feed"));
+    await waitFor(() => expect(container.textContent).toContain("Design review"));
+  });
+
+  it("scopes the meetings read to the active workspace", async () => {
+    await renderLoaded();
+    await waitFor(() => expect(listMeetingsSpy).toHaveBeenCalled());
+    const arg = listMeetingsSpy.mock.calls[0][0] as { data: { workspaceId: string | null } };
+    expect(arg.data.workspaceId).toBe("workspace-1");
   });
 });

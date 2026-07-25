@@ -86,7 +86,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             color: "inherit",
           }}
         >
-          <SupaprodWordmark size={22} textSize={14} />
+          <SupaprodWordmark tier="public" />
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
           the ledger
