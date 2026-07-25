@@ -765,7 +765,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
+            fontSize: "var(--tempo-text-base)",
             color: "var(--text-body)",
             margin: "var(--space-2) 0 0",
             lineHeight: "var(--leading-body)",
@@ -1025,7 +1025,7 @@ function BundleGrid({
             <span
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-base)",
+                fontSize: "var(--tempo-text-base)",
                 color: "var(--text-body)",
               }}
             >
@@ -1180,7 +1180,7 @@ function CreditsTabInner() {
             <span
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
+                fontSize: "var(--tempo-text-sm)",
                 color: "var(--text-subtle)",
                 marginLeft: "var(--space-2)",
               }}
@@ -1204,7 +1204,7 @@ function CreditsTabInner() {
                 style={{
                   marginTop: "var(--space-1)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   color: "var(--text-body)",
                 }}
               >
@@ -1217,7 +1217,7 @@ function CreditsTabInner() {
                 style={{
                   marginTop: "var(--space-1)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   color: "var(--text-body)",
                 }}
               >
@@ -1231,7 +1231,7 @@ function CreditsTabInner() {
                   style={{
                     marginTop: "var(--space-1)",
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-body)",
                   }}
                 >
@@ -1296,7 +1296,7 @@ function CreditsTabInner() {
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   color: "var(--text-subtle)",
                 }}
               >
@@ -1312,7 +1312,7 @@ function CreditsTabInner() {
                       display: "flex",
                       justifyContent: "space-between",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-base)",
+                      fontSize: "var(--tempo-text-base)",
                     }}
                   >
                     <span style={{ color: "var(--text-primary)" }}>{p.name}</span>
@@ -1376,7 +1376,7 @@ function CreditsTabInner() {
             <p
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
+                fontSize: "var(--tempo-text-sm)",
                 color: "var(--text-body)",
                 margin: "var(--space-1) 0 0",
                 lineHeight: "var(--leading-body)",
@@ -1571,7 +1571,7 @@ function CreditsTabInner() {
                   justifyContent: "space-between",
                   gap: "var(--space-3)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   padding: "var(--space-2) 0",
                   borderBottom: "1px solid var(--hairline)",
                 }}
@@ -1602,7 +1602,7 @@ function CreditsTabInner() {
                   justifyContent: "space-between",
                   gap: "var(--space-3)",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   padding: "var(--space-2) 0",
                   borderBottom: "1px solid var(--hairline)",
                 }}

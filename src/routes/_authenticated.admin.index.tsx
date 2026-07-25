@@ -170,7 +170,7 @@ function AdminOverview() {
               <p
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-sm)",
+                  fontSize: "var(--tempo-text-sm)",
                   color: "var(--text-muted)",
                   margin: "4px 0 0",
                   maxWidth: 540,
@@ -238,7 +238,7 @@ function AdminOverview() {
                 <span
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-primary)",
                     fontWeight: 500,
                     flexShrink: 0,
@@ -249,7 +249,7 @@ function AdminOverview() {
                 <span
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-muted)",
                     minWidth: 0,
                   }}
@@ -284,7 +284,7 @@ function AdminOverview() {
               border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-base)",
+              fontSize: "var(--tempo-text-base)",
               color: "var(--text-primary)",
               background: "var(--raised)",
             }}
@@ -307,7 +307,7 @@ function AdminOverview() {
             <p
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
+                fontSize: "var(--tempo-text-sm)",
                 color: "var(--text-subtle)",
                 margin: 0,
               }}
@@ -329,7 +329,7 @@ function AdminOverview() {
                 <div
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-body)",
                   }}
                 >

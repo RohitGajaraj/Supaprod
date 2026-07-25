@@ -240,7 +240,7 @@ export function EngineRoomGlance() {
           {throughput.decisionsClosed > 0 || throughput.prsShipped > 0 ? (
             <p
               style={{
-                fontSize: throughput.totalRuns > 0 ? 12.5 : "var(--text-base)",
+                fontSize: throughput.totalRuns > 0 ? 12.5 : "var(--tempo-text-base)",
                 color: throughput.totalRuns > 0 ? "var(--text-subtle)" : "var(--text-primary)",
                 margin: throughput.totalRuns > 0 ? "4px 0 0" : 0,
               }}

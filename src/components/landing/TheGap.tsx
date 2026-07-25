@@ -426,7 +426,14 @@ export function TheGap() {
               months ago.&rdquo;
             </p>
             <cite className={EXHIBIT_SOURCE} style={EXHIBIT_SOURCE_STYLE}>
-              Top-voted thread, r/ProductManagement, 480 points
+              {/* The mono caps voice was rendering this as R/PRODUCTMANAGEMENT.
+                  A subreddit is lowercase, always, and "r/" is part of the
+                  name rather than styling we get to change. Getting a source
+                  citation wrong is the one place on a page like this where a
+                  reader stops trusting the rest, so the transform is switched
+                  off for this token only and the caption keeps its voice. */}
+              Top-voted thread,{" "}
+              <span className="normal-case">r/ProductManagement</span>, 480 points
             </cite>
           </blockquote>
 
@@ -447,8 +454,25 @@ export function TheGap() {
                 color: "#6cb0f5",
               }}
             />
+            {/* THE TURN. Founder: "this 80%, how is it adding value having it
+                on our platform? Does it make any sense?" Fair, and the stat on
+                its own did not earn its place. It is one of the most cited
+                numbers in the industry, it appears in every product tool's
+                marketing, and a reader has seen it many times before us. Worse,
+                bare, it argues for usage analytics, which is not what we sell.
+
+                So the number stays, because it is real, sourced and checkable,
+                and the SENTENCE does the work now. The second half converts a
+                feature-usage statistic into a decision-quality one, which is
+                our actual product: the waste is not that teams build badly, it
+                is that nobody could say why a thing was chosen. That is the
+                claim layer 01 answers, and it is the argument this page is
+                making everywhere else. */}
             <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
-              of shipped features are rarely or never used.
+              of shipped features are rarely or never used.{" "}
+              <span className="text-zinc-500">
+                The building was never the problem. The choosing was.
+              </span>
             </p>
             <cite className={EXHIBIT_SOURCE} style={EXHIBIT_SOURCE_STYLE}>
               Pendo, across 615 products

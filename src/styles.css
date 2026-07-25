@@ -2011,8 +2011,8 @@ html[data-motion="off"] .ai-working-word {
   --text-h2: 28px; /* Geist display */
   --text-card-title: 20px; /* Geist display, 1.3 */
   --text-score: 52px; /* Geist Pixel, aurora cards only */
-  --text-base: 13px; /* Geist, 1.55 line height */
-  --text-sm: 12px;
+  --tempo-text-base: 13px; /* Geist, 1.55 line height */
+  --tempo-text-sm: 12px;
   --text-helper: 11.5px;
   --text-mono-label: 9.5px; /* mono caps, 0.10-0.12em tracking */
   --text-mono-micro: 8.5px;
@@ -2356,7 +2356,7 @@ html[data-motion="off"] .flow-pulse {
   --text-subtle: #86817a;
 
   /* §4 type recalibrated: 14px base; the mono metadata floor rises to 10.5px */
-  --text-base: 14px;
+  --tempo-text-base: 14px;
   --text-emphasis: 16px;
   --text-h2: 25px;
   --text-h1: 32px;

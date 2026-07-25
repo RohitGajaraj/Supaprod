@@ -178,7 +178,7 @@ function UsersPanel() {
             background: "var(--raised)",
             color: "var(--text-primary)",
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
+            fontSize: "var(--tempo-text-base)",
           }}
         />
         <MonoLabel tone="muted">
@@ -260,7 +260,7 @@ function UsersPanel() {
                       padding: "var(--space-4)",
                       textAlign: "center",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-base)",
+                      fontSize: "var(--tempo-text-base)",
                       color: "var(--text-subtle)",
                     }}
                   >
@@ -294,7 +294,7 @@ function td(): React.CSSProperties {
     padding: "var(--space-3)",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-base)",
+    fontSize: "var(--tempo-text-base)",
     color: "var(--text-body)",
   };
 }
@@ -450,7 +450,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
+                  fontSize: "var(--tempo-text-base)",
                   color: "var(--text-body)",
                   display: "grid",
                   gap: "var(--space-1)",
@@ -478,7 +478,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 <div
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-body)",
                     display: "grid",
                     gap: "var(--space-1)",
@@ -495,7 +495,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 <p
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-subtle)",
                   }}
                 >
@@ -564,7 +564,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 <p
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-subtle)",
                   }}
                 >
@@ -576,7 +576,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                     margin: 0,
                     paddingLeft: "var(--space-4)",
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-body)",
                     display: "grid",
                     gap: "var(--space-1)",
@@ -636,7 +636,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 <p
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-subtle)",
                   }}
                 >
@@ -686,7 +686,7 @@ function GrantCreditsForm({
     background: "var(--raised)",
     color: "var(--text-primary)",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
+    fontSize: "var(--tempo-text-sm)",
   };
   return (
     <form
@@ -770,7 +770,7 @@ function PlanOverrideForm({
     background: "var(--raised)",
     color: "var(--text-primary)",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
+    fontSize: "var(--tempo-text-sm)",
   };
   return (
     <form

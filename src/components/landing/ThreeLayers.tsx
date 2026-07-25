@@ -199,11 +199,18 @@ export function ThreeLayers() {
             beside the kicker is the reference's own device and it does the
             work a heavier treatment would have to fake. */}
         <div className="mb-3 flex items-center gap-4">
+          {/* "What we are building" came straight off the brief's slide, where
+              it is exactly right: an investor is buying the roadmap. On a
+              public site the same three words say the product is not finished
+              yet, which is the opposite of what a visitor needs to hear
+              (founder 2026-07-25). "How it works" is what a stranger scans for
+              at this point in a page, it describes what actually follows, and
+              it carries no tense. The brief keeps its own wording. */}
           <span
             className="font-mono text-[11px] uppercase md:text-[12px]"
             style={{ color: "#FF6B2C", letterSpacing: "0.2em" }}
           >
-            What we are building
+            How it works
           </span>
           <span
             aria-hidden

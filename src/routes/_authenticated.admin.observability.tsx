@@ -203,7 +203,7 @@ function AdminObservability() {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-primary)",
                   }}
                   className="tabular-nums"
@@ -240,7 +240,7 @@ function AdminObservability() {
                       style={{
                         padding: "8px 8px 8px 0",
                         fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-sm)",
+                        fontSize: "var(--tempo-text-sm)",
                         color: "var(--text-body)",
                       }}
                     >
@@ -253,7 +253,7 @@ function AdminObservability() {
                       style={{
                         padding: 8,
                         fontFamily: "var(--font-sans)",
-                        fontSize: "var(--text-base)",
+                        fontSize: "var(--tempo-text-base)",
                         color: "var(--text-body)",
                       }}
                     >
@@ -265,7 +265,7 @@ function AdminObservability() {
                         padding: 8,
                         textAlign: "right",
                         fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-sm)",
+                        fontSize: "var(--tempo-text-sm)",
                         color: "var(--text-muted)",
                       }}
                     >
@@ -314,7 +314,7 @@ function VendorRow({
         <span
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
+            fontSize: "var(--tempo-text-base)",
             color: "var(--text-primary)",
           }}
         >
@@ -323,7 +323,7 @@ function VendorRow({
         <span
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
+            fontSize: "var(--tempo-text-base)",
             color: "var(--text-muted)",
           }}
         >
@@ -393,7 +393,7 @@ function CardDescription({ children }: { children: ReactNode }) {
     <p
       style={{
         fontFamily: "var(--font-sans)",
-        fontSize: "var(--text-base)",
+        fontSize: "var(--tempo-text-base)",
         lineHeight: "var(--leading-body)",
         color: "var(--text-body)",
         marginTop: "var(--space-2)",

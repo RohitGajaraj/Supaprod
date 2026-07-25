@@ -140,7 +140,7 @@ function AdminPricing() {
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
+          fontSize: "var(--tempo-text-base)",
           lineHeight: "var(--leading-body)",
           color: "var(--text-body)",
           margin: 0,

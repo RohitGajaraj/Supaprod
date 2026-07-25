@@ -147,7 +147,7 @@ export const Route = createFileRoute("/_authenticated/learn")({
         <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
           Could not load Learn
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ fontSize: "var(--tempo-text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
           Reload the page. Nothing here is lost.
         </p>
       </div>

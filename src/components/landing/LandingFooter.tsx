@@ -51,7 +51,12 @@ export function LandingFooter() {
     {
       heading: "company",
       links: [
-        { label: "Brief", href: "/brief" },
+        // Labelled for the audience, pointed at the canonical URL. "Brief" told
+        // a visitor nothing about who it was for; "Investors" sets the
+        // expectation before the click. The href stays /brief so the common
+        // path costs no redirect hop, while /investors resolves for anyone who
+        // types it (see routes/investors.tsx).
+        { label: "Investors", href: "/brief" },
         { label: "@RohitGajaraj", href: "https://x.com/RohitGajaraj", external: true },
       ],
     },

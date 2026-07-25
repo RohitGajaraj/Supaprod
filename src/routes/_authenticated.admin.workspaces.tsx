@@ -112,7 +112,7 @@ function AdminWorkspaces() {
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-base)",
+              fontSize: "var(--tempo-text-base)",
               color: "var(--text-primary)",
             }}
           />
@@ -212,7 +212,7 @@ function AdminWorkspaces() {
                         padding: "var(--space-4)",
                         textAlign: "center",
                         fontFamily: "var(--font-sans)",
-                        fontSize: "var(--text-base)",
+                        fontSize: "var(--tempo-text-base)",
                         color: "var(--text-subtle)",
                       }}
                     >
@@ -422,7 +422,7 @@ function WorkspaceDrawer({
                       gap: "var(--space-2)",
                       alignItems: "center",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-sm)",
+                      fontSize: "var(--tempo-text-sm)",
                       color: "var(--text-primary)",
                     }}
                   >
@@ -449,7 +449,7 @@ function WorkspaceDrawer({
                         border: "1px solid var(--hairline)",
                         borderRadius: "var(--radius-control)",
                         fontFamily: "var(--font-sans)",
-                        fontSize: "var(--text-sm)",
+                        fontSize: "var(--tempo-text-sm)",
                         color: "var(--text-primary)",
                       }}
                     >
@@ -534,7 +534,7 @@ function WorkspaceDrawer({
                 <p
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "var(--text-sm)",
+                    fontSize: "var(--tempo-text-sm)",
                     color: "var(--text-muted)",
                     marginBottom: "var(--space-2)",
                   }}
@@ -571,7 +571,7 @@ function WorkspaceDrawer({
                     key={row.id}
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-sm)",
+                      fontSize: "var(--tempo-text-sm)",
                       color: "var(--text-body)",
                     }}
                   >
@@ -585,7 +585,7 @@ function WorkspaceDrawer({
                   <li
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-sm)",
+                      fontSize: "var(--tempo-text-sm)",
                       color: "var(--text-subtle)",
                     }}
                   >
@@ -608,7 +608,7 @@ function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
       <span
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
+          fontSize: "var(--tempo-text-base)",
           color: "var(--text-body)",
         }}
       >
@@ -635,6 +635,6 @@ function td(): React.CSSProperties {
     padding: "var(--space-3)",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-base)",
+    fontSize: "var(--tempo-text-base)",
   };
 }

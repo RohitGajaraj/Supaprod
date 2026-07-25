@@ -282,7 +282,7 @@ export function DiscoverSurface() {
           >
             <p
               style={{
-                fontSize: "var(--text-base)",
+                fontSize: "var(--tempo-text-base)",
                 color: "var(--text-muted)",
                 margin: "0 0 20px",
                 maxWidth: "640px",
@@ -329,7 +329,7 @@ export function DiscoverSurface() {
                 </p>
                 <p
                   style={{
-                    fontSize: "var(--text-base)",
+                    fontSize: "var(--tempo-text-base)",
                     color: "var(--text-body)",
                     margin: "0 0 16px",
                   }}

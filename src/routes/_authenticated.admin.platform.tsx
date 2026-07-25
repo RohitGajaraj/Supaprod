@@ -314,7 +314,7 @@ function BannerPanel() {
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-sm)",
+              fontSize: "var(--tempo-text-sm)",
               color: "var(--text-body)",
             }}
           >
@@ -467,7 +467,7 @@ function FlagsPanel() {
             alignItems: "center",
             gap: "var(--space-1)",
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
+            fontSize: "var(--tempo-text-sm)",
             color: "var(--text-body)",
           }}
         >
@@ -542,7 +542,7 @@ function FlagsPanel() {
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-sm)",
+                        fontSize: "var(--tempo-text-sm)",
                         color: "var(--text-muted)",
                       }}
                     >
@@ -792,7 +792,7 @@ function sectionTitleStyle(): React.CSSProperties {
 function bodyTextStyle(): React.CSSProperties {
   return {
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
+    fontSize: "var(--tempo-text-sm)",
     lineHeight: "var(--leading-body)",
     color: "var(--text-muted)",
     margin: 0,
@@ -834,7 +834,7 @@ function td(): React.CSSProperties {
     padding: "8px 10px",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
+    fontSize: "var(--tempo-text-sm)",
     color: "var(--text-body)",
   };
 }

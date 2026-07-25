@@ -50,7 +50,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
+          fontSize: "var(--tempo-text-base)",
           color: "var(--text-primary)",
         }}
       >
