@@ -12,7 +12,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
@@ -324,9 +324,8 @@ function DemoPage() {
           page's single ember object (landing law 4.1b). */}
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0a0a]/75 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <Link to="/" className="inline-flex items-center gap-2.5 no-underline">
-            <SupaprodMark size={22} />
-            <span className="text-sm font-medium text-white">Supaprod</span>
+          <Link to="/" className="inline-flex items-center no-underline text-white">
+            <SupaprodWordmark size={22} />
           </Link>
           <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
             read-only demo &middot; live seeded data

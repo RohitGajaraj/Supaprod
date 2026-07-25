@@ -11,7 +11,7 @@ import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicCalibration } from "@/lib/proof-share.functions";
 import { listPublicDecisions } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
@@ -86,10 +86,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             color: "inherit",
           }}
         >
-          <SupaprodMark />
-          <span className="font-display" style={{ fontSize: 14 }}>
-            Supaprod
-          </span>
+          <SupaprodWordmark size={22} textSize={14} />
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
           the ledger

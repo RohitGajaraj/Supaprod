@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { trackLandingEvent } from "@/lib/landing.functions";
 
 /**
@@ -10,10 +10,8 @@ import { trackLandingEvent } from "@/lib/landing.functions";
 export function LandingNav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-[#0a0a0a]/75 backdrop-blur-md border-b border-white/[0.06]">
-      <Link to="/" className="flex items-center gap-2" aria-label="Supaprod home">
-        <div className="w-8 h-8 flex items-center justify-center">
-          <SupaprodMark size={26} />
-        </div>
+      <Link to="/" className="flex items-center text-white" aria-label="Supaprod home">
+        <SupaprodWordmark size={26} textSize={17} />
       </Link>
 
       <div className="hidden md:flex items-center gap-8">

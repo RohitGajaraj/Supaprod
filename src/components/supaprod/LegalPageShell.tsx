@@ -4,7 +4,7 @@
 // site. Kept deliberately plain: these are reference pages, not marketing.
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 
 const C = {
@@ -77,14 +77,12 @@ export function LegalPageShell({
                 color: C.text,
               }}
             >
-              <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
-                <SupaprodMark size={20} />
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 550, letterSpacing: "-0.01em" }}>
-                Supaprod
-              </span>
+              <SupaprodWordmark size={20} textSize={13} />
             </Link>
-            <Link to="/" style={{ fontSize: "var(--text-label-13)", color: C.muted, textDecoration: "none" }}>
+            <Link
+              to="/"
+              style={{ fontSize: "var(--text-label-13)", color: C.muted, textDecoration: "none" }}
+            >
               ← Back to home
             </Link>
           </div>

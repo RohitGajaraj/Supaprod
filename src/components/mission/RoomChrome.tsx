@@ -20,7 +20,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
-import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { Kbd } from "@/components/mission/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
@@ -146,12 +146,20 @@ export function RoomTopBar({
       className="flex h-[52px] flex-none items-center gap-4 border-b px-5"
       style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
     >
-      <div className="flex items-center gap-2.5">
-        <SupaprodMark size={18} />
-        <span className="text-[13px] font-semibold" style={{ color: "var(--ink-text)" }}>
-          Supaprod
-        </span>
-      </div>
+      {/* The brand lockup is the way home. It used to be an inert div, so the
+          only route back to Mission Control was the browser back button pressed
+          however many times you had navigated. Every product puts home behind
+          the logo; people try it first and it has to work. */}
+      <button
+        type="button"
+        onClick={() => onOpenDoor("mission")}
+        aria-label="Mission Control, home"
+        title="Mission Control"
+        className="flex items-center rounded-[4px] transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1"
+        style={{ color: "var(--ink-text)" }}
+      >
+        <SupaprodWordmark size={18} textSize={13} gap={10} />
+      </button>
       <span aria-hidden className="h-[18px] w-px" style={{ background: "var(--ink-hairline)" }} />
       <ProductSwitcher />
       <nav aria-label="Rooms" className="ml-2 flex items-center gap-0.5">
