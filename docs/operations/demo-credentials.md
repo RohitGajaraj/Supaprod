@@ -1,13 +1,40 @@
 # Demo credentials
 
-> _Created: 2026-06-04 · Last updated: 2026-07-10_
+> _Created: 2026-06-04 · Last updated: 2026-07-25_
 
-Two pre-provisioned demo accounts ship with the database. Use them for YC / investor / customer demos, screen recordings, and any application that asks for a working login. Same password for both — easy to share, easy to remember.
+## ⭐ Investor logins, one per firm (2026-07-25)
 
-| #   | Email                  | Password           |
-| --- | ---------------------- | ------------------ |
-| 1   | `demo@redcadence.app`  | `Cadence!Demo2026` |
-| 2   | `demo2@redcadence.app` | `Cadence!Demo2026` |
+**Four accounts, four isolated workspaces, identical content.** Hand exactly one to each firm and record which, in the table below.
+
+| Account | Password | Workspace | Given to | Sent on |
+| --- | --- | --- | --- | --- |
+| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | Helio Labs (`20000000-…`) | _(fill in)_ | |
+| `compass@supaprod.ai` | `Supaprod!Compass2026` | Helio Labs (`30000000-…`) | _(fill in)_ | |
+| `meridian@supaprod.ai` | `Supaprod!Meridian2026` | Helio Labs (`40000000-…`) | _(fill in)_ | |
+| `lantern@supaprod.ai` | `Supaprod!Lantern2026` | Helio Labs (`50000000-…`) | _(fill in)_ | |
+
+Provisioned by `supabase/migrations/20260725120000_investor_demo_accounts.sql`; content cloned by `20260725140000_clone_helio_to_investor_workspaces.sql`. Both idempotent.
+
+> [!IMPORTANT]
+> **Never give two firms the same login.** The demo's signature beat is approving a pending gate, and approving is a *write*. Two firms on one workspace means the second one opens an empty queue and sees a dead room. That is the entire reason these four exist rather than sharing `explore@`.
+
+**Why these names.** They extend the existing `explore@` / `ember@` convention. They are deliberately not `demo1` / `demo2`: an investor reads the address, and "demo3@" says they are one of a list. The account name is also how the founder tracks who is looking, so **fill in the "Given to" column when you send one** — a login that appears in the logs is an engagement signal, and it is worthless if nobody knows whose it is.
+
+**Each account signs in as `Maya Ruiz`,** the product manager in [`../pitch/demo-story.md`](../pitch/demo-story.md). The name on screen has to match the name in the voiceover, or the story breaks the moment a viewer notices.
+
+**Re-arming between firms.** Approvals decided by one firm stay decided in that workspace. To hand a used login to someone else, re-run the clone migration for that prefix; it restores the pending queue without touching the other three.
+
+### Internal accounts (not for investors)
+
+| # | Email | Password | Notes |
+| --- | --- | --- | --- |
+| 1 | `explore@supaprod.ai` | `Supaprod!Explore2026` | The founder's recording account. Admin on the shared Helio Labs. |
+| 2 | `ember@supaprod.ai` | `Supaprod!Ember2026` | Codename twin, also on the shared Helio Labs. |
+| 3 | `demo@redcadence.app` | `Cadence!Demo2026` | Legacy, internal dev and testing only. |
+| 4 | `demo2@redcadence.app` | `Cadence!Demo2026` | Legacy, internal dev and testing only. |
+
+> [!WARNING]
+> `explore@` and `ember@` are **both admins of the same** Helio Labs workspace, so they contaminate each other. Fine for internal use, never for two investors.
 
 Sign in at [`/login`](https://supaprod.ai/login) (or the preview URL - `supaprod.lovable.app` 302-redirects here, confirmed live 2026-07-17).
 

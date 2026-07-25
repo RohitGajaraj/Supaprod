@@ -1,4 +1,5 @@
-// Mission Control index (front-end reimagining Phase 1, sandbox).
+// Mission Control index. This is the product's home, not a sandbox: index.tsx
+// sends every signed-in user to /m, which lands here and resolves a product.
 // /m resolves the last-active product (the same useWorkspace resolution the
 // AppShell switcher uses: stored per workspace, first product as fallback)
 // and redirects to /m/$productId. A zero-product workspace renders the

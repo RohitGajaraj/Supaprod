@@ -166,3 +166,12 @@ docs/screenshots/
 # Large local-only v3 design reference exports (kept local, per founder 2026-07-05)
 design-reference/Design reference for v3/
 design-reference/Latest Design System - v3 /
+
+# Nested working copies of this same repo (separate clones parked inside the
+# checkout, 2026-07-24). They are stale checkouts of commits already on origin,
+# so they carry no unique history, but they DO carry ~728 duplicate *.test.ts
+# files that bun test discovers - which inflated the suite from ~379 files to
+# 1137 and made the test gate unreadable. Never commit them; prefer deleting
+# them outright once the founder confirms nothing local is wanted.
+/supaprod/
+/supaprod-v1/

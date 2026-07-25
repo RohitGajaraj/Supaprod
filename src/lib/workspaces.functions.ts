@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { sendInviteEmail } from "@/lib/email.server";
+import { sendInviteEmail, absoluteUrl } from "@/lib/email.server";
 
 // Workspace management server functions.
 // RLS already gates: only the owner can update workspaces and manage members.
@@ -199,7 +199,8 @@ export const inviteMember = createServerFn({ method: "POST" })
     const row = Array.isArray(inv) ? inv[0] : inv;
     const token = (row as { token: string } | null)?.token;
     if (!token) throw new Error("Failed to create invitation.");
-    const link = `/join/${token}`;
+    // Absolute: this link is emailed, so a bare path is not clickable.
+    const link = absoluteUrl(`/join/${token}`);
     const { sent } = await sendInviteEmail({ to: data.email, inviteLink: link });
     // Always return the link so the inviter can share it even when email is not wired.
     return { ok: true, link, emailed: sent };

@@ -313,8 +313,7 @@ export function MissionShell({
   // The app-idle starfield is scoped to a genuinely empty/idle room only
   // (LOCKED): every stage quiet or inferred, nothing active, nothing waiting.
   const roomIsIdle =
-    loopStages.length > 0 &&
-    loopStages.every((s) => s.state === "quiet" || s.state === "inferred");
+    loopStages.length > 0 && loopStages.every((s) => s.state === "quiet" || s.state === "inferred");
 
   // Clicking a gate node on the Spine opens that gate in the tray (spec 6.6:
   // "clicking it opens that gate card, not a dashboard"); every other stage
@@ -325,11 +324,10 @@ export function MissionShell({
     if (node?.state === "gate") onTrayChange(true);
   };
 
-  const currentLoop: StageLoopState =
-    loopStages.find((s) => s.stage === (stage ?? "discover")) ?? {
-      stage: stage ?? "discover",
-      state: "quiet",
-    };
+  const currentLoop: StageLoopState = loopStages.find((s) => s.stage === (stage ?? "discover")) ?? {
+    stage: stage ?? "discover",
+    state: "quiet",
+  };
 
   // The Briefing: machine-authored receipts prose (composition over the same
   // reads the pill and the Spine use; honest zero state; no cost figures).
@@ -479,7 +477,14 @@ export function MissionShell({
   const onOpenDoor = (door: MissionDoorId) => {
     switch (door) {
       case "mission":
-        void navigate({ to: "/m/$productId", params: { productId } });
+        // Keep the room's search state (stage, journey, panel). Navigating without
+        // it silently reset the room to the rest face, so clicking the already
+        // active Mission Control door threw away where you were.
+        void navigate({
+          to: "/m/$productId",
+          params: { productId },
+          search: (prev) => prev,
+        });
         break;
       case "approvals":
         void navigate({ to: "/approvals" });
@@ -623,7 +628,11 @@ export function MissionShell({
                 setTourOpen(true);
               }}
               className="ink-focus inline-flex h-8 items-center rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
-              style={{ background: "var(--ink-panel)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+              style={{
+                background: "var(--ink-panel)",
+                borderColor: "var(--ink-hairline)",
+                color: "var(--ink-text)",
+              }}
             >
               Start tour
             </button>

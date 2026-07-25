@@ -30,6 +30,7 @@ import { mergeReadinessFromCi, overallFromChecks } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { evalRegressionReadiness, type SuiteScorePair } from "@/lib/ai/eval-gate";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
+import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
@@ -49,7 +50,7 @@ export type ToolCtx = {
   missionId?: string | null;
   workspaceId?: string | null;
   /** Per-run cache for provider auth to avoid redundant credential chain re-queries across multiple tool calls within the same agent run. */
-  authCache?: Map<string, unknown>;
+  authCache?: ProviderAuthCache;
 };
 
 export type ToolDef<S extends z.ZodTypeAny = z.ZodTypeAny> = {

@@ -229,7 +229,14 @@ export function RoomChromeShell({
     switch (door) {
       case "mission":
         if (activeProductId) {
-          void navigate({ to: "/m/$productId", params: { productId: activeProductId } });
+          // Carry the room's search state across. validateSearch on the route
+          // drops anything that is not a real stage/journey/panel, so arriving
+          // from a legacy surface stays safe.
+          void navigate({
+            to: "/m/$productId",
+            params: { productId: activeProductId },
+            search: (prev) => prev,
+          });
         } else {
           void navigate({ to: "/m" });
         }

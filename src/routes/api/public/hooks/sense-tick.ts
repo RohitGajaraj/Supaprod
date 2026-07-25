@@ -216,9 +216,16 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
     .limit(SCAN_LIMIT);
   if (error || !data) return 0;
 
-  // Collect all updates, then batch-upsert instead of serial UPDATEs
+  // Collect all updates, then batch-upsert instead of serial UPDATEs.
+  // Every row carries its NOT NULL columns (content, user_id, workspace_id) as
+  // well as the tag fields: an upsert can insert, so a partial row would fail
+  // the whole batch if the source row disappeared between this read and the
+  // write.
   const rowsToUpdate: Array<{
     id: string;
+    content: string;
+    user_id: string;
+    workspace_id: string;
     tags: string[];
     sentiment: string | null;
   }> = [];
@@ -239,6 +246,9 @@ async function tagUntaggedSignals(ownerId: string, workspaceId: string): Promise
     if (!u || !u.changed) continue;
     rowsToUpdate.push({
       id: row.id,
+      content: row.content,
+      user_id: ownerId,
+      workspace_id: workspaceId,
       tags: u.tags,
       sentiment: u.sentiment,
     });

@@ -26,13 +26,23 @@ import { SPINE_STAGES, stageStateWord } from "@/components/mission/Spine";
 import type { SurfaceHeaderState } from "@/components/mission/primitives/SurfaceHeader";
 import type { MissionStateId } from "@/lib/mission-vocabulary";
 import { drawWorkingLine } from "@/lib/mission-vocabulary";
-import { castByStation, agentDisplayName, stepLabel, type AgentStation } from "@/lib/agent-vocabulary";
+import {
+  castByStation,
+  agentDisplayName,
+  stepLabel,
+  type AgentStation,
+} from "@/lib/agent-vocabulary";
 import { journeyById, type JourneyId } from "@/lib/journeys";
 import { listSignals, listOpportunities, listSpecs, getPrd } from "@/lib/discovery.functions";
 import { listPrototypes } from "@/lib/prototypes.functions";
 import { getPersistedScaffold } from "@/lib/design-scaffold.functions";
 import { listMissions } from "@/lib/missions.functions";
-import { getStudioSession, getChangesetDiff, type StudioCi, type StudioRunDetail } from "@/lib/studio.functions";
+import {
+  getStudioSession,
+  getChangesetDiff,
+  type StudioCi,
+  type StudioRunDetail,
+} from "@/lib/studio.functions";
 import { buildDriverLabel } from "@/lib/build/driver";
 import { listDeployments } from "@/lib/deployments.functions";
 import { getOutcomeData } from "@/lib/outcome.functions";
@@ -98,8 +108,15 @@ function journeyDoor(id: JourneyId, onActivate?: (j: JourneyId) => void): Journe
   return { label: journeyById(id).label, onGo: onActivate ? () => onActivate(id) : undefined };
 }
 
+/** An absolute, pasteable link to one stage of the room.
+ *
+ * This used to return a bare path, so "Copy link" produced something that only
+ * worked if you already had the app open. Every other share path in the app
+ * prefixes the origin, so this matches them. Falls back to the path during SSR,
+ * where there is no window to read an origin from. */
 function stageDeepLink(productId: string, stage: StageId): string {
-  return `/m/${productId}?stage=${stage}`;
+  const path = `/m/${productId}?stage=${stage}`;
+  return typeof window === "undefined" ? path : `${window.location.origin}${path}`;
 }
 
 /** A calm, believable relative time for list rows (craft bar). */
@@ -160,7 +177,11 @@ function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="inline-flex h-[20px] items-center rounded-[10px] border px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
-      style={{ color: "var(--chip-fg)", background: "var(--chip-faint)", borderColor: "var(--chip-border)" }}
+      style={{
+        color: "var(--chip-fg)",
+        background: "var(--chip-faint)",
+        borderColor: "var(--chip-border)",
+      }}
     >
       {children}
     </span>
@@ -171,7 +192,13 @@ function Chip({ children }: { children: React.ReactNode }) {
 // 01 Evidence (Discover): signals, clusters, ranked bets
 // ---------------------------------------------------------------------------
 
-type SignalRow = { id: string; title?: string | null; content: string; source?: string | null; created_at?: string };
+type SignalRow = {
+  id: string;
+  title?: string | null;
+  content: string;
+  source?: string | null;
+  created_at?: string;
+};
 
 // A signal's body is whatever a source sent, which can be a raw MCP/JSON payload
 // or markdown with image tags and URLs. The Evidence face reads, not dumps: prefer
@@ -183,12 +210,12 @@ function signalPreview(s: SignalRow): string {
   if (raw.startsWith("{") || raw.startsWith("[")) {
     try {
       const parsed = JSON.parse(raw) as unknown;
-      const first = (Array.isArray(parsed) ? parsed[0] : parsed) as Record<string, unknown> | undefined;
+      const first = (Array.isArray(parsed) ? parsed[0] : parsed) as
+        Record<string, unknown> | undefined;
       const nestedArr =
         (first?.issues as unknown[] | undefined) ?? (first?.items as unknown[] | undefined);
       const node = (Array.isArray(nestedArr) ? nestedArr[0] : first) as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       for (const key of ["title", "description", "name", "text", "body", "summary"]) {
         const v = node?.[key];
         if (typeof v === "string" && v.trim()) return v.trim().replace(/\s+/g, " ").slice(0, 160);
@@ -224,7 +251,15 @@ export function EvidenceFace({ productId, loop, onActivateJourney }: FaceProps) 
       deepLink={stageDeepLink(productId, "discover")}
       working={faceWorking("discover", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not read the signals.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not read the signals.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         signals.length === 0
           ? {
@@ -262,7 +297,11 @@ export function EvidenceFace({ productId, loop, onActivateJourney }: FaceProps) 
             ) : null;
           })()}
           {signals.slice(0, 40).map((s) => (
-            <FaceCard key={s.id} chip={<Chip>{s.source ?? "signal"}</Chip>} time={relTime(s.created_at)}>
+            <FaceCard
+              key={s.id}
+              chip={<Chip>{s.source ?? "signal"}</Chip>}
+              time={relTime(s.created_at)}
+            >
               <p className="text-[13px] leading-[1.5]" style={{ color: "var(--ink-text)" }}>
                 {signalPreview(s)}
               </p>
@@ -332,10 +371,28 @@ function parseCritic(raw: unknown): ParsedCritic | null {
   return parsed;
 }
 
-const VERDICT_TONE: Record<CriticVerdict, { label: string; color: string; bg: string; border: string }> = {
-  ship: { label: "Ship", color: "var(--verdict-pass)", bg: "rgba(74,194,107,0.10)", border: "rgba(74,194,107,0.35)" },
-  revise: { label: "Revise", color: "var(--voice-memory)", bg: "var(--voice-memory-faint)", border: "var(--voice-memory-border)" },
-  kill: { label: "Kill", color: "var(--verdict-fail)", bg: "rgba(229,83,75,0.10)", border: "rgba(229,83,75,0.35)" },
+const VERDICT_TONE: Record<
+  CriticVerdict,
+  { label: string; color: string; bg: string; border: string }
+> = {
+  ship: {
+    label: "Ship",
+    color: "var(--verdict-pass)",
+    bg: "rgba(74,194,107,0.10)",
+    border: "rgba(74,194,107,0.35)",
+  },
+  revise: {
+    label: "Revise",
+    color: "var(--voice-memory)",
+    bg: "var(--voice-memory-faint)",
+    border: "var(--voice-memory-border)",
+  },
+  kill: {
+    label: "Kill",
+    color: "var(--verdict-fail)",
+    bg: "rgba(229,83,75,0.10)",
+    border: "rgba(229,83,75,0.35)",
+  },
 };
 
 /** One ICE dimension as a labelled mini bar (0-10). */
@@ -343,11 +400,21 @@ function IceBar({ label, value }: { label: string; value: number }) {
   const pct = Math.max(0, Math.min(100, (value / 10) * 100));
   return (
     <div className="flex items-center gap-1.5">
-      <span className="font-mono text-[10px]" style={{ color: "var(--ink-subtle)" }}>{label}</span>
-      <span className="h-1 w-10 overflow-hidden rounded-full" style={{ background: "var(--ink-raised)" }}>
-        <span className="block h-full" style={{ width: `${pct}%`, background: "var(--voice-machine-dim)" }} />
+      <span className="font-mono text-[10px]" style={{ color: "var(--ink-subtle)" }}>
+        {label}
       </span>
-      <span className="font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-body)" }}>{value}</span>
+      <span
+        className="h-1 w-10 overflow-hidden rounded-full"
+        style={{ background: "var(--ink-raised)" }}
+      >
+        <span
+          className="block h-full"
+          style={{ width: `${pct}%`, background: "var(--voice-machine-dim)" }}
+        />
+      </span>
+      <span className="font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-body)" }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -361,7 +428,10 @@ function CriticBlock({ critic }: { critic: ParsedCritic }) {
       style={{ borderColor: "var(--ink-hairline-soft)", background: "var(--ink-raised)" }}
     >
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.08em]" style={{ color: "var(--ink-subtle)" }}>
+        <span
+          className="font-mono text-[9.5px] uppercase tracking-[0.08em]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
           Critic
         </span>
         {tone ? (
@@ -379,12 +449,18 @@ function CriticBlock({ critic }: { critic: ParsedCritic }) {
         ) : null}
       </div>
       {critic.summary ? (
-        <p className="mt-1.5 text-[12px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>{critic.summary}</p>
+        <p className="mt-1.5 text-[12px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+          {critic.summary}
+        </p>
       ) : null}
       {critic.risks.length > 0 ? (
         <ul className="mt-1.5 flex flex-col gap-1">
           {critic.risks.slice(0, 3).map((r, i) => (
-            <li key={i} className="flex gap-1.5 text-[11.5px] leading-[1.45]" style={{ color: "var(--ink-subtle)" }}>
+            <li
+              key={i}
+              className="flex gap-1.5 text-[11.5px] leading-[1.45]"
+              style={{ color: "var(--ink-subtle)" }}
+            >
               <span style={{ color: "var(--verdict-fail)" }}>{"·"}</span>
               {r}
             </li>
@@ -422,7 +498,15 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
       deepLink={stageDeepLink(productId, "decide")}
       working={faceWorking("decide", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not read the queue.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not read the queue.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         opps.length === 0
           ? {
@@ -436,8 +520,8 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
       {opps.length > 0 ? (
         <div className="flex flex-col gap-2.5 p-5">
           <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
-            <ReceiptCount>{opps.length}</ReceiptCount> ranked, highest impact first. Each carries the
-            Critic's read before it reaches you.
+            <ReceiptCount>{opps.length}</ReceiptCount> ranked, highest impact first. Each carries
+            the Critic's read before it reaches you.
           </p>
           {opps.slice(0, 30).map((o, i) => {
             const critic = parseCritic(o.critic_review);
@@ -465,33 +549,50 @@ export function DecisionFace({ productId, loop, onActivateJourney }: FaceProps) 
                 }
                 time={relTime(o.updated_at)}
               >
-                <p className="text-[13.5px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
+                <p
+                  className="text-[13.5px] font-medium leading-[1.5]"
+                  style={{ color: "var(--ink-text)" }}
+                >
                   {o.title ?? "Untitled bet"}
                 </p>
                 {o.problem ? (
-                  <p className="mt-1 text-[12.5px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+                  <p
+                    className="mt-1 text-[12.5px] leading-[1.5]"
+                    style={{ color: "var(--ink-body)" }}
+                  >
                     {o.problem.slice(0, 240)}
                   </p>
                 ) : null}
                 {hasIce ? (
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {typeof o.impact === "number" ? <IceBar label="I" value={o.impact} /> : null}
-                    {typeof o.confidence === "number" ? <IceBar label="C" value={o.confidence} /> : null}
+                    {typeof o.confidence === "number" ? (
+                      <IceBar label="C" value={o.confidence} />
+                    ) : null}
                     {typeof o.ease === "number" ? <IceBar label="E" value={o.ease} /> : null}
                     {typeof o.ice_score === "number" ? (
-                      <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                      <span
+                        className="font-mono text-[11px]"
+                        style={{ color: "var(--ink-subtle)" }}
+                      >
                         ICE <ReceiptCount>{o.ice_score.toFixed(1)}</ReceiptCount>
                       </span>
                     ) : null}
                   </div>
                 ) : typeof o.ice_score === "number" ? (
-                  <p className="mt-1.5 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                  <p
+                    className="mt-1.5 font-mono text-[11px]"
+                    style={{ color: "var(--ink-subtle)" }}
+                  >
                     ICE <ReceiptCount>{o.ice_score.toFixed(1)}</ReceiptCount>
                   </p>
                 ) : null}
                 {critic ? <CriticBlock critic={critic} /> : null}
                 {o.decided_by_agent_slug ? (
-                  <p className="mt-1.5 font-mono text-[10.5px]" style={{ color: "var(--ink-faint)" }}>
+                  <p
+                    className="mt-1.5 font-mono text-[10.5px]"
+                    style={{ color: "var(--ink-faint)" }}
+                  >
                     decided by {agentDisplayName(o.decided_by_agent_slug)}
                   </p>
                 ) : null}
@@ -552,7 +653,10 @@ function parseSpecSections(md: string): { overview: string; sections: SpecSectio
 
 function SpecDocSub({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-[0.11em]" style={{ color: "var(--ink-faint)" }}>
+    <div
+      className="mt-4 mb-1.5 font-mono text-[10px] uppercase tracking-[0.11em]"
+      style={{ color: "var(--ink-faint)" }}
+    >
       {children}
     </div>
   );
@@ -561,13 +665,28 @@ function SpecDocSub({ children }: { children: React.ReactNode }) {
 /** The spec rendered as a document (screen-5): overview, then each section as a
  *  numbered list (Requirements / Assumptions on watch / Task graph) or a block
  *  (Outcome contract), matching the mockup's doc anatomy. */
-function SpecDoc({ title, bodyMd, streaming }: { title: string; bodyMd: string; streaming?: boolean }) {
+function SpecDoc({
+  title,
+  bodyMd,
+  streaming,
+}: {
+  title: string;
+  bodyMd: string;
+  streaming?: boolean;
+}) {
   const { overview, sections } = useMemo(() => parseSpecSections(bodyMd), [bodyMd]);
   return (
-    <div className="max-h-[460px] overflow-y-auto rounded-xl border p-4" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-      <h2 className="text-[16px] font-semibold leading-tight" style={{ color: "var(--ink-text)" }}>{title}</h2>
+    <div
+      className="max-h-[460px] overflow-y-auto rounded-xl border p-4"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+    >
+      <h2 className="text-[16px] font-semibold leading-tight" style={{ color: "var(--ink-text)" }}>
+        {title}
+      </h2>
       {overview ? (
-        <p className="mt-1.5 text-[13px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>{overview}</p>
+        <p className="mt-1.5 text-[13px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>
+          {overview}
+        </p>
       ) : null}
       {sections.map((s, si) => {
         const isBlock = /outcome|contract|check.?by|landed/i.test(s.title) && s.items.length === 0;
@@ -575,33 +694,60 @@ function SpecDoc({ title, bodyMd, streaming }: { title: string; bodyMd: string; 
           <div key={si}>
             <SpecDocSub>
               {s.title}
-              {s.items.length > 1 ? <span className="ml-1.5" style={{ color: "var(--ink-faint)" }}>{`(${s.items.length})`}</span> : null}
+              {s.items.length > 1 ? (
+                <span
+                  className="ml-1.5"
+                  style={{ color: "var(--ink-faint)" }}
+                >{`(${s.items.length})`}</span>
+              ) : null}
             </SpecDocSub>
             {isBlock ? (
-              <div className="rounded-lg border p-3 text-[12.5px] leading-[1.55]" style={{ borderColor: "var(--ink-hairline-soft)", background: "var(--ink-bg)", color: "var(--ink-body)" }}>
+              <div
+                className="rounded-lg border p-3 text-[12.5px] leading-[1.55]"
+                style={{
+                  borderColor: "var(--ink-hairline-soft)",
+                  background: "var(--ink-bg)",
+                  color: "var(--ink-body)",
+                }}
+              >
                 {s.prose}
               </div>
             ) : s.items.length > 0 ? (
               <ul className="flex flex-col gap-1.5">
                 {s.items.map((it, ii) => (
-                  <li key={ii} className="flex gap-2 text-[12.5px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
+                  <li
+                    key={ii}
+                    className="flex gap-2 text-[12.5px] leading-[1.55]"
+                    style={{ color: "var(--ink-body)" }}
+                  >
                     {it.num ? (
-                      <span className="flex-none font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-subtle)", minWidth: "26px" }}>{it.num}</span>
+                      <span
+                        className="flex-none font-mono text-[10.5px] tabular-nums"
+                        style={{ color: "var(--ink-subtle)", minWidth: "26px" }}
+                      >
+                        {it.num}
+                      </span>
                     ) : (
-                      <span className="flex-none" style={{ color: "var(--ink-faint)" }}>{"\u2022"}</span>
+                      <span className="flex-none" style={{ color: "var(--ink-faint)" }}>
+                        {"\u2022"}
+                      </span>
                     )}
                     <span>{it.text}</span>
                   </li>
                 ))}
               </ul>
             ) : s.prose ? (
-              <p className="text-[12.5px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>{s.prose}</p>
+              <p className="text-[12.5px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>
+                {s.prose}
+              </p>
             ) : null}
           </div>
         );
       })}
       {streaming ? (
-        <span className="ink-caret mt-2 inline-block" style={{ color: "var(--voice-machine)" }}>{"\u258d"}</span>
+        <span className="ink-caret mt-2 inline-block" style={{ color: "var(--voice-machine)" }}>
+          {"\u258d"}
+        </span>
       ) : null}
     </div>
   );
@@ -655,7 +801,15 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
       deepLink={stageDeepLink(productId, "plan")}
       working={faceWorking("plan", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not read the specs.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not read the specs.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         specs.length === 0
           ? {
@@ -694,7 +848,9 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
 
           <div className="flex flex-wrap items-center gap-2">
             {focused.status ? <Chip>{focused.status}</Chip> : null}
-            {countArray(focused.citations) > 0 ? <Chip>{countArray(focused.citations)} cited</Chip> : null}
+            {countArray(focused.citations) > 0 ? (
+              <Chip>{countArray(focused.citations)} cited</Chip>
+            ) : null}
             {tone ? (
               <span
                 className="inline-flex h-[20px] items-center rounded-[10px] border px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
@@ -706,8 +862,10 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
           </div>
 
           <div className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
-            {`SPEC \u00b7 ${focused.status === "approved" ? "approved" : focused.status ?? "draft"}`}
-            {countArray(focused.citations) > 0 ? ` \u00b7 ${countArray(focused.citations)} cited` : ""}
+            {`SPEC \u00b7 ${focused.status === "approved" ? "approved" : (focused.status ?? "draft")}`}
+            {countArray(focused.citations) > 0
+              ? ` \u00b7 ${countArray(focused.citations)} cited`
+              : ""}
           </div>
 
           {docQ.isLoading ? (
@@ -731,7 +889,8 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
               Spec approved.{" "}
               {countArray(focused.citations) > 0 ? (
                 <>
-                  <ReceiptCount>{countArray(focused.citations)}</ReceiptCount> citations on the record.
+                  <ReceiptCount>{countArray(focused.citations)}</ReceiptCount> citations on the
+                  record.
                 </>
               ) : (
                 "On the record."
@@ -764,18 +923,29 @@ function DesignVersionTrail({ prdRef, span }: { prdRef: string; span: string }) 
   const thumb = (kind: "flow" | "wire" | "brand" | "live") => {
     if (kind === "flow")
       return (
-        <div className="flex h-12 items-center justify-center gap-1 rounded-md" style={{ background: "#101013" }}>
+        <div
+          className="flex h-12 items-center justify-center gap-1 rounded-md"
+          style={{ background: "#101013" }}
+        >
           {[0, 1, 2].map((i) => (
             <span key={i} className="flex items-center gap-1">
-              {i > 0 ? <span className="h-px w-2" style={{ background: "rgba(255,255,255,.3)" }} /> : null}
-              <span className="h-3 w-3 rounded-sm border" style={{ borderColor: i === 2 ? "rgba(255,255,255,.45)" : "rgba(255,255,255,.2)" }} />
+              {i > 0 ? (
+                <span className="h-px w-2" style={{ background: "rgba(255,255,255,.3)" }} />
+              ) : null}
+              <span
+                className="h-3 w-3 rounded-sm border"
+                style={{ borderColor: i === 2 ? "rgba(255,255,255,.45)" : "rgba(255,255,255,.2)" }}
+              />
             </span>
           ))}
         </div>
       );
     if (kind === "wire")
       return (
-        <div className="flex h-12 flex-col justify-center gap-1 rounded-md p-2" style={{ background: "#e8e8ea" }}>
+        <div
+          className="flex h-12 flex-col justify-center gap-1 rounded-md p-2"
+          style={{ background: "#e8e8ea" }}
+        >
           <span className="h-1.5 rounded" style={{ width: "55%", background: "#c6c6cb" }} />
           <span className="h-2 rounded" style={{ background: "#cfcfd4" }} />
           <span className="h-2 rounded" style={{ width: "82%", background: "#cfcfd4" }} />
@@ -784,28 +954,62 @@ function DesignVersionTrail({ prdRef, span }: { prdRef: string; span: string }) 
     // brand + live: a mini branded card (teal accent); live adds hotspot dots
     return (
       <div className="relative h-12 overflow-hidden rounded-md" style={{ background: "#fbfbfa" }}>
-        <div className="flex h-3 items-center gap-1 px-1.5" style={{ background: "#fff", borderBottom: "1px solid rgba(0,0,0,.08)" }}>
+        <div
+          className="flex h-3 items-center gap-1 px-1.5"
+          style={{ background: "#fff", borderBottom: "1px solid rgba(0,0,0,.08)" }}
+        >
           <span className="h-1.5 w-1.5 rounded-sm" style={{ background: "#0f766e" }} />
         </div>
         <div className="flex flex-col gap-1 p-1.5">
           <span className="h-1.5 rounded" style={{ width: "40%", background: "#9ca3af" }} />
-          <span className="h-2 rounded border" style={{ borderColor: "rgba(0,0,0,.09)", background: "#fff" }} />
+          <span
+            className="h-2 rounded border"
+            style={{ borderColor: "rgba(0,0,0,.09)", background: "#fff" }}
+          />
         </div>
         {kind === "live" ? (
           <>
-            <span className="absolute h-2 w-2 rounded-full" style={{ top: 3, right: 4, background: "#18181b", boxShadow: "0 0 0 1px rgba(255,255,255,.8)" }} />
-            <span className="absolute h-2 w-2 rounded-full" style={{ bottom: 4, right: 10, background: "#18181b", boxShadow: "0 0 0 1px rgba(255,255,255,.8)" }} />
+            <span
+              className="absolute h-2 w-2 rounded-full"
+              style={{
+                top: 3,
+                right: 4,
+                background: "#18181b",
+                boxShadow: "0 0 0 1px rgba(255,255,255,.8)",
+              }}
+            />
+            <span
+              className="absolute h-2 w-2 rounded-full"
+              style={{
+                bottom: 4,
+                right: 10,
+                background: "#18181b",
+                boxShadow: "0 0 0 1px rgba(255,255,255,.8)",
+              }}
+            />
           </>
         ) : null}
       </div>
     );
   };
   return (
-    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+    <div
+      className="rounded-xl border p-3"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+    >
       <div className="mb-2 flex items-center gap-2">
-        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>{prdRef}</span>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>How it took shape</span>
-        <span className="font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{span}</span>
+        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+          {prdRef}
+        </span>
+        <span
+          className="ml-auto font-mono text-[10px] uppercase tracking-[0.1em]"
+          style={{ color: "var(--ink-faint)" }}
+        >
+          How it took shape
+        </span>
+        <span className="font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
+          {span}
+        </span>
       </div>
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {stages.map((s, i) => (
@@ -820,8 +1024,12 @@ function DesignVersionTrail({ prdRef, span }: { prdRef: string; span: string }) 
             >
               {thumb(s.thumb)}
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[9.5px]" style={{ color: "var(--ink-faint)" }}>{s.tag}</span>
-                <span className="truncate text-[11px]" style={{ color: "var(--ink-text)" }}>{s.name}</span>
+                <span className="font-mono text-[9.5px]" style={{ color: "var(--ink-faint)" }}>
+                  {s.tag}
+                </span>
+                <span className="truncate text-[11px]" style={{ color: "var(--ink-text)" }}>
+                  {s.name}
+                </span>
               </div>
             </div>
           </div>
@@ -841,31 +1049,65 @@ function DesignRail() {
   ];
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>Clickable paths · 3</div>
+      <div
+        className="rounded-xl border p-3"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+      >
+        <div
+          className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]"
+          style={{ color: "var(--ink-faint)" }}
+        >
+          Clickable paths · 3
+        </div>
         <div className="flex flex-col gap-1.5">
           {paths.map((p, i) => (
-            <div key={i} className="flex gap-2 text-[12px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
-              <span className="flex-none font-mono text-[10px]" style={{ color: "var(--voice-machine)" }}>{i + 1}</span>
+            <div
+              key={i}
+              className="flex gap-2 text-[12px] leading-[1.5]"
+              style={{ color: "var(--ink-body)" }}
+            >
+              <span
+                className="flex-none font-mono text-[10px]"
+                style={{ color: "var(--voice-machine)" }}
+              >
+                {i + 1}
+              </span>
               <span>{p}</span>
             </div>
           ))}
         </div>
       </div>
-      <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>What it replaces</div>
+      <div
+        className="rounded-xl border p-3"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+      >
+        <div
+          className="mb-2 font-mono text-[10px] uppercase tracking-[0.1em]"
+          style={{ color: "var(--ink-faint)" }}
+        >
+          What it replaces
+        </div>
         <div className="flex flex-col gap-1">
           {["100%", "92%", "100%", "86%", "78%"].map((w, i) => (
-            <span key={i} className="h-2 rounded" style={{ width: w, background: "var(--ink-raised)" }} />
+            <span
+              key={i}
+              className="h-2 rounded"
+              style={{ width: w, background: "var(--ink-raised)" }}
+            />
           ))}
         </div>
         <p className="mt-2 text-[11px] leading-[1.5]" style={{ color: "var(--ink-subtle)" }}>
-          The flat feed: 41 notifications yesterday, admins opened 6. One grouped screen replaces it.
+          The flat feed: 41 notifications yesterday, admins opened 6. One grouped screen replaces
+          it.
         </p>
       </div>
       <p className="text-[11px] leading-[1.5]" style={{ color: "var(--ink-faint)" }}>
         Rendered through your brand kit.{" "}
-        <Link to="/settings" className="ink-focus underline underline-offset-2" style={{ color: "var(--ink-subtle)" }}>
+        <Link
+          to="/settings"
+          className="ink-focus underline underline-offset-2"
+          style={{ color: "var(--ink-subtle)" }}
+        >
           Brand kit lives in Settings
         </Link>
         .
@@ -895,7 +1137,9 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
   });
   const protos = ((q.data ?? []) as PrototypeRow[]).filter((p) => p.projectId === productId);
   const [pickedId, setPickedId] = useState<string | null>(null);
-  const [protoState, setProtoState] = useState<"Default" | "Loading" | "Empty" | "Error">("Default");
+  const [protoState, setProtoState] = useState<"Default" | "Loading" | "Empty" | "Error">(
+    "Default",
+  );
   const latest = useMemo(
     () => protos.find((p) => p.id === pickedId) ?? protos[0] ?? null,
     [protos, pickedId],
@@ -920,7 +1164,15 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
       deepLink={stageDeepLink(productId, "design")}
       working={faceWorking("design", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not load the prototype.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not load the prototype.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         !latest
           ? {
@@ -965,7 +1217,12 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,260px)]">
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>States</span>
+                <span
+                  className="font-mono text-[10px] uppercase tracking-[0.1em]"
+                  style={{ color: "var(--ink-faint)" }}
+                >
+                  States
+                </span>
                 {(["Default", "Loading", "Empty", "Error"] as const).map((s) => {
                   const on = protoState === s;
                   return (
@@ -986,15 +1243,34 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
                   );
                 })}
               </div>
-              <div className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)" }}>
-                <div className="flex flex-none items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}>
+              <div
+                className="flex min-h-[440px] flex-1 flex-col overflow-hidden rounded-xl border"
+                style={{ borderColor: "var(--ink-hairline)" }}
+              >
+                <div
+                  className="flex flex-none items-center gap-2 border-b px-3 py-1.5"
+                  style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
+                >
                   {[0, 1, 2].map((i) => (
-                    <span key={i} className="h-2 w-2 rounded-full" style={{ background: "var(--ink-hairline)" }} />
+                    <span
+                      key={i}
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: "var(--ink-hairline)" }}
+                    />
                   ))}
-                  <span className="ml-1 min-w-0 flex-1 truncate font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+                  <span
+                    className="ml-1 min-w-0 flex-1 truncate font-mono text-[10.5px]"
+                    style={{ color: "var(--ink-subtle)" }}
+                  >
                     relay.heliolabs.com/inbox/digest
                   </span>
-                  <span className="flex-none rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--voice-machine-border)", color: "var(--voice-machine)" }}>
+                  <span
+                    className="flex-none rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+                    style={{
+                      borderColor: "var(--voice-machine-border)",
+                      color: "var(--voice-machine)",
+                    }}
+                  >
                     Interactive · V4
                   </span>
                 </div>
@@ -1008,22 +1284,38 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
                     style={{ background: "#fff" }}
                   />
                 ) : (
-                  <div className="flex min-h-[400px] flex-1 flex-col items-center justify-center gap-2 px-6 text-center" style={{ background: "#fff" }}>
+                  <div
+                    className="flex min-h-[400px] flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
+                    style={{ background: "#fff" }}
+                  >
                     {protoState === "Loading" ? (
-                      <span className="text-[13px]" style={{ color: "#64748b" }}>Loading your digest…</span>
+                      <span className="text-[13px]" style={{ color: "#64748b" }}>
+                        Loading your digest…
+                      </span>
                     ) : protoState === "Empty" ? (
                       <>
-                        <span className="text-[15px] font-semibold" style={{ color: "#18181b" }}>You are all caught up</span>
-                        <span className="text-[13px]" style={{ color: "#64748b" }}>Nothing new since the last sweep. The next digest arrives at 5:00pm.</span>
+                        <span className="text-[15px] font-semibold" style={{ color: "#18181b" }}>
+                          You are all caught up
+                        </span>
+                        <span className="text-[13px]" style={{ color: "#64748b" }}>
+                          Nothing new since the last sweep. The next digest arrives at 5:00pm.
+                        </span>
                       </>
                     ) : protoState === "Error" ? (
                       <>
-                        <span className="text-[15px] font-semibold" style={{ color: "#b91c1c" }}>The digest did not load</span>
-                        <span className="text-[13px]" style={{ color: "#64748b" }}>We could not reach the inbox service. Retry, or check back after the next sweep.</span>
+                        <span className="text-[15px] font-semibold" style={{ color: "#b91c1c" }}>
+                          The digest did not load
+                        </span>
+                        <span className="text-[13px]" style={{ color: "#64748b" }}>
+                          We could not reach the inbox service. Retry, or check back after the next
+                          sweep.
+                        </span>
                       </>
                     ) : (
                       <span className="text-[13px]" style={{ color: "#64748b" }}>
-                        {scaffoldQ.isLoading ? "Loading the prototype." : "This prototype opens full-screen in its own tab."}
+                        {scaffoldQ.isLoading
+                          ? "Loading the prototype."
+                          : "This prototype opens full-screen in its own tab."}
                       </span>
                     )}
                   </div>
@@ -1034,8 +1326,14 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
           </div>
 
           {/* Footer: the receipt + the forward door */}
-          <div className="flex items-center gap-3 border-t pt-3" style={{ borderColor: "var(--ink-hairline-soft)" }}>
-            <span className="flex flex-1 items-center gap-1.5 text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+          <div
+            className="flex items-center gap-3 border-t pt-3"
+            style={{ borderColor: "var(--ink-hairline-soft)" }}
+          >
+            <span
+              className="flex flex-1 items-center gap-1.5 text-[12px]"
+              style={{ color: "var(--ink-subtle)" }}
+            >
               <span style={{ color: "var(--verdict-pass)" }}>{"\u2713"}</span>
               Prototype ready {relTime(latest.updatedAt)}. 1 screen, 4 states, 3 clickable paths.
             </span>
@@ -1044,7 +1342,11 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
               target="_blank"
               rel="noreferrer"
               className="ink-focus inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors hover:bg-[#202024]"
-              style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+              style={{
+                background: "var(--ink-raised)",
+                borderColor: "var(--ink-hairline)",
+                color: "var(--ink-text)",
+              }}
             >
               Open full-screen
             </a>
@@ -1081,9 +1383,15 @@ type BuildSession = {
   kind: "build" | "mission";
   spec: { id: string; title: string } | null;
   runs: StudioRunDetail[];
-  changeset:
-    | { id: string; status: string; branch: string | null; pr_url: string | null; pr_number: number | null; title: string; file_count: number }
-    | null;
+  changeset: {
+    id: string;
+    status: string;
+    branch: string | null;
+    pr_url: string | null;
+    pr_number: number | null;
+    title: string;
+    file_count: number;
+  } | null;
   changes: BuildChange[];
   ci: StudioCi;
   total_cost_usd: number;
@@ -1125,7 +1433,10 @@ function BuildPlan({ steps, running }: { steps: BuildStep[]; running: boolean })
                 background: isNow ? "var(--voice-machine-faint)" : "transparent",
               }}
             >
-              <span className="font-mono text-[9.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+              <span
+                className="font-mono text-[9.5px] tabular-nums"
+                style={{ color: "var(--ink-faint)" }}
+              >
                 {i + 1}
               </span>
               {stepLabel(s)}
@@ -1139,7 +1450,15 @@ function BuildPlan({ steps, running }: { steps: BuildStep[]; running: boolean })
   );
 }
 
-const OP_LABEL: Record<string, string> = { add: "added", create: "added", edit: "edited", modify: "edited", update: "edited", delete: "removed", remove: "removed" };
+const OP_LABEL: Record<string, string> = {
+  add: "added",
+  create: "added",
+  edit: "edited",
+  modify: "edited",
+  update: "edited",
+  delete: "removed",
+  remove: "removed",
+};
 
 /** The files-changed rail (screen-3): path + real +add/-del counts + a total line. */
 function FilesChangedCard({
@@ -1153,10 +1472,20 @@ function FilesChangedCard({
   const totalAdds = [...stats.values()].reduce((a, s) => a + s.adds, 0);
   const totalDels = [...stats.values()].reduce((a, s) => a + s.dels, 0);
   return (
-    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+    <div
+      className="rounded-xl border p-3"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+    >
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>Files changed</span>
-        <span className="font-mono text-[10.5px] tabular-nums" style={{ color: "var(--ink-faint)" }}>{changes.length}</span>
+        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>
+          Files changed
+        </span>
+        <span
+          className="font-mono text-[10.5px] tabular-nums"
+          style={{ color: "var(--ink-faint)" }}
+        >
+          {changes.length}
+        </span>
       </div>
       <div className="flex flex-col gap-1">
         {changes.slice(0, 12).map((c) => {
@@ -1172,11 +1501,21 @@ function FilesChangedCard({
               </span>
               {st ? (
                 <span className="flex-none font-mono text-[10.5px]">
-                  {st.adds > 0 ? <span style={{ color: "var(--verdict-pass)" }}>{`+${st.adds}`}</span> : null}
-                  {st.dels > 0 ? <span className="ml-1.5" style={{ color: "var(--verdict-fail)" }}>{`-${st.dels}`}</span> : null}
+                  {st.adds > 0 ? (
+                    <span style={{ color: "var(--verdict-pass)" }}>{`+${st.adds}`}</span>
+                  ) : null}
+                  {st.dels > 0 ? (
+                    <span
+                      className="ml-1.5"
+                      style={{ color: "var(--verdict-fail)" }}
+                    >{`-${st.dels}`}</span>
+                  ) : null}
                 </span>
               ) : (
-                <span className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]" style={{ color: "var(--ink-subtle)" }}>
+                <span
+                  className="flex-none font-mono text-[9.5px] uppercase tracking-[0.04em]"
+                  style={{ color: "var(--ink-subtle)" }}
+                >
                   {OP_LABEL[c.op] ?? c.op}
                 </span>
               )}
@@ -1184,10 +1523,15 @@ function FilesChangedCard({
           );
         })}
         {changes.length > 12 ? (
-          <div className="text-[11px]" style={{ color: "var(--ink-faint)" }}>{changes.length - 12} more files</div>
+          <div className="text-[11px]" style={{ color: "var(--ink-faint)" }}>
+            {changes.length - 12} more files
+          </div>
         ) : null}
       </div>
-      <div className="mt-2 border-t pt-2 font-mono text-[10px]" style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-faint)" }}>
+      <div
+        className="mt-2 border-t pt-2 font-mono text-[10px]"
+        style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-faint)" }}
+      >
         {haveStats
           ? `+${totalAdds}  -${totalDels}  across ${changes.length} ${changes.length === 1 ? "file" : "files"}`
           : `${changes.length} ${changes.length === 1 ? "file" : "files"} changed`}
@@ -1208,15 +1552,26 @@ function SessionCard({ run, running }: { run: StudioRunDetail | undefined; runni
   });
   if (rows.length === 1) rows.push({ label: run.status, now: running });
   return (
-    <div className="rounded-xl border p-3" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-      <div className="mb-2 text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>This session</div>
+    <div
+      className="rounded-xl border p-3"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+    >
+      <div className="mb-2 text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>
+        This session
+      </div>
       <div className="flex flex-col gap-1">
         {rows.map((r, i) => (
           <div key={i} className="flex items-baseline gap-2 text-[12px]">
-            <span className="flex-none font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+            <span
+              className="flex-none font-mono text-[10px] tabular-nums"
+              style={{ color: "var(--ink-faint)" }}
+            >
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="min-w-0 flex-1" style={{ color: r.now ? "var(--voice-machine)" : "var(--ink-body)" }}>
+            <span
+              className="min-w-0 flex-1"
+              style={{ color: r.now ? "var(--voice-machine)" : "var(--ink-body)" }}
+            >
               {r.now ? (
                 <span
                   className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
@@ -1237,7 +1592,9 @@ function CiStrip({ ci, changesetStatus }: { ci: StudioCi; changesetStatus: strin
   if (!ci) {
     return (
       <div className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
-        {changesetStatus === "pr_open" ? "Pull request open; checks reporting." : "Checks run when the pull request opens."}
+        {changesetStatus === "pr_open"
+          ? "Pull request open; checks reporting."
+          : "Checks run when the pull request opens."}
       </div>
     );
   }
@@ -1248,11 +1605,18 @@ function CiStrip({ ci, changesetStatus }: { ci: StudioCi; changesetStatus: strin
     return { c: "\u2022", color: "var(--voice-machine)" };
   };
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+    <div
+      className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[10.5px]"
+      style={{ color: "var(--ink-subtle)" }}
+    >
       {ci.checks.slice(0, 6).map((ch, i) => {
         const g = glyph(ch.conclusion, ch.status);
         return (
-          <span key={i} className="inline-flex items-center gap-1.5" style={{ color: "var(--ink-body)" }}>
+          <span
+            key={i}
+            className="inline-flex items-center gap-1.5"
+            style={{ color: "var(--ink-body)" }}
+          >
             <span style={{ color: g.color }}>{g.c}</span>
             {ch.name}
           </span>
@@ -1278,20 +1642,44 @@ function CiStrip({ ci, changesetStatus }: { ci: StudioCi; changesetStatus: strin
 }
 
 /** The terminal (screen-3): the latest run's real output, sandbox badge, live caret. */
-function BuildTerminal({ output, running }: { output: string | null | undefined; running: boolean }) {
+function BuildTerminal({
+  output,
+  running,
+}: {
+  output: string | null | undefined;
+  running: boolean;
+}) {
   const text = (output ?? "").trim();
   if (!text && !running) return null;
   return (
-    <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}>
-      <div className="flex items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline-soft)" }}>
-        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>session output</span>
-        <span className="ml-auto rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}>
+    <div
+      className="overflow-hidden rounded-xl border"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+    >
+      <div
+        className="flex items-center gap-2 border-b px-3 py-1.5"
+        style={{ borderColor: "var(--ink-hairline-soft)" }}
+      >
+        <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-subtle)" }}>
+          session output
+        </span>
+        <span
+          className="ml-auto rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}
+        >
           Sandbox
         </span>
       </div>
-      <pre className="max-h-56 overflow-y-auto whitespace-pre-wrap px-3 py-2 font-mono text-[11px] leading-[1.5]" style={{ color: "var(--ink-body)" }}>
+      <pre
+        className="max-h-56 overflow-y-auto whitespace-pre-wrap px-3 py-2 font-mono text-[11px] leading-[1.5]"
+        style={{ color: "var(--ink-body)" }}
+      >
         {text ? text.slice(-2000) : "working"}
-        {running ? <span className="ink-caret" style={{ color: "var(--voice-machine)" }}>{"\u258d"}</span> : null}
+        {running ? (
+          <span className="ink-caret" style={{ color: "var(--voice-machine)" }}>
+            {"\u258d"}
+          </span>
+        ) : null}
       </pre>
     </div>
   );
@@ -1371,19 +1759,35 @@ function DiffFile({ file, defaultOpen }: { file: DiffFileRow; defaultOpen: boole
         className="ink-focus flex w-full items-center gap-2 px-3 py-1.5 text-left"
       >
         <span style={{ color: "var(--ink-faint)" }}>{open ? "\u25be" : "\u25b8"}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-[11.5px]" style={{ color: "var(--ink-text)" }}>
+        <span
+          className="min-w-0 flex-1 truncate font-mono text-[11.5px]"
+          style={{ color: "var(--ink-text)" }}
+        >
           <span style={{ color: "var(--ink-faint)" }}>{dir}</span>
           {name}
         </span>
-        {adds > 0 ? <span className="font-mono text-[10.5px]" style={{ color: "var(--verdict-pass)" }}>{`+${adds}`}</span> : null}
-        {dels > 0 ? <span className="font-mono text-[10.5px]" style={{ color: "var(--verdict-fail)" }}>{`-${dels}`}</span> : null}
+        {adds > 0 ? (
+          <span
+            className="font-mono text-[10.5px]"
+            style={{ color: "var(--verdict-pass)" }}
+          >{`+${adds}`}</span>
+        ) : null}
+        {dels > 0 ? (
+          <span
+            className="font-mono text-[10.5px]"
+            style={{ color: "var(--verdict-fail)" }}
+          >{`-${dels}`}</span>
+        ) : null}
       </button>
       {open ? (
         <div
           className="overflow-x-auto border-t py-1.5 font-mono text-[11px] leading-[1.55]"
           style={{ borderColor: "var(--ink-hairline-soft)" }}
         >
-          <div className="flex whitespace-pre px-3 text-[10px]" style={{ color: "var(--ink-faint)" }}>
+          <div
+            className="flex whitespace-pre px-3 text-[10px]"
+            style={{ color: "var(--ink-faint)" }}
+          >
             <span className="w-4 flex-none" />
             {`@@ ${file.op} ${dir}${name} @@`}
           </div>
@@ -1439,16 +1843,27 @@ function DiffPanel({ changesetId }: { changesetId: string }) {
   const changes = (q.data?.changes ?? []) as DiffFileRow[];
   if (changes.length === 0) return null;
   return (
-    <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
-      <div className="flex items-center gap-2 border-b px-3 py-1.5" style={{ borderColor: "var(--ink-hairline-soft)" }}>
-        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>The change</span>
+    <div
+      className="overflow-hidden rounded-xl border"
+      style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+    >
+      <div
+        className="flex items-center gap-2 border-b px-3 py-1.5"
+        style={{ borderColor: "var(--ink-hairline-soft)" }}
+      >
+        <span className="text-[12px] font-medium" style={{ color: "var(--ink-text)" }}>
+          The change
+        </span>
         <span className="font-mono text-[10.5px]" style={{ color: "var(--ink-faint)" }}>
           {`${changes.length} ${changes.length === 1 ? "file" : "files"}`}
         </span>
       </div>
       <div className="flex flex-col">
         {changes.map((f, i) => (
-          <div key={f.id} style={i > 0 ? { borderTop: "1px solid var(--ink-hairline-soft)" } : undefined}>
+          <div
+            key={f.id}
+            style={i > 0 ? { borderTop: "1px solid var(--ink-hairline-soft)" } : undefined}
+          >
             <DiffFile file={f} defaultOpen={i === 0} />
           </div>
         ))}
@@ -1482,14 +1897,21 @@ function ReadingRow({
   if (chips.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+      <span
+        className="font-mono text-[10px] uppercase tracking-[0.1em]"
+        style={{ color: "var(--ink-faint)" }}
+      >
         Reading
       </span>
       {chips.slice(0, 6).map((c, i) => (
         <span
           key={i}
           className="rounded-md border px-2 py-0.5 font-mono text-[11px]"
-          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)", background: "var(--ink-panel)" }}
+          style={{
+            borderColor: "var(--ink-hairline)",
+            color: "var(--ink-subtle)",
+            background: "var(--ink-panel)",
+          }}
         >
           {c.length > 42 ? `${c.slice(0, 40)}\u2026` : c}
         </span>
@@ -1515,7 +1937,10 @@ function BuildFooter({
       ? `Pull request #${cs.pr_number} is open. Review and merge once the checks are green.`
       : `${session.changes.length} ${session.changes.length === 1 ? "file" : "files"} staged so far.`;
   return (
-    <div className="flex items-center gap-2 border-t pt-3 text-[12px]" style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-subtle)" }}>
+    <div
+      className="flex items-center gap-2 border-t pt-3 text-[12px]"
+      style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-subtle)" }}
+    >
       <span style={{ color: "var(--verdict-pass)" }}>{"\u2713"}</span>
       <span>{receipt}</span>
     </div>
@@ -1523,7 +1948,13 @@ function BuildFooter({
 }
 
 /** The rich build deck for the focused mission, screen-3 fidelity. */
-function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabel?: string | null }) {
+function BuildDeck({
+  session,
+  driverLabel,
+}: {
+  session: BuildSession;
+  driverLabel?: string | null;
+}) {
   const latestRun = session.runs[session.runs.length - 1];
   const done = MISSION_DONE.includes((session.mission.status ?? "").toLowerCase());
   const running = !done && session.runs.some((r) => r.status === "running");
@@ -1552,7 +1983,10 @@ function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabe
 
   if (session.kind === "mission" && session.runs.length === 0) {
     return (
-      <div className="rounded-xl border p-4" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+      <div
+        className="rounded-xl border p-4"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+      >
         <p className="text-[13px] font-medium" style={{ color: "var(--ink-text)" }}>
           {session.mission.title ?? session.mission.goal ?? "Mission"}
         </p>
@@ -1584,7 +2018,9 @@ function BuildDeck({ session, driverLabel }: { session: BuildSession; driverLabe
       {/* Working triple 3: the split, session rail + work column */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
-          {session.changes.length > 0 ? <FilesChangedCard changes={session.changes} stats={fileStats} /> : null}
+          {session.changes.length > 0 ? (
+            <FilesChangedCard changes={session.changes} stats={fileStats} />
+          ) : null}
           <SessionCard run={latestRun} running={running} />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
@@ -1614,7 +2050,10 @@ function OtherBuilds({
   if (others.length === 0) return null;
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+      <p
+        className="font-mono text-[10px] uppercase tracking-[0.1em]"
+        style={{ color: "var(--ink-faint)" }}
+      >
         Other builds
       </p>
       {others.map((m) => {
@@ -1631,10 +2070,15 @@ function OtherBuilds({
               className="h-1.5 w-1.5 flex-none rounded-full"
               style={{ background: done ? "var(--verdict-pass)" : "var(--voice-machine)" }}
             />
-            <span className="min-w-0 flex-1 truncate text-[12.5px]" style={{ color: "var(--ink-text)" }}>
+            <span
+              className="min-w-0 flex-1 truncate text-[12.5px]"
+              style={{ color: "var(--ink-text)" }}
+            >
               {m.title ?? m.goal ?? "Build mission"}
             </span>
-            <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{relTime(m.updated_at)}</span>
+            <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
+              {relTime(m.updated_at)}
+            </span>
           </button>
         );
       })}
@@ -1681,7 +2125,15 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
       deepLink={stageDeepLink(productId, "build")}
       working={faceWorking("build", loop)}
       loading={mq.isLoading}
-      error={mq.isError ? { message: "Could not read the build.", actionLabel: "Try again", onAction: () => void mq.refetch() } : null}
+      error={
+        mq.isError
+          ? {
+              message: "Could not read the build.",
+              actionLabel: "Try again",
+              onAction: () => void mq.refetch(),
+            }
+          : null
+      }
       emptyLine={
         missions.length === 0
           ? {
@@ -1708,7 +2160,11 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
               to="/build/$missionId"
               params={{ missionId: focusedId }}
               className="ink-focus inline-flex h-8 w-fit items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
-              style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+              style={{
+                background: "var(--ink-raised)",
+                borderColor: "var(--ink-hairline)",
+                color: "var(--ink-text)",
+              }}
             >
               Open the full workbench
             </Link>
@@ -1754,7 +2210,15 @@ export function ShipFace({ productId, workspaceId, loop, onActivateJourney }: Fa
       deepLink={stageDeepLink(productId, "ship")}
       working={faceWorking("ship", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not read releases.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not read releases.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         deployments.length === 0
           ? {
@@ -1770,12 +2234,15 @@ export function ShipFace({ productId, workspaceId, loop, onActivateJourney }: Fa
           <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
             <ReceiptCount>{deployments.length}</ReceiptCount>{" "}
             {deployments.length === 1 ? "release" : "releases"}, newest first.
-            {deployments.some((d) => (d.status ?? "").toLowerCase() === "success" || d.environment === "production")
+            {deployments.some(
+              (d) => (d.status ?? "").toLowerCase() === "success" || d.environment === "production",
+            )
               ? " Rollback stays one click on every live release."
               : ""}
           </p>
           {deployments.slice(0, 20).map((d) => {
-            const live = (d.status ?? "").toLowerCase() === "success" || d.environment === "production";
+            const live =
+              (d.status ?? "").toLowerCase() === "success" || d.environment === "production";
             return (
               <FaceCard
                 key={d.id}
@@ -1803,7 +2270,11 @@ export function ShipFace({ productId, workspaceId, loop, onActivateJourney }: Fa
                     target="_blank"
                     rel="noreferrer"
                     className="ink-focus mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
-                    style={{ background: "var(--ink-raised)", borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+                    style={{
+                      background: "var(--ink-raised)",
+                      borderColor: "var(--ink-hairline)",
+                      color: "var(--ink-text)",
+                    }}
                   >
                     Open the deploy
                   </a>
@@ -1859,7 +2330,15 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
       deepLink={stageDeepLink(productId, "learn")}
       working={faceWorking("learn", loop)}
       loading={q.isLoading}
-      error={q.isError ? { message: "Could not read outcomes.", actionLabel: "Try again", onAction: () => void q.refetch() } : null}
+      error={
+        q.isError
+          ? {
+              message: "Could not read outcomes.",
+              actionLabel: "Try again",
+              onAction: () => void q.refetch(),
+            }
+          : null
+      }
       emptyLine={
         !hasContent
           ? {
@@ -1874,7 +2353,10 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
         <div className="flex flex-col gap-4 p-5">
           {learnings.length > 0 ? (
             <div className="flex flex-col gap-2.5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.1em]"
+                style={{ color: "var(--ink-faint)" }}
+              >
                 What the loop learned
               </p>
               {learnings.slice(0, 10).map((l) => (
@@ -1883,15 +2365,24 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
                   chip={
                     <>
                       {l.status ? <Chip>{l.status}</Chip> : null}
-                      {typeof l.ice_score === "number" ? <Chip>ICE {l.ice_score.toFixed(1)}</Chip> : null}
+                      {typeof l.ice_score === "number" ? (
+                        <Chip>ICE {l.ice_score.toFixed(1)}</Chip>
+                      ) : null}
                     </>
                   }
                 >
-                  <p className="text-[13px] font-medium leading-[1.5]" style={{ color: "var(--ink-text)" }}>
+                  <p
+                    className="text-[13px] font-medium leading-[1.5]"
+                    style={{ color: "var(--ink-text)" }}
+                  >
                     {l.title ?? "Re-scored bet"}
                   </p>
-                  <p className="mt-1 text-[12px] leading-[1.45]" style={{ color: "var(--ink-subtle)" }}>
-                    Re-scored after the outcome. The loop adjusted its confidence from what actually happened.
+                  <p
+                    className="mt-1 text-[12px] leading-[1.45]"
+                    style={{ color: "var(--ink-subtle)" }}
+                  >
+                    Re-scored after the outcome. The loop adjusted its confidence from what actually
+                    happened.
                   </p>
                 </FaceCard>
               ))}
@@ -1899,7 +2390,10 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
           ) : null}
           {launches.length > 0 ? (
             <div className="flex flex-col gap-2.5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-faint)" }}>
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.1em]"
+                style={{ color: "var(--ink-faint)" }}
+              >
                 What went out
               </p>
               <p className="text-[12px]" style={{ color: "var(--ink-subtle)" }}>
@@ -1922,7 +2416,10 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
                     </p>
                   ) : null}
                   {a.agent_slug ? (
-                    <p className="mt-1 font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+                    <p
+                      className="mt-1 font-mono text-[11px]"
+                      style={{ color: "var(--ink-subtle)" }}
+                    >
                       by {agentDisplayName(a.agent_slug)}
                     </p>
                   ) : null}
@@ -2008,23 +2505,41 @@ export function RestFace({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="mx-auto w-full max-w-[860px] px-8 py-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-subtle)" }}>
+        <p
+          className="font-mono text-[11px] uppercase tracking-[0.1em]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
           {productName ?? "This product"}
         </p>
-        <h1 className="mt-2 text-[22px] font-medium leading-tight" style={{ color: "var(--ink-text)" }}>
+        <h1
+          className="mt-2 text-[22px] font-medium leading-tight"
+          style={{ color: "var(--ink-text)" }}
+        >
           {headline}
         </h1>
-        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+        <div
+          className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
           <span>
-            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{doneCount}</span> of 7 stages done
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+              {doneCount}
+            </span>{" "}
+            of 7 stages done
           </span>
           <span style={{ color: "var(--ink-faint)" }}>·</span>
           <span>
-            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{deployments.length}</span> shipped
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+              {deployments.length}
+            </span>{" "}
+            shipped
           </span>
           <span style={{ color: "var(--ink-faint)" }}>·</span>
           <span>
-            <span className="font-mono" style={{ color: "var(--ink-text)" }}>{decisionCount}</span> decisions in memory
+            <span className="font-mono" style={{ color: "var(--ink-text)" }}>
+              {decisionCount}
+            </span>{" "}
+            decisions in memory
           </span>
           {gateCount > 0 ? (
             <>
@@ -2037,9 +2552,13 @@ export function RestFace({
         </div>
 
         {isFresh ? (
-          <div className="mt-6 rounded-xl border p-5" style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}>
+          <div
+            className="mt-6 rounded-xl border p-5"
+            style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
+          >
             <p className="text-[13.5px] leading-[1.6]" style={{ color: "var(--ink-body)" }}>
-              Nothing has run here yet. Name the work in the box below, or start with one of these, and the loop takes it from there.
+              Nothing has run here yet. Name the work in the box below, or start with one of these,
+              and the loop takes it from there.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
@@ -2052,7 +2571,11 @@ export function RestFace({
                   type="button"
                   onClick={() => onActivateJourney?.(c.j)}
                   className="ink-focus inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
-                  style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)", color: "var(--ink-text)" }}
+                  style={{
+                    borderColor: "var(--ink-hairline)",
+                    background: "var(--ink-bg)",
+                    color: "var(--ink-text)",
+                  }}
                 >
                   {c.label}
                   <span style={{ color: "var(--ink-faint)" }}>{"\u2192"}</span>
@@ -2062,7 +2585,10 @@ export function RestFace({
           </div>
         ) : null}
 
-        <div className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+        <div
+          className="mt-7 text-[12px] font-medium uppercase tracking-[0.02em]"
+          style={{ color: "var(--ink-text)" }}
+        >
           The loop, stage by stage
         </div>
         <div className="mt-2 flex flex-col">
@@ -2080,20 +2606,41 @@ export function RestFace({
                 className="ink-focus flex items-center gap-3 border-b py-2.5 text-left transition-colors hover:bg-[var(--ink-panel)]"
                 style={{ borderColor: "var(--ink-hairline-soft)" }}
               >
-                <span className="w-6 flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>{num}</span>
+                <span
+                  className="w-6 flex-none font-mono text-[10px]"
+                  style={{ color: "var(--ink-faint)" }}
+                >
+                  {num}
+                </span>
                 <span
                   className="w-16 flex-none text-[13px]"
-                  style={{ color: isGate ? "var(--voice-human)" : isActive ? "var(--voice-machine)" : "var(--ink-text)" }}
+                  style={{
+                    color: isGate
+                      ? "var(--voice-human)"
+                      : isActive
+                        ? "var(--voice-machine)"
+                        : "var(--ink-text)",
+                  }}
                 >
                   {label}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-[12.5px]" style={{ color: "var(--ink-body)" }}>
+                <span
+                  className="min-w-0 flex-1 truncate text-[12.5px]"
+                  style={{ color: "var(--ink-body)" }}
+                >
                   {st.receipt ?? word}
                 </span>
                 {isDone ? (
-                  <span className="flex-none text-[11px]" style={{ color: "var(--verdict-pass)" }}>{"✓"}</span>
+                  <span className="flex-none text-[11px]" style={{ color: "var(--verdict-pass)" }}>
+                    {"✓"}
+                  </span>
                 ) : isGate ? (
-                  <span className="flex-none font-mono text-[10px]" style={{ color: "var(--voice-human)" }}>your call</span>
+                  <span
+                    className="flex-none font-mono text-[10px]"
+                    style={{ color: "var(--voice-human)" }}
+                  >
+                    your call
+                  </span>
                 ) : null}
               </button>
             );
@@ -2104,7 +2651,10 @@ export function RestFace({
             now holds in memory (the moat), side by side under the loop. */}
         <div className="mt-7 grid gap-8" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+            <div
+              className="text-[12px] font-medium uppercase tracking-[0.02em]"
+              style={{ color: "var(--ink-text)" }}
+            >
               Shipped
             </div>
             {deployments.length > 0 ? (
@@ -2123,21 +2673,30 @@ export function RestFace({
                       {d.status ?? "release"}
                       {d.commit_sha ? ` · ${d.commit_sha.slice(0, 7)}` : ""}
                     </span>
-                    <span className="flex-none font-mono text-[10px]" style={{ color: "var(--ink-faint)" }}>
+                    <span
+                      className="flex-none font-mono text-[10px]"
+                      style={{ color: "var(--ink-faint)" }}
+                    >
                       {relTime(d.deployed_at ?? d.created_at)}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-[12.5px]" style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}>
+              <p
+                className="mt-2 text-[12.5px]"
+                style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}
+              >
                 Nothing shipped yet. Ship stages the release the moment a build turns green.
               </p>
             )}
           </div>
 
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.02em]" style={{ color: "var(--ink-text)" }}>
+            <div
+              className="text-[12px] font-medium uppercase tracking-[0.02em]"
+              style={{ color: "var(--ink-text)" }}
+            >
               What memory holds
             </div>
             {memoryCards.length > 0 ? (
@@ -2148,20 +2707,27 @@ export function RestFace({
                     className="rounded-[10px] border p-3"
                     style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-panel)" }}
                   >
-                    <p className="text-[12.5px]" style={{ color: "var(--ink-body)", lineHeight: 1.45 }}>
+                    <p
+                      className="text-[12.5px]"
+                      style={{ color: "var(--ink-body)", lineHeight: 1.45 }}
+                    >
                       {d.title}
                     </p>
                     <p
                       className="mt-1.5 font-mono text-[10px]"
                       style={{ color: "var(--voice-memory, var(--ink-faint))" }}
                     >
-                      from {d.source_label ?? d.source_kind ?? "your call"} · {relTime(d.created_at)}
+                      from {d.source_label ?? d.source_kind ?? "your call"} ·{" "}
+                      {relTime(d.created_at)}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-[12.5px]" style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}>
+              <p
+                className="mt-2 text-[12.5px]"
+                style={{ color: "var(--ink-faint)", lineHeight: 1.5 }}
+              >
                 Memory fills as you close the loop.
                 {decisionCount > 0
                   ? ` ${decisionCount} ${decisionCount === 1 ? "decision is" : "decisions are"} in flight.`
@@ -2171,7 +2737,10 @@ export function RestFace({
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3 border-t pt-5" style={{ borderColor: "var(--ink-hairline)" }}>
+        <div
+          className="mt-8 flex flex-wrap items-center gap-3 border-t pt-5"
+          style={{ borderColor: "var(--ink-hairline)" }}
+        >
           <p className="text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
             {gateCount > 0
               ? "A call waits on you. Open the Spine stage, or ask below."

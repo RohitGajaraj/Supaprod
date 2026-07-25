@@ -62,6 +62,22 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 }
 
+/** The public origin this deployment serves from, with no trailing slash.
+ *
+ * Anything that travels outside the browser (invite mail, digests, webhooks)
+ * has to carry an absolute URL: a bare path is not clickable in a mail client.
+ * Override per environment with APP_ORIGIN. */
+export function appOrigin(): string {
+  const raw = process.env.APP_ORIGIN?.trim();
+  return (raw && raw.length > 0 ? raw : "https://supaprod.ai").replace(/\/+$/, "");
+}
+
+/** Join a root-relative path onto {@link appOrigin}. Absolute inputs pass through. */
+export function absoluteUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${appOrigin()}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export type InviteEmail = {
   to: string;
   inviteLink: string;
