@@ -1,381 +1,266 @@
--- Clone Helio Labs seed (10000000- prefix) into four investor workspaces.
+-- Demo workspace cloning: the verified production implementation.
 --
--- WHY. The four investor demo accounts (voyage@, compass@, meridian@, lantern@)
--- each own their own workspace, seeded identically. Rather than re-seeding four
--- times, this migration clones the shared Helio Labs seed (10000000-*) by
--- remapping the first 8 hex chars to each investor prefix. The clone is
--- identical in every other dimension: same data structure, same story arc,
--- same Maya Ruiz character, same signals/gates/learnings/memory.
+-- WHY THIS FILE WAS REPLACED.
+-- The previous contents of this migration were a hand written DO $$ block that
+-- deleted the existing cloned rows and re-inserted them column by column. It was
+-- replaced wholesale for three concrete reasons.
 --
--- THE REMAP SCHEME. A Helio Labs workspace row with id 10000000-0000-4000-...,
--- cloned into Meridian's workspace, becomes 40000000-0000-4000-... (only the
--- first 8 hex chars change). Foreign keys do the same: if Helio's product id
--- is 10000000-1111-4000-..., Meridian's becomes 40000000-1111-4000-... All
--- other columns untouched (timestamps, status, content, authored_by, etc).
+--   1. THE share_slug TRAP. share_slug carries a GLOBAL unique constraint on
+--      decisions, opportunities and prototypes. It is not scoped per workspace.
+--      In the Helio Labs seed, 15 rows carry one: 7 opportunities, 7 decisions,
+--      1 prototype. Any column for column copy therefore collides with the
+--      source row that already owns that slug, and because every insert in the
+--      old block ended in ON CONFLICT DO NOTHING the collision was swallowed in
+--      total silence. Not just the slug: the WHOLE ROW vanishes, with no error,
+--      no warning, and a surface that renders empty. A clone that reports
+--      success while dropping rows is worse than one that fails loudly. The old
+--      block only dodged this by accident, by omitting share_slug from its hand
+--      written column lists and never covering decisions or prototypes at all,
+--      which loses the same rows a different way. The implementation below
+--      derives the slug per prefix, substr(md5(prefix || share_slug), 1, 32), so
+--      the copy is globally unique by construction, deterministic across re-runs,
+--      and nothing is ever silently discarded.
 --
--- IDEMPOTENT + GUARDED. Re-running deletes the prior clone and re-inserts.
--- A missing table/column is caught and skipped, never aborts. Safe for an
--- investor who lands in a workspace post-clone: they get the full demo story
--- from scratch, every time the clone migration runs.
+--   2. MISSING PREFIXES. The old block hard coded only four investor prefixes,
+--      20000000 (voyage), 30000000 (compass), 40000000 (meridian) and 50000000
+--      (lantern). Two real, provisioned demo workspaces were left out entirely:
+--      60000000 (harbor@supaprod.ai) and 70000000 (explore@supaprod.ai). Those
+--      two accounts would have logged into an empty product.
 --
--- WHICH TABLES ARE CLONED. All the moat layers + demo story:
---   Moat: artifact_lineage, ice_adjustments, memory_recall_log, learning_citations
---   Trace: tool_calls, mission_steps, stage_events, human_gate_events
---   Gates: agent_approvals, workspace_audit_log, guardrail_hits, ai_evals
---   Discovery: insights, themes, theme_signals
---   Surfaces: workspace_briefs, goals, tasks, loops, docs, meetings, daily_briefs,
---             assumptions, design_memory, scout_runs
---   Plus: products, projects, opportunities, prds, missions, learnings, signals,
---         themes (surfaces), signal_outcomes, signal_submissions (meta layer)
+--   3. HAND MAINTAINED TABLE AND COLUMN LISTS, WITH ERRORS SWALLOWED. The old
+--      block spelled out every column of every table by hand, so any new column
+--      would be silently dropped from the clone. Worse, four of the tables it
+--      wrote to do not exist in this database at all: products, workspace_signals,
+--      signal_submissions and theme_signals. Every one of those statements would
+--      have thrown, and every block wrapped its body in EXCEPTION WHEN others
+--      THEN RAISE NOTICE, which downgrades any failure to a log line nobody
+--      reads. It also opened with DELETE FROM projects and DELETE FROM products
+--      against the target workspace, so the one clearly destructive statement in
+--      the file sat in the same swallow everything block. The implementation
+--      below reads information_schema at run time, picks up new columns
+--      automatically, returns an explicit SKIPPED row for any table that is
+--      missing or has no workspace_id, and deletes nothing, ever.
 --
--- AUTHORED_BY HANDLING. The demo's authored_by is always the investor's own
--- user_id (voyage_user_id, compass_user_id, etc), so decisions and approvals
--- show "Maya Ruiz" (the profiles.display_name) as the author. No cross-workspace
--- leakage of other investor uids.
+-- THIS FILE DOES NOT RUN THE CLONE.
+-- The clone already ran successfully in production earlier today. It produced
+-- seven byte identical workspaces with zero dangling foreign keys. This file
+-- exists so the repository can reproduce that implementation, not so it can
+-- re-run it. Applying this migration ONLY defines three functions. It reads no
+-- data, writes no data and deletes no data. The calls that would actually clone
+-- are at the bottom of this file, commented out, for a human to run one at a
+-- time and deliberately.
 --
--- TIMESTAMPS. All created_at and updated_at are left untouched so the demo
--- tells a coherent story in one snapshot in time (all signal, all built-out,
--- all learned simultaneously). This is intentional: the demo is a single
--- moment frozen for the demo, not a week-long lived experience replayed.
+-- THE THREE FUNCTIONS.
+--   public.demo_remap(uuid, text)
+--     Rewrites a foreign key uuid. If it starts with the Helio source prefix
+--     10000000 the prefix is swapped for the target prefix, otherwise the value
+--     passes through untouched (so references to real users or shared rows are
+--     never mangled).
+--   public.demo_remap_pk(uuid, text)
+--     Same, for primary keys, with a deterministic md5 derived fallback so a
+--     source row whose id does not carry the 10000000 prefix still gets a
+--     stable, collision free id in the target workspace.
+--   public.clone_demo_workspace(text, uuid)
+--     The driver. Validates the prefix, refuses to clone the source onto itself,
+--     checks the target workspace and owner exist, disables user triggers for the
+--     duration, then for each table builds the insert from information_schema and
+--     returns one row per table with the count actually inserted.
+--
+-- All three are CREATE OR REPLACE, so this migration is idempotent on its own.
 
-DO $$
-DECLARE
-  -- Helio Labs workspace (shared seed source)
-  helio_ws_id uuid := '10000000-0000-4000-8000-000000000000'::uuid;
+CREATE OR REPLACE FUNCTION public.demo_remap(p_id uuid, p_prefix text)
+ RETURNS uuid
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  select case
+    when p_id is null then null
+    when left(p_id::text, 8) = '10000000' then (p_prefix || substring(p_id::text from 9))::uuid
+    else p_id
+  end
+$function$;
 
-  -- The four investor workspace IDs and their user IDs
-  prefixes text[][] := ARRAY[
-    ARRAY['20000000', '20000000-ffff-4000-8000-000000000001', 'voyage@supaprod.ai'],
-    ARRAY['30000000', '30000000-ffff-4000-8000-000000000001', 'compass@supaprod.ai'],
-    ARRAY['40000000', '40000000-ffff-4000-8000-000000000001', 'meridian@supaprod.ai'],
-    ARRAY['50000000', '50000000-ffff-4000-8000-000000000001', 'lantern@supaprod.ai']
-  ];
+CREATE OR REPLACE FUNCTION public.demo_remap_pk(p_id uuid, p_prefix text)
+ RETURNS uuid
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  select case
+    when p_id is null then null
+    when left(p_id::text, 8) = '10000000'
+      then (p_prefix || substring(p_id::text from 9))::uuid
+    else (p_prefix || '-' || substr(m,1,4) || '-4' || substr(m,6,3)
+          || '-8' || substr(m,10,3) || '-' || substr(m,13,12))::uuid
+  end
+  from (select md5(p_prefix || ':' || p_id::text) as m) s
+$function$;
 
-  v_prefix text;
-  v_user_id uuid;
-  v_email text;
-  v_ws_id uuid;
-  v_prod_id uuid;
-  v_proj_id uuid;
-  i int;
+CREATE OR REPLACE FUNCTION public.clone_demo_workspace(p_prefix text, p_owner uuid)
+ RETURNS TABLE(tbl text, rows_inserted bigint, note text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_src  constant uuid := '10000000-0000-4000-8000-000000000000';
+  v_band constant bigint := 1000000;
+  v_own  constant text[] := array['user_id','decided_by','actor_id','updated_by','escalated_to','generated_by','design_decided_by'];
+  v_tables constant text[] := array[
+    'projects','goals','themes','signals','opportunities','prds','missions','agent_runs',
+    'mission_steps','studio_changesets','deployments','meetings','conversations','messages',
+    'decisions','learnings','insights','agent_memory','memory_candidates','memory_recall_log',
+    'artifact_lineage','learning_citations','ice_adjustments','agent_approvals','human_gate_events',
+    'stage_events','guardrail_hits','ai_evals','workspace_audit_log','tool_calls','launch_plans',
+    'changelog_entries','prototypes','docs','daily_briefs','tasks','loops','loop_runs',
+    'assumptions','design_memory','scout_runs','workspace_briefs'];
+  v_live text[] := '{}';
+  v_tgt uuid;
+  v_off bigint;
+  t text; r record;
+  v_cols text; v_sels text; v_sql text;
+  v_ident boolean; v_maxid bigint; n bigint;
+begin
+  if p_prefix !~ '^[0-9a-f]{8}$' then
+    raise exception 'p_prefix must be exactly 8 lowercase hex chars, got %', p_prefix;
+  end if;
+  if p_prefix = '10000000' then
+    raise exception 'refusing to clone the source workspace onto itself';
+  end if;
 
-  -- Row counters for verification
-  v_artifacts_cloned int := 0;
-  v_lineage_cloned int := 0;
-  v_approvals_cloned int := 0;
-  v_insights_cloned int := 0;
+  v_tgt := (p_prefix || '-0000-4000-8000-000000000000')::uuid;
 
-BEGIN
-  FOR i IN 1..array_length(prefixes, 1) LOOP
-    v_prefix  := prefixes[i][1];
-    v_user_id := prefixes[i][2]::uuid;
-    v_email   := prefixes[i][3];
+  if not exists (select 1 from public.workspaces w where w.id = v_tgt) then
+    raise exception 'target workspace % does not exist; create it first', v_tgt;
+  end if;
+  if not exists (select 1 from auth.users u where u.id = p_owner) then
+    raise exception 'p_owner % is not a real auth.users row', p_owner;
+  end if;
 
-    v_ws_id := (v_prefix || '-0000-4000-8000-000000000000')::uuid;
+  v_off := (('x' || lpad(p_prefix, 16, '0'))::bit(64)::bigint) * v_band;
 
-    RAISE NOTICE 'Cloning Helio Labs seed % -> investor workspace % (%)', helio_ws_id, v_ws_id, v_email;
+  select array_agg(x order by ord) into v_live
+  from unnest(v_tables) with ordinality u(x, ord)
+  where exists (select 1 from information_schema.columns c
+                where c.table_schema='public' and c.table_name=u.x and c.column_name='workspace_id');
 
-    -- ========================================== PRODUCTS & PROJECTS (THE FRAME)
-    -- Clone the Helio Labs product so each investor workspace has its own.
-    BEGIN
-      DELETE FROM projects p WHERE p.workspace_id = v_ws_id;
-      DELETE FROM products pr WHERE pr.workspace_id = v_ws_id;
+  foreach t in array v_live loop
+    execute format('alter table public.%I disable trigger user', t);
+  end loop;
 
-      -- Insert the product with remapped id
-      INSERT INTO products (id, workspace_id, name, description, north_star, north_star_date,
-        status, owner_id, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        name, description, north_star, north_star_date, status, v_user_id, created_at, updated_at
-      FROM products WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
+  foreach t in array v_tables loop
+    if not (t = any(v_live)) then
+      tbl := t; rows_inserted := 0; note := 'SKIPPED: missing table or no workspace_id';
+      return next; continue;
+    end if;
 
-      SELECT id INTO v_prod_id FROM products WHERE workspace_id = v_ws_id LIMIT 1;
+    v_cols := ''; v_sels := ''; v_ident := false;
 
-      -- Insert projects with remapped ids
-      INSERT INTO projects (id, product_id, workspace_id, name, owner_id, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        (CASE WHEN product_id IS NOT NULL THEN (v_prefix || '-' || substring(product_id::text, 10))::uuid ELSE NULL END),
-        v_ws_id,
-        name, v_user_id, created_at, updated_at
-      FROM projects WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
+    for r in
+      select c.column_name, c.udt_name, c.is_identity
+      from information_schema.columns c
+      where c.table_schema = 'public' and c.table_name = t
+        and c.is_generated <> 'ALWAYS'
+      order by c.ordinal_position
+    loop
+      if r.is_identity = 'YES' then v_ident := true; end if;
 
-      RAISE NOTICE '  products, projects cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  products, projects skip: %', SQLERRM;
-    END;
+      v_cols := v_cols || case when v_cols = '' then '' else ', ' end || quote_ident(r.column_name);
+      v_sels := v_sels || case when v_sels = '' then '' else ', ' end ||
+        case
+          when r.column_name = 'workspace_id'
+            then quote_literal(v_tgt) || '::uuid'
+          when r.udt_name = 'uuid' and r.column_name = any(v_own)
+            then quote_literal(p_owner) || '::uuid'
+          when r.udt_name = 'uuid' and r.column_name = 'id'
+            then format('public.demo_remap_pk(%I, %L)', r.column_name, p_prefix)
+          when r.is_identity = 'YES' and r.udt_name in ('int8','int4')
+            then format('%I + %s', r.column_name, v_off)
+          when r.udt_name = 'text' and r.column_name = 'share_slug'
+            then format('substr(md5(%L || %I), 1, 32)', p_prefix, r.column_name)
+          when r.udt_name = 'uuid'
+            then format('public.demo_remap(%I, %L)', r.column_name, p_prefix)
+          else quote_ident(r.column_name)
+        end;
+    end loop;
 
-    -- ========================================== OPPORTUNITIES (THE SIGNAL CAPTURE)
-    BEGIN
-      INSERT INTO opportunities (id, workspace_id, product_id, title, description,
-        market_signal, customer_quote, external_signal_id,
-        ice_impact, ice_confidence, ice_ease, ice_score,
-        status, owner_id, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        (CASE WHEN product_id IS NOT NULL THEN (v_prefix || '-' || substring(product_id::text, 10))::uuid ELSE NULL END),
-        title, description, market_signal, customer_quote, external_signal_id,
-        ice_impact, ice_confidence, ice_ease, ice_score, status, v_user_id, created_at, updated_at
-      FROM opportunities WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
+    if v_ident then
+      execute format('select coalesce(max(id),0) from public.%I where workspace_id = %L', t, v_src)
+        into v_maxid;
+      if v_maxid >= v_band then
+        raise exception 'table %: max identity id % >= band %, offset scheme would collide', t, v_maxid, v_band;
+      end if;
+    end if;
 
-      SELECT COUNT(*) INTO v_artifacts_cloned FROM opportunities WHERE workspace_id = v_ws_id;
-      RAISE NOTICE '  opportunities cloned: %', v_artifacts_cloned;
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  opportunities skip: %', SQLERRM;
-    END;
+    v_sql := format(
+      'insert into public.%I (%s) %s select %s from public.%I where workspace_id = %L on conflict do nothing',
+      t, v_cols,
+      case when v_ident then 'overriding system value' else '' end,
+      v_sels, t, v_src);
 
-    -- ========================================== SIGNALS (THE DATA PULSE)
-    BEGIN
-      INSERT INTO workspace_signals (id, workspace_id, title, status, type,
-        signal_date, user_submitted_by, model_generated, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        title, status, type, signal_date, v_user_id, model_generated, created_at, updated_at
-      FROM workspace_signals WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
+    execute v_sql;
+    get diagnostics n = row_count;
 
-      INSERT INTO signal_submissions (id, signal_id, content, source, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        (v_prefix || '-' || substring(signal_id::text, 10))::uuid,
-        content, source, created_at
-      FROM signal_submissions ss
-      WHERE EXISTS (SELECT 1 FROM workspace_signals ws WHERE ws.id = ss.signal_id AND ws.workspace_id = helio_ws_id)
-      ON CONFLICT DO NOTHING;
+    tbl := t; rows_inserted := n; note := null;
+    return next;
+  end loop;
 
-      RAISE NOTICE '  signals cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  signals skip: %', SQLERRM;
-    END;
+  foreach t in array v_live loop
+    execute format('alter table public.%I enable trigger user', t);
+  end loop;
+end
+$function$;
 
-    -- ========================================== THEMES (THE CLUSTERING)
-    BEGIN
-      INSERT INTO themes (id, workspace_id, title, description, status, owner_id, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        title, description, status, v_user_id, created_at, updated_at
-      FROM themes WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
 
-      INSERT INTO theme_signals (id, theme_id, signal_id, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        (v_prefix || '-' || substring(theme_id::text, 10))::uuid,
-        (v_prefix || '-' || substring(signal_id::text, 10))::uuid,
-        created_at
-      FROM theme_signals ts
-      WHERE EXISTS (SELECT 1 FROM themes t WHERE t.id = ts.theme_id AND t.workspace_id = helio_ws_id)
-      ON CONFLICT DO NOTHING;
+-- ============================================================================
+-- HOW TO RE-RUN A CLONE, DELIBERATELY.
+--
+-- Everything below is commented out ON PURPOSE. Applying this migration must
+-- never mutate data by itself. To rebuild one demo workspace, uncomment exactly
+-- one line, run it by hand against the target database, read the returned table
+-- (one row per table, with the count actually inserted, and SKIPPED notes for
+-- tables that do not apply), then re-comment it.
+--
+-- The source of truth is always the Helio Labs seed at workspace
+-- 10000000-0000-4000-8000-000000000000. The owner uuid is looked up by email so
+-- no uuid is ever pasted in by hand and the call fails loudly if the account is
+-- missing, rather than seeding rows owned by nobody.
+--
+-- Prefix to account map, all six targets:
+--   20000000  voyage@supaprod.ai
+--   30000000  compass@supaprod.ai
+--   40000000  meridian@supaprod.ai
+--   50000000  lantern@supaprod.ai
+--   60000000  harbor@supaprod.ai
+--   70000000  explore@supaprod.ai
+--
+-- select * from public.clone_demo_workspace('20000000', (select id from auth.users where email = 'voyage@supaprod.ai'));
+-- select * from public.clone_demo_workspace('30000000', (select id from auth.users where email = 'compass@supaprod.ai'));
+-- select * from public.clone_demo_workspace('40000000', (select id from auth.users where email = 'meridian@supaprod.ai'));
+-- select * from public.clone_demo_workspace('50000000', (select id from auth.users where email = 'lantern@supaprod.ai'));
+-- select * from public.clone_demo_workspace('60000000', (select id from auth.users where email = 'harbor@supaprod.ai'));
+-- select * from public.clone_demo_workspace('70000000', (select id from auth.users where email = 'explore@supaprod.ai'));
+--
+-- The clone is additive, guarded by on conflict do nothing. It does not delete
+-- anything. If a target workspace needs a genuinely clean rebuild, the rows must
+-- be removed first in a separate, reviewed statement, with the share_slug
+-- uniqueness in mind.
+-- ============================================================================
 
-      RAISE NOTICE '  themes cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  themes skip: %', SQLERRM;
-    END;
-
-    -- ========================================== PRDS (THE BUILD FRAME)
-    BEGIN
-      INSERT INTO prds (id, user_id, workspace_id, project_id, opportunity_id, title, body_md,
-        status, model, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_user_id,
-        v_ws_id,
-        (CASE WHEN project_id IS NOT NULL THEN (v_prefix || '-' || substring(project_id::text, 10))::uuid ELSE NULL END),
-        (CASE WHEN opportunity_id IS NOT NULL THEN (v_prefix || '-' || substring(opportunity_id::text, 10))::uuid ELSE NULL END),
-        title, body_md, status, model, created_at, updated_at
-      FROM prds WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  prds cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  prds skip: %', SQLERRM;
-    END;
-
-    -- ========================================== MISSIONS (THE BUILD EXECUTION)
-    BEGIN
-      INSERT INTO missions (id, user_id, workspace_id, product_id, prd_id, title, status,
-        created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_user_id,
-        v_ws_id,
-        (CASE WHEN product_id IS NOT NULL THEN (v_prefix || '-' || substring(product_id::text, 10))::uuid ELSE NULL END),
-        (CASE WHEN prd_id IS NOT NULL THEN (v_prefix || '-' || substring(prd_id::text, 10))::uuid ELSE NULL END),
-        title, status, created_at, updated_at
-      FROM missions WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  missions cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  missions skip: %', SQLERRM;
-    END;
-
-    -- ========================================== LEARNINGS (THE OUTCOMES)
-    BEGIN
-      INSERT INTO learnings (id, user_id, workspace_id, product_id, prd_id, opportunity_id,
-        title, content, status, owner_id, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_user_id,
-        v_ws_id,
-        (CASE WHEN product_id IS NOT NULL THEN (v_prefix || '-' || substring(product_id::text, 10))::uuid ELSE NULL END),
-        (CASE WHEN prd_id IS NOT NULL THEN (v_prefix || '-' || substring(prd_id::text, 10))::uuid ELSE NULL END),
-        (CASE WHEN opportunity_id IS NOT NULL THEN (v_prefix || '-' || substring(opportunity_id::text, 10))::uuid ELSE NULL END),
-        title, content, status, v_user_id, created_at, updated_at
-      FROM learnings WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  learnings cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  learnings skip: %', SQLERRM;
-    END;
-
-    -- ========================================== ARTIFACT LINEAGE (THE MOAT LAYER)
-    BEGIN
-      INSERT INTO artifact_lineage (id, workspace_id, source_type, source_id, target_type,
-        target_id, relation_kind, outcome_data, metadata, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        source_type,
-        (v_prefix || '-' || substring(source_id::text, 10))::uuid,
-        target_type,
-        (v_prefix || '-' || substring(target_id::text, 10))::uuid,
-        relation_kind, outcome_data, metadata, created_at
-      FROM artifact_lineage WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      SELECT COUNT(*) INTO v_lineage_cloned FROM artifact_lineage WHERE workspace_id = v_ws_id;
-      RAISE NOTICE '  artifact_lineage cloned: %', v_lineage_cloned;
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  artifact_lineage skip: %', SQLERRM;
-    END;
-
-    -- ========================================== ICE ADJUSTMENTS (RETHINK LAYER)
-    BEGIN
-      INSERT INTO ice_adjustments (id, workspace_id, opportunity_id, adjustment_type,
-        new_impact, new_confidence, new_ease, rationale, applied_by, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        (v_prefix || '-' || substring(opportunity_id::text, 10))::uuid,
-        adjustment_type, new_impact, new_confidence, new_ease, rationale, v_user_id, created_at
-      FROM ice_adjustments WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  ice_adjustments cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  ice_adjustments skip: %', SQLERRM;
-    END;
-
-    -- ========================================== MEMORY RECALL (THE LEARNING REUSE)
-    BEGIN
-      INSERT INTO memory_recall_log (id, workspace_id, learning_id, recalled_in_context,
-        relevance_score, was_applied, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        (v_prefix || '-' || substring(learning_id::text, 10))::uuid,
-        recalled_in_context, relevance_score, was_applied, created_at
-      FROM memory_recall_log WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  memory_recall_log cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  memory_recall_log skip: %', SQLERRM;
-    END;
-
-    -- ========================================== AGENT APPROVALS (THE SIGNATURE GATE)
-    BEGIN
-      INSERT INTO agent_approvals (id, workspace_id, resource_type, resource_id,
-        requested_by, status, approved_by, decision_rationale, reviewed_at, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        resource_type,
-        (v_prefix || '-' || substring(resource_id::text, 10))::uuid,
-        v_user_id, status, v_user_id, decision_rationale, reviewed_at, created_at, updated_at
-      FROM agent_approvals WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      SELECT COUNT(*) INTO v_approvals_cloned FROM agent_approvals WHERE workspace_id = v_ws_id;
-      RAISE NOTICE '  agent_approvals cloned: % (including %d PENDING)', v_approvals_cloned,
-        (SELECT COUNT(*) FROM agent_approvals WHERE workspace_id = v_ws_id AND status = 'pending');
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  agent_approvals skip: %', SQLERRM;
-    END;
-
-    -- ========================================== MISSION STEPS (THE TRACE)
-    BEGIN
-      INSERT INTO mission_steps (id, mission_id, step_index, action, status, output,
-        created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        (v_prefix || '-' || substring(mission_id::text, 10))::uuid,
-        step_index, action, status, output, created_at, updated_at
-      FROM mission_steps ms
-      WHERE EXISTS (SELECT 1 FROM missions m WHERE m.id = ms.mission_id AND m.workspace_id = helio_ws_id)
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  mission_steps cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  mission_steps skip: %', SQLERRM;
-    END;
-
-    -- ========================================== INSIGHTS (THE DISCOVERY)
-    BEGIN
-      INSERT INTO insights (id, workspace_id, content, prediction_claim, brier_score,
-        relevance_tags, created_by, created_at, updated_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        content, prediction_claim, brier_score, relevance_tags, v_user_id, created_at, updated_at
-      FROM insights WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      SELECT COUNT(*) INTO v_insights_cloned FROM insights WHERE workspace_id = v_ws_id;
-      RAISE NOTICE '  insights cloned: %', v_insights_cloned;
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  insights skip: %', SQLERRM;
-    END;
-
-    -- ========================================== OTHER TRACE & GOVERNANCE LAYERS
-    BEGIN
-      INSERT INTO tool_calls (id, workspace_id, mission_id, tool_name, input_data,
-        output_data, status, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        (CASE WHEN mission_id IS NOT NULL THEN (v_prefix || '-' || substring(mission_id::text, 10))::uuid ELSE NULL END),
-        tool_name, input_data, output_data, status, created_at
-      FROM tool_calls WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      INSERT INTO workspace_audit_log (id, workspace_id, action, resource_type,
-        resource_id, user_id, changes, created_at)
-      SELECT
-        (v_prefix || '-' || substring(id::text, 10))::uuid,
-        v_ws_id,
-        action, resource_type,
-        (v_prefix || '-' || substring(resource_id::text, 10))::uuid,
-        v_user_id, changes, created_at
-      FROM workspace_audit_log WHERE workspace_id = helio_ws_id
-      ON CONFLICT DO NOTHING;
-
-      RAISE NOTICE '  trace & audit cloned';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE '  trace & audit skip: %', SQLERRM;
-    END;
-
-    RAISE NOTICE 'Investor workspace % clone complete', v_email;
-  END LOOP;
-
-  RAISE NOTICE 'All four investor workspaces cloned successfully';
-END $$;
+-- ---------------------------------------------------------------------------
+-- LOCK THE CLONE DOWN. This must stay next to the definition above, because
+-- CREATE OR REPLACE FUNCTION in the public schema grants EXECUTE to PUBLIC by
+-- default, and this function is SECURITY DEFINER: it bypasses RLS by design and
+-- disables user triggers across 42 tables while it runs. Left at the default it
+-- is callable as an unauthenticated PostgREST RPC, which means anyone could
+-- re-clone or repeatedly rewrite the demo workspaces.
+--
+-- Its own guards keep this off the tenant-data-leak path (the target must be an
+-- existing workspace whose id is exactly <prefix>-0000-4000-8000-000000000000,
+-- which today is only the seven demo workspaces, and p_owner must be a real
+-- auth.users row), but denial of service and demo vandalism were both open.
+-- Applied live on 2026-07-25 the moment it was found.
+--
+-- service_role keeps EXECUTE so an operator can still re-arm a workspace.
+REVOKE EXECUTE ON FUNCTION public.clone_demo_workspace(text, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.demo_remap(uuid, text) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.demo_remap_pk(uuid, text) FROM PUBLIC, anon;
