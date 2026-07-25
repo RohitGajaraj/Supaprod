@@ -140,7 +140,7 @@ export function AuditLineageSheet() {
                   connected entity is a live tag you can click to walk on. */}
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {d.steps.map((s, i) => (
-                  <div key={i} style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
+                  <div key={i} style={{ display: "flex", gap: "var(--geist-space-3x)", alignItems: "stretch" }}>
                     <div
                       style={{
                         display: "flex",
@@ -191,7 +191,7 @@ export function AuditLineageSheet() {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
+                          gap: "var(--geist-space-2x)",
                           color: "var(--text-body)",
                           marginTop: 3,
                         }}

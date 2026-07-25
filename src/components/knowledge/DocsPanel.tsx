@@ -255,7 +255,7 @@ export function DocsPanel() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             marginBottom: 12,
             flexWrap: "wrap",
           }}
@@ -307,7 +307,7 @@ export function DocsPanel() {
 
       {selectedId != null ? (
         selected.isLoading || !doc ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", padding: "18px 2px" }}>
             <span className="spinner" />
             <span className="mono-label" style={{ }}>
               loading…
@@ -458,7 +458,7 @@ export function DocsPanel() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: "var(--geist-space-3x)",
                       padding: "14px 16px",
                       width: "100%",
                       textAlign: "left",
@@ -638,7 +638,7 @@ export function DocsPanel() {
                 borderBottom: "1px solid var(--hairline)",
                 display: "flex",
                 flexDirection: "column",
-                gap: 8,
+                gap: "var(--geist-space-2x)",
               }}
             >
               <span style={{ position: "relative" }}>
@@ -687,7 +687,7 @@ export function DocsPanel() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
+                    gap: "var(--geist-space-2x)",
                     padding: "14px 8px",
                     justifyContent: "center",
                   }}
@@ -733,7 +733,7 @@ export function DocsPanel() {
                   style={{
                     padding: "6px 8px",
                     display: "flex",
-                    gap: 8,
+                    gap: "var(--geist-space-2x)",
                   }}
                 >
                   <span style={{ width: 18, textAlign: "center" }}>{p.icon ?? "·"}</span>

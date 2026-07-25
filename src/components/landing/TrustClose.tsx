@@ -54,12 +54,14 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
       </div>
 
       <div className="relative max-w-5xl mx-auto">
-        {/* The trust grid: eight true promises as interactive cards, all
-            routing into /security for the full answers */}
+        {/* The trust grid: four true promises as cards, all routing into
+            /security for the full answers. Founder 2026-07-25: this block
+            looks clean, leave it. Untouched except for the margin arithmetic
+            below, which produced the same gap by two opposing numbers. */}
         <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-4">
           the rules the agents cannot break
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {promises.map((p) => (
             <div
               key={p.label}
@@ -76,36 +78,50 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             </div>
           ))}
         </div>
-        <p className="text-xs text-zinc-600 -mt-16 mb-20">
+        {/* Was `mb-20` on the grid plus `-mt-16` here, which collapsed to the
+            same 16px. Same result, stated once (2026-07-25 craft pass). */}
+        <p className="text-xs text-zinc-600 mb-24">
           The full answers, stated plainly:{" "}
           <a
             href="/security"
-            className="text-zinc-400 underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors"
+            className="text-zinc-400 underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
           >
             /security
           </a>
         </p>
 
-        {/* The close: beta status as a mono eyebrow, the heading cut in two
-            for punch, and the sub at the page's standard text-lg, now a single
-            line (founder 2026-07-15: never three sub lines under a one-line
-            heading). The #join anchor lives HERE, not on the section,
-            so every 'Join the beta' click lands with the eyebrow, heading,
-            and the email field all in view. The 160px offset is deliberate
-            (founder 2026-07-15): the block lands a little down the viewport,
-            trust cards peeking above and the footer just reaching the bottom
-            edge, so no empty run below the form is exposed. */}
+        {/* The close (reworked 2026-07-25, founder: "shouldn't it be a little
+            subtle"). The argument lands, the offer stays quiet. Three moves:
+            the scarcity claim left this block entirely and is now one mono
+            line under the form; the heading breaks on its own line so the
+            second sentence reads as the answer to the first; and the whole
+            block commits to the page's left edge, the same edge the trust
+            kicker and every section headline above it start on, so the last
+            viewport is one column with one ember object in it.
+
+            Ember is always on the key noun (founder ruling): `agents` here,
+            never a hover state. It is text, the CTA is a filled pill, so the
+            action is still the only thing in the viewport that looks pressable.
+
+            The #join anchor lives HERE, not on the section, so every 'Join the
+            beta' click lands with the eyebrow, heading, and the email field all
+            in view. The 160px offset is deliberate (founder 2026-07-15): the
+            block lands a little down the viewport, trust cards peeking above
+            and the footer just reaching the bottom edge, so no empty run below
+            the form is exposed. */}
         <div id="join" className="scroll-mt-40">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
-            the beta is open for sign-ups
+          <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-5">
+            the beta is open
           </p>
           <h2
-            className="text-4xl md:text-5xl font-semibold mb-4 text-white"
+            className="text-4xl md:text-5xl font-semibold mb-5 text-white leading-[1.06]"
             style={{ letterSpacing: "-0.02em" }}
           >
-            A product team of agents. Answerable to you.
+            A product team of <span style={{ color: "#FF6B2C" }}>agents</span>.
+            <br />
+            Answerable to you.
           </h2>
-          <p className="text-lg text-zinc-400 mb-12 leading-relaxed">
+          <p className="text-lg text-zinc-400 mb-10 leading-relaxed" style={{ maxWidth: "44ch" }}>
             It starts learning your product from the first call you grade.
           </p>
 

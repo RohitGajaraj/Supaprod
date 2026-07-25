@@ -181,7 +181,7 @@ function CandidateRow({
   const preview = supersedesPreview(row.supersedes_content);
   return (
     <div style={{ ...CARD_STYLE, padding: "13px 16px" }}>
-      <div className="flex items-center" style={{ gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+      <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 8, flexWrap: "wrap" }}>
         {/* RPT-09 (needs-human leads in ember): a pending consent decision leads with
             the ember gate dot, matching the Approvals queue, so "your call" reads in
             ember rather than the Supersedes caveat below (which is demoted to neutral). */}

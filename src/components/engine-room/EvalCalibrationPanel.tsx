@@ -172,7 +172,7 @@ export function EvalCalibrationPanel() {
                 transitionTimingFunction: "var(--ease)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", flex: 1, minWidth: 0 }}>
                 {/* Coverage state dot */}
                 <div
                   style={{
@@ -213,7 +213,7 @@ export function EvalCalibrationPanel() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   flex: "none",
                 }}
               >

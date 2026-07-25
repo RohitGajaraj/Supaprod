@@ -41,7 +41,7 @@ export function SkillsFileExportCard() {
   }
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640, marginTop: 16 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640, marginTop: 16 }}>
       <div className="mono-label">Export agent context bundle</div>
       <p
         className="text-copy-13"

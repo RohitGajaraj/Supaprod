@@ -35,7 +35,7 @@ export function DataSubstrateCard() {
   const hasSeal = seal?.available && !!seal.head && seal.count > 0;
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640 }}>
       <div className="text-label-13-mono flex items-center gap-[7px]">
         <Database size={16} strokeWidth={1.5} />
         Where your brain lives

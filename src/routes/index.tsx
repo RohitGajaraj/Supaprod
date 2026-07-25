@@ -19,6 +19,7 @@ import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
 import { TheGap } from "@/components/landing/TheGap";
+import { ThreeLayers } from "@/components/landing/ThreeLayers";
 import { LoopWalkthrough } from "@/components/landing/LoopWalkthrough";
 import { Receipts } from "@/components/landing/Receipts";
 import { TrustClose } from "@/components/landing/TrustClose";
@@ -188,6 +189,11 @@ function LandingPage() {
           <LandingNav />
           <Hero />
           <TheGap />
+          {/* The Gap ends on "Decisions / no home". The three layers answer
+              it, in their own spotlit section, before the loop proves layer
+              02 in motion: absence, then the answer, then the receipt
+              (founder ruling 2026-07-25). */}
+          <ThreeLayers />
           <LoopWalkthrough />
           <Receipts stats={stats} />
           <TrustClose waitlistCount={stats?.waitlistCount ?? null} />

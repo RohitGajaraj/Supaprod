@@ -500,7 +500,7 @@ export function PushedInsights({
 
 
 
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginBottom: 4 }}>
 
 
 
@@ -1220,7 +1220,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
 
 
 
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 3 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginBottom: 3 }}>
 
 
 

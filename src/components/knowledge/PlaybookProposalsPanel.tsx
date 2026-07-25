@@ -55,7 +55,7 @@ function ProposalCard({
         background: "var(--ember-tint)",
       }}
     >
-      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 6 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 6 }}>
         <MonoLabel style={{ }}>Proposed playbook</MonoLabel>
         <ConfidenceChip tier={p.confidence} />
         <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>

@@ -47,7 +47,7 @@ export function MemoryExpiryBanner({ workspaceId }: { workspaceId: string | null
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "space-between",
-        gap: 16,
+        gap: "var(--geist-space-4x)",
         flexWrap: "wrap",
       }}
     >

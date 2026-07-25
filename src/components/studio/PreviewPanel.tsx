@@ -63,7 +63,7 @@ export function PreviewPanel({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           padding: "48px 0",
           color: "var(--text-subtle)",
         }}

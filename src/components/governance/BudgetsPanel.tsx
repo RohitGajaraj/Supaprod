@@ -451,7 +451,7 @@ export function BudgetsPanel() {
           style={{
             display: "grid",
             gridTemplateColumns: SURFACE_GRID,
-            gap: 12,
+            gap: "var(--geist-space-3x)",
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -483,7 +483,7 @@ export function BudgetsPanel() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: SURFACE_GRID,
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "12px 18px",
                   alignItems: "center",
                   borderBottom: i < surfaces.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -569,7 +569,7 @@ export function BudgetsPanel() {
         <form
           style={{
             display: "flex",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             flexWrap: "wrap",
             alignItems: "center",
             padding: "12px 18px",
@@ -639,7 +639,7 @@ export function BudgetsPanel() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "9px 0",
                   borderBottom: i < alerts.length - 1 ? "1px solid var(--hairline)" : "none",
                 }}

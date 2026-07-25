@@ -136,7 +136,7 @@ export function MembersCard() {
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
         }}
       >
         <div className="mono-label">Members</div>
@@ -165,7 +165,7 @@ export function MembersCard() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "10px 0",
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
@@ -230,7 +230,7 @@ export function MembersCard() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "11px 0",
                     borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                   }}
@@ -257,7 +257,7 @@ export function MembersCard() {
 
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div
-                      style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+                      style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
                     >
                       <span
                         className="text-label-13"
@@ -319,7 +319,7 @@ export function MembersCard() {
                   </div>
 
                   {confirming ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexShrink: 0 }}>
                       <span style={{ color: "var(--ink-subtle)", maxWidth: 180 }}>
                         Make {name} the owner? You become an admin.
                       </span>

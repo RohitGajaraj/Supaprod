@@ -221,7 +221,7 @@ export function NotificationsTab() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             marginBottom: stakeholderUpdate ? 14 : 0,
           }}
         >
@@ -273,7 +273,7 @@ export function NotificationsTab() {
           Sound and touch feedback on actions. Applies instantly on this device. Sound is
           synthesized and subtle; haptics only fire on devices that support it.
         </p>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 12 }}>
           <input
             type="checkbox"
             checked={feedbackSound}

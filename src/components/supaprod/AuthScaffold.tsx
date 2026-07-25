@@ -45,7 +45,7 @@ const surface: CSSProperties = {
   background: "var(--ds-background-100)",
   color: "var(--text-primary)",
   overflow: "hidden",
-  padding: 24,
+  padding: "var(--geist-gap)",
 };
 
 const watermark: CSSProperties = {
@@ -71,7 +71,7 @@ const header: CSSProperties = {
 // --radius-card already alias 1:1 to --ds-background-100 / --ds-shadow-border-medium
 // / --ds-radius-medium (12px), so `material-medium` renders identically here.
 const card: CSSProperties = {
-  padding: 24,
+  padding: "var(--geist-gap)",
 };
 
 const footerStyle: CSSProperties = {

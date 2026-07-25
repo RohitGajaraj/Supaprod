@@ -110,7 +110,7 @@ export function ProductMasthead({
 
 
 
-        gap: 8,
+        gap: "var(--geist-space-2x)",
 
 
 

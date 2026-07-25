@@ -847,7 +847,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={() => window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"))}
               className="loom-press flex flex-1 items-center rounded-[8px] border border-[var(--hairline)] bg-[var(--card)] text-[var(--text-subtle)] text-label-12 outline-none transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
               style={{
-                gap: 8,
+                gap: "var(--geist-space-2x)",
                 boxShadow: "var(--top-light)",
                 padding: "7px 10px",
               }}

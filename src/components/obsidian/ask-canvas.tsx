@@ -393,7 +393,7 @@ export function MissionCanvasBlocks({ missionId }: { missionId: string }) {
   if (!data || !hasCanvasContent(data)) return null;
 
   return (
-    <div className="flex flex-col" style={{ gap: 8, marginTop: 8 }}>
+    <div className="flex flex-col" style={{ gap: "var(--geist-space-2x)", marginTop: 8 }}>
       {data.run ? <ProgressBlock run={data.run} approvals={data.approvals} /> : null}
       <ApprovalGateBlock approvals={data.approvals} missionId={missionId} />
       <MemoryBlock recalls={data.memoryRecalls} />

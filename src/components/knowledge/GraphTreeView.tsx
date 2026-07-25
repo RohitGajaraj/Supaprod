@@ -20,7 +20,7 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           padding: "6px 8px",
           borderRadius: 4,
           backgroundColor: node.depth === 0 ? "var(--surface-2)" : "transparent",
@@ -106,7 +106,7 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
   }
   if (tree.isLoading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", padding: "18px 2px" }}>
         <span className="spinner" />
         <span className="mono-label" style={{ }}>
           loading tree…
@@ -147,7 +147,7 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
       <div
         style={{
           display: "flex",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           padding: "8px 0",
           marginBottom: 12,
           color: "var(--ink-muted)",

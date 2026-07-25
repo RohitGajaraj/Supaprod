@@ -69,7 +69,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
   return (
     <div
       className="material-medium fade-up"
-      style={{ padding: 24, textAlign: "left", width: "100%" }}
+      style={{ padding: "var(--geist-gap)", textAlign: "left", width: "100%" }}
       aria-label="Supaprod Critic teardown receipt"
     >
       {/* Receipt header: mono kicker + verdict chip. */}
@@ -78,7 +78,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           flexWrap: "wrap",
         }}
       >

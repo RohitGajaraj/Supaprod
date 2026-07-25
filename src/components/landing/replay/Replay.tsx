@@ -519,7 +519,7 @@ export function StationSpine({ litThrough, active }: { litThrough: number; activ
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         flexWrap: "wrap",
         marginBottom: 24,
       }}
@@ -654,7 +654,7 @@ export function FlowList({
               )}
             </div>
             <div style={{ paddingBottom: i < entries.length - 1 ? 12 : 0, paddingTop: 8 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginBottom: 2 }}>
                 <span style={{ fontFamily: MONO, color: R.faint }}>{e.ts}</span>
                 <span
                   style={{
@@ -720,14 +720,14 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
         background: R.card,
         border: `1px solid ${R.border}`,
         borderRadius: 12,
-        padding: 16,
+        padding: "var(--geist-space-4x)",
       }}
     >
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 14,
           paddingBottom: 12,
           borderBottom: `1px solid ${R.border}`,
@@ -741,11 +741,11 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
           background: "rgba(255,255,255,0.02)",
           border: `1px solid ${R.border}`,
           borderRadius: 8,
-          padding: 12,
+          padding: "var(--geist-space-3x)",
           transition: "all 0.4s ease",
         }}
       >
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "flex-start" }}>
           <span
             style={{
               width: 8,
@@ -853,14 +853,14 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
         background: R.card,
         border: `1px solid ${R.border}`,
         borderRadius: 12,
-        padding: 16,
+        padding: "var(--geist-space-4x)",
       }}
     >
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 12,
           paddingBottom: 10,
           borderBottom: `1px solid ${R.border}`,
@@ -973,7 +973,7 @@ function DeadRun() {
         background: R.card,
         border: `1px solid ${R.border}`,
         borderRadius: 12,
-        padding: 16,
+        padding: "var(--geist-space-4x)",
         opacity: 0.6,
       }}
     >
@@ -981,7 +981,7 @@ function DeadRun() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 12,
           paddingBottom: 10,
           borderBottom: `1px solid ${R.border}`,
@@ -1111,7 +1111,7 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
               display: "flex",
               alignItems: "baseline",
               justifyContent: "space-between",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               marginBottom: 10,
             }}
           >

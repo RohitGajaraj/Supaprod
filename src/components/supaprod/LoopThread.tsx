@@ -39,7 +39,7 @@ export function LoopThread() {
       }}
     >
       <div
-        style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}
+        style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0, overflow: "hidden" }}
       >
         {LOOP_SURFACES.map((s, i) => {
           const cls =

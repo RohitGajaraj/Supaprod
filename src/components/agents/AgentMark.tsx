@@ -114,7 +114,7 @@ export function AgentBadge({
   const name = agentDisplayName(slug, fallbackName);
   const v = verb ?? (showVerb ? agentRelayVerb(slug) : null);
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0 }}>
       <AgentMark slug={slug} size={size} />
       <span style={{ display: "inline-flex", flexDirection: "column", minWidth: 0 }}>
         <span

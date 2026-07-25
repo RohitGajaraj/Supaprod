@@ -211,7 +211,7 @@ export function AnalyticsPanel() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                 }}
               >
                 <div>
@@ -271,7 +271,7 @@ export function AnalyticsPanel() {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 12,
+                        gap: "var(--geist-space-3x)",
                         padding: "6px 8px",
                         borderRadius: 8,
                       }}
@@ -374,7 +374,7 @@ export function AnalyticsPanel() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: "var(--geist-space-3x)",
                       padding: "6px 8px",
                       borderRadius: 8,
                       border: "1px solid transparent",
@@ -455,7 +455,7 @@ export function AnalyticsPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 70px 80px 80px",
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "10px 18px",
                 borderBottom: "1px solid var(--hairline)",
               }}
@@ -476,7 +476,7 @@ export function AnalyticsPanel() {
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 70px 80px 80px",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "12px 18px",
                     alignItems: "baseline",
                     borderBottom: i < byModel.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -533,7 +533,7 @@ export function AnalyticsPanel() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "11px 18px",
                     width: "100%",
                     textAlign: "left",
@@ -699,7 +699,7 @@ function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () 
           borderLeft: "1px solid var(--hairline)",
           zIndex: 50,
           overflow: "auto",
-          padding: 24,
+          padding: "var(--geist-gap)",
         }}
       >
         <button
@@ -833,7 +833,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
               key={i}
               style={{
                 display: "flex",
-                gap: 8,
+                gap: "var(--geist-space-2x)",
                 padding: "3px 0",
                 alignItems: "baseline",
               }}

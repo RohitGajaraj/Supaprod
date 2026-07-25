@@ -92,7 +92,7 @@ export function BrainStatTrio() {
       <div
         aria-hidden="true"
         className="flex items-end"
-        style={{ gap: 32, marginBottom: 18, minHeight: 46 }}
+        style={{ gap: "var(--geist-gap-section)", marginBottom: 18, minHeight: 46 }}
       >
         {[72, 72, 72].map((w, i) => (
           <div
@@ -147,7 +147,7 @@ export function BrainStatTrio() {
 
   const hasDecisionsTrend = stats.decisionsTrend.some((n) => n > 0);
   return (
-    <div className="flex flex-wrap items-end" style={{ gap: 32, marginBottom: 18 }}>
+    <div className="flex flex-wrap items-end" style={{ gap: "var(--geist-gap-section)", marginBottom: 18 }}>
       {stats.cells.map((c) => (
         <StatCell key={c.label} value={c.value} label={c.label} />
       ))}

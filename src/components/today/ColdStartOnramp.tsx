@@ -222,7 +222,7 @@ export function ColdStartOnramp() {
 
 
 
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "4px 2px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", padding: "4px 2px" }}>
 
 
 
@@ -395,7 +395,7 @@ export function ColdStartOnramp() {
 
 
 
-                gap: 12,
+                gap: "var(--geist-space-3x)",
 
 
 

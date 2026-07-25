@@ -46,7 +46,7 @@ export function MemoryUpgradeNudge() {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         flexWrap: "wrap",
         padding: "10px 14px",
         marginBottom: 18,

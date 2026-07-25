@@ -153,12 +153,12 @@ export function WorkspaceBindingsSection() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "12px 16px",
                     borderTop: isFirst ? "none" : "1px solid var(--hairline)",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", minWidth: 0 }}>
                     <ProviderLogo provider={spec.id} size={28} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 500, color: "var(--ink)" }}>
@@ -176,7 +176,7 @@ export function WorkspaceBindingsSection() {
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: 8,
+                              gap: "var(--geist-space-2x)",
                               justifyContent: "flex-end",
                             }}
                           >

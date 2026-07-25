@@ -64,7 +64,7 @@ export function CostPerOutcomeChip() {
 
         alignItems: "baseline",
 
-        gap: 8,
+        gap: "var(--geist-space-2x)",
 
         flexWrap: "wrap",
 

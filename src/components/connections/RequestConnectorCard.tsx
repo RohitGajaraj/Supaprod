@@ -72,7 +72,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         padding: "12px 14px",
         marginTop: 12,
       }}
@@ -100,7 +100,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
         <div style={{ color: "var(--ink-subtle)", marginBottom: 8 }}>
           Don't see your tool? Tell us what to build next.
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", maxWidth: 420 }}>
+        <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", maxWidth: 420 }}>
           <input
             className="input"
             value={value}

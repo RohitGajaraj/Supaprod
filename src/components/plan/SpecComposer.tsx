@@ -57,7 +57,7 @@ export function SpecComposer() {
       >
         What do you want to build?
       </span>
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+      <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 8 }}>
         <input
           value={intent}
           onChange={(e) => setIntent(e.target.value)}

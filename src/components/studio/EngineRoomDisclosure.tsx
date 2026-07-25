@@ -85,7 +85,7 @@ function ShippedLine({ changeset }: { changeset: StudioChangesetSummary | null }
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         marginTop: 8,
         padding: "8px 12px",
         borderRadius: "var(--radius-control)",
@@ -160,7 +160,7 @@ export function EngineRoomDisclosure({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             width: "100%",
             textAlign: "left",
             padding: "6px 8px",
@@ -203,7 +203,7 @@ export function EngineRoomDisclosure({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: "var(--geist-space-2x)",
               padding: "8px 12px",
               borderBottom: "1px solid var(--hairline)",
             }}

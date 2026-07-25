@@ -559,7 +559,7 @@ function AskComposer({
                 display: "flex",
                 width: "100%",
                 alignItems: "center",
-                gap: 8,
+                gap: "var(--geist-space-2x)",
                 padding: "8px 12px",
                 background: i === paletteIndex ? "var(--hover)" : "transparent",
                 border: "none",
@@ -657,7 +657,7 @@ function AskComposer({
           {/* THE SENTENCE BOX FOLDS INTO ASK: chip + mic + send cluster
               together at the trailing edge, one shared auto margin instead
               of each control claiming its own. */}
-          <div className="flex items-center" style={{ gap: 8, marginLeft: "auto" }}>
+          <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginLeft: "auto" }}>
             {value.trim() ? (
               <button
                 type="button"

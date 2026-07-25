@@ -408,7 +408,7 @@ export function FirstTeardownCard({
 
 
 
-        <div className="flex items-baseline" style={{ gap: 8, marginBottom: 10, minWidth: 0 }}>
+        <div className="flex items-baseline" style={{ gap: "var(--geist-space-2x)", marginBottom: 10, minWidth: 0 }}>
 
 
 

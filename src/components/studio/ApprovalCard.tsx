@@ -109,7 +109,7 @@ export function ApprovalCard({
           "{approval.rationale}"
         </p>
       ) : null}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+      <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", marginTop: 12 }}>
         <button
           type="button"
           className="btn btn-sm loom-press"

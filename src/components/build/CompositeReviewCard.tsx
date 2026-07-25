@@ -59,7 +59,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           {composite.synthesis}
         </p>
       ) : null}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-3x)", marginBottom: 16 }}>
         {SECTION_LABELS.map((s) => (
           <div key={s.key}>
             <p

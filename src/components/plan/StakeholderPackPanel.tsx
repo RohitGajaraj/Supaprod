@@ -129,7 +129,7 @@ export function StakeholderPackPanel({
     return (
       <div
         style={{
-          padding: 24,
+          padding: "var(--geist-gap)",
           background: "var(--surface-card-deep)",
           borderRadius: "var(--radius-panel)",
         }}
@@ -163,7 +163,7 @@ export function StakeholderPackPanel({
     return (
       <div
         style={{
-          padding: 32,
+          padding: "var(--geist-gap-section)",
           textAlign: "center",
           background: "var(--surface-card)",
           borderRadius: "var(--radius-panel)",

@@ -40,7 +40,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
         boxShadow: "var(--top-light)",
       }}
     >
-      <div className="flex items-center" style={{ gap: 8, marginBottom: rows.length ? 4 : 0 }}>
+      <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: rows.length ? 4 : 0 }}>
         <span
           className="flex-1"
           style={{

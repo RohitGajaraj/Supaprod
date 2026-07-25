@@ -87,7 +87,7 @@ export function TeamCard() {
         is off for now, so share the join link the invite gives you.
       </p>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 14, flexWrap: "wrap" }}>
         <input
           className="input"
           type="email"
@@ -125,7 +125,7 @@ export function TeamCard() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             marginTop: 10,
             padding: "8px 10px",
             background: "var(--surface-sunken, var(--paper))",
@@ -173,7 +173,7 @@ export function TeamCard() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "10px 0",
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}

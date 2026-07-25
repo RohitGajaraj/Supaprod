@@ -60,7 +60,7 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
               key={e.id}
               style={{
                 display: "flex",
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 alignItems: "baseline",
                 padding: "8px 0",
                 borderBottom: i < events.length - 1 ? "1px solid var(--hairline)" : "none",

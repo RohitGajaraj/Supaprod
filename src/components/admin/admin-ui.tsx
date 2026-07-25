@@ -72,7 +72,7 @@ export function AdminErrorCard({
       style={{
         padding: "var(--space-4)",
         display: "grid",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         justifyItems: "start",
       }}
     >

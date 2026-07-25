@@ -183,7 +183,7 @@ export function CreditCapsCard() {
         )}
 
         <div
-          style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
+          style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
         >
           <select
             value={productId}
@@ -291,7 +291,7 @@ export function CreditCapsCard() {
         )}
 
         <div
-          style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
+          style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
         >
           {data.members.length > 0 ? (
             <select

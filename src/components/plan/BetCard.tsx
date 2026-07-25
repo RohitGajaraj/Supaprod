@@ -347,7 +347,7 @@ function BetCardComponent({
           object (it is an opportunity, prefix OPP). The time reads a touch more
           present (--text-subtle) than the faint trace ref. */}
       <span
-        style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}
+        style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 2, flexWrap: "wrap" }}
       >
         {updatedAt ? (
           <span

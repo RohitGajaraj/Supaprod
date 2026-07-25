@@ -112,7 +112,7 @@ export function SpecProjectionsPanel({
     return (
       <div
         style={{
-          padding: 32,
+          padding: "var(--geist-gap-section)",
           textAlign: "center",
           background: "var(--surface-card)",
           border: "1px solid var(--hairline)",

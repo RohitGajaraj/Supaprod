@@ -249,7 +249,7 @@ function RailRow({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         width: "100%",
         textAlign: "left",
         padding: "6px 10px",
@@ -782,7 +782,7 @@ export function AccountConnectionsSection({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: 14,
                     borderRadius: "var(--radius-card, 12px)",
                     background: "var(--card)",
@@ -877,7 +877,7 @@ function shortDate(iso: string): string {
 const detailRowStyle = (i: number, len: number): CSSProperties => ({
   display: "grid",
   gridTemplateColumns: "1fr 110px 90px",
-  gap: 12,
+  gap: "var(--geist-space-3x)",
   padding: "11px 18px",
   borderBottom: i < len - 1 ? "1px solid var(--hairline)" : "none",
   alignItems: "center",
@@ -1221,7 +1221,7 @@ export function ConnectorDetail({
         title={spec.label}
         right={
           isSuite ? (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -1253,7 +1253,7 @@ export function ConnectorDetail({
               ) : null}
             </div>
           ) : (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -1304,7 +1304,7 @@ export function ConnectorDetail({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           marginBottom: 12,
         }}
       >
@@ -1324,7 +1324,7 @@ export function ConnectorDetail({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
         }}
       >
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
@@ -1366,7 +1366,7 @@ export function ConnectorDetail({
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 110px 90px",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}

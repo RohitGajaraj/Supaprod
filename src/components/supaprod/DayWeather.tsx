@@ -151,7 +151,7 @@ export function DayWeather() {
     <div
       className="hidden md:flex items-center"
       style={{
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         padding: "5px 11px",
         borderRadius: 999,
         border: "1px solid var(--hairline)",

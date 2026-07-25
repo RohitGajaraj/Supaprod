@@ -91,7 +91,7 @@ function SurfaceRow({
         {noModel ? (
           <VerdictChip tone="neutral">NO MODEL</VerdictChip>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
             <select
               className="ink-focus ink-input-focus"
               aria-label={`Model setting for ${row.surface}`}
@@ -153,7 +153,7 @@ function SurfaceRow({
       </td>
       <td style={td()}>
         {row.recommendation ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
             <span style={{ color: "var(--ink-text)" }}>
               {modelLabel(liveModels, row.recommendation.modelId)}
             </span>

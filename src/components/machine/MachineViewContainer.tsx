@@ -69,7 +69,7 @@ export function MachineViewContainer({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           border: "1px solid #333",
           background: "transparent",
           color: "#d4d0c8",

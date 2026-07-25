@@ -329,7 +329,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       <div
         style={{
           ...V4_CARD,
-          padding: 24,
+          padding: "var(--geist-gap)",
           // Token-traced alert border (was a raw rgba of the dark madder hex,
           // which cannot follow the light theme) - checklist 12.
           borderColor: "color-mix(in srgb, var(--madder) 40%, transparent)",
@@ -499,7 +499,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "9px 0",
                     borderBottom: i < subs.length - 1 ? "1px solid var(--hairline)" : "none",
                     opacity: s.enabled ? 1 : 0.55,
@@ -546,7 +546,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 4, paddingTop: 10 }}>
           {addOpen ? (
             <form
-              style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
+              style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", alignItems: "center" }}
               onSubmit={(e) => {
                 e.preventDefault();
                 const filter: Record<string, unknown> = {};
@@ -691,7 +691,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: "var(--geist-space-3x)",
                       padding: "8px 0",
                       borderBottom: i < tools.length - 1 ? "1px solid var(--hairline)" : "none",
                     }}
@@ -812,7 +812,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           style={{
             display: "grid",
             gridTemplateColumns: RUNS_GRID,
-            gap: 12,
+            gap: "var(--geist-space-3x)",
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -855,7 +855,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 style={{
                   display: "grid",
                   gridTemplateColumns: RUNS_GRID,
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "12px 18px",
                   alignItems: "baseline",
                   borderBottom: i < runs.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -945,7 +945,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "9px 0",
                     borderBottom: i < events.length - 1 ? "1px solid var(--hairline)" : "none",
                   }}

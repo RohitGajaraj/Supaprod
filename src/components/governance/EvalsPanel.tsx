@@ -86,7 +86,7 @@ export function EvalsPanel() {
     return (
       <div
         style={{
-          padding: 24,
+          padding: "var(--geist-gap)",
           backgroundColor: "var(--card)",
           border: "1px solid color-mix(in srgb, var(--madder) 40%, transparent)",
           borderRadius: "var(--radius-card)",
@@ -136,7 +136,7 @@ export function EvalsPanel() {
         <div style={{ marginBottom: 12 }}>
           <div
             className="mono-label tabular-nums"
-            style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}
+            style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
           >
             <span style={{ color: "var(--text-faint)" }}>Coverage</span>
             <span style={{ color: "var(--text-primary)" }}>{coverageSummary}</span>
@@ -273,7 +273,7 @@ export function EvalsPanel() {
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             flexWrap: "wrap",
             marginBottom: 12,
           }}
@@ -371,7 +371,7 @@ export function EvalsPanel() {
                     ) : null}
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginTop: 8 }}>
                   {score == null ? (
                     <span className="mono-label" style={{ color: "var(--text-faint)" }}>
                       not run yet
@@ -547,7 +547,7 @@ function CreateSuiteForm({
           />
         </label>
       </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
           Dismiss
         </button>

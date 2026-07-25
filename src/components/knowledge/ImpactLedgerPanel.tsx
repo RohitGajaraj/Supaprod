@@ -153,7 +153,7 @@ export function ImpactLedgerPanel() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           marginBottom: 22,
         }}
       >

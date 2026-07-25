@@ -324,7 +324,7 @@ function TrustRow({
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             paddingTop: 4,
             borderTop: "1px solid var(--hairline)",
           }}

@@ -236,7 +236,7 @@ export function IntegrationsTab() {
             className="fade-up"
             style={{
               marginTop: 12,
-              padding: 12,
+              padding: "var(--geist-space-3x)",
               borderRadius: 10,
               border: "1px solid color-mix(in oklab, var(--ember) 40%, transparent)",
               background: "color-mix(in oklab, var(--ember) 6%, transparent)",
@@ -303,7 +303,7 @@ export function IntegrationsTab() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "10px 0",
                     borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
                     borderBottom: "1px solid var(--hairline)",
@@ -360,7 +360,7 @@ export function IntegrationsTab() {
           works as-is.
         </p>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 10 }}>
           <span className="mono-label" style={{ width: 64, flexShrink: 0 }}>
             Endpoint
           </span>
@@ -379,7 +379,7 @@ export function IntegrationsTab() {
           <CopyButton text={endpoint || "/api/mcp"} />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 12 }}>
           <span className="mono-label" style={{ width: 64, flexShrink: 0 }}>
             Auth
           </span>
@@ -395,7 +395,7 @@ export function IntegrationsTab() {
             className="scrollbar-thin"
             style={{
               marginTop: 6,
-              padding: 12,
+              padding: "var(--geist-space-3x)",
               borderRadius: 10,
               background: "var(--surface-2)",
               fontFamily: "var(--font-mono)",

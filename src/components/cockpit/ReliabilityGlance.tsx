@@ -69,7 +69,7 @@ export function ReliabilityGlance() {
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             flexWrap: "wrap",
             marginTop: 12,
             color: "var(--text-subtle)",

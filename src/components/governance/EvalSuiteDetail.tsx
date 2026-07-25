@@ -268,7 +268,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
       ) : null}
 
       <div
-        style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr", gap: 12, marginBottom: 14 }}
+        style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 14 }}
       >
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 6 }}>Latest score</MonoLabel>
@@ -336,7 +336,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
 
       {sub === "Runs" ? (
         runs.length === 0 ? (
-          <div className="bento" style={{ padding: 32, textAlign: "center" }}>
+          <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
             <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
               No runs yet. Run suite · {enabledCases} cases against the live prompt.
             </p>
@@ -348,7 +348,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: RUN_COLS,
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "10px 18px",
                 borderBottom: "1px solid var(--hairline)",
               }}
@@ -368,7 +368,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                   style={{
                     display: "grid",
                     gridTemplateColumns: RUN_COLS,
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "11px 18px",
                     alignItems: "center",
                     borderBottom: i < runs.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -442,7 +442,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: "150px 1fr",
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "12px 18px",
                 borderBottom: "1px solid var(--hairline)",
               }}
@@ -455,7 +455,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             style={{
               display: "grid",
               gridTemplateColumns: "150px 1fr",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "12px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -483,7 +483,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             style={{
               display: "grid",
               gridTemplateColumns: "150px 1fr",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "12px 18px",
             }}
           >
@@ -530,7 +530,7 @@ function FailingCases({ runId }: { runId: string | null }) {
 
   if (!runId) {
     return (
-      <div className="bento" style={{ padding: 32, textAlign: "center" }}>
+      <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
         <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
           Not run yet. Failing cases appear after the first completed run.
         </p>
@@ -576,7 +576,7 @@ function FailingCases({ runId }: { runId: string | null }) {
         </MonoLabel>
       ) : null}
       {failing.length === 0 ? (
-        <div className="bento" style={{ padding: 32, textAlign: "center" }}>
+        <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
           <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
             No failing cases in this run.
           </p>
@@ -610,7 +610,7 @@ function FailingCases({ runId }: { runId: string | null }) {
                 style={{
                   display: "flex",
                   alignItems: "baseline",
-                  gap: 8,
+                  gap: "var(--geist-space-2x)",
                   marginTop: r.actual ? 0 : 8,
                 }}
               >
@@ -623,7 +623,7 @@ function FailingCases({ runId }: { runId: string | null }) {
               </div>
             ) : null}
             {r.judge_reasoning ? (
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginTop: 6 }}>
                 <span className="mono-label" style={{ flexShrink: 0 }}>
                   judge
                 </span>
@@ -706,7 +706,7 @@ function CaseList({
               onChange={(e) => setForm({ ...form, rubric: e.target.value })}
             />
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
@@ -741,7 +741,7 @@ function CaseList({
       ) : null}
 
       {cases.length === 0 && !formOpen ? (
-        <div className="bento" style={{ padding: 32, textAlign: "center" }}>
+        <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
           <p style={{ color: "var(--ink-subtle)" }}>
             No cases yet. Add one: each case is an input, an optional expected output, and a rubric
             the judge scores against.
@@ -787,7 +787,7 @@ function CaseList({
               </button>
             </div>
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+              <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
                 <span className="mono-label" style={{ flexShrink: 0 }}>
                   input
                 </span>
@@ -796,7 +796,7 @@ function CaseList({
                 </span>
               </div>
               {c.expected ? (
-                <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
                   <span className="mono-label" style={{ flexShrink: 0 }}>
                     expected
                   </span>
@@ -808,7 +808,7 @@ function CaseList({
                 </div>
               ) : null}
               {c.rubric ? (
-                <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
                   <span className="mono-label" style={{ flexShrink: 0 }}>
                     rubric
                   </span>

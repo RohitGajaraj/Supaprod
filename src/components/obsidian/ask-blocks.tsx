@@ -75,7 +75,7 @@ function CardHeader({ kind, status }: { kind: string; status?: string | null }) 
 
 function CardFooter({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between" style={{ gap: 8, marginTop: 8 }}>
+    <div className="flex items-center justify-between" style={{ gap: "var(--geist-space-2x)", marginTop: 8 }}>
       {children}
     </div>
   );

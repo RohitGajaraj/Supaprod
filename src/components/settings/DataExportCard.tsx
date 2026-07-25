@@ -71,7 +71,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
   }
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640 }}>
       <div className="mono-label">Export your data</div>
       <p
         className="text-copy-13"
@@ -129,7 +129,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
                   display: "flex",
                   alignItems: "baseline",
                   justifyContent: "space-between",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "10px 0",
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}

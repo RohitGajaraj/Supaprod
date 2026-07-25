@@ -12,9 +12,10 @@ import { LoopReplay, type ReplayTab } from "./replay/Replay";
  * scrolls the section: the mark IS the loop, drawn by reading about the loop.
  *
  * Vercel grammar (composition playbook section 3): capability headline, then
- * the mono spec column naming the three layers, then the artifact. The layer
- * column replaced the old floating echo list, which only rendered at xl and
- * so hid the page's one definition of the product from most readers.
+ * the artifact. The three-layer spec column that used to sit between them is
+ * gone from here: it is the core claim, not supporting detail, so it got its
+ * own spotlit section (ThreeLayers.tsx) immediately above this one. This
+ * section is now single-purpose again: the loop, running.
  */
 export function LoopWalkthrough() {
   const [activeTab, setActiveTab] = useState<ReplayTab>("full");
@@ -26,27 +27,6 @@ export function LoopWalkthrough() {
     { id: "full", label: "The full loop" },
     { id: "others", label: "Where others stop" },
     { id: "failure", label: "When it breaks" },
-  ];
-
-  // The three layers. Number and name in mono (the machine voice, and the
-  // numbering is what makes them repeatable); the sentence in Sans (the human
-  // voice). "Operating system" carries its plain gloss in the same breath.
-  const layers = [
-    {
-      n: "01",
-      name: "the director",
-      line: "It tells you what to build. Your product taste becomes a system.",
-    },
-    {
-      n: "02",
-      name: "the operating system",
-      line: "It builds and ships it, behind your gate.",
-    },
-    {
-      n: "03",
-      name: "the company brain",
-      line: "It remembers whether you were right, and guides the next call.",
-    },
   ];
 
   useEffect(() => {
@@ -122,12 +102,12 @@ export function LoopWalkthrough() {
     >
       {/* The orbit, drawn by scroll: a whisper of silver bleeding off the
           right edge (the viewBox scales the stroke ~7x, so these numbers are
-          deliberately tiny). Sits low enough to clear the replay mocks: the
-          offset moved 580 -> 720 when the layer column took the sub
-          paragraph's place, so the curve keeps the same clearance. */}
+          deliberately tiny). Sits low enough to clear the replay mocks: back
+          to 580 now that the layer column has left this section, which is the
+          clearance it had before that column pushed it to 720. */}
       <svg
         className="absolute pointer-events-none hidden lg:block"
-        style={{ right: -240, top: 720, width: 740, height: 740, overflow: "visible" }}
+        style={{ right: -240, top: 580, width: 740, height: 740, overflow: "visible" }}
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden
@@ -146,7 +126,7 @@ export function LoopWalkthrough() {
 
       <div className="relative max-w-5xl mx-auto">
         <h2
-          className={`text-4xl md:text-5xl lg:text-[52px] lg:whitespace-nowrap font-semibold mb-10 text-white transition-all duration-700 ${
+          className={`text-4xl md:text-5xl lg:text-[52px] lg:whitespace-nowrap font-semibold mb-12 text-white transition-all duration-700 ${
             inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
           style={{ letterSpacing: "-0.02em" }}
@@ -154,47 +134,24 @@ export function LoopWalkthrough() {
           Signal to shipped. Watch it happen.
         </h2>
 
-        {/* The mono spec column: three layers, named and glossed, at every
-            breakpoint. This is the page's one definition of the product. */}
-        <div className="mb-12">
-          <span
-            className={`block font-mono text-[11px] uppercase text-zinc-600 mb-5 transition-all duration-700 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-            style={{ letterSpacing: "0.12em", transitionDelay: inView ? "100ms" : "0ms" }}
-          >
-            one system, three layers
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-7">
-            {layers.map((l, i) => (
-              <div
-                key={l.n}
-                className={`border-t border-white/10 pt-4 transition-all duration-700 ${
-                  inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: inView ? `${160 + i * 90}ms` : "0ms" }}
-              >
-                <div className="flex items-baseline gap-2.5 mb-2.5">
-                  <span
-                    className="font-mono text-[12px] text-zinc-600"
-                    style={{ fontVariantNumeric: "tabular-nums" }}
-                  >
-                    {l.n}
-                  </span>
-                  <span
-                    className="cap-item font-mono text-[12px] uppercase text-zinc-300"
-                    style={{ letterSpacing: "0.12em" }}
-                  >
-                    {l.name}
-                  </span>
-                </div>
-                <p className="text-[15px] text-zinc-500 leading-relaxed">{l.line}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* The replay's type scale, re-declared on the wrapper.
+            The two 2026-07-25 typography-migration commits (82b5cd4f, then
+            fd713f87) stripped EVERY inline fontSize out of replay/Replay.tsx,
+            so its station spine, timestamps, actor chips and mock-card
+            metadata all fell back to the 13px body inherit. That is what made
+            the loop read poppy and oversized: the spine went 10px -> 13px,
+            the timestamps 9px -> 13px, the chips 8px -> 13px. The replay
+            component is founder-frozen (the 3D card motion stays exactly as
+            it is), so the scale is restored from out here instead: 11px for
+            the mono metadata voice, which is the same metadata scale the rest
+            of this page uses, and 12px for sentences. */}
+        <style>{`
+          .loop-replay-scale { font-size: 11px; }
+          .loop-replay-scale p { font-size: 12px; }
+        `}</style>
 
-        {/* Reader-paced tabs: clicked, never cycled on a timer */}
+        {/* Reader-paced tabs: clicked, never cycled on a timer. Held at a
+            clear secondary scale so the headline above keeps the section. */}
         <div className="flex gap-6 mb-10 border-b border-white/10" role="tablist">
           {tabs.map((tab) => (
             <button
@@ -202,7 +159,7 @@ export function LoopWalkthrough() {
               role="tab"
               aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${
+              className={`pb-3 text-[13px] font-medium transition-colors duration-200 border-b-2 -mb-px ${
                 activeTab === tab.id
                   ? "text-white border-white"
                   : "text-zinc-500 border-transparent hover:text-zinc-300"
@@ -213,7 +170,9 @@ export function LoopWalkthrough() {
           ))}
         </div>
 
-        <LoopReplay tab={activeTab} />
+        <div className="loop-replay-scale">
+          <LoopReplay tab={activeTab} />
+        </div>
 
         {/* Affordance, not claim: the replay narrates itself, so what follows
             it is a door, in the mono metadata voice. */}

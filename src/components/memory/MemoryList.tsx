@@ -21,7 +21,7 @@ export function MemoryList() {
 
   if (q.isLoading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", padding: "18px 2px" }}>
         <span className="spinner" />
         <span className="mono-label" style={{ }}>
           loading…
@@ -69,7 +69,7 @@ export function MemoryList() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: "var(--geist-space-4x)",
           padding: "12px 18px",
           flexWrap: "wrap",
         }}

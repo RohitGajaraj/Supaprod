@@ -104,7 +104,7 @@ function InsightRow({
 
     >
 
-      <div className="flex items-center" style={{ gap: 8, marginBottom: 4, minWidth: 0 }}>
+      <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 4, minWidth: 0 }}>
 
         {slug ? (
 

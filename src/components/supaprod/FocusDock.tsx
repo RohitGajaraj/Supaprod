@@ -491,7 +491,7 @@ export function FocusDock() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: "var(--geist-space-2x)",
               padding: "5px 12px",
               background: "var(--card)",
               border: `1px solid ${hovered || composerOpen ? "var(--hairline-strong)" : "var(--hairline)"}`,

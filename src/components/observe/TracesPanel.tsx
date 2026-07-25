@@ -64,7 +64,7 @@ export function TracesPanel() {
         style={{
           display: "flex",
           justifyContent: "flex-end",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 12,
           alignItems: "center",
         }}
@@ -105,7 +105,7 @@ export function TracesPanel() {
           Loading traces…
         </div>
       ) : rows.length === 0 ? (
-        <div className="bento" style={{ padding: 32, textAlign: "center" }}>
+        <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
           <p style={{ color: "var(--ink-subtle)" }}>
             No traces in this window. Run an agent or a chat, and every AI call lands here as a
             replayable trace.
@@ -118,7 +118,7 @@ export function TracesPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -136,7 +136,7 @@ export function TracesPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "13px 18px",
                 alignItems: "center",
                 borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",

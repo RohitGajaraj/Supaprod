@@ -48,13 +48,13 @@ export function HealthCard() {
   }
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640 }}>
       <div
         style={{
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           flexWrap: "wrap",
         }}
       >

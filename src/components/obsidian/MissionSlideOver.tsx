@@ -386,7 +386,7 @@ export function MissionSlideOver({
               style={{
                 backgroundColor: "var(--surface-recessed)",
                 borderRadius: "var(--radius-control)",
-                padding: 12,
+                padding: "var(--geist-space-3x)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,

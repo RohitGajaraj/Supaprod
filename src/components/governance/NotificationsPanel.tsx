@@ -68,7 +68,7 @@ export function NotificationsPanel() {
             key={n.id}
             href={n.href}
             className="bento lift"
-            style={{ padding: 16, display: "block", textDecoration: "none", color: "inherit" }}
+            style={{ padding: "var(--geist-space-4x)", display: "block", textDecoration: "none", color: "inherit" }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span

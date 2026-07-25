@@ -80,7 +80,7 @@ export function InjectionDefenseCard() {
         <div
           style={{
             display: "flex",
-            gap: 16,
+            gap: "var(--geist-space-4x)",
             marginTop: 10,
             color: "var(--ink-muted)",
             flexWrap: "wrap",
@@ -111,7 +111,7 @@ export function InjectionDefenseCard() {
           onChange={(e) => setText(e.target.value)}
         />
         <div
-          style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}
+          style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 8, alignItems: "center", flexWrap: "wrap" }}
         >
           <button
             type="button"
@@ -147,7 +147,7 @@ export function InjectionDefenseCard() {
           className="fade-up"
           style={{
             marginTop: 12,
-            padding: 12,
+            padding: "var(--geist-space-3x)",
             border: "1px solid var(--hairline)",
             borderRadius: 10,
           }}

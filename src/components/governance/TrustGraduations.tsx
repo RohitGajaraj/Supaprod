@@ -95,7 +95,7 @@ function GraduationCard({
 }) {
   return (
     <div className="bento" style={{ padding: "14px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
         {/* RPT-09 (needs-human leads in ember): a pending graduation is a needs-you
             call, so the icon leads in ember like the tool-approval rows beside it;
             the ghost buttons keep the list's one-ember budget. */}
@@ -117,7 +117,7 @@ function GraduationCard({
         <strong>{p.from_mode}</strong> to <strong>{p.to_mode}</strong> for this agent. Nothing
         changes unless you accept; high-risk gates keep their floors either way.
       </p>
-      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+      <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 10 }}>
         <button
           type="button"
           className="btn btn-ghost btn-sm"

@@ -110,7 +110,7 @@ export function DesignMemoryPanel() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 12 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 12 }}>
         <FilterGroup
           options={["all", ...DESIGN_MEMORY_CATEGORIES] as const}
           value={category}
@@ -178,7 +178,7 @@ export function DesignMemoryPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
               fontFamily: "var(--font-mono)",
@@ -258,14 +258,14 @@ function DesignMemoryRowView({
         style={{
           display: "grid",
           gridTemplateColumns: grid,
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           padding: "13px 18px",
           alignItems: "baseline",
           background: "transparent",
           border: "none",
         }}
       >
-        <span className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
+        <span className="flex items-center" style={{ gap: "var(--geist-space-2x)", minWidth: 0 }}>
           <VerdictChip tone={STATUS_TONE[row.status]} />
           <span
             style={{

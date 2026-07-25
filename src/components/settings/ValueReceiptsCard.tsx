@@ -28,7 +28,7 @@ export function ValueReceiptsCard() {
   });
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640, marginTop: 16 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640, marginTop: 16 }}>
       <div className="mono-label">Value delivered</div>
       <p
         className="text-copy-13"
@@ -42,7 +42,7 @@ export function ValueReceiptsCard() {
           Loading
         </p>
       ) : (
-        <div style={{ display: "flex", gap: 32, marginTop: 16 }}>
+        <div style={{ display: "flex", gap: "var(--geist-gap-section)", marginTop: 16 }}>
           <Stat value={data?.decisionsClosed ?? 0} label="Decisions closed" />
           <Stat value={data?.prsShipped ?? 0} label="PRs shipped" />
         </div>

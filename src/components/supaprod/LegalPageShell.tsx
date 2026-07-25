@@ -155,7 +155,7 @@ export function LegalPageShell({
               margin: "0 auto",
               display: "flex",
               flexWrap: "wrap",
-              gap: 16,
+              gap: "var(--geist-space-4x)",
             }}
           >
             {[

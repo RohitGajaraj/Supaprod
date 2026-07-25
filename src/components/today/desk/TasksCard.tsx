@@ -154,7 +154,7 @@ export function TasksCard() {
       </div>
 
       {tasks.isError ? (
-        <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
+        <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 10 }}>
           <span className="text-label-13" style={{ color: "var(--madder)" }}>Tasks didn't load.</span>
           <Button variant="tertiary" className="text-label-12" onClick={() => void tasks.refetch()}>
             Retry

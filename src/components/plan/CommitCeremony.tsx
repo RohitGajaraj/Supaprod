@@ -114,7 +114,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
               : "A bet in Now needs a promise and a number · that is the whole point."}
           </p>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 18 }}>
             <Button variant="secondary" onClick={onCancel} disabled={pending}>
               Not yet
             </Button>

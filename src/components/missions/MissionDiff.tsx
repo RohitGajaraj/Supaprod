@@ -78,7 +78,7 @@ function MetricRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1.1fr 0.9fr 0.9fr 0.7fr",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
         alignItems: "baseline",
         padding: "5px 0",
         borderTop: "1px solid var(--hairline)",
@@ -166,7 +166,7 @@ export function MissionDiff({
         style={{
           display: "grid",
           gridTemplateColumns: "1.1fr 0.9fr 0.9fr 0.7fr",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           letterSpacing: "0.04em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",

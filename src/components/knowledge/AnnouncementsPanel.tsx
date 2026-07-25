@@ -205,7 +205,7 @@ export function AnnouncementsPanel() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center" style={{ gap: 12, marginBottom: 14 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-3x)", marginBottom: 14 }}>
         <p
           style={{
             flex: 1,
@@ -282,7 +282,7 @@ export function AnnouncementsPanel() {
                     borderBottom: border,
                     display: "flex",
                     flexDirection: "column",
-                    gap: 8,
+                    gap: "var(--geist-space-2x)",
                   }}
                 >
                   <input
@@ -302,7 +302,7 @@ export function AnnouncementsPanel() {
                     className={FIELD_CLASS}
                     style={{ ...FIELD_STYLE, resize: "vertical", fontFamily: "inherit" }}
                   />
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", gap: "var(--geist-space-2x)", justifyContent: "flex-end" }}>
                     <RowAction tone="neutral" onClick={() => setEditId(null)}>
                       Cancel
                     </RowAction>
@@ -323,7 +323,7 @@ export function AnnouncementsPanel() {
               <div
                 key={a.id}
                 className="flex items-center"
-                style={{ gap: 12, padding: "13px 18px", borderBottom: border }}
+                style={{ gap: "var(--geist-space-3x)", padding: "13px 18px", borderBottom: border }}
               >
                 <VerdictChip tone={STATUS_TONE[a.status]}>{a.status}</VerdictChip>
                 <span

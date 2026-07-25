@@ -38,7 +38,7 @@ export function ActivationFunnelPanel() {
 
   if (!activeProductId) {
     return (
-      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
+      <div className="text-label-13" style={{ padding: "var(--geist-space-4x)", color: "var(--text-muted)" }}>
         No workspace selected. Pick a workspace to see its funnel.
       </div>
     );
@@ -49,7 +49,7 @@ export function ActivationFunnelPanel() {
     // (checklist point 5). animate-pulse is killed by the global
     // prefers-reduced-motion block in styles.css.
     return (
-      <div style={{ padding: 16, display: "grid", gap: 12 }} aria-hidden="true">
+      <div style={{ padding: "var(--geist-space-4x)", display: "grid", gap: 12 }} aria-hidden="true">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}

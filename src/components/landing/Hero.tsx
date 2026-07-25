@@ -4,31 +4,83 @@ import { MarkGlint } from "./MarkGlint";
 /**
  * Beat 1 - Hero. Monumental register (founder ruling 2026-07-15): the
  * headline on the left, the mark backlit at center like an eclipse, a mono
- * descriptor column on the right. No product frame above the fold; the
- * product shows itself one scroll down in the walkthrough.
- * Ink-and-metal: white light only behind the mark, ember only on the primary
- * CTA. Entrances are pure CSS so SSR paints complete without JavaScript.
+ * spec column on the right. No product frame above the fold; the product
+ * shows itself one scroll down in the walkthrough.
+ * Ink-and-metal: white light only behind the mark, ember on the primary CTA
+ * and on exactly one word. Entrances are pure CSS so SSR paints complete
+ * without JavaScript.
  *
- * Rewritten 2026-07-25 (landing audit): the audience is named in a mono
- * eyebrow that renders at every breakpoint (it used to live only in the
- * lg-and-up descriptor column, so no phone ever learned who this is for);
- * the three-sentence sub that restated the headline is gone, replaced by the
- * ratified tagline; the free-teardown offer is promoted out of grey mono into
- * the promise; one ember CTA, the demo demoted to a quiet link.
+ * Craft pass 2026-07-25 (founder review, points 1, 2, 9, 10):
+ * 1. Hierarchy. One brightest object (the claim line, white Pixel), a clear
+ *    second (the ember audience word and the ember CTA), everything else
+ *    recedes through zinc-400 / 500 / 600. The verb line steps down 10px in
+ *    size so scale carries the demotion, not colour alone.
+ * 2. Dead space. The section was min-h-[100dvh] with pt-24 / pb-16, which
+ *    parked the block roughly 149px below the fixed nav on a 900px viewport.
+ *    Now min-h-[92svh] with pt-[92px] / pb-[124px]: the top padding clears
+ *    the 57px nav with 35px of air, and the bottom pad is the larger of the
+ *    two so the block sits optically high in the space it owns (~81px of
+ *    visible gap under the nav on the same viewport).
+ * 9. Ember is never a hover state. The old .hero-verb hover tint is gone: it
+ *    dressed non-interactive words as affordances, which the
+ *    affordance-is-not-emphasis law forbids.
+ * 10. One left rule for the whole page. The hero was max-w-6xl / px-6 while
+ *    every section below it is max-w-5xl / px-4, so the eye entered at two
+ *    different x positions. The hero now shares the page rule, and every
+ *    block inside it is left aligned at every breakpoint (it used to flip
+ *    from centre to left at lg).
+ *
+ * Craft pass 2026-07-25b (founder review, one ember not two):
+ * A. ONE ember word above the fold, and it is "product managers". The hero
+ *    used to tint three words ember (both nouns in the audience line, plus
+ *    "Agents" opening the support paragraph) on top of the ember CTA fill.
+ *    Four accents in one viewport is the everything-is-important failure: the
+ *    eye ping-pongs and nothing lands. Colour now marks the NEW information,
+ *    which is who this is for, the one thing the page never said before.
+ *    "agents" is already carried by the headline's size and Pixel face, so it
+ *    does not need hue as well; it steps down to zinc-400 and the support
+ *    paragraph opens in plain body colour. No hashtag on the audience line:
+ *    this page's credibility rests on receipts, and a hashtag reads as social
+ *    styling.
+ * B. The right-hand spec column loses its vertical hairline (founder: "one
+ *    strip line that needs to be eliminated"). Three left-aligned mono lines
+ *    with a shared indent already read as a column, and the rule was a second
+ *    hard vertical edge sitting inside the mark's eclipse glow, competing
+ *    with it for the same piece of the viewport. The indent stays so nothing
+ *    reflows and the column keeps its gutter off the mark.
  */
 export function Hero() {
   return (
-    <section className="relative min-h-[100dvh] flex items-center px-6 pt-24 pb-16">
+    <section className="relative flex min-h-[92svh] items-center px-4 pt-[92px] pb-[124px]">
       <style>{`
         @keyframes heroRise {
           from { opacity: 0; transform: translateY(14px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes heroFade { from { opacity: 0; } to { opacity: 1; } }
         .hero-rise { animation: heroRise 0.9s cubic-bezier(0.23, 1, 0.3, 1) both; }
-        .hero-verb { transition: color 0.25s ease; }
-        .hero-verb:hover { color: #FF6B2C; }
+        .hero-cta {
+          transition: background-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+                      transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .hero-cta:active { transform: scale(0.98); }
+        .hero-quiet { transition: color 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+        .hero-arrow { transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1); }
+        .hero-cta:focus-visible,
+        .hero-quiet:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .hero-cta:hover { background-color: #ff8344; }
+          .hero-quiet:hover { color: #ffffff; }
+          .hero-cta:hover .hero-arrow,
+          .hero-quiet:hover .hero-arrow { transform: translateX(2px); }
+        }
         @media (prefers-reduced-motion: reduce) {
-          .hero-rise { animation: none; }
+          .hero-rise { animation: heroFade 0.5s cubic-bezier(0.23, 1, 0.32, 1) both; }
+          .hero-arrow { transition: none; }
+          .hero-cta:active { transform: none; }
         }
       `}</style>
 
@@ -42,83 +94,75 @@ export function Hero() {
         </svg>
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_auto_0.7fr] items-center gap-10 lg:gap-14">
-          {/* Mobile: the mark first, backlit */}
-          <div className="hero-rise relative flex justify-center lg:hidden mb-2">
+      <div className="relative z-10 mx-auto w-full max-w-5xl">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.12fr_auto_0.6fr]">
+          {/* Mobile: the mark, left aligned on the same rule as the text so
+              the eye enters at one x position on every device. */}
+          <div className="hero-rise relative mb-4 flex justify-start lg:hidden">
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] pointer-events-none"
+              className="pointer-events-none absolute left-[48px] top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2"
               style={{
                 background:
                   "radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 42%, transparent 68%)",
               }}
               aria-hidden
             />
-            <MarkGlint size={120} />
+            <MarkGlint size={96} />
           </div>
 
           {/* Left: the claim */}
-          <div className="text-center lg:text-left">
-            {/* Who it is for, at every breakpoint. Mono, machine-voice
-                register, but the words are the wedge in plain English. */}
+          <div className="text-left">
+            {/* Who it is for, and the only ember word on the page above the
+                fold. The connectives sit at zinc-600, "agents" one stop up at
+                zinc-400, and the audience alone carries hue. */}
             <p
-              className="hero-rise font-mono text-[11px] md:text-[12px] uppercase text-zinc-500 mb-5"
-              style={{ animationDelay: "80ms", letterSpacing: "0.14em" }}
+              className="hero-rise mb-5 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
+              style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
-              For product managers who ship with agents
+              For <span className="font-medium text-[#FF6B2C]">product managers</span> who ship with{" "}
+              <span className="text-zinc-400">agents</span>
             </p>
 
             <h1
-              className="hero-rise text-[30px] md:text-[40px] lg:text-[44px] leading-[1.18] mb-6 text-white"
+              className="hero-rise mb-7 text-white"
               style={{
-                animationDelay: "150ms",
+                animationDelay: "60ms",
                 fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
                 fontWeight: 400,
                 letterSpacing: "0",
                 textWrap: "balance",
               }}
             >
-              Supaprod tells you what to build.
-              <span className="block mt-3 text-zinc-400">
-                then <span className="hero-verb">builds it.</span>{" "}
-                <span className="hero-verb">ships it.</span>{" "}
-                <span className="hero-verb">grades it.</span>{" "}
-                <span className="hero-verb">gets sharper.</span>
+              {/* The one brightest object on the page. */}
+              <span className="block text-[30px] leading-[1.16] md:text-[40px] lg:text-[44px]">
+                Supaprod tells you what to build.
+              </span>
+              {/* The loop, a real size step down and two stops darker, so the
+                  demotion is carried by scale and colour together. */}
+              <span className="mt-3 block text-[21px] leading-[1.3] text-zinc-500 md:text-[28px] lg:text-[32px]">
+                then builds it. ships it. grades it. gets sharper.
               </span>
             </h1>
 
             <p
-              className="hero-rise text-base md:text-lg text-zinc-400 mb-7 leading-relaxed mx-auto lg:mx-0"
-              style={{ animationDelay: "300ms", maxWidth: "52ch" }}
+              className="hero-rise mb-9 text-base leading-relaxed text-zinc-400 md:text-lg"
+              style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
               Agents that know what to build, ship it, remember,{" "}
-              <span className="text-zinc-200">and guide the next call.</span>
-            </p>
-
-            {/* The offer, in plain type. It is the strongest thing we can say
-                to a stranger, so it stops being a grey footnote. */}
-            <p
-              className="hero-rise text-sm md:text-[15px] text-zinc-400 mb-8 leading-relaxed mx-auto lg:mx-0"
-              style={{ animationDelay: "380ms", maxWidth: "46ch" }}
-            >
-              <span className="text-zinc-100 font-medium">The first 100 get a free teardown.</span>{" "}
-              Our Critic agent tears your riskiest idea apart. No credit card.
+              <span className="text-zinc-300">and guide the next call.</span>
             </p>
 
             <div
-              className="hero-rise flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 sm:gap-7"
-              style={{ animationDelay: "450ms" }}
+              className="hero-rise flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-7"
+              style={{ animationDelay: "180ms" }}
             >
               <a
                 href="#join"
-                className="group px-8 py-3 rounded-full bg-[#FF6B2C] text-white font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200"
+                className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-white"
               >
                 <span className="flex items-center gap-2">
                   Join the beta
-                  <span
-                    className="inline-block group-hover:translate-x-0.5 transition-transform"
-                    aria-hidden
-                  >
+                  <span className="hero-arrow inline-block" aria-hidden>
                     &rarr;
                   </span>
                 </span>
@@ -126,23 +170,30 @@ export function Hero() {
               <a
                 href="/demo"
                 onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
-                className="group text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                className="hero-quiet group rounded-sm text-sm text-zinc-400"
               >
                 Watch a real run{" "}
-                <span
-                  className="inline-block group-hover:translate-x-0.5 transition-transform"
-                  aria-hidden
-                >
+                <span className="hero-arrow inline-block" aria-hidden>
                   &rarr;
                 </span>
               </a>
             </div>
+
+            {/* The offer sits under the action, not above it. It is a reason
+                to click, not a second headline, so it reads quiet. */}
+            <p
+              className="hero-rise mt-8 text-[13px] leading-relaxed text-zinc-500 md:text-sm"
+              style={{ animationDelay: "240ms", maxWidth: "46ch" }}
+            >
+              <span className="text-zinc-300">The first 100 get a free teardown.</span> Our Critic
+              agent tears your riskiest idea apart. No credit card.
+            </p>
           </div>
 
           {/* Center: the mark, backlit like an eclipse (desktop) */}
-          <div className="hero-rise relative hidden lg:flex justify-center" aria-hidden={false}>
+          <div className="hero-rise relative hidden justify-center lg:flex" aria-hidden={false}>
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] pointer-events-none"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2"
               style={{
                 background:
                   "radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.045) 42%, transparent 68%)",
@@ -151,26 +202,25 @@ export function Hero() {
             />
             {/* Fixed position, revolving on its own clock (founder 2026-07-15):
                 no pointer drift, the mark holds still and keeps turning. */}
-            <MarkGlint size={190} />
+            <MarkGlint size={176} />
           </div>
 
-          {/* Right: the mono descriptor, machine-voice register */}
+          {/* Right: the mono spec column, machine-voice register. No rule down
+              its left edge (founder 2026-07-25): shared indent, shared
+              baseline rhythm and one type register already read as a column,
+              and the hairline was competing with the mark's glow. The payload
+              phrases sit two stops above their connectives. */}
           <div
-            className="hero-rise hidden lg:flex flex-col gap-3 font-mono text-[12px] uppercase text-zinc-400"
-            style={{ animationDelay: "300ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
+            className="hero-rise hidden flex-col gap-3 pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:flex"
+            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
           >
-            {/* The audience moved to the eyebrow on the left (it renders at
-                every breakpoint there). This column is the machine voice:
-                what the system does, where it does it, who holds the gate. */}
             <span>
-              to decide <span className="hero-verb whitespace-nowrap">what to build</span>
+              to decide <span className="whitespace-nowrap text-zinc-300">what to build</span>
             </span>
             <span>
-              to <span className="hero-verb whitespace-nowrap">ship it</span> in your repo
+              to <span className="whitespace-nowrap text-zinc-300">ship it</span> in your repo
             </span>
-            <span>
-              <span className="hero-verb whitespace-nowrap">gated by you</span>
-            </span>
+            <span className="whitespace-nowrap text-zinc-300">gated by you</span>
           </div>
         </div>
       </div>

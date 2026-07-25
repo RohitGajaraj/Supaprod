@@ -268,7 +268,7 @@ export function TriageQueue({
 
 
 
-            <div className="flex items-baseline" style={{ gap: 8, marginBottom: 8 }}>
+            <div className="flex items-baseline" style={{ gap: "var(--geist-space-2x)", marginBottom: 8 }}>
 
 
 

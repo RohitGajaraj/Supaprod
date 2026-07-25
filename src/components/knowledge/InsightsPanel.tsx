@@ -328,7 +328,7 @@ export function InsightsPanel() {
       <div
         className="bento"
         style={{
-          padding: 16,
+          padding: "var(--geist-space-4x)",
           borderLeft: d.unresolved.count > 0 ? "2px solid var(--madder)" : undefined,
         }}
       >

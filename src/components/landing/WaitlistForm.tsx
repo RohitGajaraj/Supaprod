@@ -4,21 +4,22 @@ import { joinWaitlist, trackLandingEvent, type JoinWaitlistResult } from "@/lib/
 
 /**
  * The waitlist mechanic (plan section 7.1): email + the optional bet field.
- * The first 100 get their bet red-teamed by the Critic; sharing your link
- * moves you up the queue. Honeypot field for bots, no captcha.
+ * Honeypot field for bots, no captcha.
+ *
+ * Quietened 2026-07-25 (founder: the close "shouldn't it be a little
+ * subtle"). The offer used to end the page at full volume: a two-sentence
+ * scarcity paragraph plus a stack of avatar orbs behind a headcount. On a page
+ * whose whole argument is receipts, a growth tactic in the last viewport is
+ * the one thing that reads as unearned. What is left is one mono line stating
+ * what the first hundred actually get, and, once there is a real crowd, one
+ * mono line counting it. No orbs: three abstract circles standing in for
+ * people were decoration doing persuasion.
  */
 
 // The count only motivates once it reads as a crowd; below the floor the
-// "first 100" scarcity line does the work alone (founder ruling 2026-07-15).
+// offer line does the work alone (founder ruling 2026-07-15).
 const WAITLIST_NUDGE_FLOOR = 2000;
 
-// Abstract brand orbs, never faces: fabricated people would break the claims
-// law. Silver, ember, and gold families over the ink ring.
-const AVATAR_ORBS = [
-  "radial-gradient(circle at 35% 30%, #d4d4d8, #52525b)",
-  "radial-gradient(circle at 35% 30%, #ffa477, #c2571f)",
-  "radial-gradient(circle at 35% 30%, #e8b44c, #8a6420)",
-];
 export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }) {
   const [email, setEmail] = useState("");
   const [bet, setBet] = useState("");
@@ -56,7 +57,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           <p className="text-white text-lg font-medium mb-1">
             {result.alreadyJoined ? "You are already in line." : "You are in line."}
           </p>
-          <p className="text-zinc-400 text-sm mb-5">
+          <p className="text-zinc-400 text-sm mb-5" style={{ fontVariantNumeric: "tabular-nums" }}>
             Position <span className="text-white font-semibold">#{result.position}</span> of{" "}
             {result.total}. Each signup through your link moves you up.
           </p>
@@ -79,7 +80,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
                   })
                   .catch(() => {});
               }}
-              className="h-10 px-4 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
+              className="h-10 px-4 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               {copied ? "Copied" : "Copy"}
             </button>
@@ -103,7 +104,8 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
         });
       }}
     >
-      <div className="flex flex-col sm:flex-row gap-3 mb-3">
+      {/* One ember object in this viewport, and it is this button. */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <input
           type="email"
           required
@@ -111,12 +113,12 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           aria-label="Work email"
-          className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors"
+          className="flex-1 h-12 px-4 rounded-full bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
         />
         <button
           type="submit"
           disabled={mutation.isPending}
-          className="h-12 px-7 rounded-full bg-[#FF6B2C] text-white font-medium text-sm hover:bg-[#ff8344] active:scale-[0.98] transition-all disabled:opacity-60"
+          className="h-12 px-7 rounded-full bg-[#FF6B2C] text-white font-medium text-sm hover:bg-[#ff8344] active:scale-[0.98] transition-[background-color,transform,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] disabled:opacity-60"
         >
           {mutation.isPending ? "Joining..." : "Join the beta"}
         </button>
@@ -142,45 +144,38 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           maxLength={2000}
           placeholder="The product bet you are least sure about"
           aria-label="The product bet you are least sure about (optional)"
-          className="w-full px-4 py-3 mb-3 rounded-xl bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors resize-none"
+          className="w-full px-4 py-3 mb-5 rounded-xl bg-[#0d0d0e] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] resize-none"
         />
       ) : (
         <button
           type="button"
           onClick={() => setShowBet(true)}
-          className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4 decoration-zinc-700 mb-3 transition-colors"
+          className="inline-block text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4 decoration-zinc-700 mb-5 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
         >
           Add the bet you want red-teamed (optional)
         </button>
       )}
 
       {result && !result.ok && (
-        <p className="text-sm text-red-400 mb-3" role="alert">
+        <p className="text-sm text-[#e5534b] mb-4" role="alert">
           {result.error}
         </p>
       )}
 
-      <p className="text-xs text-zinc-600 font-mono">
-        Only the first 100 get the Critic: our red-team agent tears your riskiest roadmap idea apart
-        before you spend a sprint on it. Your link moves you up the line.
+      {/* The offer, stated once, in the metadata voice: what the first hundred
+          get, not how few are left. Mono, 11px, zinc-600 (founder 2026-07-25). */}
+      <p className="text-[11px] leading-relaxed text-zinc-600 font-mono">
+        First 100 get the Critic: our red-team agent tears your riskiest bet apart before you spend
+        a sprint on it.
       </p>
 
       {waitlistCount != null && waitlistCount >= WAITLIST_NUDGE_FLOOR && (
-        <div className="mt-4 flex items-center gap-2.5 text-xs text-zinc-400">
-          <span className="flex -space-x-1.5" aria-hidden>
-            {AVATAR_ORBS.map((bg, i) => (
-              <span
-                key={i}
-                className="w-[18px] h-[18px] rounded-full ring-2 ring-[#0a0a0a]"
-                style={{ background: bg }}
-              />
-            ))}
-          </span>
-          <span>
-            <span className="text-zinc-200 font-medium">{waitlistCount.toLocaleString()}</span>{" "}
-            people are already in line.
-          </span>
-        </div>
+        <p className="mt-2 text-[11px] font-mono text-zinc-600">
+          <span className="text-zinc-400" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {waitlistCount.toLocaleString()}
+          </span>{" "}
+          already in line.
+        </p>
       )}
     </form>
   );

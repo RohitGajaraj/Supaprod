@@ -31,7 +31,7 @@ function ClusterCard({
     <div className="bento" style={{ padding: 16 }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 4 }}>
             {/* Neutral bullet: ember is reserved for interactive/selected/
                 primary elements, and a decorative list marker is none of
                 those (accent restraint, checklist 12). */}
@@ -206,7 +206,7 @@ export function SupportSignalsPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", marginTop: 4 }}>
       {/* Paste area */}
       <div className="bento" style={{ padding: 20 }}>
         <div className="mono-label" style={{ marginBottom: 8 }}>

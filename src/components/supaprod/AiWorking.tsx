@@ -24,7 +24,7 @@ export function AiWorking({
       className="inline-flex items-center"
       role="status"
       aria-live="polite"
-      style={{ gap: 8, minWidth: 0, ...style }}
+      style={{ gap: "var(--geist-space-2x)", minWidth: 0, ...style }}
     >
       <SupaprodLoader size={size} title={label} />
       <ShimmerText style={{ }}>{label}</ShimmerText>

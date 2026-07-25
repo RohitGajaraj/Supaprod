@@ -47,7 +47,7 @@ function StepRow({ step, last }: { step: ChainStep; last: boolean }) {
   const dot = STATUS_DOT[step.status];
   const dim = step.status === "pending" || step.status === "skipped";
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
+    <div style={{ display: "flex", gap: "var(--geist-space-3x)", alignItems: "stretch" }}>
       {/* rail: dot + connector */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14 }}>
         <span

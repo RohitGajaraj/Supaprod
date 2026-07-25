@@ -128,7 +128,7 @@ export function GraphNodeStory({
       </div>
       {/* dim 17: the timestamp (present) + the quiet trace ref, so a graph node
           is a first-class, auditable, citable object like every other detail. */}
-      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 10 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 10 }}>
         {node.createdAt ? (
           <span
             style={{

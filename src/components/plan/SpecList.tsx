@@ -164,7 +164,7 @@ export function SpecList({ onOpen }: SpecListProps) {
     return (
       <div
         style={{
-          padding: 24,
+          padding: "var(--geist-gap)",
           background: "var(--surface-card-deep)",
           borderRadius: "var(--radius-panel)",
         }}
@@ -201,7 +201,7 @@ export function SpecList({ onOpen }: SpecListProps) {
     return (
       <div
         style={{
-          padding: 32,
+          padding: "var(--geist-gap-section)",
           textAlign: "center",
           background: "var(--surface-card)",
           borderRadius: "var(--radius-panel)",
@@ -251,7 +251,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   flex: 1,
                   minWidth: 0,
                   padding: "14px 18px",

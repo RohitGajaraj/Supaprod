@@ -267,7 +267,7 @@ function GatePanel({
               </span>
               {appr.rationale ? `. ${appr.rationale}` : "."}
             </p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
               <button
                 className="btn loom-press"
                 disabled={decide.isPending}
@@ -401,7 +401,7 @@ function TraceHop({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           width: "100%",
           textAlign: "left",
           // x-padding stays 0 so the chevron keeps the rail's left alignment.
@@ -451,7 +451,7 @@ function TraceHop({
               lineHeight: 1.8,
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: "var(--geist-space-2x)",
             }}
           >
             <span>
@@ -521,7 +521,7 @@ function TraceHop({
             ))
           )}
           {/* Production: raw input/output expanders — mono pre on canvas. */}
-          <div style={{ ...rail, paddingTop: 4, display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ ...rail, paddingTop: 4, display: "flex", gap: "var(--geist-space-3x)", alignItems: "center" }}>
             <button
               onClick={() => setShowInput(!showInput)}
               aria-expanded={showInput}
@@ -886,7 +886,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   if (m.isError) {
     return (
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
+        <div style={{ ...LOOM_CARD, padding: "var(--geist-gap)", maxWidth: 560 }}>
           <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this mission</MonoLabel>
           <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
             {(m.error as Error)?.message?.slice(0, 160)}
@@ -932,7 +932,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            gap: 16,
+            gap: "var(--geist-space-4x)",
             position: "relative",
             zIndex: 1,
           }}
@@ -1175,7 +1175,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           marginBottom: 16,
         }}
       >
@@ -1426,7 +1426,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   key={tc.id}
                   style={{
                     display: "flex",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     alignItems: "flex-start",
                     padding: "10px 0",
                     borderBottom: i < unattended.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -1545,7 +1545,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               The mission stopped before completing. The execution trace above carries the details.
             </p>
           )}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
             <button
               className="btn btn-primary btn-sm"
               disabled={replay.isPending}

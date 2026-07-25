@@ -202,7 +202,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               flexWrap: "wrap",
               marginTop: 10,
             }}
@@ -381,7 +381,7 @@ function SealPanel() {
 
       {open ? (
         <div
-          style={{ marginTop: 11, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+          style={{ marginTop: 11, display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
         >
           <input
             value={paste}

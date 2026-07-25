@@ -33,7 +33,7 @@ export function MeetingsRow() {
     return (
       <div
         className="flex items-center"
-        style={{ gap: 8, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
+        style={{ gap: "var(--geist-space-2x)", paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
       >
         <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)" }}>Meetings</span>
         <span className="text-label-13" style={{ color: "var(--madder)" }}>didn't load</span>

@@ -134,7 +134,7 @@ function MemoryCompoundsCard({
           loading…
         </div>
       ) : hasData ? (
-        <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ minWidth: 110 }}>
             {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
                 the moat metric is the single number this whole panel exists
@@ -158,7 +158,7 @@ function MemoryCompoundsCard({
               Of the memories the loop stored, the share it has recalled at least once. A store the
               loop reads back is a moat; one it never reopens is a log.
             </p>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10 }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-4x)", flexWrap: "wrap", marginTop: 10 }}>
               {(
                 [
                   ["stored", String(data!.stored)],
@@ -224,7 +224,7 @@ function OutcomeAccuracyCard({
           loading…
         </div>
       ) : hasData ? (
-        <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ minWidth: 110 }}>
             <div
               className="font-display tabular-nums"
@@ -247,7 +247,7 @@ function OutcomeAccuracyCard({
               Of the bets you shipped and then reviewed, the share that validated. Climbing as the
               loop's memory compounds is the moat working, not just storing.
             </p>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10 }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-4x)", flexWrap: "wrap", marginTop: 10 }}>
               {(
                 [
                   ["validated", String(data!.validated)],
@@ -350,7 +350,7 @@ function MemoryDepthSplitCard({
           loading…
         </div>
       ) : hasNumber ? (
-        <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ minWidth: 110 }}>
             {/* Neutral ink for either sign — this is an association, not a win. */}
             <div
@@ -530,7 +530,7 @@ export function GauntletMetricsPanel() {
         memQ.error ||
         accuracyQ.error ||
         liftQ.error) && (
-        <div className="bento" style={{ padding: 16, marginTop: 12 }}>
+        <div className="bento" style={{ padding: "var(--geist-space-4x)", marginTop: 12 }}>
           <div className="mono-label" style={{ color: "var(--madder)" }}>
             Couldn't load some metrics
           </div>

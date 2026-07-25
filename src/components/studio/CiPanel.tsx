@@ -95,7 +95,7 @@ export function CiPanel({
           <div
             style={{
               display: "flex",
-              gap: 16,
+              gap: "var(--geist-space-4x)",
               marginTop: 10,
               flexWrap: "wrap",
               color: "var(--text-body)",
@@ -153,7 +153,7 @@ export function CiPanel({
         </div>
         {changeset.branch ? (
           <div
-            style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8, minWidth: 0 }}
+            style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginTop: 8, minWidth: 0 }}
           >
             <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               branch

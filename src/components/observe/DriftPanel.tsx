@@ -225,7 +225,7 @@ export function DriftPanel() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginBottom: 12 }}>
         <button
           type="button"
           className="btn btn-ghost btn-sm"
@@ -298,7 +298,7 @@ export function DriftPanel() {
               </label>
             ))}
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
@@ -333,7 +333,7 @@ export function DriftPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -358,7 +358,7 @@ export function DriftPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "12px 18px",
                 alignItems: "baseline",
                 borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",

@@ -39,7 +39,7 @@ export function SectionSummaryCard({
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         padding: "14px 16px",
         border: "none",
         cursor: "pointer",

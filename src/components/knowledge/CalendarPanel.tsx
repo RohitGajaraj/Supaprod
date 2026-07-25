@@ -395,7 +395,7 @@ export function CalendarPanel({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 12,
           flexWrap: "wrap",
         }}
@@ -491,7 +491,7 @@ export function CalendarPanel({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               marginBottom: 10,
             }}
           >
@@ -541,7 +541,7 @@ export function CalendarPanel({
               ))}
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 12 }}>
             <button className="btn btn-ghost btn-sm" onClick={() => mPropose.mutate()}>
               Re-suggest · new slots
             </button>
@@ -565,7 +565,7 @@ export function CalendarPanel({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               marginBottom: 10,
             }}
           >
@@ -971,7 +971,7 @@ const MonthGrid = React.memo(function MonthGrid({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginBottom: 12,
           padding: "0 2px",
         }}
@@ -1543,7 +1543,7 @@ function EventEditor({
               <ExternalLink size={16} /> open in provider
             </a>
           ) : null}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 4 }}>
             <button
               className="btn btn-reject btn-sm"
               onClick={onDelete}
@@ -1632,7 +1632,7 @@ function ConnectButton({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: "var(--geist-space-2x)",
                 border: "1px solid var(--hairline)",
                 borderRadius: 8,
                 padding: "6px 10px",

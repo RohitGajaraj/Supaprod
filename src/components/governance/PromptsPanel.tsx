@@ -140,7 +140,7 @@ export function PromptsPanel() {
         style={{
           display: "grid",
           gridTemplateColumns: GRID,
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           padding: "10px 18px",
           borderBottom: "1px solid var(--hairline)",
         }}
@@ -164,7 +164,7 @@ export function PromptsPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "12px 18px",
               alignItems: "center",
               borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -395,7 +395,7 @@ function TemplateDetail({
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            gap: 12,
+            gap: "var(--geist-space-3x)",
             flexWrap: "wrap",
           }}
         >
@@ -418,7 +418,7 @@ function TemplateDetail({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 12 }}>
         <VersionColumn
           label="Compare · left"
           versions={versions}
@@ -437,7 +437,7 @@ function TemplateDetail({
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 12 }}>
         <pre
           className="bento"
           style={{
@@ -490,7 +490,7 @@ function TemplateDetail({
         right={(editable ? draftText : right?.system_prompt) ?? ""}
       />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", margin: "12px 0" }}>
         {editable ? (
           <>
             <button

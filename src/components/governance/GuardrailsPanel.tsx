@@ -241,7 +241,7 @@ export function GuardrailsPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -262,7 +262,7 @@ export function GuardrailsPanel() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: GRID,
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "13px 18px",
                   alignItems: "baseline",
                   borderBottom: i < rules.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -362,7 +362,7 @@ export function GuardrailsPanel() {
           style={{
             display: "grid",
             gridTemplateColumns: HITS_GRID,
-            gap: 12,
+            gap: "var(--geist-space-3x)",
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -390,7 +390,7 @@ export function GuardrailsPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: HITS_GRID,
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "11px 18px",
                 alignItems: "baseline",
                 borderBottom: i < hits.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -440,7 +440,7 @@ export function GuardrailsPanel() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 16,
+            padding: "var(--geist-space-4x)",
             background: "color-mix(in oklab, var(--canvas) 82%, transparent)",
           }}
           onClick={() => setEditing(null)}
@@ -546,7 +546,7 @@ export function GuardrailsPanel() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: "var(--geist-space-2x)",
                   alignSelf: "end",
                   paddingBottom: 8,
                 }}
@@ -564,7 +564,7 @@ export function GuardrailsPanel() {
               style={{
                 border: "1px solid var(--hairline)",
                 borderRadius: 8,
-                padding: 12,
+                padding: "var(--geist-space-3x)",
                 marginTop: 12,
               }}
             >
@@ -615,7 +615,7 @@ export function GuardrailsPanel() {
                     background: "var(--surface-recessed)",
                     border: "1px solid var(--hairline)",
                     borderRadius: 8,
-                    padding: 8,
+                    padding: "var(--geist-space-2x)",
                     lineHeight: 1.5,
                   }}
                 >
@@ -624,7 +624,7 @@ export function GuardrailsPanel() {
               ) : null}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 14 }}>
               {editing.id ? (
                 <button
                   className="btn btn-ghost btn-sm"

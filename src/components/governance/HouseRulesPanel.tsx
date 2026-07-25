@@ -156,7 +156,7 @@ function HouseRuleCard({
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         padding: "14px 16px",
         border: "1px solid var(--hairline)",
         borderRadius: 8,
@@ -189,7 +189,7 @@ function HouseRuleCard({
             style={{
               marginTop: 8,
               display: "flex",
-              gap: 8,
+              gap: "var(--geist-space-2x)",
               alignItems: "center",
               flexWrap: "wrap",
             }}
@@ -211,7 +211,7 @@ function HouseRuleCard({
           <div
             style={{
               display: "flex",
-              gap: 8,
+              gap: "var(--geist-space-2x)",
               alignItems: "center",
               flexWrap: "wrap",
               marginTop: 8,
@@ -246,7 +246,7 @@ function HouseRuleCard({
               aria-label="Replacement rule text"
               rows={2}
               style={{
-                padding: 8,
+                padding: "var(--geist-space-2x)",
                 border: "1px solid var(--hairline)",
                 borderRadius: 6,
                 background: "var(--surface-1)",

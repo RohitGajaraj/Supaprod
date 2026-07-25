@@ -330,7 +330,7 @@ const cardStyle: CSSProperties = {
 
 
 
-  gap: 8,
+  gap: "var(--geist-space-2x)",
 
 
 
@@ -690,7 +690,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-            gap: 12,
+            gap: "var(--geist-space-3x)",
 
 
 

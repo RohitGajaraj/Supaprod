@@ -179,7 +179,7 @@ export function DecisionsPanel() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 12 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 12 }}>
         <FilterGroup
           options={["all", "meeting", "mission", "prd", "manual"] as const}
           value={source}
@@ -263,7 +263,7 @@ export function DecisionsPanel() {
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
               fontFamily: "var(--font-mono)",
@@ -287,7 +287,7 @@ export function DecisionsPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
-                gap: 12,
+                gap: "var(--geist-space-3x)",
                 padding: "13px 18px",
                 alignItems: "baseline",
                 borderBottom: i < shown.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -296,7 +296,7 @@ export function DecisionsPanel() {
               }}
             >
               <span style={{ minWidth: 0 }}>
-                <span className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
+                <span className="flex items-center" style={{ gap: "var(--geist-space-2x)", minWidth: 0 }}>
                   <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
                   <span
                     style={{

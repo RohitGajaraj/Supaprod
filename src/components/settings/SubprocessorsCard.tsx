@@ -24,7 +24,7 @@ export function SubprocessorsCard() {
   const items = q.data?.subprocessors ?? [];
 
   return (
-    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640 }}>
       <div className="mono-label">Where your data goes</div>
       <p
         className="text-copy-13"
@@ -61,7 +61,7 @@ export function SubprocessorsCard() {
                   display: "flex",
                   alignItems: "baseline",
                   justifyContent: "space-between",
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   flexWrap: "wrap",
                 }}
               >

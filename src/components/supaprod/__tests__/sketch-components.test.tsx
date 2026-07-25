@@ -413,7 +413,7 @@ function buildSketchBarChart({
         style: {
           display: "flex",
           justifyContent: "space-between",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           marginTop: 6,
           color: "var(--text-faint)",
         },

@@ -287,7 +287,7 @@ function ApprovalCard({
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         padding: "14px 16px",
         border: "1px solid var(--hairline)",
         borderRadius: 8,
@@ -300,7 +300,7 @@ function ApprovalCard({
         <StepDot status={dot} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
           <span className="mono-label" style={{ color: "var(--text-primary)" }}>
             {a.agent_slug ?? "agent"}
           </span>
@@ -376,7 +376,7 @@ function ApprovalCard({
             {resolvedLine.text}
           </span>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
             <button
               type="button"
               className="btn btn-approve btn-sm"

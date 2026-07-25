@@ -193,7 +193,7 @@ export function ProductsTab() {
           className="animate-pulse"
           style={{ height: 12, width: 140, borderRadius: 4, background: "var(--surface-2)" }}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-2x)", marginTop: 14 }}>
           {[0, 1].map((i) => (
             <div
               key={i}
@@ -306,7 +306,7 @@ export function ProductsTab() {
                     background: isActive ? "var(--hover)" : "transparent",
                   }}
                 >
-                  <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0 }}>
                     {isActive && (
                       <span
                         aria-hidden

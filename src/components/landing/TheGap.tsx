@@ -6,11 +6,20 @@ const TYPED_WORD = "Devs";
  * Named complimentarily, as the AI-native home of that craft (founder ruling
  * 2026-07-25). No superiority claim, no partnership implied, nothing untrue.
  * Decisions is the one row with an empty cell: it reads as an absence.
+ *
+ * Rows corrected 2026-07-25 (founder): v0 and Lovable generate UI CODE, not
+ * design, so they moved up to Code and Design is Figma and Framer, the two
+ * tools that are actually the home of that craft. Code being visibly the most
+ * crowded row is the point, not a flaw: every craft is crowded and Decisions
+ * has nobody. Names only, never logos - a name is nominative fair use, a logo
+ * is a trademark whose guidelines forbid third-party use that implies
+ * partnership, and names set in mono read as a spec list rather than a
+ * jumble of mismatched brand weights.
  */
 const CRAFT_HOMES: { craft: string; tools: string | null; status: string }[] = [
-  { craft: "Code", tools: "Claude Code, Cursor, Devin", status: "agent-run" },
-  { craft: "Design", tools: "Figma, v0, Lovable", status: "agent-run" },
-  { craft: "Docs", tools: "Notion AI, Gemini", status: "agent-run" },
+  { craft: "Code", tools: "Claude Code, Cursor, Codex, v0, Lovable", status: "agent-run" },
+  { craft: "Design", tools: "Figma, Framer", status: "agent-assisted" },
+  { craft: "Docs", tools: "Notion AI, Gemini", status: "agent-assisted" },
   { craft: "Work", tools: "Linear, Jira", status: "system of record" },
   { craft: "Decisions", tools: null, status: "no home" },
 ];
@@ -23,11 +32,26 @@ const CRAFT_HOMES: { craft: string; tools: string | null; status: string }[] = [
  * line gets no prompt on purpose: product has no terminal yet. SSR ships the
  * full text; reduced motion skips the typing.
  *
- * Body rewritten 2026-07-25 (landing audit): the one abstract 20-word
- * problem sentence is replaced by evidence a stranger can picture. The homes
- * ledger names each craft's AI-native tool and leaves exactly one cell empty;
- * then a real thread and a real number. The trailing "here is what it looks
- * like instead" line is gone, the next section's h2 already says it.
+ * Craft pass 2026-07-25 (founder review, points 3, 4, 5):
+ * 3. The typing beat. Two carets used to live here and neither behaved: the
+ *    headline caret ran a soft opacity pulse on a loop that typed, erased and
+ *    retyped forever, and the Decisions cell held an ember caret that blinked
+ *    for eternity and never typed a character. Now there is exactly one
+ *    caret. It types "Devs" once, at 120ms per character, when the section
+ *    scrolls into view, blinks on a hard steps(1) terminal beat while it
+ *    works, then leaves. The invisible sizer still holds the final width so
+ *    the line never reflows. Reduced motion renders the finished word with
+ *    no caret at all.
+ * 4. The ledger. The rows were a flex-wrap pile with a 180px minimum on the
+ *    tools cell, so they ragged and wrapped instead of using the width. They
+ *    are a real three-column grid now (108px craft / fluid tools / 132px
+ *    right-set status), one line per craft at every size above 640px, with
+ *    every column edge landing on the same rule. The Decisions row is the
+ *    payoff: the only ember row, and its empty cell is a dashed hollow slot
+ *    so the eye lands on the hole rather than on a word.
+ * 5. The two pieces of evidence sat one under the other with the right half
+ *    of the section empty. They are a two-column pair from 768px up (the
+ *    quote a human said, the number a study measured) and only stack below.
  */
 export function TheGap() {
   const [inView, setInView] = useState(false);
@@ -46,9 +70,9 @@ export function TheGap() {
     return () => observer.disconnect();
   }, []);
 
-  // Type just the one word, terminal-style, on a continuous loop (founder
-  // 2026-07-15): type, one blink, rest, erase, retype. The chain schedules
-  // one timeout at a time, so clearing the latest cancels the whole loop.
+  // Type the one word, terminal-style, exactly once. inView latches true and
+  // never flips back, so this cannot restart. The chain schedules one timeout
+  // at a time, so clearing the latest cancels the whole run.
   useEffect(() => {
     if (!inView) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
@@ -59,55 +83,59 @@ export function TheGap() {
         if (!cancelled) fn();
       }, ms);
     };
-    const typeStep = (i: number) => {
+    const step = (i: number) => {
       setTyped(TYPED_WORD.slice(0, i));
       if (i < TYPED_WORD.length) {
-        at(120, () => typeStep(i + 1));
+        at(120, () => step(i + 1));
       } else {
-        // One quick blink, then the cursor leaves and the word rests.
-        at(550, () => {
-          setTyping(false);
-          at(2200, () => {
-            setTyping(true);
-            eraseStep(TYPED_WORD.length - 1);
-          });
-        });
+        // One last blink, then the caret leaves and the word rests. It does
+        // not come back: a caret with nothing left to type is a tease.
+        at(900, () => setTyping(false));
       }
-    };
-    const eraseStep = (i: number) => {
-      setTyped(TYPED_WORD.slice(0, i));
-      if (i > 0) at(70, () => eraseStep(i - 1));
-      else at(350, () => typeStep(1));
     };
     setTyped("");
     setTyping(true);
-    at(200, () => typeStep(1));
+    at(260, () => step(1));
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
   }, [inView]);
 
+  // One reveal grammar for the whole beat: 16px of travel (not 32, which
+  // reads as a slide), a 700ms ease-out curve, and a 60ms stagger between
+  // siblings. Reduced motion keeps the fade and drops the travel.
+  const revealCls = (extra: string) =>
+    `gap-reveal transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+      inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+    } ${extra}`;
+  const revealDelay = (ms: number) => (inView ? `${ms}ms` : "0ms");
+
   return (
     <section ref={sectionRef} className="py-32 px-4">
       {/* Opacity only, so nothing paints a new layer or animates a shadow.
-          Reduced motion resolves the caret to its visible frame. */}
+          Reduced motion keeps the fade and drops the movement. */}
       <style>{`
         @keyframes gapBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.16; } }
         .gap-caret { animation: gapBlink 1.15s steps(1) infinite; }
         @media (prefers-reduced-motion: reduce) {
           .gap-caret { animation: none; opacity: 1; }
+          .gap-reveal { transform: none !important; transition-property: opacity; }
         }
       `}</style>
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto max-w-5xl">
         <h2
-          className={`text-3xl md:text-5xl lg:text-[52px] font-semibold text-white mb-10 leading-[1.16] transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ letterSpacing: "-0.025em" }}
+          className={revealCls(
+            "mb-10 text-3xl font-semibold leading-[1.16] text-white md:text-5xl lg:text-[52px]",
+          )}
+          style={{ transitionDelay: revealDelay(0), letterSpacing: "-0.025em" }}
         >
-          <span className="block whitespace-nowrap">
-            <span className="font-mono text-zinc-500 mr-3" aria-hidden>
+          {/* nowrap from md up only. On a phone this line is 516px of text in
+              a 358px column, so the hard nowrap was pushing the whole page
+              into horizontal scroll. The invisible sizer below is what stops
+              the typed word from reflowing, not this, so wrapping is free. */}
+          <span className="block md:whitespace-nowrap">
+            <span className="mr-3 font-mono text-zinc-500" aria-hidden>
               &gt;
             </span>
             {/* The invisible copy holds the width; the typed overlay fills it,
@@ -122,7 +150,7 @@ export function TheGap() {
                     word space so it never overlaps the next word. */}
                 {typing && (
                   <span
-                    className="animate-pulse"
+                    className="gap-caret"
                     style={{
                       display: "inline-block",
                       width: "0.07em",
@@ -154,45 +182,52 @@ export function TheGap() {
         </h2>
 
         <p
-          className={`font-mono text-[11px] md:text-[12px] uppercase text-zinc-500 mb-6 transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "120ms" : "0ms", letterSpacing: "0.14em" }}
+          className={revealCls("mb-5 font-mono text-[11px] uppercase text-zinc-500 md:text-[12px]")}
+          style={{ transitionDelay: revealDelay(60), letterSpacing: "0.14em" }}
         >
           Every craft got its AI-native home
         </p>
 
         {/* The ledger of homes. Every tool here is named as the home of its
             craft, which is what it is. One row has an empty cell, and that
-            absence is the whole argument. */}
-        <div
-          className={`mb-14 transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "200ms" : "0ms" }}
-        >
+            absence is the whole argument.
+
+            Sized down 2026-07-25 (founder): it was set at hero scale for a
+            piece of supporting evidence. It now runs at the page's dense
+            metadata scale and stops at max-w-3xl instead of spanning the full
+            column, so it reads as the ledger it is, and the vertical space it
+            gives back pays for the three-layer spotlight below. */}
+        <div className={revealCls("mb-16 max-w-3xl")} style={{ transitionDelay: revealDelay(120) }}>
           {CRAFT_HOMES.map((row) => {
             const missing = row.tools === null;
             return (
               <div
                 key={row.craft}
-                className="flex flex-wrap items-baseline gap-x-5 gap-y-1 py-3.5 border-b border-white/[0.06]"
+                className={`grid grid-cols-[80px_minmax(0,1fr)] items-baseline gap-x-5 gap-y-1.5 border-b sm:grid-cols-[108px_minmax(0,1fr)_132px] ${
+                  missing ? "border-[#FF6B2C]/25 pt-4 pb-4" : "border-white/[0.06] py-2.5"
+                }`}
               >
                 <span
-                  className="w-[92px] shrink-0 font-mono text-[12px] uppercase"
+                  className="font-mono text-[11px] uppercase"
                   style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#71717a" }}
                 >
                   {row.craft}
                 </span>
-                <span className="flex-1 min-w-[180px] text-base md:text-lg text-zinc-300">
+                <span className="text-[13px] leading-snug text-zinc-300 md:text-sm">
                   {missing ? (
-                    <span className="gap-caret inline-block align-[-0.02em] h-[0.9em] w-[0.07em] bg-[#FF6B2C]" />
+                    // The hole, drawn. A hollow dashed slot where a tool name
+                    // sits on every other row: the eye lands on the absence.
+                    <span
+                      className="block h-[1.4em] w-full max-w-[180px] rounded-[3px] border border-dashed border-[#FF6B2C]/45 bg-[#FF6B2C]/[0.045]"
+                      aria-label="no tool"
+                      role="img"
+                    />
                   ) : (
                     row.tools
                   )}
                 </span>
                 <span
-                  className="ml-auto font-mono text-[11px] uppercase"
+                  className="col-start-2 font-mono text-[10px] uppercase sm:col-start-3 sm:text-right"
                   style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#52525b" }}
                 >
                   {row.status}
@@ -202,44 +237,42 @@ export function TheGap() {
           })}
         </div>
 
-        <blockquote
-          className={`border-l border-white/15 pl-5 md:pl-6 mb-12 transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "300ms" : "0ms", maxWidth: "54ch" }}
-        >
-          <p className="text-lg md:text-2xl text-zinc-300 leading-snug">
-            &ldquo;So why did we decide on X? Cue hours of finding that Slack conversation from
-            months ago.&rdquo;
-          </p>
-          <cite
-            className="not-italic block mt-3 font-mono text-[11px] uppercase text-zinc-600"
-            style={{ letterSpacing: "0.12em" }}
+        {/* The two pieces of evidence, side by side: what a person said, and
+            what a study counted. They are one argument, so they read as one
+            row. */}
+        <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
+          <blockquote
+            className={revealCls("border-l border-white/15 pl-5 md:pl-6")}
+            style={{ transitionDelay: revealDelay(200) }}
           >
-            Top-voted thread, r/ProductManagement, 480 points
-          </cite>
-        </blockquote>
+            <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
+              &ldquo;So why did we decide on X? Cue hours of finding that Slack conversation from
+              months ago.&rdquo;
+            </p>
+            <cite
+              className="not-italic mt-3 block font-mono text-[11px] uppercase text-zinc-600"
+              style={{ letterSpacing: "0.12em" }}
+            >
+              Top-voted thread, r/ProductManagement, 480 points
+            </cite>
+          </blockquote>
 
-        <p
-          className={`text-lg md:text-xl text-zinc-400 leading-snug transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "380ms" : "0ms", maxWidth: "56ch" }}
-        >
-          Nobody knows what to build, so teams build on gut.{" "}
-          <span className="text-zinc-200">
-            <span style={{ color: "#6cb0f5" }}>80%</span> of shipped features are rarely or never
-            used.
-          </span>
-        </p>
-        <p
-          className={`mt-3 font-mono text-[11px] uppercase text-zinc-600 transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "440ms" : "0ms", letterSpacing: "0.12em" }}
-        >
-          Pendo, across 615 products
-        </p>
+          <div className={revealCls("md:pt-1")} style={{ transitionDelay: revealDelay(260) }}>
+            <p className="text-lg leading-snug text-zinc-400 md:text-xl">
+              Nobody knows what to build, so teams build on gut.{" "}
+              <span className="text-zinc-200">
+                <span style={{ color: "#6cb0f5" }}>80%</span> of shipped features are rarely or
+                never used.
+              </span>
+            </p>
+            <p
+              className="mt-3 font-mono text-[11px] uppercase text-zinc-600"
+              style={{ letterSpacing: "0.12em" }}
+            >
+              Pendo, across 615 products
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

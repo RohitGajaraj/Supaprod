@@ -604,7 +604,7 @@ describe("MissionCanvasBlocks", () => {
 
   it("renders with consistent block layout (flex column, gap-8)", () => {
     // Code inspection verifies return value:
-    // <div className="flex flex-col" style={{ gap: 8, marginTop: 8 }}>
+    // <div className="flex flex-col" style={{ gap: "var(--geist-space-2x)", marginTop: 8 }}>
     //   {data.run ? <ProgressBlock ... /> : null}
     //   <ApprovalGateBlock ... />
     //   <MemoryBlock ... />

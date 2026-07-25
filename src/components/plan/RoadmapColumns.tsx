@@ -172,7 +172,7 @@ export function RoadmapColumns() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: 16,
+          gap: "var(--geist-space-4x)",
         }}
       >
         <span className="sr-only">Loading the roadmap…</span>
@@ -208,7 +208,7 @@ export function RoadmapColumns() {
     return (
       <div
         style={{
-          padding: 24,
+          padding: "var(--geist-gap)",
           background: "var(--surface-card-deep)",
           borderRadius: "var(--radius-panel)",
         }}
@@ -269,7 +269,7 @@ export function RoadmapColumns() {
           }}
         >
           <MonoLabel tone="muted">{selectedIds.size} selected</MonoLabel>
-          <span style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+          <span style={{ display: "flex", gap: "var(--geist-space-2x)", marginLeft: "auto", alignItems: "center" }}>
             <MonoLabel tone="faint">move to</MonoLabel>
             {COLUMNS.map((col) => (
               <button

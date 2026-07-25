@@ -33,7 +33,7 @@ function AgentRow({ a }: { a: FleetAgent }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         border: "1px solid var(--hairline)",
         borderRadius: 10,
         padding: "11px 14px",

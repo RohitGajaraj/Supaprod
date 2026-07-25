@@ -80,7 +80,7 @@ function FullRelay({ missionId }: { missionId: string }) {
       }}
     >
       <MonoLabel>The relay</MonoLabel>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", marginTop: 12 }}>
         {groups.map((g) => (
           <div key={g.station}>
             <div
@@ -167,7 +167,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: "var(--geist-space-2x)",
           color: "var(--text-subtle)",
         }}
       >
@@ -241,7 +241,7 @@ function StationRelayLine({
   // Owns its own bottom margin (present only while a run is live) so a
   // quiet station never reserves layout space for an empty wrapper.
   const body = (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, marginBottom: 16 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0, marginBottom: 16 }}>
       <AgentMark slug={run.slug} size={16} />
       <span
         style={{

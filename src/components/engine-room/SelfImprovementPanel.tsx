@@ -76,7 +76,7 @@ function ActivePulse({ messages }: { messages: string[] }) {
     return () => clearInterval(t);
   }, [messages.length]);
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 12 }}>
       {/* the ember gate dot pulses continuously (dot-gate keyframes) = the live signal */}
       <StepDot status="gate" />
       <span
@@ -497,7 +497,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                     </p>
                     <div
                       className="flex items-center"
-                      style={{ gap: 8, marginTop: 10, flexWrap: "wrap" }}
+                      style={{ gap: "var(--geist-space-2x)", marginTop: 10, flexWrap: "wrap" }}
                     >
                       <MonoChip>{p.kind}</MonoChip>
                       <MonoChip>{p.evidence}</MonoChip>

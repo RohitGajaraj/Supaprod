@@ -483,7 +483,7 @@ export function ChangesPanel({
             display: "flex",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 12,
+            gap: "var(--geist-space-3x)",
             padding: "10px 18px",
             ...LOOM_CARD,
           }}
@@ -647,7 +647,7 @@ export function ChangesPanel({
               ).map(([label, key]) =>
                 launchKit[key] ? (
                   <div key={key}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 4 }}>
                       <span className="mono-label" style={{ flex: 1, color: "var(--text-body)" }}>
                         {label}
                       </span>
@@ -1263,7 +1263,7 @@ export function ChangesPanel({
                 padding: "12px 18px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 8,
+                gap: "var(--geist-space-2x)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

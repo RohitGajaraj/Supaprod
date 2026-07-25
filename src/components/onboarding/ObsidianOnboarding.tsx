@@ -177,7 +177,7 @@ function ChoiceCard({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 12,
+        gap: "var(--geist-space-3x)",
         cursor: interactive ? "pointer" : "default",
         transition:
           "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
@@ -329,7 +329,7 @@ function ProductStep({
             <p className="text-copy-13" style={helpStyle}>
               First, your name, so Supaprod signs every decision with you.
             </p>
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 8 }}>
               <input
                 autoFocus
                 required
@@ -393,7 +393,7 @@ function Screen({ children }: { children: React.ReactNode }) {
         alignItems: "center",
         justifyContent: "center",
         background: "var(--ds-background-100)",
-        padding: 24,
+        padding: "var(--geist-gap)",
       }}
     >
       {children}
@@ -838,7 +838,7 @@ export function ObsidianOnboarding() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 12,
+                    gap: "var(--geist-space-3x)",
                     padding: "10px 12px",
                     borderRadius: "var(--ds-radius-small)",
                     background: "var(--ds-red-100)",
@@ -915,7 +915,7 @@ export function ObsidianOnboarding() {
                   marginTop: 4,
                   display: "flex",
                   flexDirection: "column",
-                  gap: 8,
+                  gap: "var(--geist-space-2x)",
                 }}
               >
                 <ChoiceCard onClick={() => setShowPaste(true)}>
@@ -1017,7 +1017,7 @@ export function ObsidianOnboarding() {
                   resize: "vertical",
                 }}
               />
-              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 16 }}>
                 <Button
                   variant="accent"
                   disabled={!pasteNotes.trim()}
@@ -1236,7 +1236,7 @@ export function ObsidianOnboarding() {
                 The run hit an error before it could reach a verdict. Your belief is saved as an
                 opportunity, so nothing is lost.
               </p>
-              <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 16, flexWrap: "wrap" }}>
                 <Button
                   variant="accent"
                   disabled={mFinish.isPending}

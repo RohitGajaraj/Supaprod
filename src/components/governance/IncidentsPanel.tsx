@@ -64,7 +64,7 @@ function IncidentCard({ n }: { n: Incident }) {
         transitionTimingFunction: "var(--ease)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
         <span
           className="uppercase"
           style={{
@@ -183,7 +183,7 @@ export function IncidentsPanel() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: "var(--geist-space-2x)",
             color: "var(--madder)",
             marginBottom: 10,
           }}

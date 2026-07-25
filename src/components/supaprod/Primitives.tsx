@@ -357,7 +357,7 @@ export function DrillHeader({
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           flexWrap: "wrap",
         }}
       >

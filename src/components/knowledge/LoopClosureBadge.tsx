@@ -55,7 +55,7 @@ export function LoopClosureBadge() {
         padding: "12px 15px",
         display: "flex",
         flexDirection: "column",
-        gap: 8,
+        gap: "var(--geist-space-2x)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>

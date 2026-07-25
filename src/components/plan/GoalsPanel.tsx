@@ -153,7 +153,7 @@ export function GoalsPanel({
         >
           What outcome should Supaprod keep working?
         </span>
-        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 8 }}>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -198,7 +198,7 @@ export function GoalsPanel({
       ) : goalsQ.isError ? (
         <div
           style={{
-            padding: 24,
+            padding: "var(--geist-gap)",
             background: "var(--surface-card-deep)",
             borderRadius: "var(--radius-panel)",
           }}
@@ -333,7 +333,7 @@ function GoalCard({
           ))}
         </ul>
       ) : null}
-      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+      <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 10 }}>
         {goal.status === "active" ? (
           <Button variant="tertiary" onClick={() => onSetStatus("paused")} disabled={statusPending}>
             Pause

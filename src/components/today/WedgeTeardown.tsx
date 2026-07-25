@@ -694,7 +694,7 @@ export function WedgeTeardown() {
 
 
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", marginTop: 2 }}>
 
 
 
@@ -910,7 +910,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 2px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-3x)", padding: "4px 2px" }}>
 
 
 
@@ -1066,7 +1066,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-      style={{ display: "flex", flexDirection: "column", gap: 16, padding: "4px 2px" }}
+      style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", padding: "4px 2px" }}
 
 
 
@@ -1294,7 +1294,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-          gap: 12,
+          gap: "var(--geist-space-3x)",
 
 
 

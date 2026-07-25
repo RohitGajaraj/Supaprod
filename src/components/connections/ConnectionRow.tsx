@@ -200,7 +200,7 @@ function ConnectedRow({
 }) {
   if (c.status === "disconnected") {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", flexShrink: 0 }}>
         <StatusDot
           state="queued"
           word="DISCONNECTED"
@@ -223,7 +223,7 @@ function ConnectedRow({
   const word = state === "failing" ? "FAILING" : state === "stale" ? "STALE" : "LIVE";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", flexShrink: 0 }}>
       <StatusDot state={state} word={word} title={c.status_detail ?? undefined} />
       {onVerify ? (
         <QuietTextAction onClick={() => onVerify(c)} disabled={busy}>
@@ -286,7 +286,7 @@ export function ConnectionRow({
 
   return (
     <div style={configured || envActive ? undefined : { opacity: 0.6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", padding: "13px 0" }}>
         <ProviderLogo provider={provider} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div

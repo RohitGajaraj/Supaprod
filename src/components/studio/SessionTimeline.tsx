@@ -19,7 +19,7 @@ const stepLine: CSSProperties = {
   fontFamily: "var(--font-mono)",
   lineHeight: 1.8,
   display: "flex",
-  gap: 8,
+  gap: "var(--geist-space-2x)",
 };
 const stepNum: CSSProperties = {
   width: 18,

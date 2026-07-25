@@ -119,7 +119,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           marginBottom: 14,
         }}
       >
@@ -144,7 +144,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
         style={{
           display: "grid",
           gridTemplateColumns: resolved ? "1fr 1fr" : "1fr",
-          gap: 12,
+          gap: "var(--geist-space-3x)",
           marginBottom: 14,
         }}
       >
@@ -232,7 +232,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
             style={{
               display: "grid",
               gridTemplateColumns: RUN_GRID,
-              gap: 12,
+              gap: "var(--geist-space-3x)",
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -256,7 +256,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
                 style={{
                   display: "grid",
                   gridTemplateColumns: RUN_GRID,
-                  gap: 12,
+                  gap: "var(--geist-space-3x)",
                   padding: "11px 18px",
                   alignItems: "center",
                   borderBottom: i < d.recentRuns.length - 1 ? "1px solid var(--hairline)" : "none",
