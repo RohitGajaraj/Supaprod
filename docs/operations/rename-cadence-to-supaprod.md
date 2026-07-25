@@ -65,3 +65,28 @@ Still open, cosmetic only: the Lovable project's AI-generated `description` fiel
 opens with "Project Cadence v5 is an AI-powered platform..." — no MCP tool exposes rewriting
 it, needs a manual Lovable dashboard edit whenever the founder gets to it. The local repo
 folder on disk is still named `project_cadence_v5` (see above — left alone on purpose).
+
+### ❗ A rename miss this ledger did not catch: `GITHUB_APP_SLUG` (found 2026-07-25)
+
+**This one was not cosmetic. It broke GitHub connect in production for eight days.**
+
+The GitHub App was renamed on GitHub during the rebrand (`Cadence Connector` → **`Supaprod Connector`**, app id `4144110`, owner `RohitGajaraj`), which changes its **public slug**. But `GITHUB_APP_SLUG` in the production environment still held the old value `cadence-connector`.
+
+`startGithubAppConnect` (`src/lib/connections.functions.ts:245`) builds the install URL as
+`https://github.com/apps/${slug}/installations/new?state=…`, so every Connect attempt sent the
+founder to `github.com/apps/cadence-connector/...`, which now **404s**. Nothing in the app
+reported a problem, because the failure happens on GitHub's side after the redirect.
+
+**The fix:** set `GITHUB_APP_SLUG=supaprod-connector` in the production environment. Verified
+authoritatively against `GET /app` with a signed App JWT, not guessed. The value is now also
+set in the local `.env`; `.env.example` already listed the key.
+
+**Why the sweep missed it:** the ledger checked code, docs, DB and public surfaces, but never
+enumerated **environment variables whose VALUES encode the brand**. A brand rename can break
+config that contains no brand string in its *name*. Worth checking whenever anything external
+is renamed: OAuth app slugs, webhook URLs, sender addresses, bucket names, queue names.
+
+**Related latent trap, unfixed:** `readConnectState` (`github.server.ts:206`) wraps its whole
+body in `try { … } catch { return null }`, and `stateHmac` throws when `CONNECTOR_SECRETS_KEY`
+is unset. So a missing production secret is indistinguishable from an expired state token:
+both surface as `?error=github_connect`. Two very different causes, one uninformative message.
