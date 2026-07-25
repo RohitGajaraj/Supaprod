@@ -10,6 +10,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { LandingNav } from "@/components/landing/LandingNav";
 import { SectionAlternate } from "@/components/landing/SectionAlternate";
 import { FramedVisual } from "@/components/landing/FramedVisual";
 
@@ -99,6 +100,13 @@ function ProductPage() {
     <div className="bg-[#0a0a0a] min-h-screen" data-obsidian>
       {/* Backdrop: grid + starfield (inherited from landing) */}
       <LandingBackdrop />
+
+      {/* This page had no chrome at all: no brand, no nav, no route home.
+          Arriving here from search or a shared link left you with no way to
+          tell whose product it is or where to go next. The shared landing nav
+          carries the wordmark and the way back, so it matches every other
+          public page. The hero's 120px top padding already clears it. */}
+      <LandingNav />
 
       <div className="relative z-[1]">
         {/* Hero section */}
