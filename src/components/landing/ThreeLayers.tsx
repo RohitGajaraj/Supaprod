@@ -64,10 +64,19 @@ const LAYERS: Layer[] = [
   },
   {
     n: "02",
-    name: "the operating system",
+    // "the operating system" on the SITE only (founder ruling 2026-07-25).
+    // The investor canon and the brief keep that name and are untouched; the
+    // landing's own banned-words list rejects it as a vague category word, and
+    // it was tautological here besides, since the headline directly above says
+    // "One system, three layers" and this was the system inside the system.
+    // "The loop" is this page's existing word for exactly this thing (the
+    // walkthrough below, the "full loop" tab, the governed loop in the line
+    // under this one), it is a shape the page already draws, and it hands
+    // straight off to the section that proves it.
+    name: "the loop",
     claim: "It runs the whole lifecycle.",
     context:
-      "Discover to ship to learn, one governed loop. Agents do the work in your own stack. You make every call that matters.",
+      "Discover to ship to learn, one governed pass. Agents do the work in your own stack. You make every call that matters.",
     hue: "#6cb0f5",
   },
   {
