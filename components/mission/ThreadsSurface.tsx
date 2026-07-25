@@ -1,0 +1,633 @@
+// ThreadsSurface (front-end reimagining Phase 4; founder-approved, "Threads").
+// The revisitable home for every conversation. Two panes: the day-grouped list
+// (with search) and the read view of the selected thread (rename + copy link).
+//
+// Honest to the backend today (gaps K1-K5 are the migration follow-ups):
+// - list + read + rename + deep link are live (conversations domain).
+// - folders, cross-scope views, full-text search, and "Save to the brain" are
+//   NOT shown, because they are not wired yet. Search here filters the loaded
+//   list (a filter, never a second composer, per charter #3).
+// Plain ink surfaces, chip attribution, mono timestamps, no cost, no edge strips.
+
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import {
+  listThreads,
+  getThread,
+  searchConversations,
+  listFolders,
+  createFolder,
+  moveThreadToFolder,
+  listThreadsInFolder,
+  type ThreadSummary,
+  type ThreadMessage,
+  type ThreadFolder,
+} from "@/lib/threads.functions";
+import { renameConversation } from "@/lib/conversations.functions";
+import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
+import { usePrompt } from "@/hooks/use-confirm";
+import { useWorkspace } from "@/hooks/use-workspace";
+
+function dayLabel(iso: string | null): string {
+  if (!iso) return "Earlier";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "Earlier";
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const t = d.getTime();
+  if (t >= startOfToday) return "Today";
+  if (t >= startOfToday - 86400000) return "Yesterday";
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
+function clockTime(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+type Msg = ThreadMessage;
+
+function ThreadRow({
+  thread,
+  selected,
+  onSelect,
+  folderName,
+}: {
+  thread: ThreadSummary;
+  selected: boolean;
+  onSelect: () => void;
+  folderName?: string | null;
+}) {
+  const you = thread.lastRole === "user";
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={selected ? "true" : undefined}
+      className="ink-focus flex w-full flex-col gap-1 rounded-[10px] border px-3 py-2.5 text-left transition-colors"
+      style={{
+        borderColor: selected ? "var(--ink-hairline)" : "transparent",
+        background: selected ? "var(--ink-raised)" : "transparent",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-[13px] font-semibold" style={{ color: "var(--ink-text)" }}>
+          {thread.title}
+        </span>
+        <span className="flex-none font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+          {clockTime(thread.updatedAt)}
+        </span>
+      </div>
+      {thread.snippet ? (
+        <span className="line-clamp-1 text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+          {thread.snippet}
+        </span>
+      ) : null}
+      {you || folderName || thread.inBrain || thread.waiting ? (
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {thread.waiting ? (
+            <span
+              className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+              style={{ borderColor: "var(--voice-human-border)", color: "var(--voice-human)" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--voice-human)" }} />
+              your call
+            </span>
+          ) : null}
+          {thread.inBrain ? (
+            <span
+              className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]"
+              style={{ borderColor: "var(--ink-hairline)", color: "var(--voice-memory-dim)" }}
+            >
+              {"\u2726"} in the brain
+            </span>
+          ) : null}
+          {you ? (
+            <span className="rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-faint)" }}>
+              you
+            </span>
+          ) : null}
+          {folderName ? (
+            <span className="inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[9px] uppercase tracking-[0.06em]" style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)" }}>
+              <span aria-hidden style={{ color: "var(--ink-faint)" }}>{"\u25b8"}</span>
+              {folderName}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </button>
+  );
+}
+
+function ThreadPreview({
+  threadId,
+  folders,
+  onMove,
+}: {
+  threadId: string | null;
+  folders: ThreadFolder[];
+  onMove: (folderId: string | null) => void;
+}) {
+  const fetchThread = useServerFn(getThread);
+  const rename = useServerFn(renameConversation);
+  const propose = useServerFn(proposeMemoryCandidate);
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
+
+  const q = useQuery({
+    queryKey: ["thread", threadId],
+    queryFn: () => fetchThread({ data: { id: threadId as string } }),
+    enabled: !!threadId,
+  });
+
+  const messages = (q.data?.messages ?? []) as ThreadMessage[];
+  const title = q.data?.title ?? "Thread";
+
+  const renameMutation = useMutation({
+    mutationFn: (next: string) => rename({ data: { id: threadId as string, title: next } }),
+    onSuccess: () => {
+      setEditing(false);
+      void qc.invalidateQueries({ queryKey: ["threads"] });
+      void qc.invalidateQueries({ queryKey: ["thread", threadId] });
+      toast.success("Thread renamed.");
+    },
+    onError: () => toast.error("Could not rename the thread."),
+  });
+
+  // Save to the brain: propose this thread's key line as a memory candidate.
+  // Honest about the gate: it lands in Brain's review queue, pending, not
+  // straight into memory. No migration (memory_candidates already exists).
+  const saveToBrain = useMutation({
+    mutationFn: () => {
+      const lastAgent = [...messages].reverse().find((m) => m.role !== "user");
+      const content = (lastAgent?.content ?? title).trim().slice(0, 1000);
+      return propose({ data: { content, sourceKind: "user", sourceConversationId: threadId ?? undefined } });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["threads"] });
+      toast.success("Proposed to the brain. It waits in Brain's review queue.");
+    },
+    onError: () => toast.error("Could not propose this to the brain."),
+  });
+
+  if (!threadId) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-10 text-center">
+        <p className="max-w-[320px] text-[13px]" style={{ color: "var(--ink-subtle)" }}>
+          Pick a thread to read it here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header
+        className="flex min-h-[52px] flex-none items-center gap-2 border-b px-5"
+        style={{ borderColor: "var(--ink-hairline)" }}
+      >
+        <span className="font-mono text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--ink-subtle)" }}>
+          Thread
+        </span>
+        {editing ? (
+          <input
+            autoFocus
+            value={draftTitle}
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && draftTitle.trim()) renameMutation.mutate(draftTitle.trim());
+              if (e.key === "Escape") setEditing(false);
+            }}
+            onBlur={() => setEditing(false)}
+            className="ink-focus min-w-0 flex-1 rounded-md border bg-transparent px-2 py-1 text-[14px] font-semibold"
+            style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+          />
+        ) : (
+          <h1 className="min-w-0 flex-1 truncate text-[14px] font-semibold" style={{ color: "var(--ink-text)" }}>
+            {title}
+          </h1>
+        )}
+        <button
+          type="button"
+          title="Rename"
+          onClick={() => {
+            setDraftTitle(title);
+            setEditing(true);
+          }}
+          className="ink-focus flex-none rounded-md px-2 py-1 text-[12px] transition-colors hover:bg-[var(--ink-raised)]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
+          Rename
+        </button>
+        <button
+          type="button"
+          title="Copy link"
+          onClick={() => {
+            const url = `${window.location.origin}/threads?c=${threadId}`;
+            void navigator.clipboard?.writeText(url);
+            toast.success("Link copied.");
+          }}
+          className="ink-focus flex-none rounded-md px-2 py-1 text-[12px] transition-colors hover:bg-[var(--ink-raised)]"
+          style={{ color: "var(--ink-subtle)" }}
+        >
+          Copy link
+        </button>
+        <button
+          type="button"
+          title="Save to the brain"
+          disabled={saveToBrain.isPending || messages.length === 0}
+          onClick={() => saveToBrain.mutate()}
+          className="ink-focus flex-none rounded-md px-2 py-1 text-[12px] transition-colors hover:bg-[var(--ink-raised)] disabled:opacity-40"
+          style={{ color: "var(--voice-memory-dim)" }}
+        >
+          {saveToBrain.isPending ? "Saving…" : "Save to the brain"}
+        </button>
+        {folders.length > 0 ? (
+          <select
+            aria-label="Move to folder"
+            value=""
+            onChange={(e) => onMove(e.target.value === "__none" ? null : e.target.value)}
+            className="ink-focus flex-none rounded-md border bg-transparent px-2 py-1 text-[12px]"
+            style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-subtle)" }}
+          >
+            <option value="" disabled>
+              Move to folder
+            </option>
+            <option value="__none">Unfiled</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        {q.isLoading ? (
+          <div className="flex flex-col gap-3">
+            <div className="ink-skeleton h-16 w-full rounded-xl" />
+            <div className="ink-skeleton h-16 w-3/4 rounded-xl" />
+          </div>
+        ) : q.isError ? (
+          <p className="text-[13px]" style={{ color: "var(--ink-body)" }}>
+            Could not open this thread.
+          </p>
+        ) : messages.length === 0 ? (
+          <p className="text-[13px]" style={{ color: "var(--ink-subtle)" }}>
+            This thread has no messages yet.
+          </p>
+        ) : (
+          <div className="mx-auto flex max-w-[680px] flex-col gap-3">
+            {messages.map((m, i) => {
+              const isYou = m.role === "user";
+              return (
+                <div
+                  key={m.id ?? i}
+                  className="rounded-[10px] px-3 py-2.5"
+                  style={{
+                    background: isYou ? "var(--ink-raised)" : "var(--voice-machine-faint)",
+                    border: isYou ? "1px solid var(--ink-hairline-soft)" : "1px solid transparent",
+                  }}
+                >
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <span
+                      className="font-mono text-[9.5px] uppercase tracking-[0.08em]"
+                      style={{ color: isYou ? "var(--ink-subtle)" : "var(--voice-machine-dim)" }}
+                    >
+                      {isYou ? "You" : "Agent"}
+                    </span>
+                    <span className="ml-auto font-mono text-[10px] tabular-nums" style={{ color: "var(--ink-faint)" }}>
+                      {clockTime(m.createdAt ?? null)}
+                    </span>
+                  </div>
+                  <div className="whitespace-pre-wrap text-[12.5px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
+                    {typeof m.content === "string" ? m.content : ""}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ThreadsSurface({
+  initialThreadId,
+  onSelectThread,
+}: {
+  initialThreadId?: string | null;
+  onSelectThread?: (id: string) => void;
+}) {
+  const fetchThreads = useServerFn(listThreads);
+  const search = useServerFn(searchConversations);
+  const q = useQuery({ queryKey: ["threads"], queryFn: () => fetchThreads() });
+  const threads = useMemo(() => q.data?.threads ?? [], [q.data]);
+  const { activeProductId, activeProduct } = useWorkspace();
+  const [scope, setScope] = useState<"product" | "all">("product");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string | null>(initialThreadId ?? null);
+  const [view, setView] = useState<"all" | "waiting" | "brain" | "unfiled">("all");
+
+  // Server-side search across titles AND message content (debounced), so a
+  // thread is found by something said inside it, not just the loaded page.
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+  const searching = debouncedQ.length > 0;
+  const searchQ = useQuery({
+    queryKey: ["threads-search", debouncedQ],
+    queryFn: () => search({ data: { q: debouncedQ } }),
+    enabled: searching,
+  });
+
+  // Folders (K1): the rail's user folders + the selected folder's threads.
+  // Tolerant: pre-migration listFolders returns [] so the group hides itself.
+  const qc = useQueryClient();
+  const foldersFn = useServerFn(listFolders);
+  const folderThreadsFn = useServerFn(listThreadsInFolder);
+  const createFolderFn = useServerFn(createFolder);
+  const foldersQ = useQuery({ queryKey: ["thread-folders"], queryFn: () => foldersFn() });
+  const folders = foldersQ.data?.folders ?? [];
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const folderThreadsQ = useQuery({
+    queryKey: ["thread-folder", folderFilter],
+    queryFn: () => folderThreadsFn({ data: { folderId: folderFilter as string } }),
+    enabled: !!folderFilter,
+  });
+  const createFolderMut = useMutation({
+    mutationFn: (name: string) => createFolderFn({ data: { name } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["thread-folders"] });
+      toast.success("Folder created.");
+    },
+    onError: () => toast.error("Folders turn on with the next release."),
+  });
+  const prompt = usePrompt();
+  const moveFn = useServerFn(moveThreadToFolder);
+  const moveMut = useMutation({
+    mutationFn: (v: { threadId: string; folderId: string | null }) => moveFn({ data: v }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["thread-folder"] });
+      void qc.invalidateQueries({ queryKey: ["threads"] });
+      toast.success("Moved.");
+    },
+    onError: () => toast.error("Move to folder turns on with the next release."),
+  });
+  const newFolder = async () => {
+    const name = await prompt({ title: "New folder", placeholder: "Folder name", confirmLabel: "Create" });
+    if (name && name.trim()) createFolderMut.mutate(name.trim());
+  };
+
+  const baseThreads = folderFilter
+    ? (folderThreadsQ.data?.threads ?? [])
+    : searching
+      ? (searchQ.data?.threads ?? [])
+      : threads;
+
+  // Default the selection to the newest thread once loaded.
+  useEffect(() => {
+    if (!selected && threads.length > 0) setSelected(threads[0].id);
+  }, [threads, selected]);
+
+  // View counts, scoped to the current product (or all of the workspace).
+  const scoped = useMemo(
+    () => threads.filter((t) => scope === "all" || !activeProductId || t.productId === activeProductId),
+    [threads, scope, activeProductId],
+  );
+  const counts = useMemo(
+    () => ({
+      all: scoped.length,
+      waiting: scoped.filter((t) => t.waiting).length,
+      brain: scoped.filter((t) => t.inBrain).length,
+      unfiled: scoped.filter((t) => !t.folderId).length,
+    }),
+    [scoped],
+  );
+
+  const filtered = useMemo(() => {
+    return baseThreads.filter((t) => {
+      if (scope === "product" && activeProductId && t.productId !== activeProductId) return false;
+      if (view === "waiting" && !t.waiting) return false;
+      if (view === "brain" && !t.inBrain) return false;
+      if (view === "unfiled" && t.folderId) return false;
+      return true;
+    });
+  }, [baseThreads, view, scope, activeProductId]);
+
+  const groups = useMemo(() => {
+    const out: { label: string; items: ThreadSummary[] }[] = [];
+    for (const t of filtered) {
+      const label = dayLabel(t.updatedAt);
+      const last = out[out.length - 1];
+      if (last && last.label === label) last.items.push(t);
+      else out.push({ label, items: [t] });
+    }
+    return out;
+  }, [filtered]);
+
+  const select = (id: string) => {
+    setSelected(id);
+    onSelectThread?.(id);
+  };
+
+  return (
+    <div className="flex min-h-dvh" style={{ background: "var(--ink-bg)", color: "var(--ink-body)" }}>
+      {/* Rail: scope + views (the third pane, screen-9 baseline). Folders and
+          cross-scope + save-to-brain views arrive with their migration. */}
+      <aside
+        className="hidden w-[220px] flex-none flex-col gap-5 border-r px-3 py-6 md:flex"
+        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
+      >
+        <div>
+          <h1 className="px-2 text-[16px] font-medium" style={{ color: "var(--ink-text)" }}>
+            Threads
+          </h1>
+          <p className="mt-0.5 px-2 text-[11.5px]" style={{ color: "var(--ink-subtle)" }}>
+            Everything asked and answered.
+          </p>
+        </div>
+        {/* Scope switcher (screen-9): this product vs all of the workspace. */}
+        <div className="flex flex-col gap-1">
+          {[
+            { id: "product" as const, label: "This product", note: (activeProduct?.name ?? "product").toUpperCase() },
+            { id: "all" as const, label: "All of the workspace", note: "" },
+          ].map((s) => {
+            const on = scope === s.id;
+            const disabled = s.id === "product" && !activeProductId;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                disabled={disabled}
+                onClick={() => setScope(s.id)}
+                aria-pressed={on}
+                className="ink-focus flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[12.5px] transition-colors disabled:opacity-40"
+                style={{
+                  borderColor: on ? "var(--ink-hairline)" : "transparent",
+                  background: on ? "var(--ink-raised)" : "transparent",
+                  color: on ? "var(--ink-text)" : "var(--ink-body)",
+                }}
+              >
+                <span className="min-w-0 flex-1 truncate">{s.label}</span>
+                {s.note ? (
+                  <span className="flex-none font-mono text-[9px] uppercase tracking-[0.06em]" style={{ color: "var(--ink-faint)" }}>
+                    {s.note}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+        <div>
+          <div className="px-2 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--ink-faint)" }}>
+            Views
+          </div>
+          {([
+            { id: "all", label: "All threads", n: counts.all, gate: false },
+            { id: "waiting", label: "Waiting on you", n: counts.waiting, gate: true },
+            { id: "brain", label: "In the brain", n: counts.brain, gate: false },
+            { id: "unfiled", label: "Unfiled", n: counts.unfiled, gate: false },
+          ] as const).map((v) => {
+            const on = view === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => {
+                  setView(v.id);
+                  setFolderFilter(null);
+                }}
+                aria-current={on && !folderFilter ? "true" : undefined}
+                className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+                style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
+              >
+                <span className="min-w-0 flex-1 truncate">{v.label}</span>
+                <span
+                  className="flex-none font-mono text-[10.5px] tabular-nums"
+                  style={{ color: v.gate && v.n > 0 ? "var(--voice-human)" : "var(--ink-faint)" }}
+                >
+                  {v.n}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div>
+          <div className="px-2 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--ink-faint)" }}>
+            Folders
+          </div>
+          {folders.map((f) => {
+            const on = folderFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFolderFilter(f.id)}
+                aria-current={on ? "true" : undefined}
+                className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+                style={{ background: on ? "var(--ink-raised)" : "transparent", color: on ? "var(--ink-text)" : "var(--ink-body)" }}
+              >
+                <span aria-hidden style={{ color: "var(--ink-faint)" }}>{"▸"}</span>
+                <span className="min-w-0 flex-1 truncate">{f.name}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => void newFolder()}
+            className="ink-focus flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors hover:bg-[var(--ink-raised)]"
+            style={{ color: "var(--ink-subtle)" }}
+          >
+            <span aria-hidden style={{ color: "var(--ink-faint)" }}>+</span>
+            New folder
+          </button>
+        </div>
+      </aside>
+
+      <section
+        className="flex w-full max-w-[400px] flex-none flex-col border-r"
+        style={{ borderColor: "var(--ink-hairline)" }}
+      >
+        <div className="flex-none px-4 pb-2 pt-6 md:hidden">
+          <h1 className="text-[18px] font-medium" style={{ color: "var(--ink-text)" }}>
+            Threads
+          </h1>
+          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ink-subtle)" }}>
+            Everything asked and answered, saved.
+          </p>
+        </div>
+        <div className="flex-none px-4 pb-2 pt-6 md:pt-6">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your threads"
+            className="ink-focus h-9 w-full rounded-lg border bg-[var(--ink-panel)] px-3 text-[12.5px]"
+            style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-text)" }}
+          />
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-8">
+          {q.isLoading || (searching && searchQ.isLoading) ? (
+            <div className="flex flex-col gap-2 px-1 pt-1">
+              <div className="ink-skeleton h-12 w-full rounded-[10px]" />
+              <div className="ink-skeleton h-12 w-full rounded-[10px]" />
+              <div className="ink-skeleton h-12 w-full rounded-[10px]" />
+            </div>
+          ) : threads.length === 0 ? (
+            <div
+              className="mx-1 mt-2 rounded-xl border border-dashed px-5 py-8 text-center"
+              style={{ borderColor: "var(--ink-hairline)" }}
+            >
+              <p className="text-[13px] leading-[1.55]" style={{ color: "var(--ink-body)" }}>
+                Nothing asked yet. Ask anything and it lands here, saved.
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="px-2 pt-3 text-[12.5px]" style={{ color: "var(--ink-subtle)" }}>
+              No threads match "{query}".
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3 pt-1">
+              {groups.map((g) => (
+                <div key={g.label} className="flex flex-col gap-1">
+                  <div
+                    className="px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em]"
+                    style={{ color: "var(--ink-faint)" }}
+                  >
+                    {g.label}
+                  </div>
+                  {g.items.map((t) => (
+                    <ThreadRow
+                      key={t.id}
+                      thread={t}
+                      selected={t.id === selected}
+                      onSelect={() => select(t.id)}
+                      folderName={folders.find((f) => f.id === t.folderId)?.name ?? null}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <ThreadPreview
+        threadId={selected}
+        folders={folders}
+        onMove={(folderId) => {
+          if (selected) moveMut.mutate({ threadId: selected, folderId });
+        }}
+      />
+    </div>
+  );
+}

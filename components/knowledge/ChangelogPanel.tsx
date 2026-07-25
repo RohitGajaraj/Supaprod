@@ -1,0 +1,258 @@
+// ChangelogPanel - Brain tab (OBS-10, folds the retired /changelog page).
+// Entries are materialized from merged studio changesets (the
+// studio_changeset_to_changelog trigger + the durable publishChangelogEntry
+// path), so a merge surfaces here automatically. Same server fn and grouping
+// logic as the legacy page; re-skinned in Obsidian tokens to match the rest
+// of Brain instead of the parchment bento rows the legacy page used.
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { ExternalLink, GitPullRequest } from "lucide-react";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { listChangelog } from "@/lib/changelog.functions";
+import { groupByProduct } from "@/lib/changelog";
+import { MonoLabel } from "@/components/obsidian/primitives";
+import { PanelSkeleton } from "./PanelSkeleton";
+import { ChangelogHeartbeat } from "@/components/changelog/ChangelogHeartbeat";
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "16px 18px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the groups show the top few
+// entries total (across every product group) and expand on demand, so
+// Changelog never becomes a long wall.
+const VISIBLE_ENTRIES = 8;
+
+export function ChangelogPanel() {
+  const { activeWorkspace } = useWorkspace();
+  const fChangelog = useServerFn(listChangelog);
+  const [showAll, setShowAll] = useState(false);
+  const query = useQuery({
+    queryKey: ["changelog", activeWorkspace?.id],
+    queryFn: () => fChangelog({ data: { workspaceId: activeWorkspace?.id } }),
+  });
+
+  if (query.isLoading) {
+    return <PanelSkeleton />;
+  }
+
+  if (query.isError) {
+    return (
+      <Card>
+        <MonoLabel style={{ marginBottom: 8 }}>Changelog · failed to load</MonoLabel>
+        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+          {(query.error as Error)?.message ?? "Unknown error"}
+        </p>
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads the changelog
+        </button>
+      </Card>
+    );
+  }
+
+  const entries = query.data?.entries ?? [];
+  const groups = groupByProduct(entries);
+
+  if (entries.length === 0) {
+    return (
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
+          borderRadius: "var(--radius-card)",
+          padding: "28px 26px",
+        }}
+      >
+        <p
+          style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px", lineHeight: 1.55 }}
+        >
+          Nothing shipped yet. When a Build session merges a change, its release notes appear here
+          automatically.
+        </p>
+        <Link
+          to="/build"
+          style={{
+            fontSize: "var(--text-label-13)",
+            color: "var(--text-subtle)",
+            textDecoration: "none",
+            fontFamily: "var(--font-mono)",
+          }}
+          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        >
+          Go to Build →
+        </Link>
+      </div>
+    );
+  }
+
+  // Cap the total rendered entries across every group (not per-group), since a
+  // single busy product could otherwise still fill the whole surface on its
+  // own. Group order and each group's internal (already-sorted) order stay
+  // intact; only the tail past the cap is trimmed.
+  let remaining = VISIBLE_ENTRIES;
+  const shownGroups = showAll
+    ? groups
+    : groups
+        .map((group) => {
+          if (remaining <= 0) return { ...group, entries: [] };
+          const take = group.entries.slice(0, remaining);
+          remaining -= take.length;
+          return { ...group, entries: take };
+        })
+        .filter((group) => group.entries.length > 0);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* RPT-45: the changelog heartbeat leads the list. The weekly "what shipped /
+          changed / was decided" pulse, generated from the ledger (zero hand-writing),
+          so the surface opens with the self-accountability supaprod before the raw feed. */}
+      {activeWorkspace?.id ? <ChangelogHeartbeat workspaceId={activeWorkspace.id} /> : null}
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {shownGroups.map((group) => (
+          <section key={group.label}>
+            <MonoLabel style={{ marginBottom: 10, display: "block" }}>{group.label}</MonoLabel>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {group.entries.map((e) => (
+                <article
+                  key={e.id}
+                  style={{
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "16px 18px",
+                  }}
+                >
+                  <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
+                    <h3
+                      style={{
+                        fontFamily: "var(--font-sans)",
+                        fontWeight: 460,
+                        fontSize: 15,
+                        color: "var(--text-primary)",
+                        margin: 0,
+                      }}
+                    >
+                      {e.title}
+                    </h3>
+                    <time
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11,
+                        color: "var(--text-faint)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {fmtDate(e.released_at)}
+                    </time>
+                  </div>
+                  {e.body ? (
+                    <p
+                      style={{
+                        fontSize: "var(--text-label-13)",
+                        color: "var(--text-subtle)",
+                        marginTop: 8,
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {e.body}
+                    </p>
+                  ) : null}
+                  {e.pr_url ? (
+                    <a
+                      href={e.pr_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      style={{
+                        gap: 6,
+                        marginTop: 12,
+                        fontSize: 12,
+                        color: "var(--link)",
+                        fontFamily: "var(--font-mono)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <GitPullRequest size={16} />
+                      {e.pr_number ? `PR #${e.pr_number}` : "View PR"}
+                      <ExternalLink size={16} />
+                    </a>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {entries.length > VISIBLE_ENTRIES ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: "var(--text-label-13)",
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 16,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${entries.length - VISIBLE_ENTRIES} more`}
+        </button>
+      ) : null}
+
+      <div style={{ marginTop: 24 }}>
+        <Link
+          to="/brain"
+          search={{ tab: "decisions" }}
+          style={{
+            fontSize: "var(--text-label-13)",
+            color: "var(--text-subtle)",
+            textDecoration: "none",
+            fontFamily: "var(--font-mono)",
+          }}
+          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        >
+          View outcomes →
+        </Link>
+      </div>
+    </div>
+  );
+}

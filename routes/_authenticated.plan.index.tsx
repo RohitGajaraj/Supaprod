@@ -1,0 +1,78 @@
+// Plan · LOOM W2 (2026-07-04): the Plan destination, v4 "Loom". Moved from
+// `_authenticated.plan.tsx` to the index position so the full spec editor can
+// live at the sibling `/plan/spec/$id` (re-homed from `/prds/$id`) without a
+// pass-through layout. Honors `?view=` (roadmap · specs · stakeholders) so the
+// `/roadmap` and `/stakeholder` legacy redirects land on the section they
+// promised (DESIGN-LOOM §9b: deep-link params are honored everywhere).
+import { createFileRoute } from "@tanstack/react-router";
+import { TopBar } from "@/components/supaprod/TopBar";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { PlanSurface, PLAN_VIEWS, type PlanView } from "@/components/plan/PlanSurface";
+import { IntelBriefPanel } from "@/components/today/IntelBriefPanel";
+
+export const Route = createFileRoute("/_authenticated/plan/")({
+  validateSearch: (search: Record<string, unknown>): { view?: PlanView } => {
+    const v = search.view;
+    return {
+      view: (PLAN_VIEWS as readonly string[]).includes(v as string) ? (v as PlanView) : undefined,
+    };
+  },
+  component: PlanPage,
+  head: () => ({ meta: [{ title: "Plan · Supaprod" }] }),
+  errorComponent: ({ error, reset }) => {
+    // Route-level crashes previously threw away the real error - log it so
+    // any future occurrence is diagnosable from the console instead of a
+    // silent "COULDN'T LOAD PLAN" with no trace.
+    console.error("[Plan] route crashed:", error);
+    return (
+      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
+        <div
+          style={{
+            padding: 24,
+            maxWidth: 560,
+            background: "var(--surface-card)",
+            borderRadius: "var(--radius-panel)",
+            boxShadow: "var(--shadow-elevated)",
+          }}
+        >
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+            COULDN'T LOAD PLAN
+          </div>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
+            {(error as Error)?.message ?? "Unknown error"}
+          </p>
+          <button
+            onClick={reset}
+            className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              marginTop: 14,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-subtle)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Retry · reloads Plan
+          </button>
+        </div>
+      </div>
+    );
+  },
+});
+
+function PlanPage() {
+  const { activeWorkspace } = useWorkspace();
+  const { view } = Route.useSearch();
+  return (
+    <>
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Plan"]} />
+      <PlanSurface view={view} />
+      {/* RPT-46: the daily upstream intelligence brief with receipts, mounted as
+          a Plan section below the fold. Gate-resilient: honest empty state while
+          the live feed is dormant, briefs once signals exist. */}
+      <IntelBriefPanel />
+    </>
+  );
+}

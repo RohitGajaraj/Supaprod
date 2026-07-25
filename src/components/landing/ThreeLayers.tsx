@@ -45,7 +45,7 @@ import { useEffect, useRef, useState } from "react";
  * 50ms apart. Reduced motion paints all three finished, with no travel.
  */
 
-type Layer = { n: string; name: string; claim: string; context: string };
+type Layer = { n: string; name: string; claim: string; context: string; hue: string };
 
 /**
  * Wording tracks the investor canon and the brief verbatim where it matters.
@@ -60,6 +60,7 @@ const LAYERS: Layer[] = [
     claim: "It tells you what to build.",
     context:
       "Reads your feedback, your data, your competitors, the market. Names what is worth building next, evidence attached. Your product taste becomes a system.",
+    hue: "#FF6B2C",
   },
   {
     n: "02",
@@ -67,6 +68,7 @@ const LAYERS: Layer[] = [
     claim: "It runs the whole lifecycle.",
     context:
       "Discover to ship to learn, one governed loop. Agents do the work in your own stack. You make every call that matters.",
+    hue: "#6cb0f5",
   },
   {
     n: "03",
@@ -74,6 +76,7 @@ const LAYERS: Layer[] = [
     claim: "It remembers, and it guides.",
     context:
       "Every decision is recorded with its evidence, then graded against what actually happened. It compounds. Next time it tells you what is right, and warns you before you repeat what was wrong.",
+    hue: "#E8B44C",
   },
 ];
 
@@ -85,37 +88,37 @@ const LAYERS: Layer[] = [
  * container rather than floating inside a frame. That is alignment, not
  * emphasis, and it is written once for all three.
  */
-const BEAT =
-  "layer-beat border-t border-white/[0.07] pt-7 pb-9 last:pb-0 " +
-  "md:pb-0 md:pt-8 md:pl-8 md:pr-8 md:border-l md:first:border-l-0 md:first:pl-0 md:last:pr-0";
+const BEAT = "layer-beat border-t border-white/[0.09] pt-6 pb-9 last:pb-0 md:pb-0 md:pt-7";
 
-/** The brief's .cn, first half: the number, quiet, in the machine's own voice. */
-const CN = "font-mono text-[10px] uppercase text-zinc-600";
-const CN_STYLE = { letterSpacing: "0.24em", fontVariantNumeric: "tabular-nums" } as const;
+/**
+ * The brief's .cn: number and layer name together, SMALL, and carrying the
+ * layer's colour. This is the correction the founder called with the reference
+ * screenshot in hand: the first pass made the NAME the big Pixel object and
+ * the claim a medium sentence, which is the hierarchy upside down. The name is
+ * a label. The claim is the impact. Labels are small, impact is big.
+ */
+const CN = "mb-3 block font-mono text-[11px] uppercase";
+const CN_STYLE = { letterSpacing: "0.2em", fontVariantNumeric: "tabular-nums" } as const;
 
-/** The brief's .cn, second half: the layer name, the brightest object here. */
-const CT = "text-white";
+/**
+ * The brief's .ct: the claim, and now the brightest, largest object in the
+ * column. Geist Pixel Square, the brand face, exactly as the reference sets it.
+ */
+const CT = "mb-3.5 text-white";
 const CT_STYLE = {
   fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
   fontWeight: 400,
-  fontSize: "clamp(17px, 1.8vw, 22px)",
-  lineHeight: 1.2,
+  fontSize: "clamp(19px, 2.05vw, 25px)",
+  lineHeight: 1.24,
   letterSpacing: "0",
 } as const;
 
 /**
- * The brief's .ct: the claim. One line, said flat, no hedge. This is the tier
- * a skimmer reads, so it sits a full step above the context under it.
- */
-const CC = "mb-2.5 text-[15px] text-zinc-200";
-const CC_STYLE = { lineHeight: 1.45, maxWidth: "30ch" } as const;
-
-/**
- * The brief's .cd: what the layer actually IS. The tier the first pass dropped,
- * and the only one that turns a slogan into something a reader can picture.
+ * The brief's .cd: what the layer actually IS. Deliberately the quietest tier,
+ * so the eye reads colour, then claim, then detail, in that order every time.
  */
 const CD = "text-[13px] text-zinc-500";
-const CD_STYLE = { lineHeight: 1.65, maxWidth: "40ch" } as const;
+const CD_STYLE = { lineHeight: 1.7, maxWidth: "42ch" } as const;
 
 export function ThreeLayers() {
   const [inView, setInView] = useState(false);
@@ -138,16 +141,29 @@ export function ThreeLayers() {
 
   return (
     <section id="layers" ref={sectionRef} className="relative px-4 py-32 scroll-mt-16">
-      {/* The spotlight. One pool of warm light, centred on the band, wide and
-          weak enough (5%) that it lifts all three columns off the ink without
-          ever reading as a highlight on any one of them. This is the section's
-          light, not a layer's: see the header note. */}
+      {/* The spotlight, built like an actual one. A single weak wash read as
+          nothing (founder: "make it like a spotlight properly"), because a
+          spotlight is not just added light, it is light AND falloff. Three
+          stacked layers, in paint order:
+
+            1. a warm ember pool, centred and elliptical, carrying the hue
+            2. a neutral lift right under the type, so the text gains contrast
+               rather than just sitting in an orange haze
+            3. a vignette that pulls the edges back down toward the ink, which
+               is what actually makes the middle read as lit
+
+          All three are section-wide and symmetric about the centre, so no
+          column is favoured. Static paint, no animation, no blur filter: this
+          costs one composited layer and nothing per frame. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            "radial-gradient(58% 52% at 50% 46%, rgba(255,107,44,0.05), transparent 72%)",
+          background: [
+            "radial-gradient(66% 58% at 50% 44%, rgba(255,107,44,0.10), rgba(255,107,44,0.035) 46%, transparent 76%)",
+            "radial-gradient(52% 42% at 50% 42%, rgba(255,255,255,0.04), transparent 72%)",
+            "radial-gradient(88% 78% at 50% 50%, transparent 38%, rgba(0,0,0,0.5) 100%)",
+          ].join(", "),
         }}
       />
       <style>{`
@@ -166,33 +182,61 @@ export function ThreeLayers() {
       `}</style>
 
       <div className="relative mx-auto max-w-5xl">
-        <p
-          className="mb-10 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
-          style={{ letterSpacing: "0.14em" }}
+        {/* Section header, rebuilt from the reference. "One system, three
+            layers" was a zinc-600 mono kicker: the single most important
+            sentence in the band, set smaller and darker than the body copy
+            under it, which is why the founder could not read it. It is a
+            headline now, in the brand face, at headline size. The ember rule
+            beside the kicker is the reference's own device and it does the
+            work a heavier treatment would have to fake. */}
+        <div className="mb-3 flex items-center gap-4">
+          <span
+            className="font-mono text-[11px] uppercase md:text-[12px]"
+            style={{ color: "#FF6B2C", letterSpacing: "0.2em" }}
+          >
+            What we are building
+          </span>
+          <span
+            aria-hidden
+            className="h-px w-14 md:w-24"
+            style={{ background: "linear-gradient(90deg, rgba(255,107,44,0.5), transparent)" }}
+          />
+        </div>
+        <h2
+          className="mb-12 text-white"
+          style={{
+            fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+            fontWeight: 400,
+            fontSize: "clamp(26px, 3.6vw, 40px)",
+            lineHeight: 1.18,
+            letterSpacing: "0",
+          }}
         >
-          One system, three layers
-        </p>
+          One system, three layers.
+        </h2>
 
         {/* Three across from md up. Below that the columns cannot breathe, so
             they stack and the vertical rules become horizontal ones. */}
-        <div className="grid grid-cols-1 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-10 md:grid-cols-3">
           {LAYERS.map((l, i) => (
             <div
               key={l.n}
               className={beat}
               style={{ transitionDelay: inView ? `${i * 50}ms` : "0ms" }}
             >
-              <h3 className="mb-3.5 flex items-baseline gap-2.5">
-                <span className={CN} style={CN_STYLE}>
-                  {l.n}
-                </span>
-                <span className={CT} style={CT_STYLE}>
-                  {l.name}
-                </span>
-              </h3>
-              <p className={CC} style={CC_STYLE}>
+              {/* Colour is the only per-layer difference, and every layer has
+                  one, so it is a system rather than a spotlight on a favourite.
+                  The hues are the landing's own, NOT the brief's: this page has
+                  already taught gold = memory (Replay), blue = machine, ember =
+                  the human, so 03 takes gold because it IS the memory layer.
+                  Borrowing the brief's marigold-for-01 would have put gold on
+                  the director and contradicted the replay two sections down. */}
+              <span className={CN} style={{ ...CN_STYLE, color: l.hue }}>
+                {l.n} &middot; {l.name}
+              </span>
+              <h3 className={CT} style={CT_STYLE}>
                 {l.claim}
-              </p>
+              </h3>
               <p className={CD} style={CD_STYLE}>
                 {l.context}
               </p>

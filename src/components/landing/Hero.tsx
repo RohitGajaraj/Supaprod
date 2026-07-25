@@ -35,6 +35,10 @@ import { MarkGlint } from "./MarkGlint";
  *    and no focus ring, so the tint reads as the line answering the pointer
  *    rather than as a link. The affordance law is respected in the signals
  *    that actually promise a click, which these do not send.
+ *
+ *    Extended the same day to the headline's loop line: "builds it. ships it.
+ *    grades it. gets sharper." are four separate hover targets on the same
+ *    terms. Same rule, same reason, same ban on lighting them as a group.
  * 10. One left rule for the whole page. The hero was max-w-6xl / px-6 while
  *    every section below it is max-w-5xl / px-4, so the eye entered at two
  *    different x positions. The hero now shares the page rule, and every
@@ -83,6 +87,7 @@ export function Hero() {
           box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
         }
         .hero-spec-key { color: #d4d4d8; transition: color 0.2s ease; }
+        .hero-loop-verb { transition: color 0.2s ease; }
         @media (hover: hover) and (pointer: fine) {
           .hero-cta:hover { background-color: #ff8344; }
           .hero-quiet:hover { color: #ffffff; }
@@ -91,10 +96,12 @@ export function Hero() {
           /* One phrase at a time. Founder 2026-07-25, explicit and repeated:
              hovering the column must NOT warm all three together, only the
              phrase under the pointer. See note 9. */
-          .hero-spec-key:hover { color: #FF6B2C; }
+          .hero-spec-key:hover,
+          .hero-loop-verb:hover { color: #FF6B2C; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hero-spec-key { transition: none; }
+          .hero-spec-key,
+          .hero-loop-verb { transition: none; }
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-rise { animation: heroFade 0.5s cubic-bezier(0.23, 1, 0.32, 1) both; }
@@ -114,7 +121,7 @@ export function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-5xl">
-        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.12fr_auto_0.6fr]">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.12fr_auto_0.6fr] lg:gap-8">
           {/* Mobile: the mark, left aligned on the same rule as the text so
               the eye enters at one x position on every device. */}
           <div className="hero-rise relative mb-4 flex justify-start lg:hidden">
@@ -131,15 +138,23 @@ export function Hero() {
 
           {/* Left: the claim */}
           <div className="text-left">
-            {/* Who it is for, and the only ember word on the page above the
-                fold. The connectives sit at zinc-600, "agents" one stop up at
-                zinc-400, and the audience alone carries hue. */}
+            {/* Who it is for, and the two actors, each in its own voice.
+                "agents" used to sit at plain zinc-400, which said nothing. It
+                now carries machine blue, the colour the replay and the 80%
+                stat already use for the machine (founder asked 2026-07-25
+                whether it should be marked too, and the page's own palette
+                already had the answer). One line, two colours, and the
+                reader learns the page's colour language before the headline:
+                ember is the human, blue is the machine. The connectives stay
+                at zinc-600 so only the two nouns carry hue. */}
             <p
               className="hero-rise mb-5 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
               style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
               For <span className="font-medium text-[#FF6B2C]">product managers</span> who ship with{" "}
-              <span className="text-zinc-400">agents</span>
+              <span className="font-medium" style={{ color: "#6cb0f5" }}>
+                agents
+              </span>
             </p>
 
             <h1
@@ -152,23 +167,53 @@ export function Hero() {
                 textWrap: "balance",
               }}
             >
-              {/* The one brightest object on the page. */}
-              <span className="block text-[30px] leading-[1.16] md:text-[40px] lg:text-[44px]">
+              {/* The one brightest object on the page, and now the largest by
+                  a clear margin (founder 2026-07-25: "make it a little bigger
+                  so it gets a little highlight"). Only this line grew; the
+                  loop line under it deliberately did not. Scaling both would
+                  have kept the ratio identical and bought no emphasis at all,
+                  so the step between them is what actually widened: at lg it
+                  goes from 44/32 to 52/32. */}
+              <span className="block text-[34px] leading-[1.14] md:text-[46px] lg:text-[52px]">
                 Supaprod tells you what to build.
               </span>
               {/* The loop, a real size step down and two stops darker, so the
                   demotion is carried by scale and colour together. */}
+              {/* Each stage of the loop answers the pointer on its own, the
+                  same per-item grammar as the spec column opposite (founder
+                  2026-07-25). Four separate targets, never lit together. */}
               <span className="mt-3 block text-[21px] leading-[1.3] text-zinc-500 md:text-[28px] lg:text-[32px]">
-                then builds it. ships it. grades it. gets sharper.
+                then <span className="hero-loop-verb">builds it.</span>{" "}
+                <span className="hero-loop-verb">ships it.</span>{" "}
+                <span className="hero-loop-verb">grades it.</span>{" "}
+                <span className="hero-loop-verb">gets sharper.</span>
               </span>
             </h1>
 
+            {/* One line on desktop (founder 2026-07-25). It used to break with
+                "the next call." alone on line two, which is a widow, and a
+                widow is what actually read as unoptimised.
+
+                Measured, not guessed. In the lg grid this column is exactly
+                500px at every desktop width (max-w-5xl caps the container, so
+                the number does not drift). At 18px the old sentence needed
+                605px, so one line was never possible without cutting words:
+                "the next call" went, and "guide" carries it alone, which the
+                headline's "gets sharper" and layer 03 both already say.
+
+                The trimmed sentence measures 499px at 18px in a 500px column.
+                A 1px margin is not a margin, so lg also drops to 17px and the
+                column gains 11px from a tighter gutter. Measured after the
+                change: 472px of text in a 511px column, 39px of slack, one
+                line. The 48ch cap resolves to 541px at 17px so it never binds
+                here; below lg it is what keeps the sentence wrapping sanely on
+                a phone, where none of the rest of this applies. */}
             <p
-              className="hero-rise mb-9 text-base leading-relaxed text-zinc-400 md:text-lg"
+              className="hero-sub hero-rise mb-9 text-base leading-relaxed text-zinc-400 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
-              Agents that know what to build, ship it, remember,{" "}
-              <span className="text-zinc-300">and guide the next call.</span>
+              Agents that know what to build, ship it,{" "}
+              <span className="text-zinc-300">remember, and guide.</span>
             </p>
 
             <div
@@ -229,20 +274,24 @@ export function Hero() {
               baseline rhythm and one type register already read as a column,
               and the hairline was competing with the mark's glow. The payload
               phrases sit two stops above their connectives. */}
+          {/* Two columns, three rows, never four lines (founder 2026-07-25:
+              "put it in three lines, not four"). It used to be a flex stack of
+              three sentences, so each row wrapped wherever it ran out of room
+              and the payload phrases started at three different x positions.
+              The verbs now share an auto-width column and every payload starts
+              on one rule, which is what fixes the "positioning and look and
+              feel". "while it still matters" lost "still" for the same reason:
+              it was the one phrase too wide to hold its line. */}
           <div
-            className="hero-spec hero-rise group hidden flex-col gap-3 pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:flex"
-            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
+            className="hero-spec hero-rise hidden pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:grid lg:grid-cols-[auto_1fr] lg:gap-x-3 lg:gap-y-3.5"
+            style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.5 }}
           >
-            <span>
-              to decide <span className="hero-spec-key whitespace-nowrap">what to build</span>
-            </span>
-            <span>
-              to ship it{" "}
-              <span className="hero-spec-key whitespace-nowrap">while it still matters</span>
-            </span>
-            <span>
-              to know <span className="hero-spec-key whitespace-nowrap">if you were right</span>
-            </span>
+            <span>to decide</span>
+            <span className="hero-spec-key whitespace-nowrap">what to build</span>
+            <span>to ship</span>
+            <span className="hero-spec-key whitespace-nowrap">while it matters</span>
+            <span>to know</span>
+            <span className="hero-spec-key whitespace-nowrap">if you were right</span>
           </div>
         </div>
       </div>
