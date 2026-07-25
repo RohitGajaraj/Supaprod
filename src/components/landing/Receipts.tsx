@@ -212,8 +212,24 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
           })}
           <div className="border-t border-white/[0.07]" aria-hidden />
 
-          {/* The moat, stated plainly for the first time on this page. */}
-          <p className="text-base text-zinc-400 mt-10 leading-relaxed" style={{ maxWidth: "52ch" }}>
+          {/* The moat, stated plainly for the first time on this page.
+              Founder asked whether this should be one line instead of three.
+              It should not: at 163 characters one line runs about three times
+              the length an eye can track back from, which is what the 45 to 75
+              character rule exists to prevent. It sets 54 per line today,
+              right in the band, so the wrap is correct and the LOOK was the
+              real complaint.
+
+              The cause was size, not line count. It read as a footnote because
+              it was rendering at 14px: `text-base` resolves through Tailwind
+              v4's --text-base, and the Tempo tokens claim that exact variable
+              ([data-obsidian] sets it to 14px), so the utility silently
+              renders a step below its name across this whole page. An explicit
+              px value sidesteps the collision. See the note in styles.css. */}
+          <p
+            className="mt-10 text-[17px] leading-relaxed text-zinc-300"
+            style={{ maxWidth: "52ch" }}
+          >
             Verdicts take weeks. The record accrues in calendar time. It cannot be backfilled,
             bought, or bolted on. A competitor starting next year starts at zero, next year.
           </p>
