@@ -224,7 +224,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               so a strategy drifting out of date surfaces itself.
             </p>
             <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
-              <Button variant="primary" onClick={advance}>
+              <Button variant="accent" onClick={advance}>
                 Start
               </Button>
               <Button variant="link" size="sm" onClick={onClose}>
@@ -282,7 +282,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                   Skip
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="accent"
                   onClick={() => void saveSingletonAndAdvance()}
                   loading={save.isPending}
                 >
@@ -390,7 +390,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               >
                 Back
               </Button>
-              <Button variant="primary" onClick={advance}>
+              <Button variant="accent" onClick={advance}>
                 Review
               </Button>
             </div>
@@ -476,7 +476,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               >
                 Back
               </Button>
-              <Button variant="primary" onClick={onClose}>
+              <Button variant="accent" onClick={onClose}>
                 Done
               </Button>
             </div>

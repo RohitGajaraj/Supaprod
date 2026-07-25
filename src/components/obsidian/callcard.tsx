@@ -214,7 +214,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         <div className="flex flex-col gap-2 pt-1">
           <div className="flex items-center gap-3">
             <Button
-              variant="primary"
+              variant="accent"
               onClick={handleOk}
               className={featured ? "hover:brightness-110" : "hover:brightness-125"}
               style={

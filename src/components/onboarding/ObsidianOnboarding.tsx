@@ -372,7 +372,7 @@ function ProductStep({
         <div style={{ marginTop: 16 }}>
           <Button
             type="submit"
-            variant="primary"
+            variant="accent"
             disabled={saving || busy}
             loading={saving || busy}
           >
@@ -790,7 +790,7 @@ export function ObsidianOnboarding() {
           </p>
           <div style={{ marginTop: 24 }}>
             <Button
-              variant="primary"
+              variant="accent"
               onClick={() => {
                 setPhase("product");
               }}
@@ -1022,7 +1022,7 @@ export function ObsidianOnboarding() {
               />
               <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
                 <Button
-                  variant="primary"
+                  variant="accent"
                   disabled={!pasteNotes.trim()}
                   title={!pasteNotes.trim() ? "Paste some notes first" : undefined}
                   onClick={() => {
@@ -1083,7 +1083,7 @@ export function ObsidianOnboarding() {
           )}
           <div style={{ marginTop: 16 }}>
             <Button
-              variant="primary"
+              variant="accent"
               disabled={running || belief.trim().length < 3}
               onClick={() => mFinish.mutate()}
               style={{ width: "100%" }}
@@ -1225,7 +1225,7 @@ export function ObsidianOnboarding() {
               </div>
 
               <div style={{ marginTop: 8 }}>
-                <Button variant="primary" onClick={leave} style={{ width: "100%" }}>
+                <Button variant="accent" onClick={leave} style={{ width: "100%" }}>
                   Go to your workspace
                 </Button>
               </div>
@@ -1243,7 +1243,7 @@ export function ObsidianOnboarding() {
               </p>
               <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
                 <Button
-                  variant="primary"
+                  variant="accent"
                   disabled={mFinish.isPending}
                   onClick={() => {
                     setPhase("critic");

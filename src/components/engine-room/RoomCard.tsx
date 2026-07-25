@@ -197,7 +197,7 @@ export function RoomCardError({
         {message}
       </span>
       <span>
-        <Button variant="quiet" onClick={onRetry}>
+        <Button variant="tertiary" onClick={onRetry}>
           RETRY
         </Button>
       </span>
