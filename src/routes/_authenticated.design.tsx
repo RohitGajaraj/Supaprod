@@ -63,7 +63,7 @@ function PrototypeRow({ proto }: { proto: PrototypeSummary }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
           style={{
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 500,
             color: "var(--text-primary)",
             margin: 0,
@@ -147,7 +147,7 @@ function PublishFromSpec() {
             background: "var(--card)",
             borderRadius: "var(--radius-control)",
             padding: "0 10px",
-            fontSize: 13,
+            fontSize: 14,
             color: "var(--text-primary)",
             cursor: prds.isLoading || specs.length === 0 ? "default" : "pointer",
           }}

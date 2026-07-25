@@ -125,7 +125,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load Settings
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}>
+          <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}>
             {(error as Error)?.message ?? "Unknown error"}
           </p>
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={reset}>
@@ -362,7 +362,7 @@ function AdminDoor() {
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 13, color: "var(--text-primary)", margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14, color: "var(--text-primary)", margin: 0, fontWeight: 500 }}>
             This workspace has no admin yet
           </p>
           <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 10px" }}>
@@ -470,14 +470,14 @@ function SettingsPage() {
                 className="rounded-xl border p-5"
                 style={{ borderColor: "var(--border)", background: "var(--surface)" }}
               >
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
                   Memory lives in Brain
                 </h2>
                 <p
                   style={{
                     marginTop: 6,
                     maxWidth: 460,
-                    fontSize: 13,
+                    fontSize: 14,
                     lineHeight: 1.55,
                     color: "var(--text-body)",
                   }}
@@ -488,7 +488,7 @@ function SettingsPage() {
                 <Link
                   to="/brain"
                   className="loom-press mt-3 inline-block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{ fontSize: 13, color: "var(--link)" }}
+                  style={{ fontSize: 14, color: "var(--link)" }}
                 >
                   Open Brain →
                 </Link>
@@ -1875,7 +1875,7 @@ function ModelsTab() {
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load your model settings
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8 }}>
             {(profile.error as Error)?.message ?? "Unknown error"}
           </p>
           <button
@@ -1909,7 +1909,7 @@ function ModelsTab() {
               gap: 12,
               padding: "13px 18px",
               borderBottom: editing ? "1px solid var(--hairline)" : "none",
-              fontSize: 13,
+              fontSize: 14,
             }}
           >
             <span style={{ flex: 1, color: "var(--ink-muted)" }}>
@@ -1993,7 +1993,7 @@ function ModelsTab() {
               gap: 12,
               padding: "13px 18px",
               borderBottom: editingAgentic ? "1px solid var(--hairline)" : "none",
-              fontSize: 13,
+              fontSize: 14,
             }}
           >
             <span style={{ flex: 1, color: "var(--ink-muted)" }}>
@@ -2305,7 +2305,7 @@ function ByoKeysSection() {
                   padding: "10px 0",
                   borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
                   borderBottom: "1px solid var(--hairline)",
-                  fontSize: 13,
+                  fontSize: 14,
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -2498,7 +2498,7 @@ function StaffTab() {
         <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--voice-human)" }}>
           Couldn't load agents
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-subtle)", marginTop: 8 }}>
+        <p style={{ fontSize: 14, color: "var(--ink-subtle)", marginTop: 8 }}>
           {(agentsQ.error as Error)?.message}
         </p>
         <button
@@ -3232,7 +3232,7 @@ function ProfileTab() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load your profile
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8 }}>
           {(profile.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -3252,7 +3252,7 @@ function ProfileTab() {
         e.preventDefault();
         save.mutate();
       }}
-      style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 480 }}
+      style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 480 }}
     >
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         {name ? (

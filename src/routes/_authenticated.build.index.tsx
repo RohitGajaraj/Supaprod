@@ -91,7 +91,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
           COULDN'T LOAD BUILD
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -295,7 +295,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         background: "var(--surface-card)",
         borderRadius: "var(--radius-panel)",
         boxShadow: "var(--top-light), var(--shadow-ambient)",
-        padding: 18,
+        padding: 16,
         display: "flex",
         flexDirection: "column",
         gap: 10,
@@ -342,7 +342,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 style={{
                   display: "block",
                   fontFamily: "var(--font-sans)",
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 600,
                   color: active ? "var(--text-primary)" : "var(--text-body)",
                 }}
@@ -379,7 +379,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: "8px 10px",
-            fontSize: 13,
+            fontSize: 14,
             color: "var(--text-primary)",
           }}
         />
@@ -408,7 +408,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-control)",
           padding: 10,
-          fontSize: 13,
+          fontSize: 14,
           color: "var(--text-primary)",
         }}
       />
@@ -552,7 +552,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             marginLeft: "auto",
             flexShrink: 0,
             fontFamily: "var(--font-sans)",
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 600,
             // Neutral, not ember: Start is the user's own initiating click, not a
             // needs-a-human gate. The restraint budget reserves ember for the ONE
@@ -779,7 +779,7 @@ function BuildPage() {
                 >
                   COULDN'T LOAD MISSIONS
                 </div>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
                   {(sessions.error as Error)?.message?.slice(0, 160)}
                 </p>
                 <button
@@ -832,14 +832,14 @@ function BuildPage() {
                   <p
                     style={{
                       fontFamily: "var(--font-pixel)",
-                      fontSize: 17,
+                      fontSize: 18,
                       color: "var(--text-primary)",
                       margin: 0,
                     }}
                   >
                     Nothing building yet
                   </p>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+                  <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
                     Agents dispatch builds from approved specs, or describe the work above in plain
                     language. A first build usually starts within a minute.
                   </p>

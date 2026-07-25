@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
             COULDN'T LOAD PLAN
           </div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
             {(error as Error)?.message ?? "Unknown error"}
           </p>
           <button

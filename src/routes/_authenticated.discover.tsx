@@ -41,14 +41,14 @@ export const Route = createFileRoute("/_authenticated/discover")({
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-card)",
             boxShadow: "var(--top-light)",
-            padding: "16px 18px",
+            padding: "16px 16px",
             maxWidth: 560,
           }}
         >
           <MonoLabel style={{ marginBottom: 8, display: "block" }}>
             Discover · failed to load
           </MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12, margin: 0 }}>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12, margin: 0 }}>
             Reload the page. Nothing here is lost.
           </p>
           <button

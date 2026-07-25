@@ -156,7 +156,7 @@ const TAB_DESC: Record<Tab, string> = {
 // one-line description in muted ink.
 function MemoryTabRow({ active, onSet }: { active: Tab; onSet: (id: Tab) => void }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div className="mb-5">
       <FlashlightTabs
         tabs={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
         active={active}
@@ -181,7 +181,7 @@ function MemoryMachineryDisclosure({
   const [open, setOpen] = useState(false);
   if (!counts) return null;
   return (
-    <div style={{ marginTop: 20 }}>
+    <div className="mt-5">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -246,7 +246,7 @@ function MemoryMachineryDisclosure({
             The counts every agent reads before it acts. You never need these to use Memory; they
             exist so a curious eye can see the substrate is real.
           </p>
-          <div className="flex flex-wrap" style={{ gap: 16 }}>
+          <div className="flex flex-wrap gap-4">
             {counts.map((c) => (
               <span
                 key={c.label}
@@ -401,7 +401,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
   ),
   notFoundComponent: () => (
     <MemorySurface>
-      <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
+      <p style={{ fontSize: 14, color: "var(--text-subtle)", margin: 0 }}>
         This record doesn't exist or was removed. Everything Memory holds is on its four tabs.
       </p>
       <a
@@ -560,7 +560,7 @@ function MemoryPage() {
         <div
           className="flex flex-wrap items-center"
           style={{
-            gap: 18,
+            gap: 16,
             background: "var(--surface-card-deep)",
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-card)",
