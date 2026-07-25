@@ -29,11 +29,21 @@ const START_MS = 260;
 /** What the Decisions row types into its empty cell.
  *
  * Every other row names WHERE that craft lives. This one answers the same
- * question honestly: decisions live in chat and in people's heads. It states a
- * situation, it does not blame a vendor, which is the standing rule for naming
- * Slack on this page. It deliberately does not repeat the status column's
- * "no home": the cell answers where, the status answers what that means. */
-const MISSING_ANSWER = "Slack threads, your memory";
+ * question honestly, and in the same grammar: three places, not one place and
+ * one abstraction. It deliberately does not repeat the status column's
+ * "no home": the cell answers where, the status answers what that means.
+ *
+ * WORDED FROM THE BRIEF (founder 2026-07-25). This read "Slack threads, your
+ * memory" and now matches public/brief.html's own Decisions row verbatim, so
+ * the deck and the site tell the problem in identical words. Two things
+ * improved by the swap beyond consistency: it names three WHEREs where the old
+ * line named one place plus a feeling, and it drops the vendor, which the
+ * standing rule for this page asks for and which the old line broke twice over
+ * since the quote immediately to its left already says Slack.
+ *
+ * Both strings are 26 characters, so the sizer, the row width and the typing
+ * timings are all unaffected by the change. */
+const MISSING_ANSWER = "heads, threads, scrollback";
 
 /**
  * Named complimentarily, as the AI-native home of that craft (founder ruling
@@ -80,8 +90,8 @@ const CRAFT_HOMES: { craft: string; tools: string | null; status: string }[] = [
  *    are a real three-column grid now (108px craft / fluid tools / 132px
  *    right-set status), one line per craft at every size above 640px, with
  *    every column edge landing on the same rule. The Decisions row is the
- *    payoff: the only ember row, and its empty cell is a dashed hollow slot
- *    so the eye lands on the hole rather than on a word.
+ *    payoff: the only ember row, and its cell answers itself in ember text
+ *    rather than naming a tool, so the eye lands on the absence.
  * 5. The two pieces of evidence sat one under the other with the right half
  *    of the section empty. They are a two-column pair from 768px up (the
  *    quote a human said, the number a study measured) and only stack below.
@@ -98,9 +108,17 @@ export function TheGap() {
   // SSR ships the finished string; the run only starts once in view.
   const [slotTyped, setSlotTyped] = useState(MISSING_ANSWER);
   const [slotTyping, setSlotTyping] = useState(false);
-  // The hole gets exactly one run, ever. The headline loops forever, so
-  // without this latch every cycle would retrigger it.
-  const slotDoneRef = useRef(false);
+  // The hole used to get exactly one run, ever, held down by a latch. It loops
+  // now (founder 2026-07-25), so the latch is gone and the two TAKE TURNS
+  // instead: word types, holds, hands over; hole types, holds, erases, hands
+  // back; word erases, and round again. Strict alternation is what lets both
+  // run forever while the one-caret rule below still holds, because only one
+  // of them is ever mid-run.
+  //
+  // This flag is the whole handshake. It tells the headline it is resuming
+  // FROM the hole rather than starting cold, which is what decides whether it
+  // erases its finished word or blanks and retypes it.
+  const resumeRef = useRef(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -160,14 +178,11 @@ export function TheGap() {
         at(TYPE_MS, () => typeIn(i + 1));
         return;
       }
-      if (!slotDoneRef.current) {
-        at(HOLD_MS, () => {
-          slotDoneRef.current = true;
-          setSlotTyping(true);
-        });
-        return;
-      }
-      at(HOLD_MS, () => eraseOut(TYPED_WORD.length - 1));
+      // EVERY cycle hands the stage over now, not just the first. The word
+      // stays on screen at full length while the hole writes; all that moves
+      // is the caret, so the handover reads as one terminal doing two things
+      // in order rather than two effects competing.
+      at(HOLD_MS, () => setSlotTyping(true));
     };
 
     const eraseOut = (i: number) => {
@@ -179,9 +194,19 @@ export function TheGap() {
       at(GAP_MS, () => typeIn(1));
     };
 
-    setTyped("");
-    setTyping(true);
-    at(START_MS, () => typeIn(1));
+    if (resumeRef.current) {
+      // Coming back from the hole. The word is still on screen at full length
+      // because handing over never cleared it, so it ERASES from there. If it
+      // blanked and retyped instead, the word would visibly pop out of
+      // existence every cycle, which is the one thing a terminal never does.
+      resumeRef.current = false;
+      setTyping(true);
+      at(GAP_MS, () => eraseOut(TYPED_WORD.length - 1));
+    } else {
+      setTyped("");
+      setTyping(true);
+      at(START_MS, () => typeIn(1));
+    }
     return () => {
       cancelled = true;
       clearTimeout(timer);
@@ -190,8 +215,8 @@ export function TheGap() {
 
   // The hole answers itself. Same terminal grammar as the headline word, and it
   // only starts once that one has finished and released its caret, so exactly
-  // one caret is alive on the section at any moment. The dashed slot already
-  // reserves its own box, so nothing reflows while the characters land.
+  // one caret is alive on the section at any moment. An invisible sizer holds
+  // the finished string at full width, so nothing reflows as characters land.
   useEffect(() => {
     if (!slotTyping) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
@@ -202,16 +227,44 @@ export function TheGap() {
         if (!cancelled) fn();
       }, ms);
     };
-    const step = (i: number) => {
+    const typeIn = (i: number) => {
       setSlotTyped(MISSING_ANSWER.slice(0, i));
       if (i < MISSING_ANSWER.length) {
-        at(52, () => step(i + 1));
-      } else {
-        at(900, () => setSlotTyping(false));
+        at(52, () => typeIn(i + 1));
+        return;
       }
+      // Finished, so hold and hand the caret back WITHOUT erasing. Leaving the
+      // sentence standing is the whole point of the phasing below.
+      resumeRef.current = true;
+      at(HOLD_MS, () => setSlotTyping(false));
     };
-    setSlotTyped("");
-    at(120, () => step(1));
+
+    // Erasing is faster than typing for the same reason it is on the headline:
+    // deleting is a held backspace, typing is not. 28ms against the 52ms type
+    // rate keeps the ratio the word uses at 65 against 120, and it matters
+    // more here because this string is 26 characters rather than 4.
+    const eraseOut = (i: number) => {
+      setSlotTyped(MISSING_ANSWER.slice(0, i));
+      if (i > 0) {
+        at(28, () => eraseOut(i - 1));
+        return;
+      }
+      at(GAP_MS, () => typeIn(1));
+    };
+
+    // THE CELL CLEARS AT THE START OF ITS TURN, NOT THE END. Erasing on the
+    // way out looked right in the code and was wrong on screen: the cell then
+    // sat empty for the entire headline turn, which is half of a seven second
+    // cycle. That was survivable when a dashed outline still marked the hole,
+    // and it is not now that the outline is gone, because an empty cell in a
+    // table of filled ones just reads as a row that failed to load.
+    //
+    // Clearing on the way IN inverts it. The finished sentence holds the cell
+    // for the whole of the headline's turn, and the row is only blank for the
+    // moment it takes to rewrite itself. SSR ships the finished string, so the
+    // very first turn also starts from full text and this reads as intended
+    // rather than as a flash of empty.
+    eraseOut(MISSING_ANSWER.length - 1);
     return () => {
       cancelled = true;
       clearTimeout(timer);
@@ -234,9 +287,17 @@ export function TheGap() {
       <style>{`
         @keyframes gapBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.16; } }
         .gap-caret { animation: gapBlink 1.15s steps(1) infinite; }
+        /* The turn, on hover (founder 2026-07-25: "that is the core problem,
+           when we hover on it it should turn ember"). Same grammar the hero
+           already teaches for its spec phrases and loop verbs, so the page has
+           one hover language rather than a new one per section. Colour only,
+           on the founder's ease-out curve. */
+        .gap-turn { transition: color 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+        .gap-turn:hover { color: #FF6B2C; }
         @media (prefers-reduced-motion: reduce) {
           .gap-caret { animation: none; opacity: 1; }
           .gap-reveal { transform: none !important; transition-property: opacity; }
+          .gap-turn { transition: none; }
         }
       `}</style>
       <div className="mx-auto max-w-5xl">
@@ -336,19 +397,27 @@ export function TheGap() {
                 </span>
                 <span className="text-[12px] leading-snug text-zinc-300">
                   {missing ? (
-                    // The hole, drawn. A hollow dashed slot where a tool name
-                    // sits on every other row: the eye lands on the absence.
-                    // Held at its own height while everything around it got
-                    // smaller, because the absence is the argument.
-                    // The hole, and then its own answer typed into it. The box
-                    // is sized by an invisible sizer holding the finished
-                    // string, so the row never reflows as characters land.
-                    <span className="relative inline-flex min-h-[1.5em] w-full max-w-[232px] items-center rounded-[3px] border border-dashed border-[#FF6B2C]/45 bg-[#FF6B2C]/[0.045] px-1.5">
+                    // The hole, and its answer typed into it.
+                    //
+                    // NO BOX (founder 2026-07-25). This carried a dashed ember
+                    // outline and a tinted fill, drawn back when the cell was
+                    // genuinely empty and the outline was the only thing making
+                    // the absence visible. Once the cell types a real sentence
+                    // that reason expired, and the outline started doing harm:
+                    // it read as an input field, which invites a click that does
+                    // nothing, and it was the only boxed cell in a table whose
+                    // every other row is bare text. The text carries the row now,
+                    // in ember, exactly as the brief sets its own emphasis.
+                    //
+                    // The invisible sizer STAYS. It holds the finished string at
+                    // full width so the row cannot reflow while characters land,
+                    // which is a layout job the border was never doing.
+                    <span className="relative inline-flex min-h-[1.5em] w-full max-w-[232px] items-center">
                       <span aria-hidden className="invisible whitespace-pre text-[12px]">
                         {MISSING_ANSWER}
                       </span>
                       <span
-                        className="absolute left-1.5 right-1.5 whitespace-pre text-[12px]"
+                        className="absolute left-0 right-0 whitespace-pre text-[12px]"
                         style={{ color: "#FF6B2C" }}
                       >
                         {slotTyped}
@@ -443,16 +512,39 @@ export function TheGap() {
             <span className={EXHIBIT_LABEL} style={EXHIBIT_LABEL_STYLE}>
               What it costs
             </span>
-            <PixelStat
-              value="80%"
-              glow
-              style={{
-                display: "block",
-                marginBottom: 10,
-                fontSize: "clamp(42px, 5.4vw, 62px)",
-                color: "#6cb0f5",
-              }}
-            />
+            {/* SIDE BY SIDE (founder 2026-07-25: "the text is overpowering,
+                can we have the text adjacent to that eighty percent number,
+                and there is no need for reducing the size of eighty percent").
+
+                The number was stacked above the sentence, so the eye read a
+                big number, then a big paragraph, and the paragraph won on
+                sheer area. Setting them as a pair fixes that without touching
+                the number: the sentence now has to share the line, so it stops
+                being a block and becomes the number's caption.
+
+                WHY ONLY THE FIRST CLAUSE sits here. The whole sentence beside
+                the number would need roughly 14px type to hold two lines in
+                the ~350px this column has left, which is unreadable. The first
+                clause alone is 45 characters, which sets to exactly two lines
+                at 24px, and two lines at leading-snug is about 66px against
+                the number's 62px. That near-match is why they centre cleanly
+                and why the pair reads as one object. The turn that follows is
+                a separate thought anyway, so it drops below, quieter. */}
+            <div className="flex items-center gap-4 md:gap-5">
+              <PixelStat
+                value="80%"
+                glow
+                style={{
+                  flex: "none",
+                  lineHeight: 1,
+                  fontSize: "clamp(42px, 5.4vw, 62px)",
+                  color: "#6cb0f5",
+                }}
+              />
+              <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
+                of shipped features are rarely or never used.
+              </p>
+            </div>
             {/* THE TURN. Founder: "this 80%, how is it adding value having it
                 on our platform? Does it make any sense?" Fair, and the stat on
                 its own did not earn its place. It is one of the most cited
@@ -467,10 +559,30 @@ export function TheGap() {
                 is that nobody could say why a thing was chosen. That is the
                 claim layer 01 answers, and it is the argument this page is
                 making everywhere else. */}
-            <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
-              of shipped features are rarely or never used.{" "}
-              <span className="text-zinc-500">
-                The building was never the problem. The choosing was.
+            {/* THE TURN, set as one (founder 2026-07-25). Two moves here.
+                SIZE: it was matching the clause above at 20px, so the exhibit
+                read as two equal paragraphs and the number lost its caption.
+                It steps down to 17px, which keeps it a sentence rather than a
+                footnote while letting the pair above stay the loud object.
+
+                PIXEL ON THE PUNCHLINE ONLY. "The choosing was." is the whole
+                argument of this page in three words, and the design contract
+                reserves Geist Pixel for brand moments and bans it for body
+                copy. Three words is a moment; the sentence around it is body,
+                so only the payoff takes the face. It sets at 0.94em because
+                Pixel runs optically wider than Sans at the same nominal size
+                and would otherwise outweigh the clause above it. */}
+            <p className="mt-3.5 text-[15px] leading-snug text-zinc-500 md:text-[17px]">
+              The building was never the problem.{" "}
+              <span
+                className="gap-turn"
+                style={{
+                  fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+                  fontSize: "0.94em",
+                  letterSpacing: "0",
+                }}
+              >
+                The choosing was.
               </span>
             </p>
             <cite className={EXHIBIT_SOURCE} style={EXHIBIT_SOURCE_STYLE}>
