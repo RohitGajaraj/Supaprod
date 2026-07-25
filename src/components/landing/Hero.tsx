@@ -21,13 +21,20 @@ import { MarkGlint } from "./MarkGlint";
  *    the 57px nav with 35px of air, and the bottom pad is the larger of the
  *    two so the block sits optically high in the space it owns (~81px of
  *    visible gap under the nav on the same viewport).
- * 9. Ember is never a PER-WORD hover state. The old .hero-verb tint is still
- *    gone: it lit individual words on their own hover targets, which dresses
- *    non-interactive text as an affordance and the affordance-is-not-emphasis
- *    law forbids that. The spec column below warms to ember on hover of the
- *    WHOLE COLUMN, which is a different thing and is allowed (founder
- *    2026-07-25): there is no per-word target to mistake for a link, so it
- *    reads as the block acknowledging the pointer, not as three buttons.
+ * 9. The spec column's three payload phrases warm to ember on their OWN hover,
+ *    one at a time. This is a deliberate founder override of the old rule
+ *    here ("ember is never a hover state", which killed the .hero-verb tint
+ *    for dressing non-interactive words as affordances). Asked for twice and
+ *    explicitly: first the tint, then "individually when I hover on it, the
+ *    key impact message should only change the colour to ember, not all
+ *    three" (2026-07-25). An intermediate version lit the whole column from
+ *    any one hover and was rejected. Do not "restore" either older
+ *    behaviour; the current one is the ruling.
+ *
+ *    What keeps it honest: the phrases carry no underline, no pointer cursor
+ *    and no focus ring, so the tint reads as the line answering the pointer
+ *    rather than as a link. The affordance law is respected in the signals
+ *    that actually promise a click, which these do not send.
  * 10. One left rule for the whole page. The hero was max-w-6xl / px-6 while
  *    every section below it is max-w-5xl / px-4, so the eye entered at two
  *    different x positions. The hero now shares the page rule, and every
@@ -81,10 +88,10 @@ export function Hero() {
           .hero-quiet:hover { color: #ffffff; }
           .hero-cta:hover .hero-arrow,
           .hero-quiet:hover .hero-arrow { transform: translateX(2px); }
-          /* Whole column, one target. Hovering ANY part of the spec warms all
-             three payload phrases together, so nothing reads as a per-word
-             button. See note 9 above. */
-          .hero-spec:hover .hero-spec-key { color: #FF6B2C; }
+          /* One phrase at a time. Founder 2026-07-25, explicit and repeated:
+             hovering the column must NOT warm all three together, only the
+             phrase under the pointer. See note 9. */
+          .hero-spec-key:hover { color: #FF6B2C; }
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-spec-key { transition: none; }
@@ -227,13 +234,14 @@ export function Hero() {
             style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
           >
             <span>
-              to read <span className="hero-spec-key whitespace-nowrap">the signals you miss</span>
+              to decide <span className="hero-spec-key whitespace-nowrap">what to build</span>
             </span>
             <span>
-              to open <span className="hero-spec-key whitespace-nowrap">the pull request</span>
+              to ship it{" "}
+              <span className="hero-spec-key whitespace-nowrap">while it still matters</span>
             </span>
             <span>
-              to remember <span className="hero-spec-key whitespace-nowrap">why you said no</span>
+              to know <span className="hero-spec-key whitespace-nowrap">if you were right</span>
             </span>
           </div>
         </div>
