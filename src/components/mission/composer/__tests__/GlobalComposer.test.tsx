@@ -12,18 +12,35 @@ import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import type { DictationState, ReadAloudState } from "@/hooks/use-voice";
 
 let pathname = "/today";
+// The room is identified by its MATCHED ROUTE ID, never by a path prefix: the
+// room's URL moved from /m/<uuid> to /$workspaceSlug/$productSlug, and a
+// pathname test would have gone quietly false there, mounting a second stream
+// on the room's own conversation. The test asserts the route id, so it cannot
+// keep passing against a URL shape that no longer exists.
+let routeId = "/_authenticated/today";
 const navigateSpy = mock((_: unknown) => {});
+
+type RouterStateShape = { location: { pathname: string }; matches: { routeId: string }[] };
 
 const routerActual = await import("@tanstack/react-router");
 mock.module("@tanstack/react-router", () => ({
   ...routerActual,
-  useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => unknown }) =>
-    select({ location: { pathname } }),
+  useRouterState: ({ select }: { select: (s: RouterStateShape) => unknown }) =>
+    select({ location: { pathname }, matches: [{ routeId: "/_authenticated" }, { routeId }] }),
   useNavigate: () => navigateSpy,
 }));
 
+// The room link the workspace context can build. Mutable so one test can take
+// the slugs away and prove the legacy uuid URL is still the floor.
+let workspaceState: Record<string, unknown> = {
+  activeProductId: "p-1",
+  activeWorkspaceId: "w-1",
+  workspaces: [{ id: "w-1", slug: "helio-labs" }],
+  products: [{ id: "p-1", workspace_id: "w-1", slug: "relay" }],
+};
+
 mock.module("@/hooks/use-workspace", () => ({
-  useWorkspace: () => ({ activeProductId: "p-1", activeWorkspaceId: "w-1" }),
+  useWorkspace: () => workspaceState,
 }));
 
 const dictation: DictationState = {
@@ -64,6 +81,13 @@ const { GlobalComposer } = await import("../GlobalComposer");
 
 beforeEach(() => {
   pathname = "/today";
+  routeId = "/_authenticated/today";
+  workspaceState = {
+    activeProductId: "p-1",
+    activeWorkspaceId: "w-1",
+    workspaces: [{ id: "w-1", slug: "helio-labs" }],
+    products: [{ id: "p-1", workspace_id: "w-1", slug: "relay" }],
+  };
   navigateSpy.mockClear();
   sendIntent.mockClear();
 });
@@ -117,8 +141,9 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
     expect(screen.getByTestId("composer-overlay")).toBeTruthy();
   });
 
-  test("stands down inside the Mission Control room (/m/$productId)", () => {
-    pathname = "/m/p-1";
+  test("stands down inside the room at its readable URL", () => {
+    pathname = "/helio-labs/relay";
+    routeId = "/_authenticated/$workspaceSlug/$productSlug";
     const { container } = render(<GlobalComposer />);
     act(() => {
       window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
@@ -127,7 +152,38 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
+  test("stands down inside the room at its legacy uuid URL too", () => {
+    pathname = "/m/p-1";
+    routeId = "/_authenticated/m/$productId";
+    const { container } = render(<GlobalComposer />);
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+    });
+    expect(container.firstChild).toBe(null);
+  });
+
   test("a journey chip navigates into the room with the journey and its first stage", () => {
+    render(<GlobalComposer />);
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+    });
+    fireEvent.click(document.querySelector('button[data-journey="j3"]')!);
+    expect(navigateSpy).toHaveBeenCalledWith({
+      to: "/$workspaceSlug/$productSlug",
+      params: { workspaceSlug: "helio-labs", productSlug: "relay" },
+      search: { stage: "plan", journey: "j3" },
+    });
+    // Activation closes the overlay; the room takes over.
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+  });
+
+  test("a product with no slug yet still opens, through the legacy uuid URL", () => {
+    workspaceState = {
+      activeProductId: "p-1",
+      activeWorkspaceId: "w-1",
+      workspaces: [{ id: "w-1", slug: "helio-labs" }],
+      products: [{ id: "p-1", workspace_id: "w-1", slug: null }],
+    };
     render(<GlobalComposer />);
     act(() => {
       window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
@@ -138,7 +194,5 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
       params: { productId: "p-1" },
       search: { stage: "plan", journey: "j3" },
     });
-    // Activation closes the overlay; the room takes over.
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 });

@@ -31,6 +31,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useOpenRoom } from "@/hooks/use-open-room";
 import { useAskStream } from "@/hooks/use-ask-stream";
 import {
   decideApprovalItem,
@@ -117,6 +118,7 @@ export function MissionShell({
   onJourneyChange: (journey: JourneyId | null, stage?: StageId) => void;
 }) {
   const navigate = useNavigate();
+  const openRoom = useOpenRoom();
   const queryClient = useQueryClient();
   const {
     activeWorkspaceId,
@@ -392,7 +394,8 @@ export function MissionShell({
   };
 
   // The summon: Cmd/Ctrl+J and Cmd/Ctrl+K open the ONE overlay (the global
-  // GlobalComposer stays off /m/*, so the room owns these keys here), and the
+  // GlobalComposer stands down on the room's routes, so the room owns these
+  // keys here), and the
   // shared supaprod:open-ask event lands here too. An event that carries an
   // intent streams it straight into the Thread instead of opening the box.
   useEffect(() => {
@@ -481,11 +484,7 @@ export function MissionShell({
         // Keep the room's search state (stage, journey, panel). Navigating without
         // it silently reset the room to the rest face, so clicking the already
         // active Mission Control door threw away where you were.
-        void navigate({
-          to: "/m/$productId",
-          params: { productId },
-          search: (prev) => prev,
-        });
+        openRoom(productId, { search: (prev) => prev });
         break;
       case "approvals":
         void navigate({ to: "/approvals" });
@@ -523,7 +522,7 @@ export function MissionShell({
         activeProductId={productId}
         onSelectProduct={(id) => {
           setActiveProductId(id);
-          void navigate({ to: "/m/$productId", params: { productId: id } });
+          openRoom(id);
         }}
         queueCount={queueCount}
         onOpenDoor={onOpenDoor}

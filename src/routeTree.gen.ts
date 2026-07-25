@@ -115,6 +115,7 @@ import { Route as AuthenticatedAdminPlatformRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPeopleRouteImport } from './routes/_authenticated.admin.people'
 import { Route as AuthenticatedAdminObservabilityRouteImport } from './routes/_authenticated.admin.observability'
 import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authenticated.admin.ai-costs'
+import { Route as AuthenticatedWorkspaceSlugProductSlugRouteImport } from './routes/_authenticated.$workspaceSlug.$productSlug'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -727,6 +728,12 @@ const AuthenticatedAdminAiCostsRoute =
     path: '/ai-costs',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedWorkspaceSlugProductSlugRoute =
+  AuthenticatedWorkspaceSlugProductSlugRouteImport.update({
+    id: '/$workspaceSlug/$productSlug',
+    path: '/$workspaceSlug/$productSlug',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -1170,6 +1177,7 @@ export interface FileRoutesByFullPath {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -1337,6 +1345,7 @@ export interface FileRoutesByTo {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -1508,6 +1517,7 @@ export interface FileRoutesById {
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/_authenticated/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/_authenticated/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/_authenticated/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -1679,6 +1689,7 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
     | '/admin/observability'
     | '/admin/people'
@@ -1846,6 +1857,7 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
     | '/admin/observability'
     | '/admin/people'
@@ -2016,6 +2028,7 @@ export interface FileRouteTypes {
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/$workspaceSlug/$productSlug'
     | '/_authenticated/admin/ai-costs'
     | '/_authenticated/admin/observability'
     | '/_authenticated/admin/people'
@@ -2945,6 +2958,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAiCostsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/$workspaceSlug/$productSlug': {
+      id: '/_authenticated/$workspaceSlug/$productSlug'
+      path: '/$workspaceSlug/$productSlug'
+      fullPath: '/$workspaceSlug/$productSlug'
+      preLoaderRoute: typeof AuthenticatedWorkspaceSlugProductSlugRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -3498,6 +3518,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTracesRoute: typeof AuthenticatedTracesRouteWithChildren
   AuthenticatedTrustLedgerRoute: typeof AuthenticatedTrustLedgerRoute
+  AuthenticatedWorkspaceSlugProductSlugRoute: typeof AuthenticatedWorkspaceSlugProductSlugRoute
   AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
   AuthenticatedMProductIdRoute: typeof AuthenticatedMProductIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
@@ -3562,6 +3583,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTracesRoute: AuthenticatedTracesRouteWithChildren,
   AuthenticatedTrustLedgerRoute: AuthenticatedTrustLedgerRoute,
+  AuthenticatedWorkspaceSlugProductSlugRoute:
+    AuthenticatedWorkspaceSlugProductSlugRoute,
   AuthenticatedBuildMissionIdRoute: AuthenticatedBuildMissionIdRoute,
   AuthenticatedMProductIdRoute: AuthenticatedMProductIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,

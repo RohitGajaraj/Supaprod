@@ -26,6 +26,10 @@ export type Product = {
   name: string;
   workspace_id: string;
   created_at: string;
+  // The readable URL segment (/$workspaceSlug/$productSlug). Nullable because
+  // the column is backfilled + trigger-generated rather than NOT NULL: a row
+  // without one still opens the room through the legacy /m/<uuid> floor.
+  slug: string | null;
 };
 
 type WorkspaceContextType = {
@@ -89,7 +93,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       if (!activeWorkspaceId) return [];
       const { data, error } = await supabase
         .from("projects") // the physical table name is projects (represents products)
-        .select("id, name, workspace_id, created_at")
+        .select("id, name, workspace_id, created_at, slug")
         .eq("workspace_id", activeWorkspaceId)
         .order("created_at", { ascending: false });
 

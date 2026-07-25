@@ -2,11 +2,15 @@
 // sends every signed-in user to /m, which lands here and resolves a product.
 // /m resolves the last-active product (the same useWorkspace resolution the
 // AppShell switcher uses: stored per workspace, first product as fallback)
-// and redirects to /m/$productId. A zero-product workspace renders the
-// prospect state via WarmSlot - never blank (Addendum 1.1 rule 7).
+// and redirects to the room's readable URL, /$workspaceSlug/$productSlug.
+// It stays the slug-free entry point on purpose: at this moment nobody has
+// told us which workspace is active, so resolving it here is the whole job.
+// A zero-product workspace renders the prospect state via WarmSlot - never
+// blank (Addendum 1.1 rule 7).
 import { useEffect } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useOpenRoom } from "@/hooks/use-open-room";
 import { WarmSlot } from "@/components/mission/primitives";
 import { RoomChromeShell } from "@/components/mission/RoomChrome";
 
@@ -16,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/m/")({
 });
 
 function MissionIndex() {
-  const navigate = useNavigate();
+  const openRoom = useOpenRoom();
   const { products, activeProductId, isLoading } = useWorkspace();
 
   // Last-active product when it still exists here, else the first product.
@@ -27,8 +31,8 @@ function MissionIndex() {
 
   useEffect(() => {
     if (isLoading || !targetId) return;
-    void navigate({ to: "/m/$productId", params: { productId: targetId }, replace: true });
-  }, [isLoading, targetId, navigate]);
+    openRoom(targetId, { replace: true });
+  }, [isLoading, targetId, openRoom]);
 
   // A zero-product workspace used to render this WarmSlot on a bare div with
   // no TopBar at all, which stranded the user: no doors, no workspace switch,

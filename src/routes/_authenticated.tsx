@@ -10,6 +10,7 @@ import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
 
 import { AskProvider } from "@/lib/ask-context";
+import { ROOM_ROUTE_IDS } from "@/lib/room-url";
 import { GlobalComposer } from "@/components/mission/composer";
 import { FocusDock } from "@/components/supaprod/FocusDock";
 
@@ -144,12 +145,18 @@ function AuthedLayout() {
   // gets the same clean, chromeless full-viewport treatment (no shell, no
   // shortcuts, no composer, no focus dock, no sample banner).
   const isOnboarding = pathname.startsWith("/onboarding") || pathname === "/start";
-  // Mission Control sandbox (/m, front-end reimagining Phase 1): the room
-  // carries its own five-region shell (TopBar, Spine, Thread, Canvas,
-  // Composer), so the old AppShell must not wrap it. GotoShortcuts also stays
-  // off there: it binds bare digits 1-7 to old-app surfaces, and in the room
-  // those keys walk the Spine (shell-local listener in MissionShell).
-  const isMissionControl = pathname === "/m" || pathname.startsWith("/m/");
+  // Mission Control (front-end reimagining Phase 1): the room carries its own
+  // five-region shell (TopBar, Spine, Thread, Canvas, Composer), so the old
+  // AppShell must not wrap it. GotoShortcuts also stays off there: it binds
+  // bare digits 1-7 to old-app surfaces, and in the room those keys walk the
+  // Spine (shell-local listener in MissionShell).
+  //
+  // Matched route ids, not a pathname prefix: the room moved from /m/<uuid> to
+  // /$workspaceSlug/$productSlug, and a startsWith("/m/") test would have gone
+  // quietly false there, rendering the room inside the retired shell.
+  const isMissionControl = useRouterState({
+    select: (s) => s.matches.some((m) => (ROOM_ROUTE_IDS as readonly string[]).includes(m.routeId)),
+  });
   // The reimagined standalone surfaces (Threads, Artifacts) are part of the
   // Mission Control world, reached from the room's top-bar doors. They carry
   // their own ink header, so the old Obsidian AppShell (nav rail + banners)
@@ -196,7 +203,7 @@ function AuthedLayout() {
                   supaprod:open-cmdk events open the ComposerOverlay on every
                   old-app surface. The retired CommandPalette and AskPanel
                   components stay in the tree source but are unmounted
-                  (Addendum 1.1 rule 8); inside /m/$productId the room's own
+                  (Addendum 1.1 rule 8); inside the room its own
                   MissionShell answers the same keys and events, so
                   GlobalComposer stands down there (it self-excludes). */}
             {!isOnboarding && <GlobalComposer />}

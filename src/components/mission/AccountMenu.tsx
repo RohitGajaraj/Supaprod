@@ -182,9 +182,10 @@ export function AccountMenu() {
     setOpen(false);
     if (id === activeWorkspaceId) return;
     setActiveWorkspaceId(id);
-    // The room's URL is product scoped (/m/$productId) and the product ids
-    // belong to the workspace you just left, so land on /m and let it resolve
-    // a product in the new workspace instead of holding a stale id.
+    // The room's URL is product scoped (/$workspaceSlug/$productSlug) and the
+    // product you are looking at belongs to the workspace you just left, so
+    // land on /m, the resolver, and let it pick a product in the new workspace
+    // and replace itself with that room's readable URL.
     void navigate({ to: "/m" });
   };
 

@@ -5876,6 +5876,7 @@ export type Database = {
           id: string
           name: string
           north_star: string | null
+          slug: string | null
           status: string
           target_date: string | null
           updated_at: string
@@ -5888,6 +5889,7 @@ export type Database = {
           id?: string
           name: string
           north_star?: string | null
+          slug?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string
@@ -5900,6 +5902,7 @@ export type Database = {
           id?: string
           name?: string
           north_star?: string | null
+          slug?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string

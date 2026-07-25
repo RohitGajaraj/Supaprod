@@ -110,13 +110,15 @@ function journeyDoor(id: JourneyId, onActivate?: (j: JourneyId) => void): Journe
 
 /** An absolute, pasteable link to one stage of the room.
  *
- * This used to return a bare path, so "Copy link" produced something that only
- * worked if you already had the app open. Every other share path in the app
- * prefixes the origin, so this matches them. Falls back to the path during SSR,
- * where there is no window to read an origin from. */
+ * The path is the room's OWN url rather than one rebuilt from ids, so a copied
+ * link is the readable /workspace/product form the address bar already shows,
+ * and it cannot rot the next time the route shape changes. This is the one room
+ * link the compiler cannot check, which is exactly why it reads the location
+ * instead of hardcoding a shape. Falls back to the legacy uuid path during SSR,
+ * where there is no location to read. */
 function stageDeepLink(productId: string, stage: StageId): string {
-  const path = `/m/${productId}?stage=${stage}`;
-  return typeof window === "undefined" ? path : `${window.location.origin}${path}`;
+  if (typeof window === "undefined") return `/m/${productId}?stage=${stage}`;
+  return `${window.location.origin}${window.location.pathname}?stage=${stage}`;
 }
 
 /** A calm, believable relative time for list rows (craft bar). */

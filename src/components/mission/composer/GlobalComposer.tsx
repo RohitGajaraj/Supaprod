@@ -11,14 +11,16 @@
 // the promote chips survive the Ask panel's retirement (Addendum 1.1 rule 8).
 // Mic dictation appends into the draft through the hook's onDictation seam.
 //
-// The Mission Control room (/m/$productId) is excluded: the room's shell owns
-// the composer and the Thread there, and a second stream on the same
-// conversation would go stale mid-answer. Journey chips here activate by
-// navigating INTO the room with the journey and its first stage in the URL.
+// The Mission Control room is excluded: the room's shell owns the composer and
+// the Thread there, and a second stream on the same conversation would go stale
+// mid-answer. Journey chips here activate by navigating INTO the room with the
+// journey and its first stage in the URL.
 
 import * as React from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useOpenRoom } from "@/hooks/use-open-room";
+import { ROOM_PRODUCT_ROUTE_IDS } from "@/lib/room-url";
 import { useAskStream } from "@/hooks/use-ask-stream";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { journeyById, type JourneyId } from "@/lib/journeys";
@@ -31,14 +33,21 @@ import { ThreadMessage } from "./Thread";
 export const OPEN_COMPOSER_EVENTS = ["supaprod:open-ask", "supaprod:open-cmdk"] as const;
 
 export function GlobalComposer() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
   // The room owns its composer and Thread; never a second stream there.
-  if (pathname.startsWith("/m/")) return null;
+  // Matched route ids, not a pathname prefix: the room moved from /m/<uuid> to
+  // /$workspaceSlug/$productSlug, and a startsWith("/m/") test would have gone
+  // quietly false there, mounting a second stream on the room's conversation.
+  const inRoom = useRouterState({
+    select: (s) =>
+      s.matches.some((m) => (ROOM_PRODUCT_ROUTE_IDS as readonly string[]).includes(m.routeId)),
+  });
+  if (inRoom) return null;
   return <GlobalComposerHost />;
 }
 
 function GlobalComposerHost() {
   const navigate = useNavigate();
+  const openRoom = useOpenRoom();
   const { activeProductId } = useWorkspace();
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState("");
@@ -101,11 +110,7 @@ function GlobalComposerHost() {
     setOpen(false);
     if (activeProductId) {
       const stage = journeyById(id).stages[0] as StageId;
-      void navigate({
-        to: "/m/$productId",
-        params: { productId: activeProductId },
-        search: { stage, journey: id },
-      });
+      openRoom(activeProductId, { search: { stage, journey: id } });
     } else {
       void navigate({ to: "/m" });
     }
