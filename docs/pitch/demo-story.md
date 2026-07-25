@@ -28,11 +28,25 @@ If a beat cannot be phrased as something happening to a person, it gets cut, how
 
 ## The main character
 
-**Maya, the product manager on Relay.**
+**Maya Ruiz, the product manager on Relay.**
 
-Helio Labs sells home solar monitors. Atlas is the installer app, Relay is the homeowner app, Beacon is billing. Maya owns Relay. They have been there fourteen months.
+Relay is a consumer app: 41,000 active users, a checkout flow, notification complaints, App Store reviews, a funnel that leaks. Maya has owned it for fourteen months.
 
-_(The name is a placeholder the founder can swap. What cannot be swapped is that there IS one named person and the audience meets them in the first ten seconds.)_
+Her company, Helio Labs, happens to sell home solar monitors, and it has three surfaces: Atlas for installers, Relay for homeowners, Beacon for billing. **Say that once and move on.**
+
+### Lead with the job, not the industry
+
+The single most common way this demo goes wrong is opening with "a solar company." The viewer is a product manager at a software company, and the moment they hear solar hardware they spend a beat deciding whether this applies to them. That beat is the whole budget.
+
+So do not open with the industry. Open with the job:
+
+> _"This is Maya. She runs a consumer app. Forty-one thousand users, checkout conversion, too many notifications, the usual. Her company happens to make solar hardware, but her week is every product manager's week."_
+
+One sentence and the distance closes. Everything that follows, the abandoned checkouts, the App Store reviews, the funnel drop, the spec, the pull request, is ordinary software product work.
+
+**The industry is doing useful work in the background, and it is deliberate:** Helio is obviously not a competitor to anyone watching, so nobody spends the demo arguing with the example instead of watching the product. Set dressing should be specific enough to be believable and neutral enough to be invisible.
+
+_(The name is a placeholder the founder can swap. What cannot be swapped is that there IS one named person, the audience meets them in the first ten seconds, and they are introduced by what they DO.)_
 
 ### Her pain, which is the audience's pain
 
@@ -54,9 +68,11 @@ That is the pain. The product does not appear until the audience is nodding.
 
 ### Beat 0 — meet Maya, and feel the question (0:00 to 0:15)
 
-Open on the question, not the app.
+Open on the person and the question, not the app, and not the industry.
 
-> _"This is Maya. She runs the homeowner app at a solar company. Last month her VP asked her why they built the thing they shipped in March. She spent a morning digging and still could not really answer. Every product person watching this has had that morning."_
+> _"This is Maya. She runs a consumer app: forty-one thousand users, checkout conversion, too many notifications. Last month her VP asked her why they built the thing they shipped in March. She spent a morning digging and still could not really answer. Every product person watching this has had that morning."_
+
+If the industry needs saying at all, it goes in a subordinate clause later, never in the opening sentence.
 
 Then, and only then, she types the question into the thing she now uses.
 

@@ -74,7 +74,7 @@ The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American 
 - **PASTE THIS:**
 
 ```
-explore@supaprod.ai / Supaprod!Explore2026 (you land inside a solar company's workspace mid-flight: five calls are waiting on you, and every one opens to the evidence behind it. Or sign up with any email and you are working in about a minute)
+explore@supaprod.ai / Supaprod!Explore2026 (you log in as a product manager mid-week: five calls are waiting on your judgment, each one opening to the evidence it was made on and what happened last time. Or sign up with any email and you are working in about a minute)
 ```
 
 _(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace (`70000000-`), provisioned by `20260725120000_investor_demo_accounts.sql`. It used to be an admin of the shared Helio Labs alongside `ember@` and the founder's own testing, which meant a partner could open a workspace someone else had been working in, with an approval queue already emptied by a rehearsal. `ember@` is retired from the showcase workspace: four named, isolated investor logins (`voyage@`, `compass@`, `meridian@`, `lantern@`) now serve that purpose per [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md), and `harbor@` is the founder's rehearsal copy so practice never spends a queue anyone will be shown. The copy above points at the five pending approvals because that is the first thing a partner can act on; it is true as of the 2026-07-25 seed (`agent_approvals` pending = 5, verified live). GATE unchanged: one incognito login on supaprod.ai before pasting. Fallback if it fails: `demo2@redcadence.app / Cadence!Demo2026`, then fix.)_
@@ -448,10 +448,11 @@ Cursor for PMs, but for the whole product org.
 ```
 https://supaprod.ai
 
-Demo login: explore@supaprod.ai / Supaprod!Explore2026. You land inside
-a solar company's workspace mid-flight: five calls waiting on you, and
-every one opens to the evidence it was made on. Or sign up with email;
-you are in a working workspace in about a minute.
+Demo login: explore@supaprod.ai / Supaprod!Explore2026. You log in as a
+product manager mid-week. Agents worked overnight; five calls are now
+waiting on your judgment, and each one opens to the evidence it was made
+on and what happened the last time you bet this way. Or sign up with
+email; you are in a working workspace in about a minute.
 ```
 
 _(Provisioned in-database by migration `20260722211500_demo_accounts_supaprod_domain.sql` — `explore@supaprod.ai` for YC plus the codename twin `ember@supaprod.ai` / `Supaprod!Ember2026` held back for later investor use; both seeded, both with Helio Labs access, onboarding pre-completed. Legacy `redcadence.app` logins stay internal-only. VERIFIER FLAG: the login fails on production until the migration ships and Lovable deploys — checklist item 1 gates submission on a passing incognito test.)_

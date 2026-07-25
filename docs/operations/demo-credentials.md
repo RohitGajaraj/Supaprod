@@ -2,9 +2,11 @@
 
 > _Created: 2026-06-04 · Last updated: 2026-07-25_
 
-## ⭐ Investor logins, one per firm (2026-07-25)
+## ⭐ Investor logins, one per application (2026-07-25)
 
-**Four accounts, four isolated workspaces, identical content.** Hand exactly one to each firm and record which, in the table below.
+**Four accounts, four isolated workspaces, identical content.** These go into **venture programme applications**: one login per application form. Record which went where in the table below.
+
+Application reviewers are the reason isolation is not optional. They log in **asynchronously and unpredictably**, sometimes weeks after submitting, often more than one reviewer per firm. A shared login means whoever opens it second finds an approval queue the first one already cleared, and the single most important beat in the product is simply gone, with no way to know it happened.
 
 | Account | Password | Workspace | Given to | Sent on |
 | --- | --- | --- | --- | --- |
