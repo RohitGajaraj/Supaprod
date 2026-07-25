@@ -40,8 +40,15 @@ Provisioned by `supabase/migrations/20260725120000_investor_demo_accounts.sql`; 
 | --- | --- | --- | --- |
 | 1 | `explore@supaprod.ai` | `Supaprod!Explore2026` | The founder's recording account. Admin on the shared Helio Labs. |
 | 2 | `ember@supaprod.ai` | `Supaprod!Ember2026` | Codename twin, also on the shared Helio Labs. |
-| 3 | `demo@redcadence.app` | `Cadence!Demo2026` | Legacy, internal dev and testing only. |
-| 4 | `demo2@redcadence.app` | `Cadence!Demo2026` | Legacy, internal dev and testing only. |
+### Retired: the `redcadence.app` logins (2026-07-25)
+
+`demo@redcadence.app` and `demo2@redcadence.app` are **disabled and must not be used or quoted anywhere.** Their passwords were rotated to random values and `profiles.suspended` is `true` on both, so the credentials printed in older docs no longer authenticate. **`harbor@supaprod.ai` replaces them for all internal use.**
+
+They were deliberately **disabled rather than deleted**, and this matters:
+
+`workspaces.owner_id` is `ON DELETE CASCADE`, and 45 of the 65 foreign keys into `auth.users` cascade. `demo@redcadence.app` still **owns Helio Labs** (`10000000-`), the master template every other demo workspace is cloned from, plus Sample sandbox. Deleting that auth row would delete Helio Labs itself and cascade through `projects` and everything beneath, taking the clone source with it. 41 rows inside Helio Labs alone are still owned by that user.
+
+**To delete them for real,** the ownership has to move first: reassign `workspaces.owner_id` for Helio Labs and Sample sandbox, then reassign the `user_id` on the rows those workspaces hold, and only then remove the auth rows. That is careful surgery, not a one-line delete, and nothing needs it today since both logins are already dead.
 
 > [!WARNING]
 > `explore@` and `ember@` are **both admins of the same** Helio Labs workspace, so they contaminate each other. Fine for internal use, never for two investors.

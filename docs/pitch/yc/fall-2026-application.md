@@ -77,7 +77,7 @@ The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American 
 explore@supaprod.ai / Supaprod!Explore2026 (you log in as a product manager mid-week: five calls are waiting on your judgment, each one opening to the evidence it was made on and what happened last time. Or sign up with any email and you are working in about a minute)
 ```
 
-_(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace (`70000000-`), provisioned by `20260725120000_investor_demo_accounts.sql`. It used to be an admin of the shared Helio Labs alongside `ember@` and the founder's own testing, which meant a partner could open a workspace someone else had been working in, with an approval queue already emptied by a rehearsal. `ember@` is retired from the showcase workspace: four named, isolated investor logins (`voyage@`, `compass@`, `meridian@`, `lantern@`) now serve that purpose per [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md), and `harbor@` is the founder's rehearsal copy so practice never spends a queue anyone will be shown. The copy above points at the five pending approvals because that is the first thing a partner can act on; it is true as of the 2026-07-25 seed (`agent_approvals` pending = 5, verified live). GATE unchanged: one incognito login on supaprod.ai before pasting. Fallback if it fails: `demo2@redcadence.app / Cadence!Demo2026`, then fix.)_
+_(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace (`70000000-`), provisioned by `20260725120000_investor_demo_accounts.sql`. It used to be an admin of the shared Helio Labs alongside `ember@` and the founder's own testing, which meant a partner could open a workspace someone else had been working in, with an approval queue already emptied by a rehearsal. `ember@` is retired from the showcase workspace: four named, isolated investor logins (`voyage@`, `compass@`, `meridian@`, `lantern@`) now serve that purpose per [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md), and `harbor@` is the founder's rehearsal copy so practice never spends a queue anyone will be shown. The copy above points at the five pending approvals because that is the first thing a partner can act on; it is true as of the 2026-07-25 seed (`agent_approvals` pending = 5, verified live). GATE unchanged: one incognito login on supaprod.ai before pasting. Fallback if it fails: `harbor@supaprod.ai / Supaprod!Harbor2026` (identical workspace, identical story), then fix. The old `demo2@redcadence.app` fallback is DEAD as of 2026-07-25: password rotated, profile suspended. Never quote it.)_
 
 #### "How far along are you?"
 
@@ -238,7 +238,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 2. **Real gap the diagnosis exposed:** outcome grading has run almost entirely inside seeded workspaces; the founder's real workspaces show 0 graded outcomes. Before launch (and certainly before any interview), run the outcome loop on the real roadmap workspace so "outcomes graded" grows from real use.
 3. The demo video is the last big Cadence-branded surface. Re-recording (Surface 5) retires it.
 4. `src/components/plan/LoopsPanel.tsx` is the one remaining UI file mentioning "Cadence" — check whether it is user-visible and rename if so.
-5. Credential rotation: `explore@supaprod.ai` becomes the public demo identity (YC form), `ember@` stays reserved, redcadence logins go internal-only.
+5. Credential rotation: `explore@supaprod.ai` becomes the public demo identity (YC form), `ember@` is retired from the showcase workspace, and the redcadence logins are disabled outright.
 6. Standing memo §7 items stay open (stub connectors badged, `/updates` changelog refresh, `/proof` sample labels, `DECISION_BRAIN_SUPERSESSION` on for demo workspaces) — pre-launch work, not paste-blocking.
 
 ### Paste-day checklist (in this order)
@@ -284,7 +284,7 @@ person directing a fleet of agents, with receipts for everything they did.
 ```
 https://supaprod.ai
 
-Demo login: demo2@redcadence.app / Cadence!Demo2026 (or sign up; you get a
+Demo login: explore@supaprod.ai / Supaprod!Explore2026 (or sign up; you get a
 seeded workspace with sample products to explore.)
 ```
 
@@ -423,7 +423,7 @@ they structurally will not own.
 
 **The NOW pre-submit checklist (continuous, in priority order):**
 
-1. Verify `demo2@redcadence.app` login on `https://supaprod.ai` in incognito; re-seed the demo workspace; check demo credit balance.
+1. Verify `explore@supaprod.ai` login on `https://supaprod.ai` in incognito. Its workspace (`70000000-`) is already seeded and funded with 5000 credits, verified live 2026-07-25.
 2. Re-record the founder video (≤1:00, bullet card) and demo video (~2:15) per [`video-scripts.md`](./video-scripts.md).
 3. Fill the three `[FOUNDER]` text slots; message Badis.
 4. On submit day: re-read the homepage stats and sync the numbers in §8a/§8h/§4 to what the site shows that hour (they render live).
@@ -455,7 +455,7 @@ on and what happened the last time you bet this way. Or sign up with
 email; you are in a working workspace in about a minute.
 ```
 
-_(Provisioned in-database by migration `20260722211500_demo_accounts_supaprod_domain.sql` — `explore@supaprod.ai` for YC plus the codename twin `ember@supaprod.ai` / `Supaprod!Ember2026` held back for later investor use; both seeded, both with Helio Labs access, onboarding pre-completed. Legacy `redcadence.app` logins stay internal-only. VERIFIER FLAG: the login fails on production until the migration ships and Lovable deploys — checklist item 1 gates submission on a passing incognito test.)_
+_(Provisioned in-database by migration `20260722211500_demo_accounts_supaprod_domain.sql` — `explore@supaprod.ai` for YC plus the codename twin `ember@supaprod.ai` / `Supaprod!Ember2026` held back for later investor use; both seeded, both with Helio Labs access, onboarding pre-completed. The `redcadence.app` logins are RETIRED as of 2026-07-25: passwords rotated, profiles suspended, replaced by `harbor@supaprod.ai` for internal use. VERIFIER FLAG: the login fails on production until the migration ships and Lovable deploys — checklist item 1 gates submission on a passing incognito test.)_
 
 ### 7f — "What is your company going to make?"
 
@@ -779,7 +779,7 @@ Why: it does both jobs in one line — the instant anchor a tired reader gets in
 ```
 https://cadence-flow-beta.lovable.app
 
-Demo login: demo2@redcadence.app / Cadence!Demo2026 (or sign up with your own
+Demo login: explore@supaprod.ai / Supaprod!Explore2026 (or sign up with your own
 account; you get a seeded workspace with two sample products to explore.)
 ```
 
