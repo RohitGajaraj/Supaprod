@@ -29,7 +29,178 @@
 -- 20260725140000 can remap the leading 10000000- to another prefix wholesale):
 --   2a01 moat        2a02 trace       2a03 gates
 --   2a05 discovery   2b01 context     2b02 content     2b03 automation
+--
+-- CRITICAL: slices 2b01 and 2b02 (PRODUCTS, SIGNALS, DECISIONS, OPPORTUNITIES,
+-- PRDS, MISSIONS, LEARNINGS) MUST be seeded BEFORE the moat/trace/gates/discovery
+-- layers, because the lineage, ice_adjustments, mission_steps, etc. all reference
+-- these core entities. If these are missing, the demo fails: no signals to cluster,
+-- no decisions to query, no PRDs/missions/learnings to show execution.
+--
+-- Dependencies:
+--   artifact_lineage, ice_adjustments reference: decisions, opportunities, prds
+--   mission_steps reference: missions
+--   learnings reference: prds, opportunities, signals (via signal_outcomes)
+--   insights reference: opportunities
 
+-- =====================================================================
+-- Helio Labs demo seed, slice 2b01: CONTEXT LAYER (PRODUCTS, PROJECTS, SIGNALS).
+-- Foundation entities that everything else references.
+-- =====================================================================
+
+-- Products
+INSERT INTO public.products (id, workspace_id, name, description, north_star, north_star_date, status, owner_id, created_at, updated_at)
+VALUES
+  ('10000000-2b01-4000-8000-000000000001',
+   '10000000-0000-4000-8000-000000000000',
+   'Relay',
+   'Homeowner app for solar monitoring and notifications.',
+   'Increase completed checkouts by 40 percent and reduce churn from notification fatigue.',
+   now() + interval '90 days',
+   'active',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   now() - interval '40 days',
+   now() - interval '39 days')
+ON CONFLICT DO NOTHING;
+
+-- Projects
+INSERT INTO public.projects (id, product_id, workspace_id, name, owner_id, created_at, updated_at)
+VALUES
+  ('10000000-2b01-4000-8000-000000000011',
+   '10000000-2b01-4000-8000-000000000001',
+   '10000000-0000-4000-8000-000000000000',
+   'Checkout Funnel',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   now() - interval '37 days',
+   now() - interval '36 days')
+ON CONFLICT DO NOTHING;
+
+-- Workspace Signals (Beat 1: the scattered evidence)
+INSERT INTO public.workspace_signals (id, workspace_id, title, status, type, signal_date, user_submitted_by, model_generated, created_at, updated_at)
+VALUES
+  ('10000000-2b01-4000-8000-000000000101', '10000000-0000-4000-8000-000000000000', 'Address re-confirm screen has 34pct exit rate', 'active', 'analytics', now() - interval '29 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '29 days', now() - interval '29 days'),
+  ('10000000-2b01-4000-8000-000000000102', '10000000-0000-4000-8000-000000000000', 'Support says address re-confirm is confusing', 'active', 'support', now() - interval '28 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '28 days', now() - interval '28 days'),
+  ('10000000-2b01-4000-8000-000000000103', '10000000-0000-4000-8000-000000000000', 'App Store review: "why ask for address twice?"', 'active', 'review', now() - interval '27 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '27 days', now() - interval '27 days'),
+  ('10000000-2b01-4000-8000-000000000104', '10000000-0000-4000-8000-000000000000', 'PostHog: funnel shows 5210 starts, 1614 exits at address step', 'active', 'analytics', now() - interval '26 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', true, now() - interval '26 days', now() - interval '26 days'),
+  ('10000000-2b01-4000-8000-000000000105', '10000000-0000-4000-8000-000000000000', 'Notification mutes climbing: 22pct of new users silence in first month', 'active', 'analytics', now() - interval '29 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', true, now() - interval '29 days', now() - interval '29 days'),
+  ('10000000-2b01-4000-8000-000000000106', '10000000-0000-4000-8000-000000000000', 'Support: homeowners getting 6+ alert emails in evening storms', 'active', 'support', now() - interval '28 days', '1339eea2-e170-4e37-a581-e2bec0b676c7', false, now() - interval '28 days', now() - interval '28 days')
+ON CONFLICT DO NOTHING;
+
+-- =====================================================================
+-- Helio Labs demo seed, slice 2b02: CONTENT LAYER (DECISIONS, OPPORTUNITIES, PRDS, MISSIONS, LEARNINGS).
+-- The core entities that drive the story.
+-- =====================================================================
+
+-- Opportunities (Beat 2: the red-teamed bets)
+INSERT INTO public.opportunities (id, workspace_id, product_id, title, description, market_signal, customer_quote, external_signal_id, ice_impact, ice_confidence, ice_ease, ice_score, status, owner_id, created_at, updated_at)
+VALUES
+  -- The approved bet: confirmed address step
+  ('10000000-2b02-4000-8000-000000000001',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   'One-step address confirmation in checkout',
+   'Users abandon checkout at redundant address re-confirm. Eliminating the extra step should improve completion.',
+   'PostHog funnel: 34 pct exit at address re-confirm screen (1614 of 5210 starts)',
+   'Why ask for address twice? Just checked it at signup.',
+   'helio-relay-address-confirmation',
+   8, 0.88, 0.79, 7.0, 'approved', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '25 days', now() - interval '25 days'),
+
+  -- The digest bet: reduce mute rate
+  ('10000000-2b02-4000-8000-000000000002',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   'Grouped in-app digest for Relay alerts',
+   'Mute rate climbing (22 pct in first month). Batch alerts into in-app digest and push summary instead of individual notifications.',
+   'Support ticket cluster: 6+ alert emails in evening storms; App Store: users want batching',
+   'Can we please just send one digest at 6pm instead of spamming alerts?',
+   'helio-relay-digest',
+   7, 0.81, 0.72, 6.2, 'approved', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '25 days', now() - interval '25 days'),
+
+  -- The killed bet: crypto checkout
+  ('10000000-2b02-4000-8000-000000000005',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   'One-tap crypto add-on payment',
+   'Add crypto payment option to checkout for early adopters. Hypothesis: payment choice is the blocker.',
+   'Derived from checkout theme but not backed by direct signal',
+   NULL,
+   'helio-relay-crypto-checkout',
+   5, 0.44, 0.31, 2.9, 'killed', '1339eea2-e170-4e37-a581-e2bec0b676c7', now() - interval '24 days', now() - interval '20 days')
+ON CONFLICT DO NOTHING;
+
+-- Decisions (Beat 0: the decision record)
+INSERT INTO public.decisions (id, user_id, workspace_id, product_id, opportunity_id, title, rationale, owner_id, status, created_at, updated_at)
+VALUES
+  ('10000000-2b02-4000-8000-000000000a01',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   '10000000-2b02-4000-8000-000000000001',
+   'Eliminate redundant address re-confirm step',
+   'PostHog funnel showed address re-confirm as the highest-impact drop point (1614 of 5210). Users have already provided address at signup. Single confirmation per session is defensible.',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   'decided',
+   now() - interval '22 days',
+   now() - interval '22 days'),
+
+  ('10000000-2b02-4000-8000-000000000a02',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   '10000000-2b02-4000-8000-000000000002',
+   'Digest alerts before shipping batched push',
+   'Mute rate is the constraint. In-app grouped digest ships before APNs/FCM work so risk is contained.',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   'decided',
+   now() - interval '22 days',
+   now() - interval '22 days')
+ON CONFLICT DO NOTHING;
+
+-- PRDs (Beat 3: the spec-to-build flow)
+INSERT INTO public.prds (id, user_id, workspace_id, project_id, opportunity_id, title, body_md, status, model, created_at, updated_at)
+VALUES
+  ('10000000-2b02-4000-8000-000000000p01',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000011',
+   '10000000-2b02-4000-8000-000000000001',
+   'One-step address confirmation',
+   '# Address Confirmation Redesign\n\n## Problem\nCheckout funnel shows 34% exit at redundant address re-confirm screen.\n\n## Solution\nEliminate extra step. Users provide address at signup; one confirm per session.\n\n## Success Metric\n>= 70% improvement in address-step completion rate (from 66% to ~90%).\n\n## Design Notes\nKeep inline validation, show confidence score from address verification service.\n\n## Rollback Plan\nOne-line feature flag in checkout pipeline.',
+   'review',
+   'openai/gpt-4o',
+   now() - interval '20 days',
+   now() - interval '20 days')
+ON CONFLICT DO NOTHING;
+
+-- Missions (Beat 3: the build execution)
+INSERT INTO public.missions (id, user_id, workspace_id, product_id, prd_id, title, status, created_at, updated_at)
+VALUES
+  ('10000000-2b02-4000-8000-000000000m01',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   '10000000-2b02-4000-8000-000000000p01',
+   'Ship address confirmation fix',
+   'shipped',
+   now() - interval '18 days',
+   now() - interval '5 days')
+ON CONFLICT DO NOTHING;
+
+-- Learnings (Beat 4 & 5: the outcomes)
+INSERT INTO public.learnings (id, user_id, workspace_id, product_id, prd_id, opportunity_id, title, content, status, owner_id, created_at, updated_at)
+VALUES
+  ('10000000-2b02-4000-8000-000000000l01',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   '10000000-0000-4000-8000-000000000000',
+   '10000000-2b01-4000-8000-000000000001',
+   '10000000-2b02-4000-8000-000000000p01',
+   '10000000-2b02-4000-8000-000000000001',
+   'Address confirmation fix: 59->78% desktop, 53->59% tablet',
+   'Completed checkouts improved 59% -> 78% on desktop (+32% relative), but tablet only moved 53% -> 59% (+11% relative). The 15-point gap was not the confirm step; root cause was landscape keyboard overlay on 10" tablets covering card field. Not surfaced by original signal set.',
+   'validated',
+   '1339eea2-e170-4e37-a581-e2bec0b676c7',
+   now() - interval '5 days',
+   now() - interval '5 days')
+ON CONFLICT DO NOTHING;
 
 -- =====================================================================
 -- Helio Labs demo seed, slice 2a01: THE MOAT.
