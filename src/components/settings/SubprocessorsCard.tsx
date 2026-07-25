@@ -68,7 +68,7 @@ export function SubprocessorsCard() {
                 <span className="text-label-14" style={{ fontWeight: 600, color: "var(--ink)" }}>
                   {s.name}
                 </span>
-                <span className="mono-label" style={{ fontSize: 10 }}>
+                <span className="mono-label" style={{ }}>
                   {CATEGORY_LABEL[s.category]}
                 </span>
               </div>

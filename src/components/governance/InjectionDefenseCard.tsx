@@ -166,7 +166,7 @@ export function InjectionDefenseCard() {
           </div>
           {verdict.signals.length > 0 ? (
             <div style={{ marginTop: 10 }}>
-              <div className="mono-label" style={{ fontSize: 8.5, color: "var(--ink-faint)" }}>
+              <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
                 Signals that fired
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>

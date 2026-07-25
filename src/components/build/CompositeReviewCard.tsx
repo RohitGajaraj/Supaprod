@@ -44,7 +44,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
         Explored from all sides
       </p>
       <h3
-        style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 8px" }}
+        style={{ fontWeight: 600, color: "var(--text-primary)", margin: "0 0 8px" }}
       >
         {batch.targetTitle}
       </h3>
@@ -71,7 +71,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
             >
               {s.label}
             </p>
-            <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+            <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
               {composite[s.key] ?? "No response from this angle."}
             </p>
           </div>

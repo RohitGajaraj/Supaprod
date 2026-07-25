@@ -584,7 +584,7 @@ export function AccountConnectionsSection({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search sources"
           aria-label="Search sources"
-          style={{ width: "100%", padding: "8px 12px", borderRadius: 8, fontSize: 13 }}
+          style={{ width: "100%", padding: "8px 12px", borderRadius: 8 }}
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -630,7 +630,7 @@ export function AccountConnectionsSection({
           <Link
             to="/sync"
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{ fontSize: 12, color: "var(--text-subtle)" }}
+            style={{ color: "var(--text-subtle)" }}
           >
             Workspace sync and bindings →
           </Link>
@@ -1311,7 +1311,7 @@ export function ConnectorDetail({
         {stats.map(([l, v, color]) => (
           <div key={l} className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 6 }}>{l}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ fontSize: 22, color }}>
+            <div className="font-display tabular-nums" style={{ color }}>
               {v}
             </div>
           </div>

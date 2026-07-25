@@ -193,7 +193,7 @@ export function BudgetsPanel() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load budgets
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(overview.error as Error)?.message}
         </p>
         <button
@@ -280,7 +280,7 @@ export function BudgetsPanel() {
                     autoFocus
                     value={capDraft}
                     onChange={(e) => setCapDraft(e.target.value)}
-                    style={{ width: 76, fontSize: 12 }}
+                    style={{ width: 76 }}
                     inputMode="decimal"
                     aria-label={`${label} cap`}
                   />
@@ -295,7 +295,7 @@ export function BudgetsPanel() {
               ) : (
                 <button
                   className="mono-label transition hover:brightness-125"
-                  style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
+                  style={{ color: "var(--ink-subtle)" }}
                   onClick={() => {
                     setEditCap(key);
                     setCapDraft(cap != null ? String(cap) : "");
@@ -305,9 +305,9 @@ export function BudgetsPanel() {
                 </button>
               )}
             </div>
-            <div className="font-display tabular-nums" style={{ fontSize: 30 }}>
+            <div className="font-display tabular-nums" style={{ }}>
               ${burn.toFixed(2)}{" "}
-              <span style={{ fontSize: 15, color: "var(--ink-faint)" }}>
+              <span style={{ color: "var(--ink-faint)" }}>
                 {cap != null ? `of $${cap}` : "no cap"}
               </span>
             </div>
@@ -375,7 +375,7 @@ export function BudgetsPanel() {
               saveAdvMut.mutate(adv);
             }}
           >
-            <label className="mono-label" style={{ display: "block", fontSize: 8.5 }}>
+            <label className="mono-label" style={{ display: "block" }}>
               Daily tokens
               <input
                 className="input"
@@ -383,10 +383,10 @@ export function BudgetsPanel() {
                 onChange={(e) => setAdv({ ...adv, daily_token_cap: e.target.value })}
                 inputMode="numeric"
                 placeholder="no cap"
-                style={{ display: "block", width: 110, fontSize: 12, marginTop: 4 }}
+                style={{ display: "block", width: 110, marginTop: 4 }}
               />
             </label>
-            <label className="mono-label" style={{ display: "block", fontSize: 8.5 }}>
+            <label className="mono-label" style={{ display: "block" }}>
               Monthly tokens
               <input
                 className="input"
@@ -394,17 +394,17 @@ export function BudgetsPanel() {
                 onChange={(e) => setAdv({ ...adv, monthly_token_cap: e.target.value })}
                 inputMode="numeric"
                 placeholder="no cap"
-                style={{ display: "block", width: 110, fontSize: 12, marginTop: 4 }}
+                style={{ display: "block", width: 110, marginTop: 4 }}
               />
             </label>
-            <label className="mono-label" style={{ display: "block", fontSize: 8.5 }}>
+            <label className="mono-label" style={{ display: "block" }}>
               Alert at % of cap
               <input
                 className="input"
                 value={adv.alert_at_pct}
                 onChange={(e) => setAdv({ ...adv, alert_at_pct: e.target.value })}
                 inputMode="numeric"
-                style={{ display: "block", width: 76, fontSize: 12, marginTop: 4 }}
+                style={{ display: "block", width: 76, marginTop: 4 }}
               />
             </label>
             <button
@@ -428,7 +428,7 @@ export function BudgetsPanel() {
             </span>
             <button
               className="mono-label transition hover:brightness-125"
-              style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
+              style={{ color: "var(--ink-subtle)" }}
               onClick={() =>
                 setAdv({
                   daily_token_cap: g?.daily_token_cap != null ? String(g.daily_token_cap) : "",
@@ -585,7 +585,7 @@ export function BudgetsPanel() {
             value={newSurface.surface}
             onChange={(e) => setNewSurface({ ...newSurface, surface: e.target.value })}
             aria-label="Surface"
-            style={{ width: 120, fontSize: 12 }}
+            style={{ width: 120 }}
           >
             {SURFACES.map((s) => (
               <option key={s} value={s}>
@@ -600,7 +600,7 @@ export function BudgetsPanel() {
             placeholder="daily $"
             aria-label="Daily USD cap"
             inputMode="decimal"
-            style={{ width: 76, fontSize: 12 }}
+            style={{ width: 76 }}
           />
           <input
             className="input"
@@ -609,7 +609,7 @@ export function BudgetsPanel() {
             placeholder="monthly $"
             aria-label="Monthly USD cap"
             inputMode="decimal"
-            style={{ width: 76, fontSize: 12 }}
+            style={{ width: 76 }}
           />
           <button
             className="btn btn-primary btn-sm"
@@ -648,7 +648,7 @@ export function BudgetsPanel() {
                   {a.kind === "block" ? "blocked" : "warn"}
                 </VerdictChip>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>
+                  <div style={{ fontWeight: 500 }}>
                     {a.scope === "global" ? "Global" : a.surface} · {a.window_kind} at{" "}
                     {Number(a.pct).toFixed(0)}%
                   </div>

@@ -23,7 +23,7 @@ export function MemoryList() {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
         <span className="spinner" />
-        <span className="mono-label" style={{ fontSize: 9 }}>
+        <span className="mono-label" style={{ }}>
           loading…
         </span>
       </div>
@@ -34,7 +34,7 @@ export function MemoryList() {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 8 }}>memory · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--ink-muted)", marginBottom: 12 }}>
           {(q.error as Error).message}
         </p>
         <button className="btn btn-ghost btn-sm" onClick={() => void q.refetch()}>
@@ -77,7 +77,7 @@ export function MemoryList() {
         <MonoLabel icon={Sparkles} style={{ color: "var(--ink)" }}>
           What the loop recalls
         </MonoLabel>
-        <span className="mono-label" style={{ fontSize: 9 }}>
+        <span className="mono-label" style={{ }}>
           <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
             {totalAll}
           </strong>{" "}
@@ -86,12 +86,12 @@ export function MemoryList() {
         {/* Caveat sits next to the total so the breakdown below reads as window-scoped,
             not all-time, once an account passes the row cap. */}
         {totalAll > rows.length ? (
-          <span className="mono-label" style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}>
+          <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
             showing the {rows.length} most recent
           </span>
         ) : null}
         {summary?.byKind.map((k) => (
-          <span key={k.kind} className="mono-label" style={{ fontSize: 9 }}>
+          <span key={k.kind} className="mono-label" style={{ }}>
             <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
               {k.count}
             </strong>{" "}
@@ -100,12 +100,12 @@ export function MemoryList() {
           </span>
         ))}
         {summary && summary.agents.length > 0 ? (
-          <span className="mono-label" style={{ fontSize: 9 }}>
+          <span className="mono-label" style={{ }}>
             {plural(summary.agents.length, "source agent")}
           </span>
         ) : null}
         {summary?.lastLearnedAt ? (
-          <span className="mono-label" style={{ fontSize: 9 }}>
+          <span className="mono-label" style={{ }}>
             last learned {relativeTime(summary.lastLearnedAt, now)}
           </span>
         ) : null}

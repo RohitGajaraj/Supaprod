@@ -46,7 +46,7 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
         <span className="mono-label" style={{ minWidth: 60 }}>
           {node.kind}
         </span>
-        <span style={{ fontSize: 13, color: "var(--ink)" }}>{node.title || "Untitled"}</span>
+        <span style={{ color: "var(--ink)" }}>{node.title || "Untitled"}</span>
         {superseding && (
           <span
             className="mono-label"
@@ -62,7 +62,7 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
           </span>
         )}
         {node.rationale && (
-          <span style={{ fontSize: 11, color: "var(--ink-subtle)", marginLeft: "auto" }}>
+          <span style={{ color: "var(--ink-subtle)", marginLeft: "auto" }}>
             {node.rationale}
           </span>
         )}

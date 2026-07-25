@@ -246,7 +246,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load drift
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(error as Error).message}
         </p>
         <button
@@ -330,13 +330,13 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
           <MonoLabel style={{ marginBottom: 6 }}>Baseline → current</MonoLabel>
           {worst ? (
             <>
-              <div className="font-display tabular-nums" style={{ fontSize: 24 }}>
+              <div className="font-display tabular-nums" style={{ }}>
                 {fmtMetric(worst.metric, Number(worst.baseline_value))} →{" "}
                 <span style={{ color: "var(--marigold)" }}>
                   {fmtMetric(worst.metric, Number(worst.current_value))}
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 2 }}>
+              <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
                 {METRIC_LABELS[worst.metric] ?? worst.metric} ·{" "}
                 <span className="tabular-nums" style={{ color: "var(--marigold)" }}>
                   {fmtDelta(Number(worst.delta_pct))}
@@ -349,7 +349,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
               <div style={{ marginTop: 2 }}>
                 <VerdictChip tone="moss">stable</VerdictChip>
               </div>
-              <div style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 6 }}>
+              <div style={{ color: "var(--ink-faint)", marginTop: 6 }}>
                 within baseline band, no open incidents
               </div>
             </>
@@ -418,7 +418,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                     <button
                       type="button"
                       className="btn btn-ghost btn-sm"
-                      style={{ fontSize: 11 }}
+                      style={{ }}
                       disabled={decideMut.isPending && decideMut.variables?.incidentId === inc.id}
                       onClick={() =>
                         decideMut.mutate({

@@ -69,7 +69,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load this agent's rollup
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
             {(q.error as Error).message}
           </p>
           <button
@@ -133,7 +133,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
         ).map(([l, v]) => (
           <div key={l} className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 6 }}>{l}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ fontSize: 24 }}>
+            <div className="font-display tabular-nums" style={{ }}>
               {v}
             </div>
           </div>

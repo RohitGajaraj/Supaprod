@@ -69,7 +69,7 @@ export function ResearchActivityLine({ statuses }: { statuses: ResearchStatus[] 
         {latest.label}
       </ShimmerText>
       {segments.length > 0 && (
-        <span className="mono-label" style={{ fontSize: 9 }}>
+        <span className="mono-label" style={{ }}>
           {segments.join(" · ")}
         </span>
       )}

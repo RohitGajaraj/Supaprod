@@ -137,7 +137,7 @@ export function StakeholderPackPanel({
         <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD STAKEHOLDER PACK
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
           {(query.error as Error)?.message}
         </p>
         <button
@@ -169,7 +169,7 @@ export function StakeholderPackPanel({
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+        <p style={{ color: "var(--text-muted)", margin: 0 }}>
           No decisions on record yet. Make a few calls in the loop and they will show up here, ready
           to pack.
         </p>
@@ -303,7 +303,7 @@ export function StakeholderPackPanel({
               >
                 {s.heading}
               </div>
-              <div style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-body)" }}>
+              <div style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
                 {s.body}
               </div>
             </div>

@@ -290,7 +290,7 @@ export function ConnectionRow({
         <ProviderLogo provider={provider} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
-            style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4, color: "var(--text-primary)" }}
+            style={{ fontWeight: 500, lineHeight: 1.4, color: "var(--text-primary)" }}
           >
             {label}
           </div>

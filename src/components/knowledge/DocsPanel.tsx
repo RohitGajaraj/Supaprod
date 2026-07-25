@@ -277,7 +277,7 @@ export function DocsPanel() {
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search docs"
               placeholder="Search docs…"
-              style={{ paddingLeft: 28, fontSize: 12 }}
+              style={{ paddingLeft: 28 }}
             />
           </span>
           <span style={{ flex: 1 }}></span>
@@ -335,7 +335,7 @@ export function DocsPanel() {
               <span style={{ flex: 1 }}></span>
               <button
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: 11, color: "var(--agent)" }}
+                style={{ color: "var(--agent)" }}
                 disabled={mPush.isPending}
                 onClick={() => mPush.mutate(doc)}
               >
@@ -343,7 +343,7 @@ export function DocsPanel() {
               </button>
               <button
                 className="btn btn-reject btn-sm"
-                style={{ fontSize: 11 }}
+                style={{ }}
                 disabled={mDelete.isPending}
                 onClick={async () => {
                   const ok = await confirm({
@@ -362,7 +362,7 @@ export function DocsPanel() {
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <button
                   title="Change icon"
-                  style={{ fontSize: 22, lineHeight: "32px", borderRadius: 6, padding: "0 4px" }}
+                  style={{ lineHeight: "32px", borderRadius: 6, padding: "0 4px" }}
                   onClick={async () => {
                     const next = await prompt({
                       title: "Change icon",
@@ -659,7 +659,7 @@ export function DocsPanel() {
                   onChange={(e) => setNotionQuery(e.target.value)}
                   aria-label="Search your shared Notion pages"
                   placeholder="Search your shared Notion pages…"
-                  style={{ paddingLeft: 28, fontSize: 12 }}
+                  style={{ paddingLeft: 28 }}
                 />
               </span>
               <span className="mono-label" style={{ }}>
@@ -700,7 +700,7 @@ export function DocsPanel() {
               )}
               {notionSearch.isError && (
                 <div style={{ padding: "10px 8px" }}>
-                  <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
+                  <p style={{ color: "var(--ink-muted)", margin: 0 }}>
                     {(notionSearch.error as Error)?.message ?? "Failed to load Notion pages"}
                   </p>
                   <button

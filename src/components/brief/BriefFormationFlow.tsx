@@ -216,7 +216,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               seen, and what you are betting on. Each becomes a standing, versioned decision every
               agent reads on every task.
             </p>
-            <p style={{ fontSize: 12.5, color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
+            <p style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
               Each call also grows watched assumptions that Supaprod checks against incoming signals,
               so a strategy drifting out of date surfaces itself.
             </p>
@@ -257,7 +257,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDraftBody(e.target.value)}
               rows={4}
               placeholder={step.placeholder}
-              style={{ resize: "vertical", fontSize: 13, width: "100%" }}
+              style={{ resize: "vertical", width: "100%" }}
             />
             {singleton ? (
               <div style={{ marginTop: 6 }}>
@@ -350,7 +350,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 value={betTitle}
                 onChange={(e) => setBetTitle(e.target.value)}
                 placeholder="Bet title"
-                style={{ fontSize: 13 }}
+                style={{ }}
               />
               <textarea
                 className="input"
@@ -358,7 +358,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setDraftBody(e.target.value)}
                 rows={2}
                 placeholder="What is the bet, and why now?"
-                style={{ resize: "vertical", fontSize: 13 }}
+                style={{ resize: "vertical" }}
               />
               <div>
                 <Button
@@ -409,7 +409,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                           {bets.map((b) => (
                             <li
                               key={b.id}
-                              style={{ fontSize: 12.5, color: "var(--text-body)", lineHeight: 1.5 }}
+                              style={{ color: "var(--text-body)", lineHeight: 1.5 }}
                             >
                               <strong style={{ fontWeight: 500 }}>{b.title}</strong>
                               {b.body ? `: ${b.body}` : ""}
@@ -418,7 +418,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                         </ul>
                       ) : (
                         <p
-                          style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "4px 0 0" }}
+                          style={{ color: "var(--text-faint)", margin: "4px 0 0" }}
                         >
                           None set.
                         </p>

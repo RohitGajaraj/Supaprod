@@ -95,7 +95,7 @@ export function ChangelogPanel() {
         }}
       >
         <p
-          style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px", lineHeight: 1.55 }}
+          style={{ color: "var(--text-body)", margin: "0 0 12px", lineHeight: 1.55 }}
         >
           Nothing shipped yet. When a Build session merges a change, its release notes appear here
           automatically.

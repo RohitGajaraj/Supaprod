@@ -172,7 +172,7 @@ export function SpecList({ onOpen }: SpecListProps) {
         <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
           {(specs.error as Error)?.message}
         </p>
         <button
@@ -207,7 +207,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+        <p style={{ color: "var(--text-muted)", margin: 0 }}>
           No specs yet. Approve an opportunity and Scribe drafts the first one, cited, in about five
           minutes.
         </p>

@@ -212,7 +212,7 @@ export function SupportSignalsPanel() {
         <div className="mono-label" style={{ marginBottom: 8 }}>
           Paste support feedback
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginBottom: 12, maxWidth: 520 }}>
+        <p style={{ color: "var(--ink-muted)", marginBottom: 12, maxWidth: 520 }}>
           One ticket per line. Recurring themes are extracted as signals and sent to Discover
           automatically when you run the signal pass below.
         </p>
@@ -292,7 +292,7 @@ export function SupportSignalsPanel() {
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load recurring themes
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
             {(clustersQ.error as Error)?.message ?? "The read failed."}
           </p>
           <button
@@ -307,7 +307,7 @@ export function SupportSignalsPanel() {
       ) : clusters.length === 0 ? (
         <div className="bento" style={{ padding: 24 }}>
           <div className="mono-label">No recurring themes yet</div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
+          <p style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
             Paste support tickets above and run "Extract signals" to identify recurring themes. Each
             recurring theme becomes a signal in Discover, feeding directly into the opportunity and
             spec pipeline.
@@ -357,7 +357,7 @@ export function SupportSignalsPanel() {
               )}
             </div>
           ))}
-          <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 4 }}>
+          <p style={{ color: "var(--ink-subtle)", marginTop: 4 }}>
             Signals appear in Discover under source "support-triage". Each recurring theme runs
             through the same clustering and opportunity pipeline as any other signal.
           </p>

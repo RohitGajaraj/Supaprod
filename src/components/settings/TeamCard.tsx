@@ -153,7 +153,7 @@ export function TeamCard() {
       )}
 
       <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--hairline)" }}>
-        <div className="mono-label" style={{ fontSize: 11 }}>
+        <div className="mono-label" style={{ }}>
           Invitations
         </div>
         {invitations.isLoading ? (

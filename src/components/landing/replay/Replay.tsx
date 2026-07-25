@@ -655,7 +655,7 @@ export function FlowList({
             </div>
             <div style={{ paddingBottom: i < entries.length - 1 ? 12 : 0, paddingTop: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
-                <span style={{ fontFamily: MONO, fontSize: 9, color: R.faint }}>{e.ts}</span>
+                <span style={{ fontFamily: MONO, color: R.faint }}>{e.ts}</span>
                 <span
                   style={{
                     fontFamily: MONO,
@@ -733,7 +733,7 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
           borderBottom: `1px solid ${R.border}`,
         }}
       >
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>supaprod / today</span>
+        <span style={{ color: R.muted, fontFamily: MONO }}>supaprod / today</span>
         <ReplayChip />
       </div>
       <div
@@ -769,10 +769,10 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
             >
               {labels[step]}
             </div>
-            <p style={{ fontSize: 12, color: R.text, margin: "0 0 8px", lineHeight: 1.4 }}>
+            <p style={{ color: R.text, margin: "0 0 8px", lineHeight: 1.4 }}>
               Simplify onboarding step 2
             </p>
-            <p style={{ fontSize: 11, color: R.muted, margin: 0, lineHeight: 1.5 }}>
+            <p style={{ color: R.muted, margin: 0, lineHeight: 1.5 }}>
               {step === 0 && "3 signals clustered: friction at step 2 rising."}
               {step === 1 && "Precedent: similar fix, D+14 activation +9%."}
               {step === 2 && "Your call. Spec locked: 4 criteria."}
@@ -795,7 +795,7 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
               Approve
             </span>
           )}
-          {step >= 2 && <span style={{ fontSize: 12, color: R.green, flexShrink: 0 }}>✓</span>}
+          {step >= 2 && <span style={{ color: R.green, flexShrink: 0 }}>✓</span>}
         </div>
       </div>
       <div style={{ marginTop: 12 }}>
@@ -875,10 +875,10 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
             transition: "background 0.4s ease",
           }}
         />
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>
+        <span style={{ color: R.muted, fontFamily: MONO }}>
           live run / agent mesh
         </span>
-        <span style={{ marginLeft: "auto", fontSize: 9, color: R.faint, fontFamily: MONO }}>
+        <span style={{ marginLeft: "auto", color: R.faint, fontFamily: MONO }}>
           {allDone ? "run complete" : `${working}/${AGENTS.length} working`}
         </span>
       </div>
@@ -910,11 +910,11 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
               }}
             />
             <span
-              style={{ fontSize: 11, fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}
+              style={{ fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}
             >
               {a.name}
             </span>
-            <span style={{ fontSize: 11, color: R.muted, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
+            <span style={{ color: R.muted, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
             <span
               style={{
                 fontFamily: MONO,
@@ -988,10 +988,10 @@ function DeadRun() {
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: R.faint }} />
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>
+        <span style={{ color: R.muted, fontFamily: MONO }}>
           live run / agent mesh
         </span>
-        <span style={{ marginLeft: "auto", fontSize: 9, color: R.faint, fontFamily: MONO }}>
+        <span style={{ marginLeft: "auto", color: R.faint, fontFamily: MONO }}>
           0/5 working
         </span>
       </div>
@@ -1010,10 +1010,10 @@ function DeadRun() {
           <span
             style={{ width: 7, height: 7, borderRadius: "50%", background: R.faint, flexShrink: 0 }}
           />
-          <span style={{ fontSize: 11, fontWeight: 600, color: R.muted, flexShrink: 0, width: 64 }}>
+          <span style={{ fontWeight: 600, color: R.muted, flexShrink: 0, width: 64 }}>
             {a.name}
           </span>
-          <span style={{ fontSize: 11, color: R.faint, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
+          <span style={{ color: R.faint, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
           <span
             style={{
               fontFamily: MONO,
@@ -1028,7 +1028,7 @@ function DeadRun() {
       ))}
       <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ flex: 1, height: 2, background: R.divider, borderRadius: 1 }} />
-        <span style={{ fontSize: 8.5, fontFamily: MONO, color: R.faint, flexShrink: 0 }}>
+        <span style={{ fontFamily: MONO, color: R.faint, flexShrink: 0 }}>
           the timeline ends here
         </span>
       </div>
@@ -1125,7 +1125,7 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
             >
               mission trace / replayed
             </span>
-            <span style={{ fontFamily: MONO, fontSize: 9, color: R.faint }}>
+            <span style={{ fontFamily: MONO, color: R.faint }}>
               <span style={{ color: R.blue }}>agent</span> runs it &middot;{" "}
               <span style={{ color: R.ember }}>you</span> gate it &middot;{" "}
               <span style={{ color: "#E8B44C" }}>memory</span> sharpens it

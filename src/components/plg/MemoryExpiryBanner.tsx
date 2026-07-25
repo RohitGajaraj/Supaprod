@@ -55,7 +55,7 @@ export function MemoryExpiryBanner({ workspaceId }: { workspaceId: string | null
         <MonoLabel icon={Clock} style={{ marginBottom: 4 }}>
           Memory · free plan
         </MonoLabel>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: 0, lineHeight: 1.5 }}>
+        <p style={{ color: "var(--ink-muted)", margin: 0, lineHeight: 1.5 }}>
           On the free plan, decision memory is kept {retentionDays} days, then it fades. {subject}{" "}
           {verb} {timing}. Keep it and let it compound across your decisions.
         </p>

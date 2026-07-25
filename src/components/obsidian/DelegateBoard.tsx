@@ -70,7 +70,7 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 6, lineHeight: 1.3 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+        <span style={{ fontWeight: 600, color: "var(--ink)" }}>
           {stripAutoPrefix(m.title) || "Untitled mission"}
         </span>
         {isAutoTitle(m.title) ? <AutoChip /> : null}
@@ -117,11 +117,11 @@ function LaneColumn({
         <h2 style={{ fontWeight: 600, color: "var(--ink)", margin: 0 }}>
           {lane.label}
         </h2>
-        <span className="tabular-nums" style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+        <span className="tabular-nums" style={{ color: "var(--ink-faint)" }}>
           {lane.missions.length}
         </span>
       </div>
-      <p style={{ fontSize: 11, color: "var(--ink-faint)", margin: "0 0 10px" }}>{lane.blurb}</p>
+      <p style={{ color: "var(--ink-faint)", margin: "0 0 10px" }}>{lane.blurb}</p>
       {lane.missions.length === 0 ? (
         <div
           style={{
@@ -179,7 +179,7 @@ export function DelegateBoard({ onOpenMission }: { onOpenMission: (id: string) =
   if (query.isError) {
     return (
       <div style={{ padding: "32px 0" }}>
-        <p style={{ fontSize: 13, color: "var(--rose)", margin: 0 }}>
+        <p style={{ color: "var(--rose)", margin: 0 }}>
           Could not load the desk. {(query.error as Error)?.message}
         </p>
         <button

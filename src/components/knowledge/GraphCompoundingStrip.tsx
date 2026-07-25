@@ -46,7 +46,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
       <MonoLabel style={{ marginTop: 2, display: "block" }}>
         {label}
       </MonoLabel>
-      <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 2 }}>{sub}</div>
+      <div style={{ color: "var(--text-subtle)", marginTop: 2 }}>{sub}</div>
     </div>
   );
 }

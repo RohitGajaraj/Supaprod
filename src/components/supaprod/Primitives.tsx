@@ -223,7 +223,7 @@ export function TabRow({
         onSelect={onSet}
       />
       {desc && desc[active] ? (
-        <p style={{ fontSize: 12, color: "var(--ds-gray-700)", marginTop: 8 }}>{desc[active]}</p>
+        <p style={{ color: "var(--ds-gray-700)", marginTop: 8 }}>{desc[active]}</p>
       ) : null}
     </div>
   );
@@ -278,8 +278,8 @@ export function EmptyState({
       <h3
         style={
           pixel
-            ? { fontFamily: "var(--font-pixel)", fontWeight: 400, fontSize: 19 }
-            : { fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }
+            ? { fontFamily: "var(--font-pixel)", fontWeight: 400 }
+            : { fontWeight: 600, letterSpacing: "-0.01em" }
         }
       >
         {title}

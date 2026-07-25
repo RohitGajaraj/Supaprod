@@ -555,7 +555,7 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
         >
           Opportunity queue
         </h2>
-        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+        <p style={{ margin: "2px 0 0", color: "var(--text-subtle)" }}>
           Strongest bets first
         </p>
       </div>

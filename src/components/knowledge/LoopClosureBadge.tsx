@@ -63,7 +63,7 @@ export function LoopClosureBadge() {
           aria-hidden
           style={{ width: 9, height: 9, borderRadius: 999, background: dot, flexShrink: 0 }}
         />
-        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{s.label}</span>
+        <span style={{ fontWeight: 500, color: "var(--ink)" }}>{s.label}</span>
         <Activity
           size={16}
           strokeWidth={1.5}
@@ -71,7 +71,7 @@ export function LoopClosureBadge() {
           style={{ marginLeft: "auto" }}
         />
       </div>
-      <p style={{ margin: 0, fontSize: 12, color: "var(--ink-subtle)", lineHeight: 1.5 }}>
+      <p style={{ margin: 0, color: "var(--ink-subtle)", lineHeight: 1.5 }}>
         {s.detail}
       </p>
       <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>

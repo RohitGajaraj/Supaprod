@@ -127,7 +127,7 @@ export function CompoundingPanel() {
   if (!learnings.length) {
     return (
       <Card>
-        <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
+        <p style={{ color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
           No outcomes recorded yet. When you record what a shipped bet actually did, the memo lands
           here and memory re-ranks the priority it touched.
         </p>
@@ -186,7 +186,7 @@ export function CompoundingPanel() {
             >
               <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
                 <VerdictChip tone={VERDICT_TONE[l.verdict]} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {l.opportunity_title ?? "an outcome memo"}
                 </span>
                 {delta != null && (

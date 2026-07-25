@@ -216,7 +216,7 @@ export function RoadmapColumns() {
         <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
           {(roadmap.error as Error)?.message}
         </p>
         <button

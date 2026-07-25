@@ -81,7 +81,7 @@ export function PromptsPanel() {
         <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load prompts
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(templates.error as Error).message}
         </p>
         <button
@@ -181,7 +181,7 @@ export function PromptsPanel() {
             <span className="mono-label tabular-nums" style={{ color: "var(--text-primary)" }}>
               {p.active_version ? `v${p.active_version.version}` : "-"}
             </span>
-            <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
+            <span style={{ color: "var(--text-subtle)" }}>
               {p.description ?? `${p.surface} · ${p.key}`}
             </span>
             <span
@@ -200,14 +200,14 @@ export function PromptsPanel() {
             <span style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
               <button
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: 11 }}
+                style={{ }}
                 onClick={() => setSelectedId(p.id)}
               >
                 Diff
               </button>
               <button
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: 11 }}
+                style={{ }}
                 disabled={rolling || !p.active_version || p.active_version.version <= 1}
                 title={
                   !p.active_version || p.active_version.version <= 1
@@ -404,7 +404,7 @@ function TemplateDetail({
               Prompt · {template.surface} · {template.key}
               {activeVersion ? ` · active v${activeVersion.version}` : ""}
             </MonoLabel>
-            <div className="font-display" style={{ fontSize: 21, marginTop: 2 }}>
+            <div className="font-display" style={{ marginTop: 2 }}>
               {template.name}
             </div>
           </div>
@@ -509,7 +509,7 @@ function TemplateDetail({
             </button>
           </>
         ) : right ? (
-          <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
+          <span style={{ color: "var(--text-subtle)" }}>
             Published versions are immutable; fork a new draft to edit.
           </span>
         ) : null}
@@ -561,7 +561,7 @@ function VersionColumn({
           marginBottom: 8,
         }}
       >
-        <MonoLabel style={{ fontSize: 8.5 }}>{label}</MonoLabel>
+        <MonoLabel style={{ }}>{label}</MonoLabel>
         {selectedId && selectedId !== activeId ? (
           <button
             className="btn btn-ghost btn-sm"
@@ -620,7 +620,7 @@ function DiffPanel({ left, right }: { left: string; right: string }) {
   const diff = useMemo(() => computeLineDiff(left, right), [left, right]);
   return (
     <div className="bento" style={{ padding: "12px 14px" }}>
-      <MonoLabel style={{ fontSize: 8.5, marginBottom: 8 }}>Diff · left vs right</MonoLabel>
+      <MonoLabel style={{ marginBottom: 8 }}>Diff · left vs right</MonoLabel>
       <pre
         style={{
           fontFamily: "var(--font-mono)",
@@ -749,15 +749,15 @@ function AssignmentPanel({
           role="switch"
           aria-checked={enabled}
           className="mono-label"
-          style={{ fontSize: 8.5, color: enabled ? "var(--moss)" : "var(--text-faint)" }}
+          style={{ color: enabled ? "var(--moss)" : "var(--text-faint)" }}
           onClick={() => setEnabled((v) => !v)}
         >
           {enabled ? "on" : "off"}
         </button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Variant A
           </div>
           <select className="input" value={aId} onChange={(e) => setAId(e.target.value)}>
@@ -769,8 +769,8 @@ function AssignmentPanel({
             ))}
           </select>
         </label>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Variant B · optional
           </div>
           <select className="input" value={bId} onChange={(e) => setBId(e.target.value)}>
@@ -782,8 +782,8 @@ function AssignmentPanel({
             ))}
           </select>
         </label>
-        <label style={{ fontSize: 12, gridColumn: "span 2" }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ gridColumn: "span 2" }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Traffic to A · {split}%
           </div>
           <input

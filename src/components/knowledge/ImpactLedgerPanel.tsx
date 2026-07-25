@@ -51,7 +51,7 @@ function StatCard({ value, label, sub }: { value: string; label: string; sub?: s
       </div>
       <MonoLabel style={{ marginTop: 4 }}>{label}</MonoLabel>
       {sub ? (
-        <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 3 }}>{sub}</div>
+        <div style={{ color: "var(--text-faint)", marginTop: 3 }}>{sub}</div>
       ) : null}
     </div>
   );

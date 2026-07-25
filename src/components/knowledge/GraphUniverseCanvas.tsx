@@ -1094,7 +1094,7 @@ export function GraphUniverseCanvas({
               return ` · ${parts.join(" · ")}`;
             })()}
           </MonoLabel>
-          <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 5 }}>
+          <div style={{ color: "var(--text-subtle)", marginTop: 5 }}>
             Hover lights its connections, click to focus, double-click for the story
           </div>
         </div>

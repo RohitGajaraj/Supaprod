@@ -154,7 +154,7 @@ function SurfaceRow({
       <td style={td()}>
         {row.recommendation ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12.5, color: "var(--ink-text)" }}>
+            <span style={{ color: "var(--ink-text)" }}>
               {modelLabel(liveModels, row.recommendation.modelId)}
             </span>
             <button
@@ -180,7 +180,7 @@ function SurfaceRow({
             </button>
           </div>
         ) : (
-          <span style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>
+          <span style={{ color: "var(--ink-faint)" }}>
             {row.recommendationReason ?? "no eval data yet"}
           </span>
         )}
@@ -204,7 +204,7 @@ export function RoutingTable({
 }) {
   return (
     <div className="ink-panel" style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th style={th()}>Surface</th>

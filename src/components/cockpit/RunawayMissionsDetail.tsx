@@ -17,7 +17,7 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
 
   if (!runaway || runaway.flagged.length === 0) {
     return (
-      <div style={{ fontSize: 13.5, color: "var(--ink-subtle)" }}>
+      <div style={{ color: "var(--ink-subtle)" }}>
         <div style={{ marginBottom: 8, fontWeight: 500 }}>Reliability Status</div>
         <p>No spinning missions detected.</p>
       </div>
@@ -34,7 +34,7 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
   };
 
   return (
-    <div style={{ fontSize: 13.5 }}>
+    <div style={{ }}>
       {runawayMissions.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div
@@ -123,13 +123,13 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 11, color: "var(--ink-subtle)", marginBottom: 4 }}>
+              <div style={{ color: "var(--ink-subtle)", marginBottom: 4 }}>
                 Availability
               </div>
-              <div style={{ fontSize: 16, fontWeight: 500 }}>{slo.metrics.availabilityPct}%</div>
+              <div style={{ fontWeight: 500 }}>{slo.metrics.availabilityPct}%</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "var(--ink-subtle)", marginBottom: 4 }}>
+              <div style={{ color: "var(--ink-subtle)", marginBottom: 4 }}>
                 Budget
               </div>
               <div

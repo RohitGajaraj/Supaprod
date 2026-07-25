@@ -169,7 +169,7 @@ export function MissionSlideOver({
       {session.isError ? (
         // An error never wears the loading state's clothes: name the cause, offer retry.
         <div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>
             Couldn't load this mission. {(session.error as Error)?.message ?? ""}
           </p>
           <button
@@ -225,7 +225,7 @@ export function MissionSlideOver({
             {spec ? <SpecProvenanceLink spec={spec} /> : null}
           </div>
           {mission.goal ? (
-            <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5 }}>
+            <p style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
               {mission.goal}
             </p>
           ) : null}
@@ -269,7 +269,7 @@ export function MissionSlideOver({
               <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
               <span
                 className="ml-auto"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-faint)" }}
+                style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
               >
                 {fmtCost(totalCost)}
               </span>
@@ -316,7 +316,7 @@ export function MissionSlideOver({
                 />
                 <span
                   className="min-w-0 flex-1 truncate"
-                  style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--text-body)" }}
+                  style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
                 >
                   {stepDescription(step)}
                 </span>

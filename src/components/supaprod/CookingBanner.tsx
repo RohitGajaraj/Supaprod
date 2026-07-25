@@ -84,7 +84,7 @@ export function CookingBanner() {
       <Link
         to="/build"
         className="mono-label"
-        style={{ fontSize: 9.5, color: "var(--action-blue)", whiteSpace: "nowrap" }}
+        style={{ color: "var(--action-blue)", whiteSpace: "nowrap" }}
       >
         Watch live →
       </Link>

@@ -102,7 +102,7 @@ export function SpecProjectionsPanel({
   const stamp = (
     <div className="flex items-center" style={{ gap: 10, flexWrap: "wrap" }}>
       <VerdictChip tone={DRIFT_TONE[set.drift.state]}>{set.drift.label}</VerdictChip>
-      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Generated {set.generatedOn}</span>
+      <span style={{ color: "var(--text-muted)" }}>Generated {set.generatedOn}</span>
     </div>
   );
 
@@ -120,7 +120,7 @@ export function SpecProjectionsPanel({
           boxShadow: "var(--top-light)",
         }}
       >
-        <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 8px" }}>
+        <p style={{ color: "var(--text-body)", margin: "0 0 8px" }}>
           No Outcome Contract yet, so there is nothing to project.
         </p>
         <p style={{ color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>

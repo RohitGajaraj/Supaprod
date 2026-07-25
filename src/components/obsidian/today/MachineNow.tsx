@@ -67,7 +67,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
         </button>
       </div>
       {rows.length === 0 ? (
-        <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--text-muted)", marginTop: 10 }}>
+        <p style={{ lineHeight: 1.5, color: "var(--text-muted)", marginTop: 10 }}>
           The cockpit is idle. Send something worth building from Discover · about two minutes.
         </p>
       ) : (
@@ -115,7 +115,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
               </span>
               <span
                 className="shrink-0 text-right"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+                style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
               >
                 {r.cost}
               </span>

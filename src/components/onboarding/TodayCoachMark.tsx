@@ -50,7 +50,7 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
         animation: "cadRise 260ms var(--ds-motion-timing-swift) both",
       }}
     >
-      <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
+      <p style={{ color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
         Your teardown is here. New calls will find you at this badge.
       </p>
       <button

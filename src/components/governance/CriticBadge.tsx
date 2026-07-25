@@ -63,7 +63,7 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
         onClick={() => run.mutate()}
         disabled={run.isPending}
         className="mono-label inline-flex items-center gap-1 rounded-full border hairline px-2 py-0.5 text-ink-faint transition hover:text-ink-muted disabled:opacity-50"
-        style={{ fontSize: 9.5 }}
+        style={{ }}
         title="Run the Critic agent against this row"
       >
         <ShieldAlert className="h-3 w-3" />

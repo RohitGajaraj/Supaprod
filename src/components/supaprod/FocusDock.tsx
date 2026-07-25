@@ -600,7 +600,7 @@ export function FocusDock() {
               <div className="flex flex-col" style={{ gap: 10 }}>
                 {intent ? (
                   <p
-                    style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-body)", margin: 0 }}
+                    style={{ lineHeight: 1.5, color: "var(--text-body)", margin: 0 }}
                   >
                     {intent}
                   </p>
@@ -625,7 +625,7 @@ export function FocusDock() {
                   </Button>
                 </div>
                 {heldCount > 0 ? (
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                  <span style={{ color: "var(--text-muted)" }}>
                     {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly
                   </span>
                 ) : null}

@@ -93,7 +93,7 @@ export function ProgressBlock({
               <StatusDot state={dotState} word={STATUS_WORD[dotState]} style={{ flexShrink: 0 }} />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
               >
                 {stepDescription(step)}
               </span>

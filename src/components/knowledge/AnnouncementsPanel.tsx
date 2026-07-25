@@ -416,7 +416,7 @@ export function AnnouncementsPanel() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
+            <DialogTitle className="font-display" style={{ fontWeight: 460 }}>
               New announcement
             </DialogTitle>
             <DialogDescription style={{ color: "var(--text-subtle)" }}>

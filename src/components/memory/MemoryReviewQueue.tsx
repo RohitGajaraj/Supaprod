@@ -80,7 +80,7 @@ export function MemoryReviewQueue() {
       {/* Composer: the "save this to the brain" affordance. */}
       <div style={{ ...CARD_STYLE, padding: "14px 16px" }}>
         <MonoLabel style={{ marginBottom: 8 }}>Save to brain</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "0 0 10px" }}>
+        <p style={{ color: "var(--text-muted)", margin: "0 0 10px" }}>
           Add something you want every future agent run to remember. It lands here for review first.
           Nothing enters the brain until you approve it.
         </p>
@@ -113,7 +113,7 @@ export function MemoryReviewQueue() {
           >
             Save to brain
           </Button>
-          <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
+          <span style={{ color: "var(--text-subtle)" }}>
             Saved as a proposal, not a live memory.
           </span>
         </div>
@@ -127,7 +127,7 @@ export function MemoryReviewQueue() {
       ) : queue.isError ? (
         <div style={{ ...CARD_STYLE, padding: "16px 18px" }}>
           <MonoLabel style={{ marginBottom: 8 }}>Review queue · failed to load</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+          <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
             {(queue.error as Error).message}
           </p>
           <Button variant="secondary" size="sm" onClick={() => void queue.refetch()}>
@@ -143,7 +143,7 @@ export function MemoryReviewQueue() {
           }}
         >
           <MonoLabel style={{ marginBottom: 6 }}>Review queue is clear</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>
             Nothing is waiting for your approval. Memories the loop proposes, and anything you save
             above, will appear here before they enter Memory.
           </p>
@@ -195,7 +195,7 @@ function CandidateRow({
         </span>
       </div>
 
-      <p style={{ fontSize: 13, color: "var(--text-primary)", margin: "0 0 8px", lineHeight: 1.5 }}>
+      <p style={{ color: "var(--text-primary)", margin: "0 0 8px", lineHeight: 1.5 }}>
         {row.content}
       </p>
 
@@ -219,7 +219,7 @@ function CandidateRow({
           >
             Supersedes
           </span>
-          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          <span style={{ color: "var(--text-muted)" }}>
             {preview
               ? `Approving retires an existing memory: "${preview}"`
               : "Approving retires the existing memory it conflicts with."}

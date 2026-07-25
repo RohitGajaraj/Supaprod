@@ -91,7 +91,7 @@ export function LoopHealthBanner() {
             flexShrink: 0,
           }}
         />
-        <strong style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
+        <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           {v.label}
         </strong>
       </span>

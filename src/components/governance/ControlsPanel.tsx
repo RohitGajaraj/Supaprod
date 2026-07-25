@@ -338,7 +338,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
           Couldn't load controls
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(overview.error as Error)?.message}
         </p>
         <button
@@ -379,8 +379,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>Kill switch</div>
-            <div style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 2 }}>
+            <div style={{ fontWeight: 600 }}>Kill switch</div>
+            <div style={{ color: "var(--ink-subtle)", marginTop: 2 }}>
               {killed
                 ? "All agents paused. Nothing runs until you resume."
                 : "Agents are live. Flipping this pauses every agent mid-step, reversibly."}
@@ -406,7 +406,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
               : "Why pause? · optional, lands in the audit log"
           }
           aria-label={killed ? "Reason for resuming" : "Reason for pausing"}
-          style={{ marginTop: 10, fontSize: 12 }}
+          style={{ marginTop: 10 }}
         />
         {ks?.reason ? (
           <div className="mono-label" style={{ marginTop: 8, color: "var(--text-subtle)" }}>
@@ -425,9 +425,9 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         <MonoLabel icon={Gauge} style={{ marginBottom: 8 }}>
           Mission cap
         </MonoLabel>
-        <div className="font-display tabular-nums" style={{ fontSize: 28 }}>
+        <div className="font-display tabular-nums" style={{ }}>
           {MISSION_CONCURRENCY_CAP}{" "}
-          <span style={{ fontSize: 13, color: "var(--text-subtle)" }}>concurrent</span>
+          <span style={{ color: "var(--text-subtle)" }}>concurrent</span>
         </div>
         <div style={{ color: "var(--ink-subtle)", marginTop: 4 }}>
           New goals queue when the mesh is at capacity.
@@ -441,7 +441,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         </MonoLabel>
         <div
           className="font-display tabular-nums"
-          style={{ fontSize: 28, color: stuck ? "var(--ember)" : undefined }}
+          style={{ color: stuck ? "var(--ember)" : undefined }}
         >
           {stuck}
         </div>
@@ -506,7 +506,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{pipeName(s)}</div>
+                    <div style={{ fontWeight: 500 }}>{pipeName(s)}</div>
                     <div style={{ color: "var(--ink-subtle)" }}>{desc}</div>
                   </div>
                   <button
@@ -568,7 +568,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 value={newEvent}
                 onChange={(e) => setNewEvent(e.target.value as EventType)}
                 aria-label="Event"
-                style={{ width: 210, fontSize: 12 }}
+                style={{ width: 210 }}
               >
                 <option value="signal.created">New signal · signal.created</option>
                 <option value="opportunity.scored">Opportunity scored · opportunity.scored</option>
@@ -583,14 +583,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 onChange={(e) => setNewAgent(e.target.value)}
                 placeholder="agent slug"
                 aria-label="Agent slug"
-                style={{ width: 120, fontSize: 12 }}
+                style={{ width: 120 }}
               />
               <select
                 className="input"
                 value={newMode}
                 onChange={(e) => setNewMode(e.target.value as "auto" | "confirm")}
                 aria-label="Approval mode"
-                style={{ width: 96, fontSize: 12 }}
+                style={{ width: 96 }}
               >
                 <option value="confirm">confirm</option>
                 <option value="auto">auto</option>
@@ -603,7 +603,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   placeholder="min ICE"
                   aria-label="Minimum ICE score"
                   inputMode="decimal"
-                  style={{ width: 76, fontSize: 12 }}
+                  style={{ width: 76 }}
                 />
               ) : null}
               <button
@@ -697,12 +697,12 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }} title={t.description ?? undefined}>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>
+                      <div style={{ fontWeight: 500 }}>
                         {t.display_name || t.tool_name}
                       </div>
                       <div
                         className="mono-label"
-                        style={{ fontSize: 10, color: "var(--text-subtle)" }}
+                        style={{ color: "var(--text-subtle)" }}
                       >
                         {t.tool_name}
                       </div>
@@ -768,7 +768,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 >
                   <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{g.label}</div>
+                      <div style={{ fontWeight: 600 }}>{g.label}</div>
                       <div style={{ color: "var(--ink-subtle)", marginTop: 2 }}>
                         {g.description}
                       </div>
@@ -777,7 +777,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                       {g.defaultPosture.label}
                     </VerdictChip>
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 6 }}>
+                  <div style={{ color: "var(--text-subtle)", marginTop: 6 }}>
                     {g.defaultPosture.rationale}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
@@ -954,7 +954,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                       on you leads with the ember gate dot, not the reject button. */}
                   {isPending ? <StepDot status="gate" /> : null}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>
+                    <div style={{ fontWeight: 500 }}>
                       {e.event_type} → {e.target_agent_slug}
                     </div>
                     <div

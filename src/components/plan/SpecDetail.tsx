@@ -180,7 +180,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 to="/plan/spec/$id"
                 params={{ id }}
                 className="hover:underline"
-                style={{ color: "var(--glacier)", fontFamily: "var(--font-mono)", fontSize: 11 }}
+                style={{ color: "var(--glacier)", fontFamily: "var(--font-mono)" }}
               >
                 Open full spec →
               </Link>
@@ -194,7 +194,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
             <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
               COULDN'T LOAD SPEC
             </div>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
               {(prdQuery.error as Error)?.message}
             </p>
             <button

@@ -194,7 +194,7 @@ function InviteList() {
                       <Button
                         variant="secondary"
                         disabled={revoke.isPending}
-                        style={{ fontSize: 11.5, padding: "6px 10px" }}
+                        style={{ padding: "6px 10px" }}
                         onClick={async () => {
                           const ok = await confirm({
                             title: "Revoke invitation?",
@@ -336,7 +336,7 @@ function DomainList() {
               <Button
                 variant="secondary"
                 disabled={del.isPending}
-                style={{ marginLeft: "auto", fontSize: 11.5, padding: "6px 10px" }}
+                style={{ marginLeft: "auto", padding: "6px 10px" }}
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Remove domain?",
@@ -413,7 +413,7 @@ function SignupApprovalsList() {
               <Button
                 variant="secondary"
                 disabled={review.isPending}
-                style={{ marginLeft: "auto", fontSize: 11.5, padding: "6px 10px" }}
+                style={{ marginLeft: "auto", padding: "6px 10px" }}
                 onClick={() => review.mutate({ id: s.id, approve: true })}
               >
                 Approve · grants access
@@ -421,7 +421,7 @@ function SignupApprovalsList() {
               <Button
                 variant="secondary"
                 disabled={review.isPending}
-                style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+                style={{ padding: "6px 10px", color: "var(--text-subtle)" }}
                 onClick={() => review.mutate({ id: s.id, approve: false })}
               >
                 Reject

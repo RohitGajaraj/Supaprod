@@ -27,7 +27,7 @@ export function AiWorking({
       style={{ gap: 8, minWidth: 0, ...style }}
     >
       <SupaprodLoader size={size} title={label} />
-      <ShimmerText style={{ fontSize: 12 }}>{label}</ShimmerText>
+      <ShimmerText style={{ }}>{label}</ShimmerText>
     </span>
   );
 }

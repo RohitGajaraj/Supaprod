@@ -101,14 +101,14 @@ function GraduationCard({
             the ghost buttons keep the list's one-ember budget. */}
         <TrendingUp size={14} style={{ color: "var(--ember)" }} aria-hidden="true" />
         <span
-          style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-primary)" }}
+          style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}
         >
           {p.agent_slug}
         </span>
         <span style={{ color: "var(--text-body)" }}>
           has earned looser reins on
         </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-body)" }}>
+        <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
           {p.tool_name}
         </span>
       </div>

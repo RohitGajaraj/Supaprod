@@ -32,7 +32,7 @@ function RosterRow({ entry, muted }: { entry: CatalogEntry; muted?: boolean }) {
     <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "7px 2px" }}>
       <AgentMark slug={entry.slug} size={26} />
       <div style={{ minWidth: 0, opacity: muted ? 0.7 : 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 540, color: hue }}>{entry.name}</div>
+        <div style={{ fontWeight: 540, color: hue }}>{entry.name}</div>
         <div style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {entry.blurb}
         </div>

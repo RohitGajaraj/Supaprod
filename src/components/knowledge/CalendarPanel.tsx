@@ -586,7 +586,7 @@ export function CalendarPanel({
               fitting your deep-work tasks around your calendar…
             </span>
           ) : blocks.length === 0 ? (
-            <p style={{ fontSize: 12, color: "var(--ink-muted)" }}>
+            <p style={{ color: "var(--ink-muted)" }}>
               {planned
                 ? "Nothing to schedule. No open deep-work tasks, or no free time in the next 7 days."
                 : ""}
@@ -708,7 +708,7 @@ export function CalendarPanel({
           >
             <CalIcon size={16} />
           </span>
-          <h3 className="font-display" style={{ fontSize: 19 }}>
+          <h3 className="font-display" style={{ }}>
             Nothing in the next 14 days
           </h3>
           <p
@@ -885,7 +885,7 @@ export function CalendarPanel({
               </div>
             );
           })}
-          <span className="mono-label" style={{ fontSize: 7.5, padding: "4px 2px" }}>
+          <span className="mono-label" style={{ padding: "4px 2px" }}>
             next 14 days · synced two-way with your calendar
           </span>
         </div>
@@ -976,7 +976,7 @@ const MonthGrid = React.memo(function MonthGrid({
           padding: "0 2px",
         }}
       >
-        <span className="font-display" style={{ fontSize: 16, flex: 1 }}>
+        <span className="font-display" style={{ flex: 1 }}>
           {label}
         </span>
         <button
@@ -1111,7 +1111,7 @@ const MonthGrid = React.memo(function MonthGrid({
       <div
         style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
       >
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           free
         </span>
         {SHADES.map((c) => (
@@ -1127,11 +1127,11 @@ const MonthGrid = React.memo(function MonthGrid({
             }}
           ></span>
         ))}
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           occupied
         </span>
         <span style={{ flex: 1 }}></span>
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           synced two-way with your calendar · weekends: Settings → Profile
         </span>
       </div>
@@ -1166,7 +1166,7 @@ const MonthGrid = React.memo(function MonthGrid({
             <span style={{ flex: 1 }}></span>
             <button
               className="btn btn-ghost btn-sm"
-              style={{ fontSize: 11 }}
+              style={{ }}
               disabled={quickAddPending}
               onClick={() => onQuickAdd(new Date(year, month, selDay))}
             >
@@ -1245,7 +1245,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
           padding: "0 2px",
         }}
       >
-        <span className="font-display" style={{ fontSize: 16, flex: 1 }}>
+        <span className="font-display" style={{ flex: 1 }}>
           {year} · occupancy
         </span>
         <span className="mono-label" style={{ }}>
@@ -1362,7 +1362,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
       <div
         style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
       >
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           free
         </span>
         {SHADES.map((c) => (
@@ -1378,11 +1378,11 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
             }}
           ></span>
         ))}
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           occupied
         </span>
         <span style={{ flex: 1 }}></span>
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
+        <span className="mono-label" style={{ }}>
           today ringed ember · the year fills in as it happens
         </span>
       </div>
@@ -1687,7 +1687,7 @@ function ConnectButton({
           ) : null}
         </div>
         {!available.google && !available.microsoft && connections.length === 0 ? (
-          <p className="mono-label" style={{ fontSize: 7.5, marginTop: 8 }}>
+          <p className="mono-label" style={{ marginTop: 8 }}>
             connect setup pending · admin must add provider credentials
           </p>
         ) : null}

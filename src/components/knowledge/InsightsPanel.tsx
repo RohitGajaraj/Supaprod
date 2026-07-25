@@ -63,7 +63,7 @@ function Stat({ value, label, color }: { value: string; label: string; color?: s
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <span
         className="font-display tabular-nums"
-        style={{ fontSize: 22, color: color ?? "var(--ink)", lineHeight: 1 }}
+        style={{ color: color ?? "var(--ink)", lineHeight: 1 }}
       >
         {value}
       </span>
@@ -181,7 +181,7 @@ export function InsightsPanel() {
             {qa.data.signals.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <ToneDot color={SIGNAL_COLOR[s.kind] ?? "var(--text-subtle)"} />
-                <span style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.55 }}>
+                <span style={{ color: "var(--text-body)", lineHeight: 1.55 }}>
                   {s.text}
                 </span>
               </div>
@@ -365,7 +365,7 @@ export function InsightsPanel() {
         <div className="bento" style={{ padding: 16 }}>
           <MonoLabel style={{ marginBottom: 10 }}>How it accrued</MonoLabel>
           <Timeline buckets={d.timeline} />
-          <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 8 }}>
+          <p style={{ color: "var(--ink-faint)", marginTop: 8 }}>
             Decisions and outcomes logged per month. Scrub or focus a bar to read its count.
           </p>
         </div>

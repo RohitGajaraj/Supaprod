@@ -46,7 +46,7 @@ function HeaderRow({ count }: { count: number }) {
         >
           Signals captured
         </h2>
-        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+        <p style={{ margin: "2px 0 0", color: "var(--text-subtle)" }}>
           Everything sensed, verbatim, from every source
         </p>
       </div>

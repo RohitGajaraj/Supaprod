@@ -167,7 +167,7 @@ export function GraphNodeStory({
         </MonoLabel>
       ) : story.isError ? (
         <div style={{ marginTop: 10 }}>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>
             Could not trace this node: {(story.error as Error)?.message ?? "unknown error"}
           </p>
           <GhostButton onClick={() => void story.refetch()} style={{ marginTop: 6 }}>
@@ -207,7 +207,7 @@ function StorySection({
             <div
               key={r.id}
               className="flex items-baseline"
-              style={{ fontSize: 12, color: "var(--text-body)", gap: 6 }}
+              style={{ color: "var(--text-body)", gap: 6 }}
             >
               <MonoLabel
                 style={{

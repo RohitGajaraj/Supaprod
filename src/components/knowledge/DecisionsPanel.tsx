@@ -242,7 +242,7 @@ export function DecisionsPanel() {
             padding: "28px 26px",
           }}
         >
-          <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px" }}>
+          <p style={{ color: "var(--text-body)", margin: "0 0 12px" }}>
             Decisions land here automatically when missions complete, specs are approved, or meeting
             transcripts are extracted. Or log one manually.
           </p>
@@ -336,7 +336,7 @@ export function DecisionsPanel() {
                         }
                       }}
                       className="hover:underline"
-                      style={{ fontSize: 11, color: "var(--link)", cursor: "pointer" }}
+                      style={{ color: "var(--link)", cursor: "pointer" }}
                     >
                       Decide on Today &rarr;
                     </span>
@@ -433,7 +433,7 @@ function LogDecisionDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
+          <DialogTitle className="font-display" style={{ fontWeight: 460 }}>
             Log decision
           </DialogTitle>
           <DialogDescription style={{ color: "var(--text-subtle)" }}>

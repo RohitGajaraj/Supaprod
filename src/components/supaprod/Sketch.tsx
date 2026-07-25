@@ -459,8 +459,8 @@ export function SketchBarChart({
             zIndex: 2,
           }}
         >
-          <span style={{ display: "block", fontSize: 15 }}>{formatValue(active.value)}</span>
-          <span style={{ display: "block", fontSize: 11, color: "var(--text-subtle)" }}>
+          <span style={{ display: "block" }}>{formatValue(active.value)}</span>
+          <span style={{ display: "block", color: "var(--text-subtle)" }}>
             {active.label}
           </span>
         </div>

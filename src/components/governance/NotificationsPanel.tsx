@@ -32,7 +32,7 @@ export function NotificationsPanel() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load notifications
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message ?? "The read failed."}
         </p>
         <button
@@ -51,7 +51,7 @@ export function NotificationsPanel() {
     return (
       <div className="bento" style={{ padding: 24 }}>
         <div className="mono-label">All clear</div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
           Nothing needs you right now. Approvals waiting on a decision, spend nearing a cap, and a
           stalled loop will show up here.
         </p>
@@ -84,8 +84,8 @@ export function NotificationsPanel() {
                 {s.label}
               </span>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 500, marginTop: 6 }}>{n.title}</div>
-            <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 4 }}>{n.detail}</p>
+            <div style={{ fontWeight: 500, marginTop: 6 }}>{n.title}</div>
+            <p style={{ color: "var(--ink-muted)", marginTop: 4 }}>{n.detail}</p>
           </a>
         );
       })}

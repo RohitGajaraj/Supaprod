@@ -104,7 +104,7 @@ export function VouchersPanel() {
                       <div style={{ display: "flex", gap: "var(--space-1)" }}>
                         <Button
                           variant="secondary"
-                          style={{ fontSize: 11.5, padding: "6px 10px" }}
+                          style={{ padding: "6px 10px" }}
                           onClick={() => setOpenId(v.id)}
                         >
                           Redemptions

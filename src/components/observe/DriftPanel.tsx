@@ -192,7 +192,7 @@ export function DriftPanel() {
         <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load drift
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(error as Error).message}
         </p>
         <button
@@ -267,7 +267,7 @@ export function DriftPanel() {
               role="switch"
               aria-checked={cfg.enabled}
               className="mono-label transition-opacity hover:opacity-70"
-              style={{ fontSize: 8.5, color: cfg.enabled ? "var(--moss)" : "var(--text-faint)" }}
+              style={{ color: cfg.enabled ? "var(--moss)" : "var(--text-faint)" }}
               onClick={() => setCfg({ ...cfg, enabled: !cfg.enabled })}
             >
               detection {cfg.enabled ? "on" : "off"}
@@ -285,8 +285,8 @@ export function DriftPanel() {
                 ["Error rate % threshold", "error_rate_pct_threshold"],
               ] as [string, keyof typeof DEFAULT_CFG][]
             ).map(([label, key]) => (
-              <label key={key} style={{ fontSize: 12 }}>
-                <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+              <label key={key} style={{ }}>
+                <div className="mono-label" style={{ marginBottom: 4 }}>
                   {label}
                 </div>
                 <input
@@ -378,7 +378,7 @@ export function DriftPanel() {
                   {d.watch ? "watch" : "stable"}
                 </VerdictChip>
               </span>
-              <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>{d.note}</span>
+              <span style={{ color: "var(--text-subtle)" }}>{d.note}</span>
               <span style={{ color: "var(--text-faint)", alignSelf: "center", display: "flex" }}>
                 <ChevronRight size={16} />
               </span>
@@ -444,7 +444,7 @@ function TrendBento({
         }}
       >
         <MonoLabel>{label}</MonoLabel>
-        <span className="font-display tabular-nums" style={{ fontSize: 16 }}>
+        <span className="font-display tabular-nums" style={{ }}>
           {last}
         </span>
       </div>

@@ -317,7 +317,7 @@ export function MessageMetaFooter({
     <div>
       {meta.sources.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5" style={{ marginTop: 10 }}>
-          <span className="mono-label" style={{ fontSize: 9 }}>
+          <span className="mono-label" style={{ }}>
             Sources
           </span>
           {meta.sources.map((s) => (
@@ -412,7 +412,7 @@ export function MessageMetaFooter({
             >
               <span
                 className="mono-label"
-                style={{ fontSize: 8.5, display: "block", padding: "3px 8px 5px" }}
+                style={{ display: "block", padding: "3px 8px 5px" }}
               >
                 Replay · the reply lands in this thread
               </span>

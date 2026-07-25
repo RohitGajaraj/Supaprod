@@ -171,7 +171,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>
+            <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
               {stripAutoPrefix(r.title)}
             </span>
             {isAutoTitle(r.title) ? <AutoChip /> : null}
@@ -207,12 +207,12 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
               marginTop: 10,
             }}
           >
-            <MonoLabel icon={decidedBy.Icon} style={{ fontSize: 10.5 }}>
+            <MonoLabel icon={decidedBy.Icon} style={{ }}>
               {decidedBy.label}
             </MonoLabel>
             <StatusPill status={r.status} />
             {r.source.label ? (
-              <MonoLabel icon={Link2} style={{ fontSize: 10.5, color: "var(--text-faint)" }}>
+              <MonoLabel icon={Link2} style={{ color: "var(--text-faint)" }}>
                 {r.source.kind ? `${r.source.kind}: ` : ""}
                 {r.source.label}
               </MonoLabel>
@@ -295,7 +295,7 @@ function SealPanel() {
           flexWrap: "wrap",
         }}
       >
-        <span style={{ fontSize: 12.5, color: "var(--madder-bright)" }}>
+        <span style={{ color: "var(--madder-bright)" }}>
           The tamper check did not load.
         </span>
         <button
@@ -328,17 +328,17 @@ function SealPanel() {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <ShieldCheck size={16} strokeWidth={1.5} color="var(--moss)" />
-        <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--text-primary)" }}>
+        <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
           Tamper check
         </span>
         <span
           className="tabular-nums"
           title={seal.head}
-          style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-subtle)" }}
+          style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}
         >
           {shortHead(seal.head)}
         </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-faint)" }}>
+        <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}>
           {seal.count} record{seal.count === 1 ? "" : "s"} · as of {relTimeCaps(seal.sealedAt)}
         </span>
         <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
@@ -373,7 +373,7 @@ function SealPanel() {
       </div>
 
       <p
-        style={{ fontSize: 11.5, color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}
+        style={{ color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}
       >
         A fingerprint of the whole record. Save it now, and re-check it later to confirm nothing was
         quietly changed.
@@ -437,7 +437,7 @@ function SealPanel() {
                 : `Changed: ${v.reason ?? "the ledger no longer matches this fingerprint"}.`}
             </span>
           ) : verify.isError ? (
-            <span style={{ fontSize: 12, color: "var(--madder)" }}>
+            <span style={{ color: "var(--madder)" }}>
               Could not verify. Try again.
             </span>
           ) : null}
@@ -540,8 +540,8 @@ function MissionChainPanel() {
   return (
     <section aria-label="Mission chain" style={{ marginBottom: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <MonoLabel style={{ fontSize: 10.5 }}>Mission chain</MonoLabel>
-        <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>
+        <MonoLabel style={{ }}>Mission chain</MonoLabel>
+        <span style={{ color: "var(--text-faint)" }}>
           the loop, walked end to end
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
@@ -549,7 +549,7 @@ function MissionChainPanel() {
           <Select value={active ?? ""} onValueChange={(v) => setSelected(v)}>
             <SelectTrigger
               aria-label="Choose a mission"
-              style={{ maxWidth: 260, fontSize: 12, height: 32 }}
+              style={{ maxWidth: 260, height: 32 }}
             >
               <SelectValue placeholder="Choose a mission" />
             </SelectTrigger>
@@ -564,7 +564,7 @@ function MissionChainPanel() {
         ) : null}
       </div>
       {missionsQ.isError ? (
-        <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "10px 0" }}>
+        <div style={{ color: "var(--madder-bright)", padding: "10px 0" }}>
           Could not load missions for the chain. {(missionsQ.error as Error)?.message}{" "}
           <button
             type="button"
@@ -581,7 +581,7 @@ function MissionChainPanel() {
           </button>
         </div>
       ) : chainQ.isError ? (
-        <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "10px 0" }}>
+        <div style={{ color: "var(--madder-bright)", padding: "10px 0" }}>
           Could not walk this mission's chain. {(chainQ.error as Error)?.message}{" "}
           <button
             type="button"
@@ -735,11 +735,11 @@ export function ReceiptsPanel() {
       </div>
 
       {query.isPending ? (
-        <div style={{ fontSize: 13, color: "var(--text-subtle)", padding: "32px 0" }}>
+        <div style={{ color: "var(--text-subtle)", padding: "32px 0" }}>
           Loading receipts
         </div>
       ) : query.isError ? (
-        <div style={{ fontSize: 13, color: "var(--madder)", padding: "32px 0" }}>
+        <div style={{ color: "var(--madder)", padding: "32px 0" }}>
           Could not load the receipts. {(query.error as Error)?.message}{" "}
           <button
             type="button"

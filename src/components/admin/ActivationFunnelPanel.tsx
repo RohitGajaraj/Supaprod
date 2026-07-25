@@ -233,7 +233,7 @@ export function ActivationFunnelPanel() {
       </div>
 
       {snapshot.cohorts.length > 0 && (
-        <div style={{ marginTop: 16, fontSize: 11 }}>
+        <div style={{ marginTop: 16 }}>
           <div
             style={{
               color: "var(--text-subtle)",

@@ -40,7 +40,7 @@ function Delta({
 }) {
   if (value === 0) {
     return (
-      <span style={{ fontSize: 10, color: "var(--text-faint)" }} title="No change">
+      <span style={{ color: "var(--text-faint)" }} title="No change">
         ·
       </span>
     );
@@ -124,7 +124,7 @@ export function MissionDiff({
     return (
       <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the original</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "6px 0 0" }}>
+        <p style={{ color: "var(--text-subtle)", margin: "6px 0 0" }}>
           {(q.error as Error)?.message?.slice(0, 160) ??
             "The original mission could not be fetched."}
         </p>
@@ -152,11 +152,11 @@ export function MissionDiff({
       <MonoLabel style={{ marginBottom: 4 }}>replay vs original · what changed</MonoLabel>
 
       {diff.finalOutputChanged ? (
-        <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 10px" }}>
+        <p style={{ color: "var(--text-body)", margin: "0 0 10px" }}>
           The final answer changed between the two runs.
         </p>
       ) : (
-        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "0 0 10px" }}>
+        <p style={{ color: "var(--text-subtle)", margin: "0 0 10px" }}>
           The final answer is unchanged; the run shape may still differ below.
         </p>
       )}
@@ -221,7 +221,7 @@ export function MissionDiff({
         replay={fmtDur(diff.replay.durationMs)}
         delta={
           diff.deltas.durationMs === null ? (
-            <span style={{ fontSize: 10, color: "var(--text-faint)" }}>-</span>
+            <span style={{ color: "var(--text-faint)" }}>-</span>
           ) : (
             <Delta value={diff.deltas.durationMs} render={fmtDur} desirable="lower" />
           )
@@ -259,7 +259,7 @@ export function MissionDiff({
           </ul>
         </div>
       ) : (
-        <p style={{ fontSize: 12, color: "var(--text-subtle)", marginTop: 10 }}>
+        <p style={{ color: "var(--text-subtle)", marginTop: 10 }}>
           Every hop matched the original step for step.
         </p>
       )}

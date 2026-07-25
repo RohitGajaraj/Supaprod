@@ -60,7 +60,7 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
         </p>
 
         {summary.currentOutcome ? (
-          <p style={{ fontSize: 12, color: "var(--ink)", lineHeight: 1.45, marginBottom: 10 }}>
+          <p style={{ color: "var(--ink)", lineHeight: 1.45, marginBottom: 10 }}>
             Committed for {summary.currentOutcome}
             {summary.currentMeasure ? (
               <span style={{ color: "var(--ink-faint)" }}>
@@ -79,9 +79,9 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
         ) : null}
 
         {q.isLoading ? (
-          <p style={{ fontSize: 11, color: "var(--ink-faint)" }}>Loading</p>
+          <p style={{ color: "var(--ink-faint)" }}>Loading</p>
         ) : events.length === 0 ? (
-          <p style={{ fontSize: 11, color: "var(--ink-faint)", lineHeight: 1.4 }}>
+          <p style={{ color: "var(--ink-faint)", lineHeight: 1.4 }}>
             No roadmap history yet. Committing this with an outcome records the why.
           </p>
         ) : (

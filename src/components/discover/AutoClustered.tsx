@@ -43,7 +43,7 @@ function HeaderRow({ count }: { count: number }) {
         >
           Clustered into bets
         </h2>
-        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+        <p style={{ margin: "2px 0 0", color: "var(--text-subtle)" }}>
           Supaprod continuously reads your captured signals and clusters them into themes
           automatically, ranked by corroboration. Promote one and it lands in the queue as a ranked
           bet.

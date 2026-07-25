@@ -206,7 +206,7 @@ export function GoalsPanel({
           <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
             COULDN'T LOAD GOALS
           </div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
             {(goalsQ.error as Error)?.message}
           </p>
           <button
@@ -226,7 +226,7 @@ export function GoalsPanel({
           </button>
         </div>
       ) : goals.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
+        <p style={{ color: "var(--text-subtle)", margin: 0 }}>
           No standing goals yet. Set one above and Supaprod starts working it immediately.
         </p>
       ) : (

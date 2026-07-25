@@ -53,7 +53,7 @@ export function HouseRulesPanel() {
         <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load house rules
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message}
         </p>
         <button
@@ -174,12 +174,12 @@ function HouseRuleCard({
         </p>
         {r.rationale ? (
           <p
-            style={{ fontSize: 12, color: "var(--ink-muted)", margin: "0 0 8px", lineHeight: 1.5 }}
+            style={{ color: "var(--ink-muted)", margin: "0 0 8px", lineHeight: 1.5 }}
           >
             {r.rationale}
           </p>
         ) : null}
-        <span className="mono-label" style={{ color: "var(--ink-faint)", fontSize: 9.5 }}>
+        <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
           {r.source_learning_ids.length} learning{r.source_learning_ids.length === 1 ? "" : "s"}{" "}
           distilled
         </span>

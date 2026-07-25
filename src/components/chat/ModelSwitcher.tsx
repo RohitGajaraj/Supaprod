@@ -88,7 +88,7 @@ export function ModelSwitcher({
           type="button"
           aria-label="Switch model"
           className="mono-label inline-flex max-w-[220px] items-center gap-1 text-ink-faint transition hover:text-ink-muted"
-          style={{ fontSize: 9.5, padding: "6px 4px" }}
+          style={{ padding: "6px 4px" }}
         >
           <span className="truncate normal-case tracking-normal">{label}</span>
           <ChevronDown size={16} className="shrink-0 opacity-60" />

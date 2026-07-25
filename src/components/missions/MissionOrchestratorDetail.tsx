@@ -373,7 +373,7 @@ function TraceHop({
     return { color: "var(--moss)" };
   };
   return (
-    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, marginBottom: 10 }}>
+    <div style={{ fontFamily: "var(--font-mono)", marginBottom: 10 }}>
       {inbound ? (
         <div style={{ marginBottom: 4 }}>
           <button
@@ -436,7 +436,7 @@ function TraceHop({
             }}
           ></span>
         </span>
-        <span className="mono-label tabular-nums" style={{ fontSize: 9 }}>
+        <span className="mono-label tabular-nums" style={{ }}>
           {fmtDuration(hopElapsedMs(h))}
         </span>
         <StatusBadge status={badgeStatus(h.status)} />
@@ -659,11 +659,11 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 per surface. */}
             <span
               className="font-pixel tabular-nums"
-              style={{ fontSize: 30, lineHeight: 1, color: "var(--text-primary)" }}
+              style={{ lineHeight: 1, color: "var(--text-primary)" }}
             >
               {n}
             </span>
-            <span style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.4 }}>
+            <span style={{ color: "var(--text-body)", lineHeight: 1.4 }}>
               prior {n === 1 ? "memory" : "memories"} this mission drew on, instead of starting cold
             </span>
           </div>
@@ -888,7 +888,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
           <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this mission</MonoLabel>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
             {(m.error as Error)?.message?.slice(0, 160)}
           </p>
           <button
@@ -1359,7 +1359,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.goal}
                     </div>
                     {s.note ? (
-                      <div style={{ fontSize: 12, color: "var(--madder)", marginTop: 2 }}>
+                      <div style={{ color: "var(--madder)", marginTop: 2 }}>
                         {s.note}
                       </div>
                     ) : null}
@@ -1440,7 +1440,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </VerdictChip>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <code style={{ fontSize: 12 }}>{tc.tool_name}</code>
+                    <code style={{ }}>{tc.tool_name}</code>
                     <span
                       style={{
                         display: "block",
@@ -1453,7 +1453,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </span>
                     <span
                       className="mono-label tabular-nums"
-                      style={{ fontSize: 10, display: "block", marginTop: 3 }}
+                      style={{ display: "block", marginTop: 3 }}
                     >
                       {REVERSIBILITY_LABEL[c.reversible]} · {tc.ok ? "ok" : "failed"} ·{" "}
                       {tc.latency_ms}ms

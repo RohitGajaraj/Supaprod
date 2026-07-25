@@ -154,7 +154,7 @@ export function StrategicBriefCard() {
         </div>
       ) : nothingSet && !reveal && editingKind === null ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--text-muted)", margin: 0 }}>
+          <p style={{ lineHeight: 1.5, color: "var(--text-muted)", margin: 0 }}>
             Vision, target user, positioning, and top bets steer the machine's judgment.
           </p>
           <button
@@ -202,14 +202,14 @@ export function StrategicBriefCard() {
                       onChange={(e) => setDraftBody(e.target.value)}
                       rows={3}
                       placeholder={`What is the ${KIND_LABEL[kind].toLowerCase()}, in one paragraph?`}
-                      style={{ resize: "vertical", fontSize: 12.5 }}
+                      style={{ resize: "vertical" }}
                     />
                     <div className="flex items-center" style={{ gap: 8 }}>
                       <Button
                         variant="secondary"
                         onClick={() => submit(kind, current?.id ?? null)}
                         loading={save.isPending}
-                        style={{ fontSize: 11, padding: "5px 12px" }}
+                        style={{ padding: "5px 12px" }}
                       >
                         Save · v{(current?.version ?? 0) + 1}
                       </Button>
@@ -273,7 +273,7 @@ export function StrategicBriefCard() {
                     value={draftTitle}
                     onChange={(e) => setDraftTitle(e.target.value)}
                     placeholder="Bet title"
-                    style={{ fontSize: 12.5 }}
+                    style={{ }}
                   />
                   <textarea
                     className="input"
@@ -281,14 +281,14 @@ export function StrategicBriefCard() {
                     onChange={(e) => setDraftBody(e.target.value)}
                     rows={2}
                     placeholder="Why this bet, in one line"
-                    style={{ resize: "vertical", fontSize: 12.5 }}
+                    style={{ resize: "vertical" }}
                   />
                   <div className="flex items-center" style={{ gap: 8 }}>
                     <Button
                       variant="secondary"
                       onClick={() => submit("top_bet")}
                       loading={save.isPending}
-                      style={{ fontSize: 11, padding: "5px 12px" }}
+                      style={{ padding: "5px 12px" }}
                     >
                       Add bet
                     </Button>

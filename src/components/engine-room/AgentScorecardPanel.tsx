@@ -40,11 +40,11 @@ function RateStat({
   const p = pct(fraction);
   return (
     <div style={{ minWidth: 128, flex: "1 1 128px" }}>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-subtle)" }}>
+      <div style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}>
         {label}
       </div>
       {p == null ? (
-        <div style={{ fontSize: 13, color: "var(--text-subtle)", marginTop: 3 }}>
+        <div style={{ color: "var(--text-subtle)", marginTop: 3 }}>
           no history yet
         </div>
       ) : (
@@ -57,7 +57,7 @@ function RateStat({
               marginTop: 3,
             }}
           >
-            <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{p}</span>
+            <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p}</span>
             <span style={{ color: "var(--text-subtle)" }}>{detail}</span>
           </div>
           <div
@@ -111,7 +111,7 @@ function ToolChips({ tools }: { tools: ToolRecord[] }) {
         </span>
       ))}
       {extra > 0 ? (
-        <span style={{ fontSize: 11, color: "var(--text-subtle)", alignSelf: "center" }}>
+        <span style={{ color: "var(--text-subtle)", alignSelf: "center" }}>
           +{extra} more
         </span>
       ) : null}
@@ -133,7 +133,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <AgentMark slug={card.slug} size={26} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 560, color: hue }}>
+          <div style={{ fontWeight: 560, color: hue }}>
             {agentDisplayName(card.slug)}
           </div>
           {stationLabel ? (
@@ -208,12 +208,12 @@ export function AgentScorecardPanel() {
       </p>
 
       {query.isLoading ? (
-        <div style={{ fontSize: 13, color: "var(--text-subtle)", marginTop: 16 }}>
+        <div style={{ color: "var(--text-subtle)", marginTop: 16 }}>
           Reading the record...
         </div>
       ) : query.isError ? (
         <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 13, color: "var(--text-body)" }}>
+          <span style={{ color: "var(--text-body)" }}>
             Could not load the scorecard.
           </span>
           <button
@@ -232,7 +232,7 @@ export function AgentScorecardPanel() {
           </button>
         </div>
       ) : cards.length === 0 ? (
-        <div style={{ fontSize: 13, color: "var(--text-subtle)", marginTop: 16, lineHeight: 1.5 }}>
+        <div style={{ color: "var(--text-subtle)", marginTop: 16, lineHeight: 1.5 }}>
           No decided history yet. Track records appear here as you approve, reject, or rewind what
           the agents do.
         </div>

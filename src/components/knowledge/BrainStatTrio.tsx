@@ -126,7 +126,7 @@ export function BrainStatTrio() {
         }}
       >
         <p
-          style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)", margin: "0 0 12px" }}
+          style={{ lineHeight: 1.55, color: "var(--text-body)", margin: "0 0 12px" }}
         >
           Your track record starts with the first call. Answer one on Today.
         </p>

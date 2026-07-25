@@ -69,7 +69,7 @@ function ProposalCard({
             PBP·{traceRef(p.id)}
           </span>
           <span
-            style={{ fontSize: 11, color: "var(--text-subtle)", fontFamily: "var(--font-mono)" }}
+            style={{ color: "var(--text-subtle)", fontFamily: "var(--font-mono)" }}
           >
             {whenOf(p.created_at)}
           </span>

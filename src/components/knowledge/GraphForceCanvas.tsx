@@ -877,7 +877,7 @@ function GraphHoverCard({
         {node.influence} {node.influence === 1 ? "link" : "links"}
         {cameFrom !== null && ledTo !== null ? ` · from ${cameFrom} · led to ${ledTo}` : ""}
       </MonoLabel>
-      <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 5 }}>
+      <div style={{ color: "var(--text-subtle)", marginTop: 5 }}>
         Click to focus · double-click for the story
       </div>
     </div>

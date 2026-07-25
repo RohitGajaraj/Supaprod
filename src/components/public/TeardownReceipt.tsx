@@ -47,14 +47,14 @@ function List({
   empty: string;
 }) {
   if (items.length === 0) {
-    return <p style={{ fontSize: 13, color: "var(--text-subtle)", lineHeight: 1.5 }}>{empty}</p>;
+    return <p style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>{empty}</p>;
   }
   return (
     <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((item, i) => (
         <li key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <Icon size={16} strokeWidth={1.5} style={{ color: tone, flexShrink: 0, marginTop: 2 }} />
-          <span style={{ fontSize: 13.5, color: "var(--text-body)", lineHeight: 1.5 }}>{item}</span>
+          <span style={{ color: "var(--text-body)", lineHeight: 1.5 }}>{item}</span>
         </li>
       ))}
     </ul>
@@ -82,7 +82,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           flexWrap: "wrap",
         }}
       >
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-subtle)" }}>
+        <div className="mono-label" style={{ color: "var(--text-subtle)" }}>
           Supaprod Critic · receipt
         </div>
         <div
@@ -156,7 +156,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
             <ArrowRight size={16} strokeWidth={1.5} />
             Recommendation
           </div>
-          <p style={{ fontSize: 13.5, color: "var(--text-body)", lineHeight: 1.55 }}>
+          <p style={{ color: "var(--text-body)", lineHeight: 1.55 }}>
             {teardown.recommendation}
           </p>
         </>
@@ -168,7 +168,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
       >
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--text-subtle)" }}>
+        <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
           Critic confidence
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: 200 }}>
@@ -192,7 +192,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           </div>
           <span
             className="mono-label"
-            style={{ fontSize: 10, color: "var(--text-body)", minWidth: 34, textAlign: "right" }}
+            style={{ color: "var(--text-body)", minWidth: 34, textAlign: "right" }}
           >
             {confidencePct}%
           </span>

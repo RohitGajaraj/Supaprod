@@ -26,13 +26,13 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
     <div className="bento" style={{ marginTop: 28, padding: "22px 22px", textAlign: "center" }}>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
+        style={{ color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
       >
         Made with Supaprod
       </div>
       <h2
         className="font-display"
-        style={{ fontSize: 22, lineHeight: 1.2, margin: "0 0 8px", color: "var(--ink, #1f1b16)" }}
+        style={{ lineHeight: 1.2, margin: "0 0 8px", color: "var(--ink, #1f1b16)" }}
       >
         {heading}
       </h2>

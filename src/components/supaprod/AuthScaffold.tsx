@@ -150,7 +150,7 @@ export function AuthScaffold({
           {intro ? (
             <div
               className="mono-label"
-              style={{ fontSize: 9, color: "var(--text-subtle)", marginBottom: 12 }}
+              style={{ color: "var(--text-subtle)", marginBottom: 12 }}
             >
               {intro}
             </div>
@@ -161,7 +161,7 @@ export function AuthScaffold({
               per screen, no other Pixel use on this surface. */}
           <h1
             className="font-pixel"
-            style={{ fontSize: 30, marginTop: 14, color: "var(--text-primary)" }}
+            style={{ marginTop: 14, color: "var(--text-primary)" }}
           >
             {title}
           </h1>

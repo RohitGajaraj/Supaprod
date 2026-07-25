@@ -86,7 +86,7 @@ export function WorkspaceBindingsSection() {
       <h2 className="mono-label" style={{ margin: "0 0 4px", color: "var(--ink-subtle)" }}>
         Workspace bindings
       </h2>
-      <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "0 0 12px", maxWidth: 560 }}>
+      <p style={{ color: "var(--ink-subtle)", margin: "0 0 12px", maxWidth: 560 }}>
         Map your connected accounts to this workspace: which repo, team, or database the agents act
         on.
       </p>
@@ -161,7 +161,7 @@ export function WorkspaceBindingsSection() {
                   <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
                     <ProviderLogo provider={spec.id} size={28} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>
+                      <div style={{ fontWeight: 500, color: "var(--ink)" }}>
                         {spec.label}
                       </div>
                       <div style={{ color: "var(--ink-subtle)" }}>{rt.label}</div>
@@ -204,7 +204,7 @@ export function WorkspaceBindingsSection() {
                           {boundTime ? (
                             <div
                               className="mono-label tabular-nums"
-                              style={{ fontSize: 9, color: "var(--ink-faint)", marginTop: 2 }}
+                              style={{ color: "var(--ink-faint)", marginTop: 2 }}
                             >
                               bound {relTimeCaps(boundTime)}
                             </div>
@@ -226,7 +226,7 @@ export function WorkspaceBindingsSection() {
                         kindLabel={rt.label}
                       />
                     ) : (
-                      <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
+                      <span style={{ color: "var(--ink-subtle)" }}>
                         Connect {spec.label} in{" "}
                         <Link
                           to="/settings"

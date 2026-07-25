@@ -43,7 +43,7 @@ export function TracesPanel() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load traces
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(traces.error as Error).message}
         </p>
         <button

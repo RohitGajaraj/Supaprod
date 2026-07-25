@@ -28,7 +28,7 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
 
   if (!reacted) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ color: "var(--ds-gray-900, var(--text-muted))" }}>Was this useful?</span>
         <button
           type="button"
@@ -63,7 +63,7 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
   }
 
   return (
-    <div style={{ fontSize: 12, color: "var(--ds-gray-900, var(--text-muted))" }}>
+    <div style={{ color: "var(--ds-gray-900, var(--text-muted))" }}>
       {noteSent ? (
         <span>Thanks, noted.</span>
       ) : showNote ? (

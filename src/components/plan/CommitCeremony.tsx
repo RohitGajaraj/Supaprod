@@ -60,7 +60,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
 
           <div style={{ marginTop: 14 }}>
             {hasBoth ? (
-              <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
+              <p style={{ color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
                 You are promising: {bet.outcome}. Measured by {bet.measure}.
               </p>
             ) : (

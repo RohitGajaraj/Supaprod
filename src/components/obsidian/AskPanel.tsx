@@ -82,7 +82,7 @@ function ShimmerStatus({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center" style={{ gap: 8 }}>
       <SupaprodLoader size={16} />
-      <span className="ai-working-word" style={{ fontSize: 12 }}>
+      <span className="ai-working-word" style={{ }}>
         {label}
       </span>
     </span>

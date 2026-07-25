@@ -236,7 +236,7 @@ function ProposalEnricher({
                 </button>
               )}
               {apply.data && !apply.data.applied && apply.data.reason ? (
-                <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "6px 0 0" }}>
+                <p style={{ color: "var(--text-subtle)", margin: "6px 0 0" }}>
                   {apply.data.reason}
                 </p>
               ) : null}
@@ -374,7 +374,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       >
         {copy.outcome}
       </p>
-      <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p style={{ color: "var(--text-subtle)", margin: "5px 0 0", lineHeight: 1.5 }}>
         Trade-off: {copy.con}
       </p>
     </div>

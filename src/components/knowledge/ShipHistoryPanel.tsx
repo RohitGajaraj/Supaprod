@@ -76,7 +76,7 @@ export function ShipHistoryPanel() {
         }}
       >
         <p
-          style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px", lineHeight: 1.55 }}
+          style={{ color: "var(--text-body)", margin: "0 0 12px", lineHeight: 1.55 }}
         >
           Ship history will land here. When a Build session completes end to end, it appears here
           with duration and cost.
@@ -120,14 +120,14 @@ export function ShipHistoryPanel() {
         >
           <StatusDot state="shipped" word={STATUS_WORD.shipped} />
           <span
-            style={{ fontWeight: 500, fontSize: 13, flexShrink: 0, color: "var(--text-primary)" }}
+            style={{ fontWeight: 500, flexShrink: 0, color: "var(--text-primary)" }}
           >
             {stripAutoPrefix(m.title)}
           </span>
           {isAutoTitle(m.title) ? <AutoChip /> : null}
           <span
             className="truncate"
-            style={{ flex: 1, minWidth: 0, fontSize: 13, color: "var(--text-muted)" }}
+            style={{ flex: 1, minWidth: 0, color: "var(--text-muted)" }}
           >
             {m.goal}
           </span>
@@ -205,7 +205,7 @@ export function ShipHistoryPanel() {
           </span>
           <span
             className="truncate"
-            style={{ flex: 1, minWidth: 0, fontSize: 13, color: "var(--text-muted)" }}
+            style={{ flex: 1, minWidth: 0, color: "var(--text-muted)" }}
           >
             {r.input}
           </span>

@@ -80,10 +80,10 @@ export function CreditCapsCard() {
   if (caps.isError) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--madder, #E06557)" }}>
+        <div className="mono-label" style={{ color: "var(--madder, #E06557)" }}>
           Couldn't load spending caps
         </div>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
+        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
           {caps.error instanceof Error ? caps.error.message : "Unknown error"}
         </p>
         <button
@@ -140,10 +140,10 @@ export function CreditCapsCard() {
     <div className="bento" style={{ padding: "var(--card-pad, 18px)", display: "grid", gap: 20 }}>
       {/* ---- Per-product caps ---- */}
       <div>
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)" }}>
           Per-product spending caps
         </div>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
+        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
           Cap how many credits a product can spend per window. Takes effect once metering is on.
         </p>
 
@@ -230,7 +230,7 @@ export function CreditCapsCard() {
         </div>
 
         {data.products.length === 0 && (
-          <p style={{ fontSize: 11, color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
+          <p style={{ color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
             Add a product first to set a per-product cap.
           </p>
         )}
@@ -243,10 +243,10 @@ export function CreditCapsCard() {
           borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
         }}
       >
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
+        <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)" }}>
           Per-member credit allocation
         </div>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
+        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
           Set how many credits each team member can use per window. Business and Enterprise.
         </p>
 
@@ -349,7 +349,7 @@ export function CreditCapsCard() {
         </div>
 
         {data.members.length === 0 && (
-          <p style={{ fontSize: 11, color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
+          <p style={{ color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
             Invite team members to set per-member credit limits.
           </p>
         )}

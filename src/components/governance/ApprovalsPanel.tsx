@@ -113,7 +113,7 @@ export function ApprovalsPanel() {
         <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load approvals
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(q.error as Error)?.message}
         </p>
         <button
@@ -307,7 +307,7 @@ function ApprovalCard({
           {trackLabel && (
             <span
               className="mono-label"
-              style={{ color: "var(--text-faint)", fontSize: 9.5 }}
+              style={{ color: "var(--text-faint)" }}
               title="This agent's decided-approval record across your past gates"
             >
               {trackLabel}
@@ -316,13 +316,13 @@ function ApprovalCard({
           {outcomeLabel && (
             <span
               className="mono-label"
-              style={{ color: "var(--text-faint)", fontSize: 9.5 }}
+              style={{ color: "var(--text-faint)" }}
               title="This agent's recorded outcome record: did the decided-on work actually turn out well, not just whether the gate was approved"
             >
               {outcomeLabel}
             </span>
           )}
-          <span style={{ fontSize: 12, color: "var(--text-faint)" }}>wants</span>
+          <span style={{ color: "var(--text-faint)" }}>wants</span>
           <span className="mono-label" style={{ color: "var(--text-body)" }}>
             {a.tool_name}
           </span>
@@ -330,7 +330,7 @@ function ApprovalCard({
           {!resolved && declines > 0 && (
             <span
               className="mono-label"
-              style={{ color: "var(--marigold)", fontSize: 9.5 }}
+              style={{ color: "var(--marigold)" }}
               title="You have declined this agent + tool before. Supaprod has registered it."
             >
               declined {declines}&times; before
@@ -338,8 +338,8 @@ function ApprovalCard({
           )}
           {a.mission_title ? (
             <>
-              <span style={{ fontSize: 12, color: "var(--text-faint)" }}>in</span>
-              <span style={{ fontSize: 12, color: "var(--text-body)" }}>{a.mission_title}</span>
+              <span style={{ color: "var(--text-faint)" }}>in</span>
+              <span style={{ color: "var(--text-body)" }}>{a.mission_title}</span>
             </>
           ) : null}
           <span style={{ flex: 1 }}></span>
@@ -417,7 +417,7 @@ function ApprovalCard({
           </div>
         )}
         {a.error ? (
-          <div style={{ marginTop: 8, fontSize: 12, color: "var(--madder)" }}>{a.error}</div>
+          <div style={{ marginTop: 8, color: "var(--madder)" }}>{a.error}</div>
         ) : null}
         <details style={{ marginTop: 8 }}>
           <summary

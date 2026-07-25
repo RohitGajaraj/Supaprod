@@ -188,8 +188,8 @@ export const legalSectionStyle = {
 export function LegalSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section style={legalSectionStyle}>
-      <h2 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: "0 0 8px" }}>{title}</h2>
-      <div style={{ color: C.muted, lineHeight: 1.7, fontSize: 14 }}>{children}</div>
+      <h2 style={{ fontWeight: 600, color: C.text, margin: "0 0 8px" }}>{title}</h2>
+      <div style={{ color: C.muted, lineHeight: 1.7 }}>{children}</div>
     </section>
   );
 }

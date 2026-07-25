@@ -107,13 +107,13 @@ export function AuditLineageSheet() {
 
         <div style={{ padding: "8px 4px 24px" }}>
           {q.isLoading ? (
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Tracing the record…</p>
+            <p style={{ color: "var(--text-muted)" }}>Tracing the record…</p>
           ) : q.isError ? (
-            <p style={{ fontSize: 13, color: "var(--madder)" }}>
+            <p style={{ color: "var(--madder)" }}>
               Could not trace this id. {(q.error as Error)?.message}
             </p>
           ) : !d || !d.found ? (
-            <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+            <p style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
               No record found for <strong>{d?.ref ?? ref}</strong> in this workspace. Audit ids are
               scoped to your workspaces, so a foreign or mistyped id shows nothing.
             </p>
@@ -130,7 +130,7 @@ export function AuditLineageSheet() {
               >
                 {d.title}
               </h3>
-              <div style={{ fontSize: 12, color: "var(--text-subtle)", marginBottom: 18 }}>
+              <div style={{ color: "var(--text-subtle)", marginBottom: 18 }}>
                 {d.status ? <span>Status: {d.status}</span> : null}
                 {d.status && d.createdAt ? " · " : ""}
                 {d.createdAt ? <span>Recorded {fmt(d.createdAt)}</span> : null}

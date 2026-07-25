@@ -280,7 +280,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span
                 className="font-display tabular-nums"
-                style={{ fontSize: 32, color: below ? "var(--madder)" : undefined }}
+                style={{ color: below ? "var(--madder)" : undefined }}
               >
                 {score}
               </span>
@@ -408,7 +408,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                     <button
                       type="button"
                       className="mono-label cursor-pointer hover:underline"
-                      style={{ color: "var(--ink-subtle)", fontSize: 8.5 }}
+                      style={{ color: "var(--ink-subtle)" }}
                       onClick={() => {
                         setFailRunId(r.id);
                         setSub("Failing cases");
@@ -492,7 +492,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               <button
                 type="button"
                 className="mono-label cursor-pointer hover:underline"
-                style={{ fontSize: 8.5, color: "var(--rose)" }}
+                style={{ color: "var(--rose)" }}
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Delete this suite?",
@@ -586,7 +586,7 @@ function FailingCases({ runId }: { runId: string | null }) {
           <div key={r.id} className="bento" style={{ padding: "var(--card-pad)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <VerdictChip tone="madder">fail</VerdictChip>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{r.case?.name ?? r.case_id}</span>
+              <span style={{ fontWeight: 600 }}>{r.case?.name ?? r.case_id}</span>
               {r.score != null ? (
                 <span className="mono-label" style={{ color: "var(--rose)" }}>
                   scored {r.score}
@@ -614,7 +614,7 @@ function FailingCases({ runId }: { runId: string | null }) {
                   marginTop: r.actual ? 0 : 8,
                 }}
               >
-                <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
+                <span className="mono-label" style={{ flexShrink: 0 }}>
                   expected
                 </span>
                 <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
@@ -624,7 +624,7 @@ function FailingCases({ runId }: { runId: string | null }) {
             ) : null}
             {r.judge_reasoning ? (
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-                <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
+                <span className="mono-label" style={{ flexShrink: 0 }}>
                   judge
                 </span>
                 <span style={{ color: "var(--ink-subtle)" }}>
@@ -751,7 +751,7 @@ function CaseList({
         cases.map((c) => (
           <div key={c.id} className="bento" style={{ padding: "var(--card-pad)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</span>
+              <span style={{ fontWeight: 600 }}>{c.name}</span>
               <span style={{ flex: 1 }}></span>
               <button
                 type="button"
@@ -771,7 +771,7 @@ function CaseList({
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
-                style={{ fontSize: 11, color: "var(--rose)" }}
+                style={{ color: "var(--rose)" }}
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Delete this case?",
@@ -788,7 +788,7 @@ function CaseList({
             </div>
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
+                <span className="mono-label" style={{ flexShrink: 0 }}>
                   input
                 </span>
                 <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
@@ -797,7 +797,7 @@ function CaseList({
               </div>
               {c.expected ? (
                 <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                  <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
+                  <span className="mono-label" style={{ flexShrink: 0 }}>
                     expected
                   </span>
                   <span
@@ -809,7 +809,7 @@ function CaseList({
               ) : null}
               {c.rubric ? (
                 <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                  <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
+                  <span className="mono-label" style={{ flexShrink: 0 }}>
                     rubric
                   </span>
                   <span

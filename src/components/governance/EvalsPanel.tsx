@@ -96,7 +96,7 @@ export function EvalsPanel() {
         <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
           Couldn't load eval suites
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(suitesQ.error as Error).message}
         </p>
         <button
@@ -495,8 +495,8 @@ function CreateSuiteForm({
     <div className="bento fade-up" style={{ padding: "14px 16px", marginBottom: 12 }}>
       <MonoLabel style={{ marginBottom: 10 }}>New eval suite</MonoLabel>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Name
           </div>
           <input
@@ -506,8 +506,8 @@ function CreateSuiteForm({
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
         </label>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Target prompt
           </div>
           <Select value={form.target} onValueChange={(v) => setForm({ ...form, target: v })}>
@@ -523,8 +523,8 @@ function CreateSuiteForm({
             </SelectContent>
           </Select>
         </label>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Description
           </div>
           <input
@@ -533,8 +533,8 @@ function CreateSuiteForm({
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
         </label>
-        <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+        <label style={{ }}>
+          <div className="mono-label" style={{ marginBottom: 4 }}>
             Pass gate (0 to 100)
           </div>
           <input

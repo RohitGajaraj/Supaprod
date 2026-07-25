@@ -396,12 +396,12 @@ function buildSketchBarChart({
         },
         React.createElement(
           "span",
-          { style: { display: "block", fontSize: 15 } },
+          { style: { display: "block" } },
           formatValue(active.value),
         ),
         React.createElement(
           "span",
-          { style: { display: "block", fontSize: 11, color: "var(--text-subtle)" } },
+          { style: { display: "block", color: "var(--text-subtle)" } },
           active.label,
         ),
       ),

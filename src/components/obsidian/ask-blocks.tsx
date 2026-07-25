@@ -183,7 +183,7 @@ export function StatusDigestBlock({ block }: { block: StatusBlock }) {
               />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
+                style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
               >
                 {r.title}
               </span>
@@ -210,7 +210,7 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
       </span>
       <span
         className="min-w-0 truncate"
-        style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--text-body)" }}
+        style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
       >
         {event.label}
       </span>
@@ -232,7 +232,7 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
       {event.detail ? (
         <span
           className="min-w-0 truncate"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-subtle)" }}
+          style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}
         >
           {event.detail}
         </span>

@@ -157,7 +157,7 @@ export function DesignMemoryPanel() {
             padding: "28px 26px",
           }}
         >
-          <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px" }}>
+          <p style={{ color: "var(--text-body)", margin: "0 0 12px" }}>
             No design language captured yet. Import a URL, paste a constitution, or start from
             defaults and let it learn from what you approve and reject.
           </p>
@@ -287,7 +287,7 @@ function DesignMemoryRowView({
         </span>
         <span
           className="tabular-nums"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+          style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
         >
           {ageOf(row.created_at)}
         </span>
@@ -298,7 +298,7 @@ function DesignMemoryRowView({
             {row.content}
           </p>
           {row.rationale ? (
-            <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "0 0 8px" }}>
+            <p style={{ color: "var(--text-subtle)", margin: "0 0 8px" }}>
               Why: {row.rationale}
             </p>
           ) : null}
@@ -413,7 +413,7 @@ function AddDesignMemoryDialog({
     <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(o) : close())}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
+          <DialogTitle className="font-display" style={{ fontWeight: 460 }}>
             Add design language
           </DialogTitle>
           <DialogDescription style={{ color: "var(--text-subtle)" }}>
@@ -432,7 +432,7 @@ function AddDesignMemoryDialog({
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
           {mode === "url" ? (
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>public page url</MonoLabel>
+              <MonoLabel style={{ marginBottom: 4 }}>public page url</MonoLabel>
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -451,7 +451,7 @@ function AddDesignMemoryDialog({
             </div>
           ) : mode === "paste" ? (
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>design constitution</MonoLabel>
+              <MonoLabel style={{ marginBottom: 4 }}>design constitution</MonoLabel>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}

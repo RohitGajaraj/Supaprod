@@ -238,7 +238,7 @@ function SteerRow({ steer }: { steer: Steer }) {
       </p>
       <span
         className="mono-label tabular-nums"
-        style={{ fontSize: 9, flexShrink: 0, marginTop: 3, color: "var(--text-subtle)" }}
+        style={{ flexShrink: 0, marginTop: 3, color: "var(--text-subtle)" }}
       >
         {fmtClock(steer.created_at)} · {steer.consumed ? "read" : "queued"}
       </span>

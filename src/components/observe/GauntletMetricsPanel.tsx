@@ -54,7 +54,7 @@ function TrendChip({
   return (
     <span
       className="mono-label"
-      style={{ display: "inline-flex", alignItems: "center", gap: 3, color, fontSize: 9 }}
+      style={{ display: "inline-flex", alignItems: "center", gap: 3, color }}
     >
       <Icon size={16} strokeWidth={1.5} />
       {label} · {windowLabel}
@@ -90,7 +90,7 @@ function MetricCard({
       </MonoLabel>
       <div
         className="font-display tabular-nums"
-        style={{ fontSize: 26, color: value === "-" ? "var(--text-faint)" : "var(--text-primary)" }}
+        style={{ color: value === "-" ? "var(--text-faint)" : "var(--text-primary)" }}
       >
         {loading ? "…" : value}
       </div>
@@ -102,7 +102,7 @@ function MetricCard({
       </p>
       <div
         className="mono-label"
-        style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 8 }}
+        style={{ color: "var(--text-faint)", marginTop: 8 }}
       >
         {loading ? "loading…" : substat}
       </div>
@@ -130,7 +130,7 @@ function MemoryCompoundsCard({
         Memory compounds · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
+        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasData ? (
@@ -142,13 +142,13 @@ function MemoryCompoundsCard({
                 metrics above stay on font-display. */}
             <div
               className="font-pixel tabular-nums"
-              style={{ fontSize: 30, color: "var(--text-primary)" }}
+              style={{ color: "var(--text-primary)" }}
             >
               {pct(data!.reuseRate)}
             </div>
             <div
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 2 }}
+              style={{ color: "var(--text-faint)", marginTop: 2 }}
             >
               recalled back
             </div>
@@ -166,7 +166,7 @@ function MemoryCompoundsCard({
                   ["moved a priority", String(data!.prioritiesMoved)],
                 ] as [string, string][]
               ).map(([label, value]) => (
-                <span key={label} className="mono-label" style={{ fontSize: 9 }}>
+                <span key={label} className="mono-label" style={{ }}>
                   <strong
                     className="tabular-nums"
                     style={{ color: "var(--text-primary)", fontWeight: 600 }}
@@ -220,7 +220,7 @@ function OutcomeAccuracyCard({
         Outcome accuracy · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
+        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasData ? (
@@ -228,7 +228,7 @@ function OutcomeAccuracyCard({
           <div style={{ minWidth: 110 }}>
             <div
               className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--text-primary)" }}
+              style={{ color: "var(--text-primary)" }}
             >
               {pct(data!.rate)}
             </div>
@@ -236,7 +236,7 @@ function OutcomeAccuracyCard({
               {data!.priorRate != null && data!.rate != null ? (
                 <TrendChip trend={data!.trend} windowLabel="vs prior period" />
               ) : (
-                <div className="mono-label" style={{ fontSize: 8.5, color: "var(--text-faint)" }}>
+                <div className="mono-label" style={{ color: "var(--text-faint)" }}>
                   validated share
                 </div>
               )}
@@ -255,7 +255,7 @@ function OutcomeAccuracyCard({
                   ["mixed", String(data!.mixed)],
                 ] as [string, string][]
               ).map(([label, value]) => (
-                <span key={label} className="mono-label" style={{ fontSize: 9 }}>
+                <span key={label} className="mono-label" style={{ }}>
                   <strong
                     className="tabular-nums"
                     style={{ color: "var(--text-primary)", fontWeight: 600 }}
@@ -346,7 +346,7 @@ function MemoryDepthSplitCard({
         Memory-depth split · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
+        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasNumber ? (
@@ -355,13 +355,13 @@ function MemoryDepthSplitCard({
             {/* Neutral ink for either sign — this is an association, not a win. */}
             <div
               className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--text-primary)" }}
+              style={{ color: "var(--text-primary)" }}
             >
               {headline}
             </div>
             <div
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 2 }}
+              style={{ color: "var(--text-faint)", marginTop: 2 }}
             >
               later half vs earlier half
             </div>
@@ -372,7 +372,7 @@ function MemoryDepthSplitCard({
             </p>
             <div
               className="mono-label"
-              style={{ fontSize: 9, marginTop: 10, color: "var(--text-subtle)" }}
+              style={{ marginTop: 10, color: "var(--text-subtle)" }}
             >
               Earlier half: {pct(data!.sparseRate)} validated (n={data!.sparseN}) / Later half:{" "}
               {pct(data!.richRate)} validated (n={data!.richN}). One outcome moves this about{" "}
@@ -534,7 +534,7 @@ export function GauntletMetricsPanel() {
           <div className="mono-label" style={{ color: "var(--madder)" }}>
             Couldn't load some metrics
           </div>
-          <p style={{ fontSize: 12, color: "var(--text-body)", marginTop: 6 }}>
+          <p style={{ color: "var(--text-body)", marginTop: 6 }}>
             {
               (
                 (acceptQ.error ||

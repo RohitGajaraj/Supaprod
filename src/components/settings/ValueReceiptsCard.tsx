@@ -10,10 +10,10 @@ import { getValueReceipts } from "@/lib/value-receipts.functions";
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <div className="tabular-nums" style={{ fontSize: 28, fontWeight: 600, lineHeight: 1 }}>
+      <div className="tabular-nums" style={{ fontWeight: 600, lineHeight: 1 }}>
         {value}
       </div>
-      <div className="mono-label" style={{ fontSize: 10.5, color: "var(--ink-muted)" }}>
+      <div className="mono-label" style={{ color: "var(--ink-muted)" }}>
         {label}
       </div>
     </div>

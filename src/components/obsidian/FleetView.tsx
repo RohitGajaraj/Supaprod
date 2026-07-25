@@ -20,7 +20,7 @@ const STATE_META: Record<string, { label: string; color: string }> = {
 function Tally({ n, label, color }: { n: number; label: string; color?: string }) {
   if (n === 0) return null;
   return (
-    <span style={{ fontSize: 11, color: color ?? "var(--ink-subtle)" }} className="tabular-nums">
+    <span style={{ color: color ?? "var(--ink-subtle)" }} className="tabular-nums">
       {n} {label}
     </span>
   );
@@ -44,14 +44,14 @@ function AgentRow({ a }: { a: FleetAgent }) {
         style={{ width: 8, height: 8, borderRadius: 99, background: meta.color, flexShrink: 0 }}
       />
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{a.name}</div>
+        <div style={{ fontWeight: 600, color: "var(--ink)" }}>{a.name}</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 3 }}>
           <Tally n={a.running} label="running" color="var(--action-blue, #2563eb)" />
           <Tally n={a.queued} label="queued" />
           <Tally n={a.done} label="done" color="var(--emerald, #059669)" />
           <Tally n={a.failed} label="failed" color="var(--coral, #e11d48)" />
           {a.total === 0 ? (
-            <span style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
+            <span style={{ color: "var(--ink-faint)", fontStyle: "italic" }}>
               no runs yet
             </span>
           ) : null}
@@ -111,7 +111,7 @@ export function FleetView() {
   if (query.isError) {
     return (
       <div style={{ padding: "32px 0" }}>
-        <p style={{ fontSize: 13, color: "var(--rose)", margin: 0 }}>
+        <p style={{ color: "var(--rose)", margin: 0 }}>
           Could not load the fleet. {(query.error as Error)?.message}
         </p>
         <button
@@ -139,7 +139,7 @@ export function FleetView() {
     <>
       <p style={{ color: "var(--ink)", margin: "4px 0 22px" }}>{fleet.headline}</p>
       {fleet.agents.length === 0 ? (
-        <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "8px 0" }}>
+        <div style={{ color: "var(--ink-subtle)", padding: "8px 0" }}>
           No agents have run yet. Dispatch a mission and your fleet shows up here.
         </div>
       ) : (

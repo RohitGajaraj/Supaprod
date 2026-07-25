@@ -106,7 +106,7 @@ export function AnalyticsPanel() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load analytics
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(overview.error as Error).message}
         </p>
         <button
@@ -156,10 +156,10 @@ export function AnalyticsPanel() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
           <div className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 6 }}>Spend · {range}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+            <div className="font-display tabular-nums" style={{ }}>
               {fmtUsd(totalCost)}
             </div>
-            <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+            <div style={{ color: "var(--ink-faint)" }}>
               {capForRange != null ? (
                 <>of {fmtUsd(Number(capForRange))} cap</>
               ) : (
@@ -172,19 +172,19 @@ export function AnalyticsPanel() {
           </div>
           <div className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 6 }}>Tokens · {range}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+            <div className="font-display tabular-nums" style={{ }}>
               {fmtNum(s?.totalTokens ?? 0)}
             </div>
-            <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>in + out</div>
+            <div style={{ color: "var(--ink-faint)" }}>in + out</div>
           </div>
           {/* Reference headline is the median; its "ttft" sub-datum is never
               written in production, so the real avg + p95 ride the sub-line. */}
           <div className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 6 }}>Median latency</MonoLabel>
-            <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+            <div className="font-display tabular-nums" style={{ }}>
               {fmtMs(s?.p50Latency ?? 0)}
             </div>
-            <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+            <div style={{ color: "var(--ink-faint)" }}>
               avg {fmtMs(s?.avgLatency ?? 0)} · p95 {fmtMs(s?.p95Latency ?? 0)}
             </div>
           </div>
@@ -203,7 +203,7 @@ export function AnalyticsPanel() {
                 }}
               >
                 <MonoLabel>Unit economics · {range}</MonoLabel>
-                <span className="mono-label" style={{ fontSize: 8.5 }}>
+                <span className="mono-label" style={{ }}>
                   what each outcome cost
                 </span>
               </div>
@@ -216,28 +216,28 @@ export function AnalyticsPanel() {
               >
                 <div>
                   <MonoLabel style={{ marginBottom: 6 }}>Agent spend</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ fontSize: 22 }}>
+                  <div className="font-display tabular-nums" style={{ }}>
                     {fmtUsd(ue.totalSpendUsd)}
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+                  <div style={{ color: "var(--ink-faint)" }}>
                     over {ue.outcomes} outcome{ue.outcomes === 1 ? "" : "s"}
                   </div>
                 </div>
                 <div>
                   <MonoLabel style={{ marginBottom: 6 }}>Outcomes</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ fontSize: 22 }}>
+                  <div className="font-display tabular-nums" style={{ }}>
                     {ue.specs} · {ue.decisions} · {ue.missions}
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>
+                  <div style={{ color: "var(--ink-faint)" }}>
                     specs · decisions · shipped
                   </div>
                 </div>
                 <div>
                   <MonoLabel style={{ marginBottom: 6 }}>Cost per outcome</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ fontSize: 22 }}>
+                  <div className="font-display tabular-nums" style={{ }}>
                     {ue.costPerOutcomeUsd != null ? fmtUsd(ue.costPerOutcomeUsd) : "-"}
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>spend ÷ outcomes</div>
+                  <div style={{ color: "var(--ink-faint)" }}>spend ÷ outcomes</div>
                 </div>
               </div>
             </div>
@@ -253,7 +253,7 @@ export function AnalyticsPanel() {
               }}
             >
               <MonoLabel>Spend by surface · {range}</MonoLabel>
-              <span className="mono-label" style={{ fontSize: 8.5 }}>
+              <span className="mono-label" style={{ }}>
                 every AI call rolls up here
               </span>
             </div>
@@ -331,7 +331,7 @@ export function AnalyticsPanel() {
               }}
             >
               <MonoLabel icon={Gauge}>Spend by agent · {range}</MonoLabel>
-              <span className="mono-label" style={{ fontSize: 8.5 }}>
+              <span className="mono-label" style={{ }}>
                 click an agent to drill down
               </span>
             </div>
@@ -564,7 +564,7 @@ export function AnalyticsPanel() {
                   </span>
                   <span
                     className="mono-label"
-                    style={{ fontSize: 8.5, color: "var(--action-blue)" }}
+                    style={{ color: "var(--action-blue)" }}
                   >
                     detail →
                   </span>
@@ -756,7 +756,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div>
         <MonoLabel>AI event · via {e.via}</MonoLabel>
-        <div className="font-display" style={{ fontSize: 19, marginTop: 4 }}>
+        <div className="font-display" style={{ marginTop: 4 }}>
           {e.surface}
         </div>
         <div className="mono-label" style={{ marginTop: 4, color: "var(--ink-subtle)" }}>
@@ -774,10 +774,10 @@ function EventDetail({ data }: { data: EventDetailData }) {
           ] as [string, string][]
         ).map(([l, v]) => (
           <div key={l} className="bento" style={{ padding: "10px 12px", textAlign: "center" }}>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+            <div className="mono-label" style={{ marginBottom: 4 }}>
               {l}
             </div>
-            <div className="tabular-nums" style={{ fontSize: 13 }}>
+            <div className="tabular-nums" style={{ }}>
               {v}
             </div>
           </div>
@@ -800,10 +800,10 @@ function EventDetail({ data }: { data: EventDetailData }) {
               ] as [string, number | null][]
             ).map(([l, v]) => (
               <div key={l} style={{ textAlign: "center" }}>
-                <div className="mono-label" style={{ fontSize: 8.5 }}>
+                <div className="mono-label" style={{ }}>
                   {l}
                 </div>
-                <div className="font-display tabular-nums" style={{ fontSize: 16, marginTop: 2 }}>
+                <div className="font-display tabular-nums" style={{ marginTop: 2 }}>
                   {v == null ? "-" : `${(v * 100).toFixed(0)}%`}
                 </div>
               </div>

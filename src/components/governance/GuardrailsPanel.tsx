@@ -162,7 +162,7 @@ export function GuardrailsPanel() {
         <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load guardrails
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
           {(overview.error as Error)?.message}
         </p>
         <button
@@ -290,7 +290,7 @@ export function GuardrailsPanel() {
                   {g.built_in ? (
                     <span
                       className="mono-label"
-                      style={{ display: "block", fontSize: 8.5, color: "var(--text-faint)" }}
+                      style={{ display: "block", color: "var(--text-faint)" }}
                     >
                       built-in
                     </span>
@@ -461,7 +461,7 @@ export function GuardrailsPanel() {
                 marginBottom: 14,
               }}
             >
-              <h2 className="font-display" style={{ fontSize: 19 }}>
+              <h2 className="font-display" style={{ }}>
                 {editing.id ? "Edit rule" : "New rule"}
               </h2>
               <button
@@ -481,7 +481,7 @@ export function GuardrailsPanel() {
                   autoFocus
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  style={{ marginTop: 5, fontSize: 13 }}
+                  style={{ marginTop: 5 }}
                 />
               </label>
               <label className="mono-label" style={{ display: "block" }}>
@@ -490,7 +490,7 @@ export function GuardrailsPanel() {
                   className="input"
                   value={editing.kind}
                   onChange={(e) => setEditing({ ...editing, kind: e.target.value as Kind })}
-                  style={{ marginTop: 5, fontSize: 13 }}
+                  style={{ marginTop: 5 }}
                 >
                   <option value="keyword">Keyword (literal substring)</option>
                   <option value="regex">Regex</option>
@@ -507,7 +507,7 @@ export function GuardrailsPanel() {
                   onChange={(e) =>
                     setEditing({ ...editing, applies_to: e.target.value as Applies })
                   }
-                  style={{ marginTop: 5, fontSize: 13 }}
+                  style={{ marginTop: 5 }}
                 >
                   <option value="both">Both</option>
                   <option value="input">Input only</option>
@@ -534,7 +534,7 @@ export function GuardrailsPanel() {
                   className="input"
                   value={editing.action}
                   onChange={(e) => setEditing({ ...editing, action: e.target.value as Action })}
-                  style={{ marginTop: 5, fontSize: 13 }}
+                  style={{ marginTop: 5 }}
                 >
                   <option value="warn">Warn (log only)</option>
                   <option value="redact">Redact</option>
@@ -577,7 +577,7 @@ export function GuardrailsPanel() {
                 onChange={(e) => setTestText(e.target.value)}
                 placeholder="Paste sample text to test this rule against…"
                 rows={2}
-                style={{ resize: "none", fontFamily: "var(--font-mono)", fontSize: 12 }}
+                style={{ resize: "none", fontFamily: "var(--font-mono)" }}
               />
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
                 <button

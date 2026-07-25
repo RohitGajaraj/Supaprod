@@ -53,7 +53,7 @@ function MemoryRow({ mem }: { mem: AgentMemory }) {
         >
           {shared ? "shared" : "private"}
         </span>
-        {mem.kind && <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>{mem.kind}</span>}
+        {mem.kind && <span style={{ color: "var(--ink-faint)" }}>{mem.kind}</span>}
       </div>
       <p
         style={{
@@ -119,14 +119,14 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
           ))}
         </select>
       </div>
-      <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 6 }}>
+      <p style={{ color: "var(--ink-muted)", marginTop: 6 }}>
         Recent runs for the selected agent.
       </p>
       <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
         {q.isLoading ? (
-          <div style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>Loading</div>
+          <div style={{ color: "var(--ink-muted)" }}>Loading</div>
         ) : runs.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>
+          <div style={{ color: "var(--ink-muted)" }}>
             No runs recorded yet for this agent.
           </div>
         ) : (
@@ -136,14 +136,14 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
 
       <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${HAIRLINE}` }}>
         <div className="mono-label">What this agent knows</div>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 6 }}>
+        <p style={{ color: "var(--ink-muted)", marginTop: 6 }}>
           Its private memories plus the shared pool it can draw on.
         </p>
         <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 2 }}>
           {mq.isLoading ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>Loading</div>
+            <div style={{ color: "var(--ink-muted)" }}>Loading</div>
           ) : memories.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-muted)" }}>
+            <div style={{ color: "var(--ink-muted)" }}>
               No memories recorded yet.
             </div>
           ) : (

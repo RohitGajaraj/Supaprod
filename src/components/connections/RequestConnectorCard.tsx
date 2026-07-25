@@ -97,7 +97,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
         <div style={{ fontWeight: 500, color: "var(--ink)" }}>
           Request a connector
         </div>
-        <div style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>
+        <div style={{ color: "var(--ink-subtle)", marginBottom: 8 }}>
           Don't see your tool? Tell us what to build next.
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center", maxWidth: 420 }}>
@@ -108,7 +108,7 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
             placeholder="e.g. Jira, Amplitude, Mixpanel"
             maxLength={120}
             aria-label="Connector you want"
-            style={{ flex: 1, minWidth: 0, padding: "6px 10px", borderRadius: 8, fontSize: 13 }}
+            style={{ flex: 1, minWidth: 0, padding: "6px 10px", borderRadius: 8 }}
           />
           <button
             type="submit"

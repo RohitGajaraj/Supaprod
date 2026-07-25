@@ -772,7 +772,7 @@ function TrendHint({ trend }: { trend: Trend }) {
 
 
 
-      style={{ display: "inline-flex", alignItems: "center", gap: 3, color, fontSize: 9
+      style={{ display: "inline-flex", alignItems: "center", gap: 3, color
       className="text-label-12" }}
 
 

@@ -39,7 +39,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
         What changed overnight
       </div>
       {items.length === 0 ? (
-        <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)", margin: 0 }}>
+        <p style={{ lineHeight: 1.55, color: "var(--text-body)", margin: 0 }}>
           Nothing shifted overnight. The next outcome shows up here the moment a mission lands.
         </p>
       ) : (
@@ -61,7 +61,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
                   }}
                 />
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)" }}>
+                  <div style={{ lineHeight: 1.55, color: "var(--text-body)" }}>
                     {it.text}
                   </div>
                   <div

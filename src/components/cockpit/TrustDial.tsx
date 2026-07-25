@@ -66,7 +66,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
     return (
       <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <MonoLabel>Autonomy · trust dial</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "16px 0", margin: 0 }}>
+        <p style={{ color: "var(--ink-faint)", padding: "16px 0", margin: 0 }}>
           Reading trust…
         </p>
       </section>
@@ -77,7 +77,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
     return (
       <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <MonoLabel>Autonomy · trust dial</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--rose)", margin: 0 }}>
+        <p style={{ color: "var(--rose)", margin: 0 }}>
           {(trustQ.error as Error).message}
         </p>
       </section>
@@ -124,7 +124,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
             <ShieldCheck size={16} strokeWidth={1.5} /> earned, not granted
           </span>
         </div>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
           The ladder · {TRUST_LADDER_CHAIN}
         </span>
       </div>
@@ -188,7 +188,7 @@ function TrustRow({
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="font-display" style={{ fontSize: 15 }}>
+          <div className="font-display" style={{ }}>
             {name}
           </div>
           <div
@@ -205,10 +205,10 @@ function TrustRow({
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div className="font-display tabular-nums" style={{ fontSize: 20, lineHeight: 1 }}>
+          <div className="font-display tabular-nums" style={{ lineHeight: 1 }}>
             {trust.score}
           </div>
-          <div className="mono-label" style={{ fontSize: 8 }}>
+          <div className="mono-label" style={{ }}>
             trust · {b.samples} sample{b.samples === 1 ? "" : "s"}
           </div>
         </div>
@@ -219,7 +219,7 @@ function TrustRow({
           the suggested rung (if higher) shows a dashed ember outline. Every
           rung is a direct click: this IS the promote/demote control, always
           user-held — nothing here ever moves on its own. */}
-      <div className="mono-label" style={{ fontSize: 8.5, color: "var(--ink-faint)" }}>
+      <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
         click any rung to set it — promote or demote, always your call
       </div>
       <div style={{ display: "flex", gap: 4 }}>
@@ -276,7 +276,7 @@ function TrustRow({
       </div>
 
       {historyLabel ? (
-        <div className="mono-label" style={{ fontSize: 10, color: "var(--ink-faint)" }}>
+        <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
           outcome history · {historyLabel}
         </div>
       ) : null}
@@ -284,7 +284,7 @@ function TrustRow({
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
       >
-        <p style={{ fontSize: 11, color: "var(--ink-subtle)", margin: 0, flex: 1, minWidth: 0 }}>
+        <p style={{ color: "var(--ink-subtle)", margin: 0, flex: 1, minWidth: 0 }}>
           {ARC_MEANING[trust.arc]}
         </p>
         {canPromote ? (
@@ -348,10 +348,10 @@ function TrustRow({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="font-display" style={{ fontSize: 15 }}>
+      <div className="font-display" style={{ }}>
         {value}
       </div>
-      <div className="mono-label" style={{ fontSize: 8 }}>
+      <div className="mono-label" style={{ }}>
         {label}
       </div>
     </div>

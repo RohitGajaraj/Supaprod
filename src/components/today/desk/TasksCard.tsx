@@ -33,7 +33,7 @@ const VISIBLE_CAP = 5;
 
 function RowTag({ text, color }: { text: string; color: string }) {
   return (
-    <span style={{ ...mono, fontSize: 9.5, color, flexShrink: 0 }} aria-hidden="false">
+    <span style={{ ...mono, color, flexShrink: 0 }} aria-hidden="false">
       {text}
     </span>
   );

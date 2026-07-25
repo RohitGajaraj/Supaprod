@@ -188,7 +188,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             <span style={{ flex: 1 }}></span>
             <button
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--ds-gray-700)" }}
+              style={{ color: "var(--ds-gray-700)" }}
               onClick={() => onSelect(null)}
             >
               close
@@ -202,7 +202,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
           ) : null}
         </div>
       ) : (
-        <div className="mono-label" style={{ fontSize: 8.5, marginTop: 8 }}>
+        <div className="mono-label" style={{ marginTop: 8 }}>
           click a node for details · dashed = dispatch · solid = handoff
         </div>
       )}

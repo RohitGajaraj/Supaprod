@@ -109,7 +109,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
       </Button>
 
       <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
-        <div className="mono-label" style={{ fontSize: 11 }}>
+        <div className="mono-label" style={{ }}>
           Recent exports
         </div>
         {history.isLoading ? (

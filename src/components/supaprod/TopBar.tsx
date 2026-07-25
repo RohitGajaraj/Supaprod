@@ -69,7 +69,7 @@ function AskButton() {
       <span className="hidden sm:inline">Ask</span>
       <span
         className="hidden sm:inline"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-faint)" }}
+        style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
       >
         ⌘J
       </span>
@@ -116,7 +116,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
           return (
             <span key={`${label}-${i}`} className="flex min-w-0 items-center" style={{ gap: 7 }}>
               {i > 0 && (
-                <span aria-hidden="true" style={{ color: "var(--text-faint)", fontSize: 11 }}>
+                <span aria-hidden="true" style={{ color: "var(--text-faint)" }}>
                   /
                 </span>
               )}
