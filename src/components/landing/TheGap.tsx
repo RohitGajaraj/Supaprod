@@ -1,4 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { PixelStat } from "@/components/supaprod/PixelStat";
+
+/**
+ * The exhibit's shared parts. Both columns are painted from these, verbatim,
+ * so a per-column exception has nowhere to hide: the last version drifted
+ * precisely because each side was styled by hand.
+ */
+const EXHIBIT_LABEL = "mb-4 block font-mono text-[11px] uppercase text-zinc-500";
+const EXHIBIT_LABEL_STYLE = { letterSpacing: "0.2em" } as const;
+const EXHIBIT_SOURCE = "not-italic mt-4 block font-mono text-[10.5px] uppercase text-zinc-600";
+const EXHIBIT_SOURCE_STYLE = { letterSpacing: "0.12em" } as const;
 
 const TYPED_WORD = "Devs";
 
@@ -311,40 +322,83 @@ export function TheGap() {
           })}
         </div>
 
-        {/* The two pieces of evidence, side by side: what a person said, and
-            what a study counted. They are one argument, so they read as one
-            row. */}
+        {/* THE EXHIBIT (rebuilt 2026-07-25, founder: "this is just put for
+            namesake, just randomly the text").
+
+            He was right, and the cause was structural rather than cosmetic.
+            The comment here used to claim these two were "one argument, one
+            row" while the markup made them nothing of the kind: the left was a
+            blockquote with a left rule and the right was a bare div with none,
+            neither carried a label saying what KIND of evidence it was, and
+            the right was nudged with md:pt-1 to fake an alignment the two
+            never actually shared. Two leftovers sitting next to each other.
+
+            They are one exhibit now, and both columns are built from the same
+            four parts in the same order: a hairline they both start on, a
+            label, the payload, the source. That is the anatomy the layers band
+            and the run receipts already use, so this reads as the same page.
+
+            The claim they prove was buried inside the right column's first
+            sentence ("nobody knows what to build, so teams build on gut"),
+            which made that column do two jobs and left the exhibit with no
+            stated point. It is the lead-in now: the table above ends on
+            "Decisions / no home", this states the consequence, and the two
+            columns are its two independent proofs, one human and one counted.
+
+            The 80% was the hardest number on the page set at the size of the
+            words around it. It is a PixelStat now, the app's single way to
+            render a metric, so the numeric voice matches every other surface.
+            Its colour is passed explicitly rather than via tone="blue":
+            PixelStat resolves that to var(--action-blue), which the public
+            ink theme does not define, so the token would fall back and lose
+            the hue. */}
+        <p
+          className={revealCls("mb-9 text-lg leading-snug text-zinc-400 md:text-xl")}
+          style={{ transitionDelay: revealDelay(160) }}
+        >
+          So teams build on gut.
+        </p>
+
         <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
           <blockquote
-            className={revealCls("border-l border-white/15 pl-5 md:pl-6")}
+            className={revealCls("border-t border-white/[0.09] pt-5")}
             style={{ transitionDelay: revealDelay(200) }}
           >
+            <span className={EXHIBIT_LABEL} style={EXHIBIT_LABEL_STYLE}>
+              What teams say
+            </span>
             <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
               &ldquo;So why did we decide on X? Cue hours of finding that Slack conversation from
               months ago.&rdquo;
             </p>
-            <cite
-              className="not-italic mt-3 block font-mono text-[11px] uppercase text-zinc-600"
-              style={{ letterSpacing: "0.12em" }}
-            >
+            <cite className={EXHIBIT_SOURCE} style={EXHIBIT_SOURCE_STYLE}>
               Top-voted thread, r/ProductManagement, 480 points
             </cite>
           </blockquote>
 
-          <div className={revealCls("md:pt-1")} style={{ transitionDelay: revealDelay(260) }}>
-            <p className="text-lg leading-snug text-zinc-400 md:text-xl">
-              Nobody knows what to build, so teams build on gut.{" "}
-              <span className="text-zinc-200">
-                <span style={{ color: "#6cb0f5" }}>80%</span> of shipped features are rarely or
-                never used.
-              </span>
+          <div
+            className={revealCls("border-t border-white/[0.09] pt-5")}
+            style={{ transitionDelay: revealDelay(260) }}
+          >
+            <span className={EXHIBIT_LABEL} style={EXHIBIT_LABEL_STYLE}>
+              What it costs
+            </span>
+            <PixelStat
+              value="80%"
+              glow
+              style={{
+                display: "block",
+                marginBottom: 10,
+                fontSize: "clamp(42px, 5.4vw, 62px)",
+                color: "#6cb0f5",
+              }}
+            />
+            <p className="text-lg leading-snug text-zinc-300 md:text-2xl">
+              of shipped features are rarely or never used.
             </p>
-            <p
-              className="mt-3 font-mono text-[11px] uppercase text-zinc-600"
-              style={{ letterSpacing: "0.12em" }}
-            >
+            <cite className={EXHIBIT_SOURCE} style={EXHIBIT_SOURCE_STYLE}>
               Pendo, across 615 products
-            </p>
+            </cite>
           </div>
         </div>
       </div>
