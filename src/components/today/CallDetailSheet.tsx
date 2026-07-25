@@ -39,7 +39,6 @@ import {
   RISK_LABEL,
 } from "@/lib/tool-consequences";
 import { agentBlurb, agentDisplayName, agentStation, AGENT_STATIONS } from "@/lib/agent-vocabulary";
-
 /** The shared fields every call detail carries. The action handlers are the
  * same mutations the card wired, so deciding from the sheet behaves identically
  * to deciding from the card. */
@@ -51,7 +50,6 @@ interface CallDetailBase {
   onOk: () => void;
   onNo: () => void;
 }
-
 /** A Today call, in full. A discriminated union over the five families; each
  * member holds only real getNeedsYou columns. */
 export type CallDetail =
@@ -94,7 +92,6 @@ export type CallDetail =
       sourceCount: number;
       createdAt: string;
     });
-
 /** The registered trace prefix per family (dim 17 registry). */
 const PREFIX: Record<CallDetail["kind"], string> = {
   ship: "MIS",
@@ -103,7 +100,6 @@ const PREFIX: Record<CallDetail["kind"], string> = {
   assumption: "ASM",
   playbook: "PBP",
 };
-
 // Which call-detail kinds resolve to a standalone traceable audit entity. A
 // "ship" item is a mission; assumption/playbook have no audit id of their own,
 // so those keep the plain copy chip.
@@ -112,20 +108,18 @@ const CALL_AUDIT_KIND: Record<string, AuditKind> = {
   spec: "spec",
   opportunity: "opportunity",
 };
-
 function fmtUsd(n: number): string {
   if (n <= 0) return "$0";
   if (n < 0.01) return "<$0.01";
   return `$${n.toFixed(2)}`;
 }
-
 /** A quiet mono-caps status pill, so the object's stage reads without a menu. */
 function StatusPill({ label, tone = "var(--text-subtle)" }: { label: string; tone?: string }) {
   return (
     <span
+        className="text-label-12"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.06em",
         textTransform: "uppercase",
         color: tone,
@@ -139,7 +133,6 @@ function StatusPill({ label, tone = "var(--text-subtle)" }: { label: string; ton
     </span>
   );
 }
-
 /** Family-specific status pill text + tone. */
 function statusMeta(detail: CallDetail): { label: string; tone: string } {
   switch (detail.kind) {
@@ -160,19 +153,18 @@ function statusMeta(detail: CallDetail): { label: string; tone: string } {
       return { label: "Proposed method", tone: "var(--text-muted)" };
   }
 }
-
 /** An absolute date plus a quiet relative caption. */
 function TimeLine({ iso }: { iso: string }) {
   return (
     <span
-      className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+
+      className="flex items-baseline text-label-13" style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
+        className="text-label-12"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -182,7 +174,6 @@ function TimeLine({ iso }: { iso: string }) {
     </span>
   );
 }
-
 /** The Critic's take, honest when absent. Shared by the spec + opportunity
  * details. */
 function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict: VerdictWord }) {
@@ -190,13 +181,12 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
     <div style={{ display: "grid", gap: "9px" }}>
       <VerdictChip tone={verdict} style={{ justifySelf: "start" }} />
       {critic?.summary ? (
-        <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)", margin: 0 }}>
+        <p className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)", margin: 0 }}>
           {critic.summary}
         </p>
       ) : (
         <p
           style={{
-            fontSize: "12px",
             color: "var(--text-subtle)",
             fontStyle: "italic",
             margin: 0,
@@ -207,14 +197,14 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
       )}
       {critic && critic.risks.length > 0 ? (
         <div style={{ display: "grid", gap: "4px" }}>
-          <MonoLabel style={{ fontSize: "9px", color: "var(--madder)" }}>Top risk</MonoLabel>
-          <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>{critic.risks[0]}</span>
+          <MonoLabel style={{ color: "var(--madder)" }}>Top risk</MonoLabel>
+          <span className="text-label-12 text-label-13" style={{ color: "var(--text-body)" }}>{critic.risks[0]}</span>
         </div>
       ) : null}
       {critic && critic.missing_evidence.length > 0 ? (
         <div style={{ display: "grid", gap: "4px" }}>
-          <MonoLabel style={{ fontSize: "9px" }}>Missing</MonoLabel>
-          <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+          <MonoLabel>Missing</MonoLabel>
+          <span className="text-label-12 text-label-13" style={{ color: "var(--text-body)" }}>
             {critic.missing_evidence[0]}
           </span>
         </div>
@@ -222,7 +212,6 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
     </div>
   );
 }
-
 /** A "where it came from" section with a click-back-up-the-loop link. */
 function ProvenanceSection({
   body,
@@ -243,7 +232,6 @@ function ProvenanceSection({
           className="loom-press flex items-center transition-colors [color:var(--link)] hover:underline"
           style={{
             gap: "6px",
-            fontSize: "12px",
             background: "transparent",
             border: "none",
             padding: 0,
@@ -255,11 +243,10 @@ function ProvenanceSection({
         </button>
       }
     >
-      <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>{body}</span>
+      <span className="text-label-13" style={{ color: "var(--text-body)" }}>{body}</span>
     </DetailSection>
   );
 }
-
 const REVERSIBILITY_TONE: Record<string, StatTone> = {
   reversible: "moss",
   irreversible: "madder",
@@ -272,7 +259,6 @@ const REVERSIBILITY_SHORT: Record<string, string> = {
 };
 const RISK_TONE: Record<string, StatTone> = { low: "moss", medium: "amber", high: "madder" };
 const RISK_SHORT: Record<string, string> = { low: "Low", medium: "Medium", high: "High" };
-
 export interface CallDetailSheetProps {
   open: boolean;
   onOpenChange: (next: boolean) => void;
@@ -280,7 +266,6 @@ export interface CallDetailSheetProps {
   /** A decision is in flight (any of the queue mutations); the footer waits. */
   deciding?: boolean;
 }
-
 /**
  * One Today call in full, on the shared DetailKit anatomy so it reads as one
  * language with the Decide opportunity sheet and every other object detail. It
@@ -299,27 +284,22 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
       </Sheet>
     );
   }
-
   const status = statusMeta(detail);
   const timeIso = detail.kind === "spec" ? detail.updatedAt : detail.createdAt;
   const timeVerb = detail.kind === "spec" ? "UPDATED" : "RAISED";
-
   const copyId = () => {
     void navigator.clipboard?.writeText(detail.id);
     toast("Trace id copied");
   };
-
   const act = (fn: () => void) => {
     fn();
     onOpenChange(false);
   };
-
   // The recommendation band (calm neutral surface, never amber) + the sections
   // are family-specific but assembled in the DetailKit order.
   let band: { recommended: string; rationale: string | null };
   let strip: ReactNode = null;
   let sections: ReactNode = null;
-
   if (detail.kind === "ship") {
     const c = toolConsequence(detail.toolName);
     const risk = toolRisk(detail.toolName);
@@ -347,7 +327,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
       <>
         <DetailSection heading="What happens if you approve">
           <div style={{ display: "grid", gap: "8px" }}>
-            <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {c.effect}
             </span>
             <div className="flex flex-wrap items-center" style={{ gap: "6px" }}>
@@ -375,14 +355,14 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
                 <StatusPill label="Leaves the workspace" tone="var(--amber)" />
               ) : null}
             </div>
-            <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55 }}>
+            <span className="text-label-12" style={{ color: "var(--text-subtle)", lineHeight: 1.55 }}>
               {c.undo}
             </span>
           </div>
         </DetailSection>
         {detail.rationale ? (
           <DetailSection heading="Why the agent asked">
-            <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {detail.rationale}
             </span>
           </DetailSection>
@@ -401,12 +381,12 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "10px" }}>
             <div style={{ display: "grid", gap: "3px" }}>
-              <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Raised</span>
+              <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Raised</span>
               <TimeLine iso={detail.createdAt} />
             </div>
             {detail.expiresAt ? (
               <div style={{ display: "grid", gap: "3px" }}>
-                <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Expires</span>
+                <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Expires</span>
                 <TimeLine iso={detail.expiresAt} />
               </div>
             ) : null}
@@ -438,7 +418,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         />
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Last updated</span>
+            <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Last updated</span>
             <TimeLine iso={detail.updatedAt} />
           </div>
         </DetailSection>
@@ -469,7 +449,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         />
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Framed</span>
+            <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Framed</span>
             <TimeLine iso={detail.createdAt} />
           </div>
         </DetailSection>
@@ -483,13 +463,13 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
     sections = (
       <>
         <DetailSection heading="The assumption under review">
-          <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+          <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
             {detail.assumptionStatement}
           </span>
         </DetailSection>
         {detail.evidenceText ? (
           <DetailSection heading="What contradicts it">
-            <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {detail.evidenceText}
             </span>
           </DetailSection>
@@ -501,7 +481,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         />
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Challenged</span>
+            <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Challenged</span>
             <TimeLine iso={detail.createdAt} />
           </div>
         </DetailSection>
@@ -521,7 +501,6 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         <DetailSection heading="The proposed method">
           <span
             style={{
-              fontSize: "12.5px",
               lineHeight: 1.6,
               color: "var(--text-body)",
               whiteSpace: "pre-wrap",
@@ -537,24 +516,22 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         />
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Proposed</span>
+            <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>Proposed</span>
             <TimeLine iso={detail.createdAt} />
           </div>
         </DetailSection>
       </>
     );
   }
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-        <SheetHeader className="sr-only">
+      <SheetContent side="right">
+        <SheetHeader className="sm:max-w-md overflow-y-auto sr-only">
           <SheetTitle>{detail.title}</SheetTitle>
           <SheetDescription>
             One call in full: what it is, where it came from, and what happens if you decide.
           </SheetDescription>
         </SheetHeader>
-
         <div style={{ display: "grid", gap: "16px", marginTop: "2px" }}>
           <DetailHeader
             title={detail.title}
@@ -562,9 +539,9 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             time={
               timeIso ? (
                 <span
+        className="text-label-12"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9.5px",
                     letterSpacing: "0.06em",
                     color: "var(--text-subtle)",
                   }}
@@ -586,7 +563,6 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
                   style={{
                     gap: "6px",
                     fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
                     letterSpacing: "0.06em",
                     background: "transparent",
                     border: "none",
@@ -600,7 +576,6 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
               )
             }
           />
-
           {/* Recommendation band: calm neutral surface (never amber), the system's
               read on what the user should do first. */}
           <div
@@ -615,14 +590,13 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
           >
             <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
               <MonoLabel
-                style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+                className="text-label-12" style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
               >
                 Recommended
               </MonoLabel>
               <span
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "13px",
                   fontWeight: 550,
                   color: "var(--text-primary)",
                   lineHeight: 1.5,
@@ -634,7 +608,6 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             {band.rationale ? (
               <p
                 style={{
-                  fontSize: "12.5px",
                   lineHeight: 1.6,
                   color: "var(--text-subtle)",
                   margin: 0,
@@ -644,10 +617,8 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
               </p>
             ) : null}
           </div>
-
           {strip}
           {sections}
-
           {/* Actions, mirroring the card. */}
           <div
             className="flex flex-wrap items-center"
@@ -670,7 +641,6 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
     </Sheet>
   );
 }
-
 /** VerdictWord -> a stat-cell tone. */
 function verdictTone(v: VerdictWord): StatTone {
   if (v === "SHIP") return "moss";
