@@ -6448,6 +6448,21 @@ export type Database = {
           },
         ]
       }
+      reserved_workspace_slugs: {
+        Row: {
+          reason: string
+          slug: string
+        }
+        Insert: {
+          reason?: string
+          slug: string
+        }
+        Update: {
+          reason?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       ritual_sessions: {
         Row: {
           calls_cleared: number | null
@@ -9025,6 +9040,14 @@ export type Database = {
         }
         Returns: string
       }
+      clone_demo_workspace: {
+        Args: { p_owner: string; p_prefix: string }
+        Returns: {
+          note: string
+          rows_inserted: number
+          tbl: string
+        }[]
+      }
       connection_owner_in_workspace: {
         Args: { p_connection_id: string; p_workspace_id: string }
         Returns: boolean
@@ -9059,6 +9082,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      demo_remap: { Args: { p_id: string; p_prefix: string }; Returns: string }
+      demo_remap_pk: {
+        Args: { p_id: string; p_prefix: string }
+        Returns: string
+      }
       ensure_user_default_account: {
         Args: { _user_id: string }
         Returns: string
@@ -9070,6 +9098,10 @@ export type Database = {
       erasure_residue: { Args: { _workspace_id: string }; Returns: Json }
       forget_account: { Args: { _account_id: string }; Returns: Json }
       forget_workspace: { Args: { _workspace_id: string }; Returns: Json }
+      generate_workspace_slug: {
+        Args: { p_id: string; p_name: string }
+        Returns: string
+      }
       get_active_banner: {
         Args: never
         Returns: {
@@ -9409,6 +9441,7 @@ export type Database = {
       }
       seed_seam2_ci_tools: { Args: { _user_id: string }; Returns: undefined }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
+      slugify: { Args: { p_text: string }; Returns: string }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
       tier_workspace_limit: { Args: { _tier: string }; Returns: number }
@@ -9416,6 +9449,7 @@ export type Database = {
         Args: { _new_owner_id: string; _workspace_id: string }
         Returns: undefined
       }
+      unaccent_fallback: { Args: { p_text: string }; Returns: string }
       workspace_members_with_identity: {
         Args: { _workspace_id: string }
         Returns: {
@@ -9426,6 +9460,8 @@ export type Database = {
           user_id: string
         }[]
       }
+      workspace_slug_is_reserved: { Args: { p_slug: string }; Returns: boolean }
+      workspace_slug_is_valid: { Args: { p_slug: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "member"
