@@ -432,8 +432,7 @@ export function TheGap() {
                   citation wrong is the one place on a page like this where a
                   reader stops trusting the rest, so the transform is switched
                   off for this token only and the caption keeps its voice. */}
-              Top-voted thread,{" "}
-              <span className="normal-case">r/ProductManagement</span>, 480 points
+              Top-voted thread, <span className="normal-case">r/ProductManagement</span>, 480 points
             </cite>
           </blockquote>
 

@@ -182,6 +182,61 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
 .slide.paper .kicker::after{background:var(--inkhl)}
 .slide.paper h1.ph .dim{color:var(--ink3)}
 .slide.paper h1.ph .lit{color:var(--ink)}
+/* MOAT SLIDE ONLY - the ember dither (founder 2026-07-25). The parchment
+   background is untouched: these are two transparent fields laid over it, so
+   --paper still reads exactly as before and only the squares are new.
+   True 2px squares from an inline SVG tile rather than gradient dots, because
+   the reference is an ordered dither and dots read as halftone instead.
+   The tile places six squares irregularly, and the two layers run at 12px and
+   19px, sizes with no common factor, so the beat between them never lines up
+   into a visible repeat. That is what makes it read as random.
+   SHAPE: two corner fields, top-right and bottom-left. Founder-chosen after
+   trying the reference's own layout and rejecting it. Full-height edge bands
+   were tried and read as CURTAINS on this slide, because the deck's paper
+   slides are a single wide content column with no side margins to frame,
+   unlike the reference page which is a narrow centred column with generous
+   gutters. A harder pixel-clustered version was tried after that and was
+   rejected too. Corners win here: they use the whitespace this slide actually
+   has, and they stay decoration rather than competing with the ledger.
+   Masked to nothing before it reaches that ledger: dense tabular data, and
+   pattern behind it would trade legibility for decoration.
+   Pointer-events off, z-index 0, so it sits under every content child and
+   catches no clicks. */
+.slide.paper.moat{--dth:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cg fill='%23ff6b2c'%3E%3Crect x='0' y='2' width='2' height='2'/%3E%3Crect x='4' y='0' width='2' height='2'/%3E%3Crect x='8' y='6' width='2' height='2'/%3E%3Crect x='2' y='8' width='2' height='2'/%3E%3Crect x='10' y='10' width='2' height='2'/%3E%3Crect x='6' y='4' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E")}
+.slide.paper.moat::before,.slide.paper.moat::after{content:"";position:absolute;pointer-events:none;z-index:0;background-image:var(--dth),var(--dth);background-size:12px 12px,19px 19px;background-position:0 0,5px 7px}
+.slide.paper.moat::before{top:0;right:0;width:36vw;height:44vh;opacity:.34;-webkit-mask-image:radial-gradient(115% 105% at 100% 0,#000 0,rgba(0,0,0,.5) 36%,transparent 70%);mask-image:radial-gradient(115% 105% at 100% 0,#000 0,rgba(0,0,0,.5) 36%,transparent 70%)}
+.slide.paper.moat::after{left:0;bottom:0;width:24vw;height:28vh;opacity:.26;-webkit-mask-image:radial-gradient(115% 105% at 0 100%,#000 0,rgba(0,0,0,.42) 32%,transparent 66%);mask-image:radial-gradient(115% 105% at 0 100%,#000 0,rgba(0,0,0,.42) 32%,transparent 66%)}
+/* MOAT SLIDE READABILITY (founder 2026-07-25: "not fully readable, audit this
+   slide from the readability perspective"). Audited against the parchment with
+   real contrast maths, not by eye: 11 of 31 text elements failed WCAG AA, from
+   exactly two causes.
+   1. --ink3 (#8b8276) sat at 3.38:1 and carried the caption, all four table
+      headers and the next link. It is #736a5f here, about 4.8:1, which keeps
+      it clearly the quiet tier without dropping under the floor.
+   2. The paper ember (#c2571f) sat at 4.02:1, just short, and carried the
+      kicker, the three pillars and the closing line. #b34e1b is about 4.7:1
+      and holds the same rust hue.
+   Sizes were the other half. The kicker is the slide's own label and was set
+   at 10.5px with .3em tracking, which is what made it unreadable; 13px with
+   slightly tighter tracking fixes it without changing its voice. Table headers
+   9px and the caption 9.5px were below what anyone reads on a projector, so
+   both go to 11px.
+   The body cells are deliberately LEFT at 11.5px. Bumping them to 12.5 was
+   tried and reverted: they already cleared contrast, and the extra point
+   wrapped four of the four rows onto two lines each, which cost the ledger the
+   one-line-per-row crispness that makes it scannable. Fixing a real problem is
+   not worth creating a bigger one next to it.
+   Scoped to .moat so no other slide moves. */
+.slide.paper.moat{--ink3:#736a5f}
+.slide.paper.moat .kicker{font-size:13px;letter-spacing:.24em;color:#b34e1b}
+.slide.paper.moat .kicker .ix{color:#b34e1b}
+.slide.paper.moat .ledger caption{font-size:11px;letter-spacing:.16em}
+.slide.paper.moat .ledger th{font-size:11px;letter-spacing:.14em}
+.slide.paper.moat .pillars{font-size:12px;letter-spacing:.14em}
+.slide.paper.moat .pillars b{color:#b34e1b!important}
+.slide.paper.moat .next{font-size:11px;color:#736a5f}
+@media print{.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
+@media (max-width:900px){.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
 .ledger{width:100%;max-width:1040px;border-collapse:collapse;margin:3.2vh 0 2.6vh;font-family:var(--mono)}
 .ledger th{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:0 14px 9px 0;border-bottom:1px solid rgba(41,37,32,.4);font-weight:500}
 .ledger td{font-size:11.5px;color:var(--ink2);padding:11px 14px 11px 0;border-bottom:1px solid var(--inkhl);vertical-align:top}
@@ -512,7 +567,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
 </section>
 
 <!-- 7 · THE MOAT (paper) -->
-<section class="slide paper" data-stars="0" data-next="the market">
+<section class="slide paper moat" data-stars="0" data-next="the market">
   <div class="ghostn">06</div>
   <div class="kicker rv d1"><span class="ix">06</span>The moat · the company brain</div>
   <h1 class="ph rv d2"><span class="lit">It learns your taste,</span><span class="dim">not just your tasks.</span></h1>
@@ -527,7 +582,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
     </tbody>
   </table>
   <div class="paper-pull rv d4">Verdicts take weeks, so the record accrues in calendar time. <b>It cannot be backfilled, bought, or bolted on.</b> A competitor starting next year starts at zero, next year.</div>
-  <div class="paper-pull rv d5" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(15px,1.6vw,20px);color:#c2571f">Quarter two starts smarter than quarter one.</div>
+  <div class="paper-pull rv d5" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(16px,1.7vw,21px);color:#b34e1b">Quarter two starts smarter than quarter one.</div>
   <div class="pillars rv d5">Three pillars &nbsp;·&nbsp; <b>own the loop</b> &nbsp;·&nbsp; <b>sense continuously</b> &nbsp;·&nbsp; <b>keep the receipts</b></div>
 </section>
 
