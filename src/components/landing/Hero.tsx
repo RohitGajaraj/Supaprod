@@ -21,9 +21,13 @@ import { MarkGlint } from "./MarkGlint";
  *    the 57px nav with 35px of air, and the bottom pad is the larger of the
  *    two so the block sits optically high in the space it owns (~81px of
  *    visible gap under the nav on the same viewport).
- * 9. Ember is never a hover state. The old .hero-verb hover tint is gone: it
- *    dressed non-interactive words as affordances, which the
- *    affordance-is-not-emphasis law forbids.
+ * 9. Ember is never a PER-WORD hover state. The old .hero-verb tint is still
+ *    gone: it lit individual words on their own hover targets, which dresses
+ *    non-interactive text as an affordance and the affordance-is-not-emphasis
+ *    law forbids that. The spec column below warms to ember on hover of the
+ *    WHOLE COLUMN, which is a different thing and is allowed (founder
+ *    2026-07-25): there is no per-word target to mistake for a link, so it
+ *    reads as the block acknowledging the pointer, not as three buttons.
  * 10. One left rule for the whole page. The hero was max-w-6xl / px-6 while
  *    every section below it is max-w-5xl / px-4, so the eye entered at two
  *    different x positions. The hero now shares the page rule, and every
@@ -71,11 +75,19 @@ export function Hero() {
           outline: none;
           box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
         }
+        .hero-spec-key { color: #d4d4d8; transition: color 0.2s ease; }
         @media (hover: hover) and (pointer: fine) {
           .hero-cta:hover { background-color: #ff8344; }
           .hero-quiet:hover { color: #ffffff; }
           .hero-cta:hover .hero-arrow,
           .hero-quiet:hover .hero-arrow { transform: translateX(2px); }
+          /* Whole column, one target. Hovering ANY part of the spec warms all
+             three payload phrases together, so nothing reads as a per-word
+             button. See note 9 above. */
+          .hero-spec:hover .hero-spec-key { color: #FF6B2C; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-spec-key { transition: none; }
         }
         @media (prefers-reduced-motion: reduce) {
           .hero-rise { animation: heroFade 0.5s cubic-bezier(0.23, 1, 0.32, 1) both; }
@@ -211,16 +223,18 @@ export function Hero() {
               and the hairline was competing with the mark's glow. The payload
               phrases sit two stops above their connectives. */}
           <div
-            className="hero-rise hidden flex-col gap-3 pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:flex"
+            className="hero-spec hero-rise group hidden flex-col gap-3 pl-5 font-mono text-[12px] uppercase text-zinc-600 lg:flex"
             style={{ animationDelay: "120ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
           >
             <span>
-              to decide <span className="whitespace-nowrap text-zinc-300">what to build</span>
+              to read <span className="hero-spec-key whitespace-nowrap">the signals you miss</span>
             </span>
             <span>
-              to <span className="whitespace-nowrap text-zinc-300">ship it</span> in your repo
+              to open <span className="hero-spec-key whitespace-nowrap">the pull request</span>
             </span>
-            <span className="whitespace-nowrap text-zinc-300">gated by you</span>
+            <span>
+              to remember <span className="hero-spec-key whitespace-nowrap">why you said no</span>
+            </span>
           </div>
         </div>
       </div>

@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from "react";
 
 const TYPED_WORD = "Devs";
 
+/** What the Decisions row types into its empty cell.
+ *
+ * Every other row names WHERE that craft lives. This one answers the same
+ * question honestly: decisions live in chat and in people's heads. It states a
+ * situation, it does not blame a vendor, which is the standing rule for naming
+ * Slack on this page. It deliberately does not repeat the status column's
+ * "no home": the cell answers where, the status answers what that means. */
+const MISSING_ANSWER = "Slack threads, your memory";
+
 /**
  * Named complimentarily, as the AI-native home of that craft (founder ruling
  * 2026-07-25). No superiority claim, no partnership implied, nothing untrue.
@@ -57,6 +66,14 @@ export function TheGap() {
   const [inView, setInView] = useState(false);
   const [typed, setTyped] = useState(TYPED_WORD);
   const [typing, setTyping] = useState(false);
+  // The second beat: the hole types its own answer (founder 2026-07-25).
+  // An earlier pass removed the Decisions caret on the grounds that "a caret
+  // with nothing left to type is a tease". Correct diagnosis, wrong cure: the
+  // fix is to give it something to type, not to take the caret away. This is
+  // the punchline of the whole table, so it should arrive by being written.
+  // SSR ships the finished string; the run only starts once in view.
+  const [slotTyped, setSlotTyped] = useState(MISSING_ANSWER);
+  const [slotTyping, setSlotTyping] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,7 +107,11 @@ export function TheGap() {
       } else {
         // One last blink, then the caret leaves and the word rests. It does
         // not come back: a caret with nothing left to type is a tease.
-        at(900, () => setTyping(false));
+        // Handing off to the hole below, so only ONE caret is ever alive.
+        at(900, () => {
+          setTyping(false);
+          setSlotTyping(true);
+        });
       }
     };
     setTyped("");
@@ -101,6 +122,36 @@ export function TheGap() {
       clearTimeout(timer);
     };
   }, [inView]);
+
+  // The hole answers itself. Same terminal grammar as the headline word, and it
+  // only starts once that one has finished and released its caret, so exactly
+  // one caret is alive on the section at any moment. The dashed slot already
+  // reserves its own box, so nothing reflows while the characters land.
+  useEffect(() => {
+    if (!slotTyping) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const at = (ms: number, fn: () => void) => {
+      timer = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+    };
+    const step = (i: number) => {
+      setSlotTyped(MISSING_ANSWER.slice(0, i));
+      if (i < MISSING_ANSWER.length) {
+        at(52, () => step(i + 1));
+      } else {
+        at(900, () => setSlotTyping(false));
+      }
+    };
+    setSlotTyped("");
+    at(120, () => step(1));
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [slotTyping]);
 
   // One reveal grammar for the whole beat: 16px of travel (not 32, which
   // reads as a slide), a 700ms ease-out curve, and a 60ms stagger between
@@ -192,42 +243,65 @@ export function TheGap() {
             craft, which is what it is. One row has an empty cell, and that
             absence is the whole argument.
 
-            Sized down 2026-07-25 (founder): it was set at hero scale for a
-            piece of supporting evidence. It now runs at the page's dense
-            metadata scale and stops at max-w-3xl instead of spanning the full
-            column, so it reads as the ledger it is, and the vertical space it
-            gives back pays for the three-layer spotlight below. */}
-        <div className={revealCls("mb-16 max-w-3xl")} style={{ transitionDelay: revealDelay(120) }}>
+            Sized down twice on 2026-07-25 (founder: "that table can be a
+            little small in size, it does not require that importance"). It
+            started at hero scale: 16px tool names, 18px from md up, spanning
+            the full 1024px column. The first pass took it to 13/14px at
+            max-w-3xl. This pass finishes the job: 12px tool names flat, a
+            10px craft label, a 9.5px status word, tighter rows, and the whole
+            ledger capped at max-w-2xl. It is supporting evidence, so it now
+            runs at two thirds the measure of the argument above it, and the
+            vertical space it gives back pays for the three-layer band below.
+            The one thing that did NOT shrink is the hole. */}
+        <div className={revealCls("mb-14 max-w-2xl")} style={{ transitionDelay: revealDelay(120) }}>
           {CRAFT_HOMES.map((row) => {
             const missing = row.tools === null;
             return (
               <div
                 key={row.craft}
-                className={`grid grid-cols-[80px_minmax(0,1fr)] items-baseline gap-x-5 gap-y-1.5 border-b sm:grid-cols-[108px_minmax(0,1fr)_132px] ${
-                  missing ? "border-[#FF6B2C]/25 pt-4 pb-4" : "border-white/[0.06] py-2.5"
+                className={`grid grid-cols-[72px_minmax(0,1fr)] items-baseline gap-x-4 gap-y-1 border-b sm:grid-cols-[92px_minmax(0,1fr)_116px] ${
+                  missing ? "border-[#FF6B2C]/25 py-3.5" : "border-white/[0.06] py-2"
                 }`}
               >
                 <span
-                  className="font-mono text-[11px] uppercase"
+                  className="font-mono text-[10px] uppercase"
                   style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#71717a" }}
                 >
                   {row.craft}
                 </span>
-                <span className="text-[13px] leading-snug text-zinc-300 md:text-sm">
+                <span className="text-[12px] leading-snug text-zinc-300">
                   {missing ? (
                     // The hole, drawn. A hollow dashed slot where a tool name
                     // sits on every other row: the eye lands on the absence.
-                    <span
-                      className="block h-[1.4em] w-full max-w-[180px] rounded-[3px] border border-dashed border-[#FF6B2C]/45 bg-[#FF6B2C]/[0.045]"
-                      aria-label="no tool"
-                      role="img"
-                    />
+                    // Held at its own height while everything around it got
+                    // smaller, because the absence is the argument.
+                    // The hole, and then its own answer typed into it. The box
+                    // is sized by an invisible sizer holding the finished
+                    // string, so the row never reflows as characters land.
+                    <span className="relative inline-flex min-h-[1.5em] w-full max-w-[232px] items-center rounded-[3px] border border-dashed border-[#FF6B2C]/45 bg-[#FF6B2C]/[0.045] px-1.5">
+                      <span aria-hidden className="invisible whitespace-pre text-[12px]">
+                        {MISSING_ANSWER}
+                      </span>
+                      <span
+                        className="absolute left-1.5 right-1.5 whitespace-pre text-[12px]"
+                        style={{ color: "#FF6B2C" }}
+                      >
+                        {slotTyped}
+                        {slotTyping ? (
+                          <span
+                            aria-hidden
+                            className="gap-caret ml-[1px] inline-block h-[0.95em] w-[6px] translate-y-[1px] bg-[#FF6B2C]"
+                          />
+                        ) : null}
+                      </span>
+                      <span className="sr-only">{MISSING_ANSWER}</span>
+                    </span>
                   ) : (
                     row.tools
                   )}
                 </span>
                 <span
-                  className="col-start-2 font-mono text-[10px] uppercase sm:col-start-3 sm:text-right"
+                  className="col-start-2 font-mono text-[9.5px] uppercase sm:col-start-3 sm:text-right"
                   style={{ letterSpacing: "0.12em", color: missing ? "#FF6B2C" : "#52525b" }}
                 >
                   {row.status}

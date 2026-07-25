@@ -14,9 +14,27 @@ import { LoopReplay, type ReplayTab } from "./replay/Replay";
  * Vercel grammar (composition playbook section 3): capability headline, then
  * the artifact. The three-layer spec column that used to sit between them is
  * gone from here: it is the core claim, not supporting detail, so it got its
- * own spotlit section (ThreeLayers.tsx) immediately above this one. This
- * section is now single-purpose again: the loop, running.
+ * own section (ThreeLayers.tsx, a three-column band) immediately above this
+ * one. This section is single-purpose again: the loop, running.
  */
+
+/**
+ * The four things the replay actually demonstrates, restored after the
+ * three-layer column moved out and took them with it (founder 2026-07-25:
+ * "you have missed this").
+ *
+ * They used to float top-right of the headline as a detached legend, read as
+ * a stray list, and named four capabilities before the reader had seen one of
+ * them. They now sit UNDER the replay, so each one is a receipt for something
+ * on screen a moment ago rather than a claim made in advance. Every gloss is
+ * a mechanism, not a promise: this section earns its claims by showing them.
+ */
+const REPLAY_RECEIPTS = [
+  { label: "Named agents", gloss: "Every step is signed by the agent that ran it." },
+  { label: "Human gates", gloss: "The merge waits for your approval." },
+  { label: "Precedent memory", gloss: "Past calls surface before this one is made." },
+  { label: "Outcome grading", gloss: "The result is scored and kept." },
+] as const;
 export function LoopWalkthrough() {
   const [activeTab, setActiveTab] = useState<ReplayTab>("full");
   const [inView, setInView] = useState(false);
@@ -139,14 +157,29 @@ export function LoopWalkthrough() {
             fd713f87) stripped EVERY inline fontSize out of replay/Replay.tsx,
             so its station spine, timestamps, actor chips and mock-card
             metadata all fell back to the 13px body inherit. That is what made
-            the loop read poppy and oversized: the spine went 10px -> 13px,
-            the timestamps 9px -> 13px, the chips 8px -> 13px. The replay
-            component is founder-frozen (the 3D card motion stays exactly as
-            it is), so the scale is restored from out here instead: 11px for
-            the mono metadata voice, which is the same metadata scale the rest
-            of this page uses, and 12px for sentences. */}
+            the sections flowing in under the headline read poppy and
+            oversized. The replay component is founder-frozen (the 3D card
+            motion stays exactly as it is), so the scale is restored from out
+            here instead.
+
+            Corrected to 10px 2026-07-25 (founder: still bigger than the
+            original, still poppy). The first restore picked a flat 11px,
+            which is under the 13px inherit but still ABOVE almost every value
+            the component originally carried: the station spine was 10px, the
+            timestamps 9px, the event tags 9.5px, the actor chips and the
+            agent-row status words 8.5px, the card stage labels and progress
+            words 8 to 9px. Flattening all of that to 11px is what read as
+            shouty: the fine metadata lost its whisper and everything spoke at
+            one volume. 10px is the mean of what the component actually had,
+            and it lands the spine exactly on its original value.
+
+            Sentences are left at 12px. They were 13px (the trace lines) and
+            12.5px (the caption) originally, so they are already quieter than
+            they were, and they are the part a reader actually reads. The
+            result is a real two-step hierarchy again: 12px reading voice over
+            10px metadata voice, under a 52px headline. */}
         <style>{`
-          .loop-replay-scale { font-size: 11px; }
+          .loop-replay-scale { font-size: 10px; }
           .loop-replay-scale p { font-size: 12px; }
         `}</style>
 
@@ -172,6 +205,37 @@ export function LoopWalkthrough() {
 
         <div className="loop-replay-scale">
           <LoopReplay tab={activeTab} />
+        </div>
+
+        {/* The receipts for what just played. Hairline-topped columns, the
+            same grammar as the three-layer band above, so the two read as one
+            system described at two zoom levels. */}
+        <div className="mt-14">
+          <span
+            className="mb-5 block font-mono text-[11px] uppercase text-zinc-600"
+            style={{ letterSpacing: "0.12em" }}
+          >
+            In every run
+          </span>
+          <div className="grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+            {REPLAY_RECEIPTS.map((r, i) => (
+              <div
+                key={r.label}
+                className={`border-t border-white/10 pt-3.5 transition-all duration-700 ${
+                  inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`}
+                style={{ transitionDelay: inView ? `${i * 70}ms` : "0ms" }}
+              >
+                <span
+                  className="mb-1.5 block font-mono text-[12px] uppercase text-zinc-300"
+                  style={{ letterSpacing: "0.12em" }}
+                >
+                  {r.label}
+                </span>
+                <span className="block text-[12px] leading-relaxed text-zinc-500">{r.gloss}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Affordance, not claim: the replay narrates itself, so what follows
