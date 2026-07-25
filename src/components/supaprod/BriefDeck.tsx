@@ -22,6 +22,20 @@ export const DECK_SRC = "/brief.html";
 export function BriefDeck() {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [copied, setCopied] = useState(false);
+  // Set only when the clipboard write fails. Holding the URL in state is what
+  // lets the fallback be a real element in the page instead of a browser
+  // dialog: the pill becomes a selectable field showing this string.
+  const [manualCopyUrl, setManualCopyUrl] = useState<string | null>(null);
+  const manualInputRef = useRef<HTMLInputElement>(null);
+
+  // Select the text the moment the field appears, so the fallback costs the
+  // visitor one keystroke (Cmd+C) rather than a drag-select. This is the only
+  // thing window.prompt did better than a plain dialog, and it is three lines.
+  useEffect(() => {
+    if (!manualCopyUrl) return;
+    manualInputRef.current?.focus();
+    manualInputRef.current?.select();
+  }, [manualCopyUrl]);
 
   // The deck listens for keydown on its own window; focus it once it loads so
   // arrow-key navigation works without the visitor having to click in first.
@@ -47,17 +61,23 @@ export function BriefDeck() {
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // Clipboard blocked (insecure context, or permission denied). The one
-      // job left is to put the text somewhere the visitor can select it, and
-      // a prompt is the only thing that both shows the string AND preselects
-      // it for Cmd+C. A toast cannot be selected from, and an in-app dialog
-      // would still need the visitor to drag-select the URL by hand.
+      // Clipboard blocked: insecure context, denied permission, or a webview
+      // that does not implement the API. The job left is to put the string
+      // where the visitor can select it themselves.
       //
-      // Carried over unchanged from routes/brief.tsx, where it has always
-      // lived; moving the surface into a component is what first put it in
-      // front of this rule. Rare fallback path, never the normal one.
-      // eslint-disable-next-line no-restricted-syntax
-      window.prompt("Copy this link", url);
+      // This was window.prompt until 2026-07-25. It worked, and it was the one
+      // browser dialog with a real argument behind it, since a prompt both
+      // shows a string and preselects it. But it is an unstyled OS box on a
+      // page whose entire chrome is two 10.5px mono pills, and the repo bans
+      // browser popups for exactly that reason. Suppressing the rule to keep
+      // it was the wrong trade: the same affordance is a readonly input and an
+      // effect that calls select().
+      //
+      // Not usePrompt() either, though it exists and the provider does reach
+      // this route. That helper is a Save/Cancel dialog for COLLECTING input,
+      // so it would show an editable field and an action button for a value
+      // nobody is submitting. Wrong shape, and a modal is heavy for one line.
+      setManualCopyUrl(url);
       return;
     }
     setCopied(true);
@@ -119,15 +139,42 @@ export function BriefDeck() {
           display: "flex",
           gap: 8,
           zIndex: 10,
-          opacity: 0.4,
+          // The fallback field is the one thing here that must be readable at
+          // rest: it exists because the visitor already tried and failed to
+          // get this link, so hiding it behind a hover would be the second
+          // failure in a row.
+          opacity: manualCopyUrl ? 1 : 0.4,
           transition: "opacity 0.2s ease",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.4")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = manualCopyUrl ? "1" : "0.4")}
       >
-        <button type="button" onClick={copyLink} style={pillStyle} aria-label="Copy shareable link">
-          {copied ? "Link copied" : "Share"}
-        </button>
+        {manualCopyUrl ? (
+          <input
+            ref={manualInputRef}
+            readOnly
+            value={manualCopyUrl}
+            aria-label="Shareable link, select and copy"
+            onFocus={(e) => e.currentTarget.select()}
+            // Escape dismisses, and so does clicking away. No explicit close
+            // control: the field IS the message, and one more pill next to it
+            // would be more chrome than the thing it is apologising for.
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setManualCopyUrl(null);
+            }}
+            onBlur={() => setManualCopyUrl(null)}
+            style={{ ...pillStyle, width: 260, cursor: "text" }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={copyLink}
+            style={pillStyle}
+            aria-label="Copy shareable link"
+          >
+            {copied ? "Link copied" : "Share"}
+          </button>
+        )}
       </div>
     </div>
   );
