@@ -14,7 +14,6 @@ type EventRow = { id: string; title: string; start_at: string };
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -36,9 +35,9 @@ export function MeetingsRow() {
         className="flex items-center"
         style={{ gap: 8, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
       >
-        <span style={{ ...mono, color: "var(--text-subtle)" }}>Meetings</span>
-        <span style={{ fontSize: 12.5, color: "var(--madder)" }}>didn't load</span>
-        <Button variant="tertiary" onClick={() => void events.refetch()} style={{ fontSize: 12 }}>
+        <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)" }}>Meetings</span>
+        <span className="text-label-13" style={{ color: "var(--madder)" }}>didn't load</span>
+        <Button variant="tertiary" className="text-label-12" onClick={() => void events.refetch()}>
           Retry
         </Button>
       </div>
@@ -69,17 +68,18 @@ export function MeetingsRow() {
           cursor: "pointer",
         }}
       >
-        <span style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Meetings</span>
+        <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Meetings</span>
         <span
-          className="min-w-0 flex-1 truncate"
-          style={{ fontSize: 13, color: "var(--text-body)" }}
+          className="min-w-0 flex-1 truncate text-label-13"
+          style={{ color: "var(--text-body)" }}
         >
           {rows.length} today
           {next ? ` · next ${fmtTime(next.start_at)} ${next.title.slice(0, 28)}` : " · all done"}
         </span>
         <span
+          className="text-label-13"
           aria-hidden="true"
-          style={{ color: "var(--text-subtle)", fontSize: 13, flexShrink: 0 }}
+          style={{ color: "var(--text-subtle)", flexShrink: 0 }}
         >
           {open ? "↑" : "↓"}
         </span>
@@ -98,9 +98,9 @@ export function MeetingsRow() {
                 style={{ gap: 10, padding: "4px 0", minWidth: 0 }}
               >
                 <span
+                  className="text-label-12"
                   style={{
                     ...mono,
-                    fontSize: 10,
                     color: past ? "var(--text-faint)" : "var(--text-subtle)",
                     flexShrink: 0,
                     minWidth: 62,
@@ -109,9 +109,8 @@ export function MeetingsRow() {
                   {fmtTime(e.start_at)}
                 </span>
                 <span
-                  className="min-w-0 flex-1 truncate"
+                  className="min-w-0 flex-1 truncate text-label-13"
                   style={{
-                    fontSize: 12.5,
                     color: past ? "var(--text-faint)" : "var(--text-body)",
                   }}
                 >
