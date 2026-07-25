@@ -173,7 +173,7 @@ function TodaySpotlight({
   const [fullOpen, setFullOpen] = React.useState(false);
   const monoLabel: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
-    fontSize: 10.5,
+    fontSize: 12,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
     color: "var(--text-subtle)",
@@ -182,9 +182,9 @@ function TodaySpotlight({
   const row: React.CSSProperties = {
     display: "flex",
     alignItems: "baseline",
-    gap: 12,
-    fontSize: 13,
-    lineHeight: 1.5,
+    gap: 16,
+    fontSize: 14,
+    lineHeight: 1.6,
     color: "var(--text-body)",
     minWidth: 0,
   };
@@ -197,9 +197,9 @@ function TodaySpotlight({
       role="region"
       tone={callTitle || insightCount > 0 ? "ember" : "moss"}
       compact
-      style={{ marginBottom: 12 }}
+      className="mb-3"
     >
-      <div className="flex flex-col" style={{ gap: 7 }}>
+      <div className="flex flex-col gap-1.5">
         {callTitle ? (
           <div style={row}>
             <span style={{ ...monoLabel, color: "var(--ember-text)" }}>The call that matters</span>
@@ -289,7 +289,7 @@ function TodaySpotlight({
               role="status"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10,
+                fontSize: 12,
                 background: "var(--shimmer-gradient)",
                 backgroundSize: "280%",
                 WebkitBackgroundClip: "text",
@@ -323,10 +323,10 @@ function TodaySpotlight({
             <>
               <p
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   lineHeight: 1.6,
                   color: "var(--text-body)",
-                  margin: "2px 0 0",
+                  margin: 0,
                   maxWidth: "68ch",
                 }}
               >
@@ -340,7 +340,7 @@ function TodaySpotlight({
               </div>
             </>
           ) : (
-            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "2px 0 0" }}>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0 }}>
               No written brief yet today. Refresh drafts one from this workspace.
             </p>
           )
@@ -397,9 +397,9 @@ function DoorLink({
       title={hint}
       className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
-        gap: 6,
+        gap: 8,
         fontFamily: "var(--font-sans)",
-        fontSize: 12.5,
+        fontSize: 12,
         fontWeight: 500,
         color: "var(--text-muted)",
         background: "transparent",
@@ -414,7 +414,7 @@ function DoorLink({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
+            fontSize: 12,
             letterSpacing: "0.08em",
             color: "var(--text-faint)",
           }}
@@ -762,7 +762,7 @@ function Dashboard() {
     <span
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
+        fontSize: 12,
         letterSpacing: "0.06em",
         color: "var(--text-faint)",
       }}
@@ -774,7 +774,7 @@ function Dashboard() {
     <span
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
+        fontSize: 12,
         letterSpacing: "0.04em",
         color: "var(--text-subtle)",
       }}
@@ -1216,16 +1216,15 @@ function Dashboard() {
             a single-purpose rail, not the retired 8-section grid. Narrow
             screens keep the Desk door below. */}
         <div
-          className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_312px] items-start"
-          style={{ gap: 24 }}
+          className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_312px] items-start gap-6"
         >
-          <div className="flex flex-col" style={{ gap: 26, minWidth: 0 }}>
-            <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div className="flex flex-col" style={{ gap: 24, minWidth: 0 }}>
+            <section aria-label="Needs your judgment" className="flex flex-col gap-3">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <h2
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 11,
+                    fontSize: 12,
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                     color: "var(--ember-text)",
@@ -1250,7 +1249,7 @@ function Dashboard() {
                 />
               ) : null}
               {readyFanoutBatches.length > 0 ? (
-                <div className="flex flex-col" style={{ gap: 10 }}>
+                <div className="flex flex-col" style={{ gap: 12 }}>
                   {readyFanoutBatches.map((batch) => (
                     <CompositeReviewCard key={batch.id} batch={batch} />
                   ))}
@@ -1262,22 +1261,22 @@ function Dashboard() {
                     background: "var(--card)",
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-card)",
-                    padding: "24px 26px",
+                    padding: "24px 24px",
                     boxShadow: "var(--top-light)",
                   }}
                 >
                   <h3
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 19,
+                      fontSize: 18,
                       fontWeight: 460,
                       color: "var(--text-primary)",
-                      margin: "0 0 6px",
+                      margin: "0 0 8px",
                     }}
                   >
                     Your calls didn't load.
                   </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
+                  <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 16px" }}>
                     {needsYou.error instanceof Error
                       ? needsYou.error.message
                       : "The queue request failed."}
@@ -1291,7 +1290,7 @@ function Dashboard() {
                   role="status"
                   aria-label="Loading your calls"
                   className="flex flex-col"
-                  style={{ gap: 10 }}
+                  style={{ gap: 12 }}
                 >
                   <div
                     style={{
@@ -1316,7 +1315,7 @@ function Dashboard() {
                     background: "var(--card)",
                     border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
                     borderRadius: "var(--radius-card)",
-                    padding: "28px 26px",
+                    padding: "32px 24px",
                     boxShadow: "var(--top-light)",
                   }}
                 >
@@ -1324,16 +1323,16 @@ function Dashboard() {
                   <h3
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 21,
+                      fontSize: 24,
                       fontWeight: 450,
                       color: "var(--text-primary)",
-                      margin: "0 0 6px",
+                      margin: "0 0 8px",
                     }}
                   >
                     Your queue is{" "}
                     <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
                   </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                  <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0 }}>
                     New calls surface here first. Supaprod keeps sensing in the background.
                   </p>
                 </div>
@@ -1390,9 +1389,9 @@ function Dashboard() {
                   <div
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10.5,
+                      fontSize: 12,
                       color: "var(--text-subtle)",
-                      marginTop: 6,
+                      marginTop: 8,
                       textTransform: "uppercase",
                     }}
                   >
@@ -1411,10 +1410,10 @@ function Dashboard() {
             {lp && lp.total > 0 ? (
               <p
                 style={{
-                  fontSize: 12.5,
+                  fontSize: 12,
                   lineHeight: 1.5,
                   color: "var(--text-muted)",
-                  margin: "0 0 -14px",
+                  margin: "0 0 -16px",
                 }}
               >
                 {pulseSentence(lp)}
@@ -1438,11 +1437,11 @@ function Dashboard() {
                   background: "var(--card)",
                   border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-card)",
-                  padding: "16px 18px",
+                  padding: "16px 16px",
                   boxShadow: "var(--top-light)",
                 }}
               >
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px" }}>
                   The activity lanes didn't load.{" "}
                   {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
                 </p>
@@ -1469,7 +1468,7 @@ function Dashboard() {
             <nav
               aria-label="More on Today"
               className="flex flex-wrap items-baseline"
-              style={{ gap: 22, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}
+              style={{ gap: 24, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}
             >
               <DoorLink
                 label="Desk"
@@ -1510,7 +1509,7 @@ function Dashboard() {
           <WatchLane lane={lanesData.lane3} bare />
         ) : lanes.isError ? (
           <div>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px" }}>
               The watch list didn't load.{" "}
               {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
             </p>
