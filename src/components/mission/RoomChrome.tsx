@@ -22,6 +22,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { Kbd } from "@/components/mission/primitives";
+import { AccountMenu } from "@/components/mission/AccountMenu";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 
@@ -199,6 +200,11 @@ export function RoomTopBar({
         >
           Ask <Kbd>{"⌘J"}</Kbd>
         </button>
+        {/* The account layer. It was stranded in the retired AppShell rail
+            when the room chrome replaced that shell, which left no sign out,
+            no workspace switch, and no identity anywhere on these surfaces.
+            Same component as the loop room's TopBar so the two cannot drift. */}
+        <AccountMenu />
       </div>
     </header>
   );

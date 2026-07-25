@@ -74,6 +74,17 @@ export interface MissionShellViewProps {
   onOpenArtifacts?: () => void;
   /** Opens the Threads archive (every conversation, revisitable). Optional. */
   onOpenThreads?: () => void;
+  /**
+   * The account control (identity, workspace switch, profile, plan, credits,
+   * sign out). A SLOT rather than a direct import because this view is pure by
+   * contract, and the menu is connected (auth session + useWorkspace + the
+   * router). MissionShell passes the same <AccountMenu /> that RoomTopBar
+   * renders, so the two TopBars share one component and cannot drift. Optional
+   * only so the provider-free component tests keep rendering; the live room
+   * always passes it, because without it a signed-in user has no way to sign
+   * out (the control was stranded in the retired AppShell).
+   */
+  accountMenu?: ReactNode;
   /** The real Thread column (the caller owns the stream + briefing reads). */
   thread: Omit<ThreadProps, "className">;
   /** The real docked Composer (the caller owns draft + expanded state). */
@@ -207,6 +218,7 @@ export function MissionShellView({
   onOpenEngineRoom,
   onOpenArtifacts,
   onOpenThreads,
+  accountMenu,
   thread,
   composer,
   workingStrip,
@@ -320,6 +332,12 @@ export function MissionShellView({
           >
             Ask <Kbd>{"⌘J"}</Kbd>
           </button>
+          {/* The account layer. Unlike the recessed doors above it, this is
+              never hidden at small widths: it carries sign out, and on a phone
+              it is the ONLY account control that exists anywhere in the app
+              since the retired AppShell rail (which held the sole signOut call)
+              is no longer mounted on any room surface. */}
+          {accountMenu}
         </div>
       </header>
 

@@ -49,6 +49,7 @@ import type { PaletteRun } from "@/lib/palette-sections";
 import { toast } from "@/lib/notify";
 import { SPINE_STAGES, type StageId, type StageLoopState } from "@/components/mission/Spine";
 import { MissionShellView, type MissionDoorId } from "./MissionShellView";
+import { AccountMenu } from "./AccountMenu";
 import { journeyActivation, journeyHandoffFor } from "./journey-wiring";
 import { ComposerOverlay } from "./composer/ComposerOverlay";
 import { StageCanvasFace, RestFace } from "./faces";
@@ -539,6 +540,10 @@ export function MissionShell({
         onOpenEngineRoom={() => void navigate({ to: "/engine-room" })}
         onOpenArtifacts={() => void navigate({ to: "/artifacts" })}
         onOpenThreads={() => void navigate({ to: "/threads" })}
+        // The account control, restored: identity, workspace switch, profile,
+        // plan, credits, sign out. Same component RoomTopBar renders, so the
+        // loop room and the config rooms cannot drift apart.
+        accountMenu={<AccountMenu />}
         thread={{
           dayLabel,
           briefing: briefingQ.data ?? null,
