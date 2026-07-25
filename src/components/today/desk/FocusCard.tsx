@@ -43,7 +43,6 @@ const PRESET_LABEL: Record<SoundPreset, string> = {
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -73,10 +72,9 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${stateClass}`}
+      className={`text-label-12 loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${stateClass}`}
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 11.5,
         fontVariantNumeric: "tabular-nums",
         padding: "4px 10px",
         borderRadius: "var(--radius-control)",
@@ -176,10 +174,10 @@ export function FocusCard() {
   return (
     <section aria-label="Focus block" className="loom-hairline-fade" style={card}>
       <div className="flex items-baseline" style={{ gap: 10, marginBottom: 12 }}>
-        <h3 style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Focus block</h3>
+        <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Focus block</h3>
         <div style={{ flex: 1 }} />
         {tally && tally.blocks > 0 ? (
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-faint)" }}>
+          <span className="text-label-12" style={{ ...mono, color: "var(--text-faint)" }}>
             {tally.blocks} block{tally.blocks === 1 ? "" : "s"} · {tally.minutes} min today
           </span>
         ) : null}
@@ -200,9 +198,9 @@ export function FocusCard() {
           >
             {openEnded ? `${elapsedMin} min in` : remainingLabel}
           </span>
-          <span style={{ fontSize: 13, color: "var(--text-body)" }}>{intent ?? "Open block"}</span>
+          <span className="text-label-13" style={{ color: "var(--text-body)" }}>{intent ?? "Open block"}</span>
           {heldCount > 0 ? (
-            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            <span className="text-label-12" style={{ color: "var(--text-muted)" }}>
               {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly
             </span>
           ) : null}
@@ -229,13 +227,13 @@ export function FocusCard() {
             maxLength={120}
             aria-label="Focus block intent"
             placeholder="What are you closing in this block?"
+            className="text-label-13"
             style={{
               width: "100%",
               background: "var(--surface-card-deep)",
               border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               padding: "8px 12px",
-              fontSize: 13,
               color: "var(--text-primary)",
             }}
           />
@@ -276,13 +274,13 @@ export function FocusCard() {
               value={customStr === "until" ? "" : customStr}
               onChange={(e) => applyCustom(e.target.value)}
               aria-label="Custom focus minutes"
+              className="text-label-12"
               style={{
                 width: 56,
                 background: "transparent",
                 border: "1px solid var(--hairline)",
                 borderRadius: "var(--radius-control)",
                 padding: "4px 8px",
-                fontSize: 11.5,
                 fontVariantNumeric: "tabular-nums",
                 color: "var(--text-primary)",
               }}
@@ -291,13 +289,13 @@ export function FocusCard() {
           <div className="flex items-center" style={{ gap: 8 }}>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="tertiary" style={{ fontSize: 12 }}>
+                <Button variant="tertiary" className="text-label-12">
                   Sound · {PRESET_LABEL[config.preset]}
                 </Button>
               </PopoverTrigger>
               <PopoverContent side="top" align="start" sideOffset={8} className="w-64 p-3">
                 <div className="flex flex-col" style={{ gap: 10 }}>
-                  <span style={{ ...mono, fontSize: 9.5, color: "var(--text-subtle)" }}>
+                  <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)" }}>
                     Ambient sound
                   </span>
                   <div className="grid grid-cols-3" style={{ gap: 6 }}>
