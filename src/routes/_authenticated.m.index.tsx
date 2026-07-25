@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { WarmSlot } from "@/components/mission/primitives";
+import { RoomChromeShell } from "@/components/mission/RoomChrome";
 
 export const Route = createFileRoute("/_authenticated/m/")({
   component: MissionIndex,
@@ -29,25 +30,36 @@ function MissionIndex() {
     void navigate({ to: "/m/$productId", params: { productId: targetId }, replace: true });
   }, [isLoading, targetId, navigate]);
 
+  // A zero-product workspace used to render this WarmSlot on a bare div with
+  // no TopBar at all, which stranded the user: no doors, no workspace switch,
+  // and (since the retired AppShell holds the only other one) no way to sign
+  // out. Wear the room chrome so the account layer is present here too. The
+  // redirecting branch stays bare on purpose, it is gone in a frame.
+  if (!isLoading && !targetId) {
+    return (
+      <RoomChromeShell activeDoor="mission">
+        <div className="flex h-full items-center justify-center p-8">
+          <WarmSlot
+            className="w-full max-w-[460px]"
+            line={{
+              text: "No products in this workspace yet. Tell Supaprod what you are building and the loop starts from your first signal.",
+              actionLabel: "Ask Supaprod",
+              onAction: () => window.dispatchEvent(new CustomEvent("supaprod:open-ask")),
+            }}
+          />
+        </div>
+      </RoomChromeShell>
+    );
+  }
+
   return (
     <div
       className="flex h-dvh items-center justify-center p-8"
       style={{ background: "var(--ink-bg)" }}
     >
-      {!isLoading && !targetId ? (
-        <WarmSlot
-          className="w-full max-w-[460px]"
-          line={{
-            text: "No products in this workspace yet. Tell Supaprod what you are building and the loop starts from your first signal.",
-            actionLabel: "Ask Supaprod",
-            onAction: () => window.dispatchEvent(new CustomEvent("supaprod:open-ask")),
-          }}
-        />
-      ) : (
-        <p className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-          Opening Mission Control.
-        </p>
-      )}
+      <p className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
+        Opening Mission Control.
+      </p>
     </div>
   );
 }
