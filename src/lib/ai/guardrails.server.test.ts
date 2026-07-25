@@ -5,16 +5,10 @@
  */
 
 import { describe, it, expect } from "bun:test";
-import {
-  evaluateGuardrails,
-  type GuardrailRule,
-  type GuardrailResult,
-} from "./guardrails.server";
+import { evaluateGuardrails, type GuardrailRule, type GuardrailResult } from "./guardrails.server";
 
 // Helper to create minimal rule for testing
-function rule(
-  overrides: Partial<GuardrailRule> = {},
-): GuardrailRule {
+function rule(overrides: Partial<GuardrailRule> = {}): GuardrailRule {
   return {
     id: "rule-1",
     name: "Test Rule",
@@ -86,11 +80,7 @@ describe("evaluateGuardrails", () => {
           kind: "keyword",
         }),
       ];
-      const result = evaluateGuardrails(
-        "my password is secret",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("my password is secret", rules, "input");
 
       expect(result.text).toContain("[REDACTED:keyword]");
       expect(result.text).not.toContain("password");
@@ -111,16 +101,12 @@ describe("evaluateGuardrails", () => {
         "output",
       );
 
-      const redactCount = (result.text.match(/\[REDACTED:secret\]/g) || [])
-        .length;
+      const redactCount = (result.text.match(/\[REDACTED:secret\]/g) || []).length;
       expect(redactCount).toBe(2); // both PASSWORD and password should be redacted
     });
 
     it("should include kind name in redaction placeholder", () => {
-      const kinds: Array<"pii" | "secret"> = [
-        "pii",
-        "secret",
-      ];
+      const kinds: Array<"pii" | "secret"> = ["pii", "secret"];
       for (const kind of kinds) {
         const rules = [
           rule({
@@ -164,11 +150,7 @@ describe("evaluateGuardrails", () => {
           action: "warn", // even though action is warn, injection forces block
         }),
       ];
-      const result = evaluateGuardrails(
-        "contains <script>alert()</script>",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("contains <script>alert()</script>", rules, "input");
 
       expect(result.blocked).toBe(true);
     });
@@ -181,11 +163,7 @@ describe("evaluateGuardrails", () => {
           action: "redact",
         }),
       ];
-      const result = evaluateGuardrails(
-        "href='javascript:void(0)'",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("href='javascript:void(0)'", rules, "input");
 
       expect(result.blocked).toBe(true);
     });
@@ -312,11 +290,7 @@ describe("evaluateGuardrails", () => {
           action: "redact",
         }),
       ];
-      const result = evaluateGuardrails(
-        "The price: $99 is a deal",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("The price: $99 is a deal", rules, "input");
 
       expect(result.text).toContain("[REDACTED:keyword]");
       expect(result.text).not.toContain("$99");
@@ -380,11 +354,7 @@ describe("evaluateGuardrails", () => {
           kind: "keyword",
         }),
       ];
-      const result = evaluateGuardrails(
-        "danger zone, danger ahead, more danger",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("danger zone, danger ahead, more danger", rules, "input");
 
       expect(result.hits.length).toBe(3);
       expect(result.hits.every((h) => h.matched === "danger")).toBe(true);
@@ -405,11 +375,7 @@ describe("evaluateGuardrails", () => {
           kind: "keyword",
         }),
       ];
-      const result = evaluateGuardrails(
-        "secret password",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("secret password", rules, "input");
 
       expect(result.blocked).toBe(true);
       expect(result.hits.length).toBe(2);
@@ -433,11 +399,7 @@ describe("evaluateGuardrails", () => {
           kind: "keyword",
         }),
       ];
-      const result = evaluateGuardrails(
-        "block-me and redact-me",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("block-me and redact-me", rules, "input");
 
       expect(result.blocked).toBe(true);
       expect(result.hits.length).toBe(2); // both are evaluated
@@ -537,11 +499,7 @@ describe("evaluateGuardrails", () => {
           kind: "injection",
         }),
       ];
-      const result = evaluateGuardrails(
-        "my secret is <script>",
-        rules,
-        "input",
-      );
+      const result = evaluateGuardrails("my secret is <script>", rules, "input");
 
       expect(result.blocked).toBe(true); // injection forces block
       expect(result.text).toContain("[REDACTED:keyword]"); // secret still redacted

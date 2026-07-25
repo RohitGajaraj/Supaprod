@@ -38,7 +38,8 @@ export function MemoryRow({
     try {
       await onDelete();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete memory entry. Try again.";
+      const message =
+        err instanceof Error ? err.message : "Failed to delete memory entry. Try again.";
       setError(message);
     } finally {
       setPending(false);

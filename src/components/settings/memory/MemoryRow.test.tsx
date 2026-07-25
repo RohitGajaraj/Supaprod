@@ -205,10 +205,7 @@ describe("MemoryRow Component", () => {
 
     test("shows read-only note with title attribute when no onDelete", () => {
       const { container } = render(
-        <MemoryRow
-          {...mockProps}
-          readOnlyNote="This is a system-generated insight"
-        />,
+        <MemoryRow {...mockProps} readOnlyNote="This is a system-generated insight" />,
       );
       const readOnlySpan = screen.getByText("read only");
       expect(readOnlySpan.getAttribute("title")).toBe("This is a system-generated insight");
@@ -228,9 +225,7 @@ describe("MemoryRow Component", () => {
     });
 
     test("applies custom className", () => {
-      const { container } = render(
-        <MemoryRow {...mockProps} className="custom-row" />,
-      );
+      const { container } = render(<MemoryRow {...mockProps} className="custom-row" />);
       const row = container.querySelector("div");
       expect(row?.className).toContain("custom-row");
     });

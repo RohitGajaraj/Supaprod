@@ -121,10 +121,7 @@ export class TanstackMockManager {
    */
   getServerFnMock(name: string): (args: any) => Promise<any> {
     return (
-      this.serverFnMocks.get(name) ||
-      (async (args: any) => ({
-        /* default success response */
-      }))
+      this.serverFnMocks.get(name) || (async (args: any) => ({/* default success response */}))
     );
   }
 
@@ -166,11 +163,7 @@ export function createMockUseQuery(manager: TanstackMockManager) {
  * Helper to create a mock useMutation hook that reads from the manager.
  */
 export function createMockUseMutation(manager: TanstackMockManager) {
-  return function mockUseMutation({
-    mutationFn,
-  }: {
-    mutationFn?: (vars: any) => Promise<any>;
-  }) {
+  return function mockUseMutation({ mutationFn }: { mutationFn?: (vars: any) => Promise<any> }) {
     // For a real implementation, we'd track multiple mutations.
     // For now, return a generic mutation state.
     const state = manager.getMutationState("default");

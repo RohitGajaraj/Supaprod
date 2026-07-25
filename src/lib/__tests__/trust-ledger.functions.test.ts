@@ -351,9 +351,7 @@ describe("trust-ledger.functions", () => {
     });
 
     it("counts both parent and child contributions separately", () => {
-      const edges: LineageEdgeLite[] = [
-        { parent_id: "a", child_id: "a", relation: "self" },
-      ];
+      const edges: LineageEdgeLite[] = [{ parent_id: "a", child_id: "a", relation: "self" }];
       const result = evidenceCounts(edges);
       expect(result.get("a")).toBe(2); // counted as both parent and child
     });
@@ -631,7 +629,9 @@ describe("trust-ledger.functions", () => {
     it("normalizes tool_name: underscores and dots become spaces, title-cased", () => {
       expect(summarizeAction("create.issue", { title: "Test" })).toContain("Create Issue");
       expect(summarizeAction("create_issue", { title: "Test" })).toContain("Create Issue");
-      expect(summarizeAction("create_pull_request", { title: "Test" })).toContain("Create Pull Request");
+      expect(summarizeAction("create_pull_request", { title: "Test" })).toContain(
+        "Create Pull Request",
+      );
     });
 
     it("ignores whitespace-only subjects", () => {
