@@ -6,14 +6,26 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 
+// Fixed ink values, NOT --ds-gray-* tokens.
+//
+// This shell used to paint itself with `background: var(--ds-gray-1000)`. That is
+// a CONTRAST token, not a surface token, so it flips with the theme: #171717 in
+// light, #ededed in dark. The app is dark-first, so in the default theme these
+// pages rendered on a near-WHITE canvas while every other public page stayed dark.
+// /security, /updates, /privacy and /terms were all affected.
+//
+// Public pages are deliberately dark-only (the 2026-07-15 landing v2 ink and
+// starfield system), so they must not consult a theme-flipping token at all.
+// These values match PUBLIC_INK_THEME, which /demo and /proof already use.
 const C = {
-  bg: "var(--ds-gray-1000)",
-  border: "var(--ds-gray-400)",
-  divider: "var(--ds-gray-400)",
-  text: "var(--ds-gray-50)",
-  muted: "var(--ds-gray-500)",
-  faint: "var(--ds-gray-700)",
+  bg: "#0a0a0a",
+  border: "rgba(255,255,255,0.09)",
+  divider: "rgba(255,255,255,0.09)",
+  text: "#f4f4f5",
+  muted: "#a1a1aa",
+  faint: "#71717a",
   ember: "#FF6B2C",
   emberBright: "#FF6B2C",
 };
@@ -40,6 +52,11 @@ export function LegalPageShell({
         flexDirection: "column",
         position: "relative",
         fontFamily: 'var(--font-sans, "Geist", ui-sans-serif, system-ui, sans-serif)',
+        // Page content below uses var(--ink-*) and var(--text-*) with parchment
+        // era fallbacks. Without this the fallbacks win and the body text reads
+        // light on light. /demo and /proof already spread this; this shell did
+        // not, which is the other half of why these pages looked wrong.
+        ...PUBLIC_INK_THEME,
       }}
     >
       <LandingBackdrop />
