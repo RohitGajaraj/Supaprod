@@ -59,14 +59,13 @@ function StatCell({ value, label }: BrainStatCell) {
       <div
         style={{
           fontFamily: "var(--font-pixel)",
-          fontSize: 24,
           color: "var(--text-primary)",
           fontVariantNumeric: "tabular-nums",
         }}
       >
         {value}
       </div>
-      <MonoLabel style={{ fontSize: "var(--text-mono-micro)", marginTop: 4 }}>{label}</MonoLabel>
+      <MonoLabel style={{ marginTop: 4 }}>{label}</MonoLabel>
     </div>
   );
 }
@@ -134,7 +133,6 @@ export function BrainStatTrio() {
         <Link
           to="/today"
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
@@ -155,7 +153,7 @@ export function BrainStatTrio() {
       ))}
       {hasDecisionsTrend ? (
         <div>
-          <MonoLabel style={{ fontSize: "var(--text-mono-micro)" }}>CALLS · LAST 8 WEEKS</MonoLabel>
+          <MonoLabel style={{ }}>CALLS · LAST 8 WEEKS</MonoLabel>
           <GraphSlider
             data={stats.decisionsTrend}
             w={200}
@@ -172,7 +170,7 @@ export function BrainStatTrio() {
           <Button variant="secondary" onClick={() => download(stats.markdown as string)}>
             Export my record
           </Button>
-          <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
+          <span style={{ color: "var(--text-subtle)" }}>
             Downloads a cited markdown record · nothing leaves your workspace
           </span>
         </div>

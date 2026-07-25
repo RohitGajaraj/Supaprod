@@ -182,7 +182,6 @@ export function GuardrailsPanel() {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -267,7 +266,6 @@ export function GuardrailsPanel() {
                   padding: "13px 18px",
                   alignItems: "baseline",
                   borderBottom: i < rules.length - 1 ? "1px solid var(--hairline)" : "none",
-                  fontSize: 13,
                   opacity: g.enabled ? 1 : 0.45,
                 }}
               >
@@ -304,7 +302,6 @@ export function GuardrailsPanel() {
                     style={{
                       display: "block",
                       fontFamily: "var(--font-mono)",
-                      fontSize: 11,
                       color: "var(--text-faint)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -379,7 +376,6 @@ export function GuardrailsPanel() {
         {hits.length === 0 ? (
           <div
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-faint)",
               padding: "20px 18px",
               textAlign: "center",
@@ -398,7 +394,6 @@ export function GuardrailsPanel() {
                 padding: "11px 18px",
                 alignItems: "baseline",
                 borderBottom: i < hits.length - 1 ? "1px solid var(--hairline)" : "none",
-                fontSize: "var(--text-label-13)",
               }}
             >
               <span className="mono-label tabular-nums">{relTimeCaps(h.created_at)}</span>
@@ -422,7 +417,6 @@ export function GuardrailsPanel() {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 11,
                   color: "var(--text-body)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -531,7 +525,6 @@ export function GuardrailsPanel() {
                     marginTop: 5,
                     resize: "none",
                     fontFamily: "var(--font-mono)",
-                    fontSize: 12,
                   }}
                 />
               </label>
@@ -623,7 +616,6 @@ export function GuardrailsPanel() {
                     border: "1px solid var(--hairline)",
                     borderRadius: 8,
                     padding: 8,
-                    fontSize: 11,
                     lineHeight: 1.5,
                   }}
                 >

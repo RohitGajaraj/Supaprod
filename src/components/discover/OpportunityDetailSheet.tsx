@@ -391,7 +391,6 @@ export function OpportunityDetailSheet({
                         variant="outline"
                         size="sm"
                         style={{
-                          fontSize: "11.5px",
                           fontWeight: 500,
                         }}
                       >
@@ -413,7 +412,6 @@ export function OpportunityDetailSheet({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9.5px",
                     letterSpacing: "0.06em",
                     color: "var(--text-subtle)",
                   }}

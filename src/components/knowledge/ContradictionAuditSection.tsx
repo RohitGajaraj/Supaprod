@@ -54,16 +54,16 @@ export function ContradictionAuditSection({ decisionId }: { decisionId: string }
       }
     >
       {audit.isError ? (
-        <p style={{ fontSize: "12px", color: "var(--madder)", lineHeight: 1.55, margin: 0 }}>
+        <p style={{ color: "var(--madder)", lineHeight: 1.55, margin: 0 }}>
           {(audit.error as Error)?.message ?? "The audit could not run."}
         </p>
       ) : !report ? (
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
+        <p style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
           A standing auditor re-reads the workspace's decisions and flags the ones that disagree
           with this call, so a stale decision never quietly outlives the one that replaced it.
         </p>
       ) : report.count === 0 ? (
-        <p style={{ fontSize: "12.5px", color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
+        <p style={{ color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
           Nothing disagrees. Read {report.scanned} prior{" "}
           {report.scanned === 1 ? "decision" : "decisions"}, all consistent with this call.
         </p>
@@ -72,7 +72,6 @@ export function ContradictionAuditSection({ decisionId }: { decisionId: string }
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "13px",
               fontWeight: 550,
               color: "var(--text-primary)",
               lineHeight: 1.5,
@@ -94,15 +93,15 @@ export function ContradictionAuditSection({ decisionId }: { decisionId: string }
                   gap: "7px",
                 }}
               >
-                <span style={{ fontSize: "12.5px", fontWeight: 550, color: "var(--text-body)" }}>
+                <span style={{ fontWeight: 550, color: "var(--text-body)" }}>
                   {item.title}
                 </span>
-                <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55 }}>
+                <span style={{ color: "var(--text-subtle)", lineHeight: 1.55 }}>
                   {item.rationale}
                 </span>
                 <div className="flex items-center" style={{ gap: "8px" }}>
                   {done ? (
-                    <MonoLabel style={{ fontSize: "var(--text-mono-floor)", color: "var(--moss)" }}>
+                    <MonoLabel style={{ color: "var(--moss)" }}>
                       Supersession recorded
                     </MonoLabel>
                   ) : (

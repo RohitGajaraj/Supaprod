@@ -31,7 +31,6 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
           )}
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10px",
             // U6 link-role ruling (DESIGN-TEMPO §2): citation/source chips
             // speak the one link role; blossom is retired from citations.
             color: "var(--link)",
@@ -63,7 +62,6 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
               fontFamily: "var(--font-sans)",
               fontWeight: 600,
               color: "var(--text-primary)",
-              fontSize: "12px",
             }}
           >
             {source}
@@ -73,7 +71,6 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
             style={{
               fontFamily: "var(--font-sans)",
               color: "var(--text-body)",
-              fontSize: "12px",
               lineHeight: 1.5,
             }}
           >

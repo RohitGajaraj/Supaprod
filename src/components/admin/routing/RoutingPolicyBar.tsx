@@ -51,7 +51,6 @@ export function RoutingPolicyBar({
             className="ink-focus"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 13,
               lineHeight: 1.4,
               padding: "8px 14px",
               borderRadius: "var(--ink-radius-control)",

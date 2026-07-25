@@ -76,7 +76,6 @@ export function MemoryUpgradeNudge() {
           border: "none",
           background: "transparent",
           cursor: "pointer",
-          fontSize: 16,
           lineHeight: 1,
           padding: 2,
         }}

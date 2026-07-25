@@ -16,7 +16,6 @@ const fieldStyle: React.CSSProperties = {
   borderRadius: 8,
   border: "1px solid var(--hairline, rgba(0,0,0,0.14))",
   background: "var(--canvas, #fbf7ef)",
-  fontSize: 13,
   color: "var(--ink, #1d1a14)",
 };
 
@@ -163,7 +162,6 @@ export function CreditCapsCard() {
                   borderRadius: 8,
                   background: "var(--canvas, #fbf7ef)",
                   border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-                  fontSize: 12.5,
                 }}
               >
                 <span style={{ flex: 1, color: "var(--ink, #1d1a14)" }}>{c.targetName}</span>
@@ -267,7 +265,6 @@ export function CreditCapsCard() {
                   borderRadius: 8,
                   background: "var(--canvas, #fbf7ef)",
                   border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-                  fontSize: 12.5,
                 }}
               >
                 <span style={{ flex: 1, color: "var(--ink, #1d1a14)" }}>

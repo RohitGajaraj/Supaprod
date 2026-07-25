@@ -31,7 +31,6 @@ function NoticeLine({ color, children }: { color?: string; children: React.React
       style={{
         margin: "0 0 8px",
         fontFamily: "var(--font-sans)",
-        fontSize: "var(--text-label-13)",
         lineHeight: 1.5,
         color: color ?? "var(--text-subtle)",
       }}
@@ -87,7 +86,6 @@ function GraphViewToggle({
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: active ? "var(--text-primary)" : "var(--text-subtle)",
@@ -309,7 +307,7 @@ export function GraphCanvasView({
         }}
       >
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>Graph · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(graphQ.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -317,7 +315,6 @@ export function GraphCanvasView({
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -348,7 +345,6 @@ export function GraphCanvasView({
         <ConstellationMotif />
         <div
           style={{
-            fontSize: 15,
             fontWeight: 500,
             color: "var(--text-primary)",
             margin: "10px 0 6px",
@@ -358,7 +354,6 @@ export function GraphCanvasView({
         </div>
         <p
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
             maxWidth: 440,
             margin: "0 auto 14px",
@@ -373,7 +368,6 @@ export function GraphCanvasView({
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -400,7 +394,7 @@ export function GraphCanvasView({
                 aria-hidden="true"
                 style={{ width: 8, height: 8, borderRadius: 2.5, background: kindCssColor(kind) }}
               />
-              <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>
+              <MonoLabel style={{ }}>
                 {kindLabel(kind)}
               </MonoLabel>
             </span>
@@ -416,7 +410,6 @@ export function GraphCanvasView({
                 className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
                   color: replaying ? "var(--text-primary)" : "var(--text-subtle)",
@@ -430,7 +423,7 @@ export function GraphCanvasView({
                 {replaying ? "Stop" : "Replay growth"}
               </button>
             ) : null}
-            <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>as of</MonoLabel>
+            <MonoLabel style={{ }}>as of</MonoLabel>
             <input
               type="range"
               min={0}
@@ -446,7 +439,7 @@ export function GraphCanvasView({
             />
             <MonoLabel
               className="tabular-nums"
-              style={{ fontSize: "var(--text-mono-floor)", minWidth: 64 }}
+              style={{ minWidth: 64 }}
             >
               {asOf ? new Date(asOf).toLocaleDateString() : "now · all"}
             </MonoLabel>
@@ -524,7 +517,6 @@ export function GraphCanvasView({
           <p
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.06em",
               color: "var(--text-subtle)",
               margin: "8px 2px 0",

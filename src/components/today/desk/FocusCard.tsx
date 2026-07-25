@@ -189,7 +189,6 @@ export function FocusCard() {
             aria-live="off"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 24,
               fontVariantNumeric: "tabular-nums",
               color: openEnded ? "var(--text-muted)" : phaseColor(phase),
               transition: "color 280ms var(--ease)",

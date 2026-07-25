@@ -44,7 +44,6 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
                 // components.md "Mission slide-over": title Newsreader
                 // 21px/460 - the one literal size given for this exact
                 // header, distinct from CallCard's 20px --text-card-title.
-                fontSize: "21px",
                 fontWeight: 460,
                 lineHeight: 1.3,
                 color: "var(--text-primary)",
@@ -70,7 +69,6 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
                 borderTop: "1px solid var(--hairline)",
                 // OBS-03.md step 9: "Footer strip helper: 11px --text-faint"
                 // - 11px is a literal, no matching token (--text-helper is 11.5px).
-                fontSize: "11px",
                 color: "var(--text-faint)",
               }}
             >

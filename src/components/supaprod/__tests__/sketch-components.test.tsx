@@ -283,7 +283,6 @@ function buildSketchBarChart({
           {
             style: {
               fontFamily: "var(--font-pencil)",
-              fontSize: 15,
               color: "var(--text-body)",
               lineHeight: 1.3,
               marginBottom: 8,
@@ -299,7 +298,6 @@ function buildSketchBarChart({
           display: "flex",
           justifyContent: "flex-end",
           fontFamily: "var(--font-pencil)",
-          fontSize: 13,
           color: "var(--text-faint)",
           marginBottom: 6,
         },
@@ -417,7 +415,6 @@ function buildSketchBarChart({
           justifyContent: "space-between",
           gap: 8,
           marginTop: 6,
-          fontSize: 8.5,
           color: "var(--text-faint)",
         },
       },

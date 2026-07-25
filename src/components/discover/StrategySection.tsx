@@ -29,12 +29,11 @@ function HeaderRow({ label, count }: { label: string; count: number | null }) {
   return (
     <div className="mb-3.5 flex items-baseline">
       <h3 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
-        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>{label}</MonoLabel>
+        <MonoLabel style={{ letterSpacing: "0.12em" }}>{label}</MonoLabel>
       </h3>
       {count === null ? null : (
         <MonoLabel
           style={{
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             fontVariantNumeric: "tabular-nums",
           }}
@@ -68,7 +67,6 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--text-muted)",
             border: "1px solid color-mix(in srgb, var(--text-muted) 35%, transparent)",
@@ -81,7 +79,6 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--text-subtle)",
           }}
@@ -89,12 +86,11 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
           {relTimeCaps(brief.created_at)}
         </span>
       </div>
-      <div style={{ fontSize: "var(--text-base)", fontWeight: 600, color: "var(--text-primary)" }}>
+      <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
         {brief.title}
       </div>
       <p
         style={{
-          fontSize: "12.5px",
           lineHeight: 1.6,
           color: "var(--text-body)",
           margin: 0,
@@ -119,7 +115,6 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "10.5px",
           letterSpacing: "0.08em",
           color: "var(--text-subtle)",
           flexShrink: 0,
@@ -129,7 +124,6 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
       </span>
       <span
         style={{
-          fontSize: "12.5px",
           color: "var(--text-body)",
           flex: 1,
           minWidth: 0,
@@ -140,10 +134,10 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
       >
         {entity.label}
       </span>
-      <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
+      <MonoLabel style={{ letterSpacing: "0.08em" }}>
         {entity.cadence.toUpperCase()}
       </MonoLabel>
-      <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
+      <MonoLabel style={{ letterSpacing: "0.08em" }}>
         {entity.enabled ? lastCheckedCaps(entity.last_checked_at) : "PAUSED"}
       </MonoLabel>
     </div>
@@ -190,10 +184,10 @@ export function StrategySection() {
           </div>
         ) : briefsQ.error ? (
           <div>
-            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
+            <MonoLabel style={{ color: "var(--madder)" }}>
               Could not load briefs
             </MonoLabel>
-            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+            <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
               {(briefsQ.error as Error).message}
             </p>
             <Button
@@ -206,7 +200,7 @@ export function StrategySection() {
           </div>
         ) : briefs.length === 0 ? (
           <p
-            style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+            style={{ lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
           >
             No briefs yet. One lands here the first Monday after a tracked competitor or platform
             surface actually changes. Nothing to configure by hand.
@@ -223,7 +217,6 @@ export function StrategySection() {
                 onClick={() => setShowAllBriefs((v) => !v)}
                 style={{
                   width: "100%",
-                  fontSize: "var(--text-label-13)",
                   fontWeight: 500,
                 }}
               >
@@ -246,10 +239,10 @@ export function StrategySection() {
           </div>
         ) : entitiesQ.error ? (
           <div>
-            <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
+            <MonoLabel style={{ color: "var(--madder)" }}>
               Could not load the watch list
             </MonoLabel>
-            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+            <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
               {(entitiesQ.error as Error).message}
             </p>
             <Button
@@ -262,7 +255,7 @@ export function StrategySection() {
           </div>
         ) : entities.length === 0 ? (
           <p
-            style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+            style={{ lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
           >
             Nothing tracked yet. The watch list seeds itself from your workspace's focus and top
             opportunities. Nothing to add by hand.
@@ -281,7 +274,6 @@ export function StrategySection() {
                 onClick={() => setShowAllEntities((v) => !v)}
                 style={{
                   width: "100%",
-                  fontSize: "var(--text-label-13)",
                   fontWeight: 500,
                   marginTop: "12px",
                 }}

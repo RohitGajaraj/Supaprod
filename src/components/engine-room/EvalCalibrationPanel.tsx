@@ -126,7 +126,6 @@ export function EvalCalibrationPanel() {
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
           color: "var(--text-subtle)",
           padding: "18px 0",
         }}
@@ -190,7 +189,6 @@ export function EvalCalibrationPanel() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: "var(--text-sm)",
                       fontWeight: 500,
                       color: "var(--text-primary)",
                       whiteSpace: "nowrap",
@@ -200,7 +198,6 @@ export function EvalCalibrationPanel() {
                   </div>
                   <div
                     style={{
-                      fontSize: 11,
                       fontFamily: "var(--font-mono)",
                       color: "var(--text-faint)",
                       letterSpacing: "0.01em",
@@ -229,7 +226,6 @@ export function EvalCalibrationPanel() {
                   {passRatePct != null ? (
                     <div
                       style={{
-                        fontSize: "var(--text-base)",
                         fontWeight: 600,
                         fontVariantNumeric: "tabular-nums",
                         color: passRatePct >= 90 ? "var(--moss)" : "var(--text-primary)",
@@ -240,7 +236,6 @@ export function EvalCalibrationPanel() {
                   ) : (
                     <div
                       style={{
-                        fontSize: 14,
                         color: "var(--text-faint)",
                       }}
                     >
@@ -250,7 +245,6 @@ export function EvalCalibrationPanel() {
                   {cal.runCount > 0 ? (
                     <div
                       style={{
-                        fontSize: 10,
                         fontFamily: "var(--font-mono)",
                         color: "var(--text-faint)",
                         marginTop: 2,
@@ -278,7 +272,6 @@ export function EvalCalibrationPanel() {
             marginTop: 8,
             paddingTop: 12,
             borderTop: "1px solid var(--hairline)",
-            fontSize: 12,
             color: "var(--text-faint)",
             fontFamily: "var(--font-mono)",
           }}

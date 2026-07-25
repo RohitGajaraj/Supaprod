@@ -98,7 +98,7 @@ export function CompoundingPanel() {
     return (
       <Card>
         <MonoLabel>Learnings · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
           {((q.error ?? lq.error) as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -111,7 +111,6 @@ export function CompoundingPanel() {
           style={{
             marginTop: 12,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -142,7 +141,6 @@ export function CompoundingPanel() {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 15,
             fontWeight: 450,
             color: "var(--text-primary)",
             margin: "0 0 4px",
@@ -158,7 +156,6 @@ export function CompoundingPanel() {
       <p
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-subtle)",
           marginBottom: 14,
           textTransform: "uppercase",
@@ -196,7 +193,6 @@ export function CompoundingPanel() {
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-floor)",
                       color: "var(--text-subtle)",
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
@@ -212,7 +208,6 @@ export function CompoundingPanel() {
                   <AuditTag kind="learning" id={l.id} />
                   <span
                     style={{
-                      fontSize: 11,
                       color: "var(--text-subtle)",
                       fontFamily: "var(--font-mono)",
                     }}
@@ -224,7 +219,6 @@ export function CompoundingPanel() {
               {l.summary && (
                 <p
                   style={{
-                    fontSize: 12,
                     color: "var(--text-subtle)",
                     marginTop: 6,
                     lineHeight: 1.45,

@@ -52,7 +52,6 @@ export function SpecComposer() {
         style={{
           display: "block",
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-label-13)",
           color: "var(--text-muted)",
         }}
       >
@@ -72,7 +71,6 @@ export function SpecComposer() {
             padding: "9px 12px",
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
-            fontSize: "var(--text-label-13)",
             color: "var(--text-primary)",
             background: "var(--surface-raised)",
           }}

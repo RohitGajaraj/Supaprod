@@ -472,7 +472,6 @@ export function CalendarPanel({
               onClick={() => setViewPersist(id)}
               className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
-                fontSize: "var(--text-mono-floor)",
                 padding: "3px 10px",
                 borderRadius: 5,
                 background: view === id ? "var(--surface-2)" : "transparent",
@@ -499,7 +498,7 @@ export function CalendarPanel({
             <MonoLabel>Schedule · Scheduler finds open time</MonoLabel>
             <button
               className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+              style={{ color: "var(--ink-subtle)" }}
               onClick={() => setShowNew(false)}
             >
               cancel
@@ -514,12 +513,12 @@ export function CalendarPanel({
           <div style={{ marginTop: 10 }}>
             <div
               className="mono-label"
-              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6 }}
+              style={{ marginBottom: 6 }}
             >
               suggested slots · inside your working hours, no conflicts
             </div>
             {mPropose.isPending ? (
-              <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+              <span className="mono-label" style={{ }}>
                 finding open time…
               </span>
             ) : null}
@@ -530,7 +529,6 @@ export function CalendarPanel({
                   onClick={() => setPicked(s.start_at)}
                   className="mono-label outline-none transition-colors hover:[border-color:var(--ink)] hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontSize: "var(--text-mono-floor)",
                     padding: "4px 10px",
                     borderRadius: 99,
                     border: `1px solid ${picked === s.start_at ? "var(--ink)" : "var(--hairline)"}`,
@@ -574,7 +572,7 @@ export function CalendarPanel({
             <MonoLabel>Plan deep work · blocks inside your working hours</MonoLabel>
             <button
               className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+              style={{ color: "var(--ink-subtle)" }}
               onClick={() => {
                 setShowPlan(false);
                 setPlanned(false);
@@ -584,7 +582,7 @@ export function CalendarPanel({
             </button>
           </div>
           {mPlan.isPending ? (
-            <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+            <span style={{ color: "var(--ink-subtle)" }}>
               fitting your deep-work tasks around your calendar…
             </span>
           ) : blocks.length === 0 ? (
@@ -612,7 +610,6 @@ export function CalendarPanel({
                     <span
                       style={{
                         flex: 1,
-                        fontSize: "var(--text-label-13)",
                         color: "var(--ink-muted)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -632,7 +629,6 @@ export function CalendarPanel({
                       onClick={() => mAddBlock.mutate(b)}
                       disabled={added || mAddBlock.isPending}
                       style={{
-                        fontSize: "var(--text-mono-floor)",
                         padding: "3px 10px",
                         borderRadius: 99,
                         border: "1px solid var(--hairline)",
@@ -673,7 +669,6 @@ export function CalendarPanel({
           <MonoLabel style={{ marginBottom: 8 }}>calendar · failed to load</MonoLabel>
           <p
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--ink-muted)",
               marginBottom: 12,
             }}
@@ -718,7 +713,6 @@ export function CalendarPanel({
           </h3>
           <p
             style={{
-              fontSize: 13,
               color: "var(--ink-subtle)",
               margin: "6px auto 16px",
               maxWidth: 380,
@@ -791,7 +785,6 @@ export function CalendarPanel({
                       style={{
                         display: "block",
                         fontWeight: 500,
-                        fontSize: "var(--text-label-14)",
                       }}
                     >
                       {it.title}
@@ -801,7 +794,6 @@ export function CalendarPanel({
                         <span
                           style={{
                             display: "block",
-                            fontSize: "var(--text-label-12)",
                             color: "var(--ink-faint)",
                             marginTop: 1,
                           }}
@@ -813,7 +805,6 @@ export function CalendarPanel({
                       <span
                         style={{
                           display: "block",
-                          fontSize: "var(--text-label-12)",
                           color: "var(--ink-faint)",
                           marginTop: 1,
                         }}
@@ -829,7 +820,7 @@ export function CalendarPanel({
                   ) : null}
                   <span
                     className="mono-label"
-                    style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+                    style={{ color: "var(--ink-subtle)" }}
                   >
                     {it.kind}
                   </span>
@@ -867,13 +858,12 @@ export function CalendarPanel({
                   >
                     <div
                       className="mono-label"
-                      style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6 }}
+                      style={{ marginBottom: 6 }}
                     >
                       capture · extracted by Historian
                     </div>
                     <p
                       style={{
-                        fontSize: "var(--text-label-13)",
                         color: "var(--ink-muted)",
                         lineHeight: 1.6,
                       }}
@@ -883,7 +873,6 @@ export function CalendarPanel({
                     <button
                       className="mono-label"
                       style={{
-                        fontSize: "var(--text-mono-floor)",
                         color: "var(--ink)",
                         marginTop: 8,
                       }}
@@ -1003,7 +992,7 @@ const MonthGrid = React.memo(function MonthGrid({
         </button>
         <button
           className="btn btn-ghost btn-sm"
-          style={{ fontSize: "var(--text-label-12)" }}
+          style={{ }}
           onClick={() => {
             const d = new Date();
             const day = d.getDate();
@@ -1033,7 +1022,6 @@ const MonthGrid = React.memo(function MonthGrid({
             key={d}
             className="mono-label"
             style={{
-              fontSize: "var(--text-mono-floor)",
               textAlign: "center",
               padding: "2px 0 4px",
               opacity: di > 4 ? 0.5 : 1,
@@ -1088,7 +1076,6 @@ const MonthGrid = React.memo(function MonthGrid({
               <span
                 className="mono-label tabular-nums"
                 style={{
-                  fontSize: 7.5,
                   position: "absolute",
                   top: 3,
                   left: 5,
@@ -1104,7 +1091,6 @@ const MonthGrid = React.memo(function MonthGrid({
                     left: 5,
                     right: 4,
                     bottom: 2,
-                    fontSize: 7,
                     lineHeight: 1.2,
                     fontFamily: "var(--font-mono)",
                     color: lightText ? "var(--canvas)" : "var(--ink-muted)",
@@ -1170,7 +1156,7 @@ const MonthGrid = React.memo(function MonthGrid({
           >
             <span
               className="mono-label"
-              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink)" }}
+              style={{ color: "var(--ink)" }}
             >
               {monthName} {selDay}
               {isThisMonth && selDay === today.getDate() ? (
@@ -1193,7 +1179,6 @@ const MonthGrid = React.memo(function MonthGrid({
               onClick={() => onOpenItem(it)}
               style={{
                 display: "block",
-                fontSize: 12,
                 color: "var(--ink)",
                 padding: "2px 0",
                 textAlign: "left",
@@ -1203,7 +1188,7 @@ const MonthGrid = React.memo(function MonthGrid({
             </button>
           ))}
           {selItems.length === 0 ? (
-            <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>
+            <div style={{ color: "var(--ink-faint)" }}>
               Nothing scheduled · a good deep-work day.
             </div>
           ) : null}
@@ -1263,7 +1248,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
         <span className="font-display" style={{ fontSize: 16, flex: 1 }}>
           {year} · occupancy
         </span>
-        <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
+        <span className="mono-label" style={{ }}>
           like a contribution graph · but for your time
         </span>
       </div>
@@ -1297,7 +1282,6 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
                   key={m}
                   className="mono-label"
                   style={{
-                    fontSize: 7,
                     gridRow: 1,
                     gridColumnStart: col + 1,
                     gridColumnEnd: `span ${Math.min(3, weeksToShow - col)}`,
@@ -1320,7 +1304,6 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
                 key={d}
                 className="mono-label"
                 style={{
-                  fontSize: 6.5,
                   flex: 1,
                   display: "flex",
                   alignItems: "center",
@@ -1479,7 +1462,7 @@ function EventEditor({
           <span style={{ flex: 1 }}></span>
           <button
             className="mono-label"
-            style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+            style={{ color: "var(--ink-subtle)" }}
             onClick={onClose}
           >
             close
@@ -1489,7 +1472,7 @@ function EventEditor({
           <div>
             <div
               className="mono-label"
-              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+              style={{ marginBottom: 4 }}
             >
               title
             </div>
@@ -1503,7 +1486,7 @@ function EventEditor({
             <div>
               <div
                 className="mono-label"
-                style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+                style={{ marginBottom: 4 }}
               >
                 start
               </div>
@@ -1517,7 +1500,7 @@ function EventEditor({
             <div>
               <div
                 className="mono-label"
-                style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+                style={{ marginBottom: 4 }}
               >
                 end
               </div>
@@ -1532,7 +1515,7 @@ function EventEditor({
           <div>
             <div
               className="mono-label"
-              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+              style={{ marginBottom: 4 }}
             >
               notes
             </div>
@@ -1551,7 +1534,6 @@ function EventEditor({
               rel="noreferrer"
               className="mono-label"
               style={{
-                fontSize: "var(--text-mono-floor)",
                 color: "var(--action-blue)",
                 display: "inline-flex",
                 alignItems: "center",
@@ -1630,13 +1612,12 @@ function ConnectButton({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72" style={{ padding: 10 }}>
-        <div className="mono-label" style={{ fontSize: "var(--text-mono-floor)", marginBottom: 8 }}>
+        <div className="mono-label" style={{ marginBottom: 8 }}>
           calendar accounts
         </div>
         {connections.length === 0 ? (
           <p
             style={{
-              fontSize: "var(--text-label-12)",
               color: "var(--ink-subtle)",
               marginBottom: 8,
             }}
@@ -1660,7 +1641,6 @@ function ConnectButton({
               <span className="dot" style={{ width: 5, height: 5, background: "var(--emerald)" }} />
               <span
                 style={{
-                  fontSize: "var(--text-label-12)",
                   flex: 1,
                   minWidth: 0,
                   overflow: "hidden",
@@ -1676,7 +1656,7 @@ function ConnectButton({
               <button
                 onClick={() => onDisconnect(c.id)}
                 className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+                style={{ color: "var(--ink-subtle)" }}
                 aria-label="Disconnect"
               >
                 ×
@@ -1689,7 +1669,7 @@ function ConnectButton({
               disabled={connecting}
               title={available.google ? "" : "Provider credentials not yet configured"}
               className="cmdk-item"
-              style={{ fontSize: "var(--text-label-12)", padding: "6px 8px" }}
+              style={{ padding: "6px 8px" }}
             >
               <Plus size={16} style={{ marginRight: 6 }} /> Connect Google Calendar · OAuth
             </button>
@@ -1700,7 +1680,7 @@ function ConnectButton({
               disabled={connecting}
               title={available.microsoft ? "" : "Provider credentials not yet configured"}
               className="cmdk-item"
-              style={{ fontSize: "var(--text-label-12)", padding: "6px 8px" }}
+              style={{ padding: "6px 8px" }}
             >
               <Plus size={16} style={{ marginRight: 6 }} /> Connect Microsoft Outlook · OAuth
             </button>

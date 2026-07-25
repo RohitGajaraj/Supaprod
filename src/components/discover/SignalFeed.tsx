@@ -39,7 +39,6 @@ function HeaderRow({ count }: { count: number }) {
         <h2
           style={{
             margin: 0,
-            fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",
             lineHeight: 1.3,
@@ -53,7 +52,6 @@ function HeaderRow({ count }: { count: number }) {
       </div>
       <MonoLabel
         style={{
-          fontSize: "10.5px",
           letterSpacing: "0.08em",
           fontVariantNumeric: "tabular-nums",
           flexShrink: 0,
@@ -269,16 +267,16 @@ export function SignalFeed() {
   if (signals.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
+        <MonoLabel style={{ color: "var(--madder)" }}>
           Could not load signals
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
           {(signals.error as Error).message}
         </p>
         <Button variant="secondary" style={{ marginTop: "14px" }} onClick={() => signals.refetch()}>
           Retry
         </Button>
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
+        <p style={{ color: "var(--text-subtle)", marginTop: "6px" }}>
           Reloads the feed · nothing is lost
         </p>
       </div>
@@ -351,7 +349,6 @@ export function SignalFeed() {
               onClick={() => setShowAll((v) => !v)}
               style={{
                 width: "100%",
-                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
               }}
             >
@@ -360,7 +357,7 @@ export function SignalFeed() {
           ) : null}
         </div>
       )}
-      <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "12px" }}>
+      <p style={{ color: "var(--text-subtle)", marginTop: "12px" }}>
         Every quote is verbatim and keeps its source. Nothing here is a summary.
       </p>
       <SignalDetailSheet

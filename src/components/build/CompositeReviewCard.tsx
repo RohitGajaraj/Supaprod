@@ -35,7 +35,6 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
       <p
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 10,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "var(--text-faint)",
@@ -52,7 +51,6 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
       {composite.synthesis ? (
         <p
           style={{
-            fontSize: 13,
             color: "var(--text-body)",
             fontStyle: "italic",
             margin: "0 0 14px",
@@ -66,7 +64,6 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           <div key={s.key}>
             <p
               style={{
-                fontSize: 11,
                 fontWeight: 600,
                 color: "var(--text-subtle)",
                 margin: "0 0 3px",
@@ -94,7 +91,6 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           onClick={() => decide.mutate("dismissed")}
           disabled={decide.isPending}
           style={{
-            fontSize: 12.5,
             padding: "6px 14px",
             borderRadius: 8,
             border: "1px solid var(--hairline)",

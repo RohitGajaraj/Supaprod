@@ -28,7 +28,6 @@ export function openLineage(ref: string) {
 
 const tagStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 11,
   letterSpacing: "0.06em",
   color: "var(--text-body)",
   border: "1px solid var(--hairline)",
@@ -91,7 +90,6 @@ export function AuditLineageSheet() {
             <span
               style={{
                 fontFamily: "var(--font-pixel)",
-                fontSize: 15,
                 letterSpacing: "0.04em",
                 color: "var(--ember)",
               }}
@@ -99,7 +97,7 @@ export function AuditLineageSheet() {
               {(d?.ref ?? ref ?? "").replace("·", " · ")}
             </span>
             {d?.found ? (
-              <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)", fontWeight: 400 }}>
+              <span style={{ color: "var(--text-subtle)", fontWeight: 400 }}>
                 {d.label} · {d.stage}
               </span>
             ) : null}
@@ -124,7 +122,6 @@ export function AuditLineageSheet() {
               <h3
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 16,
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   margin: "4px 0 4px",
@@ -180,7 +177,6 @@ export function AuditLineageSheet() {
                       <div
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: 10,
                           letterSpacing: "0.08em",
                           textTransform: "uppercase",
                           color: "var(--text-subtle)",
@@ -196,7 +192,6 @@ export function AuditLineageSheet() {
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
-                          fontSize: 13,
                           color: "var(--text-body)",
                           marginTop: 3,
                         }}
@@ -224,7 +219,6 @@ export function AuditLineageSheet() {
                   <div
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10,
                       letterSpacing: "0.08em",
                       textTransform: "uppercase",
                       color: "var(--text-subtle)",

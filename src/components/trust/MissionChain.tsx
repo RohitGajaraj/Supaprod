@@ -39,7 +39,6 @@ function fmtTime(iso: string | null): string {
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 9.5,
   letterSpacing: "0.08em",
   textTransform: "uppercase",
 };
@@ -75,7 +74,6 @@ function StepRow({ step, last }: { step: ChainStep; last: boolean }) {
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
           <span
             style={{
-              fontSize: 13,
               fontWeight: 460,
               color: dim ? "var(--text-muted)" : "var(--text-primary)",
             }}
@@ -102,7 +100,6 @@ function StepRow({ step, last }: { step: ChainStep; last: boolean }) {
         </div>
         <div
           style={{
-            fontSize: 12,
             color: dim ? "var(--text-faint)" : "var(--text-body)",
             marginTop: 2,
           }}
@@ -127,7 +124,6 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
         <h3
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: 17,
             fontWeight: 460,
             color: "var(--text-primary)",
             margin: 0,
@@ -139,7 +135,6 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
         <span
           style={{
             ...mono,
-            fontSize: 10,
             color: chain.unbroken ? "var(--moss)" : "var(--madder)",
           }}
         >

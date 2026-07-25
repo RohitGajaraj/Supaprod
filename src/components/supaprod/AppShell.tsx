@@ -296,10 +296,9 @@ function BottomNav({ path }: { path: string }) {
               color: isActive ? "var(--text-primary)" : "var(--text-muted)",
             }}
           >
-            <span style={{ fontSize: "18px" }}>{item.icon}</span>
+            <span style={{ }}>{item.icon}</span>
             <span
               style={{
-                fontSize: "10px",
                 fontFamily: "var(--font-sans)",
                 fontWeight: 500,
                 textAlign: "center",
@@ -717,7 +716,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <span
                       className="block truncate"
                       style={{
-                        fontSize: "var(--text-label-14)",
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: "var(--text-primary)",

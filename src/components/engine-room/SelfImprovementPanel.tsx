@@ -47,7 +47,6 @@ function MonoChip({ children }: { children: React.ReactNode }) {
       className="tabular-nums"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
         color: "var(--text-muted)",
         border: "1px solid var(--hairline)",
         borderRadius: 6,
@@ -83,7 +82,6 @@ function ActivePulse({ messages }: { messages: string[] }) {
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           color: "var(--ember-text)",
@@ -144,7 +142,6 @@ function ProposalEnricher({
           gap: 6,
           marginTop: 12,
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -171,13 +168,13 @@ function ProposalEnricher({
       }}
     >
       <MonoLabel style={{ display: "block", marginBottom: 5 }}>Why this is happening</MonoLabel>
-      <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+      <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
         {data.explanation}
       </p>
       {data.suggested_fix ? (
         <>
           <MonoLabel style={{ display: "block", margin: "10px 0 5px" }}>Suggested fix</MonoLabel>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+          <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
             {data.suggested_fix}
           </p>
         </>
@@ -189,7 +186,6 @@ function ProposalEnricher({
           display: "inline-block",
           marginTop: 10,
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-faint)",
         }}
       >
@@ -205,7 +201,7 @@ function ProposalEnricher({
       {data.suggested_fix ? (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
           {applied ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
+            <p style={{ color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
               Applied. Your agents now follow this as a house rule, and the change is on the Trust
               Ledger. It is reversible.
             </p>
@@ -226,7 +222,6 @@ function ProposalEnricher({
                   className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
                     color: "var(--text-body)",
@@ -316,7 +311,6 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
             borderRadius: "var(--radius-control)",
             background: "var(--ember-wash, var(--surface-recessed))",
             border: "1px solid var(--ember-line, var(--hairline-strong))",
-            fontSize: "var(--text-label-13)",
             lineHeight: 1.5,
             color: "var(--ember-text)",
           }}
@@ -360,7 +354,6 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
               className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 padding: "6px 14px",
@@ -377,7 +370,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <p
-        style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
+        style={{ color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
       >
         {copy.outcome}
       </p>
@@ -423,7 +416,6 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             lineHeight: 1.5,
             color: "var(--text-muted)",
             margin: 0,
@@ -449,7 +441,6 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
           <p
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-base)",
               lineHeight: 1.5,
               color: "var(--text-subtle)",
               margin: 0,
@@ -485,7 +476,6 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                         style={{
                           fontFamily: "var(--font-sans)",
                           fontWeight: 600,
-                          fontSize: "var(--text-base)",
                           color: "var(--text-primary)",
                           margin: 0,
                         }}
@@ -498,7 +488,6 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                     </div>
                     <p
                       style={{
-                        fontSize: "var(--text-label-13)",
                         color: "var(--text-subtle)",
                         marginTop: 8,
                         lineHeight: 1.55,

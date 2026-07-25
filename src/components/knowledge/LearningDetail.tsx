@@ -67,13 +67,12 @@ function TimeLine({ iso }: { iso: string }) {
   return (
     <span
       className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+      style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -113,7 +112,7 @@ export function LearningDetail({ id }: { id: string }) {
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>
           Learning · failed to load
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(learnings.error as Error)?.message ?? "Unknown error"}
         </p>
         <Button variant="secondary" size="sm" onClick={() => void learnings.refetch()}>
@@ -163,7 +162,6 @@ export function LearningDetail({ id }: { id: string }) {
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -193,7 +191,6 @@ export function LearningDetail({ id }: { id: string }) {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "9.5px",
                   letterSpacing: "0.06em",
                   color: "var(--text-subtle)",
                 }}
@@ -204,7 +201,6 @@ export function LearningDetail({ id }: { id: string }) {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9.5px",
                     letterSpacing: "0.06em",
                     color: "var(--text-faint)",
                   }}
@@ -231,14 +227,13 @@ export function LearningDetail({ id }: { id: string }) {
           }}
         >
           <MonoLabel
-            style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+            style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
           >
             What memory learned
           </MonoLabel>
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "13px",
               fontWeight: 550,
               color: "var(--text-primary)",
               lineHeight: 1.5,
@@ -265,13 +260,12 @@ export function LearningDetail({ id }: { id: string }) {
         {/* What happened: the outcome memo. */}
         <DetailSection heading="What happened">
           {l.summary ? (
-            <p style={{ fontSize: "13px", lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
+            <p style={{ lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
               {l.summary}
             </p>
           ) : (
             <p
               style={{
-                fontSize: "12px",
                 color: "var(--text-subtle)",
                 fontStyle: "italic",
                 margin: 0,
@@ -287,7 +281,7 @@ export function LearningDetail({ id }: { id: string }) {
           <DetailSection heading="Measured result">
             <div className="flex items-baseline" style={{ gap: "10px" }}>
               <MonoLabel
-                style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+                style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
               >
                 {l.metric_label}
               </MonoLabel>
@@ -295,7 +289,6 @@ export function LearningDetail({ id }: { id: string }) {
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "16px",
                   color: "var(--text-primary)",
                 }}
               >
@@ -325,7 +318,6 @@ export function LearningDetail({ id }: { id: string }) {
                   }
                   className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontSize: "12.5px",
                     color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
@@ -344,7 +336,6 @@ export function LearningDetail({ id }: { id: string }) {
                   onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
                   className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontSize: "12.5px",
                     color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
@@ -363,7 +354,7 @@ export function LearningDetail({ id }: { id: string }) {
         {/* Activity. */}
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Recorded</span>
+            <span style={{ color: "var(--text-subtle)" }}>Recorded</span>
             <TimeLine iso={l.created_at} />
           </div>
         </DetailSection>

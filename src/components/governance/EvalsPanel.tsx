@@ -219,7 +219,6 @@ export function EvalsPanel() {
                     "border-color 160ms var(--ease), background 160ms var(--ease), box-shadow 160ms var(--ease)",
                 };
                 const labelStyle = {
-                  fontSize: "var(--text-label-12)",
                   lineHeight: 1.25,
                   letterSpacing: "0.01em",
                   whiteSpace: "normal" as const,
@@ -284,7 +283,7 @@ export function EvalsPanel() {
           <span className="mono-label" style={{ color: "var(--madder)" }}>
             Coverage floor not met
           </span>
-          <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-primary)" }}>
+          <span style={{ color: "var(--text-primary)" }}>
             {coverageFloor.reasons.join(" · ")}
           </span>
         </div>
@@ -314,7 +313,6 @@ export function EvalsPanel() {
           className="uppercase"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor, 10.5px)",
             letterSpacing: "0.11em",
             color: "var(--text-subtle)",
             padding: "24px 0",
@@ -366,7 +364,7 @@ export function EvalsPanel() {
                   }}
                 >
                   <MonoLabel>{s.name}</MonoLabel>
-                  <span className="mono-label" style={{ fontSize: "var(--text-label-12)" }}>
+                  <span className="mono-label" style={{ }}>
                     {s.case_count} cases
                     {!s.enabled ? (
                       <span style={{ color: "var(--text-subtle)" }}> · off</span>
@@ -384,7 +382,6 @@ export function EvalsPanel() {
                         className="tabular-nums"
                         style={{
                           fontFamily: "var(--font-sans)",
-                          fontSize: 30,
                           color: "var(--text-primary)",
                         }}
                       >
@@ -413,7 +410,7 @@ export function EvalsPanel() {
                   <span style={{ flex: 1 }}></span>
                   <span
                     className="mono-label"
-                    style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
+                    style={{ color: "var(--text-subtle)" }}
                   >
                     runs · cases · config →
                   </span>

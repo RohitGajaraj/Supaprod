@@ -72,7 +72,6 @@ export function SectionAlternate({
         <h2
           style={{
             fontFamily: "var(--font-pixel, 'Geist Pixel Square')",
-            fontSize: "64px",
             fontWeight: 400,
             lineHeight: 1,
             color: "#f4f4f5",
@@ -88,7 +87,6 @@ export function SectionAlternate({
         <p
           style={{
             fontFamily: "var(--font-sans, system-ui)",
-            fontSize: "16px",
             lineHeight: 1.6,
             color: "#a1a1aa", // zinc-400
             maxWidth: "340px",
@@ -112,7 +110,6 @@ export function SectionAlternate({
               className="cap-item"
               style={{
                 fontFamily: "var(--font-mono, monospace)",
-                fontSize: "12px",
                 fontWeight: 500,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",

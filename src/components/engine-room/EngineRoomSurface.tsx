@@ -221,7 +221,6 @@ export function EngineRoomGlance() {
             className="uppercase"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.1em",
               color: "var(--text-subtle)",
               marginBottom: 6,
@@ -233,7 +232,7 @@ export function EngineRoomGlance() {
               this week" would undercut the amplifier framing, so a quiet week leads
               with the to-date stats below instead. */}
           {throughput.totalRuns > 0 ? (
-            <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
+            <p style={{ color: "var(--text-primary)", margin: 0 }}>
               Supaprod ran <PixelStat value={throughput.totalRuns} tone="blue" size={16} glow />{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
@@ -254,7 +253,6 @@ export function EngineRoomGlance() {
           <p
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 13,
               color: "var(--text-muted)",
               margin: "8px 0 0",
             }}
@@ -269,7 +267,6 @@ export function EngineRoomGlance() {
           className="uppercase"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.1em",
             color: "var(--moss-bright)",
             margin: "0 0 18px",

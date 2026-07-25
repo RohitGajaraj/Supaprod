@@ -67,7 +67,6 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
         style={{
           justifySelf: "flex-start",
           fontFamily: "var(--font-mono)",
-          fontSize: "10.5px",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           padding: 0,
@@ -138,7 +137,7 @@ export function ThemeDetail({
           <SheetTitle style={{ color: "var(--text-primary)" }}>
             {activeMember ? "Signal in detail" : title || "Untitled theme"}
           </SheetTitle>
-          <SheetDescription style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
+          <SheetDescription style={{ color: "var(--text-subtle)" }}>
             {activeMember
               ? `A signal inside "${title || "this theme"}".`
               : "What these signals are clustering into."}
@@ -154,12 +153,11 @@ export function ThemeDetail({
                 {createdAt ? (
                   <span
                     className="flex items-baseline"
-                    style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                    style={{ gap: "8px", color: "var(--text-body)" }}
                   >
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "9.5px",
                         letterSpacing: "0.08em",
                         color: "var(--text-subtle)",
                       }}
@@ -170,7 +168,6 @@ export function ThemeDetail({
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "9.5px",
                         letterSpacing: "0.06em",
                         color: "var(--text-faint)",
                       }}
@@ -192,7 +189,6 @@ export function ThemeDetail({
                     marginLeft: "auto",
                     gap: "6px",
                     fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
                     letterSpacing: "0.06em",
                     background: "transparent",
                     border: "none",
@@ -209,7 +205,6 @@ export function ThemeDetail({
             {summary ? (
               <p
                 style={{
-                  fontSize: "var(--text-base)",
                   lineHeight: 1.6,
                   color: "var(--text-body)",
                   margin: 0,
@@ -220,7 +215,7 @@ export function ThemeDetail({
             ) : null}
 
             {frequency > 0 ? (
-              <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+              <p style={{ color: "var(--text-subtle)", margin: 0 }}>
                 Ranked by corroboration · {frequency} signal{plural(frequency)} from {sourceCount}{" "}
                 source{plural(sourceCount)}
                 {shownCount < frequency ? ` · showing the ${shownCount} most recent` : ""}
@@ -228,7 +223,6 @@ export function ThemeDetail({
             ) : (
               <p
                 style={{
-                  fontSize: "12.5px",
                   lineHeight: 1.6,
                   color: "var(--text-subtle)",
                   margin: 0,
@@ -241,7 +235,7 @@ export function ThemeDetail({
 
             {groups.map(([source, groupMembers]) => (
               <div key={source} style={{ display: "grid", gap: "10px" }}>
-                <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
+                <MonoLabel style={{ letterSpacing: "0.08em" }}>
                   {sourceCaps(source)}
                 </MonoLabel>
                 <div style={{ display: "grid", gap: "8px" }}>
@@ -261,7 +255,6 @@ export function ThemeDetail({
                     >
                       <span
                         style={{
-                          fontSize: "var(--text-base)",
                           lineHeight: 1.55,
                           color: "var(--text-body)",
                           display: "-webkit-box",
@@ -276,7 +269,6 @@ export function ThemeDetail({
                         className="flex items-center justify-between"
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: "10px",
                           letterSpacing: "0.08em",
                           color: "var(--text-subtle)",
                         }}
@@ -308,7 +300,6 @@ export function ThemeDetail({
               </div>
               <p
                 style={{
-                  fontSize: "12px",
                   lineHeight: 1.5,
                   color: "var(--text-subtle)",
                   margin: 0,

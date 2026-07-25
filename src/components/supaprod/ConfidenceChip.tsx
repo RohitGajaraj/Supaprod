@@ -11,7 +11,6 @@ export function ConfidenceChip({ tier }: { tier: ConfidenceTier | null | undefin
         display: "inline-flex",
         alignItems: "center",
         gap: 5,
-        fontSize: 11,
         fontWeight: 550,
         color: "var(--ember, #fb7100)",
         background: "var(--ember-dim, rgba(251,113,0,0.1))",

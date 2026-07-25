@@ -61,7 +61,6 @@ function RoleChip({ role }: { role: string }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
-        fontSize: "var(--text-label-12)",
         padding: "1px 7px",
         borderRadius: 999,
         color: isOwner ? "var(--ink)" : "var(--ink-muted)",
@@ -142,7 +141,7 @@ export function MembersCard() {
       >
         <div className="mono-label">Members</div>
         {!membersQ.isLoading && members.length > 0 && (
-          <span style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>
+          <span style={{ color: "var(--ink-faint)" }}>
             {members.length} {members.length === 1 ? "person" : "people"}
           </span>
         )}
@@ -276,7 +275,6 @@ export function MembersCard() {
                         <span
                           className="mono-label"
                           style={{
-                            fontSize: "var(--text-label-12)",
                             padding: "1px 6px",
                             borderRadius: 999,
                             color: "var(--ink-subtle)",
@@ -299,7 +297,6 @@ export function MembersCard() {
                           }
                           aria-label={`Role for ${name}`}
                           style={{
-                            fontSize: "var(--text-label-12)",
                             padding: "1px 6px",
                             borderRadius: 999,
                             color: "var(--ink-muted)",
@@ -316,14 +313,14 @@ export function MembersCard() {
                         <RoleChip role={m.role} />
                       )}
                     </div>
-                    <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", marginTop: 2 }}>
+                    <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
                       {subtitle}
                     </div>
                   </div>
 
                   {confirming ? (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                      <span style={{ fontSize: "var(--text-label-12)", color: "var(--ink-subtle)", maxWidth: 180 }}>
+                      <span style={{ color: "var(--ink-subtle)", maxWidth: 180 }}>
                         Make {name} the owner? You become an admin.
                       </span>
                       <Button

@@ -58,7 +58,6 @@ export function AuditTag({
         className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--ember-line)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "10.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
           background: "transparent",

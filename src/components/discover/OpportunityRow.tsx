@@ -58,7 +58,6 @@ export function StatusPill({ status, className }: { status: string; className?: 
       className={className}
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.02em",
         color: meta.color,
         border: "1px solid var(--hairline)",
@@ -112,7 +111,6 @@ export function DesignationTag({
       title={DESIGNATION_MEANING[designation]}
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.02em",
         color: DESIGNATION_INK[designation],
         border: "1px solid var(--hairline)",
@@ -140,7 +138,6 @@ export function BestBetStamp({ className }: { className?: string }) {
       title="The single strongest bet in the queue right now"
       style={{
         fontFamily: "var(--font-pixel)",
-        fontSize: "11px",
         letterSpacing: "0.08em",
         lineHeight: 1.4,
         color: "var(--moss-bright)",
@@ -202,7 +199,6 @@ function RankBadge({ rank }: { rank: number }) {
       style={{
         marginTop: "6px",
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.04em",
         borderRadius: "999px",
         padding: "1px 7px",
@@ -349,7 +345,6 @@ export const OpportunityRow = memo(function OpportunityRow({
         <div
           style={{
             fontFamily: "var(--font-pixel)",
-            fontSize: "22px",
             fontWeight: 400,
             color: tier,
             lineHeight: 1,
@@ -361,7 +356,6 @@ export const OpportunityRow = memo(function OpportunityRow({
         <div
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10px",
             letterSpacing: "0.14em",
             color: "var(--text-faint)",
             marginTop: "3px",
@@ -385,7 +379,6 @@ export const OpportunityRow = memo(function OpportunityRow({
       <div className="min-w-0 flex-1">
         <div
           style={{
-            fontSize: "var(--text-base)",
             fontWeight: 600,
             color: "var(--text-primary)",
             lineHeight: 1.35,
@@ -398,7 +391,6 @@ export const OpportunityRow = memo(function OpportunityRow({
             className="flex flex-wrap items-center"
             style={{
               marginTop: "4px",
-              fontSize: "11.5px",
               lineHeight: 1.5,
               color: "var(--text-subtle)",
             }}
@@ -422,7 +414,6 @@ export const OpportunityRow = memo(function OpportunityRow({
             style={{
               marginTop: "6px",
               marginBottom: 0,
-              fontSize: "11.5px",
               lineHeight: 1.5,
               color: "var(--text-subtle)",
               fontStyle: "italic",
@@ -437,7 +428,7 @@ export const OpportunityRow = memo(function OpportunityRow({
             {id && updatedAt ? (
               <span
                 aria-hidden="true"
-                style={{ margin: "0 8px", fontSize: "9.5px", color: "var(--text-faint)" }}
+                style={{ margin: "0 8px", color: "var(--text-faint)" }}
               >
                 ·
               </span>
@@ -446,7 +437,6 @@ export const OpportunityRow = memo(function OpportunityRow({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "9.5px",
                   letterSpacing: "0.04em",
                   color: "var(--text-subtle)",
                 }}
@@ -517,7 +507,6 @@ export const OpportunityRow = memo(function OpportunityRow({
                   style={{
                     flexShrink: 0,
                     fontFamily: "var(--font-mono)",
-                    fontSize: "14px",
                     background: "none",
                     border: "none",
                     cursor: actionsPending ? "default" : "pointer",

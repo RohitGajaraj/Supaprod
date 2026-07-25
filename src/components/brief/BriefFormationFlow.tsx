@@ -182,7 +182,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             aria-label="Close"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
               color: "var(--text-subtle)",
               background: "transparent",
               border: "none",
@@ -198,7 +197,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           <div style={{ marginTop: 10 }}>
             <h2
               style={{
-                fontSize: 20,
                 fontWeight: 600,
                 color: "var(--text-primary)",
                 margin: "0 0 10px",
@@ -209,7 +207,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                fontSize: 13,
                 color: "var(--text-body)",
                 lineHeight: 1.55,
                 margin: "0 0 8px",
@@ -236,7 +233,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           <div style={{ marginTop: 12 }}>
             <h2
               style={{
-                fontSize: 18,
                 fontWeight: 600,
                 color: "var(--text-primary)",
                 margin: "0 0 6px",
@@ -247,7 +243,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                fontSize: 12,
                 color: "var(--text-subtle)",
                 lineHeight: 1.5,
                 margin: "0 0 14px",
@@ -295,7 +290,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           <div style={{ marginTop: 12 }}>
             <h2
               style={{
-                fontSize: 18,
                 fontWeight: 600,
                 color: "var(--text-primary)",
                 margin: "0 0 6px",
@@ -306,7 +300,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </h2>
             <p
               style={{
-                fontSize: 12,
                 color: "var(--text-subtle)",
                 lineHeight: 1.5,
                 margin: "0 0 14px",
@@ -328,7 +321,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                   >
                     <p
                       style={{
-                        fontSize: 13,
                         fontWeight: 500,
                         color: "var(--text-primary)",
                         margin: 0,
@@ -339,7 +331,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                     {bet.body ? (
                       <p
                         style={{
-                          fontSize: 12.5,
                           color: "var(--text-body)",
                           lineHeight: 1.5,
                           margin: "3px 0 0",
@@ -399,7 +390,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
           <div style={{ marginTop: 12 }}>
             <h2
               style={{
-                fontSize: 18,
                 fontWeight: 600,
                 color: "var(--text-primary)",
                 margin: "0 0 12px",
@@ -442,7 +432,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
                     <MonoLabel>{s.label}</MonoLabel>
                     <p
                       style={{
-                        fontSize: 12.5,
                         color: cur ? "var(--text-body)" : "var(--text-faint)",
                         lineHeight: 1.5,
                         margin: "4px 0 0",
@@ -456,7 +445,6 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </div>
             <p
               style={{
-                fontSize: 11.5,
                 color: "var(--text-subtle)",
                 lineHeight: 1.55,
                 marginTop: 16,

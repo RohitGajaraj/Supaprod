@@ -67,7 +67,6 @@ export function EmptyState({
           style={{
             fontFamily: "var(--font-pixel)",
             fontWeight: 400,
-            fontSize: "18px",
             lineHeight: 1.2,
             color: "var(--ds-gray-1000)",
             margin: 0,
@@ -83,7 +82,6 @@ export function EmptyState({
         style={{
           fontFamily: "var(--font-sans)",
           fontWeight: 400,
-          fontSize: "14px",
           lineHeight: 1.5,
           color: "var(--ds-gray-700)",
           margin: 0,

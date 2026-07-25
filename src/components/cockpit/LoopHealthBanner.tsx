@@ -117,7 +117,6 @@ export function LoopHealthBanner() {
         style={{
           display: "flex",
           gap: 14,
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-subtle)",
           flexWrap: "wrap",
         }}
@@ -142,7 +141,6 @@ export function LoopHealthBanner() {
             to="/today"
             className="mono-label loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
-              fontSize: "var(--text-mono-floor)",
               color: "var(--ember-text)",
               whiteSpace: "nowrap",
             }}
@@ -155,7 +153,6 @@ export function LoopHealthBanner() {
             search={{ room: "safety", view: "incidents" }}
             className="mono-label loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
-              fontSize: "var(--text-mono-floor)",
               color: "var(--glacier)",
               whiteSpace: "nowrap",
             }}

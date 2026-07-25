@@ -26,7 +26,6 @@ function RunRow({ run }: { run: AgentRun }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        fontSize: 12.5,
         padding: "6px 0",
         borderBottom: `1px solid ${HAIRLINE}`,
       }}
@@ -58,7 +57,6 @@ function MemoryRow({ mem }: { mem: AgentMemory }) {
       </div>
       <p
         style={{
-          fontSize: 12.5,
           color: "var(--ink-muted)",
           marginTop: 4,
           whiteSpace: "pre-wrap",
@@ -106,7 +104,6 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
           onChange={(e) => setSelected(e.target.value)}
           aria-label="Select an agent to inspect"
           style={{
-            fontSize: 13,
             height: "var(--ds-size-small)",
             padding: "0 8px",
             borderRadius: 8,

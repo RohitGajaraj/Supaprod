@@ -79,7 +79,7 @@ export function PreviewPanel({
     return (
       <div style={{ ...LOOM_CARD, padding: 24 }}>
         <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the preview</MonoLabel>
-        <p style={{ marginTop: 6, fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+        <p style={{ marginTop: 6, color: "var(--text-subtle)" }}>
           {(preview.error as Error)?.message?.slice(0, 160)}
         </p>
         <button
@@ -122,7 +122,6 @@ export function PreviewPanel({
             className="truncate"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-label-12)",
               color: "var(--text-body)",
               minWidth: 0,
               flex: 1,
@@ -138,7 +137,6 @@ export function PreviewPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
-                fontSize: "var(--text-label-12)",
                 fontWeight: 600,
                 color: "var(--glacier)",
                 background: "color-mix(in oklab, var(--glacier) 10%, transparent)",
@@ -158,7 +156,6 @@ export function PreviewPanel({
         <p
           style={{
             margin: "8px 0 0",
-            fontSize: "var(--text-label-12)",
             color: "var(--text-subtle)",
             lineHeight: 1.4,
           }}

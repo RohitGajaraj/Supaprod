@@ -72,7 +72,6 @@ function IncidentCard({ n }: { n: Incident }) {
             alignItems: "center",
             gap: 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
             letterSpacing: "0.08em",
             color: tone,
             border: "1px solid var(--hairline)",
@@ -96,7 +95,6 @@ function IncidentCard({ n }: { n: Incident }) {
               title={new Date(n.at).toLocaleString()}
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
                 letterSpacing: "0.06em",
                 color: "var(--text-subtle)",
               }}
@@ -107,7 +105,6 @@ function IncidentCard({ n }: { n: Incident }) {
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9.5,
               letterSpacing: "0.06em",
               color: "var(--text-faint)",
             }}
@@ -118,7 +115,6 @@ function IncidentCard({ n }: { n: Incident }) {
       </div>
       <div
         style={{
-          fontSize: "var(--text-label-14)",
           fontWeight: 500,
           color: "var(--text-primary)",
           marginTop: 8,
@@ -128,7 +124,6 @@ function IncidentCard({ n }: { n: Incident }) {
       </div>
       <p
         style={{
-          fontSize: "var(--text-label-13)",
           color: "var(--text-body)",
           marginTop: 4,
           lineHeight: 1.5,
@@ -146,7 +141,6 @@ function IncidentCard({ n }: { n: Incident }) {
             gap: 5,
             marginTop: 10,
             fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
             letterSpacing: "0.1em",
             color: "var(--text-subtle)",
           }}
@@ -170,7 +164,6 @@ export function IncidentsPanel() {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -191,7 +184,6 @@ export function IncidentsPanel() {
             display: "flex",
             alignItems: "center",
             gap: 8,
-            fontSize: 13,
             color: "var(--madder)",
             marginBottom: 10,
           }}
@@ -205,7 +197,6 @@ export function IncidentsPanel() {
           onClick={() => void q.refetch()}
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor, 10.5px)",
             letterSpacing: "0.11em",
             color: "var(--text-primary)",
             background: "none",
@@ -234,7 +225,6 @@ export function IncidentsPanel() {
           className="uppercase"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor, 10.5px)",
             letterSpacing: "0.11em",
             color: "var(--moss-bright)",
           }}
@@ -243,7 +233,6 @@ export function IncidentsPanel() {
         </span>
         <p
           style={{
-            fontSize: 13,
             color: "var(--text-subtle)",
             marginTop: 8,
             maxWidth: 460,

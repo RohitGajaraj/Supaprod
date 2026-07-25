@@ -95,7 +95,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
       <div className="fade-up">
         <DrillHeader onBack={onBack} backLabel="Analytics" kicker="Agent rollup" title={id} />
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+          <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
             No AI calls recorded for this agent in the last {DAYS} days.
           </p>
         </div>
@@ -167,7 +167,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
           <div className="bento" style={{ padding: "var(--card-pad)" }}>
             <MonoLabel style={{ marginBottom: 10 }}>Top missions by cost</MonoLabel>
             {d.topMissions.length === 0 ? (
-              <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+              <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
                 No runs recorded for this agent in this window.
               </p>
             ) : (
@@ -182,7 +182,6 @@ export function AgentSpendDetail({ id }: { id: string }) {
                       padding: "7px 0",
                       borderBottom:
                         i < d.topMissions.length - 1 ? "1px solid var(--hairline)" : "none",
-                      fontSize: "var(--text-label-13)",
                     }}
                   >
                     {m.missionId ? (
@@ -247,7 +246,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
             <span>Status</span>
           </div>
           {d.recentRuns.length === 0 ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", padding: "14px 18px" }}>
+            <p style={{ color: "var(--ink-subtle)", padding: "14px 18px" }}>
               No runs recorded for this agent in this window.
             </p>
           ) : (
@@ -261,7 +260,6 @@ export function AgentSpendDetail({ id }: { id: string }) {
                   padding: "11px 18px",
                   alignItems: "center",
                   borderBottom: i < d.recentRuns.length - 1 ? "1px solid var(--hairline)" : "none",
-                  fontSize: "var(--text-label-13)",
                 }}
               >
                 <span className="mono-label" style={{ color: "var(--ink)" }}>

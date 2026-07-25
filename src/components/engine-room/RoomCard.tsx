@@ -55,7 +55,6 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
           className="flex-1"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
           }}
@@ -69,7 +68,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
         </VerdictChip>
       </span>
       <span
-        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
       >
         {glance.question}
       </span>
@@ -77,7 +76,6 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
         className="tabular-nums"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.04em",
           color: "var(--text-muted)",
         }}
@@ -117,7 +115,6 @@ export function RoomCardSkeleton({ room }: { room: RoomKey }) {
           className="flex-1"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
           }}
@@ -127,7 +124,7 @@ export function RoomCardSkeleton({ room }: { room: RoomKey }) {
         <ShimmerBar width={56} height={16} />
       </span>
       <span
-        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
       >
         {ROOM_QUESTIONS[room]}
       </span>
@@ -161,7 +158,6 @@ export function RoomCardError({
           className="flex-1"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
           }}
@@ -172,7 +168,6 @@ export function RoomCardError({
           className="uppercase"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.1em",
             color: "var(--madder-bright)",
           }}
@@ -181,7 +176,7 @@ export function RoomCardError({
         </span>
       </span>
       <span
-        style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
       >
         {ROOM_QUESTIONS[room]}
       </span>
@@ -190,7 +185,6 @@ export function RoomCardError({
         title={message}
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-muted)",
         }}
       >

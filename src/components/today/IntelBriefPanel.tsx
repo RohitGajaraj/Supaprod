@@ -274,7 +274,7 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
 
 
 
-      <div style={{ fontSize: "var(--text-base)", fontWeight: 600, color: "var(--text-primary)" }}>
+      <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
 
 
 
@@ -674,7 +674,6 @@ export function IntelBriefPanel() {
 
 
 
-            fontSize: 16,
 
 
 

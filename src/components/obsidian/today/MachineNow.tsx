@@ -45,7 +45,6 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
           className="flex-1"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             letterSpacing: "0.12em",
             color: "var(--text-subtle)",
             textTransform: "uppercase",
@@ -59,7 +58,6 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
           className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             background: "transparent",
             border: "none",
             cursor: "pointer",
@@ -88,7 +86,6 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
                   className="block truncate"
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: 12.5,
                     color: "var(--text-primary)",
                   }}
                 >
@@ -99,7 +96,6 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
                     className="block truncate"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9,
                       letterSpacing: "0.04em",
                       color: "var(--text-faint)",
                     }}
@@ -112,7 +108,6 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
                 className="shrink-0 text-right uppercase"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 9,
                   color: STATUS_STYLES[r.status].color,
                 }}
               >

@@ -22,7 +22,6 @@ const VERDICT_META: Record<TeardownVerdict, { color: string; Icon: typeof CheckC
 };
 
 const sectionLabel: CSSProperties = {
-  fontSize: 9,
   color: "var(--text-subtle)",
   display: "flex",
   alignItems: "center",
@@ -100,7 +99,6 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
           <VerdictIcon size={14} strokeWidth={1.5} style={{ color }} />
           <span
             style={{
-              fontSize: 12,
               fontWeight: 600,
               color: "var(--text-primary)",
               textTransform: "capitalize",
@@ -114,7 +112,6 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       {/* Headline. */}
       <h2
         style={{
-          fontSize: 19,
           lineHeight: 1.35,
           color: "var(--text-primary)",
           margin: "16px 0 0",
@@ -205,7 +202,6 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       {/* Honest caption: what this receipt is, and what it is not. */}
       <p
         style={{
-          fontSize: 11,
           color: "var(--text-subtle)",
           lineHeight: 1.55,
           marginTop: 18,

@@ -49,7 +49,6 @@ function ClusterCard({
             </span>
             <span
               style={{
-                fontSize: 11,
                 color: "var(--ink-muted)",
                 background: "var(--canvas)",
                 borderRadius: 4,
@@ -75,7 +74,6 @@ function ClusterCard({
                 <p
                   key={i}
                   style={{
-                    fontSize: 13,
                     color: "var(--ink-muted)",
                     margin: 0,
                     overflow: "hidden",
@@ -92,7 +90,6 @@ function ClusterCard({
             <div style={{ marginTop: 8, marginLeft: 15 }}>
               <span
                 style={{
-                  fontSize: 11,
                   color: "var(--emerald, #4f8a59)",
                   // Geist Mono via the token, never the raw browser monospace
                   // stack (checklist 12).
@@ -229,7 +226,6 @@ export function SupportSignalsPanel() {
             width: "100%",
             boxSizing: "border-box",
             resize: "vertical",
-            fontSize: 13,
             fontFamily: "inherit",
             padding: "10px 12px",
             borderRadius: 8,
@@ -261,7 +257,6 @@ export function SupportSignalsPanel() {
             <span
               role={importResult.startsWith("Import failed") ? "alert" : undefined}
               style={{
-                fontSize: 12,
                 color: importResult.startsWith("Import failed")
                   ? "var(--rose)"
                   : "var(--ink-muted)",
@@ -276,7 +271,6 @@ export function SupportSignalsPanel() {
             role={triageResult.startsWith("Something went wrong") ? "alert" : undefined}
             style={{
               marginTop: 10,
-              fontSize: 13,
               color: triageResult.startsWith("Something went wrong")
                 ? "var(--rose)"
                 : "var(--emerald, #4f8a59)",
@@ -351,7 +345,6 @@ export function SupportSignalsPanel() {
                   ) : (
                     <p
                       style={{
-                        fontSize: 13,
                         color: "var(--ink)",
                         whiteSpace: "pre-wrap",
                         margin: 0,

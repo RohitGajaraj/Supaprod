@@ -39,7 +39,6 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: 14,
             padding: "2px 4px",
           }}
         >
@@ -54,7 +53,6 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
             background: "none",
             border: "none",
             cursor: "pointer",
-            fontSize: 14,
             padding: "2px 4px",
           }}
         >
@@ -76,7 +74,6 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
             placeholder="What made you say that?"
             rows={2}
             style={{
-              fontSize: 12,
               padding: "6px 8px",
               borderRadius: 6,
               border: "1px solid var(--hairline)",
@@ -91,7 +88,6 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
             disabled={!note.trim() || sendNote.isPending}
             style={{
               alignSelf: "flex-start",
-              fontSize: 11,
               padding: "3px 10px",
               borderRadius: 99,
               border: "1px solid var(--hairline)",
@@ -116,7 +112,6 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
               textDecoration: "underline",
               cursor: "pointer",
               color: "inherit",
-              fontSize: 12,
             }}
           >
             Say more

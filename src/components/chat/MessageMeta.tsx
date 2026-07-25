@@ -333,7 +333,6 @@ export function MessageMetaFooter({
           gap: 14,
           marginTop: 10,
           fontFamily: "var(--font-mono)",
-          fontSize: 10,
           color: "var(--ink-faint)",
           letterSpacing: "0.02em",
         }}
@@ -423,7 +422,6 @@ export function MessageMetaFooter({
                   type="button"
                   className="cmdk-item"
                   style={{
-                    fontSize: 11.5,
                     minHeight: 36,
                     padding: "6px 8px",
                     fontFamily: "var(--font-mono)",

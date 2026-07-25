@@ -65,7 +65,6 @@ export function ApprovalCard({
         <code
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             background: "var(--surface-raised)",
             border: "1px solid var(--hairline)",
             borderRadius: 6,
@@ -81,7 +80,6 @@ export function ApprovalCard({
         <p
           style={{
             margin: "6px 0 0",
-            fontSize: "var(--text-label-12)",
             lineHeight: 1.55,
             color: "var(--text-body)",
           }}
@@ -92,7 +90,6 @@ export function ApprovalCard({
       <div
         style={{
           marginTop: 6,
-          fontSize: "var(--text-label-12)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           wordBreak: "break-word",
@@ -104,7 +101,6 @@ export function ApprovalCard({
         <p
           style={{
             margin: "6px 0 0",
-            fontSize: "var(--text-label-12)",
             lineHeight: 1.55,
             fontStyle: "italic",
             color: "var(--text-subtle)",

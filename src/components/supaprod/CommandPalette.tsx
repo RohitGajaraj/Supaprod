@@ -248,7 +248,6 @@ export function CommandPalette() {
               className="flex-1 bg-transparent outline-none"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 15,
                 color: "var(--text-primary)",
                 caretColor: "var(--ember)",
               }}
@@ -256,7 +255,6 @@ export function CommandPalette() {
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
                 textTransform: "uppercase",
                 letterSpacing: "0.10em",
                 color: "var(--text-subtle)",
@@ -292,7 +290,6 @@ export function CommandPalette() {
                     aria-hidden="true"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
                       letterSpacing: "0.11em",
                       textTransform: "uppercase",
                       color: "var(--text-subtle)",
@@ -341,7 +338,6 @@ export function CommandPalette() {
                         <span
                           style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 9.5,
                             color: active ? "var(--ember)" : "var(--text-faint)",
                           }}
                         >
@@ -358,7 +354,6 @@ export function CommandPalette() {
                           <span
                             style={{
                               fontFamily: "var(--font-sans)",
-                              fontSize: 13,
                               color: active ? "var(--text-primary)" : "var(--text-body)",
                             }}
                           >
@@ -369,7 +364,6 @@ export function CommandPalette() {
                               className="truncate"
                               style={{
                                 fontFamily: "var(--font-sans)",
-                                fontSize: 11,
                                 lineHeight: 1.3,
                                 color: "var(--text-subtle)",
                               }}
@@ -388,7 +382,6 @@ export function CommandPalette() {
                             className="loom-press rounded-[var(--radius-control)] border border-[var(--hairline)] bg-transparent text-[var(--text-muted)] transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                             style={{
                               fontFamily: "var(--font-sans)",
-                              fontSize: 12,
                               padding: "3px 9px",
                             }}
                           >
@@ -398,7 +391,6 @@ export function CommandPalette() {
                           <span
                             style={{
                               fontFamily: "var(--font-mono)",
-                              fontSize: 9.5,
                               color: "var(--text-subtle)",
                             }}
                           >

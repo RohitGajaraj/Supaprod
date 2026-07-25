@@ -30,7 +30,6 @@ export function WhatChanged({ items }: WhatChangedProps) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9,
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           textTransform: "uppercase",
@@ -68,7 +67,6 @@ export function WhatChanged({ items }: WhatChangedProps) {
                   <div
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9,
                       letterSpacing: "0.06em",
                       color: "var(--text-faint)",
                     }}
@@ -109,7 +107,6 @@ export function WhatChanged({ items }: WhatChangedProps) {
               className="loom-press self-start outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 background: "transparent",

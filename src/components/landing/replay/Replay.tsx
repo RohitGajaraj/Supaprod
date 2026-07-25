@@ -67,7 +67,6 @@ function ActorChip({
     <span
       style={{
         fontFamily: MONO,
-        fontSize: 8,
         letterSpacing: "0.12em",
         textTransform: "uppercase",
         color: s.color,
@@ -496,7 +495,6 @@ function ReplayChip() {
     <span
       style={{
         marginLeft: "auto",
-        fontSize: 8.5,
         fontFamily: MONO,
         letterSpacing: "0.12em",
         textTransform: "uppercase",
@@ -533,7 +531,6 @@ export function StationSpine({ litThrough, active }: { litThrough: number; activ
             <span
               style={{
                 fontFamily: MONO,
-                fontSize: 10,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: isActive ? R.blue : i <= litThrough ? R.text : R.faint,
@@ -662,7 +659,6 @@ export function FlowList({
                 <span
                   style={{
                     fontFamily: MONO,
-                    fontSize: 9.5,
                     fontWeight: 600,
                     color: e.dead ? R.faint : e.col,
                     letterSpacing: "0.05em",
@@ -685,7 +681,6 @@ export function FlowList({
               </div>
               <p
                 style={{
-                  fontSize: 13,
                   lineHeight: 1.55,
                   color: e.dead ? R.faint : e.gate ? R.text : R.muted,
                   margin: 0,
@@ -765,7 +760,6 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
           <div style={{ flex: 1 }}>
             <div
               style={{
-                fontSize: 9,
                 fontFamily: MONO,
                 color: stepCols[step],
                 letterSpacing: "0.1em",
@@ -790,7 +784,6 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
             <span
               style={{
                 padding: "4px 10px",
-                fontSize: 10,
                 borderRadius: 6,
                 border: `1px solid rgba(255,107,44,0.45)`,
                 background: "rgba(255,107,44,0.1)",
@@ -823,7 +816,6 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
             <span
               key={s}
               style={{
-                fontSize: 8,
                 fontFamily: MONO,
                 color: i <= step ? R.text : R.faint,
                 transition: "color 0.4s",
@@ -925,7 +917,6 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
             <span style={{ fontSize: 11, color: R.muted, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
             <span
               style={{
-                fontSize: 8.5,
                 fontFamily: MONO,
                 letterSpacing: "0.06em",
                 color: col,
@@ -953,7 +944,6 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
         </div>
         <span
           style={{
-            fontSize: 8.5,
             fontFamily: MONO,
             color: allDone ? R.green : R.faint,
             flexShrink: 0,
@@ -1026,7 +1016,6 @@ function DeadRun() {
           <span style={{ fontSize: 11, color: R.faint, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
           <span
             style={{
-              fontSize: 8.5,
               fontFamily: MONO,
               letterSpacing: "0.06em",
               color: R.faint,
@@ -1129,7 +1118,6 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
             <span
               style={{
                 fontFamily: MONO,
-                fontSize: 9,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 color: R.faint,
@@ -1160,7 +1148,6 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
           )}
           <p
             style={{
-              fontSize: 12.5,
               lineHeight: 1.6,
               color: tab === "others" ? R.text : R.muted,
               margin: 0,

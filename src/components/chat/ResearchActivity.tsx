@@ -51,7 +51,6 @@ export function ResearchActivityLine({ statuses }: { statuses: ResearchStatus[] 
         alignItems: "center",
         columnGap: 8,
         rowGap: 4,
-        fontSize: 12.5,
         color: "var(--ink-subtle)",
       }}
     >
@@ -103,7 +102,6 @@ export function ResearchSummaryRow({ meta }: { meta: ChatMeta }) {
           className="inline-flex items-center rounded-full border hairline"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
             color: "var(--ink-subtle)",

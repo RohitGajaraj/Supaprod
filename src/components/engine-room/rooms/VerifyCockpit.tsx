@@ -127,7 +127,6 @@ const SMALL_BTN_CLASS =
 const SMALL_BTN: React.CSSProperties = {
   padding: "4px 10px",
   fontFamily: "var(--font-mono)",
-  fontSize: 11,
   borderRadius: 6,
   border: "1px solid var(--hairline)",
   background: "transparent",
@@ -143,7 +142,6 @@ function SectionHead({ label, note }: { label: string; note?: string | null }) {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.11em",
           color: "var(--text-body)",
         }}
@@ -155,7 +153,6 @@ function SectionHead({ label, note }: { label: string; note?: string | null }) {
           className="tabular-nums"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-micro)",
             color: "var(--text-subtle)",
           }}
         >
@@ -237,7 +234,6 @@ function PendingApprovals({
                 className="truncate"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-base)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
                 }}
@@ -251,7 +247,6 @@ function PendingApprovals({
                 className="truncate"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
                   marginTop: 3,
                 }}
@@ -387,7 +382,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
             className="truncate"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-base)",
               fontWeight: 600,
               color: "var(--text-primary)",
             }}
@@ -398,7 +392,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
             className="truncate"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
               marginTop: 3,
             }}
@@ -421,7 +414,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
               className="uppercase hover:underline"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.08em",
                 color: "var(--text-muted)",
                 textDecoration: "none",
@@ -500,7 +492,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                     flex: 1,
                     minWidth: 0,
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
                     color: "var(--text-primary)",
                   }}
                 >
@@ -510,7 +501,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                   className="uppercase tabular-nums"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-micro)",
                     letterSpacing: "0.1em",
                     color: "var(--text-subtle)",
                   }}
@@ -530,7 +520,6 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                       readOnly: true,
                       renderSideBySide: false,
                       minimap: { enabled: false },
-                      fontSize: 12,
                       scrollBeyondLastLine: false,
                       automaticLayout: true,
                     }}
@@ -644,7 +633,6 @@ export function VerifyCockpit(_props: RoomBodyProps) {
         className="uppercase self-start hover:underline active:opacity-80"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.11em",
           color: "var(--text-primary)",
           background: "none",

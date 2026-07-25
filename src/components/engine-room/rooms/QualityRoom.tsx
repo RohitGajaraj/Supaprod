@@ -73,7 +73,6 @@ function RigorStat({ label, value }: { label: string; value: React.ReactNode }) 
         className="tabular-nums"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-h4, 20px)",
           color: "var(--text-primary)",
         }}
       >

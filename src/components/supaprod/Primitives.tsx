@@ -78,7 +78,6 @@ export function StatusBadge({ status }: { status: string }) {
         alignItems: "center",
         gap: 6,
         fontFamily: "var(--font-mono)",
-        fontSize: 10,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         fontWeight: 600,
@@ -149,7 +148,6 @@ export function VerdictChip({
         alignItems: "center",
         gap: 5,
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         fontWeight: 600,
@@ -187,7 +185,7 @@ export function SurfaceHeader({
       <h1 className="text-heading-26" style={{ marginTop: 7 }}>
         {title}
       </h1>
-      <p style={{ fontSize: "var(--text-label-13)", color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
+      <p style={{ color: "var(--ds-gray-900)", marginTop: 3, maxWidth: 520 }}>
         {sub}
       </p>
     </header>
@@ -288,7 +286,6 @@ export function EmptyState({
       </h3>
       <p
         style={{
-          fontSize: 13,
           color: "var(--ds-gray-900)",
           margin: "6px auto 16px",
           maxWidth: 360,
@@ -316,7 +313,6 @@ export function RiskTag({ risk }: { risk: string }) {
     <span
       className="mono-label"
       style={{
-        fontSize: 8.5,
         color: c,
         border: `1px solid color-mix(in oklab, ${c} 45%, transparent)`,
         borderRadius: 99,
@@ -399,7 +395,6 @@ export function SubTabs({
           style={{
             padding: "5px 11px",
             borderRadius: 99,
-            fontSize: 9.5,
             color: t === active ? "var(--ds-background-100)" : "var(--ds-gray-900)",
             background: t === active ? "var(--ds-gray-1000)" : "transparent",
             border: `1px solid ${t === active ? "transparent" : "var(--ds-gray-500)"}`,

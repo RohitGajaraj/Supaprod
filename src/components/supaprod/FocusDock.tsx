@@ -37,7 +37,6 @@ export const FOCUS_COMPOSE_EVENT = "supaprod:focus-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-label-12)",
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -72,7 +71,6 @@ function DurationChip({
       className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-label-12)",
         fontVariantNumeric: "tabular-nums",
         padding: "4px 10px",
         borderRadius: "var(--radius-control)",
@@ -105,7 +103,6 @@ function ComposerTab({
       size="sm"
       onClick={onClick}
       style={{
-        fontSize: 12,
         padding: "4px 11px",
         borderColor: active ? "var(--hairline-strong)" : "var(--hairline)",
         background: active ? "var(--raised)" : "transparent",
@@ -380,7 +377,6 @@ export function FocusDock() {
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-control)",
                     padding: "8px 12px",
-                    fontSize: 13,
                     color: "var(--text-primary)",
                   }}
                 />
@@ -411,7 +407,6 @@ export function FocusDock() {
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "4px 8px",
-                      fontSize: "var(--text-label-12)",
                       fontVariantNumeric: "tabular-nums",
                       color: "var(--text-primary)",
                     }}
@@ -444,7 +439,6 @@ export function FocusDock() {
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-control)",
                     padding: "8px 12px",
-                    fontSize: 13,
                     color: "var(--text-primary)",
                   }}
                 />
@@ -472,7 +466,6 @@ export function FocusDock() {
                   border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-control)",
                   padding: "8px 12px",
-                  fontSize: 13,
                   color: "var(--text-primary)",
                 }}
               />
@@ -519,7 +512,6 @@ export function FocusDock() {
             <span
               aria-hidden="true"
               style={{
-                fontSize: 11,
                 color: hovered || composerOpen ? "var(--text-muted)" : "var(--text-faint)",
                 whiteSpace: "nowrap",
                 transition: "color 200ms var(--ease)",
@@ -567,7 +559,6 @@ export function FocusDock() {
                   aria-live="off"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 13,
                     fontVariantNumeric: "tabular-nums",
                     color: openEnded ? "var(--text-muted)" : color,
                     flexShrink: 0,
@@ -578,7 +569,7 @@ export function FocusDock() {
                 </span>
                 <span
                   className="truncate"
-                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", minWidth: 0 }}
+                  style={{ color: "var(--text-body)", minWidth: 0 }}
                 >
                   {intent ?? "Focus block"}
                 </span>

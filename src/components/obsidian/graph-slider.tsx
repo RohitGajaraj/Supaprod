@@ -174,7 +174,6 @@ export function GraphSlider({
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-subtle)",
           padding: "8px 0",
         }}

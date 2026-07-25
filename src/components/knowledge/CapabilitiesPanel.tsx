@@ -53,16 +53,15 @@ export function CapabilitiesPanel() {
           background: "var(--card)",
         }}
       >
-        <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "6px" }}>
+        <div style={{ fontWeight: 600, marginBottom: "6px" }}>
           Capabilities · failed to load
         </div>
-        <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "12px" }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: "12px" }}>
           {error instanceof Error ? error.message : "Something went wrong."}
         </p>
         <button
           onClick={() => void refetch()}
           style={{
-            fontSize: "12px",
             padding: "4px 10px",
             borderRadius: "6px",
             border: "1px solid var(--hairline)",
@@ -84,7 +83,6 @@ export function CapabilitiesPanel() {
           padding: "32px 20px",
           textAlign: "center",
           color: "var(--text-muted)",
-          fontSize: "14px",
         }}
       >
         No capabilities configured yet.
@@ -205,10 +203,10 @@ function CapabilityCard({
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
+          <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
             {capability.name}
           </div>
-          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{capability.blurb}</div>
+          <div style={{ color: "var(--text-muted)" }}>{capability.blurb}</div>
         </div>
       </button>
 
@@ -248,7 +246,6 @@ function CapabilityCard({
                   rows={6}
                   style={{
                     width: "100%",
-                    fontSize: "13px",
                     lineHeight: 1.6,
                     padding: "8px 10px",
                     borderRadius: "6px",
@@ -284,7 +281,6 @@ function CapabilityCard({
             ) : (
               <div
                 style={{
-                  fontSize: "13px",
                   color: "var(--text-secondary)",
                   lineHeight: 1.6,
                   whiteSpace: "pre-wrap",
@@ -296,7 +292,6 @@ function CapabilityCard({
             {!isEditing && (
               <div
                 style={{
-                  fontSize: "11px",
                   color: "var(--text-faint)",
                   marginTop: "6px",
                   fontStyle: "italic",
@@ -331,7 +326,7 @@ function CapabilityCard({
 
           {/* Autonomy */}
           <CapabilitySection title="Autonomy">
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+            <div style={{ color: "var(--text-secondary)" }}>
               <div>Tier: {capability.autonomy.tier}</div>
               <div>Status: {capability.autonomy.status}</div>
               <div>
@@ -403,7 +398,6 @@ function CapabilityCard({
                   <div
                     key={change.id}
                     style={{
-                      fontSize: "12px",
                       padding: "8px 0",
                       borderBottom: "1px solid var(--hairline)",
                     }}
@@ -441,7 +435,6 @@ function SkillRow({
   return (
     <div
       style={{
-        fontSize: "12px",
         padding: "8px 0",
         borderBottom: "1px solid var(--hairline)",
         display: "flex",
@@ -472,7 +465,6 @@ function SkillRow({
 }
 
 const sectionActionButtonStyle: React.CSSProperties = {
-  fontSize: "12px",
   padding: "4px 10px",
   borderRadius: "6px",
   border: "1px solid var(--hairline)",
@@ -502,7 +494,6 @@ function CapabilitySection({
       >
         <div
           style={{
-            fontSize: "11px",
             fontWeight: 600,
             letterSpacing: "0.04em",
             textTransform: "uppercase",

@@ -138,7 +138,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
               padding: "3px 10px",
             }}
           >
-            <MonoLabel tone="ember" style={{ fontSize: "9px" }}>
+            <MonoLabel tone="ember" style={{ }}>
               {compact ? "YOUR CALL" : kind}
             </MonoLabel>
           </span>
@@ -167,7 +167,6 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "13px",
             lineHeight: 1.65,
             color: "var(--text-muted)",
             margin: 0,
@@ -184,7 +183,6 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
                   className="inline-flex w-fit items-center uppercase"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "8.5px",
                     // Source chips speak the one link role (U6): blossom is
                     // retired from links/citations, so text and hairline both
                     // derive from var(--link). color-mix keeps the chip's
@@ -200,7 +198,6 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
                 <span
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "12.5px",
                     color: "var(--text-body)",
                   }}
                 >
@@ -247,7 +244,6 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
             }}
           >

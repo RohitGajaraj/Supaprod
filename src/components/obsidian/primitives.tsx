@@ -42,7 +42,6 @@ export const MonoLabel = React.forwardRef<HTMLSpanElement, MonoLabelProps>(
       className={cn("inline-flex items-center uppercase", className)}
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-label)",
         letterSpacing: "0.11em",
         // LOOM W4 contrast floor: the default mono label reads at --text-muted
         // (subtle fell below arm's-length readability on dark). Callers that

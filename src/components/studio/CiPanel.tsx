@@ -84,7 +84,6 @@ export function CiPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                fontSize: "var(--text-label-12)",
                 fontWeight: 600,
                 color: inspection.has_tests ? "var(--moss)" : "var(--madder)",
               }}
@@ -99,7 +98,6 @@ export function CiPanel({
               gap: 16,
               marginTop: 10,
               flexWrap: "wrap",
-              fontSize: "var(--text-label-13)",
               color: "var(--text-body)",
             }}
           >
@@ -125,7 +123,6 @@ export function CiPanel({
             <p
               style={{
                 marginTop: 8,
-                fontSize: "var(--text-label-12)",
                 color: "var(--text-subtle)",
                 lineHeight: 1.4,
               }}
@@ -165,7 +162,6 @@ export function CiPanel({
               className="truncate"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
                 minWidth: 0,
               }}
@@ -214,7 +210,6 @@ export function CiPanel({
             <p
               style={{
                 margin: 0,
-                fontSize: "var(--text-label-14)",
                 lineHeight: 1.4,
                 color: ci.overall === "failure" ? "var(--madder)" : "var(--text-body)",
               }}
@@ -231,7 +226,7 @@ export function CiPanel({
         ) : null}
         <div style={{ marginTop: 12 }}>
           {!ci || ci.checks.length === 0 ? (
-            <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", fontStyle: "italic" }}>
+            <div style={{ color: "var(--text-subtle)", fontStyle: "italic" }}>
               No checks reported yet. Refresh once CI starts.
             </div>
           ) : (
@@ -253,7 +248,6 @@ export function CiPanel({
                     flex: 1,
                     minWidth: 0,
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     color: "var(--text-primary)",
                   }}
                 >
@@ -304,7 +298,7 @@ export function CiPanel({
           <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember)", fontWeight: 700 }}>
             Waiting on you
           </MonoLabel>
-          <p style={{ margin: "6px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
+          <p style={{ margin: "6px 0 0", color: "var(--text-body)" }}>
             The merge gate is waiting on you. Clear it from the timeline on the left.
           </p>
         </div>

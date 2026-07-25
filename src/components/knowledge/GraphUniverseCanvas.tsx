@@ -1063,13 +1063,12 @@ export function GraphUniverseCanvas({
                 flexShrink: 0,
               }}
             />
-            <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>
+            <MonoLabel style={{ }}>
               {kindLabel(hoverNode.kind)}
             </MonoLabel>
           </div>
           <div
             style={{
-              fontSize: 13,
               color: "var(--text-primary)",
               lineHeight: 1.35,
               marginBottom: 6,
@@ -1083,7 +1082,7 @@ export function GraphUniverseCanvas({
           </div>
           <MonoLabel
             className="tabular-nums"
-            style={{ fontSize: "var(--text-mono-floor)", display: "block" }}
+            style={{ display: "block" }}
           >
             {hoverNode.influence} {hoverNode.influence === 1 ? "link" : "links"}
             {(() => {
@@ -1106,7 +1105,6 @@ export function GraphUniverseCanvas({
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",

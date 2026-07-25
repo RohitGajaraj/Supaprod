@@ -38,7 +38,6 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
       </h2>
       <p
         style={{
-          fontSize: 13.5,
           lineHeight: 1.6,
           color: "var(--ink-muted, #4a4438)",
           margin: "0 auto 16px",

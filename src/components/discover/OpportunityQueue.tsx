@@ -374,16 +374,16 @@ export function OpportunityQueue() {
   if (opps.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
+        <MonoLabel style={{ color: "var(--madder)" }}>
           Could not load opportunities
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
           {(opps.error as Error).message}
         </p>
         <Button variant="secondary" style={{ marginTop: "14px" }} onClick={() => opps.refetch()}>
           Retry
         </Button>
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
+        <p style={{ color: "var(--text-subtle)", marginTop: "6px" }}>
           Reloads the queue
         </p>
       </div>
@@ -403,7 +403,6 @@ export function OpportunityQueue() {
         <div style={{ padding: "0 4px" }}>
           <p
             style={{
-              fontSize: "12.5px",
               lineHeight: 1.6,
               color: "var(--text-subtle)",
               margin: 0,
@@ -482,7 +481,6 @@ export function OpportunityQueue() {
           }
           className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             background: "transparent",
             borderRadius: "var(--radius-control)",
@@ -493,7 +491,7 @@ export function OpportunityQueue() {
           {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_OPPS} more bets`}
         </button>
       ) : null}
-      <p style={{ fontSize: "12px", color: "var(--text-subtle)", padding: "0 4px" }}>
+      <p style={{ color: "var(--text-subtle)", padding: "0 4px" }}>
         Challenge any bet, even your own. The Critic answers with evidence, never with vibes.
       </p>
       <LineageDrawer
@@ -550,7 +548,6 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
         <h2
           style={{
             margin: 0,
-            fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",
             lineHeight: 1.3,
@@ -568,7 +565,7 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
         <MonoLabel
           tone="faint"
           title="Scores re-rank automatically when new signals land. Nothing to press."
-          style={{ fontSize: "9.5px", letterSpacing: "0.08em", flexShrink: 0, marginTop: 3 }}
+          style={{ letterSpacing: "0.08em", flexShrink: 0, marginTop: 3 }}
         >
           RE-RANKED {rerankedAgo}
         </MonoLabel>

@@ -204,7 +204,6 @@ export function FlashlightTabs({
                 className="tabular-nums"
                 style={{
                   marginLeft: 6,
-                  fontSize: 9,
                   fontFamily: "var(--font-mono)",
                   color: isActive ? "var(--ember-text)" : "var(--text-faint)",
                 }}

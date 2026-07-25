@@ -50,7 +50,6 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
           <DialogPrimitive.Title
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 20,
               fontWeight: 460,
               color: "var(--text-primary)",
               margin: 0,
@@ -82,7 +81,6 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />
@@ -102,7 +100,6 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                       border: "1px solid var(--hairline)",
                       borderRadius: "var(--radius-control)",
                       padding: "9px 12px",
-                      fontSize: "var(--text-label-13)",
                       color: "var(--text-primary)",
                     }}
                   />
@@ -111,7 +108,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             )}
           </div>
 
-          <p style={{ marginTop: 12, fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>
+          <p style={{ marginTop: 12, color: "var(--text-subtle)" }}>
             {hasBoth
               ? "Now is the one thing the team builds next · everything else waits."
               : "A bet in Now needs a promise and a number · that is the whole point."}

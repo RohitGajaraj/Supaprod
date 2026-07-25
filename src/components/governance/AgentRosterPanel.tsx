@@ -33,7 +33,7 @@ function RosterRow({ entry, muted }: { entry: CatalogEntry; muted?: boolean }) {
       <AgentMark slug={entry.slug} size={26} />
       <div style={{ minWidth: 0, opacity: muted ? 0.7 : 1 }}>
         <div style={{ fontSize: 14, fontWeight: 540, color: hue }}>{entry.name}</div>
-        <div style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", lineHeight: 1.45 }}>
+        <div style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {entry.blurb}
         </div>
       </div>
@@ -47,7 +47,6 @@ function StationGroup({ label, children }: { label: string; children: React.Reac
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-label-12)",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -82,7 +81,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
           feed on the live HUD read: a failed read must say so rather than
           render them silently empty (checklist 7). */}
       {q.isError ? (
-        <div style={{ fontSize: "var(--text-label-13)", color: "var(--madder-bright)" }}>
+        <div style={{ color: "var(--madder-bright)" }}>
           Live agent status did not load; trust dials and the inspector may look empty.{" "}
           <button
             type="button"
@@ -93,7 +92,6 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
               border: "none",
               padding: 0,
               color: "var(--text-primary)",
-              fontSize: "var(--text-label-13)",
             }}
           >
             Retry
@@ -110,7 +108,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
         }}
       >
         <MonoLabel>The team, by station</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
+        <p style={{ color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
           The full mesh lives here. The user never sees this roster; they meet these agents in
           motion, as the relay, named for what they do.
         </p>

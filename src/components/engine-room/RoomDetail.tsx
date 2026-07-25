@@ -49,7 +49,6 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
         className="min-w-0 flex-1 truncate"
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
           fontWeight: 600,
           color: "var(--text-primary)",
         }}
@@ -60,7 +59,6 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
         className="shrink-0 text-right tabular-nums"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           color: "var(--text-muted)",
         }}
       >
@@ -70,7 +68,6 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
         className="shrink-0 text-right uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.11em",
           color: statusColor,
         }}
@@ -86,7 +83,6 @@ export function EmptyRow({ message }: { message: string }) {
     <p
       style={{
         fontFamily: "var(--font-sans)",
-        fontSize: "var(--text-base)",
         color: "var(--text-subtle)",
         padding: "18px 0",
       }}
@@ -104,7 +100,6 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
           color: "var(--madder-bright)",
           marginBottom: "10px",
         }}
@@ -117,7 +112,6 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
         onClick={onRetry}
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.11em",
           color: "var(--text-primary)",
           background: "none",
@@ -155,7 +149,6 @@ export function VerdictSentence({ children }: { children: React.ReactNode }) {
     <p
       style={{
         fontFamily: "var(--font-sans)",
-        fontSize: "var(--text-base)",
         lineHeight: 1.5,
         color: "var(--text-body)",
         marginBottom: "16px",
@@ -243,7 +236,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
             style={{
               fontFamily: "var(--font-pixel)",
               fontWeight: 400,
-              fontSize: 22,
               lineHeight: 1.25,
               color: "var(--text-primary)",
               margin: 0,
@@ -256,7 +248,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
             className="tabular-nums"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.04em",
               color: status?.error ? "var(--madder-bright)" : "var(--text-muted)",
               margin: "6px 0 0",
@@ -274,7 +265,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
             <p
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-base)",
                 lineHeight: 1.5,
                 color: "var(--text-body)",
                 margin: "10px 0 0",
@@ -286,7 +276,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
                 className="uppercase"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-micro)",
                   letterSpacing: "0.12em",
                   color: "var(--text-subtle)",
                   marginRight: "8px",
@@ -310,7 +299,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               )}
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.1em",
                 color: "var(--glacier)",
               }}
@@ -344,7 +332,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-base)",
           lineHeight: 1.5,
           color: "var(--text-muted)",
           margin: "0 0 18px",
@@ -367,7 +354,6 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-micro)",
           letterSpacing: "0.12em",
           color: "var(--text-faint)",
           margin: "32px 0 0",

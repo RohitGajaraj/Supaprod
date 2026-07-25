@@ -70,7 +70,6 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
             }
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.08em",
               padding: "4px 12px",
               borderRadius: 6,

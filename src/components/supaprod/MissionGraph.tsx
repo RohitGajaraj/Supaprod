@@ -97,7 +97,6 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               style={{
                 fill: "var(--ds-gray-900)",
                 fontFamily: "'Geist Mono', monospace",
-                fontSize: 8.5,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}
@@ -150,7 +149,6 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   style={{
                     fill: "var(--agent)",
                     fontFamily: "'Geist Mono', monospace",
-                    fontSize: 10,
                     fontWeight: 600,
                   }}
                 >
@@ -162,7 +160,6 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   style={{
                     fill: "var(--ds-gray-900)",
                     fontFamily: "'Geist Mono', monospace",
-                    fontSize: 8,
                   }}
                 >
                   {s.status}
@@ -197,11 +194,11 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               close
             </button>
           </div>
-          <div style={{ fontSize: "var(--text-label-13)", color: "var(--ds-gray-800)", marginTop: 5 }}>
+          <div style={{ color: "var(--ds-gray-800)", marginTop: 5 }}>
             {sel.goal}
           </div>
           {sel.note ? (
-            <div style={{ fontSize: "var(--text-label-12)", color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
+            <div style={{ color: "var(--rose)", marginTop: 3 }}>{sel.note}</div>
           ) : null}
         </div>
       ) : (

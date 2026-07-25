@@ -90,7 +90,6 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
         <MonoLabel>Autonomy · trust dial</MonoLabel>
         <p
           style={{
-            fontSize: 12.5,
             color: "var(--ink-faint)",
             padding: "20px 0",
             textAlign: "center",
@@ -116,7 +115,6 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
           <span
             className="mono-label"
             style={{
-              fontSize: 9,
               color: "var(--ink-faint)",
               display: "flex",
               alignItems: "center",
@@ -197,7 +195,6 @@ function TrustRow({
             className="mono-label"
             title={`stored arc: ${trust.arc}${info?.role ? ` · ${info.role}` : ""}`}
             style={{
-              fontSize: 8.5,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -263,7 +260,6 @@ function TrustRow({
               <span
                 className="mono-label"
                 style={{
-                  fontSize: 8,
                   textAlign: "left",
                   color: isCurrent ? "var(--ink)" : "var(--ink-faint)",
                   fontWeight: isCurrent ? 700 : 500,

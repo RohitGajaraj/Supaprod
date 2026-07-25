@@ -56,7 +56,6 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
         className="min-w-0 flex-1 truncate"
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "13.5px",
           fontWeight: 600,
           color: "var(--text-primary)",
         }}
@@ -73,7 +72,6 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
         style={{
           width: "96px",
           fontFamily: "var(--font-mono)",
-          fontSize: "9px",
           letterSpacing: "0.11em",
           color: STATUS_STYLES[status].color,
           whiteSpace: "nowrap",
@@ -92,7 +90,6 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "9px",
                 letterSpacing: "0.06em",
                 color: "var(--text-subtle)",
               }}
@@ -104,7 +101,6 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "8.5px",
                 letterSpacing: "0.06em",
                 color: "var(--text-faint)",
               }}
@@ -119,7 +115,6 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
         style={{
           width: "44px",
           fontFamily: "var(--font-mono)",
-          fontSize: "9px",
           color: "var(--text-faint)",
         }}
       >

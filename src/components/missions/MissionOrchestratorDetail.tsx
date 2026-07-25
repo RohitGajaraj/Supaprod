@@ -162,7 +162,6 @@ function CaptureMissionDecision({
       disabled={cap.isPending}
       className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
       style={{
-        fontSize: "var(--text-label-12)",
         display: "inline-flex",
         alignItems: "center",
         gap: 5,
@@ -251,7 +250,6 @@ function GatePanel({
           <div key={appr.id}>
             <p
               style={{
-                fontSize: 13,
                 color: "var(--text-body)",
                 margin: "6px 0 12px",
                 lineHeight: 1.5,
@@ -262,7 +260,6 @@ function GatePanel({
                 className="mono-label"
                 style={{
                   color: "var(--text-primary)",
-                  fontSize: "var(--text-label-12)",
                   display: "inline-flex",
                 }}
               >
@@ -318,7 +315,6 @@ const preStyle: CSSProperties = {
   border: "1px solid var(--hairline)",
   borderRadius: 8,
   padding: 10,
-  fontSize: "var(--text-label-12)",
   lineHeight: 1.6,
   whiteSpace: "pre-wrap",
   wordBreak: "break-word",
@@ -327,7 +323,6 @@ const preStyle: CSSProperties = {
   color: "var(--text-subtle)",
 };
 const handoffChip: CSSProperties = {
-  fontSize: "var(--text-label-12)",
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
@@ -341,7 +336,6 @@ const handoffChip: CSSProperties = {
    (CHIP_BTN) so hover states can resolve — inline always beats a stylesheet
    hover (state audit 2026-07-12). */
 const handoffChipBtn: CSSProperties = {
-  fontSize: "var(--text-label-12)",
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
@@ -454,7 +448,6 @@ function TraceHop({
             className="mono-label"
             style={{
               ...rail,
-              fontSize: "var(--text-label-12)",
               lineHeight: 1.8,
               display: "flex",
               alignItems: "center",
@@ -482,7 +475,6 @@ function TraceHop({
                 aria-expanded={showMemories}
                 className={`mono-label loom-press ${HOVER_TEXT} ${HOVER_BG} ${FOCUS}`}
                 style={{
-                  fontSize: "var(--text-label-12)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
@@ -500,7 +492,6 @@ function TraceHop({
                     <div
                       key={mi}
                       style={{
-                        fontSize: "var(--text-label-12)",
                         color: "var(--text-subtle)",
                         lineHeight: 1.7,
                       }}
@@ -536,7 +527,6 @@ function TraceHop({
               aria-expanded={showInput}
               className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
               style={{
-                fontSize: "var(--text-label-12)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
@@ -550,7 +540,6 @@ function TraceHop({
                 aria-expanded={showOutput}
                 className={`mono-label loom-press ${HOVER_TEXT} ${FOCUS}`}
                 style={{
-                  fontSize: "var(--text-label-12)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
@@ -658,7 +647,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         )}
       </div>
       {n === 0 ? (
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", lineHeight: 1.5 }}>
+        <p style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
           that memory compounds here. The next mission on this product will not start cold.
         </p>
@@ -685,7 +674,6 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                 style={{
                   display: "flex",
                   gap: 10,
-                  fontSize: "var(--text-label-13)",
                   paddingTop: i === 0 ? 0 : 6,
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
@@ -957,7 +945,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </MonoLabel>
             <h1
               style={{
-                fontSize: 30,
                 margin: "8px 0 6px",
                 fontFamily: "var(--font-sans)",
                 fontWeight: 600,
@@ -980,7 +967,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             />
             <p
               style={{
-                fontSize: "var(--text-label-14)",
                 color: "color-mix(in oklab, var(--text-primary) 70%, transparent)",
                 display: "-webkit-box",
                 WebkitLineClamp: 4,
@@ -1000,7 +986,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   alignItems: "center",
                   gap: 5,
                   marginTop: 8,
-                  fontSize: "var(--text-label-12)",
                   color: "color-mix(in oklab, var(--text-primary) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
@@ -1022,7 +1007,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--ember-line)",
@@ -1052,7 +1036,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
@@ -1074,7 +1057,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   onChange={(e) => setReplayModel(e.target.value)}
                   className={`mono-label ${FOCUS}`}
                   style={{
-                    fontSize: "var(--text-label-12)",
                     padding: "3px 6px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
@@ -1098,7 +1080,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 5,
-                    fontSize: "var(--text-label-12)",
                     padding: "3px 10px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
@@ -1234,7 +1215,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 5,
-              fontSize: "var(--text-label-12)",
               padding: "3px 10px",
               borderRadius: 5,
               border: "1px solid color-mix(in oklab, var(--text-subtle) 45%, transparent)",
@@ -1275,7 +1255,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 disabled={advance.isPending}
                 className={`mono-label loom-press ${HOVER_BG} ${FOCUS}`}
                 style={{
-                  fontSize: "var(--text-label-12)",
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--hairline)",
@@ -1307,7 +1286,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   aria-pressed={view === id}
                   className={`mono-label loom-press transition-colors hover:[background:var(--surface-hover)] ${FOCUS}`}
                   style={{
-                    fontSize: "var(--text-label-12)",
                     padding: "3px 10px",
                     borderRadius: 5,
                     // Inline background only on the active pill so hover resolves.
@@ -1326,7 +1304,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             {planRows.length === 0 ? (
               <div
                 style={{
-                  fontSize: "var(--text-label-13)",
                   color: "var(--text-subtle)",
                   fontStyle: "italic",
                 }}
@@ -1363,7 +1340,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.deps.length > 0 ? (
                         <span
                           className="mono-label"
-                          style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
+                          style={{ color: "var(--text-subtle)" }}
                         >
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
@@ -1371,7 +1348,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </div>
                     <div
                       style={{
-                        fontSize: 13,
                         color: "var(--text-body)",
                         marginTop: 3,
                         display: "-webkit-box",
@@ -1433,7 +1409,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </div>
           <p
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-subtle)",
               marginBottom: 12,
             }}
@@ -1455,7 +1430,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     alignItems: "flex-start",
                     padding: "10px 0",
                     borderBottom: i < unattended.length - 1 ? "1px solid var(--hairline)" : "none",
-                    fontSize: 13,
                   }}
                 >
                   <span style={{ flexShrink: 0, alignSelf: "flex-start" }}>
@@ -1504,7 +1478,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         {hops.length === 0 ? (
           <div
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-subtle)",
               fontStyle: "italic",
             }}
@@ -1555,7 +1528,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           {failedStep ? (
             <p
               style={{
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 margin: "6px 0 10px",
               }}
@@ -1566,7 +1538,6 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           ) : (
             <p
               style={{
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 margin: "6px 0 10px",
               }}

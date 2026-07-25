@@ -63,7 +63,6 @@ export function PageHeader({
             <div
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.14em",
                 color: "var(--text-subtle)",
                 textTransform: "uppercase",
@@ -100,7 +99,6 @@ export function PageHeader({
           {subtitle ? (
             <p
               style={{
-                fontSize: "var(--text-base)",
                 color: "var(--text-body)",
                 margin: 0,
                 maxWidth: "60ch",
@@ -145,7 +143,6 @@ export function PageHeader({
           />
           <span
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-body)",
               lineHeight: 1.35,
             }}

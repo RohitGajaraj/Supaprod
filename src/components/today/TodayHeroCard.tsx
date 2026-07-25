@@ -400,7 +400,6 @@ export function TodayHeroCard({
 
 
 
-              fontSize: 18,
 
 
 

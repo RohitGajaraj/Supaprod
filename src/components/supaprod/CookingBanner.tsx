@@ -72,7 +72,6 @@ export function CookingBanner() {
       <span
         className="mono-label"
         style={{
-          fontSize: 9.5,
           color: "var(--ds-gray-800)",
           overflow: "hidden",
           textOverflow: "ellipsis",

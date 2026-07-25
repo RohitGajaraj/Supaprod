@@ -41,7 +41,6 @@ export function ConfidenceDisclosureChip({
         alignItems: "center",
         gap: 4,
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         letterSpacing: "0.06em",
         fontWeight: 600,
         color: fg,

@@ -66,7 +66,6 @@ function CompletionEvidenceBadge({ session }: { session: StudioSessionListItem }
           gap: 4,
           flexShrink: 0,
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-label-12)",
           letterSpacing: "0.04em",
           color,
           textDecoration: "none",
@@ -85,7 +84,6 @@ function CompletionEvidenceBadge({ session }: { session: StudioSessionListItem }
       style={{
         flexShrink: 0,
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-label-12)",
         letterSpacing: "0.04em",
         color,
         padding: "0 8px",

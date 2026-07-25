@@ -55,7 +55,6 @@ function StatusPill({ label, tone = "var(--text-subtle)" }: { label: string; ton
     <span
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.06em",
         textTransform: "uppercase",
         color: tone,
@@ -75,13 +74,12 @@ function TimeLine({ iso }: { iso: string }) {
   return (
     <span
       className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+      style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -134,7 +132,7 @@ export function ShareDecisionButton({ id }: { id: string }) {
   if (!s.available) {
     return (
       <MonoLabel
-        style={{ fontSize: "var(--text-mono-floor)", color: "var(--text-subtle)" }}
+        style={{ color: "var(--text-subtle)" }}
         title="Sharing lights up after the next sync applies the share columns."
       >
         Share · after sync
@@ -240,7 +238,7 @@ export function DecisionDetail({ id }: { id: string }) {
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>
           Decision · failed to load
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(decisions.error as Error)?.message ?? "Unknown error"}
         </p>
         <Button variant="secondary" size="sm" onClick={() => void decisions.refetch()}>
@@ -286,7 +284,6 @@ export function DecisionDetail({ id }: { id: string }) {
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -321,7 +318,6 @@ export function DecisionDetail({ id }: { id: string }) {
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "9.5px",
                 letterSpacing: "0.06em",
                 color: "var(--text-subtle)",
               }}
@@ -347,14 +343,13 @@ export function DecisionDetail({ id }: { id: string }) {
         >
           <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
             <MonoLabel
-              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+              style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
             >
               The call
             </MonoLabel>
             <span
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "13px",
                 fontWeight: 550,
                 color: "var(--text-primary)",
                 lineHeight: 1.5,
@@ -366,7 +361,6 @@ export function DecisionDetail({ id }: { id: string }) {
           {d.rationale ? (
             <p
               style={{
-                fontSize: "12.5px",
                 lineHeight: 1.6,
                 color: "var(--text-subtle)",
                 margin: 0,
@@ -386,7 +380,7 @@ export function DecisionDetail({ id }: { id: string }) {
 
         {/* Precedent-recall receipt: how often later agent recalls cited this call. */}
         {citedByCount > 0 ? (
-          <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+          <p style={{ color: "var(--text-subtle)", margin: 0 }}>
             Cited as precedent {citedByCount} {citedByCount === 1 ? "time" : "times"} by later
             decision contexts.
           </p>
@@ -395,13 +389,12 @@ export function DecisionDetail({ id }: { id: string }) {
         {/* Why. */}
         <DetailSection heading="Why">
           {d.rationale ? (
-            <p style={{ fontSize: "13px", lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
+            <p style={{ lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
               {d.rationale}
             </p>
           ) : (
             <p
               style={{
-                fontSize: "12px",
                 color: "var(--text-subtle)",
                 fontStyle: "italic",
                 margin: 0,
@@ -419,8 +412,8 @@ export function DecisionDetail({ id }: { id: string }) {
             <div style={{ display: "grid", gap: "8px" }}>
               {alternatives.map((a, i) => (
                 <div key={i} style={{ display: "grid", gap: "2px" }}>
-                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>{a.title}</span>
-                  <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-body)" }}>{a.title}</span>
+                  <span style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>
                     Rejected: {a.reason_rejected}
                   </span>
                 </div>
@@ -441,7 +434,6 @@ export function DecisionDetail({ id }: { id: string }) {
                 style={{
                   gap: "6px",
                   fontFamily: "var(--font-sans)",
-                  fontSize: "12px",
                   color: "var(--link)",
                 }}
               >
@@ -452,7 +444,7 @@ export function DecisionDetail({ id }: { id: string }) {
           }
         >
           <div style={{ display: "grid", gap: "10px" }}>
-            <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+            <span style={{ color: "var(--text-body)" }}>
               {SOURCE_LABEL[sourceKind]}
               {d.source_label ? ` · ${d.source_label}` : ""}
             </span>
@@ -466,7 +458,6 @@ export function DecisionDetail({ id }: { id: string }) {
               }
               className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
-                fontSize: "12.5px",
                 color: "var(--text-subtle)",
                 background: "transparent",
                 border: "none",
@@ -485,13 +476,13 @@ export function DecisionDetail({ id }: { id: string }) {
           <DetailSection heading="Evidence">
             <div style={{ display: "grid", gap: "6px" }}>
               {evidenceIn.map((e) => (
-                <span key={e.id} style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span key={e.id} style={{ color: "var(--text-body)" }}>
                   From {e.parent_kind.replace(/_/g, " ")}
                   {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
                 </span>
               ))}
               {evidenceOut.map((e) => (
-                <span key={e.id} style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span key={e.id} style={{ color: "var(--text-body)" }}>
                   Fed {e.child_kind.replace(/_/g, " ")}
                   {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
                 </span>
@@ -504,14 +495,13 @@ export function DecisionDetail({ id }: { id: string }) {
         {critic ? (
           <DetailSection heading="Critic verdict · on the linked spec">
             <div style={{ display: "grid", gap: "4px" }}>
-              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+              <span style={{ color: "var(--text-body)" }}>
                 {critic.verdict.toUpperCase()} · confidence {Math.round(critic.confidence * 100)}%
                 {critic.reviewed_at ? ` · ${relTimeCaps(critic.reviewed_at)}` : ""}
               </span>
               {critic.summary ? (
                 <p
                   style={{
-                    fontSize: "12px",
                     color: "var(--text-subtle)",
                     lineHeight: 1.55,
                     margin: 0,
@@ -536,16 +526,16 @@ export function DecisionDetail({ id }: { id: string }) {
         {precedents.length > 0 ? (
           <DetailSection heading="Precedent">
             <div style={{ display: "grid", gap: "8px" }}>
-              <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+              <p style={{ color: "var(--text-subtle)", margin: 0 }}>
                 Last time we reasoned this way, here is what happened.
               </p>
               {precedents.map((p) => (
                 <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
-                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  <span style={{ color: "var(--text-body)" }}>
                     {p.verdict.toUpperCase()}
                     {p.title ? ` · ${p.title}` : ""}
                   </span>
-                  <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>
                     {p.summary}
                   </span>
                 </div>
@@ -584,7 +574,7 @@ export function DecisionDetail({ id }: { id: string }) {
               })}
             </div>
             <p
-              style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}
+              style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}
             >
               Agents read this before any mission that touches the same surface.
             </p>
@@ -598,7 +588,7 @@ export function DecisionDetail({ id }: { id: string }) {
         {/* Activity. */}
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Decided</span>
+            <span style={{ color: "var(--text-subtle)" }}>Decided</span>
             <TimeLine iso={d.created_at} />
           </div>
         </DetailSection>

@@ -30,7 +30,6 @@ const BLOCK_STYLE: React.CSSProperties = {
 
 const TITLE_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
-  fontSize: "var(--text-label-13)",
   fontWeight: 600,
   color: "var(--text-primary)",
   marginTop: 6,
@@ -39,7 +38,6 @@ const TITLE_STYLE: React.CSSProperties = {
 // Quiet right-aligned footer metadata (decidedBy, dates, ICE score).
 const FOOTER_META_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 9.5,
   letterSpacing: "0.05em",
   color: "var(--text-faint)",
   whiteSpace: "nowrap",
@@ -49,7 +47,6 @@ const FOOTER_META_STYLE: React.CSSProperties = {
 function clampStyle(lines: number): React.CSSProperties {
   return {
     fontFamily: "var(--font-sans)",
-    fontSize: 12,
     lineHeight: 1.5,
     color: "var(--text-muted)",
     marginTop: 4,
@@ -132,7 +129,6 @@ export function MissionBlockCard({ block }: { block: MissionBlock }) {
           params={{ missionId: block.id }}
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             textTransform: "uppercase",
             letterSpacing: "0.11em",
             color: "var(--glacier)",
@@ -161,7 +157,6 @@ export function StatusDigestBlock({ block }: { block: StatusBlock }) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-label-12)",
           letterSpacing: "0.05em",
           color: "var(--text-subtle)",
           marginTop: 8,
@@ -206,7 +201,6 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9.5,
           color: "var(--text-faint)",
           width: 52,
           flexShrink: 0,
@@ -227,7 +221,6 @@ function TimelineRow({ event }: { event: TimelineEvent }) {
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             letterSpacing: "0.06em",
             color: "var(--text-subtle)",
             flexShrink: 0,

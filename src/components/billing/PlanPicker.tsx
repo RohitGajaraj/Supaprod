@@ -47,7 +47,6 @@ function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
           key={label}
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-micro)",
             letterSpacing: "0.06em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -63,7 +62,6 @@ function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-micro)",
           color: "var(--text-faint)",
         }}
       >
@@ -101,7 +99,6 @@ function makeTierGlyph(tier: PlanTier): React.ComponentType<{ size?: number }> {
           background: "var(--raised)",
           color: "var(--text-subtle)",
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
           fontWeight: 600,
           flexShrink: 0,
         }}
@@ -156,7 +153,6 @@ function pillButtonStyle(active: boolean): React.CSSProperties {
     border: "none",
     cursor: "pointer",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
     fontWeight: active ? 600 : 500,
     // Inactive background/color live in the hover classes so hover can win
     // (inline styles beat utilities).
@@ -405,7 +401,6 @@ function CardHeader({
         style={{
           fontFamily: "var(--font-sans)",
           fontWeight: 460,
-          fontSize: "var(--text-card-title)",
           lineHeight: 1.3,
           color: "var(--text-primary)",
           marginTop: "var(--space-2)",
@@ -416,7 +411,6 @@ function CardHeader({
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
           margin: "3px 0 0",
           lineHeight: "var(--leading-body)",
@@ -427,7 +421,6 @@ function CardHeader({
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-sm)",
           color: "var(--text-body)",
           margin: "var(--space-1) 0 0",
           lineHeight: "var(--leading-body)",
@@ -457,7 +450,6 @@ function ExpandableBullets({ items }: { items: string[] }) {
               key={h}
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-helper)",
                 color: "var(--text-body)",
                 display: "flex",
                 flexDirection: "column",
@@ -495,7 +487,6 @@ function ExpandableBullets({ items }: { items: string[] }) {
             border: "none",
             padding: "var(--space-2) 0 0",
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-helper)",
             color: "var(--text-muted)",
             cursor: "pointer",
           }}
@@ -522,7 +513,6 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 30,
             lineHeight: 1,
             color: "var(--text-primary)",
           }}
@@ -532,7 +522,6 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
         <span
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
           }}
         >
@@ -542,7 +531,6 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-helper)",
           color: "var(--text-subtle)",
           margin: 0,
         }}
@@ -592,7 +580,6 @@ function EnterpriseCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 20,
             lineHeight: 1.2,
             color: "var(--text-primary)",
           }}
@@ -603,7 +590,6 @@ function EnterpriseCard({
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-sm)",
               color: "var(--text-body)",
             }}
           >
@@ -614,7 +600,6 @@ function EnterpriseCard({
             <span
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
               }}
             >
@@ -623,7 +608,6 @@ function EnterpriseCard({
             <span
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-helper)",
                 color: "var(--text-subtle)",
               }}
             >
@@ -637,7 +621,6 @@ function EnterpriseCard({
           <p
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
               margin: 0,
               textAlign: "center",
@@ -650,7 +633,6 @@ function EnterpriseCard({
             className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-base)",
               fontWeight: 500,
               color: "var(--text-primary)",
               background: "var(--hover)",
@@ -670,7 +652,6 @@ function EnterpriseCard({
               className={FOCUS_RING_CLASS}
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-helper)",
                 color: "var(--blossom)",
                 textDecoration: "underline",
               }}
@@ -685,7 +666,6 @@ function EnterpriseCard({
           className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             fontWeight: 500,
             color: "var(--text-primary)",
             background: "var(--hover)",
@@ -805,7 +785,6 @@ function PaidTierCard({
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 26,
               lineHeight: 1,
               color: "var(--text-primary)",
             }}
@@ -815,7 +794,6 @@ function PaidTierCard({
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-sm)",
               color: "var(--text-subtle)",
             }}
           >
@@ -834,7 +812,6 @@ function PaidTierCard({
           <span
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-helper)",
               color: "var(--text-subtle)",
             }}
           >
@@ -868,7 +845,6 @@ function PaidTierCard({
             border: "1px solid var(--hairline-strong)",
             background: "var(--raised)",
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-base)",
             color: "var(--text-primary)",
             cursor: "pointer",
           }}
@@ -911,7 +887,6 @@ function PaidTierCard({
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-helper)",
             color: "var(--text-subtle)",
             margin: 0,
             textAlign: "center",
@@ -926,7 +901,6 @@ function PaidTierCard({
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-helper)",
             color: "var(--text-subtle)",
             margin: 0,
             textAlign: "center",

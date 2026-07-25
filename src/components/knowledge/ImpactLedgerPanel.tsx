@@ -44,13 +44,12 @@ function StatCard({ value, label, sub }: { value: string; label: string; sub?: s
         style={{
           fontFamily: "var(--font-sans)",
           fontWeight: 450,
-          fontSize: 22,
           color: "var(--text-primary)",
         }}
       >
         {value}
       </div>
-      <MonoLabel style={{ fontSize: "var(--text-mono-micro)", marginTop: 4 }}>{label}</MonoLabel>
+      <MonoLabel style={{ marginTop: 4 }}>{label}</MonoLabel>
       {sub ? (
         <div style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 3 }}>{sub}</div>
       ) : null}
@@ -106,7 +105,7 @@ export function ImpactLedgerPanel() {
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Impact Ledger · failed to load</MonoLabel>
         <p
-          style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}
+          style={{ color: "var(--text-muted)", marginBottom: 12 }}
         >
           {(query.error as Error)?.message ?? "Unknown error"}
         </p>
@@ -116,7 +115,6 @@ export function ImpactLedgerPanel() {
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -143,7 +141,6 @@ export function ImpactLedgerPanel() {
     <div>
       <p
         style={{
-          fontSize: "var(--text-label-14)",
           color: "var(--text-body)",
           margin: "0 0 18px",
           lineHeight: 1.5,
@@ -189,7 +186,6 @@ export function ImpactLedgerPanel() {
             <div
               key={i}
               style={{
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-subtle)",
                 padding: "8px 0",
                 borderTop: i ? "1px solid var(--hairline)" : "none",
@@ -221,7 +217,6 @@ export function ImpactLedgerPanel() {
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: "7px 11px",
-            fontSize: "var(--text-label-13)",
             color: "var(--text-primary)",
           }}
         />
@@ -251,7 +246,6 @@ export function ImpactLedgerPanel() {
         style={{
           whiteSpace: "pre-wrap",
           fontFamily: "var(--font-mono)",
-          fontSize: 12,
           lineHeight: 1.6,
           color: "var(--text-body)",
           background: "var(--surface-card-deep)",

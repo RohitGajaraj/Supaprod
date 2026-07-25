@@ -107,7 +107,6 @@ const AskUserTurn = React.memo(function AskUserTurn({
         className="opacity-0 transition-opacity group-hover:opacity-100"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9,
           letterSpacing: "0.05em",
           color: "var(--text-faint)",
           flexShrink: 0,
@@ -122,7 +121,6 @@ const AskUserTurn = React.memo(function AskUserTurn({
           padding: "10px 14px",
           maxWidth: "80%",
           fontFamily: "var(--font-sans)",
-          fontSize: 13,
           lineHeight: 1.55,
           color: "var(--text-primary)",
         }}
@@ -178,7 +176,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
             border: "1px solid color-mix(in oklab, var(--madder) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "10px 14px",
-            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -192,7 +189,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 className="transition-colors hover:[background:var(--hover)] disabled:opacity-50"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-label-12)",
                   fontWeight: 600,
                   padding: "4px 10px",
                   borderRadius: 999,
@@ -231,7 +227,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             textTransform: "uppercase",
             letterSpacing: "0.11em",
             color: "var(--text-subtle)",
@@ -245,7 +240,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
       <div
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 13,
           lineHeight: 1.65,
           color: "var(--text-body)",
         }}
@@ -262,7 +256,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
               display: "inline-block",
               marginTop: 6,
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
               textTransform: "uppercase",
               letterSpacing: "0.11em",
               color: "var(--glacier)",
@@ -279,7 +272,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
             gap: 6,
             marginTop: 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             color: "var(--text-faint)",
@@ -330,7 +322,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
             style={{
               marginLeft: "auto",
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
               textTransform: "uppercase",
               letterSpacing: "0.11em",
               color: "var(--text-subtle)",
@@ -352,7 +343,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
             borderRadius: 10,
             padding: "10px 12px",
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             color: "var(--text-subtle)",
           }}
         >
@@ -390,7 +380,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
                   className="transition-colors hover:[color:var(--text-primary)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9.5,
                     letterSpacing: "0.05em",
                     padding: "3px 8px",
                     borderRadius: 999,
@@ -407,7 +396,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
                   key={kind}
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9.5,
                     letterSpacing: "0.05em",
                     padding: "3px 8px",
                     borderRadius: 999,
@@ -427,7 +415,6 @@ const AskAiMessage = React.memo(function AskAiMessage({
                 className="transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)]"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 11,
                   padding: "3px 9px",
                   borderRadius: 999,
                   border: "1px solid var(--hairline)",
@@ -579,14 +566,12 @@ function AskComposer({
                 textAlign: "left",
                 cursor: "pointer",
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-primary)",
               }}
             >
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 11,
                   color: "var(--text-primary)",
                 }}
               >
@@ -649,7 +634,6 @@ function AskComposer({
             // No outline:none: the global [data-obsidian] :focus-visible ring
             // is this borderless composer's focus indicator (never removed).
             fontFamily: "var(--font-sans)",
-            fontSize: 13,
             lineHeight: 1.55,
             color: "var(--text-primary)",
             maxHeight: 80,
@@ -660,7 +644,6 @@ function AskComposer({
             className="truncate"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
               textTransform: "uppercase",
               letterSpacing: "0.09em",
               color: dictation.listening ? "var(--glacier)" : "var(--text-faint)",
@@ -683,7 +666,6 @@ function AskComposer({
                 className="loom-press whitespace-nowrap transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)] disabled:opacity-60"
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 11,
                   padding: "3px 9px",
                   borderRadius: 999,
                   border: "1px solid var(--hairline)",
@@ -1217,7 +1199,6 @@ export function AskPanel() {
                 <div
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: 14,
                     fontWeight: 600,
                     color: "var(--text-primary)",
                     lineHeight: 1.15,
@@ -1229,7 +1210,6 @@ export function AskPanel() {
                   className="truncate"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9.5,
                     letterSpacing: "0.05em",
                     color: "var(--text-faint)",
                     marginTop: 1,
@@ -1248,7 +1228,6 @@ export function AskPanel() {
                   style={{
                     marginLeft: "auto",
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10,
                     color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
@@ -1266,7 +1245,6 @@ export function AskPanel() {
                   style={{
                     marginLeft: messages.length > 0 ? undefined : "auto",
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10,
                     color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
@@ -1291,7 +1269,6 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1318,7 +1295,6 @@ export function AskPanel() {
                   className="inline-flex items-center gap-1.5 transition-colors hover:[background:var(--hover)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     letterSpacing: "0.03em",
                     padding: "4px 8px",
                     borderRadius: 999,
@@ -1337,7 +1313,6 @@ export function AskPanel() {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 10,
                     color: "var(--text-faint)",
                   }}
                 >
@@ -1364,7 +1339,6 @@ export function AskPanel() {
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: 14,
                       fontWeight: 600,
                       color: "var(--text-primary)",
                       margin: 0,
@@ -1375,7 +1349,6 @@ export function AskPanel() {
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-label-13)",
                       lineHeight: 1.5,
                       color: "var(--text-muted)",
                       margin: 0,
@@ -1400,7 +1373,6 @@ export function AskPanel() {
                         border: "1px solid var(--hairline)",
                         background: "var(--surface-card-deep)",
                         fontFamily: "var(--font-sans)",
-                        fontSize: "var(--text-label-13)",
                         color: "var(--text-body)",
                         cursor: "pointer",
                       }}
@@ -1421,7 +1393,6 @@ export function AskPanel() {
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 9,
                         letterSpacing: "0.11em",
                         color: "var(--text-faint)",
                       }}

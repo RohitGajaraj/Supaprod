@@ -34,7 +34,6 @@ export function ProductMasthead() {
       className="loom-press inline-block hover:underline"
       style={{
         fontFamily: "var(--font-sans)",
-        fontSize: "13px",
         lineHeight: 1.5,
         color: "var(--glacier)",
         textDecoration: "none",

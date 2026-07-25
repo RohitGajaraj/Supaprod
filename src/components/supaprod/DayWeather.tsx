@@ -144,7 +144,6 @@ export function DayWeather() {
   const w = describe(weather.code);
   const mono: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
-    fontSize: 11,
     letterSpacing: "0.03em",
   };
 

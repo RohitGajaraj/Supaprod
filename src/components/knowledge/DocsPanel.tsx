@@ -237,7 +237,7 @@ export function DocsPanel() {
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 8 }}>docs · failed to load</MonoLabel>
         <p
-          style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", marginBottom: 12 }}
+          style={{ color: "var(--ink-muted)", marginBottom: 12 }}
         >
           {(docs.error as Error).message}
         </p>
@@ -309,7 +309,7 @@ export function DocsPanel() {
         selected.isLoading || !doc ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
             <span className="spinner" />
-            <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+            <span className="mono-label" style={{ }}>
               loading…
             </span>
           </div>
@@ -327,7 +327,7 @@ export function DocsPanel() {
             >
               <button
                 className="mono-label"
-                style={{ color: "var(--ink-subtle)", fontSize: "var(--text-mono-floor)" }}
+                style={{ color: "var(--ink-subtle)" }}
                 onClick={() => setSelectedId(null)}
               >
                 ← All docs
@@ -393,7 +393,6 @@ export function DocsPanel() {
                     // ring is this borderless title input's focus indicator.
                     background: "transparent",
                     fontFamily: "var(--font-display)",
-                    fontSize: 24,
                     fontWeight: 460,
                     color: "var(--ink)",
                     letterSpacing: "-0.015em",
@@ -402,7 +401,7 @@ export function DocsPanel() {
               </div>
               <div
                 className="mono-label"
-                style={{ fontSize: "var(--text-mono-floor)", margin: "4px 0 14px" }}
+                style={{ margin: "4px 0 14px" }}
               >
                 doc · last edited {updatedLabel(doc.updated_at)} · autosaves to Memory
                 {mUpdate.isPending ? " · saving…" : ""}
@@ -420,7 +419,6 @@ export function DocsPanel() {
           <div
             style={{
               padding: "18px 2px",
-              fontSize: "var(--text-label-13)",
               color: "var(--ink-faint)",
             }}
           >
@@ -478,7 +476,6 @@ export function DocsPanel() {
                         justifyContent: "center",
                         color: "var(--ink-subtle)",
                         flexShrink: 0,
-                        fontSize: 15,
                       }}
                     >
                       {d.icon && d.icon !== "📄" ? d.icon : <FileText size={14} />}
@@ -488,7 +485,6 @@ export function DocsPanel() {
                         style={{
                           display: "block",
                           fontWeight: 500,
-                          fontSize: "var(--text-label-14)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -499,7 +495,6 @@ export function DocsPanel() {
                       <span
                         className="mono-label"
                         style={{
-                          fontSize: "var(--text-mono-floor)",
                           marginTop: 1,
                           display: "block",
                         }}
@@ -510,7 +505,6 @@ export function DocsPanel() {
                     <button
                       className="mono-label"
                       style={{
-                        fontSize: "var(--text-mono-floor)",
                         color: "var(--ink-subtle)",
                         flexShrink: 0,
                       }}
@@ -537,13 +531,12 @@ export function DocsPanel() {
                       }}
                     >
                       {preview.isLoading || !previewDoc ? (
-                        <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+                        <span className="mono-label" style={{ }}>
                           loading…
                         </span>
                       ) : (
                         <p
                           style={{
-                            fontSize: "var(--text-label-14)",
                             color: "var(--ink-muted)",
                             lineHeight: 1.6,
                             fontFamily: "var(--font-display)",
@@ -556,7 +549,6 @@ export function DocsPanel() {
                       <span
                         className="mono-label"
                         style={{
-                          fontSize: "var(--text-mono-floor)",
                           marginTop: 8,
                           display: "block",
                         }}
@@ -576,7 +568,6 @@ export function DocsPanel() {
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
                 color: "var(--text-muted)",
                 background: "transparent",
@@ -671,14 +662,14 @@ export function DocsPanel() {
                   style={{ paddingLeft: 28, fontSize: 12 }}
                 />
               </span>
-              <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+              <span className="mono-label" style={{ }}>
                 or paste a Notion page URL
               </span>
               <input
                 className="input"
                 aria-label="Notion page URL"
                 placeholder="https://www.notion.so/…"
-                style={{ fontSize: "var(--text-label-12)" }}
+                style={{ }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     const v = (e.target as HTMLInputElement).value.trim();
@@ -702,7 +693,7 @@ export function DocsPanel() {
                   }}
                 >
                   <span className="spinner" />
-                  <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+                  <span className="mono-label" style={{ }}>
                     searching notion…
                   </span>
                 </div>
@@ -725,7 +716,6 @@ export function DocsPanel() {
               {notionSearch.data?.pages?.length === 0 && (
                 <p
                   style={{
-                    fontSize: 12,
                     color: "var(--ink-faint)",
                     padding: "14px 8px",
                     textAlign: "center",
@@ -741,7 +731,6 @@ export function DocsPanel() {
                   onClick={() => mImportNotion.mutate(p.id)}
                   className="cmdk-item"
                   style={{
-                    fontSize: "var(--text-label-12)",
                     padding: "6px 8px",
                     display: "flex",
                     gap: 8,

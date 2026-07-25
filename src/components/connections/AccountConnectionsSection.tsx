@@ -263,7 +263,6 @@ function RailRow({
       <span
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 13,
           color: active ? "var(--text-primary)" : "var(--text-body)",
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -276,7 +275,6 @@ function RailRow({
         className="tabular-nums"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 11,
           color: active ? "var(--ember)" : "var(--text-faint)",
           flexShrink: 0,
         }}
@@ -311,7 +309,6 @@ function StatusPill({
         alignItems: "center",
         gap: 6,
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         color,
@@ -371,7 +368,6 @@ function ConnectStatus({
       title={setupHintFor(spec)}
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         color: "var(--text-faint)",
@@ -645,7 +641,6 @@ export function AccountConnectionsSection({
               swap never resets the outcome ledger. */}
           <div
             style={{
-              fontSize: "var(--text-label-12)",
               lineHeight: 1.5,
               color: "var(--text-subtle)",
               borderTop: "1px solid var(--hairline)",
@@ -668,7 +663,6 @@ export function AccountConnectionsSection({
             style={{
               fontFamily: "var(--font-sans)",
               fontWeight: 460,
-              fontSize: 20,
               lineHeight: 1.2,
               color: "var(--text-primary)",
               margin: 0,
@@ -678,7 +672,6 @@ export function AccountConnectionsSection({
           </h3>
           <p
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-subtle)",
               margin: "6px 0 0",
               maxWidth: 480,
@@ -718,7 +711,7 @@ export function AccountConnectionsSection({
             <div className="mono-label" style={{ color: "var(--rose)" }}>
               Couldn't load your connections
             </div>
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", margin: "8px 0 0" }}>
+            <p style={{ color: "var(--text-subtle)", margin: "8px 0 0" }}>
               {(list.error as Error)?.message ?? "Unknown error"}
             </p>
             <button
@@ -731,7 +724,7 @@ export function AccountConnectionsSection({
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", padding: "12px 0" }}>
+          <p style={{ color: "var(--text-subtle)", padding: "12px 0" }}>
             No sources match your filter.{" "}
             <button
               type="button"
@@ -741,7 +734,6 @@ export function AccountConnectionsSection({
                 background: "none",
                 border: "none",
                 padding: 0,
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-primary)",
                 textDecoration: "underline",
                 cursor: "pointer",
@@ -804,7 +796,6 @@ export function AccountConnectionsSection({
                       style={{
                         fontWeight: 500,
                         color: "var(--text-primary)",
-                        fontSize: "var(--text-label-14)",
                         lineHeight: 1.3,
                       }}
                     >
@@ -812,7 +803,6 @@ export function AccountConnectionsSection({
                     </div>
                     <p
                       style={{
-                        fontSize: 12,
                         color: "var(--text-subtle)",
                         margin: "3px 0 0",
                         overflow: "hidden",
@@ -829,7 +819,6 @@ export function AccountConnectionsSection({
                         display: "inline-block",
                         marginTop: 5,
                         fontFamily: "var(--font-mono)",
-                        fontSize: 9.5,
                         letterSpacing: "0.08em",
                         textTransform: "uppercase",
                         color: activity ? "var(--text-subtle)" : "var(--text-faint)",
@@ -891,7 +880,6 @@ const detailRowStyle = (i: number, len: number): CSSProperties => ({
   gap: 12,
   padding: "11px 18px",
   borderBottom: i < len - 1 ? "1px solid var(--hairline)" : "none",
-  fontSize: "var(--text-label-13)",
   alignItems: "center",
 });
 
@@ -995,7 +983,6 @@ export function ConnectorDetail({
     return (
       <div
         style={{
-          fontSize: "var(--text-label-13)",
           color: "var(--ink-faint)",
           padding: "32px 0",
           textAlign: "center",
@@ -1022,7 +1009,7 @@ export function ConnectorDetail({
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load {spec.label}
           </div>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: "8px 0 0" }}>
+          <p style={{ color: "var(--ink-subtle)", margin: "8px 0 0" }}>
             {err?.message ?? "Unknown error"}
           </p>
           <button
@@ -1078,7 +1065,7 @@ export function ConnectorDetail({
             <StatusPill tone="muted" title="Reading through a workspace-level server credential">
               Active
             </StatusPill>
-            <span style={{ flex: 1, fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+            <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
               {spec.description} Already connected through an admin-managed server credential -
               there is nothing for you to connect personally.
             </span>
@@ -1097,7 +1084,6 @@ export function ConnectorDetail({
                 marginTop: 12,
                 paddingTop: 12,
                 borderTop: "1px solid var(--hairline)",
-                fontSize: "var(--text-label-13)",
                 color: envCheck.ok ? "var(--moss-bright)" : "var(--madder)",
               }}
             >
@@ -1107,7 +1093,7 @@ export function ConnectorDetail({
             </div>
           ) : (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
-              <span style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)" }}>
+              <span style={{ color: "var(--ink-faint)" }}>
                 "Active" only confirms the credential is set, not that it still works - press Test
                 connection to check right now.
               </span>
@@ -1132,7 +1118,7 @@ export function ConnectorDetail({
           className="bento"
           style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
         >
-          <span style={{ flex: 1, fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
             {spec.description} {hint}
           </span>
           <button type="button" className="btn btn-primary btn-sm" disabled title={hint}>
@@ -1157,7 +1143,7 @@ export function ConnectorDetail({
           className="bento"
           style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
         >
-          <span style={{ flex: 1, fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
             {spec.description} Connect it once and what it syncs starts feeding the company brain.
           </span>
           <button
@@ -1344,7 +1330,7 @@ export function ConnectorDetail({
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>What it feeds · workspace bindings</MonoLabel>
           {provBindings.length === 0 ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
               No workspace bindings yet. Bind repos, projects, or pages under workspace sync and
               bindings.
             </p>
@@ -1362,7 +1348,7 @@ export function ConnectorDetail({
               {provBindings.map((b) => (
                 <li
                   key={b.id}
-                  style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", display: "flex", gap: 8 }}
+                  style={{ color: "var(--ink-muted)", display: "flex", gap: 8 }}
                 >
                   <StepDot status={b.connection_status === "connected" ? "completed" : "failed"} />
                   <span>

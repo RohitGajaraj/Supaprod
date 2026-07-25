@@ -98,7 +98,7 @@ export function LegalPageShell({
             </Link>
             <Link
               to="/"
-              style={{ fontSize: "var(--text-label-13)", color: C.muted, textDecoration: "none" }}
+              style={{ color: C.muted, textDecoration: "none" }}
             >
               ← Back to home
             </Link>
@@ -110,7 +110,6 @@ export function LegalPageShell({
             <p
               style={{
                 fontFamily: "Geist Mono, monospace",
-                fontSize: 10,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: C.emberBright,
@@ -130,12 +129,11 @@ export function LegalPageShell({
             >
               {title}
             </h1>
-            <p style={{ fontSize: "var(--text-label-13)", color: C.faint, margin: "0 0 40px" }}>
+            <p style={{ color: C.faint, margin: "0 0 40px" }}>
               Last updated {updated}
             </p>
             <div
               style={{
-                fontSize: 14.5,
                 lineHeight: 1.75,
                 color: C.muted,
               }}
@@ -171,7 +169,7 @@ export function LegalPageShell({
               <a
                 key={l.href}
                 href={l.href}
-                style={{ fontSize: "var(--text-label-12)", color: C.faint, textDecoration: "none" }}
+                style={{ color: C.faint, textDecoration: "none" }}
               >
                 {l.label}
               </a>

@@ -115,7 +115,6 @@ export const SignalCard = memo(function SignalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--text-muted)",
             border: "1px solid color-mix(in srgb, var(--text-muted) 35%, transparent)",
@@ -141,7 +140,6 @@ export const SignalCard = memo(function SignalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--text-subtle)",
           }}
@@ -161,7 +159,6 @@ export const SignalCard = memo(function SignalCard({
                 style={{
                   marginLeft: "auto",
                   fontFamily: "var(--font-mono)",
-                  fontSize: "14px",
                   background: "none",
                   border: "none",
                   cursor: actionsPending ? "default" : "pointer",
@@ -208,7 +205,6 @@ export const SignalCard = memo(function SignalCard({
       </div>
       <p
         style={{
-          fontSize: "var(--text-base)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           margin: 0,
@@ -227,7 +223,6 @@ export const SignalCard = memo(function SignalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--text-subtle)",
           }}

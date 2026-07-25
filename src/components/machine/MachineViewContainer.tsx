@@ -39,7 +39,6 @@ export function MachineViewContainer({
         background: "#0a0a0a",
         color: "#d4d0c8",
         fontFamily: "'Geist Mono', monospace",
-        fontSize: 13,
         lineHeight: 1.75,
         padding: "40px 32px",
         maxWidth: 860,
@@ -55,7 +54,6 @@ export function MachineViewContainer({
       <pre
         style={{
           color: "#6b7280",
-          fontSize: 12,
           marginBottom: 32,
           whiteSpace: "pre-wrap",
           borderLeft: "2px solid #333",
@@ -76,7 +74,6 @@ export function MachineViewContainer({
           background: "transparent",
           color: "#d4d0c8",
           fontFamily: "'Geist Mono', monospace",
-          fontSize: 11,
           letterSpacing: "0.08em",
           padding: "10px 20px",
           cursor: "pointer",
@@ -92,7 +89,6 @@ export function MachineViewContainer({
       {title && (
         <h1
           style={{
-            fontSize: 18,
             fontWeight: 600,
             color: "#e8642c",
             marginBottom: 24,

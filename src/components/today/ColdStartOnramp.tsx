@@ -270,7 +270,6 @@ export function ColdStartOnramp() {
 
 
 
-            fontSize: 19,
 
 
 

@@ -37,7 +37,6 @@ const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; d
 const TH: React.CSSProperties = {
   textAlign: "center",
   padding: "8px 12px 12px 12px",
-  fontSize: "var(--text-label-12)",
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.05em",
@@ -209,7 +208,7 @@ export function NotificationsTab() {
             <option value="weekly">Weekly summary</option>
           </select>
           <div
-            style={{ marginTop: 6, fontSize: "var(--text-label-12)", color: "var(--ink-muted)" }}
+            style={{ marginTop: 6, color: "var(--ink-muted)" }}
           >
             How often email digests are aggregated and sent to you.
           </div>
@@ -237,7 +236,6 @@ export function NotificationsTab() {
         </label>
         <p
           style={{
-            fontSize: "var(--text-label-12)",
             color: "var(--ink-muted)",
             margin: stakeholderUpdate ? "0 0 14px" : 0,
           }}
@@ -268,7 +266,6 @@ export function NotificationsTab() {
         <MonoLabel style={{ marginBottom: 4 }}>Interaction feedback</MonoLabel>
         <p
           style={{
-            fontSize: "var(--text-label-12)",
             color: "var(--ink-muted)",
             margin: "0 0 14px",
           }}

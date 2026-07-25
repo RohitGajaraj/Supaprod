@@ -51,7 +51,6 @@ export const VerdictChip = React.forwardRef<HTMLSpanElement, VerdictChipProps>(
         className={cn("inline-flex items-center uppercase", className)}
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-micro)",
           fontWeight: 600,
           letterSpacing: "0.11em",
           borderRadius: "var(--radius-pill)",

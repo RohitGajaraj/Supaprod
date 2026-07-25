@@ -62,7 +62,6 @@ function AskButton() {
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         color: "var(--text-muted)",
-        fontSize: "var(--text-label-13)",
         cursor: "pointer",
       }}
     >
@@ -130,7 +129,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
                   {label}
                 </span>
               ) : typeof c === "string" ? (
-                <span className="truncate" style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+                <span className="truncate" style={{ color: "var(--text-subtle)" }}>
                   {label}
                 </span>
               ) : (
@@ -138,7 +137,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
                   to={c.to}
                   search={c.search as never}
                   className="truncate rounded-[4px] outline-none transition-colors duration-150 hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-                  style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}
+                  style={{ color: "var(--text-subtle)" }}
                 >
                   {label}
                 </Link>

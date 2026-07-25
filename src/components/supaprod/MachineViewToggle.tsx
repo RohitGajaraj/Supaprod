@@ -14,7 +14,6 @@ export function MachineViewToggle() {
       aria-label="Machine-readable view"
       style={{
         fontFamily: "'Geist Mono', monospace",
-        fontSize: 11,
         letterSpacing: "0.06em",
         background: "none",
         border: "none",

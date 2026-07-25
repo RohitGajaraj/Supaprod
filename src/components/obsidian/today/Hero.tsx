@@ -56,7 +56,6 @@ export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9.5,
           letterSpacing: "0.14em",
           color: "var(--text-subtle)",
           textTransform: "uppercase",

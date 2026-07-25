@@ -82,7 +82,6 @@ export function AttentionBell() {
             borderRadius: 999,
             background: accent,
             color: "#fff",
-            fontSize: 9,
             fontWeight: 600,
             lineHeight: "14px",
             textAlign: "center",

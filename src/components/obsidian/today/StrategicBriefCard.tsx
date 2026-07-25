@@ -98,13 +98,11 @@ export function StrategicBriefCard() {
   const rowStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 3 };
   const labelStyle: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
-    fontSize: 9,
     letterSpacing: "0.1em",
     color: "var(--text-subtle)",
     textTransform: "uppercase",
   };
   const bodyStyle: React.CSSProperties = {
-    fontSize: 12.5,
     lineHeight: 1.5,
     color: "var(--text-body)",
     margin: 0,
@@ -117,7 +115,6 @@ export function StrategicBriefCard() {
   // hover:[color:…] variant can win (inline style beats classes).
   const quietLinkStyle: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
-    fontSize: 9,
     background: "transparent",
     border: "none",
     textTransform: "uppercase",
@@ -187,7 +184,6 @@ export function StrategicBriefCard() {
                       className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 9,
                         background: "transparent",
                         border: "none",
                         textTransform: "uppercase",
@@ -223,7 +219,6 @@ export function StrategicBriefCard() {
                         className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)]"
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: 9,
                           background: "transparent",
                           border: "none",
                           textTransform: "uppercase",
@@ -260,7 +255,6 @@ export function StrategicBriefCard() {
                     className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)] disabled:cursor-default disabled:opacity-45"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9,
                       background: "transparent",
                       border: "none",
                       textTransform: "uppercase",
@@ -304,7 +298,6 @@ export function StrategicBriefCard() {
                       className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)]"
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 9,
                         background: "transparent",
                         border: "none",
                         textTransform: "uppercase",
@@ -321,7 +314,6 @@ export function StrategicBriefCard() {
                   className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9,
                     background: "transparent",
                     border: "none",
                     textTransform: "uppercase",

@@ -55,7 +55,6 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
     alignItems: "center",
     gap: 5,
     fontFamily: "var(--font-mono)",
-    fontSize: 10,
     color: "var(--text-subtle)",
     background: "transparent",
     border: "1px solid var(--hairline)",
@@ -118,7 +117,6 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
     <span
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.06em",
         textTransform: "uppercase",
         color: tone,
@@ -151,7 +149,6 @@ const LINK_BUTTON: React.CSSProperties = {
   alignItems: "center",
   gap: "6px",
   marginLeft: "auto",
-  fontSize: "12px",
   color: "var(--text-body)",
   background: "transparent",
   border: "none",
@@ -246,7 +243,6 @@ export function ReceiptDetailSheet({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9.5px",
                     letterSpacing: "0.06em",
                     color: "var(--text-subtle)",
                   }}
@@ -265,7 +261,6 @@ export function ReceiptDetailSheet({
                 style={{
                   gap: "6px",
                   fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
                   letterSpacing: "0.06em",
                   color: "var(--text-faint)",
                   background: "transparent",
@@ -297,14 +292,13 @@ export function ReceiptDetailSheet({
           >
             <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
               <MonoLabel
-                style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+                style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
               >
                 {superseded ? "Superseded" : "Still stands"}
               </MonoLabel>
               <span
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "13px",
                   fontWeight: 550,
                   color: "var(--text-primary)",
                   lineHeight: 1.5,
@@ -333,11 +327,11 @@ export function ReceiptDetailSheet({
 
           <DetailSection heading="Why">
             {r.rationale ? (
-              <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+              <span style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
                 {r.rationale}
               </span>
             ) : (
-              <span style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic" }}>
+              <span style={{ color: "var(--text-subtle)", fontStyle: "italic" }}>
                 No rationale recorded.
               </span>
             )}
@@ -353,7 +347,6 @@ export function ReceiptDetailSheet({
                       <span
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: "9.5px",
                           letterSpacing: "0.06em",
                           textTransform: "uppercase",
                           color: "var(--text-subtle)",
@@ -364,7 +357,6 @@ export function ReceiptDetailSheet({
                       </span>
                       <span
                         style={{
-                          fontSize: "12.5px",
                           color: "var(--text-body)",
                           textAlign: "left",
                           overflowWrap: "anywhere",
@@ -411,7 +403,7 @@ export function ReceiptDetailSheet({
 
           {r.outcome === "proven" && r.provenBy ? (
             <DetailSection heading="Proven by a recorded outcome">
-              <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+              <span style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
                 {r.provenBy.summary ?? `Learning ${r.provenBy.id.slice(0, 8)}`}
               </span>
             </DetailSection>
@@ -430,7 +422,6 @@ export function ReceiptDetailSheet({
                     >
                       <span
                         style={{
-                          fontSize: "12.5px",
                           color: "var(--text-body)",
                           overflowWrap: "anywhere",
                         }}
@@ -453,7 +444,7 @@ export function ReceiptDetailSheet({
                 })}
               </div>
             ) : (
-              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+              <span style={{ color: "var(--text-body)" }}>
                 {r.source.label
                   ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
                   : r.kind === "decision"
@@ -468,11 +459,10 @@ export function ReceiptDetailSheet({
               <div style={{ display: "grid", gap: "10px" }}>
                 {r.build.branch ? (
                   <div style={{ display: "grid", gap: "3px" }}>
-                    <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Branch</span>
+                    <span style={{ color: "var(--text-subtle)" }}>Branch</span>
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "11.5px",
                         color: "var(--text-body)",
                         overflowWrap: "anywhere",
                       }}
@@ -483,38 +473,38 @@ export function ReceiptDetailSheet({
                 ) : null}
                 {r.build.prUrl || r.build.prNumber != null ? (
                   <div style={{ display: "grid", gap: "3px" }}>
-                    <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>PR</span>
+                    <span style={{ color: "var(--text-subtle)" }}>PR</span>
                     {r.build.prUrl ? (
                       <a
                         href={r.build.prUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                        style={{ gap: "6px", fontSize: "12.5px", color: "var(--glacier)" }}
+                        style={{ gap: "6px", color: "var(--glacier)" }}
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         {r.build.prNumber != null ? `#${r.build.prNumber}` : "Open the PR"}
                       </a>
                     ) : (
-                      <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                      <span style={{ color: "var(--text-body)" }}>
                         #{r.build.prNumber}
                       </span>
                     )}
                   </div>
                 ) : null}
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Status</span>
-                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  <span style={{ color: "var(--text-subtle)" }}>Status</span>
+                  <span style={{ color: "var(--text-body)" }}>
                     {r.build.status}
                   </span>
                 </div>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                  <span style={{ color: "var(--text-subtle)" }}>
                     Fix attempts consumed
                   </span>
                   <span
                     className="tabular-nums"
-                    style={{ fontSize: "12.5px", color: "var(--text-body)" }}
+                    style={{ color: "var(--text-body)" }}
                   >
                     {r.build.fixAttempts}
                   </span>
@@ -535,7 +525,6 @@ export function ReceiptDetailSheet({
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "9.5px",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
                         color: "var(--text-subtle)",
@@ -551,7 +540,6 @@ export function ReceiptDetailSheet({
                         rel="noreferrer"
                         className="hover:[color:var(--text-primary)]"
                         style={{
-                          fontSize: "12.5px",
                           color: "var(--glacier)",
                           overflowWrap: "anywhere",
                         }}
@@ -559,7 +547,7 @@ export function ReceiptDetailSheet({
                         {d.url}
                       </a>
                     ) : (
-                      <span style={{ fontSize: "12.5px", color: "var(--text-subtle)" }}>
+                      <span style={{ color: "var(--text-subtle)" }}>
                         No URL recorded
                       </span>
                     )}
@@ -568,7 +556,6 @@ export function ReceiptDetailSheet({
                         style={{
                           marginLeft: "auto",
                           fontFamily: "var(--font-mono)",
-                          fontSize: "9.5px",
                           letterSpacing: "0.06em",
                           color: "var(--text-faint)",
                           flexShrink: 0,
@@ -586,23 +573,22 @@ export function ReceiptDetailSheet({
           <DetailSection heading="Decided">
             <div style={{ display: "grid", gap: "10px" }}>
               <div style={{ display: "grid", gap: "3px" }}>
-                <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>By</span>
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span style={{ color: "var(--text-subtle)" }}>By</span>
+                <span style={{ color: "var(--text-body)" }}>
                   {decidedLabel}
                 </span>
               </div>
               {r.occurredAt ? (
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>When</span>
+                  <span style={{ color: "var(--text-subtle)" }}>When</span>
                   <span
                     className="flex items-baseline"
-                    style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                    style={{ gap: "8px", color: "var(--text-body)" }}
                   >
                     <span>{new Date(r.occurredAt).toLocaleString()}</span>
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "9.5px",
                         letterSpacing: "0.06em",
                         color: "var(--text-faint)",
                       }}
@@ -648,7 +634,6 @@ export function ReceiptDetailSheet({
                   className="loom-press flex items-center hover:[color:var(--text-primary)]"
                   style={{
                     gap: "8px",
-                    fontSize: "12.5px",
                     color: "var(--text-body)",
                     background: "transparent",
                     border: "none",
@@ -657,20 +642,20 @@ export function ReceiptDetailSheet({
                   }}
                 >
                   <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                  <span style={{ fontFamily: "var(--font-mono)" }}>
                     {r.supersededBy.slice(0, 8)}
                   </span>
-                  <span style={{ fontSize: "12px", color: "var(--text-body)" }}>
+                  <span style={{ color: "var(--text-body)" }}>
                     Open the superseding record
                   </span>
                 </button>
               ) : (
                 <span
                   className="flex items-center"
-                  style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                  style={{ gap: "8px", color: "var(--text-body)" }}
                 >
                   <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                  <span style={{ fontFamily: "var(--font-mono)" }}>
                     {r.supersededBy.slice(0, 8)}
                   </span>
                 </span>

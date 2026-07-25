@@ -15,7 +15,6 @@ export function AutoChip({ label = "Auto" }: { label?: string }) {
       title="Raised automatically by the loop"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "9.5px",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         color: "var(--text-muted)",

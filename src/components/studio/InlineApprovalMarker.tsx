@@ -27,7 +27,6 @@ export function InlineApprovalMarker({ approvals }: { approvals: MissionApproval
         gap: 4,
         flexShrink: 0,
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-label-12)",
         color: "var(--madder)",
         textDecoration: "none",
         padding: "4px 8px",

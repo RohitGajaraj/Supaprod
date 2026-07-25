@@ -19,7 +19,6 @@ export function CostIncidentBadge({ amountUsd, windowKind }: CostIncidentBadgePr
         borderRadius: 4,
         background: "color-mix(in srgb, var(--marigold) 12%, transparent)",
         color: "var(--marigold)",
-        fontSize: "11px",
         fontWeight: 600,
         marginLeft: 8,
       }}

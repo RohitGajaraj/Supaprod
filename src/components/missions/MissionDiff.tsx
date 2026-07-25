@@ -53,7 +53,6 @@ function Delta({
   return (
     <span
       style={{
-        fontSize: 10,
         color: regressed ? "var(--madder)" : "var(--text-body)",
         whiteSpace: "nowrap",
       }}
@@ -83,7 +82,6 @@ function MetricRow({
         alignItems: "baseline",
         padding: "5px 0",
         borderTop: "1px solid var(--hairline)",
-        fontSize: 12.5,
       }}
     >
       <span style={{ color: "var(--text-subtle)" }}>{label}</span>
@@ -169,7 +167,6 @@ export function MissionDiff({
           display: "grid",
           gridTemplateColumns: "1.1fr 0.9fr 0.9fr 0.7fr",
           gap: 8,
-          fontSize: 9,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -240,7 +237,6 @@ export function MissionDiff({
               <li
                 key={h.index}
                 style={{
-                  fontSize: 12,
                   color: "var(--text-subtle)",
                   padding: "3px 0",
                 }}

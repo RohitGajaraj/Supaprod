@@ -68,7 +68,6 @@ export function MemoryExpiryBanner({ workspaceId }: { workspaceId: string | null
           display: "inline-flex",
           alignItems: "center",
           gap: 5,
-          fontSize: 9,
           padding: "5px 12px",
           borderRadius: 6,
           border: "1px solid color-mix(in oklab, var(--ember) 45%, transparent)",

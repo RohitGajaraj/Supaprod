@@ -134,7 +134,7 @@ export function StakeholderPackPanel({
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD STAKEHOLDER PACK
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -147,7 +147,6 @@ export function StakeholderPackPanel({
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -185,7 +184,6 @@ export function StakeholderPackPanel({
         style={{
           display: "block",
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -245,7 +243,6 @@ export function StakeholderPackPanel({
                 className={`loom-press ${active ? "" : "hover:[color:var(--text-body)]"}`}
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   color: active ? "var(--text-primary)" : "var(--text-subtle)",
@@ -299,7 +296,6 @@ export function StakeholderPackPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-label-13)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -319,7 +315,6 @@ export function StakeholderPackPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-label-13)",
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -327,7 +322,7 @@ export function StakeholderPackPanel({
               >
                 Sources
               </div>
-              <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
+              <ol style={{ margin: 0, paddingLeft: 18, color: "var(--text-body)" }}>
                 {rendered.pack.citations.map((c, i) => (
                   <li key={`${c.kind}-${c.id}-${i}`}>{c.label}</li>
                 ))}
@@ -336,7 +331,6 @@ export function StakeholderPackPanel({
           ) : null}
           <div
             style={{
-              fontSize: "var(--text-label-12)",
               color: "var(--text-faint)",
               borderTop: "1px solid var(--hairline)",
               paddingTop: 10,

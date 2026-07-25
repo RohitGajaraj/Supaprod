@@ -119,7 +119,6 @@ function TabBar({
                 : "[color:var(--text-muted)] hover:[color:var(--text-body)]"
             }`}
             style={{
-              fontSize: "13px",
               fontWeight: selected ? 600 : 500,
               height: "36px",
               padding: "0 14px",
@@ -263,7 +262,6 @@ export function DiscoverSurface() {
           in three plain steps. */}
         <p
           style={{
-            fontSize: "13px",
             lineHeight: 1.6,
             color: "var(--text-muted)",
             maxWidth: "640px",
@@ -282,7 +280,6 @@ export function DiscoverSurface() {
           >
             <p
               style={{
-                fontSize: "var(--text-base)",
                 color: "var(--text-muted)",
                 margin: "0 0 20px",
                 maxWidth: "640px",
@@ -319,7 +316,6 @@ export function DiscoverSurface() {
                 <p
                   style={{
                     fontFamily: "var(--font-pixel)",
-                    fontSize: "20px",
                     lineHeight: 1.3,
                     color: "var(--text-primary)",
                     margin: "0 0 6px",
@@ -329,7 +325,6 @@ export function DiscoverSurface() {
                 </p>
                 <p
                   style={{
-                    fontSize: "var(--text-base)",
                     color: "var(--text-body)",
                     margin: "0 0 16px",
                   }}
@@ -349,7 +344,6 @@ export function DiscoverSurface() {
                 </Button>
                 <p
                   style={{
-                    fontSize: "12px",
                     color: "var(--text-subtle)",
                     marginTop: "10px",
                   }}
@@ -375,7 +369,6 @@ export function DiscoverSurface() {
                     </Button>
                     <p
                       style={{
-                        fontSize: "12px",
                         color: "var(--text-subtle)",
                         marginTop: "10px",
                       }}
@@ -385,7 +378,7 @@ export function DiscoverSurface() {
                     </p>
                     {sampleMutation.isError ? (
                       // An error wears error clothes (madder), never quiet gray.
-                      <p style={{ fontSize: "12px", color: "var(--madder)", marginTop: "6px" }}>
+                      <p style={{ color: "var(--madder)", marginTop: "6px" }}>
                         Could not open the sample workspace. Try again.
                       </p>
                     ) : null}
@@ -420,7 +413,6 @@ export function DiscoverSurface() {
                   <p
                     style={{
                       margin: "3px 0 16px",
-                      fontSize: "var(--text-label-13)",
                       color: "var(--text-subtle)",
                     }}
                   >

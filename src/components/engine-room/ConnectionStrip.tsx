@@ -16,7 +16,6 @@ function providerLabel(provider: string): string {
  * classes (never removed, Tempo law). */
 const doorLink: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-mono-floor)",
   letterSpacing: "0.11em",
   textTransform: "uppercase",
   color: "var(--link)",
@@ -68,7 +67,6 @@ export function ConnectionStrip() {
       className="uppercase"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
         letterSpacing: "0.11em",
         color: "var(--text-subtle)",
         whiteSpace: "nowrap",
@@ -106,7 +104,6 @@ export function ConnectionStrip() {
         <span
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "12.5px",
             color: "var(--madder-bright)",
           }}
         >
@@ -121,7 +118,6 @@ export function ConnectionStrip() {
           }}
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.11em",
             color: "var(--text-primary)",
             background: "none",
@@ -162,7 +158,6 @@ export function ConnectionStrip() {
       className="uppercase"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
         letterSpacing: "0.08em",
         color: "var(--text-subtle)",
       }}
@@ -178,7 +173,6 @@ export function ConnectionStrip() {
       style={{
         gap: "6px",
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
         letterSpacing: "0.08em",
         color: "var(--marigold)",
         textDecoration: "none",
@@ -196,7 +190,6 @@ export function ConnectionStrip() {
       className="uppercase"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
         letterSpacing: "0.08em",
         color: "var(--text-subtle)",
       }}
@@ -212,7 +205,6 @@ export function ConnectionStrip() {
         <span
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "12.5px",
             color: "var(--text-subtle)",
           }}
         >
@@ -243,7 +235,6 @@ export function ConnectionStrip() {
               className="uppercase"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.06em",
                 color: "var(--text-subtle)",
               }}
@@ -256,7 +247,6 @@ export function ConnectionStrip() {
               style={{
                 gap: "6px",
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
                 letterSpacing: "0.08em",
                 color: connected ? "var(--moss-bright)" : "var(--marigold)",
               }}
@@ -279,7 +269,6 @@ export function ConnectionStrip() {
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             color: "var(--text-subtle)",
           }}
         >

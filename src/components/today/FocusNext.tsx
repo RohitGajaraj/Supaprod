@@ -130,7 +130,6 @@ export function FocusNext({
 
 
 
-          fontSize: 17,
 
 
 

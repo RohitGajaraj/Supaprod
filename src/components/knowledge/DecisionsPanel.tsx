@@ -119,7 +119,6 @@ function FilterGroup<T extends string>({
           className="outline-none uppercase transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.08em",
             padding: "3px 10px",
             borderRadius: 6,
@@ -207,7 +206,6 @@ export function DecisionsPanel() {
             border: "1px solid var(--hairline)",
             borderRadius: 8,
             padding: "7px 10px",
-            fontSize: 12,
             color: "var(--text-primary)",
           }}
         />
@@ -228,7 +226,7 @@ export function DecisionsPanel() {
           }}
         >
           <MonoLabel style={{ marginBottom: 8 }}>Decisions · failed to load</MonoLabel>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+          <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
             {(decisions.error as Error).message}
           </p>
           <Button variant="secondary" onClick={() => void decisions.refetch()}>
@@ -269,7 +267,6 @@ export function DecisionsPanel() {
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-faint)",
               textTransform: "uppercase",
             }}
@@ -294,7 +291,6 @@ export function DecisionsPanel() {
                 padding: "13px 18px",
                 alignItems: "baseline",
                 borderBottom: i < shown.length - 1 ? "1px solid var(--hairline)" : "none",
-                fontSize: 13,
                 background: "transparent",
                 border: "none",
               }}
@@ -349,7 +345,6 @@ export function DecisionsPanel() {
               </span>
               <span
                 style={{
-                  fontSize: "var(--text-label-13)",
                   color: "var(--text-muted)",
                 }}
               >
@@ -359,7 +354,6 @@ export function DecisionsPanel() {
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
                 }}
               >
@@ -368,7 +362,6 @@ export function DecisionsPanel() {
               <span
                 style={{
                   color: "var(--text-subtle)",
-                  fontSize: "var(--text-label-13)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -391,7 +384,6 @@ export function DecisionsPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -444,13 +436,13 @@ function LogDecisionDialog({
           <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
             Log decision
           </DialogTitle>
-          <DialogDescription style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+          <DialogDescription style={{ color: "var(--text-subtle)" }}>
             Capture a choice that should outlive this week. Supaprod reads these.
           </DialogDescription>
         </DialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+            <MonoLabel style={{ marginBottom: 4 }}>
               title
             </MonoLabel>
             <input
@@ -466,13 +458,12 @@ function LogDecisionDialog({
                 border: "1px solid var(--hairline)",
                 borderRadius: 8,
                 padding: "7px 10px",
-                fontSize: 13,
                 color: "var(--text-primary)",
               }}
             />
           </div>
           <div>
-            <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+            <MonoLabel style={{ marginBottom: 4 }}>
               rationale · optional
             </MonoLabel>
             <textarea
@@ -490,7 +481,6 @@ function LogDecisionDialog({
                 border: "1px solid var(--hairline)",
                 borderRadius: 8,
                 padding: "7px 10px",
-                fontSize: 13,
                 color: "var(--text-primary)",
               }}
             />

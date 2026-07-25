@@ -165,7 +165,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           title="Could not load"
         />
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--rose)", margin: 0 }}>
+          <p style={{ color: "var(--rose)", margin: 0 }}>
             This suite did not load. {(suiteQ.error as Error).message}
           </p>
           <button
@@ -191,7 +191,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           title="Suite not found"
         />
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", margin: 0 }}>
+          <p style={{ color: "var(--ink-muted)", margin: 0 }}>
             This eval suite doesn't exist in this workspace; it may have been deleted.
           </p>
           <button
@@ -258,7 +258,6 @@ export function EvalSuiteDetail({ id }: { id: string }) {
       {suite.description ? (
         <p
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--ink-subtle)",
             margin: "-10px 0 16px",
             maxWidth: 520,
@@ -318,7 +317,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
         </div>
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 6 }}>Cases</MonoLabel>
-          <div style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", lineHeight: 1.5 }}>
+          <div style={{ color: "var(--ink-muted)", lineHeight: 1.5 }}>
             {cases.length} {cases.length === 1 ? "case" : "cases"}
             <br />
             <span style={{ color: "var(--ink-subtle)" }}>{enabledCases} enabled</span>
@@ -338,7 +337,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
       {sub === "Runs" ? (
         runs.length === 0 ? (
           <div className="bento" style={{ padding: 32, textAlign: "center" }}>
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
               No runs yet. Run suite · {enabledCases} cases against the live prompt.
             </p>
           </div>
@@ -373,7 +372,6 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                     padding: "11px 18px",
                     alignItems: "center",
                     borderBottom: i < runs.length - 1 ? "1px solid var(--hairline)" : "none",
-                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   <span className="mono-label" style={{ color: "var(--ink)" }}>
@@ -389,7 +387,6 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                   <span
                     className="font-display tabular-nums"
                     style={{
-                      fontSize: 16,
                       color:
                         rScore != null && rScore < suite.pass_threshold
                           ? "var(--madder)"
@@ -451,7 +448,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               }}
             >
               <span className="mono-label">{l}</span>
-              <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)" }}>{v}</span>
+              <span style={{ color: "var(--ink-muted)" }}>{v}</span>
             </div>
           ))}
           <div
@@ -464,14 +461,13 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             }}
           >
             <span className="mono-label">Suite</span>
-            <span style={{ fontSize: "var(--text-label-13)" }}>
+            <span style={{ }}>
               <button
                 type="button"
                 role="switch"
                 aria-checked={suite.enabled}
                 className="mono-label cursor-pointer hover:underline"
                 style={{
-                  fontSize: 8.5,
                   color: suite.enabled ? "var(--emerald)" : "var(--ink-faint)",
                 }}
                 onClick={async () => {
@@ -492,7 +488,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             }}
           >
             <span className="mono-label">Delete</span>
-            <span style={{ fontSize: "var(--text-label-13)" }}>
+            <span style={{ }}>
               <button
                 type="button"
                 className="mono-label cursor-pointer hover:underline"
@@ -535,7 +531,7 @@ function FailingCases({ runId }: { runId: string | null }) {
   if (!runId) {
     return (
       <div className="bento" style={{ padding: 32, textAlign: "center" }}>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+        <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
           Not run yet. Failing cases appear after the first completed run.
         </p>
       </div>
@@ -551,7 +547,7 @@ function FailingCases({ runId }: { runId: string | null }) {
   if (q.isError) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--rose)", margin: 0 }}>
+        <p style={{ color: "var(--rose)", margin: 0 }}>
           This run's cases did not load. {(q.error as Error).message}
         </p>
         <button
@@ -581,7 +577,7 @@ function FailingCases({ runId }: { runId: string | null }) {
       ) : null}
       {failing.length === 0 ? (
         <div className="bento" style={{ padding: 32, textAlign: "center" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+          <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
             No failing cases in this run.
           </p>
         </div>
@@ -600,7 +596,6 @@ function FailingCases({ runId }: { runId: string | null }) {
             {r.actual ? (
               <p
                 style={{
-                  fontSize: "var(--text-label-13)",
                   color: "var(--ink-muted)",
                   margin: "8px 0 6px",
                   lineHeight: 1.5,
@@ -622,7 +617,7 @@ function FailingCases({ runId }: { runId: string | null }) {
                 <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
                   expected
                 </span>
-                <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
+                <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
                   {r.case.expected}
                 </span>
               </div>
@@ -632,13 +627,13 @@ function FailingCases({ runId }: { runId: string | null }) {
                 <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
                   judge
                 </span>
-                <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+                <span style={{ color: "var(--ink-subtle)" }}>
                   {r.judge_reasoning}
                 </span>
               </div>
             ) : null}
             {r.error ? (
-              <p style={{ fontSize: "var(--text-label-13)", color: "var(--rose)", margin: "6px 0 0" }}>{r.error}</p>
+              <p style={{ color: "var(--rose)", margin: "6px 0 0" }}>{r.error}</p>
             ) : null}
           </div>
         ))
@@ -747,7 +742,7 @@ function CaseList({
 
       {cases.length === 0 && !formOpen ? (
         <div className="bento" style={{ padding: 32, textAlign: "center" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+          <p style={{ color: "var(--ink-subtle)" }}>
             No cases yet. Add one: each case is an input, an optional expected output, and a rubric
             the judge scores against.
           </p>
@@ -764,7 +759,6 @@ function CaseList({
                 aria-checked={c.enabled}
                 className="mono-label cursor-pointer hover:underline"
                 style={{
-                  fontSize: 8.5,
                   color: c.enabled ? "var(--emerald)" : "var(--ink-faint)",
                 }}
                 onClick={async () => {
@@ -797,7 +791,7 @@ function CaseList({
                 <span className="mono-label" style={{ fontSize: 8.5, flexShrink: 0 }}>
                   input
                 </span>
-                <span style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
+                <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
                   {c.input}
                 </span>
               </div>
@@ -807,7 +801,7 @@ function CaseList({
                     expected
                   </span>
                   <span
-                    style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
+                    style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
                   >
                     {c.expected}
                   </span>
@@ -819,7 +813,7 @@ function CaseList({
                     rubric
                   </span>
                   <span
-                    style={{ fontSize: "var(--text-label-13)", color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
+                    style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
                   >
                     {c.rubric}
                   </span>

@@ -46,7 +46,6 @@ function MissionMeta({ missionId, startedIso }: { missionId: string; startedIso?
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9.5,
             letterSpacing: "0.06em",
             color: "var(--text-subtle)",
           }}
@@ -72,7 +71,6 @@ function SpecProvenanceLink({ spec }: { spec: { id: string; title: string } }) {
         alignItems: "center",
         gap: 6,
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-label-12)",
         letterSpacing: "0.06em",
         color: "var(--glacier)",
         textDecoration: "none",
@@ -181,7 +179,6 @@ export function MissionSlideOver({
             style={{
               marginTop: 10,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
               color: "var(--text-subtle)",
               background: "transparent",
               border: "none",
@@ -255,7 +252,6 @@ export function MissionSlideOver({
               style={{
                 alignSelf: "flex-start",
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-label-12)",
                 letterSpacing: "0.08em",
                 color: "var(--glacier)",
                 textDecoration: "none",
@@ -292,7 +288,6 @@ export function MissionSlideOver({
               style={{
                 alignSelf: "flex-start",
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-label-12)",
                 letterSpacing: "0.08em",
                 color: "var(--text-subtle)",
                 textDecoration: "none",
@@ -308,7 +303,6 @@ export function MissionSlideOver({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     color: "var(--text-faint)",
                     width: 20,
                   }}
@@ -333,7 +327,6 @@ export function MissionSlideOver({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 8,
                     color: "var(--text-faint)",
                   }}
                 >
@@ -342,7 +335,7 @@ export function MissionSlideOver({
               </div>
             ))}
             {steps.length === 0 ? (
-              <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>No steps recorded yet.</p>
+              <p style={{ color: "var(--text-subtle)" }}>No steps recorded yet.</p>
             ) : null}
           </div>
 
@@ -378,7 +371,6 @@ export function MissionSlideOver({
             style={{
               alignSelf: "flex-start",
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
               letterSpacing: "0.1em",
               color: "var(--text-subtle)",
               background: "none",
@@ -405,7 +397,6 @@ export function MissionSlideOver({
                   key={i}
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     color: "var(--text-subtle)",
                   }}
                 >

@@ -97,7 +97,6 @@ export function TracesPanel() {
       {traces.isLoading ? (
         <div
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--ink-faint)",
             padding: "32px 0",
             textAlign: "center",
@@ -107,7 +106,7 @@ export function TracesPanel() {
         </div>
       ) : rows.length === 0 ? (
         <div className="bento" style={{ padding: 32, textAlign: "center" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+          <p style={{ color: "var(--ink-subtle)" }}>
             No traces in this window. Run an agent or a chat, and every AI call lands here as a
             replayable trace.
           </p>
@@ -141,7 +140,6 @@ export function TracesPanel() {
                 padding: "13px 18px",
                 alignItems: "center",
                 borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
-                fontSize: 13,
               }}
             >
               <Link

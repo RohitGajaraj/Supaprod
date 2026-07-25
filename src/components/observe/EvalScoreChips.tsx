@@ -73,7 +73,6 @@ export function EvalScoreChips({ scores }: { scores: EvalScore[] }) {
               className="uppercase"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-micro)",
                 letterSpacing: "0.11em",
                 color: "var(--text-subtle)",
               }}
@@ -86,7 +85,6 @@ export function EvalScoreChips({ scores }: { scores: EvalScore[] }) {
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   color: "var(--text-muted)",
                 }}
               >

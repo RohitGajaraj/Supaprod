@@ -48,7 +48,6 @@ export function RewindButton({ decisionId, hasSnapshot, onReverted }: RewindButt
         type="button"
         onClick={() => setOpen(true)}
         style={{
-          fontSize: 12.5,
           color: "var(--ink-subtle)",
           textDecoration: "underline",
           textUnderlineOffset: 2,

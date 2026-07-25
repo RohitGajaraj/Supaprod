@@ -26,12 +26,10 @@ export function useObsidianAuthSurface(): void {
 export const fieldLabelStyle: CSSProperties = {
   display: "block",
   textAlign: "left",
-  fontSize: 9,
   marginBottom: 5,
 };
 
 export const fieldErrorStyle: CSSProperties = {
-  fontSize: "var(--text-label-12)",
   color: "var(--madder)",
   textAlign: "left",
   lineHeight: 1.5,
@@ -77,7 +75,6 @@ const card: CSSProperties = {
 };
 
 const footerStyle: CSSProperties = {
-  fontSize: "var(--text-label-12)",
   color: "var(--text-subtle)",
   textAlign: "center",
   marginTop: 16,

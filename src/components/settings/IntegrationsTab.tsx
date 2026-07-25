@@ -257,7 +257,6 @@ export function IntegrationsTab() {
                   flex: 1,
                   minWidth: 0,
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-label-14)",
                   wordBreak: "break-all",
                   lineHeight: 1.5,
                 }}
@@ -400,7 +399,6 @@ export function IntegrationsTab() {
               borderRadius: 10,
               background: "var(--surface-2)",
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-label-12)",
               lineHeight: 1.6,
               overflowX: "auto",
               whiteSpace: "pre",

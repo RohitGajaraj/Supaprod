@@ -55,7 +55,7 @@ export function ShipHistoryPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Ship history · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(outcome.error as Error).message}
         </p>
         <Button variant="secondary" onClick={() => void outcome.refetch()}>
@@ -84,7 +84,6 @@ export function ShipHistoryPanel() {
         <Link
           to="/build"
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
@@ -100,7 +99,7 @@ export function ShipHistoryPanel() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {missions.length > 0 ? (
-        <MonoLabel style={{ fontSize: "var(--text-mono-micro)", display: "block" }}>
+        <MonoLabel style={{ display: "block" }}>
           Completed missions
         </MonoLabel>
       ) : null}
@@ -136,7 +135,6 @@ export function ShipHistoryPanel() {
             className="tabular-nums"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
             }}
           >
@@ -145,7 +143,6 @@ export function ShipHistoryPanel() {
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
             }}
           >
@@ -162,7 +159,6 @@ export function ShipHistoryPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -178,7 +174,6 @@ export function ShipHistoryPanel() {
       {runs.length > 0 ? (
         <MonoLabel
           style={{
-            fontSize: "var(--text-mono-micro)",
             display: "block",
             marginTop: missions.length ? 8 : 0,
           }}
@@ -203,7 +198,6 @@ export function ShipHistoryPanel() {
             style={{
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
               color: "var(--text-subtle)",
             }}
           >
@@ -219,7 +213,6 @@ export function ShipHistoryPanel() {
             className="tabular-nums"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
             }}
           >
@@ -229,7 +222,6 @@ export function ShipHistoryPanel() {
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
             }}
           >

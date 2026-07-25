@@ -75,7 +75,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
           plan.alreadyRecorded ? (
             <span
               className="ml-auto"
-              style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}
+              style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}
             >
               Recorded on the decision
             </span>
@@ -87,7 +87,6 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
               className="loom-press ml-auto transition-colors hover:[color:var(--text-primary)]"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-label-12)",
                 letterSpacing: "0.08em",
                 color: "var(--text-subtle)",
                 background: "none",
@@ -171,7 +170,6 @@ function TestItemGroup({ label, children }: { label: string; children: React.Rea
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9.5,
           letterSpacing: "0.1em",
           color: "var(--text-faint)",
           textTransform: "uppercase",

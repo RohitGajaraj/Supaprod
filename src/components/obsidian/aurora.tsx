@@ -111,7 +111,6 @@ export const AuroraCard = React.forwardRef<HTMLDivElement, AuroraCardProps>(
             style={{
               fontFamily: "var(--font-sans)",
               fontWeight: 460,
-              fontSize: "var(--text-score)",
               color: "var(--text-primary)",
               lineHeight: 1,
             }}

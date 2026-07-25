@@ -59,7 +59,7 @@ export function ChangelogPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Changelog · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(query.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -68,7 +68,6 @@ export function ChangelogPanel() {
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -104,7 +103,6 @@ export function ChangelogPanel() {
         <Link
           to="/build"
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
@@ -159,7 +157,6 @@ export function ChangelogPanel() {
                       style={{
                         fontFamily: "var(--font-sans)",
                         fontWeight: 460,
-                        fontSize: 15,
                         color: "var(--text-primary)",
                         margin: 0,
                       }}
@@ -169,7 +166,6 @@ export function ChangelogPanel() {
                     <time
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: 11,
                         color: "var(--text-faint)",
                         whiteSpace: "nowrap",
                       }}
@@ -180,7 +176,6 @@ export function ChangelogPanel() {
                   {e.body ? (
                     <p
                       style={{
-                        fontSize: "var(--text-label-13)",
                         color: "var(--text-subtle)",
                         marginTop: 8,
                         whiteSpace: "pre-wrap",
@@ -199,7 +194,6 @@ export function ChangelogPanel() {
                       style={{
                         gap: 6,
                         marginTop: 12,
-                        fontSize: 12,
                         color: "var(--link)",
                         fontFamily: "var(--font-mono)",
                         textDecoration: "none",
@@ -224,7 +218,6 @@ export function ChangelogPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -243,7 +236,6 @@ export function ChangelogPanel() {
           to="/brain"
           search={{ tab: "decisions" }}
           style={{
-            fontSize: "var(--text-label-13)",
             color: "var(--text-subtle)",
             textDecoration: "none",
             fontFamily: "var(--font-mono)",

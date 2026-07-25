@@ -86,7 +86,6 @@ function FullRelay({ missionId }: { missionId: string }) {
             <div
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 color: "var(--text-faint)",
@@ -106,7 +105,6 @@ function FullRelay({ missionId }: { missionId: string }) {
                       <span
                         className={s.status === "running" ? "agent-live" : undefined}
                         style={{
-                          fontSize: 13,
                           fontWeight: 540,
                           color: s.status === "running" ? undefined : "var(--text-primary)",
                         }}
@@ -120,7 +118,6 @@ function FullRelay({ missionId }: { missionId: string }) {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 4,
-                            fontSize: 11.5,
                             color: "var(--text-faint)",
                           }}
                         >
@@ -131,7 +128,6 @@ function FullRelay({ missionId }: { missionId: string }) {
                     </div>
                     <div
                       style={{
-                        fontSize: 12.5,
                         color: s.isGate ? "var(--ember)" : "var(--text-subtle)",
                         marginTop: 2,
                         lineHeight: 1.45,
@@ -172,7 +168,6 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
           display: "flex",
           alignItems: "center",
           gap: 8,
-          fontSize: 13,
           color: "var(--text-subtle)",
         }}
       >
@@ -191,7 +186,6 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       </span>
       <span
         style={{
-          fontSize: 13,
           color: "var(--text-primary)",
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -251,7 +245,6 @@ function StationRelayLine({
       <AgentMark slug={run.slug} size={16} />
       <span
         style={{
-          fontSize: 12.5,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",

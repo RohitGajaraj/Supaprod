@@ -42,7 +42,6 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
               marginBottom: 10,
               fontWeight: 500,
               color: "var(--ink)",
-              fontSize: 12,
               textTransform: "uppercase",
               letterSpacing: 0.5,
             }}
@@ -70,7 +69,6 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
               marginBottom: 10,
               fontWeight: 500,
               color: "var(--ink-subtle)",
-              fontSize: 12,
               textTransform: "uppercase",
               letterSpacing: 0.5,
             }}
@@ -97,7 +95,6 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
             marginTop: 16,
             paddingTop: 12,
             borderTop: "1px solid var(--stroke-faint)",
-            fontSize: 12,
             color: "var(--ink-subtle)",
           }}
         >
@@ -117,7 +114,6 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
             style={{
               marginBottom: 8,
               fontWeight: 500,
-              fontSize: 12,
               textTransform: "uppercase",
               letterSpacing: 0.5,
               color: "var(--ink-subtle)",
@@ -138,7 +134,6 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
               </div>
               <div
                 style={{
-                  fontSize: 16,
                   fontWeight: 500,
                   color:
                     slo.metrics.budget.status === "exhausted"
@@ -195,7 +190,6 @@ function MissionCard({ missionId, severity, reasons, onClick }: MissionCardProps
     >
       <div
         style={{
-          fontSize: 11,
           color: "var(--ink-faint)",
           marginBottom: 4,
           fontFamily: "monospace",
@@ -208,7 +202,6 @@ function MissionCard({ missionId, severity, reasons, onClick }: MissionCardProps
           <div
             key={i}
             style={{
-              fontSize: 12,
               color: "var(--ink-subtle)",
               paddingLeft: 12,
               borderLeft: "2px solid var(--stroke-subtle)",

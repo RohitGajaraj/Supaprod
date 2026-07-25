@@ -101,7 +101,6 @@ export function PromptsPanel() {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -169,7 +168,6 @@ export function PromptsPanel() {
               padding: "12px 18px",
               alignItems: "center",
               borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
-              fontSize: 13,
             }}
           >
             <button
@@ -189,7 +187,6 @@ export function PromptsPanel() {
             <span
               className="mono-label"
               style={{
-                fontSize: 8.5,
                 color:
                   status === "testing"
                     ? "var(--glacier)"
@@ -335,7 +332,6 @@ function TemplateDetail({
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -349,7 +345,7 @@ function TemplateDetail({
   if (detail.isError) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--madder)" }}>
+        <p style={{ color: "var(--madder)" }}>
           This template did not load. {(detail.error as Error)?.message}
         </p>
         <button
@@ -373,7 +369,7 @@ function TemplateDetail({
   if (!template) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>Template not found.</p>
+        <p style={{ color: "var(--text-subtle)" }}>Template not found.</p>
         <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={onBack}>
           ← Back to prompts
         </button>
@@ -446,7 +442,6 @@ function TemplateDetail({
           className="bento"
           style={{
             padding: "var(--card-pad)",
-            fontSize: 11,
             fontFamily: "var(--font-mono)",
             whiteSpace: "pre-wrap",
             maxHeight: 420,
@@ -466,7 +461,6 @@ function TemplateDetail({
             aria-label="Draft system prompt"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 11,
               minHeight: 420,
               resize: "vertical",
               lineHeight: 1.55,
@@ -477,7 +471,6 @@ function TemplateDetail({
             className="bento"
             style={{
               padding: "var(--card-pad)",
-              fontSize: 11,
               fontFamily: "var(--font-mono)",
               whiteSpace: "pre-wrap",
               maxHeight: 420,
@@ -572,7 +565,7 @@ function VersionColumn({
         {selectedId && selectedId !== activeId ? (
           <button
             className="btn btn-ghost btn-sm"
-            style={{ fontSize: "var(--text-label-12)" }}
+            style={{ }}
             onClick={() => onSetActive(selectedId)}
           >
             Set active · routes traffic
@@ -592,7 +585,6 @@ function VersionColumn({
               style={{
                 padding: "4px 10px",
                 borderRadius: 99,
-                fontSize: 9,
                 color: selected ? "var(--canvas)" : "var(--text-subtle)",
                 background: selected ? "var(--text-primary)" : "transparent",
                 border: `1px solid ${selected ? "transparent" : "var(--hairline)"}`,
@@ -631,7 +623,6 @@ function DiffPanel({ left, right }: { left: string; right: string }) {
       <MonoLabel style={{ fontSize: 8.5, marginBottom: 8 }}>Diff · left vs right</MonoLabel>
       <pre
         style={{
-          fontSize: 11,
           fontFamily: "var(--font-mono)",
           whiteSpace: "pre-wrap",
           maxHeight: 260,
@@ -841,7 +832,7 @@ function PromptUsagePanel({
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 10 }}>Usage · last 30 days · {total} runs</MonoLabel>
       {total === 0 ? (
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>No runs recorded yet.</p>
+        <p style={{ color: "var(--text-subtle)" }}>No runs recorded yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {versions.map((v) => {
@@ -854,7 +845,6 @@ function PromptUsagePanel({
                     display: "flex",
                     alignItems: "baseline",
                     justifyContent: "space-between",
-                    fontSize: 12,
                   }}
                 >
                   <span

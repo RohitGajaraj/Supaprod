@@ -194,7 +194,6 @@ export function PlanSurface({ view }: { view?: PlanView }) {
             style={{
               margin: 0,
               fontFamily: "var(--font-sans)",
-              fontSize: 16,
               fontWeight: 600,
               color: "var(--text-primary)",
               lineHeight: 1.3,
@@ -202,7 +201,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
           >
             {meta.label}
           </h2>
-          <p style={{ margin: "3px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+          <p style={{ margin: "3px 0 0", color: "var(--text-subtle)" }}>
             {meta.sub}
           </p>
         </div>

@@ -61,7 +61,6 @@ function StatusPill({ label, color }: { label: string; color: string }) {
     <span
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "10px",
         letterSpacing: "0.06em",
         textTransform: "uppercase",
         color,
@@ -81,13 +80,12 @@ function TimeLine({ iso }: { iso: string }) {
   return (
     <span
       className="flex items-baseline"
-      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+      style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
           letterSpacing: "0.06em",
           color: "var(--text-faint)",
         }}
@@ -193,7 +191,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
       >
         {prdQuery.isError ? (
           <div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
+            <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
               COULDN'T LOAD SPEC
             </div>
             <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -206,7 +204,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               style={{
                 marginTop: 14,
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-label-12)",
                 color: "var(--text-body)",
                 background: "none",
                 border: "none",
@@ -246,7 +243,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9.5px",
                     letterSpacing: "0.06em",
                     color: "var(--text-subtle)",
                   }}
@@ -272,14 +268,13 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
             >
               <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
                 <MonoLabel
-                  style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+                  style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
                 >
                   Recommended
                 </MonoLabel>
                 <span
                   style={{
                     fontFamily: "var(--font-sans)",
-                    fontSize: "13px",
                     fontWeight: 550,
                     color: "var(--text-primary)",
                     lineHeight: 1.5,
@@ -291,7 +286,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               {prd.critic_review?.summary ? (
                 <p
                   style={{
-                    fontSize: "12.5px",
                     lineHeight: 1.6,
                     color: "var(--text-subtle)",
                     margin: 0,
@@ -317,7 +311,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               source signals lives one layer deeper, in the full spec editor. */}
             <DetailSection heading="Where it came from">
               <div style={{ display: "grid", gap: "6px" }}>
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                <span style={{ color: "var(--text-body)" }}>
                   {prd.opportunity_id
                     ? "Promoted from a Decide opportunity. Open the full spec to trace it back to the source signals."
                     : "Added directly, not promoted from a ranked opportunity."}
@@ -335,7 +329,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                       border: "none",
                       padding: 0,
                       cursor: "pointer",
-                      fontSize: "12.5px",
                       color: "var(--text-body)",
                       textDecoration: "underline",
                       textUnderlineOffset: "2px",
@@ -358,7 +351,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 {prd.critic_review?.summary ? (
                   <p
                     style={{
-                      fontSize: "12.5px",
                       lineHeight: 1.6,
                       color: "var(--text-body)",
                       margin: 0,
@@ -369,7 +361,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 ) : (
                   <p
                     style={{
-                      fontSize: "12px",
                       color: "var(--text-subtle)",
                       fontStyle: "italic",
                       margin: 0,
@@ -387,7 +378,6 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 15,
                   lineHeight: 1.7,
                   color: "var(--text-body)",
                 }}
@@ -428,11 +418,11 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
             <DetailSection heading="Activity">
               <div style={{ display: "grid", gap: "10px" }}>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Drafted</span>
+                  <span style={{ color: "var(--text-subtle)" }}>Drafted</span>
                   <TimeLine iso={prd.created_at} />
                 </div>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                  <span style={{ color: "var(--text-subtle)" }}>
                     Last updated
                   </span>
                   <TimeLine iso={prd.updated_at} />

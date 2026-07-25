@@ -24,7 +24,6 @@ function th(): React.CSSProperties {
   return {
     padding: "8px 12px",
     fontFamily: "var(--font-mono)",
-    fontSize: 11,
     letterSpacing: "0.1em",
     textTransform: "uppercase",
     textAlign: "left",
@@ -101,7 +100,6 @@ function SurfaceRow({
               disabled={pending}
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
                 background: "var(--ink-raised)",
                 color: "var(--ink-text)",
                 border: "1px solid var(--ink-hairline)",
@@ -125,7 +123,6 @@ function SurfaceRow({
                 onClick={() => onPin(row.surface, draft || null)}
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 11,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
                   color: "var(--voice-human)",
@@ -169,7 +166,6 @@ function SurfaceRow({
               }
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 11,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 color: "var(--voice-machine)",

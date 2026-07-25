@@ -151,7 +151,6 @@ export const StatusDot = React.forwardRef<HTMLSpanElement, StatusDotProps>(
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-label)",
             letterSpacing: "0.11em",
             color: s.color,
           }}

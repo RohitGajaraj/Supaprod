@@ -38,13 +38,12 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
         style={{
           fontFamily: "var(--font-sans)",
           fontWeight: 450,
-          fontSize: 19,
           color: "var(--text-primary)",
         }}
       >
         {value}
       </div>
-      <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginTop: 2, display: "block" }}>
+      <MonoLabel style={{ marginTop: 2, display: "block" }}>
         {label}
       </MonoLabel>
       <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 2 }}>{sub}</div>

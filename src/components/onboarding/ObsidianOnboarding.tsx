@@ -88,7 +88,6 @@ const INPUT_STYLE: React.CSSProperties = {
   borderRadius: "var(--ds-radius-small)",
   padding: "0 12px",
   color: "var(--ds-gray-1000)",
-  fontSize: "13px",
   fontFamily: "var(--font-sans)",
   boxSizing: "border-box",
 };
@@ -772,7 +771,6 @@ export function ObsidianOnboarding() {
           <p
             style={{
               fontFamily: "var(--font-pixel)",
-              fontSize: 34,
               lineHeight: 1.15,
               color: "var(--ds-gray-1000)",
               marginTop: 24,
@@ -1014,7 +1012,6 @@ export function ObsidianOnboarding() {
                   borderRadius: "var(--ds-radius-small)",
                   padding: "10px 12px",
                   color: "var(--ds-gray-1000)",
-                  fontSize: "13px",
                   fontFamily: "var(--font-sans)",
                   boxSizing: "border-box",
                   resize: "vertical",
@@ -1061,7 +1058,7 @@ export function ObsidianOnboarding() {
             value={belief}
             disabled={running}
             onChange={(e) => setBelief(e.target.value)}
-            style={{ ...INPUT_STYLE, fontSize: "13.5px", opacity: running ? 0.6 : 1 }}
+            style={{ ...INPUT_STYLE, opacity: running ? 0.6 : 1 }}
           />
           {running ? (
             // Critic-run theater: the glacier shimmer cycles the honest
@@ -1124,7 +1121,6 @@ export function ObsidianOnboarding() {
       textTransform: "uppercase",
       fontWeight: 550,
       letterSpacing: "0.06em",
-      fontSize: "11px",
     };
 
     function leave() {
@@ -1163,7 +1159,6 @@ export function ObsidianOnboarding() {
                   style={{
                     margin: 0,
                     fontFamily: "var(--font-pixel)",
-                    fontSize: 22,
                     lineHeight: 1.2,
                     textTransform: "uppercase",
                     color: verdictColor,

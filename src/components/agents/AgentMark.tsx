@@ -136,7 +136,6 @@ export function AgentBadge({
         {v ? (
           <span
             style={{
-              fontSize: 11.5,
               color: "var(--ink-subtle)",
               lineHeight: 1.3,
               overflow: "hidden",

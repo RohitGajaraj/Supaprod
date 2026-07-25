@@ -36,7 +36,6 @@ function HeaderRow({ count }: { count: number }) {
         <h2
           style={{
             margin: 0,
-            fontSize: 15,
             fontWeight: 600,
             color: "var(--text-primary)",
             lineHeight: 1.3,
@@ -52,7 +51,6 @@ function HeaderRow({ count }: { count: number }) {
       </div>
       <MonoLabel
         style={{
-          fontSize: "10.5px",
           letterSpacing: "0.08em",
           fontVariantNumeric: "tabular-nums",
           flexShrink: 0,
@@ -81,7 +79,6 @@ function SourceFilterRow({
 }) {
   const chipStyle = {
     fontFamily: "var(--font-mono)",
-    fontSize: "10.5px",
     letterSpacing: "0.08em",
     fontVariantNumeric: "tabular-nums" as const,
     borderRadius: "var(--radius-pill)",
@@ -378,10 +375,10 @@ export function AutoClustered() {
   if (loadError) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
+        <MonoLabel style={{ color: "var(--madder)" }}>
           Could not load themes
         </MonoLabel>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
           {loadError.message}
         </p>
         <Button
@@ -394,7 +391,7 @@ export function AutoClustered() {
         >
           Retry
         </Button>
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
+        <p style={{ color: "var(--text-subtle)", marginTop: "6px" }}>
           Reloads the clusters
         </p>
       </div>
@@ -415,7 +412,6 @@ export function AutoClustered() {
         <div style={{ padding: "0 4px" }}>
           <p
             style={{
-              fontSize: "12.5px",
               lineHeight: 1.6,
               color: "var(--text-subtle)",
               margin: 0,
@@ -456,7 +452,6 @@ export function AutoClustered() {
           size="sm"
           onClick={() => setShowAll((v) => !v)}
           style={{
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             margin: "0 4px",
           }}

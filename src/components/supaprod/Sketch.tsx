@@ -348,7 +348,6 @@ export function SketchBarChart({
         <div
           style={{
             fontFamily: "var(--font-pencil)",
-            fontSize: 15,
             color: "var(--text-body)",
             lineHeight: 1.3,
             marginBottom: 8,
@@ -364,7 +363,6 @@ export function SketchBarChart({
           display: "flex",
           justifyContent: "flex-end",
           fontFamily: "var(--font-pencil)",
-          fontSize: 13,
           color: "var(--text-faint)",
           marginBottom: 6,
         }}
@@ -476,7 +474,6 @@ export function SketchBarChart({
           justifyContent: "space-between",
           gap: 8,
           marginTop: 6,
-          fontSize: 8.5,
           color: "var(--text-faint)",
         }}
       >

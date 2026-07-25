@@ -56,7 +56,6 @@ export function MissionsCostGlance() {
         gap: 8,
         flexWrap: "wrap",
         marginTop: 12,
-        fontSize: "var(--text-mono-floor)",
         color: "var(--text-subtle)",
       }}
     >

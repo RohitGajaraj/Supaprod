@@ -114,7 +114,6 @@ export function VouchersPanel() {
                             variant="secondary"
                             disabled={deactivate.isPending}
                             style={{
-                              fontSize: 11.5,
                               padding: "6px 10px",
                               color: "var(--text-subtle)",
                             }}
@@ -143,7 +142,6 @@ export function VouchersPanel() {
                         padding: "var(--space-3)",
                         textAlign: "center",
                         fontFamily: "var(--font-sans)",
-                        fontSize: "var(--text-sm)",
                         color: "var(--text-subtle)",
                       }}
                     >
@@ -276,7 +274,6 @@ function VoucherCreator() {
             alignItems: "center",
             gap: 6,
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
             color: "var(--text-body)",
           }}
         >
@@ -350,7 +347,6 @@ function RedemptionsDrawer({
               display: "grid",
               gap: 6,
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-sm)",
               color: "var(--text-body)",
             }}
           >
@@ -386,7 +382,6 @@ function input(width?: number): React.CSSProperties {
     background: "var(--raised)",
     color: "var(--text-primary)",
     fontFamily: "var(--font-sans)",
-    fontSize: 12.5,
     width,
   };
 }
@@ -394,7 +389,6 @@ function th(): React.CSSProperties {
   return {
     padding: "8px 10px",
     fontFamily: "var(--font-mono)",
-    fontSize: "var(--text-mono-label)",
     letterSpacing: "0.11em",
     textTransform: "uppercase",
     textAlign: "left",
@@ -408,7 +402,6 @@ function td(): React.CSSProperties {
     padding: "10px",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
     color: "var(--text-body)",
   };
 }

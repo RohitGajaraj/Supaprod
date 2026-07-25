@@ -50,7 +50,6 @@ function GhostButton({
       className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-label-12)",
         letterSpacing: "0.06em",
         color: "var(--text-subtle)",
         background: "transparent",
@@ -113,13 +112,12 @@ export function GraphNodeStory({
             flexShrink: 0,
           }}
         />
-        <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>{kindLabel(node.kind)}</MonoLabel>
+        <MonoLabel style={{ }}>{kindLabel(node.kind)}</MonoLabel>
         <span style={{ flex: 1 }} />
         {onClose ? <GhostButton onClick={onClose}>Close · Esc</GhostButton> : null}
       </div>
       <div
         style={{
-          fontSize: 14,
           fontWeight: 500,
           color: "var(--text-primary)",
           marginBottom: 6,
@@ -135,7 +133,6 @@ export function GraphNodeStory({
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.06em",
               color: "var(--text-subtle)",
             }}
@@ -150,7 +147,6 @@ export function GraphNodeStory({
             title={node.id}
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.06em",
               color: "var(--text-faint)",
             }}
@@ -166,7 +162,7 @@ export function GraphNodeStory({
       <GraphNodeActions node={node} />
 
       {story.isLoading ? (
-        <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginTop: 10, display: "block" }}>
+        <MonoLabel style={{ marginTop: 10, display: "block" }}>
           tracing…
         </MonoLabel>
       ) : story.isError ? (
@@ -200,11 +196,11 @@ function StorySection({
 }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6, display: "block" }}>
+      <MonoLabel style={{ marginBottom: 6, display: "block" }}>
         {label}
       </MonoLabel>
       {rows.length === 0 ? (
-        <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>{emptyText}</p>
+        <p style={{ color: "var(--text-subtle)" }}>{emptyText}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {rows.slice(0, 8).map((r) => (
@@ -215,7 +211,6 @@ function StorySection({
             >
               <MonoLabel
                 style={{
-                  fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
                   flexShrink: 0,
                 }}
@@ -250,7 +245,6 @@ function SupersessionSection({
     <div style={{ marginTop: 12 }}>
       <MonoLabel
         style={{
-          fontSize: "var(--text-mono-floor)",
           marginBottom: 6,
           display: "block",
           color: "var(--madder)",
@@ -259,7 +253,7 @@ function SupersessionSection({
         decision history
       </MonoLabel>
       {story.revised && (
-        <p style={{ fontSize: "var(--text-label-12)", color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
+        <p style={{ color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
           A later recorded outcome revised this belief.
         </p>
       )}
@@ -294,7 +288,6 @@ function SupersessionSection({
                 display: "flex",
                 gap: 6,
                 alignItems: "baseline",
-                fontSize: 12,
                 color: "var(--text-body)",
                 // Retired (reversed) assertions stay visible as history, de-emphasized.
                 opacity: l.retired ? 0.5 : 1,
@@ -303,7 +296,6 @@ function SupersessionSection({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-label-12)",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color: "var(--madder)",
@@ -332,7 +324,6 @@ function SupersessionSection({
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-label-12)",
                     color: "var(--text-subtle)",
                     flexShrink: 0,
                   }}

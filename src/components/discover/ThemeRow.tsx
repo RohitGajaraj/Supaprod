@@ -77,7 +77,6 @@ export const ThemeRow = memo(function ThemeRow({
         <div
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "23px",
             fontWeight: 460,
             color: topRanked ? "var(--ember-text)" : "var(--text-primary)",
             lineHeight: 1,
@@ -89,7 +88,6 @@ export const ThemeRow = memo(function ThemeRow({
         <div
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10px",
             letterSpacing: "0.14em",
             color: "var(--text-faint)",
             marginTop: "3px",
@@ -102,7 +100,6 @@ export const ThemeRow = memo(function ThemeRow({
       <div className="min-w-0 flex-1">
         <div
           style={{
-            fontSize: "var(--text-base)",
             fontWeight: 600,
             color: "var(--text-primary)",
             marginBottom: "3px",
@@ -114,7 +111,7 @@ export const ThemeRow = memo(function ThemeRow({
         >
           {title}
         </div>
-        <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
+        <div style={{ lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
       </div>
 
       <DropdownMenu>
@@ -129,7 +126,6 @@ export const ThemeRow = memo(function ThemeRow({
             style={{
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
-              fontSize: "14px",
               background: "none",
               border: "none",
               cursor: actionsPending ? "default" : "pointer",

@@ -123,7 +123,7 @@ export function SpecProjectionsPanel({
         <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 8px" }}>
           No Outcome Contract yet, so there is nothing to project.
         </p>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
           Draft one on the Contract tab. The PRD, FRD, status, and one-pager then generate from that
           typed spine automatically, so no document is ever hand-maintained.
         </p>
@@ -135,7 +135,6 @@ export function SpecProjectionsPanel({
     <div>
       <p
         style={{
-          fontSize: "var(--text-label-13)",
           color: "var(--text-muted)",
           lineHeight: 1.6,
           margin: "0 0 16px",
@@ -163,7 +162,6 @@ export function SpecProjectionsPanel({
                 className={`loom-press ${activeTab ? "" : "hover:[color:var(--text-body)]"}`}
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   color: activeTab ? "var(--text-primary)" : "var(--text-subtle)",
@@ -207,7 +205,7 @@ export function SpecProjectionsPanel({
 
       <div style={{ marginBottom: 16 }}>{stamp}</div>
       <p
-        style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}
+        style={{ color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 18px" }}
       >
         {set.drift.detail}
       </p>
@@ -219,7 +217,6 @@ export function SpecProjectionsPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 13,
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -229,7 +226,6 @@ export function SpecProjectionsPanel({
               </div>
               <div
                 style={{
-                  fontSize: 13,
                   lineHeight: 1.6,
                   color: "var(--text-body)",
                   whiteSpace: "pre-wrap",
@@ -244,7 +240,6 @@ export function SpecProjectionsPanel({
               <div
                 style={{
                   fontFamily: "var(--font-sans)",
-                  fontSize: 13,
                   fontWeight: 600,
                   color: "var(--text-primary)",
                   marginBottom: 4,
@@ -252,7 +247,7 @@ export function SpecProjectionsPanel({
               >
                 Sources
               </div>
-              <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--text-label-13)", color: "var(--text-body)" }}>
+              <ol style={{ margin: 0, paddingLeft: 18, color: "var(--text-body)" }}>
                 {current.sources.map((c, i) => (
                   <li key={i}>{c.label}</li>
                 ))}
@@ -261,7 +256,6 @@ export function SpecProjectionsPanel({
           ) : null}
           <div
             style={{
-              fontSize: 11,
               color: "var(--text-faint)",
               borderTop: "1px solid var(--hairline)",
               paddingTop: 10,

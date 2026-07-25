@@ -130,7 +130,7 @@ function LineageSection({
       <div className="flex items-center" style={{ gap: 6 }}>
         {icon}
         <MonoLabel
-          style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+          style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
         >
           {heading}
         </MonoLabel>
@@ -142,18 +142,17 @@ function LineageSection({
         </div>
       ) : peers.length === 0 ? (
         <p
-          style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
+          style={{ color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
         >
           {emptyText}
         </p>
       ) : (
         <ul style={{ display: "grid", gap: "8px", margin: 0, padding: 0, listStyle: "none" }}>
           {peers.map((p) => (
-            <li key={p.key} className="flex items-start" style={{ gap: 8, fontSize: "12.5px" }}>
+            <li key={p.key} className="flex items-start" style={{ gap: 8 }}>
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "9.5px",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color: kindTone(p.kind),
@@ -236,7 +235,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
               style={{
                 gap: 5,
                 fontFamily: "var(--font-mono)",
-                fontSize: "10px",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 color: sentiment.color,
@@ -263,7 +261,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "9.5px",
               letterSpacing: "0.06em",
               color: "var(--text-subtle)",
             }}
@@ -310,7 +307,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
                     color: "var(--text-muted)",
@@ -330,7 +326,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
                     color: "var(--text-muted)",
@@ -354,7 +349,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                   key={t}
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
                     letterSpacing: "0.03em",
                     color: "var(--text-muted)",
                     background: "var(--surface-raised)",
@@ -377,7 +371,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
       <DetailSection heading="What was captured">
         <p
           style={{
-            fontSize: "var(--text-base)",
             lineHeight: 1.6,
             color: "var(--text-body)",
             margin: 0,
@@ -395,7 +388,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
               className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "10.5px",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 cursor: "pointer",
@@ -411,7 +403,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                 maxHeight: "240px",
                 overflow: "auto",
                 fontFamily: "var(--font-mono)",
-                fontSize: "11px",
                 lineHeight: 1.5,
                 color: "var(--text-muted)",
                 background: "var(--surface-raised)",
@@ -440,7 +431,6 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                   className="loom-press flex items-start outline-none transition-colors [color:var(--link)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     gap: 7,
-                    fontSize: "12.5px",
                     lineHeight: 1.4,
                     width: "fit-content",
                   }}
@@ -452,7 +442,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
             ))}
           </ul>
         ) : (
-          <span style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic" }}>
+          <span style={{ color: "var(--text-subtle)", fontStyle: "italic" }}>
             Captured directly, no external link.
           </span>
         )}
@@ -464,7 +454,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
       <DetailSection heading="Lineage">
         {q.isError ? (
           <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
-            <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+            <p style={{ color: "var(--madder)", margin: 0 }}>
               Could not load this signal's lineage. {(q.error as Error).message}
             </p>
             <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>

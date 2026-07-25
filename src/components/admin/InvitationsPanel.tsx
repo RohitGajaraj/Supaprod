@@ -219,7 +219,6 @@ function InviteList() {
                       padding: "var(--space-3)",
                       textAlign: "center",
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-sm)",
                       color: "var(--text-subtle)",
                     }}
                   >
@@ -311,7 +310,6 @@ function DomainList() {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
             margin: 0,
           }}
@@ -325,7 +323,6 @@ function DomainList() {
               key={d.id}
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
                 display: "flex",
                 gap: "var(--space-2)",
@@ -393,7 +390,6 @@ function SignupApprovalsList() {
         <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
             color: "var(--text-subtle)",
             margin: 0,
           }}
@@ -410,7 +406,6 @@ function SignupApprovalsList() {
                 gap: "var(--space-2)",
                 alignItems: "center",
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-sm)",
                 color: "var(--text-body)",
               }}
             >
@@ -456,7 +451,6 @@ function input(width?: number): React.CSSProperties {
     background: "var(--raised)",
     color: "var(--text-primary)",
     fontFamily: "var(--font-sans)",
-    fontSize: 12.5,
     width,
   };
 }
@@ -464,7 +458,6 @@ function th(): React.CSSProperties {
   return {
     padding: "8px 10px",
     fontFamily: "var(--font-mono)",
-    fontSize: "var(--text-mono-label)",
     letterSpacing: "0.11em",
     textTransform: "uppercase",
     textAlign: "left",
@@ -478,7 +471,6 @@ function td(): React.CSSProperties {
     padding: "10px",
     verticalAlign: "middle",
     fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-sm)",
     color: "var(--text-body)",
   };
 }

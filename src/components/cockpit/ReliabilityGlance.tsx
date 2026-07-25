@@ -88,7 +88,6 @@ export function ReliabilityGlance() {
             style={{
               color: "var(--text-body)",
               fontFamily: "var(--font-sans)",
-              fontSize: 12.5,
               letterSpacing: "normal",
               textTransform: "none",
             }}

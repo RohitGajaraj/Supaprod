@@ -39,7 +39,6 @@ const selectStyle: React.CSSProperties = {
   padding: "9px 12px",
   border: "1px solid var(--hairline)",
   borderRadius: "var(--radius-control)",
-  fontSize: "var(--text-label-13)",
   color: "var(--text-primary)",
   background: "var(--surface-raised)",
 };
@@ -145,7 +144,6 @@ export function LoopsPanel({
           style={{
             display: "block",
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             color: "var(--text-muted)",
           }}
         >
@@ -185,7 +183,7 @@ export function LoopsPanel({
             Start the mission
           </Button>
         </div>
-        <p style={{ margin: "8px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+        <p style={{ margin: "8px 0 0", color: "var(--text-subtle)" }}>
           {LOOP_KINDS[kind].description}
           {activeKinds.has(kind)
             ? " Already running below; a second copy runs on its own cadence."
@@ -213,10 +211,10 @@ export function LoopsPanel({
             borderRadius: "var(--radius-panel)",
           }}
         >
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
+          <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
             COULDN'T LOAD RECURRING MISSIONS
           </div>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
             {(loopsQ.error as Error)?.message}
           </p>
           <button
@@ -226,7 +224,6 @@ export function LoopsPanel({
             style={{
               marginTop: 14,
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-label-12)",
               color: "var(--text-body)",
               background: "none",
               border: "none",
@@ -237,7 +234,7 @@ export function LoopsPanel({
           </button>
         </div>
       ) : loops.length === 0 ? (
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", margin: 0 }}>
+        <p style={{ color: "var(--text-subtle)", margin: 0 }}>
           No recurring missions yet. Start one above: it runs on its cadence and every run shows up
           here with its cost.
         </p>
@@ -258,7 +255,6 @@ export function LoopsPanel({
               className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-sans)",
-                fontSize: "var(--text-label-13)",
                 fontWeight: 500,
                 color: "var(--text-muted)",
                 background: "transparent",
@@ -317,7 +313,6 @@ function LoopCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             color: STATUS_TONE[loop.status] ?? "var(--text-subtle)",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
@@ -326,12 +321,12 @@ function LoopCard({
           {loop.status}
         </span>
         <span
-          style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}
+          style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}
         >
           {CADENCE_LABEL[loop.cadence] ?? loop.cadence}
         </span>
       </div>
-      <p style={{ margin: "6px 0 0", fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+      <p style={{ margin: "6px 0 0", color: "var(--text-subtle)" }}>
         {loop.run_count === 0
           ? "No runs yet."
           : `${loop.run_count} run${loop.run_count === 1 ? "" : "s"}, ${fmtCost(loop.total_cost_usd)} total.`}
@@ -353,7 +348,6 @@ function LoopCard({
             <li
               key={r.id}
               style={{
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 display: "flex",
                 gap: 8,
@@ -387,7 +381,6 @@ function LoopCard({
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-label-12)",
                   color: "var(--text-subtle)",
                   flexShrink: 0,
                 }}

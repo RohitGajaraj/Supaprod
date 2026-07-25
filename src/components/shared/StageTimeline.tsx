@@ -90,13 +90,12 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
       <div style={{ display: "grid", gap: "8px" }}>
         {events.map((e) => (
           <div key={e.id} className="flex items-baseline" style={{ gap: "8px" }}>
-            <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+            <span style={{ color: "var(--text-body)" }}>
               {e.from_stage ? `${e.from_stage} -> ${e.to_stage}` : e.to_stage}
             </span>
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "9.5px",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 color: "var(--text-subtle)",
@@ -108,7 +107,6 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
               style={{
                 marginLeft: "auto",
                 fontFamily: "var(--font-mono)",
-                fontSize: "9.5px",
                 letterSpacing: "0.06em",
                 color: "var(--text-faint)",
               }}
@@ -126,7 +124,6 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
           to="/engine-room"
           search={{ room: "record" }}
           style={{
-            fontSize: "12px",
             color: "var(--text-subtle)",
             textDecoration: "none",
           }}

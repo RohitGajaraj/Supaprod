@@ -95,7 +95,6 @@ export function RoadmapHistory({ opportunityId }: { opportunityId: string }) {
                 {e.action === "commit" && e.outcome ? (
                   <p
                     style={{
-                      fontSize: 11,
                       color: "var(--ink-subtle)",
                       lineHeight: 1.4,
                       marginTop: 2,

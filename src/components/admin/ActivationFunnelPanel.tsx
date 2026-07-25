@@ -139,7 +139,6 @@ export function ActivationFunnelPanel() {
       >
         <div
           style={{
-            fontSize: 11,
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.1em",
@@ -169,7 +168,6 @@ export function ActivationFunnelPanel() {
               className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 padding: "4px 8px",
-                fontSize: 10,
                 fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -247,7 +245,6 @@ export function ActivationFunnelPanel() {
           <table
             style={{
               width: "100%",
-              fontSize: 10,
               borderCollapse: "collapse",
             }}
           >

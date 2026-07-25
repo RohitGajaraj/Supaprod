@@ -60,7 +60,6 @@ function AgentRow({ a }: { a: FleetAgent }) {
       <span
         className="mono-label"
         style={{
-          fontSize: 9.5,
           textTransform: "uppercase",
           letterSpacing: "0.05em",
           color: meta.color,
@@ -122,7 +121,6 @@ export function FleetView() {
           style={{
             marginTop: 10,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--ink-subtle)",
             background: "transparent",
             border: "none",
@@ -139,7 +137,7 @@ export function FleetView() {
 
   return (
     <>
-      <p style={{ fontSize: "var(--text-label-14)", color: "var(--ink)", margin: "4px 0 22px" }}>{fleet.headline}</p>
+      <p style={{ color: "var(--ink)", margin: "4px 0 22px" }}>{fleet.headline}</p>
       {fleet.agents.length === 0 ? (
         <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "8px 0" }}>
           No agents have run yet. Dispatch a mission and your fleet shows up here.

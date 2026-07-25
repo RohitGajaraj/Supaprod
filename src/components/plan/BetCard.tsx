@@ -55,7 +55,6 @@ const MOVE_TARGETS: { bucket: RoadmapBucket; label: string }[] = [
 
 const QUIET_MONO_STYLE = {
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-mono-label)",
   letterSpacing: "0.11em",
   textTransform: "uppercase" as const,
   background: "none",
@@ -167,7 +166,6 @@ function BetCardComponent({
         <span
           style={{
             flex: 1,
-            fontSize: "var(--text-label-13)",
             fontWeight: 600,
             color: style.ink,
             overflow: "hidden",
@@ -182,7 +180,6 @@ function BetCardComponent({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             color: "var(--text-subtle)",
           }}
         >
@@ -199,7 +196,6 @@ function BetCardComponent({
             placeholder="Outcome: what changes"
             maxLength={500}
             style={{
-              fontSize: "var(--text-label-12)",
               padding: "5px 8px",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
@@ -213,7 +209,6 @@ function BetCardComponent({
             placeholder="Measure: how you'll know"
             maxLength={500}
             style={{
-              fontSize: "var(--text-label-12)",
               padding: "5px 8px",
               border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-control)",
@@ -286,7 +281,6 @@ function BetCardComponent({
                 className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-label)",
                   letterSpacing: "0.11em",
                   textTransform: "uppercase",
                   color: isCurrent ? "var(--text-faint)" : "var(--text-subtle)",
@@ -359,7 +353,6 @@ function BetCardComponent({
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.06em",
               color: "var(--text-subtle)",
             }}

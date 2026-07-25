@@ -61,7 +61,6 @@ export function DetailHeader({ title, chips, traceRef, time }: DetailHeaderProps
         style={{
           margin: 0,
           paddingRight: "24px",
-          fontSize: "18px",
           fontWeight: 600,
           color: "var(--text-primary)",
           lineHeight: 1.3,
@@ -113,7 +112,6 @@ export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
       <div
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: "15px",
           fontWeight: 460,
           color,
           lineHeight: 1.05,
@@ -125,7 +123,6 @@ export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "8.5px",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -199,7 +196,7 @@ export function DetailSection({ heading, children, action, style }: DetailSectio
             }}
           />
           <MonoLabel
-            style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+            style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
           >
             {heading}
           </MonoLabel>

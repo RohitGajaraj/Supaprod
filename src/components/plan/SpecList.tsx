@@ -169,7 +169,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -182,7 +182,6 @@ export function SpecList({ onOpen }: SpecListProps) {
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -286,7 +285,6 @@ export function SpecList({ onOpen }: SpecListProps) {
                     }}
                     style={{
                       flex: 1,
-                      fontSize: "var(--text-label-13)",
                       fontWeight: 600,
                       color: "var(--text-primary)",
                       background: "var(--surface-raised)",
@@ -299,7 +297,6 @@ export function SpecList({ onOpen }: SpecListProps) {
                   <span
                     style={{
                       flex: 1,
-                      fontSize: "var(--text-label-13)",
                       fontWeight: 600,
                       color: "var(--text-primary)",
                       overflow: "hidden",
@@ -312,7 +309,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                 )}
                 <VerdictChip tone={TONE_TO_VERDICT[chip.tone]}>{chip.label}</VerdictChip>
                 {cites && (
-                  <MonoLabel tone="blossom" style={{ fontSize: "var(--text-mono-floor)" }}>
+                  <MonoLabel tone="blossom" style={{ }}>
                     {cites}
                   </MonoLabel>
                 )}
@@ -321,7 +318,6 @@ export function SpecList({ onOpen }: SpecListProps) {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
                     letterSpacing: "0.06em",
                     color: "var(--text-subtle)",
                     whiteSpace: "nowrap",
@@ -416,7 +412,6 @@ export function SpecList({ onOpen }: SpecListProps) {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",

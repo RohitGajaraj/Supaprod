@@ -39,7 +39,6 @@ function RiskChip({ risk }: { risk: string }) {
       className="uppercase"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 8.5,
         letterSpacing: "0.1em",
         color: tone,
         border: `1px solid color-mix(in srgb, ${tone} 45%, transparent)`,
@@ -135,7 +134,6 @@ export function ApprovalsPanel() {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -205,7 +203,6 @@ export function ApprovalsPanel() {
             className="uppercase"
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor, 10.5px)",
               letterSpacing: "0.11em",
               color: "var(--moss-bright)",
             }}
@@ -214,7 +211,6 @@ export function ApprovalsPanel() {
           </span>
           <p
             style={{
-              fontSize: 13,
               color: "var(--text-subtle)",
               marginTop: 8,
               maxWidth: 440,
@@ -365,7 +361,6 @@ function ApprovalCard({
         {a.rationale ? (
           <p
             style={{
-              fontSize: 13,
               color: "var(--text-body)",
               margin: "4px 0 10px",
               lineHeight: 1.5,
@@ -441,7 +436,6 @@ function ApprovalCard({
               borderRadius: 8,
               background: "var(--surface-recessed)",
               padding: 10,
-              fontSize: 11,
               lineHeight: 1.5,
             }}
           >

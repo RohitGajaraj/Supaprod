@@ -27,7 +27,6 @@ export const PencilNote = React.forwardRef<HTMLSpanElement, PencilNoteProps>(
       className={cn("inline-block", className)}
       style={{
         fontFamily: "var(--font-pencil)",
-        fontSize: "17px",
         color: PENCIL_INK_COLOR[ink],
         transform: "rotate(-2deg)",
         textDecoration: "underline",

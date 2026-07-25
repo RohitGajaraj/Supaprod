@@ -58,7 +58,7 @@ function RateStat({
             }}
           >
             <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>{p}</span>
-            <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-subtle)" }}>{detail}</span>
+            <span style={{ color: "var(--text-subtle)" }}>{detail}</span>
           </div>
           <div
             style={{
@@ -101,7 +101,6 @@ function ToolChips({ tools }: { tools: ToolRecord[] }) {
             padding: "3px 8px",
             borderRadius: 999,
             border: "1px solid var(--hairline)",
-            fontSize: 11,
             color: "var(--text-body)",
           }}
         >
@@ -141,7 +140,6 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
             <div
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
                 color: "var(--text-subtle)",
               }}
             >
@@ -154,7 +152,6 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
             title="Times a human rewound this agent's shipped work"
             style={{
               marginLeft: "auto",
-              fontSize: 11,
               color: "var(--text-subtle)",
               border: "1px solid var(--hairline)",
               borderRadius: 999,
@@ -204,7 +201,7 @@ export function AgentScorecardPanel() {
       }}
     >
       <MonoLabel>Track record, by agent and task type</MonoLabel>
-      <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
+      <p style={{ color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
         The tier list, kept for you: how often each agent's work is approved and how often it turns
         out right, per task type. Only decided history counts, so a fresh agent shows nothing rather
         than a hollow score.
@@ -223,7 +220,6 @@ export function AgentScorecardPanel() {
             type="button"
             onClick={() => void query.refetch()}
             style={{
-              fontSize: 12,
               padding: "4px 10px",
               borderRadius: 8,
               border: "1px solid var(--hairline)",
@@ -250,7 +246,6 @@ export function AgentScorecardPanel() {
 
       <p
         style={{
-          fontSize: 11,
           color: "var(--text-subtle)",
           lineHeight: 1.5,
           marginTop: 16,

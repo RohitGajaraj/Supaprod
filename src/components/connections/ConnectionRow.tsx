@@ -32,7 +32,6 @@ function MetaLine({ children }: { children: ReactNode }) {
     <div
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         letterSpacing: "0.10em",
         color: "var(--text-faint)",
         display: "flex",
@@ -71,7 +70,6 @@ function GhostAction({
       className="outline-none transition-colors [background-color:var(--raised)] enabled:hover:[background-color:var(--hover)] enabled:active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-sans)",
-        fontSize: 13,
         fontWeight: 500,
         padding: "7px 14px",
         borderRadius: "var(--radius-control)",
@@ -109,7 +107,6 @@ function QuietTextAction({
       className="uppercase outline-none enabled:hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         letterSpacing: "0.10em",
         color: tone === "madder" ? "var(--madder)" : "var(--text-subtle)",
         background: "transparent",
@@ -163,7 +160,6 @@ function NotConnectedRow({
         title={hint}
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9.5,
           letterSpacing: "0.10em",
           color: "var(--text-faint)",
         }}
@@ -396,7 +392,6 @@ export function ConnectionRow({
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  fontSize: 12,
                   color: "var(--text-body)",
                 }}
               >

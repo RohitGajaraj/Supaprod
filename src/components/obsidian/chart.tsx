@@ -252,7 +252,6 @@ export function ChartTooltip({ x, y, rows }: ChartTooltipProps) {
         padding: "6px 10px",
         pointerEvents: "none",
         fontFamily: "var(--font-mono)",
-        fontSize: 11,
       }}
     >
       {rows.map((r) => (

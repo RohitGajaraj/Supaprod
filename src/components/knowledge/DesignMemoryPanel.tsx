@@ -59,7 +59,6 @@ function FilterGroup<T extends string>({
           className="outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
             padding: "3px 10px",
@@ -142,7 +141,7 @@ export function DesignMemoryPanel() {
           }}
         >
           <MonoLabel style={{ marginBottom: 8 }}>Design memory · failed to load</MonoLabel>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+          <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
             {(items.error as Error).message}
           </p>
           <Button variant="secondary" onClick={() => void items.refetch()}>
@@ -183,7 +182,6 @@ export function DesignMemoryPanel() {
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
               color: "var(--text-faint)",
               textTransform: "uppercase",
             }}
@@ -215,7 +213,6 @@ export function DesignMemoryPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -264,7 +261,6 @@ function DesignMemoryRowView({
           gap: 12,
           padding: "13px 18px",
           alignItems: "baseline",
-          fontSize: 13,
           background: "transparent",
           border: "none",
         }}
@@ -283,10 +279,10 @@ function DesignMemoryRowView({
             {row.title}
           </span>
         </span>
-        <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)" }}>
+        <span style={{ color: "var(--text-muted)" }}>
           {CATEGORY_LABEL[row.category]}
         </span>
-        <span style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+        <span style={{ color: "var(--text-subtle)" }}>
           {SOURCE_LABEL[row.source_kind]}
         </span>
         <span
@@ -298,7 +294,7 @@ function DesignMemoryRowView({
       </button>
       {expanded ? (
         <div style={{ padding: "0 18px 14px 18px" }}>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-body)", margin: "0 0 8px" }}>
+          <p style={{ color: "var(--text-body)", margin: "0 0 8px" }}>
             {row.content}
           </p>
           {row.rationale ? (
@@ -314,7 +310,6 @@ function DesignMemoryRowView({
                 onClick={() => onDecide("approve")}
                 className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontSize: 11,
                   color: "var(--moss)",
                   background: "transparent",
                   border: "1px solid color-mix(in srgb, var(--moss) 35%, transparent)",
@@ -330,7 +325,6 @@ function DesignMemoryRowView({
                 onClick={() => onDecide("reject")}
                 className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  fontSize: 11,
                   color: "var(--madder)",
                   background: "transparent",
                   border: "1px solid color-mix(in srgb, var(--madder) 35%, transparent)",
@@ -422,7 +416,7 @@ function AddDesignMemoryDialog({
           <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
             Add design language
           </DialogTitle>
-          <DialogDescription style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+          <DialogDescription style={{ color: "var(--text-subtle)" }}>
             Every entry lands as a standing decision you approve or reject. Nothing binds into a
             mockup until you approve it.
           </DialogDescription>
@@ -451,7 +445,6 @@ function AddDesignMemoryDialog({
                   border: "1px solid var(--hairline)",
                   borderRadius: 8,
                   padding: "7px 10px",
-                  fontSize: 13,
                   color: "var(--text-primary)",
                 }}
               />
@@ -475,13 +468,12 @@ function AddDesignMemoryDialog({
                   border: "1px solid var(--hairline)",
                   borderRadius: 8,
                   padding: "7px 10px",
-                  fontSize: 13,
                   color: "var(--text-primary)",
                 }}
               />
             </div>
           ) : (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+            <p style={{ color: "var(--text-subtle)" }}>
               Starts with a small generic set (type scale, spacing rhythm, one primary action, two
               button styles, plain-worded copy), approved automatically since they are safe
               defaults, not a claim about your brand. Approve/reject on future mockups teaches it

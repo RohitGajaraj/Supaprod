@@ -79,7 +79,6 @@ export function AdminErrorCard({
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
           color: "var(--madder)",
@@ -92,7 +91,6 @@ export function AdminErrorCard({
           style={{
             margin: 0,
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-sm)",
             color: "var(--text-muted)",
             maxWidth: 520,
           }}
@@ -106,7 +104,6 @@ export function AdminErrorCard({
         className="cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
           color: "var(--text-primary)",

@@ -133,7 +133,7 @@ export function BriefPanel() {
     return (
       <div style={CARD_STYLE}>
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brief · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
           {(items.error as Error).message}
         </p>
         <Button variant="secondary" onClick={() => void items.refetch()}>
@@ -150,7 +150,7 @@ export function BriefPanel() {
       {showFlow ? <BriefFormationFlow onClose={() => setShowFlow(false)} /> : null}
 
       <div className="flex items-center justify-between">
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", margin: 0, maxWidth: 420 }}>
+        <p style={{ color: "var(--text-muted)", margin: 0, maxWidth: 420 }}>
           The standing calls that steer the machine. Edit any in place, or walk them in order.
         </p>
         <Button variant="secondary" size="sm" onClick={() => setShowFlow(true)}>
@@ -249,7 +249,6 @@ function SingletonSection({
         <div>
           <p
             style={{
-              fontSize: 14,
               fontWeight: 500,
               color: "var(--text-primary)",
               margin: "0 0 4px",
@@ -259,7 +258,6 @@ function SingletonSection({
           </p>
           <p
             style={{
-              fontSize: "var(--text-label-13)",
               color: "var(--text-body)",
               lineHeight: 1.5,
               margin: "0 0 10px",
@@ -270,7 +268,7 @@ function SingletonSection({
           <MonoLabel>v{current.version}</MonoLabel>
         </div>
       ) : (
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
+        <p style={{ color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
       )}
     </div>
   );
@@ -319,7 +317,7 @@ function TopBetsSection({
       </div>
 
       {bets.length === 0 && !isAdding ? (
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
+        <p style={{ color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {bets.map((bet) => {
@@ -342,7 +340,6 @@ function TopBetsSection({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p
                     style={{
-                      fontSize: "var(--text-label-14)",
                       fontWeight: 500,
                       color: "var(--text-primary)",
                       margin: "0 0 3px",
@@ -352,7 +349,6 @@ function TopBetsSection({
                   </p>
                   <p
                     style={{
-                      fontSize: "var(--text-label-13)",
                       color: "var(--text-body)",
                       lineHeight: 1.5,
                       margin: "0 0 8px",

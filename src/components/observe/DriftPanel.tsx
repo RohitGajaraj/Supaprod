@@ -213,7 +213,6 @@ export function DriftPanel() {
         className="uppercase"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor, 10.5px)",
           letterSpacing: "0.11em",
           color: "var(--text-subtle)",
           padding: "24px 0",
@@ -363,7 +362,6 @@ export function DriftPanel() {
                 padding: "12px 18px",
                 alignItems: "baseline",
                 borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
-                fontSize: 13,
                 width: "100%",
                 textAlign: "left",
               }}

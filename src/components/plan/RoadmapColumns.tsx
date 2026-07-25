@@ -213,7 +213,7 @@ export function RoadmapColumns() {
           borderRadius: "var(--radius-panel)",
         }}
       >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-label-12)", color: "var(--madder)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
           COULDN'T LOAD PLAN
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -226,7 +226,6 @@ export function RoadmapColumns() {
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             color: "var(--text-body)",
             background: "none",
             border: "none",
@@ -243,7 +242,6 @@ export function RoadmapColumns() {
     return (
       <p
         style={{
-          fontSize: "var(--text-label-12)",
           color: "var(--text-subtle)",
           margin: 0,
           padding: "8px 0",
@@ -282,7 +280,6 @@ export function RoadmapColumns() {
                 className="loom-press"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-label)",
                   letterSpacing: "0.11em",
                   textTransform: "uppercase",
                   color: col.color,
@@ -303,7 +300,6 @@ export function RoadmapColumns() {
               className="loom-press"
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-label)",
                 letterSpacing: "0.11em",
                 textTransform: "uppercase",
                 color: "var(--text-faint)",
@@ -330,7 +326,6 @@ export function RoadmapColumns() {
               <div
                 style={{
                   fontFamily: "var(--font-pixel)",
-                  fontSize: 16,
                   fontWeight: 400,
                   color: col.color,
                   marginBottom: 10,
@@ -371,7 +366,6 @@ export function RoadmapColumns() {
                     className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      fontSize: "var(--text-label-13)",
                       fontWeight: 500,
                       color: "var(--text-muted)",
                       background: "transparent",

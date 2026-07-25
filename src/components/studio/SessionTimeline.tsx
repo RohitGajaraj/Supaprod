@@ -17,7 +17,6 @@ const rail: CSSProperties = {
 const stepLine: CSSProperties = {
   ...rail,
   fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-label-12)",
   lineHeight: 1.8,
   display: "flex",
   gap: 8,
@@ -107,7 +106,6 @@ function StepLine({ step, idx, live }: { step: LoopStep; idx: number; live: bool
           minWidth: 0,
           flex: 1,
           margin: 0,
-          fontSize: "var(--text-label-13)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           whiteSpace: "pre-wrap",
@@ -141,7 +139,6 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
           <div
             style={{
               ...rail,
-              fontSize: "var(--text-label-13)",
               lineHeight: 1.8,
               color: "var(--text-subtle)",
               fontStyle: "italic",
@@ -181,7 +178,6 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
           paddingTop: 9,
           borderTop: "1px solid var(--hairline)",
           fontFamily: "var(--font-mono)",
-          fontSize: 9.5,
           letterSpacing: "0.05em",
           color: "var(--text-subtle)",
         }}
@@ -220,7 +216,6 @@ function SteerRow({ steer }: { steer: Steer }) {
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "var(--font-mono)",
-          fontSize: 8.5,
           fontWeight: 700,
           letterSpacing: "0.04em",
           color: "var(--ember-text)",
@@ -233,7 +228,6 @@ function SteerRow({ steer }: { steer: Steer }) {
           flex: 1,
           minWidth: 0,
           margin: 0,
-          fontSize: "var(--text-label-13)",
           lineHeight: 1.55,
           color: "var(--text-body)",
           whiteSpace: "pre-wrap",
@@ -286,7 +280,6 @@ export function SessionTimeline({
           borderRadius: 12,
           padding: "48px 0",
           textAlign: "center",
-          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
         }}
       >

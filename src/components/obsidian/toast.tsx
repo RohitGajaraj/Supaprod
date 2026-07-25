@@ -97,7 +97,6 @@ export function Toast({ message }: { message: string | null }) {
         padding: "12px 20px",
         color: "var(--text-primary)",
         fontFamily: "var(--font-sans)",
-        fontSize: "13px",
         boxShadow:
           "var(--shadow-overlay), 0 0 18px color-mix(in srgb, var(--moss) 12%, transparent)",
         opacity: visible ? 1 : 0,

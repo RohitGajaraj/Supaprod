@@ -74,7 +74,6 @@ function OutcomePill({
         alignItems: "center",
         gap: 5,
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         textTransform: "uppercase",
         letterSpacing: "0.04em",
         padding: "2px 8px",
@@ -102,7 +101,6 @@ function StatusPill({ status }: { status: string }) {
       className="tabular-nums"
       style={{
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
         color: tone,
         textTransform: "uppercase",
         letterSpacing: "0.06em",
@@ -182,7 +180,6 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
           {r.rationale ? (
             <p
               style={{
-                fontSize: 12.5,
                 color: "var(--text-body)",
                 lineHeight: 1.5,
                 marginTop: 5,
@@ -193,7 +190,6 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
           ) : (
             <p
               style={{
-                fontSize: 12,
                 color: "var(--text-faint)",
                 marginTop: 5,
                 fontStyle: "italic",
@@ -226,7 +222,6 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10,
                   color: "var(--text-faint)",
                 }}
                 title="Provenance edges linked to this record"
@@ -241,7 +236,6 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
                 className="tabular-nums"
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 9.5,
                   letterSpacing: "0.06em",
                   color: "var(--text-subtle)",
                 }}
@@ -251,7 +245,6 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 9.5,
                   letterSpacing: "0.06em",
                   color: "var(--text-faint)",
                 }}
@@ -400,7 +393,6 @@ function SealPanel() {
               flex: 1,
               minWidth: 220,
               fontFamily: "var(--font-mono)",
-              fontSize: 11.5,
               padding: "7px 10px",
               border: "1px solid var(--hairline)",
               borderRadius: 8,
@@ -432,7 +424,6 @@ function SealPanel() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                fontSize: 12,
                 color: v.ok ? "var(--moss)" : "var(--madder)",
               }}
             >
@@ -456,7 +447,6 @@ function SealPanel() {
               style={{
                 width: "100%",
                 fontFamily: "var(--font-mono)",
-                fontSize: 10.5,
                 color: "var(--text-subtle)",
               }}
             >
@@ -491,7 +481,6 @@ const chipStyle: CSSProperties = {
   alignItems: "center",
   gap: 5,
   fontFamily: "var(--font-mono)",
-  fontSize: 10,
   color: "var(--text-subtle)",
   background: "transparent",
   border: "1px solid var(--hairline)",
@@ -511,7 +500,6 @@ function LedgerSummary({
   return (
     <p
       style={{
-        fontSize: 12.5,
         color: "var(--text-body)",
         margin: "0 0 18px",
         lineHeight: 1.5,
@@ -587,7 +575,6 @@ function MissionChainPanel() {
               border: "none",
               padding: 0,
               color: "var(--text-primary)",
-              fontSize: 12.5,
             }}
           >
             Retry
@@ -605,7 +592,6 @@ function MissionChainPanel() {
               border: "none",
               padding: 0,
               color: "var(--text-primary)",
-              fontSize: 12.5,
             }}
           >
             Retry
@@ -700,7 +686,6 @@ export function ReceiptsPanel() {
               aria-pressed={outcome === o}
               className="tabular-nums loom-press hover:[color:var(--text-primary)]"
               style={{
-                fontSize: 11.5,
                 padding: "4px 11px",
                 borderRadius: 6,
                 textTransform: "capitalize",
@@ -742,7 +727,6 @@ export function ReceiptsPanel() {
             style={{
               border: "none",
               background: "transparent",
-              fontSize: 12.5,
               width: "100%",
               color: "var(--text-primary)",
             }}
@@ -766,7 +750,6 @@ export function ReceiptsPanel() {
               border: "none",
               padding: 0,
               color: "var(--text-primary)",
-              fontSize: 13,
             }}
           >
             Retry

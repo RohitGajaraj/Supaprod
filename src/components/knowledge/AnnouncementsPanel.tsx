@@ -51,7 +51,6 @@ const FIELD_STYLE: React.CSSProperties = {
   border: "1px solid var(--hairline)",
   borderRadius: 8,
   padding: "7px 10px",
-  fontSize: 13,
   color: "var(--text-primary)",
 };
 
@@ -95,7 +94,6 @@ function RowAction({
       disabled={disabled}
       className={`${FIELD_CLASS} transition-colors hover:[background:var(--hover)] disabled:opacity-45 disabled:cursor-default disabled:hover:[background:transparent]`}
       style={{
-        fontSize: 11,
         color: hue.color,
         background: "transparent",
         border: `1px solid ${hue.border}`,
@@ -212,7 +210,6 @@ export function AnnouncementsPanel() {
           style={{
             flex: 1,
             minWidth: 240,
-            fontSize: "var(--text-label-13)",
             color: "var(--text-faint)",
             margin: 0,
             lineHeight: 1.5,
@@ -234,7 +231,7 @@ export function AnnouncementsPanel() {
       ) : listQ.isError ? (
         <Card>
           <MonoLabel style={{ marginBottom: 8 }}>Announcements · failed to load</MonoLabel>
-          <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginBottom: 12 }}>
+          <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
             {(listQ.error as Error).message}
           </p>
           <Button variant="secondary" onClick={() => void listQ.refetch()}>
@@ -252,7 +249,6 @@ export function AnnouncementsPanel() {
         >
           <p
             style={{
-              fontSize: 13,
               color: "var(--text-body)",
               margin: "0 0 12px",
               lineHeight: 1.55,
@@ -335,7 +331,6 @@ export function AnnouncementsPanel() {
                   style={{
                     flex: 1,
                     minWidth: 0,
-                    fontSize: 13,
                     fontWeight: 500,
                     color: "var(--text-primary)",
                   }}
@@ -346,7 +341,6 @@ export function AnnouncementsPanel() {
                   className="tabular-nums"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
                     color: "var(--text-subtle)",
                   }}
                 >
@@ -376,7 +370,6 @@ export function AnnouncementsPanel() {
                     className={`${FIELD_CLASS} inline-flex items-center`}
                     style={{
                       gap: 5,
-                      fontSize: 11,
                       color: "var(--link)",
                       fontFamily: "var(--font-mono)",
                       textDecoration: "none",
@@ -398,7 +391,6 @@ export function AnnouncementsPanel() {
           className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "var(--text-label-13)",
             fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
@@ -427,13 +419,13 @@ export function AnnouncementsPanel() {
             <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
               New announcement
             </DialogTitle>
-            <DialogDescription style={{ fontSize: "var(--text-label-13)", color: "var(--text-subtle)" }}>
+            <DialogDescription style={{ color: "var(--text-subtle)" }}>
               Draft what changed for your customers. It stays private until submitted and published.
             </DialogDescription>
           </DialogHeader>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div>
-              <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+              <MonoLabel style={{ marginBottom: 4 }}>
                 title
               </MonoLabel>
               <input
@@ -447,7 +439,7 @@ export function AnnouncementsPanel() {
               />
             </div>
             <div>
-              <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+              <MonoLabel style={{ marginBottom: 4 }}>
                 body
               </MonoLabel>
               <textarea

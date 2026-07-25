@@ -773,7 +773,6 @@ export function GraphForceCanvas({
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-label-12)",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             color: "var(--text-subtle)",
@@ -856,11 +855,10 @@ function GraphHoverCard({
             flexShrink: 0,
           }}
         />
-        <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>{kindLabel(node.kind)}</MonoLabel>
+        <MonoLabel style={{ }}>{kindLabel(node.kind)}</MonoLabel>
       </div>
       <div
         style={{
-          fontSize: 13,
           color: "var(--text-primary)",
           lineHeight: 1.35,
           marginBottom: 6,
@@ -874,7 +872,7 @@ function GraphHoverCard({
       </div>
       <MonoLabel
         className="tabular-nums"
-        style={{ fontSize: "var(--text-mono-floor)", display: "block" }}
+        style={{ display: "block" }}
       >
         {node.influence} {node.influence === 1 ? "link" : "links"}
         {cameFrom !== null && ledTo !== null ? ` · from ${cameFrom} · led to ${ledTo}` : ""}

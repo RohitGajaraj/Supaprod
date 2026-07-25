@@ -190,7 +190,7 @@ export function TeamCard() {
                   >
                     {inv.email}
                   </div>
-                  <div style={{ fontSize: "var(--text-label-12)", color: "var(--ink-faint)", marginTop: 2 }}>
+                  <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
                     {inv.role} · {inv.status}
                   </div>
                 </div>

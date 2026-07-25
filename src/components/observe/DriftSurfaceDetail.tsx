@@ -286,7 +286,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ flex: 1, fontSize: "var(--text-label-13)", color: "var(--ink-subtle)" }}>
+          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
             No drift data for this surface. Nothing sampled in the last 30 days.
           </span>
           <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
@@ -369,7 +369,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
               ariaLabel={chart.label}
             />
           ) : (
-            <div style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)" }}>
+            <div style={{ color: "var(--ink-faint)" }}>
               First sampled day. The trend draws from day two.
             </div>
           )}
@@ -380,7 +380,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>Incidents · open and recent</MonoLabel>
           {incidents.length === 0 ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-subtle)", margin: 0 }}>
+            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
               No incidents on this surface. The detector compares the last {windowDays}d against a{" "}
               {baselineDays}d baseline.
             </p>
@@ -395,7 +395,6 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-                      fontSize: "var(--text-label-13)",
                       flexWrap: "wrap",
                     }}
                   >
@@ -439,7 +438,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 8 }}>Recent samples</MonoLabel>
           {recentDays.length === 0 ? (
-            <p style={{ fontSize: "var(--text-label-13)", color: "var(--ink-faint)", margin: 0 }}>
+            <p style={{ color: "var(--ink-faint)", margin: 0 }}>
               No snapshot days yet. Run a drift check to roll up today.
             </p>
           ) : (
@@ -452,7 +451,6 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                     gap: 10,
                     padding: "7px 0",
                     borderBottom: i < recentDays.length - 1 ? "1px solid var(--hairline)" : "none",
-                    fontSize: "var(--text-label-13)",
                   }}
                 >
                   <span className="mono-label" style={{ flexShrink: 0 }}>

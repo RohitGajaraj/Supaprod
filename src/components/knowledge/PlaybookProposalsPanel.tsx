@@ -56,13 +56,12 @@ function ProposalCard({
       }}
     >
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 6 }}>
-        <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>Proposed playbook</MonoLabel>
+        <MonoLabel style={{ }}>Proposed playbook</MonoLabel>
         <ConfidenceChip tier={p.confidence} />
         <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.06em",
               color: "var(--text-faint)",
             }}
@@ -80,7 +79,6 @@ function ProposalCard({
       <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 15,
           fontWeight: 450,
           color: "var(--text-primary)",
           margin: "0 0 8px",
@@ -94,7 +92,6 @@ function ProposalCard({
           sweep's own line breaks. */}
       <p
         style={{
-          fontSize: "var(--text-label-13)",
           color: "var(--text-body)",
           lineHeight: 1.55,
           whiteSpace: "pre-wrap",
@@ -120,7 +117,6 @@ function ProposalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
             color: "var(--text-subtle)",
             letterSpacing: "0.06em",
             marginLeft: "auto",
@@ -194,7 +190,7 @@ export function PlaybookProposalsPanel() {
         }}
       >
         <MonoLabel>Playbook proposals · failed to load</MonoLabel>
-        <p style={{ fontSize: "var(--text-label-13)", color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -204,7 +200,6 @@ export function PlaybookProposalsPanel() {
           style={{
             marginTop: 12,
             fontFamily: "var(--font-mono)",
-            fontSize: 11,
             color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
@@ -226,8 +221,8 @@ export function PlaybookProposalsPanel() {
   return (
     <section aria-label="Proposed playbooks" style={{ marginBottom: 24 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <MonoLabel style={{ fontSize: "var(--text-label-12)" }}>Proposed playbooks</MonoLabel>
-        <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>
+        <MonoLabel style={{ }}>Proposed playbooks</MonoLabel>
+        <span style={{ color: "var(--text-faint)" }}>
           the same lesson repeated until it became a method - adopt it or dismiss it
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
@@ -248,7 +243,6 @@ export function PlaybookProposalsPanel() {
             className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-label-13)",
               fontWeight: 500,
               color: "var(--text-muted)",
               background: "transparent",

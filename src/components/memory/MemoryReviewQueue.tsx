@@ -99,7 +99,6 @@ export function MemoryReviewQueue() {
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: "8px 10px",
-            fontSize: 13,
             color: "var(--text-primary)",
             fontFamily: "var(--font-sans)",
           }}
@@ -190,7 +189,7 @@ function CandidateRow({
         <VerdictChip tone={statusTone(row.status)} />
         <span
           className="mono-label"
-          style={{ fontSize: "var(--text-mono-label)", color: "var(--text-subtle)" }}
+          style={{ color: "var(--text-subtle)" }}
         >
           {sourceLabel(row.source_kind)}
         </span>
@@ -216,7 +215,7 @@ function CandidateRow({
         >
           <span
             className="mono-label"
-            style={{ fontSize: "var(--text-mono-micro)", color: "var(--text-muted)" }}
+            style={{ color: "var(--text-muted)" }}
           >
             Supersedes
           </span>

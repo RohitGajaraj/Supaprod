@@ -36,7 +36,6 @@ export function LoopThread() {
         borderBottom: "1px solid var(--hairline)",
         background: "var(--ds-background-100)",
         overflow: "hidden",
-        fontSize: "var(--text-label-12)",
       }}
     >
       <div
@@ -88,7 +87,6 @@ export function LoopThread() {
             alignItems: "center",
             gap: 6,
             color: "var(--ds-gray-700)",
-            fontSize: 9.5,
             whiteSpace: "nowrap",
           }}
         >

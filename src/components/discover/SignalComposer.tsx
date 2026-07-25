@@ -132,7 +132,6 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
               background: "var(--surface-recessed)",
               borderRadius: "var(--radius-control)",
               padding: "8px 10px",
-              fontSize: "var(--text-base)",
               color: "var(--text-primary)",
             }}
           />
@@ -163,7 +162,6 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
               background: "var(--surface-recessed)",
               borderRadius: "var(--radius-control)",
               padding: "10px",
-              fontSize: "var(--text-base)",
               color: "var(--text-primary)",
               resize: "vertical",
             }}

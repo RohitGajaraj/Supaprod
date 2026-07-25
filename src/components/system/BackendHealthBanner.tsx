@@ -37,7 +37,6 @@ export function BackendHealthBanner() {
         background: "color-mix(in oklab, var(--amber) 14%, var(--canvas))",
         borderBottom: "1px solid color-mix(in oklab, var(--amber) 40%, transparent)",
         color: "var(--ink)",
-        fontSize: 13,
         lineHeight: 1.45,
       }}
     >

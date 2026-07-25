@@ -26,7 +26,7 @@ export function ReceiptsPanel({ missionId }: { missionId: string }) {
     return (
       <div style={{ ...LOOM_CARD, padding: 24 }}>
         <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the chain</MonoLabel>
-        <p style={{ marginTop: 6, fontSize: "var(--text-label-13)", color: "var(--text-muted)" }}>
+        <p style={{ marginTop: 6, color: "var(--text-muted)" }}>
           {(chainQ.error as Error)?.message}
         </p>
         <button
@@ -49,7 +49,6 @@ export function ReceiptsPanel({ missionId }: { missionId: string }) {
           borderRadius: 12,
           padding: "48px 0",
           textAlign: "center",
-          fontSize: "var(--text-label-13)",
           color: "var(--text-subtle)",
         }}
       >
