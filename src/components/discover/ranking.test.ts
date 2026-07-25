@@ -635,28 +635,21 @@ describe("designation precedence boundary: needs validation beats quick win", ()
 });
 
 /**
- * ★ CRITICAL GAP: nextActionFor verdict differentiation
+ * ✓ FIXED: nextActionFor verdict differentiation
  *
- * The nextActionFor function currently returns "Draft the spec" for all
- * verdicts except PENDING and shipped status, treating SHIP/WATCH/REVISE/KILL
- * identically. This was discovered during coverage audit 2026-07-09.
+ * The nextActionFor function now returns verdict-specific actions (lines 211-230).
+ * This was fixed after the coverage audit 2026-07-09. These tests validate the
+ * complete differentiation for all verdict paths.
  *
- * ACTUAL BEHAVIOR (lines 187-192):
+ * CURRENT BEHAVIOR (ranking.ts lines 211-230):
+ *   - shipped status → "Review the outcome" (status check takes precedence)
  *   - PENDING → "Challenge with the Critic first"
- *   - status === "shipped" → "Review the outcome"
- *   - everything else (SHIP, WATCH, REVISE, KILL) → "Draft the spec"
- *
- * EXPECTED BEHAVIOR:
- *   - PENDING → "Challenge with the Critic first"
- *   - REVISE → Something like "Address the Critic's feedback" (fixable)
- *   - KILL → Something like "Understand why this was rejected" (not fixable)
- *   - SHIP → Something like "Start building" or "Begin execution"
- *   - WATCH → Something like "Monitor and validate" or "Watch for progress"
- *   - shipped status → "Review the outcome"
- *
- * These tests validate the fix once implemented.
+ *   - SHIP → "Draft the spec"
+ *   - WATCH → "Gather more evidence"
+ *   - REVISE → "Address Critic feedback"
+ *   - KILL → "Understand why it was rejected"
  */
-describe("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
+describe("nextActionFor verdict differentiation (VERIFIED FIXED)", () => {
   /**
    * Test that REVISE gets actionable feedback
    *
