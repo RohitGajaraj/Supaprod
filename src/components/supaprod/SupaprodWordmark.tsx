@@ -1,11 +1,11 @@
 import { SupaprodMark } from "./SupaprodMark";
 
 /**
- * SupaprodWordmark — the canonical header/nav brand lockup: the seven-petal
+ * SupaprodWordmark, the canonical header/nav brand lockup: the seven-petal
  * mark + the "Supaprod" wordmark. One component so the lockup never drifts page
  * to page (founder 2026-07-24: some pages showed the mark with no name).
  *
- * Wordmark is Geist Sans (semibold), NOT Geist Pixel — a deliberate call the
+ * Wordmark is Geist Sans (semibold), NOT Geist Pixel. A deliberate call the
  * founder delegated ("take the right call"): Tempo reserves Pixel for hero
  * brand moments and caps it at one element per screen, and Pixel reads cramped
  * at nav sizes. Persistent chrome uses the UI font; the Pixel brand face still
