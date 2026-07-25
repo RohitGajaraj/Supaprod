@@ -95,3 +95,52 @@ Settings and the admin pages first. Rollback is one revert of 42dd5ac7.
   list as one arg. Use `| while IFS= read -r f`.
 - Range `getClientRects().length` is NOT a line count when an element has inline
   children. Use height / line-height.
+
+## DEPLOY: the live site can be many commits behind while everything looks fine
+
+Hit on 2026-07-25. The landing craft pass was invisible on supaprod.ai for hours
+and it read exactly like the work had been wiped. Nothing was wiped. Read this
+before debugging "my changes are not on the site".
+
+**Lovable runs two independent pipelines.** GitHub -> source sync, and source ->
+build. The first works: every commit we push arrives as a `developer_update`
+edit, status `completed`, and `mcp__lovable__read_file` returns the CURRENT file.
+The second lags: Lovable does NOT automatically build commits that arrive from
+outside its own editor, which is every commit we push from Claude Code.
+
+**So the two obvious health checks both lie.**
+- `read_file` reads the REPO (current) -> looks healthy.
+- Lovable's Publish button says "Up to date" -> it compares published against the
+  last successful BUILD, not against your latest commit. With no newer build,
+  there is honestly nothing to publish, so it is not lying, just answering a
+  different question than the one you meant.
+
+**The one field that tells the truth:** `mcp__lovable__get_project` ->
+`latest_commit_sha`. That is the BUILD pointer. Compare it to `git rev-parse
+HEAD`. If they differ, the live site is stale by exactly that gap. The screenshot
+URL corroborates it, it embeds the commit: `id-preview-<sha>--<project>.lovable.app`.
+
+**DANGER, this is what cost the extra hour.** The per-commit cards in Lovable's
+feed are NOT a "catch up to latest" control. Each card's button means "build THIS
+commit", and the feed is not reliably in commit order. Clicking `Update preview`
+on an older card pins the build BACKWARDS and the preview visibly loses work.
+That is a pointer move only, the repo is never touched, `git checkout --` or
+simply ignoring it recovers everything. Only ever click the card for the true
+latest sha, verified against `git rev-parse HEAD`.
+
+**What reliably moves the pointer forward:** push a new commit. Every push mints
+a fresh card at the true latest. That is the lever to reach for, not the buttons.
+
+**Diagnosing without guessing at the UI:** fetch the live HTML and grep it for a
+string only the new code has. The landing IS server-rendered, so the copy is in
+the raw response, but strip `<script>`/`<style>` first because a stale marker can
+survive in a JS chunk and give a false positive. Bracket the deployed commit by
+picking markers whose introducing commit you know.
+
+Lovable's own build commits (e.g. `6a5be5ea` "Rebuilt and published app") are
+INTERNAL and never reach GitHub, so `git log` can never tell you what is live.
+
+Unrelated but seen the same night: `.remember/remember.md` was found emptied in
+the working tree (blob `e69de29b`) with the content intact at HEAD. If this file
+is ever blank, `git checkout -- .remember/remember.md` before doing anything
+else, and never commit the truncation.
