@@ -190,7 +190,17 @@ export function Hero() {
               </span>
             </h1>
 
-            {/* One line on desktop (founder 2026-07-25). It used to break with
+            {/* ONE WEIGHT, WHOLE SENTENCE (founder 2026-07-25). The tail
+                "remember, and guide." used to sit a stop brighter than the
+                rest, a leftover from when it was the clause the headline did
+                not cover. The founder's objection is the correct one: every
+                verb in this sentence matters, so lifting two of them demotes
+                the other two for no reason. The whole line is one weight and
+                one colour now, lifted from zinc-400 to zinc-300 so nothing was
+                dimmed to achieve the match. Hierarchy against the headline is
+                carried by size, which is a 52/17 gap and does not need help.
+
+                One line on desktop (founder 2026-07-25). It used to break with
                 "the next call." alone on line two, which is a widow, and a
                 widow is what actually read as unoptimised.
 
@@ -209,11 +219,10 @@ export function Hero() {
                 here; below lg it is what keeps the sentence wrapping sanely on
                 a phone, where none of the rest of this applies. */}
             <p
-              className="hero-sub hero-rise mb-9 text-base leading-relaxed text-zinc-400 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
+              className="hero-sub hero-rise mb-9 text-base leading-relaxed text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
-              Agents that know what to build, ship it,{" "}
-              <span className="text-zinc-300">remember, and guide.</span>
+              Agents that know what to build, ship it, remember, and guide.
             </p>
 
             <div
