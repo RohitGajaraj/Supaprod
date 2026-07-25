@@ -13,6 +13,19 @@ const EXHIBIT_SOURCE_STYLE = { letterSpacing: "0.12em" } as const;
 
 const TYPED_WORD = "Devs";
 
+/**
+ * The loop's clock. Erasing is faster than typing because that is how a person
+ * at a keyboard actually behaves: deleting is held backspace, typing is not.
+ * The hold is the long beat, so the finished word is what the eye rests on for
+ * most of the cycle and the motion stays at the edge of attention rather than
+ * demanding it. One full cycle is roughly 2.9s.
+ */
+const TYPE_MS = 120;
+const ERASE_MS = 65;
+const HOLD_MS = 1500;
+const GAP_MS = 420;
+const START_MS = 260;
+
 /** What the Decisions row types into its empty cell.
  *
  * Every other row names WHERE that craft lives. This one answers the same
@@ -85,6 +98,9 @@ export function TheGap() {
   // SSR ships the finished string; the run only starts once in view.
   const [slotTyped, setSlotTyped] = useState(MISSING_ANSWER);
   const [slotTyping, setSlotTyping] = useState(false);
+  // The hole gets exactly one run, ever. The headline loops forever, so
+  // without this latch every cycle would retrigger it.
+  const slotDoneRef = useRef(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,12 +114,38 @@ export function TheGap() {
     return () => observer.disconnect();
   }, []);
 
-  // Type the one word, terminal-style, exactly once. inView latches true and
-  // never flips back, so this cannot restart. The chain schedules one timeout
-  // at a time, so clearing the latest cancels the whole run.
+  /**
+   * The word types itself on a loop, terminal-style, and keeps going (founder
+   * 2026-07-25: "constantly, devs was typing on the loop sort of thing").
+   *
+   * It used to run once and stop. That was a deliberate earlier call, on the
+   * grounds that a resting caret is a tease, and it is the wrong call here:
+   * this line is the section's thesis, a live terminal is the whole conceit,
+   * and a cursor that types once and dies just looks like it broke.
+   *
+   * ONE CARET, STILL. The rule that the hole below and this word never blink
+   * at the same time survives, and the loop is what made it interesting. The
+   * cycle is type, hold, erase, gap, repeat, EXCEPT on the very first pass:
+   * there it holds, hands the stage to the hole, and pauses outright. The
+   * effect re-runs when slotTyping flips back to false and the loop resumes.
+   * So during the hole's one run this word shows no caret at all, and after
+   * it the hole rests finished while only this word blinks.
+   *
+   * The chain schedules a single timeout at a time, so clearing the latest one
+   * cancels the entire run, including mid-cycle. Reduced motion returns before
+   * any of it and leaves the finished word on screen, which is also what SSR
+   * ships.
+   */
   useEffect(() => {
     if (!inView) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    // Paused while the hole writes. Dropping the caret here is what keeps the
+    // two from ever blinking together.
+    if (slotTyping) {
+      setTyping(false);
+      return;
+    }
+
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const at = (ms: number, fn: () => void) => {
@@ -111,28 +153,40 @@ export function TheGap() {
         if (!cancelled) fn();
       }, ms);
     };
-    const step = (i: number) => {
+
+    const typeIn = (i: number) => {
       setTyped(TYPED_WORD.slice(0, i));
       if (i < TYPED_WORD.length) {
-        at(120, () => step(i + 1));
-      } else {
-        // One last blink, then the caret leaves and the word rests. It does
-        // not come back: a caret with nothing left to type is a tease.
-        // Handing off to the hole below, so only ONE caret is ever alive.
-        at(900, () => {
-          setTyping(false);
+        at(TYPE_MS, () => typeIn(i + 1));
+        return;
+      }
+      if (!slotDoneRef.current) {
+        at(HOLD_MS, () => {
+          slotDoneRef.current = true;
           setSlotTyping(true);
         });
+        return;
       }
+      at(HOLD_MS, () => eraseOut(TYPED_WORD.length - 1));
     };
+
+    const eraseOut = (i: number) => {
+      setTyped(TYPED_WORD.slice(0, i));
+      if (i > 0) {
+        at(ERASE_MS, () => eraseOut(i - 1));
+        return;
+      }
+      at(GAP_MS, () => typeIn(1));
+    };
+
     setTyped("");
     setTyping(true);
-    at(260, () => step(1));
+    at(START_MS, () => typeIn(1));
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [inView]);
+  }, [inView, slotTyping]);
 
   // The hole answers itself. Same terminal grammar as the headline word, and it
   // only starts once that one has finished and released its caret, so exactly
