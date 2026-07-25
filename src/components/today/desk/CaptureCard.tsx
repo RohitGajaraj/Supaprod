@@ -14,7 +14,6 @@ import { SIGNAL_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -57,7 +56,7 @@ export function CaptureCard() {
         boxShadow: "var(--top-light)",
       }}
     >
-      <h3 style={{ ...mono, color: "var(--text-subtle)", margin: "0 0 8px" }}>Capture</h3>
+      <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: "0 0 8px" }}>Capture</h3>
       <form
         className="flex items-center"
         style={{ gap: 8 }}
@@ -75,13 +74,13 @@ export function CaptureCard() {
           }}
           aria-label="Signal content, source optional"
           placeholder="What did you hear, and from where?"
+          className="text-label-13"
           style={{
             flex: 1,
             background: "var(--surface-card-deep)",
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             padding: "8px 12px",
-            fontSize: 13,
             color: "var(--text-primary)",
           }}
         />
