@@ -27,7 +27,7 @@ export function FocusNext({
   const ev = insight.evidence;
   return (
     <section>
-      <MonoLabel style={{ fontSize: 9.5 }}>Supaprod suggests</MonoLabel>
+      <MonoLabel className="text-label-12">Supaprod suggests</MonoLabel>
       <h3
         style={{
           fontFamily: "var(--font-sans)",
@@ -57,8 +57,9 @@ export function FocusNext({
         {onFocusThis ? (
           <Button
             variant="tertiary"
+            className="text-label-12"
             onClick={() => onFocusThis(insight.headline)}
-            style={{ fontSize: 12, padding: "6px 14px" }}
+            style={{ padding: "6px 14px" }}
           >
             Focus on this
           </Button>
@@ -66,9 +67,10 @@ export function FocusNext({
         {insight.recommendedAction ? (
           <Button
             variant={onFocusThis ? "tertiary" : "secondary"}
+            className="text-label-12"
             loading={isStarting}
             onClick={() => onStart(insight.recommendedAction!.goal)}
-            style={{ fontSize: 12, padding: "6px 14px" }}
+            style={{ padding: "6px 14px" }}
           >
             {isStarting ? "Starting" : "Send to an agent"}
           </Button>
@@ -77,9 +79,10 @@ export function FocusNext({
             text-button; it is now a real tertiary control. */}
         <Button
           variant="tertiary"
+          className="text-label-12"
           aria-expanded={showWhy}
           onClick={() => setShowWhy((v) => !v)}
-          style={{ fontSize: 12, padding: "6px 14px" }}
+          style={{ padding: "6px 14px" }}
         >
           {showWhy ? "Hide why" : "Why"}
         </Button>
@@ -102,11 +105,10 @@ export function FocusNext({
 function Chip({ label, value }: { label: string; value: string }) {
   return (
     <span
-      className="inline-flex items-center"
+      className="inline-flex items-center text-label-12"
       style={{
         gap: 5,
         fontFamily: "var(--font-mono)",
-        fontSize: 10.5,
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-pill)",
         padding: "2px 8px",
