@@ -59,9 +59,9 @@ function LaneSection({
           {title}
         </h2>
         {typeof count === "number" ? (
-          <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{count}</span>
+          <span className="text-label-12" style={{ ...monoLabel, color: "var(--text-faint)" }}>{count}</span>
         ) : null}
-        {hint ? <span style={{ fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>{hint}</span> : null}
+        {hint ? <span className="text-label-12" style={{ color: "var(--text-faint)" }}>{hint}</span> : null}
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
       </div>
       {children}
@@ -72,7 +72,8 @@ function LaneSection({
 function LaneEmpty({ text }: { text: string }) {
   return (
     <p
-      style={{ fontSize: "var(--text-label-13)", color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
+      className="text-label-13"
+      style={{ color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
     >
       {text}
     </p>
@@ -127,14 +128,14 @@ export function PushedInsights({
               <span style={{ ...monoLabel, color: "var(--ember-text)" }}>
                 {INSIGHT_LABEL[ins.kind] ?? "Insight"}
               </span>
-              <span style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}>
+              <span className="text-label-14" style={{ color: "var(--text-primary)", fontWeight: 460 }}>
                 {ins.headline}
               </span>
             </div>
             {ins.detail ? (
               <p
+                className="text-label-13"
                 style={{
-                  fontSize: "var(--text-label-13)",
                   color: "var(--text-body)",
                   margin: "0 0 10px",
                   lineHeight: 1.5,
@@ -152,10 +153,9 @@ export function PushedInsights({
               onClick={pushAction ? () => onAct!(ins) : onOpen}
               // Color/background/border ride classes so the hover variants win
               // (an inline declaration always beats a hover class).
-              className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
+              className="loom-press transition-colors text-label-12 [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
                 alignSelf: "flex-start",
-                fontSize: "var(--text-label-12)",
                 fontWeight: 500,
                 border: "1px solid",
                 borderRadius: "var(--radius-control)",
@@ -229,8 +229,8 @@ export function SwarmActivityLane({
               >
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <span
-                    className="min-w-0 flex-1 truncate"
-                    style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
+                    className="min-w-0 flex-1 truncate text-label-14"
+                    style={{ color: "var(--text-primary)", fontWeight: 460 }}
                   >
                     {stripAutoPrefix(g.title)}
                   </span>
@@ -246,8 +246,8 @@ export function SwarmActivityLane({
                 </div>
                 {g.goal ? (
                   <div
+                    className="text-label-12"
                     style={{
-                      fontSize: "var(--text-label-12)",
                       color: "var(--text-faint)",
                       marginTop: 2,
                       display: "-webkit-box",
@@ -314,21 +314,21 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
               {WATCH_LABEL[it.type]}
             </span>
             <span
-              className="min-w-0 flex-1 truncate"
-              style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
+              className="min-w-0 flex-1 truncate text-label-14"
+              style={{ color: "var(--text-primary)", fontWeight: 460 }}
             >
               {it.title}
             </span>
             {it.confidence != null ? (
-              <span style={{ ...monoLabel, fontSize: "var(--text-label-12)", color: "var(--text-faint)" }}>
+              <span className="text-label-12" style={{ ...monoLabel, color: "var(--text-faint)" }}>
                 {Math.round(it.confidence * 100)}%
               </span>
             ) : null}
           </div>
           {it.description ? (
             <p
+              className="text-label-13"
               style={{
-                fontSize: "var(--text-label-13)",
                 color: "var(--text-body)",
                 margin: "0 0 4px",
                 lineHeight: 1.5,
@@ -338,7 +338,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
             </p>
           ) : null}
           {it.recommendation ? (
-            <p style={{ fontSize: "var(--text-label-12)", color: "var(--text-muted)", margin: 0 }}>
+            <p className="text-label-12" style={{ color: "var(--text-muted)", margin: 0 }}>
               → {it.recommendation}
             </p>
           ) : null}
@@ -400,8 +400,8 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                   }}
                 />
                 <span
-                  className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: "var(--text-label-14)", color: "var(--text-primary)", fontWeight: 460 }}
+                  className="min-w-0 flex-1 truncate text-label-14"
+                  style={{ color: "var(--text-primary)", fontWeight: 460 }}
                 >
                   {it.title}
                 </span>
@@ -416,8 +416,8 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
               </div>
               {it.metric_label && it.metric_value != null ? (
                 <div
+                  className="text-label-12"
                   style={{
-                    fontSize: "var(--text-label-12)",
                     color: "var(--text-faint)",
                     marginTop: 3,
                     paddingLeft: 17,
