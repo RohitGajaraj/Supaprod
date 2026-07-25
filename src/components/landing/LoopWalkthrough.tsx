@@ -10,6 +10,11 @@ import { LoopReplay, type ReplayTab } from "./replay/Replay";
  * category contrast, experienced instead of asserted (plan section 3, beat 3).
  * Behind the content, the mark's orbit curve draws itself as the reader
  * scrolls the section: the mark IS the loop, drawn by reading about the loop.
+ *
+ * Vercel grammar (composition playbook section 3): capability headline, then
+ * the mono spec column naming the three layers, then the artifact. The layer
+ * column replaced the old floating echo list, which only rendered at xl and
+ * so hid the page's one definition of the product from most readers.
  */
 export function LoopWalkthrough() {
   const [activeTab, setActiveTab] = useState<ReplayTab>("full");
@@ -21,6 +26,27 @@ export function LoopWalkthrough() {
     { id: "full", label: "The full loop" },
     { id: "others", label: "Where others stop" },
     { id: "failure", label: "When it breaks" },
+  ];
+
+  // The three layers. Number and name in mono (the machine voice, and the
+  // numbering is what makes them repeatable); the sentence in Sans (the human
+  // voice). "Operating system" carries its plain gloss in the same breath.
+  const layers = [
+    {
+      n: "01",
+      name: "the director",
+      line: "It tells you what to build. Your product taste becomes a system.",
+    },
+    {
+      n: "02",
+      name: "the operating system",
+      line: "It builds and ships it, behind your gate.",
+    },
+    {
+      n: "03",
+      name: "the company brain",
+      line: "It remembers whether you were right, and guides the next call.",
+    },
   ];
 
   useEffect(() => {
@@ -96,10 +122,12 @@ export function LoopWalkthrough() {
     >
       {/* The orbit, drawn by scroll: a whisper of silver bleeding off the
           right edge (the viewBox scales the stroke ~7x, so these numbers are
-          deliberately tiny). Sits low enough to clear the replay mocks. */}
+          deliberately tiny). Sits low enough to clear the replay mocks: the
+          offset moved 580 -> 720 when the layer column took the sub
+          paragraph's place, so the curve keeps the same clearance. */}
       <svg
         className="absolute pointer-events-none hidden lg:block"
-        style={{ right: -240, top: 580, width: 740, height: 740, overflow: "visible" }}
+        style={{ right: -240, top: 720, width: 740, height: 740, overflow: "visible" }}
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden
@@ -117,41 +145,51 @@ export function LoopWalkthrough() {
       </svg>
 
       <div className="relative max-w-5xl mx-auto">
-        <div className="relative mb-12">
-          <h2
-            className={`text-4xl md:text-5xl lg:text-[52px] lg:whitespace-nowrap font-semibold mb-4 text-white transition-all duration-700 ${
+        <h2
+          className={`text-4xl md:text-5xl lg:text-[52px] lg:whitespace-nowrap font-semibold mb-10 text-white transition-all duration-700 ${
+            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ letterSpacing: "-0.02em" }}
+        >
+          Signal to shipped. Watch it happen.
+        </h2>
+
+        {/* The mono spec column: three layers, named and glossed, at every
+            breakpoint. This is the page's one definition of the product. */}
+        <div className="mb-12">
+          <span
+            className={`block font-mono text-[11px] uppercase text-zinc-600 mb-5 transition-all duration-700 ${
               inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
-            style={{ letterSpacing: "-0.02em" }}
+            style={{ letterSpacing: "0.12em", transitionDelay: inView ? "100ms" : "0ms" }}
           >
-            Signal to shipped. Watch it happen.
-          </h2>
-          <p
-            className={`text-lg text-zinc-500 transition-all duration-700 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-            style={{ transitionDelay: inView ? "100ms" : "0ms" }}
-          >
-            One system, the whole lifecycle: from the first signal to the graded outcome.
-          </p>
-          {/* The echo list floats past the container's right edge on purpose:
-              a deliberate alignment break (founder 2026-07-15), sitting
-              directly on the starfield with no scrim so it blends in. */}
-          <div
-            className={`hidden xl:flex flex-col gap-2.5 absolute -top-2 -right-24 transition-all duration-700 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-            style={{ transitionDelay: inView ? "200ms" : "0ms" }}
-          >
-            <span className="font-mono text-[11px] text-zinc-600 mb-1.5">In the loop</span>
-            {["named agents", "human gates", "precedent memory", "outcome grading"].map((f) => (
-              <span
-                key={f}
-                className="cap-item font-mono text-[12px] uppercase text-zinc-400"
-                style={{ letterSpacing: "0.12em" }}
+            one system, three layers
+          </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-7">
+            {layers.map((l, i) => (
+              <div
+                key={l.n}
+                className={`border-t border-white/10 pt-4 transition-all duration-700 ${
+                  inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                }`}
+                style={{ transitionDelay: inView ? `${160 + i * 90}ms` : "0ms" }}
               >
-                {f}
-              </span>
+                <div className="flex items-baseline gap-2.5 mb-2.5">
+                  <span
+                    className="font-mono text-[12px] text-zinc-600"
+                    style={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {l.n}
+                  </span>
+                  <span
+                    className="cap-item font-mono text-[12px] uppercase text-zinc-300"
+                    style={{ letterSpacing: "0.12em" }}
+                  >
+                    {l.name}
+                  </span>
+                </div>
+                <p className="text-[15px] text-zinc-500 leading-relaxed">{l.line}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -177,22 +215,19 @@ export function LoopWalkthrough() {
 
         <LoopReplay tab={activeTab} />
 
-        <div className="text-zinc-500 mt-14 text-sm leading-relaxed">
-          <p>
-            One real mission, step by step, replayed exactly as it ran. The last tab is the part
-            nobody else shows you.
-          </p>
-          <p className="mt-1.5">
-            And proof over promises: the demo is our real workspace, read-only, no signup.{" "}
-            <a
-              href="/demo"
-              onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
-              className="text-zinc-200 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-300 transition-colors"
-            >
-              Open the live demo
-            </a>
-          </p>
-        </div>
+        {/* Affordance, not claim: the replay narrates itself, so what follows
+            it is a door, in the mono metadata voice. */}
+        <p className="mt-12">
+          <a
+            href="/demo"
+            onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
+            className="group inline-flex items-baseline gap-2 font-mono text-[12px] uppercase text-zinc-500 hover:text-white transition-colors"
+            style={{ letterSpacing: "0.12em" }}
+          >
+            Open the live demo
+            <span className="transition-transform group-hover:translate-x-0.5">&rarr;</span>
+          </a>
+        </p>
       </div>
     </section>
   );

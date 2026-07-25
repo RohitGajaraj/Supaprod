@@ -3,9 +3,12 @@ import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { trackLandingEvent } from "@/lib/landing.functions";
 
 /**
- * Sparse nav per the v2 plan: Demo, Pricing, Security, Updates, Sign in, the
- * beta CTA, and the machine-view toggle. The nav CTA stays neutral so the
- * hero's primary keeps the viewport's single ember object (plan section 4.1b).
+ * Sparse nav per the v2 plan: Demo, Pricing, Security, Sign in, the beta CTA,
+ * and the machine-view toggle. The nav CTA stays neutral so the hero's primary
+ * keeps the viewport's single ember object (plan section 4.1b).
+ * Updates was cut 2026-07-25 (landing audit): the footer and the receipts row
+ * already carry it, and it was a third-priority destination competing for a
+ * click before the visitor had read one sentence.
  */
 export function LandingNav() {
   return (
@@ -27,9 +30,6 @@ export function LandingNav() {
         </a>
         <a href="/security" className="text-sm text-zinc-400 hover:text-white transition-colors">
           Security
-        </a>
-        <a href="/updates" className="text-sm text-zinc-400 hover:text-white transition-colors">
-          Updates
         </a>
       </div>
 

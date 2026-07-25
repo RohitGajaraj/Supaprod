@@ -1,10 +1,15 @@
 /**
  * The public landing page, v2 (docs/planning/landing-page-v2-plan.md).
  *
- * Six beats plus footer, SSR on (crawlers and AI answer engines see the full
+ * Five beats plus footer, SSR on (crawlers and AI answer engines see the full
  * page), live counters pulled at render time, one conversion ask (the beta
  * waitlist), the ink-and-metal palette. The logged-in redirect moved to a
  * client effect so SSR is never blocked.
+ *
+ * Trimmed 2026-07-25 (landing audit): the field-stops beat came out. Four of
+ * its five moves were said elsewhere on the page, and its two unique ones
+ * (the record that cannot be backfilled, the compounding pair) belong with
+ * the receipts, which is where the evidence already lives.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
@@ -16,18 +21,19 @@ import { Hero } from "@/components/landing/Hero";
 import { TheGap } from "@/components/landing/TheGap";
 import { LoopWalkthrough } from "@/components/landing/LoopWalkthrough";
 import { Receipts } from "@/components/landing/Receipts";
-import { FieldStops } from "@/components/landing/FieldStops";
 import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getLandingStats, trackLandingEvent } from "@/lib/landing.functions";
 
 const SITE = "https://supaprod.ai";
 
-// The canonical identity line: hero sub, meta description, and llms.txt all
-// carry the same sentence so answer engines never reconcile drift (plan 6.3).
-const TITLE = "Supaprod: agents that know what to build, and ship it";
-const DESC =
-  "Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.";
+// The canonical identity line (founder-ratified 2026-07-25): the hero sub,
+// the meta description, the title, and the machine view all carry the SAME
+// sentence, verbatim, so answer engines never reconcile drift (plan 6.3).
+// It ends on "guide the next call" on purpose: the memory is never storage.
+const TAGLINE = "Agents that know what to build, ship it, remember, and guide the next call.";
+const TITLE = `Supaprod: ${TAGLINE.charAt(0).toLowerCase()}${TAGLINE.slice(1, -1)}`;
+const DESC = `Supaprod is for product managers. ${TAGLINE} You approve every gate.`;
 
 const ORG_LD = {
   "@context": "https://schema.org",
@@ -36,8 +42,11 @@ const ORG_LD = {
   url: SITE,
   logo: `${SITE}/favicon.svg`,
   description: DESC,
+  // No affiliation clause here. The one that used to sit here named a company
+  // that does not exist, a find-and-replace casualty of the 2026-07-17 rename
+  // that was shipping nonsense as structured data (landing audit 2026-07-25).
   disambiguatingDescription:
-    "Supaprod is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts. It is not affiliated with Supaprod Design Systems, the electronic design automation company.",
+    "Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the receipts.",
   sameAs: ["https://github.com/RohitGajaraj", "https://x.com/RohitGajaraj"],
 };
 
@@ -49,15 +58,15 @@ const APP_LD = {
   operatingSystem: "Web",
   url: SITE,
   description: DESC,
-  audience: { "@type": "Audience", audienceType: "Product teams" },
+  audience: { "@type": "Audience", audienceType: "Product managers and product teams" },
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Beta waitlist" },
 };
 
 const MACHINE_CONTENT = `## Supaprod
 
-Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
+For product managers. ${TAGLINE} You approve every gate.
 
-Six stations: Discover, Decide, Plan, Build, Ship, Learn. One governed engine.
+Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
 When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and ships green. The human gate stays in the middle the whole time.
 
 ## Live proof
@@ -181,7 +190,6 @@ function LandingPage() {
           <TheGap />
           <LoopWalkthrough />
           <Receipts stats={stats} />
-          <FieldStops />
           <TrustClose waitlistCount={stats?.waitlistCount ?? null} />
           {/* The [HUMAN]/[MACHINE] toggle lives inside the footer's bottom
               row now (founder 2026-07-15): container-aligned, real spacing. */}

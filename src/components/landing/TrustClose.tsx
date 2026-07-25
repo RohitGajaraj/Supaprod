@@ -1,13 +1,4 @@
-import {
-  BookLock,
-  Brain,
-  Fingerprint,
-  GitMerge,
-  KeyRound,
-  Lock,
-  ScrollText,
-  Undo2,
-} from "lucide-react";
+import { BookLock, Brain, GitMerge, KeyRound } from "lucide-react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { WaitlistForm } from "./WaitlistForm";
 
@@ -16,19 +7,20 @@ import { WaitlistForm } from "./WaitlistForm";
  * The trust strip (four promises with the identity-law icons, linked to
  * /security), the close, and the one conversion ask: the waitlist, inline.
  * The CTA is this viewport's single ember object (plan section 4.1b).
+ *
+ * Halved 2026-07-25 (landing duplication audit): eight cards was a wall
+ * between the reader and the signup, and four of them restated the gate the
+ * page states seven times. The other four answers live at /security, which
+ * this section already links to. The close lost its own restatement of the
+ * loop claim (its fifth appearance on the page).
  */
 export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) {
-  // Eight promises, each one verifiably true of the shipped architecture.
+  // Four promises, each one verifiably true of the shipped architecture.
   const promises = [
     {
       icon: BookLock,
       label: "Read-only by default",
       detail: "Connect your sources without granting a single write.",
-    },
-    {
-      icon: Fingerprint,
-      label: "Writes pass your gate",
-      detail: "Write access is scoped per mission and approved by you.",
     },
     {
       icon: Brain,
@@ -41,24 +33,9 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
       detail: "Bring your own keys or run on managed ones. Your choice.",
     },
     {
-      icon: ScrollText,
-      label: "Every act on the record",
-      detail: "Each agent action carries a traceable audit id.",
-    },
-    {
       icon: GitMerge,
       label: "Merge is always human",
       detail: "Merge, revert, and delegate can never skip your approval.",
-    },
-    {
-      icon: Lock,
-      label: "Keys encrypted at rest",
-      detail: "Pasted credentials sit in an AES-256 vault.",
-    },
-    {
-      icon: Undo2,
-      label: "One-click revoke",
-      detail: "Pull any connection or permission instantly.",
     },
   ];
 
@@ -110,9 +87,9 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         </p>
 
         {/* The close: beta status as a mono eyebrow, the heading cut in two
-            for punch, and the sub at the page's standard text-lg, one promise
-            per line (founder 2026-07-15: never three sub lines under a
-            one-line heading). The #join anchor lives HERE, not on the section,
+            for punch, and the sub at the page's standard text-lg, now a single
+            line (founder 2026-07-15: never three sub lines under a one-line
+            heading). The #join anchor lives HERE, not on the section,
             so every 'Join the beta' click lands with the eyebrow, heading,
             and the email field all in view. The 160px offset is deliberate
             (founder 2026-07-15): the block lands a little down the viewport,
@@ -129,13 +106,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             A product team of agents. Answerable to you.
           </h2>
           <p className="text-lg text-zinc-400 mb-12 leading-relaxed">
-            <span className="md:block">
-              It starts learning your product from the first call you grade with it.
-            </span>{" "}
-            <span className="md:block">
-              Every graded outcome sharpens its taste, until it tells you what to build before you
-              ask.
-            </span>
+            It starts learning your product from the first call you grade.
           </p>
 
           <WaitlistForm waitlistCount={waitlistCount} />

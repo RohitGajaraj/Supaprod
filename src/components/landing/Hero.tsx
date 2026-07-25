@@ -8,6 +8,13 @@ import { MarkGlint } from "./MarkGlint";
  * product shows itself one scroll down in the walkthrough.
  * Ink-and-metal: white light only behind the mark, ember only on the primary
  * CTA. Entrances are pure CSS so SSR paints complete without JavaScript.
+ *
+ * Rewritten 2026-07-25 (landing audit): the audience is named in a mono
+ * eyebrow that renders at every breakpoint (it used to live only in the
+ * lg-and-up descriptor column, so no phone ever learned who this is for);
+ * the three-sentence sub that restated the headline is gone, replaced by the
+ * ratified tagline; the free-teardown offer is promoted out of grey mono into
+ * the promise; one ember CTA, the demo demoted to a quiet link.
  */
 export function Hero() {
   return (
@@ -52,6 +59,15 @@ export function Hero() {
 
           {/* Left: the claim */}
           <div className="text-center lg:text-left">
+            {/* Who it is for, at every breakpoint. Mono, machine-voice
+                register, but the words are the wedge in plain English. */}
+            <p
+              className="hero-rise font-mono text-[11px] md:text-[12px] uppercase text-zinc-500 mb-5"
+              style={{ animationDelay: "80ms", letterSpacing: "0.14em" }}
+            >
+              For product managers who ship with agents
+            </p>
+
             <h1
               className="hero-rise text-[30px] md:text-[40px] lg:text-[44px] leading-[1.18] mb-6 text-white"
               style={{
@@ -72,16 +88,25 @@ export function Hero() {
             </h1>
 
             <p
-              className="hero-rise text-base md:text-lg text-zinc-400 mb-10 leading-relaxed mx-auto lg:mx-0"
+              className="hero-rise text-base md:text-lg text-zinc-400 mb-7 leading-relaxed mx-auto lg:mx-0"
               style={{ animationDelay: "300ms", maxWidth: "52ch" }}
             >
-              It reads your signals, your market, and your own track record, then makes the call
-              with you. One governed loop carries it to shipped code and comes back to grade the
-              outcome. Every graded call makes the next one sharper.
+              Agents that know what to build, ship it, remember,{" "}
+              <span className="text-zinc-200">and guide the next call.</span>
+            </p>
+
+            {/* The offer, in plain type. It is the strongest thing we can say
+                to a stranger, so it stops being a grey footnote. */}
+            <p
+              className="hero-rise text-sm md:text-[15px] text-zinc-400 mb-8 leading-relaxed mx-auto lg:mx-0"
+              style={{ animationDelay: "380ms", maxWidth: "46ch" }}
+            >
+              <span className="text-zinc-100 font-medium">The first 100 get a free teardown.</span>{" "}
+              Our Critic agent tears your riskiest idea apart. No credit card.
             </p>
 
             <div
-              className="hero-rise flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 mb-5"
+              className="hero-rise flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 sm:gap-7"
               style={{ animationDelay: "450ms" }}
             >
               <a
@@ -101,21 +126,17 @@ export function Hero() {
               <a
                 href="/demo"
                 onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
-                className="px-8 py-3 rounded-full border border-white/15 text-white font-medium hover:border-white/30 hover:bg-white/[0.03] active:scale-[0.98] transition-all duration-200"
+                className="group text-sm text-zinc-400 hover:text-white transition-colors duration-200"
               >
-                Watch a real run
+                Watch a real run{" "}
+                <span
+                  className="inline-block group-hover:translate-x-0.5 transition-transform"
+                  aria-hidden
+                >
+                  &rarr;
+                </span>
               </a>
             </div>
-
-            <p
-              className="hero-rise flex flex-wrap justify-center lg:justify-start gap-x-3 gap-y-1 text-xs text-zinc-500 font-mono"
-              style={{ animationDelay: "600ms" }}
-            >
-              <span>No credit card.</span>
-              <span className="whitespace-nowrap">
-                First 100 get their riskiest idea stress-tested, free.
-              </span>
-            </p>
           </div>
 
           {/* Center: the mark, backlit like an eclipse (desktop) */}
@@ -138,12 +159,16 @@ export function Hero() {
             className="hero-rise hidden lg:flex flex-col gap-3 font-mono text-[12px] uppercase text-zinc-400"
             style={{ animationDelay: "300ms", letterSpacing: "0.14em", lineHeight: 1.6 }}
           >
-            <span>for product teams</span>
+            {/* The audience moved to the eyebrow on the left (it renders at
+                every breakpoint there). This column is the machine voice:
+                what the system does, where it does it, who holds the gate. */}
             <span>
               to decide <span className="hero-verb whitespace-nowrap">what to build</span>
             </span>
             <span>
-              and <span className="hero-verb whitespace-nowrap">ship it</span>,{" "}
+              to <span className="hero-verb whitespace-nowrap">ship it</span> in your repo
+            </span>
+            <span>
               <span className="hero-verb whitespace-nowrap">gated by you</span>
             </span>
           </div>

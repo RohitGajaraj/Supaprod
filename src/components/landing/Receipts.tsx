@@ -2,17 +2,53 @@ import type { LandingStats } from "@/lib/landing.functions";
 
 /**
  * Beat 4 - Receipts (the investor beat).
- * Counters are pulled live from the DB at render time via the route loader;
- * if the pull fails the strip degrades to the artifact row and never renders
- * a hardcoded count (claims law, plan section 1.5). Numerals use the blue
- * data tone; gold is banned outside the trace's memory rows (founder ruling).
+ *
+ * The live adoption counters were removed (founder ruling 2026-07-25): on a
+ * pre-launch page they invite a question the company cannot answer well, and
+ * they were abstractions on an already abstract page. What replaced them is
+ * the graded ledger, which shows judgment being scored rather than restating
+ * the loop the walkthrough already shows.
+ *
+ * The WRONG row is the point of the section. Publishing a miss is what makes
+ * the other three rows worth reading. Verdicts sit in mono (the machine
+ * passing judgment), decisions in Sans (the human who made the call). Green
+ * and red are state colours and legitimate here; gold never touches any of it.
+ *
+ * The `stats` prop is accepted and ignored so the route can keep passing it.
  */
-export function Receipts({ stats }: { stats: LandingStats | null }) {
+export function Receipts(_props: { stats?: LandingStats | null }) {
   const artifacts = [
     { label: "A decision, with its receipt", href: "/d/acf1fa74a20840cda5759644c6f02c05" },
     { label: "A public teardown, no signup", href: "/p/teardown" },
     { label: "The trust ledger", href: "/proof" },
     { label: "What shipped this week", href: "/updates" },
+  ];
+
+  const ledger = [
+    {
+      week: "Week 2",
+      decision: "Kill the secondary product line",
+      evidence: "Usage and margin data, two quarters",
+      verdict: "RIGHT" as const,
+    },
+    {
+      week: "Week 4",
+      decision: "Say no to the top-voted request",
+      evidence: "Usage contradicts the votes",
+      verdict: "RIGHT" as const,
+    },
+    {
+      week: "Week 7",
+      decision: "Chase the big logo ahead of roadmap",
+      evidence: "Gut call, no evidence attached",
+      verdict: "WRONG" as const,
+    },
+    {
+      week: "Week 11",
+      decision: "Reprice from seats to usage",
+      evidence: "Revenue analysis by signup month",
+      verdict: "RIGHT" as const,
+    },
   ];
 
   return (
@@ -31,13 +67,12 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
               not claims.
             </h2>
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
-              {stats
-                ? "Every number here is pulled live from our database. Supaprod has been building itself on its own loop since June 2026. We publish the misses on the same ledger as the wins."
-                : "Every artifact here is a live object in our workspace. Supaprod has been building itself on its own loop since June 2026. We publish the misses on the same ledger as the wins."}
+              Every artifact here is a live object in our workspace. Supaprod has run on its own
+              loop since June 2026. We publish the misses on the same ledger as the wins.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
               <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the ledger</span>
-              {["live counters", "real decisions", "public teardowns", "dated shipping log"].map(
+              {["graded verdicts", "real decisions", "public teardowns", "dated shipping log"].map(
                 (f) => (
                   <span
                     key={f}
@@ -51,68 +86,81 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
             </div>
           </div>
 
-          <div className="md:order-1">
-            {/* Live counters: rendered only when the live pull succeeded */}
-            {stats && (
-              <div className="mb-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: "missions run", value: stats.missionsRun },
-                    { label: "decisions recorded", value: stats.decisionsRecorded },
-                    { label: "outcomes graded", value: stats.outcomesGraded },
-                    { label: "AI calls, one audited path", value: stats.aiCallsGoverned },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 transition-colors hover:border-white/20"
-                    >
-                      <div
-                        className="text-3xl md:text-4xl mb-2"
-                        style={{
-                          fontFamily: "var(--font-pixel)",
-                          fontVariantNumeric: "tabular-nums",
-                          // Blue data tone (the in-app PixelStat ruling); gold
-                          // is reserved for the trace's memory rows only.
-                          color: "#6cb0f5",
-                        }}
-                      >
-                        {item.value.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-zinc-500 uppercase tracking-wide">
-                        {item.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[11px] text-zinc-600 font-mono mt-3">
-                  Pulled live from the database at{" "}
-                  {new Date(stats.pulledAt).toISOString().slice(0, 16).replace("T", " ")} UTC.
-                </p>
-              </div>
-            )}
-
-            {/* Artifact row: every link is a real, live object */}
-            <div className="mt-10 grid grid-cols-1 gap-y-1">
-              {artifacts.map((a) => (
-                <a
-                  key={a.href}
-                  href={a.href}
-                  className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors"
-                >
-                  <span>{a.label}</span>
-                  <span className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all">
-                    &rarr;
-                  </span>
-                </a>
-              ))}
-            </div>
+          {/* Artifact row: every link is a real, live object */}
+          <div className="md:order-1 grid grid-cols-1 gap-y-1">
+            {artifacts.map((a) => (
+              <a
+                key={a.href}
+                href={a.href}
+                className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors"
+              >
+                <span>{a.label}</span>
+                <span className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all">
+                  &rarr;
+                </span>
+              </a>
+            ))}
           </div>
         </div>
 
+        {/* The graded ledger. Four calls, one of them wrong, all of them
+            scored. Mobile stacks each row; md+ resolves it to four columns
+            via `contents` on the week/verdict wrapper. */}
+        <div className="mt-24">
+          <span
+            className="block font-mono text-[10px] uppercase text-zinc-600 mb-6"
+            style={{ letterSpacing: "0.2em" }}
+          >
+            Illustrative &middot; one product team, one quarter
+          </span>
+
+          <div
+            className="hidden md:grid md:grid-cols-[86px_1.25fr_1.15fr_92px] md:gap-8 pb-3 font-mono text-[10px] uppercase text-zinc-600"
+            style={{ letterSpacing: "0.2em" }}
+            aria-hidden
+          >
+            <span>week</span>
+            <span>decision</span>
+            <span>evidence</span>
+            <span>verdict</span>
+          </div>
+
+          {ledger.map((row) => {
+            const wrong = row.verdict === "WRONG";
+            return (
+              <div
+                key={row.week}
+                className="border-t border-white/[0.07] py-5 px-3 -mx-3 rounded-lg md:grid md:grid-cols-[86px_1.25fr_1.15fr_92px] md:gap-8 md:items-baseline"
+                style={wrong ? { background: "rgba(229,83,75,0.05)" } : undefined}
+              >
+                <div className="flex items-baseline justify-between gap-4 md:contents">
+                  <span className="font-mono text-[12px] text-zinc-500">{row.week}</span>
+                  <span
+                    className="md:order-1 font-mono text-[12px] font-medium"
+                    style={{
+                      letterSpacing: "0.12em",
+                      color: wrong ? "#e5534b" : "#4ac26b",
+                    }}
+                  >
+                    {row.verdict}
+                  </span>
+                </div>
+                <p className="text-[15px] text-zinc-100 mt-2 md:mt-0">{row.decision}</p>
+                <p className="text-[13px] text-zinc-500 mt-1 md:mt-0">{row.evidence}</p>
+              </div>
+            );
+          })}
+
+          {/* The moat, stated plainly for the first time on this page. */}
+          <p className="text-base text-zinc-400 mt-10 leading-relaxed" style={{ maxWidth: "52ch" }}>
+            Verdicts take weeks. The record accrues in calendar time. It cannot be backfilled,
+            bought, or bolted on. A competitor starting next year starts at zero, next year.
+          </p>
+        </div>
+
         {/* The thesis statement: the beat's brand moment, in the pixel face,
-            framed so it reads as its own message between the receipts above
-            and the moat beat below (founder 2026-07-15). The dividers fade at
-            the edges (the mask-fade treatment) so the line floats instead of
+            framed so it reads as its own message. The dividers fade at the
+            edges (the mask-fade treatment) so the line floats instead of
             sitting in a table row. Ember on the product name: the human voice,
             because the statement is about you answering. */}
         <div className="mt-24">

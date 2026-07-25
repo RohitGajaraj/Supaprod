@@ -1,8 +1,14 @@
 /**
  * Beat 5 - The USP beat (founder ruling 2026-07-15): building is commoditized;
  * knowing WHAT to build is the moat. Supaprod is the second brain that makes
- * the call with you and remembers whether it was right. Unnamed contrast,
- * agent-era framing, no comparison boxes, no competitor names.
+ * the call with you and remembers whether it was right.
+ *
+ * Subtracted 2026-07-25 (landing duplication audit), design otherwise
+ * untouched: the opening clause was TheGap's sentence again, the field ledger
+ * was the "where others stop" contrast told a third time, the closing pull
+ * quote was the page's second identically framed statement, and the
+ * cannot-be-backfilled line moved up to Receipts to sit beside the graded
+ * ledger it describes. What is left has one job: memory compounds.
  */
 export function FieldStops() {
   return (
@@ -16,7 +22,7 @@ export function FieldStops() {
           className="text-4xl md:text-5xl font-semibold mb-14 text-white leading-[1.1]"
           style={{ letterSpacing: "-0.02em", maxWidth: "26ch" }}
         >
-          Everyone can build now. Knowing what to build is the moat.
+          Knowing what to build is the moat.
           <span
             className="block mt-4 text-[0.62em] text-zinc-300"
             style={{
@@ -28,51 +34,6 @@ export function FieldStops() {
             Supaprod builds that moat for you.
           </span>
         </h2>
-
-        {/* The ledger: what the field leaves on you, and what Supaprod does
-            about each one. Mono kickers, two voices, no boxes. */}
-        <div className="mb-16">
-          <div className="hidden md:grid md:grid-cols-2 gap-10 pb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
-              the field today
-            </span>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#6cb0f5]">
-              with supaprod
-            </span>
-          </div>
-          {[
-            {
-              kicker: "signal feeds",
-              them: "surface what is happening. The call is still yours to make, alone.",
-              ours: "It arrives with the call already ranked, backed by your own precedent.",
-            },
-            {
-              kicker: "agent fleets",
-              them: "ship whatever they are pointed at. Pointing them is the scarce skill.",
-              ours: "It does the pointing: picks the bet, writes the spec, and runs the fleet behind your gate.",
-            },
-            {
-              kicker: "docs and boards",
-              them: "hold the plan. The taste behind it evaporates.",
-              ours: "It grades every ship against the call that caused it, at D+7, D+14, whichever window the call sets. The next one starts sharper.",
-            },
-          ].map((row) => (
-            <div
-              key={row.kicker}
-              className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-10 py-6 border-t border-white/[0.07] -mx-3 px-3 rounded-lg hover:bg-white/[0.015] transition-colors"
-            >
-              <p className="text-base md:text-lg leading-snug">
-                <span className="block text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">
-                  {row.kicker}
-                </span>
-                <span className="text-zinc-500">{row.them}</span>
-              </p>
-              <p className="text-base md:text-lg leading-snug md:pt-6">
-                <span className="text-zinc-100">{row.ours}</span>
-              </p>
-            </div>
-          ))}
-        </div>
 
         {/* The claim, stated as a display line; the USP phrase carries the
             brand face and the gold micro-detail (founder ruling 2026-07-15) */}
@@ -96,8 +57,7 @@ export function FieldStops() {
           for your product: every call, its evidence, and its outcome on one record.
         </p>
         <p className="text-base text-zinc-500 mb-16" style={{ maxWidth: "58ch" }}>
-          A record like that cannot be bought or backfilled. It exists only if the system was in the
-          loop when the call was made.
+          It exists only if the system was in the loop when the call was made.
         </p>
 
         {/* The compounding moment: claim on the left, the evidence pair on the
@@ -135,37 +95,9 @@ export function FieldStops() {
             </div>
           </div>
         </div>
-        <p className="text-sm text-zinc-600 mb-20 md:text-right">
+        <p className="text-sm text-zinc-600 md:text-right">
           The precedent chips are the shipped UI; the pair is an illustration.
         </p>
-
-        {/* Pull line: framed in the same fading hairlines as the Receipts
-            statement, so the page's two statement moments share one grammar
-            and the seam into the trust grid reads composed, not empty. */}
-        <div className="mt-24">
-          <div
-            aria-hidden
-            style={{
-              height: 1,
-              background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
-            }}
-          />
-          <p
-            className="text-center text-xl md:text-2xl text-zinc-300 font-medium py-14"
-            style={{ letterSpacing: "-0.01em" }}
-          >
-            Alignment expires. The ledger compounds.
-          </p>
-          <div
-            aria-hidden
-            style={{
-              height: 1,
-              background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
-            }}
-          />
-        </div>
       </div>
     </section>
   );
