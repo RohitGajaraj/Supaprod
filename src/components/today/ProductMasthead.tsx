@@ -56,8 +56,8 @@ export function ProductMasthead({
       </span>
       <span
         aria-hidden="true"
-        className="transition-colors [color:var(--text-faint)] group-hover:[color:var(--text-body)]"
-        style={{ fontSize: 12, flexShrink: 0 }}
+        className="text-label-12 transition-colors [color:var(--text-faint)] group-hover:[color:var(--text-body)]"
+        style={{ flexShrink: 0 }}
       >
         →
       </span>
