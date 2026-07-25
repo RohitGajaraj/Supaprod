@@ -16,7 +16,6 @@ import {
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -104,10 +103,10 @@ export function NotepadCard() {
   return (
     <section aria-label="Notepad" style={card}>
       <div className="flex items-baseline" style={{ gap: 10, marginBottom: 8 }}>
-        <h3 style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Notepad</h3>
+        <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Notepad</h3>
         <div style={{ flex: 1 }} />
         {updatedAt > 0 ? (
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-faint)" }}>
+          <span className="text-label-12" style={{ ...mono, color: "var(--text-faint)" }}>
             {relativeTime(updatedAt)}
           </span>
         ) : null}
@@ -116,6 +115,7 @@ export function NotepadCard() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Jot anything. Only you see this."
+        className="text-label-13"
         style={{
           width: "100%",
           height: 80,
@@ -124,16 +124,15 @@ export function NotepadCard() {
           border: "1px solid var(--hairline-strong)",
           borderRadius: "var(--radius-control)",
           padding: "8px 12px",
-          fontSize: 13,
           color: "var(--text-primary)",
         }}
       />
       <div className="flex items-center justify-end" style={{ marginTop: 8 }}>
         <Button
           variant="tertiary"
+          className="text-label-12"
           onClick={() => void clearNote()}
           disabled={text.trim().length === 0}
-          style={{ fontSize: 12 }}
         >
           Clear
         </Button>
