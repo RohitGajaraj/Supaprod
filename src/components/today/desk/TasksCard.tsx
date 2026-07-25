@@ -17,7 +17,6 @@ import { TASK_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -145,10 +144,10 @@ export function TasksCard() {
   return (
     <section aria-label="Tasks today" style={card}>
       <div className="flex items-baseline" style={{ gap: 10, marginBottom: 10 }}>
-        <h3 style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Tasks today</h3>
+        <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Tasks today</h3>
         <div style={{ flex: 1 }} />
         {openCount > 0 ? (
-          <span style={{ ...mono, fontSize: 9.5, color: "var(--text-faint)" }}>
+          <span className="text-label-12" style={{ ...mono, color: "var(--text-faint)" }}>
             {openCount} open
           </span>
         ) : null}
@@ -156,13 +155,13 @@ export function TasksCard() {
 
       {tasks.isError ? (
         <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 12.5, color: "var(--madder)" }}>Tasks didn't load.</span>
-          <Button variant="tertiary" onClick={() => void tasks.refetch()} style={{ fontSize: 12 }}>
+          <span className="text-label-13" style={{ color: "var(--madder)" }}>Tasks didn't load.</span>
+          <Button variant="tertiary" className="text-label-12" onClick={() => void tasks.refetch()}>
             Retry
           </Button>
         </div>
       ) : dueRows.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+        <p className="text-label-13" style={{ color: "var(--text-muted)", margin: "0 0 10px" }}>
           Nothing due today. Add what matters.
         </p>
       ) : (
@@ -178,9 +177,8 @@ export function TasksCard() {
                   style={{ accentColor: "var(--moss)", width: 13, height: 13, flexShrink: 0 }}
                 />
                 <span
-                  className="min-w-0 flex-1 truncate"
+                  className="min-w-0 flex-1 truncate text-label-13"
                   style={{
-                    fontSize: 13,
                     color: done ? "var(--text-subtle)" : "var(--text-body)",
                     textDecoration: done ? "line-through" : "none",
                   }}
@@ -201,8 +199,9 @@ export function TasksCard() {
           {hiddenCount > 0 ? (
             <Button
               variant="tertiary"
+              className="text-label-12"
               onClick={() => setExpanded(true)}
-              style={{ fontSize: 12, alignSelf: "flex-start" }}
+              style={{ alignSelf: "flex-start" }}
             >
               {hiddenCount} more
             </Button>
@@ -214,9 +213,10 @@ export function TasksCard() {
         <div style={{ marginBottom: 10 }}>
           <Button
             variant="tertiary"
+            className="text-label-12"
             aria-expanded={backlogOpen}
             onClick={() => setBacklogOpen((v) => !v)}
-            style={{ fontSize: 12, alignSelf: "flex-start" }}
+            style={{ alignSelf: "flex-start" }}
           >
             {backlogOpen ? "Hide backlog" : `Backlog (${backlogRows.length})`}
           </Button>
@@ -225,13 +225,14 @@ export function TasksCard() {
               {backlogRows.map((t) => (
                 <div key={t.id} className="flex items-center" style={{ gap: 9 }}>
                   <span
-                    className="min-w-0 flex-1 truncate"
-                    style={{ fontSize: 13, color: "var(--text-body)" }}
+                    className="min-w-0 flex-1 truncate text-label-13"
+                    style={{ color: "var(--text-body)" }}
                   >
                     {t.title}
                   </span>
                   <span
-                    style={{ ...mono, fontSize: 9.5, color: "var(--text-faint)", flexShrink: 0 }}
+                    className="text-label-12"
+                    style={{ ...mono, color: "var(--text-faint)", flexShrink: 0 }}
                   >
                     {fmtDueDate(t.due_date)}
                   </span>
@@ -256,22 +257,23 @@ export function TasksCard() {
           onChange={(e) => setDraft(e.target.value)}
           aria-label="New task for today"
           placeholder="Add a task for today"
+          className="text-label-13"
           style={{
             flex: 1,
             background: "var(--surface-card-deep)",
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             padding: "6px 10px",
-            fontSize: 13,
             color: "var(--text-primary)",
           }}
         />
         <Button
           type="submit"
           variant="secondary"
+          className="text-label-12"
           loading={addTask.isPending}
           disabled={draft.trim().length < 2}
-          style={{ fontSize: 12, padding: "6px 14px" }}
+          style={{ padding: "6px 14px" }}
         >
           Add
         </Button>
