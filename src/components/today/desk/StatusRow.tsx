@@ -10,7 +10,6 @@ import { STATUS_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 10.5,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
 };
@@ -29,14 +28,14 @@ export function StatusRow() {
       className="flex items-center"
       style={{ gap: 10, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
     >
-      <span style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
+      <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
       <span
-        className="min-w-0 flex-1 truncate"
-        style={{ fontSize: 12.5, color: "var(--text-muted)" }}
+        className="min-w-0 flex-1 truncate text-label-13"
+        style={{ color: "var(--text-muted)" }}
       >
         A ready-to-send update from live state, built to paste into email or Slack
       </span>
-      <Button variant="secondary" onClick={() => setOpen(true)} style={{ fontSize: 12 }}>
+      <Button variant="secondary" className="text-label-12" onClick={() => setOpen(true)}>
         Share status
       </Button>
       <StatusUpdateDialog
