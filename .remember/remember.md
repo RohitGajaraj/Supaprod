@@ -41,6 +41,25 @@ Tempo out of Tailwind's namespace: `--tempo-text-base` / `--tempo-text-sm`,
 the 2026-07-24 ruling (the deck reads for investors, partners, press AND
 candidates). Footer label now "Investors", href points straight at /brief.
 
+**The brief deck, moat slide only** (scoped by a new `.moat` class; it is the
+deck's only paper slide, and 15 of 16 slides are byte-identical to before).
+- Subtle ember dither in the top-right and bottom-left corners. True 2px
+  squares from an inline SVG tile at 12px and 19px, sizes with no common factor
+  so the layers never repeat visibly. Parchment background untouched.
+  TWO OTHER SHAPES WERE TRIED AND FOUNDER-REJECTED: full-height edge bands read
+  as curtains here (the reference frames a narrow centred column with wide
+  gutters; this slide is one wide column with no gutters), and a harder
+  pixel-clustered version was worse. Do not re-litigate this; corners won.
+- Readability: 11 of 31 elements failed WCAG AA, now 0. `--ink3` #8b8276 (3.38)
+  -> #736a5f (~4.8), paper ember #c2571f (4.02) -> #b34e1b (~4.7). Kicker
+  10.5px -> 13px with tighter tracking (that was the founder's actual
+  complaint), headers and caption 9/9.5px -> 11px.
+- Ledger body cells stay at 11.5px ON PURPOSE. Bumping them to 12.5 was tried
+  and reverted: they already passed contrast, and the extra point wrapped four
+  rows onto two lines each and killed the one-line-per-row scannability.
+- `public/brief.html` and `docs/pitch/investor-deck/*.html` must stay
+  BYTE-IDENTICAL. Edit one, `cp` to the other, verify with `diff -q`.
+
 ## WATCH THIS AFTER THE PRODUCTION DEPLOY
 
 The token rename is the only change with reach beyond the landing. Authenticated
