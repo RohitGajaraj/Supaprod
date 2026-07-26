@@ -179,7 +179,7 @@ export function InsightsPanel() {
         <SpotlightCard kicker="What Supaprod is seeing" tone="neutral">
           <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
             {qa.data.signals.map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <ToneDot color={SIGNAL_COLOR[s.kind] ?? "var(--text-subtle)"} />
                 <span style={{ color: "var(--text-body)", lineHeight: 1.55 }}>
                   {s.text}
@@ -209,7 +209,7 @@ export function InsightsPanel() {
                   padding: "12px 15px",
                   display: "flex",
                   alignItems: "flex-start",
-                  gap: 12,
+                  gap: 10,
                 }}
               >
                 <ToneDot color={t.color} />
@@ -375,9 +375,9 @@ export function InsightsPanel() {
       {d.recentLearnings.length > 0 ? (
         <div className="bento" style={{ padding: 16 }}>
           <MonoLabel style={{ marginBottom: 12 }}>Recent outcomes</MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {d.recentLearnings.map((l, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <span
                   className="mono-label"
                   style={{

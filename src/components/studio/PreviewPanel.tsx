@@ -114,9 +114,9 @@ export function PreviewPanel({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <MonoLabel icon={MonitorPlay}>Live preview</MonoLabel>
           <span
             className="truncate"

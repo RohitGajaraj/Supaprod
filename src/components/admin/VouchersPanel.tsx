@@ -272,7 +272,7 @@ function VoucherCreator() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             fontFamily: "var(--font-sans)",
             color: "var(--text-body)",
           }}
@@ -345,7 +345,7 @@ function RedemptionsDrawer({
               padding: 0,
               listStyle: "none",
               display: "grid",
-              gap: 8,
+              gap: 6,
               fontFamily: "var(--font-sans)",
               color: "var(--text-body)",
             }}

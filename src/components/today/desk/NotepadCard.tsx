@@ -102,7 +102,7 @@ export function NotepadCard() {
 
   return (
     <section aria-label="Notepad" style={card}>
-      <div className="flex items-baseline" style={{ gap: 12, marginBottom: 8 }}>
+      <div className="flex items-baseline" style={{ gap: 10, marginBottom: 8 }}>
         <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Notepad</h3>
         <div style={{ flex: 1 }} />
         {updatedAt > 0 ? (
@@ -115,7 +115,7 @@ export function NotepadCard() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Jot anything. Only you see this."
-        className="text-label-12"
+        className="text-label-13"
         style={{
           width: "100%",
           height: 80,

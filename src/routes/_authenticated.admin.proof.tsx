@@ -68,7 +68,7 @@ const cardNumberStyle = {
 
 const cardMeaningStyle = {
   fontFamily: "var(--font-sans)",
-  fontSize: 12,
+  fontSize: 12.5,
   lineHeight: 1.5,
   color: "var(--text-body)",
   marginTop: 8,

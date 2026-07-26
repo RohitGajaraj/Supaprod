@@ -167,7 +167,7 @@ export function StrategicBriefCard() {
           </button>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {SINGLETON_KINDS.filter(
             (kind) => byKind.get(kind)?.[0] || reveal || editingKind === kind,
           ).map((kind) => {
@@ -194,7 +194,7 @@ export function StrategicBriefCard() {
                   )}
                 </div>
                 {isEditing ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <textarea
                       className="input"
                       autoFocus
@@ -266,7 +266,7 @@ export function StrategicBriefCard() {
                 </div>
               ))}
               {editingKind === "top_bet" ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
                   <input
                     className="input"
                     autoFocus

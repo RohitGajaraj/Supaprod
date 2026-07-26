@@ -411,7 +411,7 @@ export function ChangesPanel({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* Changeset header — chip carries state + file count; repo/branch are real. */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <ChangesetChip status={changeset.status} fileCount={changes.length} />
         <span
           className="truncate"
@@ -555,7 +555,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: changeset.release_notes ? "1px solid var(--hairline)" : "none",
             }}
@@ -608,7 +608,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: launchKit ? "1px solid var(--hairline)" : "none",
             }}
@@ -706,7 +706,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -721,13 +721,13 @@ export function ChangesPanel({
               style={{
                 display: "flex",
                 alignItems: "flex-start",
-                gap: 12,
+                gap: 10,
                 padding: "10px 18px",
                 borderBottom: i < rollbacks.length - 1 ? "1px solid var(--hairline)" : "none",
                 flexDirection: "column",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
                 <span style={{ color: "var(--text-body)" }}>
                   {rb.status === "reverted" ? "done" : "open"}
                 </span>
@@ -797,7 +797,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -815,7 +815,7 @@ export function ChangesPanel({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 10,
                 padding: "10px 18px",
                 borderBottom: i < revisions.length - 1 ? "1px solid var(--hairline)" : "none",
               }}
@@ -902,7 +902,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: editScope ? "1px solid var(--hairline)" : "none",
             }}
@@ -967,7 +967,7 @@ export function ChangesPanel({
           </div>
           {editScope ? (
             <div
-              style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 12 }}
+              style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
               <label
                 style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
@@ -994,7 +994,7 @@ export function ChangesPanel({
                   padding: "8px 10px",
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <label className="mono-label" style={{ color: "var(--text-body)" }}>
                   Max files
                 </label>
@@ -1044,7 +1044,7 @@ export function ChangesPanel({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -1074,7 +1074,7 @@ export function ChangesPanel({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 10,
                 width: "100%",
                 textAlign: "left",
                 padding: "11px 18px",
@@ -1152,7 +1152,7 @@ export function ChangesPanel({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
             }}
@@ -1266,7 +1266,7 @@ export function ChangesPanel({
                 gap: "var(--geist-space-2x)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
                   {hunks.length} hunk{hunks.length === 1 ? "" : "s"} · tap to reject (reverts to
                   base)
@@ -1315,7 +1315,7 @@ export function ChangesPanel({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       textAlign: "left",
                       width: "100%",
                       padding: "8px 10px",

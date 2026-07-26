@@ -170,7 +170,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
           <KindIcon size={16} strokeWidth={1.5} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
               {stripAutoPrefix(r.title)}
             </span>
@@ -231,7 +231,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
             ) : null}
             {/* TRUST-SHARE: only decisions are publicly shareable (reuse /d/$slug). */}
             {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
-            <span className="flex items-center" style={{ marginLeft: "auto", gap: 12 }}>
+            <span className="flex items-center" style={{ marginLeft: "auto", gap: 10 }}>
               <span
                 className="tabular-nums"
                 style={{
@@ -291,7 +291,7 @@ function SealPanel() {
           borderRadius: "var(--radius-card)",
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
           flexWrap: "wrap",
         }}
       >
@@ -326,7 +326,7 @@ function SealPanel() {
         borderRadius: "var(--radius-card)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <ShieldCheck size={16} strokeWidth={1.5} color="var(--moss)" />
         <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
           Tamper check
@@ -341,7 +341,7 @@ function SealPanel() {
         <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}>
           {seal.count} record{seal.count === 1 ? "" : "s"} · as of {relTimeCaps(seal.sealedAt)}
         </span>
-        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 8 }}>
+        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
           <button
             type="button"
             onClick={async () => {
@@ -423,7 +423,7 @@ function SealPanel() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 6,
                 color: v.ok ? "var(--moss)" : "var(--madder)",
               }}
             >
@@ -539,7 +539,7 @@ function MissionChainPanel() {
 
   return (
     <section aria-label="Mission chain" style={{ marginBottom: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
         <MonoLabel style={{ }}>Mission chain</MonoLabel>
         <span style={{ color: "var(--text-faint)" }}>
           the loop, walked end to end
@@ -661,7 +661,7 @@ export function ReceiptsPanel() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
           flexWrap: "wrap",
           marginBottom: 18,
         }}
@@ -767,7 +767,7 @@ export function ReceiptsPanel() {
           }}
         />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {receipts.map((r) => (
             <ReceiptCard key={`${r.kind}-${r.id}`} r={r} onOpen={() => open(r)} />
           ))}

@@ -298,7 +298,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         padding: 16,
         display: "flex",
         flexDirection: "column",
-        gap: 12,
+        gap: 10,
         marginBottom: 18,
       }}
     >
@@ -353,7 +353,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 style={{
                   display: "block",
                   fontFamily: "var(--font-sans)",
-                  fontSize: 12,
+                  fontSize: 11.5,
                   lineHeight: 1.45,
                   color: "var(--text-subtle)",
                   marginTop: 2,
@@ -425,7 +425,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                   minHeight: 32,
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 6,
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
@@ -730,7 +730,7 @@ function BuildPage() {
             Not merged into one view; each keeps its own model and layout.
             Hidden until the first mission completes (calm first run). */}
         {hasCompletedMission ? (
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
             {(
               [
                 { id: "missions", label: "Missions" },
@@ -934,7 +934,7 @@ function BuildPage() {
                     style={{
                       marginTop: 10,
                       fontFamily: "var(--font-sans)",
-                      fontSize: 12,
+                      fontSize: 12.5,
                       fontWeight: 500,
                       color: "var(--text-muted)",
                       background: "transparent",

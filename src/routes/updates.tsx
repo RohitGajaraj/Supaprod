@@ -62,7 +62,7 @@ function UpdatesPage() {
             <span
               style={{
                 fontFamily: "Geist Mono, monospace",
-                fontSize: 12,
+                fontSize: 11.5,
                 color: "#a1a1aa",
                 paddingTop: 2,
               }}
@@ -80,7 +80,7 @@ function UpdatesPage() {
               >
                 {e.title}
               </h3>
-              <p style={{ fontSize: 14, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 13.5, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
                 {e.body}
               </p>
             </div>
@@ -101,14 +101,14 @@ function UpdatesPage() {
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "#f4f4f5", margin: "0 0 4px" }}>
                   {e.title}
                 </h3>
-                <p style={{ fontSize: 14, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 13, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
                   {e.body}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: 14, color: "#565c66", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "#565c66", margin: 0 }}>
             Nothing here yet. Every thumbs-up or thumbs-down in the product becomes a real signal,
             and this section fills in with real shipped changes once one drives a decision.
           </p>

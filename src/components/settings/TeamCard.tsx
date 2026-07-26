@@ -157,7 +157,7 @@ export function TeamCard() {
           Invitations
         </div>
         {invitations.isLoading ? (
-          <p className="text-label-12" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
+          <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
             Loading
           </p>
         ) : pending.length === 0 ? (
@@ -180,7 +180,7 @@ export function TeamCard() {
               >
                 <div style={{ minWidth: 0 }}>
                   <div
-                    className="text-label-12"
+                    className="text-label-13"
                     style={{
                       color: "var(--ink)",
                       overflow: "hidden",

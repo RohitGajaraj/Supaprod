@@ -95,7 +95,7 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 14,
         padding: "14px 18px",
         borderBottom: "1px solid var(--hairline)",
       }}

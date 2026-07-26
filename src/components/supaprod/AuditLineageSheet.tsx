@@ -86,7 +86,7 @@ export function AuditLineageSheet() {
     <Sheet open={open} onOpenChange={(o) => (!o ? setRef(null) : undefined)}>
       <SheetContent side="right" style={{ width: 460, maxWidth: "92vw" }}>
         <SheetHeader>
-          <SheetTitle style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <SheetTitle style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span
               style={{
                 fontFamily: "var(--font-pixel)",

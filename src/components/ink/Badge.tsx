@@ -63,7 +63,7 @@ const badgeVariants = cva(
       },
       size: {
         sm: "px-2 py-1 text-label-12",
-        md: "px-3 py-1.5 text-label-12",
+        md: "px-3 py-1.5 text-label-13",
       },
       shape: {
         rectangle: "rounded-md",

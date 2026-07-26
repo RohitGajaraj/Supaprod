@@ -120,7 +120,7 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
         padding: "18px 20px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
         <h3
           style={{
             fontFamily: "var(--font-sans)",

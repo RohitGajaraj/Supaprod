@@ -141,7 +141,7 @@ export function ChangelogPanel() {
         {shownGroups.map((group) => (
           <section key={group.label}>
             <MonoLabel style={{ marginBottom: 10, display: "block" }}>{group.label}</MonoLabel>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {group.entries.map((e) => (
                 <article
                   key={e.id}
@@ -192,7 +192,7 @@ export function ChangelogPanel() {
                       rel="noreferrer"
                       className="inline-flex items-center hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
-                        gap: 8,
+                        gap: 6,
                         marginTop: 12,
                         color: "var(--link)",
                         fontFamily: "var(--font-mono)",

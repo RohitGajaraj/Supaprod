@@ -178,7 +178,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       padding: "7px 0",
                       borderBottom:
                         i < d.topMissions.length - 1 ? "1px solid var(--hairline)" : "none",

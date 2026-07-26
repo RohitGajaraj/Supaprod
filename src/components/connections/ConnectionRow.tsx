@@ -36,7 +36,7 @@ function MetaLine({ children }: { children: ReactNode }) {
         color: "var(--text-faint)",
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: 6,
         flexWrap: "wrap",
         marginTop: 3,
       }}
@@ -145,7 +145,7 @@ function NotConnectedRow({
 }) {
   if (envActive && !configured) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <StatusDot
           state="live"
           word="ACTIVE"
@@ -155,7 +155,7 @@ function NotConnectedRow({
     );
   }
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
       <span
         title={hint}
         style={{
@@ -325,7 +325,7 @@ export function ConnectionRow({
             ) : null}
           </MetaLine>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           {onDetails ? (
             <QuietTextAction onClick={onDetails} tone="subtle">
               details &rarr;
@@ -378,13 +378,13 @@ export function ConnectionRow({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 6,
             paddingBottom: 12,
             paddingLeft: 44,
           }}
         >
           {accounts?.map((a) => (
-            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <StatusDot state="live" word="LIVE" />
               <span
                 style={{
@@ -408,7 +408,7 @@ export function ConnectionRow({
             </div>
           ))}
           {extras.map((c) => (
-            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <ConnectedRow
                 connection={c}
                 busy={busy}

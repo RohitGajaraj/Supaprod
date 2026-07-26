@@ -214,7 +214,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
             </button>
           </div>
         ) : prdQuery.isLoading || !prd || !chip ? (
-          <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span className="sr-only">Loading the spec…</span>
             {["90%", "100%", "70%"].map((width) => (
               <div

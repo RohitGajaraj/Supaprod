@@ -448,7 +448,7 @@ export function OpportunityDetailSheet({
                   <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
                     {rank != null ? (
                       <span
-                        className="text-label-12-mono"
+                        className="text-label-13-mono"
                         style={{
                           letterSpacing: "0.04em",
                           color: "var(--text-muted)",
@@ -597,7 +597,7 @@ export function OpportunityDetailSheet({
             {/* Critic: verdict + summary if present, honest empty otherwise. */}
             <DetailSection heading="Critic">
               <div style={{ display: "grid", gap: "9px" }}>
-                <div className="flex items-center" style={{ gap: 8 }}>
+                <div className="flex items-center" style={{ gap: 6 }}>
                   <VerdictChip tone={verdict} />
                   {/* RPT-08: disclosed confidence right on the bet's verdict,
                       not buried - reuses the Critic's own already-computed

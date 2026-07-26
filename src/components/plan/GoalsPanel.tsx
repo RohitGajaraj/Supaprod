@@ -184,7 +184,7 @@ export function GoalsPanel({
       </div>
 
       {goalsQ.isLoading ? (
-        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span className="sr-only">Loading goals…</span>
           {[0, 1].map((i) => (
             <div
@@ -230,7 +230,7 @@ export function GoalsPanel({
           No standing goals yet. Set one above and Supaprod starts working it immediately.
         </p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {(showAll ? goals : goals.slice(0, VISIBLE_GOALS)).map((g) => (
             <GoalCard
               key={g.id}
@@ -287,7 +287,7 @@ function GoalCard({
         padding: "12px 16px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span className="text-label-14" style={{ color: "var(--text-primary)" }}>
           <strong>{goal.title}</strong>
         </span>

@@ -29,7 +29,7 @@ import {
 function RosterRow({ entry, muted }: { entry: CatalogEntry; muted?: boolean }) {
   const { hue } = agentMark(entry.slug);
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "7px 2px" }}>
+    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "7px 2px" }}>
       <AgentMark slug={entry.slug} size={26} />
       <div style={{ minWidth: 0, opacity: muted ? 0.7 : 1 }}>
         <div style={{ fontWeight: 540, color: hue }}>{entry.name}</div>
@@ -112,7 +112,7 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
           The full mesh lives here. The user never sees this roster; they meet these agents in
           motion, as the relay, named for what they do.
         </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
           {AGENT_STATION_ORDER.map((st) => {
             const members = castByStation(st);
             if (members.length === 0) return null;

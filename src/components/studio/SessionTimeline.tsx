@@ -127,7 +127,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
     .join(" · ");
   return (
     <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <StatusIcon s={run.status} />
         <span className="mono-label" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           Run {index + 1}
@@ -159,7 +159,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 6,
                 fontStyle: "italic",
                 color: "var(--text-subtle)",
               }}
@@ -197,7 +197,7 @@ function SteerRow({ steer }: { steer: Steer }) {
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
+        gap: 10,
         padding: "2px 4px",
         opacity: steer.consumed ? 0.55 : 1,
       }}

@@ -202,12 +202,12 @@ function StorySection({
       {rows.length === 0 ? (
         <p style={{ color: "var(--text-subtle)" }}>{emptyText}</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {rows.slice(0, 8).map((r) => (
             <div
               key={r.id}
               className="flex items-baseline"
-              style={{ color: "var(--text-body)", gap: 8 }}
+              style={{ color: "var(--text-body)", gap: 6 }}
             >
               <MonoLabel
                 style={{
@@ -257,7 +257,7 @@ function SupersessionSection({
           A later recorded outcome revised this belief.
         </p>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {story.links.slice(0, 8).map((l) => {
           const canFocus = !!l.peerKind && !!l.peerId;
           // Guard the date so a malformed valid_to can never render "Invalid Date".
@@ -286,7 +286,7 @@ function SupersessionSection({
                 width: "100%",
                 cursor: canFocus ? "pointer" : "default",
                 display: "flex",
-                gap: 8,
+                gap: 6,
                 alignItems: "baseline",
                 color: "var(--text-body)",
                 // Retired (reversed) assertions stay visible as history, de-emphasized.

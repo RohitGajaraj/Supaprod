@@ -57,7 +57,7 @@ const AgentActivityTimeline = React.forwardRef<
       "rounded-md border border-[var(--ds-gray-400)]",
       "bg-[var(--ds-background-100)]",
       "overflow-hidden p-4 sm:p-6",
-      "font-mono text-label-12",
+      "font-mono text-label-13",
       className,
     )}
     {...props}

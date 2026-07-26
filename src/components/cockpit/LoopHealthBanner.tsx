@@ -72,7 +72,7 @@ export function LoopHealthBanner() {
         marginBottom: 18,
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 14,
         flexWrap: "wrap",
         ...(h.verdict === "stalled" && h.expiredCalls > 0
           ? { border: "1px solid var(--ember-line)" }
@@ -116,7 +116,7 @@ export function LoopHealthBanner() {
         className="mono-label tabular-nums"
         style={{
           display: "flex",
-          gap: 12,
+          gap: 14,
           color: "var(--text-subtle)",
           flexWrap: "wrap",
         }}

@@ -426,7 +426,7 @@ export function WedgeTeardown() {
 
 
 
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 2px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "4px 2px" }}>
 
 
 
@@ -454,7 +454,7 @@ export function WedgeTeardown() {
 
 
 
-            gap: 8,
+            gap: 6,
 
 
 
@@ -550,7 +550,7 @@ export function WedgeTeardown() {
 
 
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 580 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 580 }}>
 
 
 
@@ -730,7 +730,7 @@ export function WedgeTeardown() {
 
 
 
-              gap: 8,
+              gap: 6,
 
 
 
@@ -958,7 +958,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
 
 
 
@@ -1078,7 +1078,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
 
 
 
@@ -1330,7 +1330,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
 
 
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
 
 
 
@@ -1490,7 +1490,7 @@ const shareBtnStyle: React.CSSProperties = {
 
 
 
-  gap: 8,
+  gap: 6,
 
 
 
@@ -2014,7 +2014,7 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
 
 
 
-          style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 16, margin: 0 }}
+          style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
 
 
 

@@ -159,7 +159,7 @@ function SyncInboxPage() {
         to="/settings"
         search={{ section: "connections" }}
         className={`${FOCUS_RING} hover:underline`}
-        style={{ fontSize: 12, color: "var(--ink-subtle)" }}
+        style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}
       >
         ← Settings · Connections
       </Link>
@@ -189,7 +189,7 @@ function SyncInboxPage() {
             opacity: 0.4,
           }}
         />
-        <p style={{ fontSize: 14, color: "var(--ink-subtle)", margin: "12px 0 0", maxWidth: 560 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "12px 0 0", maxWidth: 560 }}>
           What this workspace reads and writes: bindings, sync conflicts, and recently-synced items.
           To connect a source, go to Settings &middot; Connections.
         </p>
@@ -200,7 +200,7 @@ function SyncInboxPage() {
       {activeProductId && activeWorkspaceId && (
         <section style={{ marginBottom: 40 }}>
           <SectionTitle>Product repo override</SectionTitle>
-          <p style={{ fontSize: 14, color: "var(--ink-subtle)", margin: "6px 0 12px" }}>
+          <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "6px 0 12px" }}>
             Bind a different repo to <strong>{activeProduct?.name ?? "this product"}</strong>. It
             overrides the workspace default for this product only.
           </p>
@@ -235,7 +235,7 @@ function SyncInboxPage() {
             <div className="mono-label" style={{ color: "var(--rose)" }}>
               Couldn't load sync state
             </div>
-            <p style={{ fontSize: 14, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+            <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "8px 0 0" }}>
               {(q.error as Error)?.message ?? "Unknown error"}
             </p>
             <button
@@ -248,14 +248,14 @@ function SyncInboxPage() {
           </div>
         ) : null}
         {followedGone && (
-          <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
+          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
             The conflict you followed here is already resolved.
           </p>
         )}
         {!q.isLoading && !q.error && conflicts.length === 0 && (
           <div
             className="bento"
-            style={{ padding: 28, textAlign: "center", fontSize: 14, color: "var(--ink-subtle)" }}
+            style={{ padding: 28, textAlign: "center", fontSize: 13, color: "var(--ink-subtle)" }}
           >
             No conflicts. Everything synced agrees with its remote copy.
           </div>
@@ -413,7 +413,7 @@ function SyncInboxPage() {
           </div>
         )}
         {!q.isLoading && !q.error && synced.length === 0 && (
-          <p style={{ fontSize: 14, color: "var(--ink-subtle)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0 }}>
             Nothing synced yet. Connect Notion or Google Docs in{" "}
             <Link
               to="/settings"
@@ -446,7 +446,7 @@ function SyncInboxPage() {
                     padding: "8px 12px",
                     borderRadius: 8,
                     border: "1px solid var(--hairline)",
-                    fontSize: 14,
+                    fontSize: 13,
                   }}
                 >
                   <div
@@ -455,7 +455,7 @@ function SyncInboxPage() {
                       flex: 1,
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                     }}
                   >
                     <span className="mono-label" style={{ width: 92, flexShrink: 0 }}>
@@ -655,7 +655,7 @@ function WebhookIngestCard() {
         <SectionTitle>Send anything in</SectionTitle>
       </div>
       <div className="bento" style={{ padding: 16 }}>
-        <p style={{ fontSize: 14, color: "var(--ink-subtle)", margin: 0 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0 }}>
           Point anything that can POST here: Zapier, Slack outgoing webhooks, forms, scripts. Each
           request becomes signals in this workspace.
         </p>

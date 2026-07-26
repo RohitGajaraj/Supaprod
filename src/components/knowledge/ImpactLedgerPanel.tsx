@@ -203,7 +203,7 @@ export function ImpactLedgerPanel() {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center" style={{ gap: 12, marginBottom: 14 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 10, marginBottom: 14 }}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}

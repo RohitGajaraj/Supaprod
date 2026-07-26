@@ -210,14 +210,14 @@ function AdminOverview() {
             onRetry={() => readiness.refetch()}
           />
         ) : readiness.data ? (
-          <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gap: 10 }}>
             <div style={sectionTitleStyle()}>
               {readiness.data.readyToFlip
                 ? "Every gate is green. The flip is safe."
                 : "Not ready to flip yet."}
             </div>
             {readiness.data.checks.map((c) => (
-              <div key={c.id} style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <div key={c.id} style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                 <span
                   aria-hidden="true"
                   style={{
@@ -294,7 +294,7 @@ function AdminOverview() {
           </Button>
         </form>
 
-        <div style={{ display: "grid", gap: 8 }}>
+        <div style={{ display: "grid", gap: 6 }}>
           {admins.isLoading ? (
             <AdminSkeleton rows={2} height={36} />
           ) : adminsError ? (
@@ -337,7 +337,7 @@ function AdminOverview() {
                 </div>
                 <Button
                   variant="secondary"
-                  style={{ fontSize: 12, padding: "6px 10px", color: "var(--text-subtle)" }}
+                  style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
                   onClick={() => void onRemoveClick(a.user_id, a.email)}
                   disabled={removeAdmin.isPending || adminList.length <= 1}
                   title={adminList.length <= 1 ? "Cannot remove the last admin" : undefined}

@@ -61,7 +61,7 @@ export function InjectionDefenseCard() {
 
   return (
     <div className="bento" style={{ padding: "var(--card-pad)", marginTop: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <MonoLabel icon={ShieldCheck}>Prompt-injection defense</MonoLabel>
         <VerdictChip tone="moss">active</VerdictChip>
       </div>
@@ -152,7 +152,7 @@ export function InjectionDefenseCard() {
             borderRadius: 10,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <VerdictChip tone={DECISION_TONE[verdict.decision] ?? "ember"}>
               {verdict.decision}
             </VerdictChip>
@@ -176,7 +176,7 @@ export function InjectionDefenseCard() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       color: "var(--ink-muted)",
                     }}
                   >

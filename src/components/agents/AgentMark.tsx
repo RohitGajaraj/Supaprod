@@ -121,7 +121,7 @@ export function AgentBadge({
           className={live ? "agent-live" : undefined}
           style={{
             fontFamily: pixelName ? "var(--font-pixel)" : undefined,
-            fontSize: pixelName ? 14 : 12,
+            fontSize: pixelName ? 14 : 13,
             fontWeight: pixelName ? 400 : 540,
             // Idle names are gray (restraint); only the live shimmer colors the name.
             color: live ? undefined : "var(--ink-muted)",

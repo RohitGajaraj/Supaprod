@@ -58,10 +58,10 @@ function ProcessorRow({ s, first }: { s: SubProcessor; first: boolean }) {
           {CATEGORY_LABEL[s.category]}
         </span>
       </div>
-      <p style={{ fontSize: 14, color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p style={{ fontSize: 13.5, color: "var(--ink-muted)", margin: "5px 0 0", lineHeight: 1.5 }}>
         {s.purpose}
       </p>
-      <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "5px 0 0", lineHeight: 1.5 }}>
+      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", margin: "5px 0 0", lineHeight: 1.5 }}>
         Receives: {s.dataCategories.join(", ")}
         {s.region ? ` · Processed in ${s.region}` : ""}
       </p>
@@ -75,7 +75,7 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
     <section style={{ marginTop: 36 }}>
       <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
       {note && (
-        <p style={{ fontSize: 14, color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}>
           {note}
         </p>
       )}
@@ -131,7 +131,7 @@ function SubprocessorsPage() {
 
         <p
           style={{
-            fontSize: 12,
+            fontSize: 12.5,
             color: "var(--ink-faint)",
             margin: "40px 0 0",
             lineHeight: 1.6,

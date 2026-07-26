@@ -26,11 +26,11 @@ export function StatusRow() {
   return (
     <div
       className="flex items-center"
-      style={{ gap: 12, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
+      style={{ gap: 10, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
     >
       <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
       <span
-        className="min-w-0 flex-1 truncate text-label-12"
+        className="min-w-0 flex-1 truncate text-label-13"
         style={{ color: "var(--text-muted)" }}
       >
         A ready-to-send update from live state, built to paste into email or Slack

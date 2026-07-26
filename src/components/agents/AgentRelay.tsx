@@ -96,7 +96,7 @@ function FullRelay({ missionId }: { missionId: string }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               {g.steps.map((s) => (
-                <div key={s.runId} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <div key={s.runId} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                   <AgentMark slug={s.slug} size={26} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
@@ -178,7 +178,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
   }
 
   const body = (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
         {r.agentSlugs.slice(0, 4).map((slug) => (
           <AgentMark key={slug} slug={slug} size={22} />

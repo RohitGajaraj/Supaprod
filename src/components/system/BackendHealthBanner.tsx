@@ -32,7 +32,7 @@ export function BackendHealthBanner() {
         zIndex: 60,
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 10,
         padding: "10px 16px",
         background: "color-mix(in oklab, var(--amber) 14%, var(--canvas))",
         borderBottom: "1px solid color-mix(in oklab, var(--amber) 40%, transparent)",

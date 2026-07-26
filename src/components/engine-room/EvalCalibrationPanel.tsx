@@ -137,7 +137,7 @@ export function EvalCalibrationPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {calibrations.map((cal) => {
           const stateMeta =

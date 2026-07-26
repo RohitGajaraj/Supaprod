@@ -262,7 +262,7 @@ export function FirstTeardownCard({
 
 
 
-      <div className="flex items-baseline" style={{ gap: 12, marginBottom: 6, minWidth: 0 }}>
+      <div className="flex items-baseline" style={{ gap: 10, marginBottom: 6, minWidth: 0 }}>
 
 
 
@@ -460,7 +460,7 @@ export function FirstTeardownCard({
 
 
 
-        <div className="flex items-center" style={{ gap: 12, marginBottom: 12 }}>
+        <div className="flex items-center" style={{ gap: 10, marginBottom: 12 }}>
 
 
 
@@ -580,7 +580,7 @@ export function FirstTeardownCard({
 
 
 
-      <div className="flex flex-wrap items-center" style={{ gap: 12 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
 
 
 

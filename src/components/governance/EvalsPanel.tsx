@@ -146,7 +146,7 @@ export function EvalsPanel() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))",
-                gap: 8,
+                gap: 6,
                 marginTop: 10,
                 alignItems: "stretch",
               }}
@@ -494,7 +494,7 @@ function CreateSuiteForm({
   return (
     <div className="bento fade-up" style={{ padding: "14px 16px", marginBottom: 12 }}>
       <MonoLabel style={{ marginBottom: 10 }}>New eval suite</MonoLabel>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <label style={{ }}>
           <div className="mono-label" style={{ marginBottom: 4 }}>
             Name

@@ -73,11 +73,11 @@ export function CiPanel({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* BLD-05 Inspector gate: test + preview bar before the operator clears the merge. */}
       {inspection ? (
         <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <MonoLabel>Inspector</MonoLabel>
             <span
               style={{
@@ -133,7 +133,7 @@ export function CiPanel({
         </div>
       ) : null}
       <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <a
             href={changeset.pr_url}
             target="_blank"
@@ -178,10 +178,10 @@ export function CiPanel({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 12,
+            gap: 10,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <MonoLabel>Checks</MonoLabel>
             {ci ? <CiVerdict overall={ci.overall} /> : null}
           </div>
@@ -236,7 +236,7 @@ export function CiPanel({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 10,
                   padding: "7px 0",
                   borderBottom: i < ci.checks.length - 1 ? "1px solid var(--hairline)" : "none",
                 }}

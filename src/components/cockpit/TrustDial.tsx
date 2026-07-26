@@ -64,7 +64,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
 
   if (trustQ.isLoading && trust.length === 0) {
     return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <MonoLabel>Autonomy · trust dial</MonoLabel>
         <p style={{ color: "var(--ink-faint)", padding: "16px 0", margin: 0 }}>
           Reading trust…
@@ -75,7 +75,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
 
   if (trustQ.error) {
     return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <MonoLabel>Autonomy · trust dial</MonoLabel>
         <p style={{ color: "var(--rose)", margin: 0 }}>
           {(trustQ.error as Error).message}
@@ -86,7 +86,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
 
   if (trust.length === 0) {
     return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <MonoLabel>Autonomy · trust dial</MonoLabel>
         <p
           style={{
@@ -108,7 +108,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
   const rows = [...trust].sort((a, b) => b.score - a.score);
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <MonoLabel>Autonomy · trust dial</MonoLabel>
@@ -183,7 +183,7 @@ function TrustRow({
         borderTop: first ? "none" : "1px solid var(--hairline)",
         display: "flex",
         flexDirection: "column",
-        gap: 12,
+        gap: 10,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -282,7 +282,7 @@ function TrustRow({
       ) : null}
 
       <div
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
       >
         <p style={{ color: "var(--ink-subtle)", margin: 0, flex: 1, minWidth: 0 }}>
           {ARC_MEANING[trust.arc]}

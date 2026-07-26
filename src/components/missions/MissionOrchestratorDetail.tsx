@@ -240,7 +240,7 @@ function GatePanel({
             color: "var(--ember-text)",
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             fontWeight: 700,
           }}
         >
@@ -653,7 +653,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         </p>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
             {/* Geist Pixel brand moment (DESIGN-TEMPO §3/§8): the one numeral
                 on this screen that IS the moat made visible, at most once
                 per surface. */}
@@ -667,13 +667,13 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               prior {n === 1 ? "memory" : "memories"} this mission drew on, instead of starting cold
             </span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {shown.map((mem, i) => (
               <div
                 key={i}
                 style={{
                   display: "flex",
-                  gap: 12,
+                  gap: 10,
                   paddingTop: i === 0 ? 0 : 6,
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
@@ -994,7 +994,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               </Link>
             ) : null}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <StatusBadge status={badgeStatus(data.mission.status)} />
             {missionProposed ? (
               <button
@@ -1050,7 +1050,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             ) : !missionFailed ? (
               // D4-REPLAY: re-run a finished mission with a chosen model.
               // (Failed/halted missions keep the contextual retry below.)
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <select
                   aria-label="Replay model"
                   value={replayModel}
@@ -1185,7 +1185,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
               color: "var(--glacier)",
             }}
           >
@@ -1316,7 +1316,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   key={i}
                   style={{
                     display: "flex",
-                    gap: 12,
+                    gap: 14,
                     alignItems: "flex-start",
                     padding: "10px 0",
                     borderBottom: i < planRows.length - 1 ? "1px solid var(--hairline)" : "none",
@@ -1332,7 +1332,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     <StepDot status={stepDotStatus(s.status)} />
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span className="mono-label" style={{ color: "var(--text-primary)" }}>
                         {s.agent}
                       </span>
@@ -1517,7 +1517,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               color: "var(--madder)",
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
               fontWeight: 700,
               whiteSpace: "normal",
             }}

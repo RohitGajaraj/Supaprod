@@ -41,7 +41,7 @@ import type { LoopStep } from "@/lib/ai/loop.server";
  * (--text-subtle), the copyable MIS trace ref the faintest tone. */
 function MissionMeta({ missionId, startedIso }: { missionId: string; startedIso?: string }) {
   return (
-    <div className="flex flex-wrap items-center" style={{ gap: 12 }}>
+    <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
       {startedIso ? (
         <span
           style={{
@@ -69,7 +69,7 @@ function SpecProvenanceLink({ spec }: { spec: { id: string; title: string } }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
+        gap: 6,
         fontFamily: "var(--font-mono)",
         letterSpacing: "0.06em",
         color: "var(--glacier)",
@@ -190,7 +190,7 @@ export function MissionSlideOver({
           </button>
         </div>
       ) : !mission ? (
-        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span className="sr-only">Loading the mission…</span>
           {["40%", "100%", "80%"].map((w) => (
             <div

@@ -331,7 +331,7 @@ function VendorRow({
           · {role}
         </span>
       </div>
-      <div className="flex items-center" style={{ gap: 12 }}>
+      <div className="flex items-center" style={{ gap: 10 }}>
         {/* The exact key name is engineer detail; it stays on hover instead
             of reading as a raw env var label (master-inventory copy row). */}
         {!present && (

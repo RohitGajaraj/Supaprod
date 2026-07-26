@@ -223,7 +223,7 @@ export function DocsPanel() {
     return (
       <div role="status">
         <span className="sr-only">Loading docs…</span>
-        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {bar(34, "55%")}
           {bar(52)}
           {bar(52)}
@@ -319,7 +319,7 @@ export function DocsPanel() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 10,
                 padding: "10px 16px",
                 borderBottom: "1px solid var(--hairline)",
                 flexWrap: "wrap",
@@ -359,7 +359,7 @@ export function DocsPanel() {
               </button>
             </div>
             <div style={{ padding: "20px 28px 24px", maxWidth: 720 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <button
                   title="Change icon"
                   style={{ lineHeight: "32px", borderRadius: 6, padding: "0 4px" }}

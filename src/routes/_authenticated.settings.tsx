@@ -10,12 +10,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  agentBlurb,
-  agentDisplayName,
-  catalogEntry,
-  SPECIALIST_CATALOG,
-} from "@/lib/agent-vocabulary";
+import { agentBlurb, agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { RoomChromeShell } from "@/components/mission/RoomChrome";
@@ -34,12 +29,7 @@ import { useTheme, type Theme } from "@/hooks/use-theme";
 import { Sun, Moon, Monitor, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import {
-  listAgents,
-  listAgentRuns,
-  listAgentReflections,
-  setAgentToolCap,
-} from "@/lib/agents.functions";
+import { listAgents, listAgentRuns, listAgentReflections, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -151,10 +141,16 @@ export const Route = createFileRoute("/_authenticated/settings")({
 // door visible at once (no numbered index, no Advanced fold), ink tokens. The
 // active section wears the raised wash; a group label sits above its sections.
 // Memory now lives in Brain, echoed as a footer note like the mockup.
-function SettingsNav({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
+function SettingsNav({
+  active,
+  onSet,
+}: {
+  active: SectionId;
+  onSet: (id: SectionId) => void;
+}) {
   return (
     <aside
-      className="hidden md:flex flex-col gap-5 border-r px-4 py-5"
+      className="flex flex-col gap-5 border-r px-4 py-5"
       style={{ width: 220, flexShrink: 0, borderColor: "var(--ink-hairline)" }}
     >
       {PRIMARY_GROUPS.map((g) => (
@@ -217,7 +213,7 @@ function DensityToggle() {
         className="flex items-center"
         role="group"
         aria-label="Density"
-        style={{ gap: 8, marginTop: 8 }}
+        style={{ gap: 6, marginTop: 8 }}
       >
         {(["comfortable", "compact"] as const).map((d) => (
           <button
@@ -228,7 +224,7 @@ function DensityToggle() {
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
             style={{
               fontFamily: "var(--font-sans)",
-              fontSize: 12,
+              fontSize: 12.5,
               height: 32,
               padding: "0 12px",
               borderRadius: "var(--radius-control)",
@@ -243,7 +239,7 @@ function DensityToggle() {
           </button>
         ))}
       </div>
-      <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 6 }}>
+      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
         Compact drops one row of breathing room · type stays the same
       </p>
     </div>
@@ -268,7 +264,7 @@ function AppearanceSection() {
         className="flex items-center"
         role="group"
         aria-label="Theme"
-        style={{ gap: 8, marginTop: 8 }}
+        style={{ gap: 6, marginTop: 8 }}
       >
         {THEME_CHOICES.map(({ id, label, Icon }) => {
           const isActive = theme === id;
@@ -284,7 +280,7 @@ function AppearanceSection() {
                 alignItems: "center",
                 gap: 7,
                 fontFamily: "var(--font-sans)",
-                fontSize: 12,
+                fontSize: 12.5,
                 height: 32,
                 padding: "0 12px",
                 borderRadius: "var(--radius-control)",
@@ -302,7 +298,7 @@ function AppearanceSection() {
           );
         })}
       </div>
-      <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 6 }}>
+      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
         System follows your device. Dark is the default.
       </p>
     </div>
@@ -333,7 +329,7 @@ function AdminDoor() {
         <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
           Admin console →
         </ObsidianButton>
-        <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 6 }}>
+        <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
           Members, roles, audit, and billing for the whole workspace
         </p>
       </div>
@@ -450,12 +446,12 @@ function SettingsPage() {
             {active === "credits" && <CreditsTab />}
             {active === "interop" && <IntegrationsTab />}
             {active === "sync" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <WorkspaceBindingsSection />
                 <Link
                   to="/sync"
                   className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{ fontSize: 12, color: "var(--link)" }}
+                  style={{ fontSize: 12.5, color: "var(--link)" }}
                 >
                   Open sync, per-product bindings, and conflicts →
                 </Link>
@@ -665,7 +661,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
     return (
       <div style={{ display: "grid", gap: "var(--space-4)" }} aria-hidden="true">
         <div style={cardStyle()}>
-          <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
@@ -693,7 +689,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load your billing state
           </div>
-          <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
             {(billing.error as Error)?.message ?? "Unknown error"}
           </p>
           <button
@@ -1685,7 +1681,7 @@ function ConnectionsTab({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <ObsidianMonoLabel tone="muted">Yours</ObsidianMonoLabel>
       <AccountConnectionsSection onOpenDetail={onOpenDetail} />
 
@@ -1709,7 +1705,7 @@ function WorkspaceBindingsSummary() {
   if (q.isLoading) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <div style={{ display: "grid", gap: 12 }} aria-hidden="true">
+        <div style={{ display: "grid", gap: 10 }} aria-hidden="true">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -1733,7 +1729,7 @@ function WorkspaceBindingsSummary() {
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load workspace bindings
         </div>
-        <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -1752,7 +1748,7 @@ function WorkspaceBindingsSummary() {
   return (
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       {bindings.length === 0 ? (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: 0 }}>
+        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
           Nothing bound yet. Pick which repo, team, or database this workspace's agents act on.
         </p>
       ) : (
@@ -1771,7 +1767,7 @@ function WorkspaceBindingsSummary() {
             return (
               <li
                 key={b.id}
-                style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}
+                style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}
               >
                 <span
                   aria-hidden="true"
@@ -1794,7 +1790,7 @@ function WorkspaceBindingsSummary() {
                 {b.updated_at ? (
                   <span
                     className="mono-label tabular-nums"
-                    style={{ fontSize: 11, color: "var(--ink-faint)", marginLeft: "auto" }}
+                    style={{ fontSize: 9, color: "var(--ink-faint)", marginLeft: "auto" }}
                   >
                     {relTimeCaps(b.updated_at)}
                   </span>
@@ -1808,7 +1804,7 @@ function WorkspaceBindingsSummary() {
         <Link
           to="/sync"
           className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{ fontSize: 12, color: "var(--link)" }}
+          style={{ fontSize: 12.5, color: "var(--link)" }}
         >
           {bindings.length === 0
             ? "Set up workspace sync and bindings →"
@@ -1874,7 +1870,7 @@ function ModelsTab() {
   // (checklist point 7). BYO keys load independently, so they stay.
   if (profile.isError) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div className="bento" style={{ padding: 24 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load your model settings
@@ -1896,7 +1892,7 @@ function ModelsTab() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
         {profile.isLoading ? (
           <div style={{ padding: "13px 18px" }} aria-hidden="true">
@@ -1922,7 +1918,7 @@ function ModelsTab() {
             <span className="mono-label" style={{ color: "var(--ink)" }}>
               {defaultModel === AUTO_MODEL ? "Auto" : (current?.label ?? defaultModel)}
             </span>
-            <span className="mono-label" style={{ fontSize: 11 }}>
+            <span className="mono-label" style={{ fontSize: 9 }}>
               {defaultModel === AUTO_MODEL
                 ? "routed"
                 : current
@@ -2006,7 +2002,7 @@ function ModelsTab() {
             <span className="mono-label" style={{ color: "var(--ink)" }}>
               {!agenticModel ? "Auto" : currentAgentic ? currentAgentic.label : agenticModel}
             </span>
-            <span className="mono-label" style={{ fontSize: 11 }}>
+            <span className="mono-label" style={{ fontSize: 9 }}>
               {!agenticModel
                 ? "routed"
                 : currentAgentic
@@ -2230,7 +2226,7 @@ function ByoKeysSection() {
               <span
                 className="mono-label"
                 style={{
-                  fontSize: 11,
+                  fontSize: 8.5,
                   color: testResult.ok ? "var(--emerald)" : "var(--rose)",
                 }}
               >
@@ -2393,10 +2389,10 @@ function AgentToolCap({ agent }: { agent: AgentRow }) {
     onError: (e) => toast((e as Error).message),
   });
   return (
-    <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
       <span
         className="mono-label"
-        style={{ fontSize: 11, color: "var(--ink-faint)", flexShrink: 0 }}
+        style={{ fontSize: 8.5, color: "var(--ink-faint)", flexShrink: 0 }}
       >
         Tool reach
       </span>
@@ -2499,10 +2495,7 @@ function StaffTab() {
         className="rounded-xl border p-6"
         style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
       >
-        <div
-          className="font-mono text-[10px] uppercase tracking-wider"
-          style={{ color: "var(--voice-human)" }}
-        >
+        <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--voice-human)" }}>
           Couldn't load agents
         </div>
         <p style={{ fontSize: 14, color: "var(--ink-subtle)", marginTop: 8 }}>
@@ -2538,7 +2531,7 @@ function StaffTab() {
   );
   if (rows.length === 0) {
     return (
-      <p style={{ fontSize: 12, color: "var(--ink-faint)", padding: "24px 0" }}>
+      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
         No agents in this workspace yet.
       </p>
     );
@@ -2582,8 +2575,8 @@ function StaffTab() {
           need review on risky tools.
         </p>
         <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 6, maxWidth: "70ch" }}>
-          New tools ask for permission the moment they are first needed, inside the run. This page
-          is the ledger; the dials live in Autonomy & approvals.
+          New tools ask for permission the moment they are first needed, inside the run. This page is
+          the ledger; the dials live in Autonomy & approvals.
         </p>
       </div>
 
@@ -2654,11 +2647,7 @@ function AgentRosterRow({
         >
           {agentDisplayName(agent.slug, agent.name)}
         </span>
-        <span
-          className="truncate text-[12.5px]"
-          style={{ color: "var(--ink-body)" }}
-          title={agentBlurb(agent.slug) ?? agent.role}
-        >
+        <span className="truncate text-[12.5px]" style={{ color: "var(--ink-body)" }} title={agentBlurb(agent.slug) ?? agent.role}>
           {agentBlurb(agent.slug) ?? agent.role}
         </span>
         <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
@@ -2757,7 +2746,7 @@ function AgentExpand({ agent }: { agent: AgentRow }) {
     padding: 14,
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 10,
     minWidth: 0,
   };
   const titleStyle: React.CSSProperties = {
@@ -2822,10 +2811,7 @@ function AgentExpand({ agent }: { agent: AgentRow }) {
         <div style={panelStyle}>
           <div style={titleStyle}>Knowledge &amp; instructions</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span
-              className="font-mono text-[10px] uppercase"
-              style={{ color: "var(--ink-subtle)" }}
-            >
+            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
               Workspace
             </span>
             <span style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
@@ -2833,10 +2819,7 @@ function AgentExpand({ agent }: { agent: AgentRow }) {
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span
-              className="font-mono text-[10px] uppercase"
-              style={{ color: "var(--ink-subtle)" }}
-            >
+            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
               Per product
             </span>
             <span style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
@@ -2881,7 +2864,7 @@ function WorkspaceTab({ scrollToBrief }: { scrollToBrief: boolean }) {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <WorkspaceBriefSection scrollRef={briefRef} highlight={scrollToBrief} />
 
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
@@ -3066,7 +3049,7 @@ function WorkspaceBriefSection({
       </div>
 
       {isLoading ? (
-        <div style={{ display: "grid", gap: 12, padding: "16px 0" }} aria-hidden="true">
+        <div style={{ display: "grid", gap: 10, padding: "16px 0" }} aria-hidden="true">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
@@ -3087,7 +3070,7 @@ function WorkspaceBriefSection({
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load the brief
           </div>
-          <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
             {(error as Error)?.message ?? "Unknown error"}
           </p>
           <button
@@ -3099,7 +3082,7 @@ function WorkspaceBriefSection({
           </button>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {BRIEF_FIELDS.map((f) => (
             <div key={f.key}>
               <label htmlFor={`brief-${f.key}`} style={{ display: "block" }}>
@@ -3111,10 +3094,10 @@ function WorkspaceBriefSection({
                     gap: 12,
                   }}
                 >
-                  <span style={{ fontSize: 12, fontWeight: 500 }}>{f.label}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 500 }}>{f.label}</span>
                   <span
                     className="mono-label tabular-nums"
-                    style={{ fontSize: 11, color: "var(--ink-faint)" }}
+                    style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
                   >
                     {form[f.key].length} chars
                   </span>
@@ -3222,7 +3205,7 @@ function ProfileTab() {
     return (
       <div
         className="bento"
-        style={{ padding: "var(--card-pad)", display: "grid", gap: 12, maxWidth: 480 }}
+        style={{ padding: "var(--card-pad)", display: "grid", gap: 10, maxWidth: 480 }}
         aria-hidden="true"
       >
         {[0, 1, 2].map((i) => (
@@ -3389,7 +3372,7 @@ function ProfileTab() {
 
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Legal & trust</MonoLabel>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
           {[
             { href: "/security", label: "Security" },
             { href: "/privacy", label: "Privacy policy" },
@@ -3429,7 +3412,7 @@ function Field({
     <div style={{ display: "block" }}>
       <label
         htmlFor={fieldId}
-        style={{ fontSize: 12, fontWeight: 500, marginBottom: 6, display: "block" }}
+        style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}
       >
         {label}
       </label>

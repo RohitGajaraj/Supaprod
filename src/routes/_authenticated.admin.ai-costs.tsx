@@ -71,7 +71,7 @@ function AdminAiCosts() {
 
   return (
     <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-6)" }}>
-      <p style={{ fontSize: 14, color: "var(--text-subtle)", margin: 0, lineHeight: 1.55 }}>
+      <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0, lineHeight: 1.55 }}>
         Whether the money spent on AI decisions is paying off, tracked over time.
       </p>
 
@@ -79,12 +79,12 @@ function AdminAiCosts() {
       <section style={cardStyle()}>
         <h2 style={cardTitleStyle()}>Decisions made, by week</h2>
         {decisionVelocity.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--text-subtle)" }}>
+          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>
             No decisions recorded yet. This fills in once the workspace starts making them.
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Week</th>
@@ -111,16 +111,16 @@ function AdminAiCosts() {
       {/* Supersession rate */}
       <section style={cardStyle()}>
         <h2 style={cardTitleStyle()}>Outcome rate by agent</h2>
-        <p style={{ fontSize: 14, color: "var(--text-body)", marginBottom: "var(--space-3)" }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginBottom: "var(--space-3)" }}>
           Higher outcome rate means more decisions closed by a real result, not a guess.
         </p>
         {supersessionRate.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--text-subtle)" }}>
+          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>
             No outcomes recorded yet. Rates appear once agents start closing decisions.
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Agent</th>
@@ -158,17 +158,17 @@ function AdminAiCosts() {
       {/* Cost per decision */}
       <section style={cardStyle()}>
         <h2 style={cardTitleStyle()}>Cost per decision, last 30 days</h2>
-        <p style={{ fontSize: 14, color: "var(--text-body)", marginBottom: "var(--space-3)" }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginBottom: "var(--space-3)" }}>
           Lower is better. Measures AI spend efficiency: how much it costs to produce one recorded
           decision.
         </p>
         {agentCost.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--text-subtle)" }}>
+          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>
             No spend recorded yet. Costs appear once agents run against real decisions.
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Agent</th>
@@ -192,7 +192,7 @@ function AdminAiCosts() {
             </table>
           </div>
         )}
-        <p style={{ marginTop: "var(--space-3)", fontSize: 12, color: "var(--text-subtle)" }}>
+        <p style={{ marginTop: "var(--space-3)", fontSize: 11.5, color: "var(--text-subtle)" }}>
           These numbers refresh overnight. If they look stale, ask an engineer to turn on the
           nightly refresh job.
         </p>

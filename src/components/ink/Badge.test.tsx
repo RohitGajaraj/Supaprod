@@ -68,7 +68,7 @@ describe("Badge", () => {
     it("renders medium size", () => {
       const { container } = render(<Badge size="md">Md</Badge>);
       const badge = container.querySelector("div");
-      expect(badge?.className).toContain("text-label-12");
+      expect(badge?.className).toContain("text-label-13");
     });
   });
 
@@ -164,7 +164,7 @@ describe("Badge", () => {
     it("generates correct classes for variant combinations", () => {
       const classes = badgeVariants({ variant: "success", size: "md", shape: "pill" });
       expect(classes).toContain("bg-[var(--ds-green-100)]");
-      expect(classes).toContain("text-label-12");
+      expect(classes).toContain("text-label-13");
       expect(classes).toContain("rounded-full");
     });
 

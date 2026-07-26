@@ -77,7 +77,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
         <button
           type="button"
           onClick={() => decide.mutate("accepted")}

@@ -473,7 +473,7 @@ export function GuardrailsPanel() {
                 dismiss
               </button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <label className="mono-label" style={{ gridColumn: "span 2", display: "block" }}>
                 Name
                 <input
@@ -579,7 +579,7 @@ export function GuardrailsPanel() {
                 rows={2}
                 style={{ resize: "none", fontFamily: "var(--font-mono)" }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
                 <button
                   className="btn btn-ghost btn-sm"
                   disabled={!testText.trim() || test.isPending}

@@ -747,7 +747,7 @@ export function ObsidianOnboarding() {
   if (profileQ.isLoading)
     return (
       <Screen>
-        <p className="text-label-12" style={{ color: "var(--ds-gray-900)" }}>
+        <p className="text-label-13" style={{ color: "var(--ds-gray-900)" }}>
           Waking your workspace…
         </p>
       </Screen>
@@ -1180,7 +1180,7 @@ export function ObsidianOnboarding() {
               {(criticReview.risks ?? []).length > 0 ? (
                 <div>
                   <p style={sectionLabel}>Key risks</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
                       <div
                         key={i}

@@ -326,7 +326,7 @@ export function CommandPalette() {
                           display: "grid",
                           gridTemplateColumns: "28px 1fr auto",
                           alignItems: "center",
-                          gap: 12,
+                          gap: 10,
                           minHeight: 36,
                           padding: "0 10px",
                           borderRadius: 6,

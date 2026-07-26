@@ -127,7 +127,7 @@ function LineageSection({
 }) {
   return (
     <section style={{ display: "grid", gap: "9px" }}>
-      <div className="flex items-center" style={{ gap: 8 }}>
+      <div className="flex items-center" style={{ gap: 6 }}>
         {icon}
         <MonoLabel
           style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
@@ -343,7 +343,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
           </div>
 
           {tags.length > 0 ? (
-            <div className="flex flex-wrap" style={{ gap: 8 }}>
+            <div className="flex flex-wrap" style={{ gap: 6 }}>
               {tags.map((t) => (
                 <span
                   key={t}

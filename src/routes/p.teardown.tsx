@@ -56,11 +56,11 @@ const noticeBox: CSSProperties = {
   borderRadius: 12,
   border: "1px solid var(--hairline)",
   background: "var(--surface-1)",
-  fontSize: 14,
+  fontSize: 13.5,
   lineHeight: 1.55,
   color: "var(--text-body)",
   display: "flex",
-  gap: 12,
+  gap: 10,
   alignItems: "flex-start",
 };
 
@@ -261,7 +261,7 @@ function TeardownPage() {
           <div style={{ marginTop: 22, textAlign: "center" }}>
             <p
               style={{
-                fontSize: 14,
+                fontSize: 13,
                 color: "var(--text-subtle)",
                 lineHeight: 1.55,
                 maxWidth: 420,

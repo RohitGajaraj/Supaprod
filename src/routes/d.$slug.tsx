@@ -134,7 +134,7 @@ function PublicDecisionPage() {
           <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 14, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
             This decision is private, or the link is no longer valid.
           </p>
         </div>
@@ -168,7 +168,7 @@ function PublicDecisionPage() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
           flexWrap: "wrap",
           marginBottom: 20,
         }}
@@ -240,7 +240,7 @@ function PublicDecisionPage() {
       </div>
       <p
         style={{
-          fontSize: 12,
+          fontSize: 11.5,
           color: "var(--ink-subtle, #6b6457)",
           marginTop: 18,
           lineHeight: 1.5,

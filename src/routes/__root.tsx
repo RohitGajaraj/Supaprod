@@ -65,7 +65,7 @@ function NotFoundComponent() {
       <h1 className="text-heading-24" style={{ color: "var(--text-primary)", marginBottom: 8 }}>
         Page not found
       </h1>
-      <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
+      <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
         This page doesn't exist or has moved. Let's get you back on track.
       </p>
       <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
@@ -95,7 +95,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       >
         This page didn't load
       </h1>
-      <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
+      <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
         Something went wrong on our end. Try again, or head back home.
       </p>
       <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>

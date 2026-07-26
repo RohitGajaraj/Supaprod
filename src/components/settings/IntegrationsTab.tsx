@@ -167,7 +167,7 @@ export function IntegrationsTab() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* Intro */}
       <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel icon={Plug} style={{ marginBottom: 4 }}>
@@ -205,7 +205,7 @@ export function IntegrationsTab() {
               maxLength={100}
               aria-label="Token name"
             />
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input
                 className="input"
                 type="number"
@@ -299,7 +299,7 @@ export function IntegrationsTab() {
               return (
                 <div
                   key={t.id}
-                  className="text-label-12"
+                  className="text-label-13"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -410,9 +410,9 @@ export function IntegrationsTab() {
 
         <div>
           <span className="mono-label">Methods</span>
-          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
             {MCP_METHODS.map((m) => (
-              <div key={m.name} className="text-copy-12" style={{ display: "flex", gap: 12 }}>
+              <div key={m.name} className="text-copy-12" style={{ display: "flex", gap: 10 }}>
                 <code
                   className="text-label-12-mono"
                   style={{

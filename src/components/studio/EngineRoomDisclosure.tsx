@@ -66,7 +66,7 @@ function QualityBadge({ ci }: { ci: StudioCi }) {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 8,
+          gap: 6,
           fontWeight: 600,
           color: "var(--glacier)",
         }}

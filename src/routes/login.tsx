@@ -164,7 +164,7 @@ function LoginPage() {
           "Continue with Google"
         )}
       </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
         <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
         <span className="mono-label" style={{ fontSize: 8.5 }}>
           or

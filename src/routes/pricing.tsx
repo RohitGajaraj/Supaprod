@@ -174,7 +174,7 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
               borderRadius: 99,
               border: "none",
               cursor: "pointer",
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: active ? 600 : 500,
               background: active ? "var(--canvas, #faf7ef)" : "transparent",
               color: active ? "var(--ink, #1f1b16)" : "var(--ink-subtle, #6b6457)",
@@ -189,7 +189,7 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
             {mode === "annual" && (
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: 600,
                   color: "var(--moss-success, #4f8a59)",
                   background: "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
@@ -311,7 +311,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* Who it's for */}
       <p
         style={{
-          fontSize: 12,
+          fontSize: 12.5,
           color: "var(--ink, #1d1a14)",
           fontWeight: 500,
           margin: "0 0 5px",
@@ -324,7 +324,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* Tagline */}
       <p
         style={{
-          fontSize: 12,
+          fontSize: 11.5,
           color: "var(--ink-subtle, #6b6457)",
           margin: 0,
           lineHeight: 1.5,
@@ -356,7 +356,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           </span>
           <span
             style={{
-              fontSize: 12,
+              fontSize: 11.5,
               color: "var(--ink-subtle, #6b6457)",
               display: "block",
               marginTop: 2,
@@ -384,7 +384,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
               ${displayPrice}
             </span>
-            <span style={{ fontSize: 14, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
+            <span style={{ fontSize: 13, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
           </div>
           <div
             style={{
@@ -423,7 +423,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             htmlFor={`credits-${tier}`}
             style={{
               display: "block",
-              fontSize: 11,
+              fontSize: 9.5,
               color: "var(--ink-subtle, #6b6457)",
               letterSpacing: "0.08em",
               marginBottom: 5,
@@ -438,7 +438,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             style={{
               width: "100%",
               padding: "8px 10px",
-              fontSize: 14,
+              fontSize: 13,
               border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
               borderRadius: 7,
               background: "var(--paper, #f6f2ea)",
@@ -464,7 +464,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 14,
+            fontSize: 13.5,
             fontWeight: 500,
             border: "1px solid var(--hairline, rgba(0,0,0,0.15))",
             background: "transparent",
@@ -487,7 +487,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 14,
+            fontSize: 13.5,
             fontWeight: 600,
             background: isBusiness ? "var(--ember, #c2622e)" : "transparent",
             border: isBusiness
@@ -561,7 +561,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             background: "none",
             border: "none",
             padding: "10px 0 0",
-            fontSize: 12,
+            fontSize: 11.5,
             color: "var(--ink-subtle, #6b6457)",
             cursor: "pointer",
             textDecoration: "underline",
@@ -642,7 +642,7 @@ function PricingPage() {
           <a
             href="/login"
             style={{
-              fontSize: 14,
+              fontSize: 13,
               color: "var(--ink, #f4f4f5)",
               textDecoration: "none",
               border: "1px solid var(--hairline, rgba(255,255,255,0.14))",
@@ -724,7 +724,7 @@ function PricingPage() {
             {/* Footer note */}
             <p
               style={{
-                fontSize: 12,
+                fontSize: 11.5,
                 color: "var(--ink-subtle, #6b6457)",
                 textAlign: "center",
                 marginTop: 28,

@@ -101,7 +101,7 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
 
       {brief.content ? (
         <p
-          className="text-label-12"
+          className="text-label-13"
 
           style={{
             lineHeight: 1.6,
@@ -266,7 +266,7 @@ export function IntelBriefPanel() {
           <div>
             <MonoLabel style={{ color: "var(--madder)" }}>Could not load briefs</MonoLabel>
 
-            <p className="text-label-12" style={{ color: "var(--text-muted)", marginTop: "8px" }}>
+            <p className="text-label-13" style={{ color: "var(--text-muted)", marginTop: "8px" }}>
               {(briefsQ.error as Error).message}
             </p>
 
@@ -282,7 +282,7 @@ export function IntelBriefPanel() {
           </div>
         ) : briefs.length === 0 ? (
           <p
-            className="text-label-12"
+            className="text-label-13"
             style={{ lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
           >
             No briefs yet. Lands when a tracked surface actually changes; nothing to configure.

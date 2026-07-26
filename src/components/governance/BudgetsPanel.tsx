@@ -250,7 +250,7 @@ export function BudgetsPanel() {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
       {cards.map(({ key, label, burn, cap, note }) => {
         const pct = cap ? Math.min(100, (burn / cap) * 100) : 0;
         const editing = editCap === key;
@@ -267,7 +267,7 @@ export function BudgetsPanel() {
               <MonoLabel icon={Gauge}>{label}</MonoLabel>
               {editing ? (
                 <form
-                  style={{ display: "flex", gap: 8 }}
+                  style={{ display: "flex", gap: 6 }}
                   onSubmit={(e) => {
                     e.preventDefault();
                     const v = parseFloat(capDraft);
@@ -351,7 +351,7 @@ export function BudgetsPanel() {
           padding: "12px 16px",
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
         }}
       >
         <Shield size={16} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
@@ -369,7 +369,7 @@ export function BudgetsPanel() {
         </MonoLabel>
         {adv ? (
           <form
-            style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}
+            style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}
             onSubmit={(e) => {
               e.preventDefault();
               saveAdvMut.mutate(adv);
@@ -420,7 +420,7 @@ export function BudgetsPanel() {
             </button>
           </form>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             <span className="mono-label tabular-nums">
               daily {g?.daily_token_cap != null ? Number(g.daily_token_cap) : "-"} · monthly{" "}
               {g?.monthly_token_cap != null ? Number(g.monthly_token_cap) : "-"} · alert at{" "}
@@ -514,7 +514,7 @@ export function BudgetsPanel() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: 10,
                     justifyContent: "flex-end",
                   }}
                 >

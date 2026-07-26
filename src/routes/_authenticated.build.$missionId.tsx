@@ -88,7 +88,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           <MonoLabel style={{ color: isNotFound ? "var(--text-subtle)" : "var(--madder)" }}>
             {isNotFound ? "No mission at this address" : "Couldn't load this session"}
           </MonoLabel>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
             {isNotFound
               ? "This mission doesn't exist in your workspace, or it was deleted. Its decisions and learnings stay in Memory."
               : message}
@@ -216,19 +216,19 @@ function JourneyStrip({
         padding: "12px 18px",
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 10,
         flexWrap: "wrap",
         marginBottom: 16,
       }}
     >
       {stages.map((stage, i) => (
-        <span key={stage.label} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+        <span key={stage.label} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
           {i > 0 && (
             <span className="mono-label" style={{ color: "var(--text-faint)" }}>
               →
             </span>
           )}
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <StepDot status={stage.status} />
             {stage.href ? (
               <a
@@ -314,7 +314,7 @@ function SteerComposer({
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: 10,
-            fontSize: 14,
+            fontSize: 13,
             color: "var(--text-primary)",
           }}
         />
@@ -333,9 +333,9 @@ function SteerComposer({
             flexShrink: 0,
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             fontFamily: "var(--font-sans)",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 600,
             color: "var(--text-primary)",
             background: "var(--surface-raised)",
@@ -417,7 +417,7 @@ function ExecutionLogFold({
           minHeight: 32,
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: 6,
           border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-control)",
           boxShadow: "var(--top-light)",
@@ -458,7 +458,7 @@ function SessionSkeleton() {
       <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
       {/* Same responsive collapse as the loaded grid, so the skeleton never
           overflows at narrow widths while the real layout stacks. */}
-      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 12 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SkeletonBlock height={180} />
           <SkeletonBlock height={88} />
@@ -720,7 +720,7 @@ function BuildSessionPage() {
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 8,
+                    gap: 6,
                     color: "var(--glacier)",
                   }}
                 >
@@ -782,7 +782,7 @@ function BuildSessionPage() {
         {session.isError ? (
           <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
             <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this session</MonoLabel>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
               {(session.error as Error)?.message?.slice(0, 160)}
             </p>
             <button
@@ -798,7 +798,7 @@ function BuildSessionPage() {
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 12 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Real heading (quality register: MonoLabel spans left the page
                   with no navigable outline); the mono-caps look stays via style. */}

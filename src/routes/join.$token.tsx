@@ -98,7 +98,7 @@ function JoinPage() {
         </div>
 
         {(state.kind === "checking" || state.kind === "accepting") && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <Loader2 size={20} className="animate-spin" style={{ color: "var(--text-subtle)" }} />
             <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
               {state.kind === "checking" ? "Checking your invitation" : "Joining the workspace"}
@@ -116,7 +116,7 @@ function JoinPage() {
             </h1>
             <p
               style={{
-                fontSize: 14,
+                fontSize: 13,
                 color: "var(--text-muted)",
                 marginBottom: 18,
                 lineHeight: 1.55,
@@ -167,7 +167,7 @@ function JoinPage() {
             >
               You are in
             </h1>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 18 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 18 }}>
               You have joined the workspace.
             </p>
             <button
@@ -190,7 +190,7 @@ function JoinPage() {
             </h1>
             <p
               style={{
-                fontSize: 14,
+                fontSize: 13,
                 color: "var(--text-muted)",
                 marginBottom: 18,
                 lineHeight: 1.55,

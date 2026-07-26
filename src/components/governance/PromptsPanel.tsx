@@ -197,7 +197,7 @@ export function PromptsPanel() {
             >
               {status ?? "unset"}
             </span>
-            <span style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <span style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
               <button
                 className="btn btn-ghost btn-sm"
                 style={{ }}
@@ -572,7 +572,7 @@ function VersionColumn({
           </button>
         ) : null}
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 120, overflow: "auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 120, overflow: "auto" }}>
         {versions.map((v) => {
           const selected = selectedId === v.id;
           return (
@@ -755,7 +755,7 @@ function AssignmentPanel({
           {enabled ? "on" : "off"}
         </button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <label style={{ }}>
           <div className="mono-label" style={{ marginBottom: 4 }}>
             Variant A

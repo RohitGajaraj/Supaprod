@@ -263,7 +263,7 @@ export function RoadmapColumns() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
             padding: "10px 14px",
             marginBottom: 12,
           }}

@@ -583,7 +583,7 @@ export function FlowList({
             key={`${i}-${e.ts}`}
             style={{
               display: "flex",
-              gap: 12,
+              gap: 14,
               alignItems: "stretch",
               opacity: visible ? 1 : 0,
               transform: visible ? "translateX(0)" : "translateX(-8px)",
@@ -892,7 +892,7 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               padding: "8px 0",
               borderBottom: i < AGENTS.length - 1 ? `1px solid ${R.divider}` : undefined,
               opacity: done || isActive ? 1 : 0.45,
@@ -928,7 +928,7 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
           </div>
         );
       })}
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
         <div
           style={{ flex: 1, height: 2, background: R.divider, borderRadius: 1, overflow: "hidden" }}
         >
@@ -1001,7 +1001,7 @@ function DeadRun() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
             padding: "8px 0",
             borderBottom: i < AGENTS.length - 1 ? `1px solid ${R.divider}` : undefined,
             opacity: 0.5,
@@ -1026,7 +1026,7 @@ function DeadRun() {
           </span>
         </div>
       ))}
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ flex: 1, height: 2, background: R.divider, borderRadius: 1 }} />
         <span style={{ fontFamily: MONO, color: R.faint, flexShrink: 0 }}>
           the timeline ends here

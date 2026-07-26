@@ -21,7 +21,7 @@ export function MonoLabel({
   return (
     <div
       className={`mono-label ${className ?? ""}`}
-      style={{ display: "flex", alignItems: "center", gap: 8, ...style }}
+      style={{ display: "flex", alignItems: "center", gap: 6, ...style }}
     >
       {Icon ? <Icon size={16} strokeWidth={1.5} /> : null}
       <span>{children}</span>
@@ -76,7 +76,7 @@ export function StatusBadge({ status }: { status: string }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
+        gap: 6,
         fontFamily: "var(--font-mono)",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
@@ -386,7 +386,7 @@ export function SubTabs({
   onSet: (tab: string) => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+    <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
       {tabs.map((t) => (
         <button
           key={t}

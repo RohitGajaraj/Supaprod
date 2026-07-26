@@ -67,7 +67,7 @@ export function PulsePrompt({ surface, targetId }: { surface: PulseSurface; targ
       {noteSent ? (
         <span>Thanks, noted.</span>
       ) : showNote ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}

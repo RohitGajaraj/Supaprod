@@ -92,7 +92,7 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 14,
         padding: "0 clamp(12px, 4vw, 28px)",
         minHeight: 52,
         flexShrink: 0,

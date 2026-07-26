@@ -182,7 +182,7 @@ export function BriefDeck() {
 
 const pillStyle: React.CSSProperties = {
   fontFamily: "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace",
-  fontSize: 11,
+  fontSize: 10.5,
   letterSpacing: "0.06em",
   color: "#d1cfc9",
   background: "rgba(14,14,15,0.85)",

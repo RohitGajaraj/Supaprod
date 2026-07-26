@@ -130,7 +130,7 @@ export function ApprovalGateRow({
     cursor: "pointer",
   };
   return (
-    <div className="flex flex-col" style={{ gap: 8 }}>
+    <div className="flex flex-col" style={{ gap: 6 }}>
       <span
         style={{
           fontFamily: "var(--font-mono)",
@@ -226,7 +226,7 @@ export function ApprovalGateBlock({
   return (
     <div style={BLOCK_STYLE}>
       <MonoLabel tone="muted">WAITING ON YOU</MonoLabel>
-      <div className="flex flex-col" style={{ gap: 12, marginTop: 8 }}>
+      <div className="flex flex-col" style={{ gap: 10, marginTop: 8 }}>
         {pending.map((a) => (
           <ApprovalGateRow
             key={a.id}
@@ -289,7 +289,7 @@ export function PendingApprovalsStrip() {
           <MonoLabel tone="muted">WAITING ON YOU</MonoLabel>
           <MonoLabel tone="faint">{String(pending.length)}</MonoLabel>
         </div>
-        <div className="flex flex-col" style={{ gap: 12, marginTop: 8 }}>
+        <div className="flex flex-col" style={{ gap: 10, marginTop: 8 }}>
           {visible.map((a) => (
             <ApprovalGateRow
               key={a.id}

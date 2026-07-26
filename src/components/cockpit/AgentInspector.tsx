@@ -25,7 +25,7 @@ function RunRow({ run }: { run: AgentRun }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 12,
+        gap: 10,
         padding: "6px 0",
         borderBottom: `1px solid ${HAIRLINE}`,
       }}
@@ -94,7 +94,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
           justifyContent: "space-between",
         }}
       >
@@ -122,7 +122,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
       <p style={{ color: "var(--ink-muted)", marginTop: 6 }}>
         Recent runs for the selected agent.
       </p>
-      <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
         {q.isLoading ? (
           <div style={{ color: "var(--ink-muted)" }}>Loading</div>
         ) : runs.length === 0 ? (

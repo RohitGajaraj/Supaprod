@@ -192,11 +192,11 @@ function LaneSection({
 
 
 
-    <section aria-label={title} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <section aria-label={title} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
 
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
 
 
 
@@ -292,7 +292,7 @@ function LaneEmpty({ text }: { text: string }) {
 
 
 
-      className="text-label-12"
+      className="text-label-13"
 
 
 
@@ -540,7 +540,7 @@ export function PushedInsights({
 
 
 
-                className="text-label-12"
+                className="text-label-13"
 
 
 
@@ -912,7 +912,7 @@ export function SwarmActivityLane({
 
 
 
-                <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
 
 
 
@@ -1040,7 +1040,7 @@ export function SwarmActivityLane({
 
 
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
 
 
 
@@ -1312,7 +1312,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
 
 
 
-              className="text-label-12"
+              className="text-label-13"
 
 
 
@@ -1552,7 +1552,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
 
 
 
-              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
 
 
 

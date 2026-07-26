@@ -23,7 +23,7 @@ const CalendarPanel = lazy(() =>
 function DeskCalendar() {
   const [meetingId, setMeetingId] = useState<string | undefined>(undefined);
   return (
-    <div className="flex flex-col" style={{ gap: 12 }}>
+    <div className="flex flex-col" style={{ gap: 10 }}>
       <h3
         className="text-label-12"
         style={{

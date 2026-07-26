@@ -69,7 +69,7 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
         cursor: "pointer",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, lineHeight: 1.3 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, lineHeight: 1.3 }}>
         <span style={{ fontWeight: 600, color: "var(--ink)" }}>
           {stripAutoPrefix(m.title) || "Untitled mission"}
         </span>

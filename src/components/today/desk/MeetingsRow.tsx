@@ -36,7 +36,7 @@ export function MeetingsRow() {
         style={{ gap: "var(--geist-space-2x)", paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
       >
         <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)" }}>Meetings</span>
-        <span className="text-label-12" style={{ color: "var(--madder)" }}>didn't load</span>
+        <span className="text-label-13" style={{ color: "var(--madder)" }}>didn't load</span>
         <Button variant="tertiary" className="text-label-12" onClick={() => void events.refetch()}>
           Retry
         </Button>
@@ -58,7 +58,7 @@ export function MeetingsRow() {
         // Background rides classes so the hover variant wins (inline beats classes).
         className="loom-press flex w-full items-center text-left outline-none transition-colors [background:transparent] hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
-          gap: 12,
+          gap: 10,
           padding: "10px 6px 8px",
           borderTop: "1px solid var(--hairline)",
           borderLeft: "none",
@@ -70,14 +70,14 @@ export function MeetingsRow() {
       >
         <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Meetings</span>
         <span
-          className="min-w-0 flex-1 truncate text-label-12"
+          className="min-w-0 flex-1 truncate text-label-13"
           style={{ color: "var(--text-body)" }}
         >
           {rows.length} today
           {next ? ` · next ${fmtTime(next.start_at)} ${next.title.slice(0, 28)}` : " · all done"}
         </span>
         <span
-          className="text-label-12"
+          className="text-label-13"
           aria-hidden="true"
           style={{ color: "var(--text-subtle)", flexShrink: 0 }}
         >
@@ -95,7 +95,7 @@ export function MeetingsRow() {
               <li
                 key={e.id}
                 className="flex items-baseline"
-                style={{ gap: 12, padding: "4px 0", minWidth: 0 }}
+                style={{ gap: 10, padding: "4px 0", minWidth: 0 }}
               >
                 <span
                   className="text-label-12"
@@ -109,7 +109,7 @@ export function MeetingsRow() {
                   {fmtTime(e.start_at)}
                 </span>
                 <span
-                  className="min-w-0 flex-1 truncate text-label-12"
+                  className="min-w-0 flex-1 truncate text-label-13"
                   style={{
                     color: past ? "var(--text-faint)" : "var(--text-body)",
                   }}

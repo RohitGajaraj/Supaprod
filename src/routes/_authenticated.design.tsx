@@ -74,7 +74,7 @@ function PrototypeRow({ proto }: { proto: PrototypeSummary }) {
         >
           {proto.name}
         </p>
-        <p style={{ fontSize: 12, color: "var(--text-faint)", margin: "2px 0 0" }}>
+        <p style={{ fontSize: 11.5, color: "var(--text-faint)", margin: "2px 0 0" }}>
           {proto.isPublic ? "Public" : "Private"} · updated{" "}
           {new Date(proto.updatedAt).toLocaleDateString()}
         </p>
@@ -222,7 +222,7 @@ function PrototypesPane() {
           <MonoLabel style={{ fontSize: "10.5px", color: "var(--madder)" }}>
             Could not load prototypes
           </MonoLabel>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "6px 0 0" }}>
+          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "6px 0 0" }}>
             {(items.error as Error).message}
           </p>
           <Button variant="secondary" style={{ marginTop: 12 }} onClick={() => items.refetch()}>
@@ -231,7 +231,7 @@ function PrototypesPane() {
         </div>
       ) : rows.length === 0 ? (
         <div style={{ padding: "28px 16px", textAlign: "center" }}>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
             No prototypes yet. Generate a mockup on any spec's page, then publish it here to get a
             shareable link.
           </p>

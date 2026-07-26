@@ -606,7 +606,7 @@ export function AnalyticsPanel() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       padding: "8px 0",
                       borderBottom: i < arr.length - 1 ? "1px solid var(--hairline)" : "none",
                     }}
@@ -753,7 +753,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
   if (!e) return <div style={{ color: "var(--ink-subtle)" }}>Event not found.</div>;
   const ev = data.eval;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div>
         <MonoLabel>AI event · via {e.via}</MonoLabel>
         <div className="font-display" style={{ marginTop: 4 }}>
@@ -788,7 +788,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>Judge scores</MonoLabel>
           <div
-            style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}
+            style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}
           >
             {(
               [

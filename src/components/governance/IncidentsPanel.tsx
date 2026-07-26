@@ -70,7 +70,7 @@ function IncidentCard({ n }: { n: Incident }) {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.08em",
             color: tone,
@@ -88,7 +88,7 @@ function IncidentCard({ n }: { n: Incident }) {
         {n.kind === "cost" ? (
           <CostIncidentBadge amountUsd={n.amountUsd} windowKind={n.windowKind} />
         ) : null}
-        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 12 }}>
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10 }}>
           {n.at ? (
             <span
               className="tabular-nums"
@@ -248,7 +248,7 @@ export function IncidentsPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((n) => (
         <IncidentCard key={n.id} n={n} />
       ))}

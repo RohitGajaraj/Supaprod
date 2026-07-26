@@ -152,7 +152,7 @@ const FormMessage = React.forwardRef<
       ref={ref}
       id={formMessageId}
       role="alert"
-      className={cn("flex items-start gap-1.5 text-label-12 text-(--ds-red-900)", className)}
+      className={cn("flex items-start gap-1.5 text-label-13 text-(--ds-red-900)", className)}
       {...props}
     >
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />

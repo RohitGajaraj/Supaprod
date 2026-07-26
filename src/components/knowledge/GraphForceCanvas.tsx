@@ -767,7 +767,7 @@ export function GraphForceCanvas({
       {hoveredNode ? (
         <GraphHoverCard node={hoveredNode} sx={hover!.sx} sy={hover!.sy} bounds={sizeRef.current} />
       ) : null}
-      <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 12 }}>
+      <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 10 }}>
         <button
           type="button"
           className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
@@ -844,7 +844,7 @@ function GraphHoverCard({
         zIndex: 5,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
         <span
           aria-hidden="true"
           style={{

@@ -308,7 +308,7 @@ export function JudgmentLane({
 
   return (
 
-    <div className="flex flex-col" style={{ gap: 12 }}>
+    <div className="flex flex-col" style={{ gap: 10 }}>
 
       {visible.map((e, i) => renderEntry(e, i === 0 && e.kind === "call"))}
 
@@ -432,7 +432,7 @@ export function JudgmentLane({
 
               style={{
 
-                gap: 12,
+                gap: 10,
 
                 border: "1px solid var(--hairline)",
 
@@ -528,7 +528,7 @@ export function JudgmentLane({
 
                   </div>
 
-                  <div className="flex items-baseline" style={{ gap: 12, flexShrink: 0 }}>
+                  <div className="flex items-baseline" style={{ gap: 14, flexShrink: 0 }}>
 
                     <button
 

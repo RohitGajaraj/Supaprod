@@ -36,7 +36,7 @@ export function DataSubstrateCard() {
 
   return (
     <div className="material-medium" style={{ padding: "var(--geist-gap)", maxWidth: 640 }}>
-      <div className="text-label-12-mono flex items-center gap-[7px]">
+      <div className="text-label-13-mono flex items-center gap-[7px]">
         <Database size={16} strokeWidth={1.5} />
         Where your brain lives
       </div>

@@ -151,7 +151,7 @@ function CalibrationHero({
           </h1>
           <p
             style={{
-              fontSize: 14,
+              fontSize: 13.5,
               lineHeight: 1.6,
               color: "var(--ink-muted, #4a4438)",
               margin: 0,
@@ -171,7 +171,7 @@ function CalibrationHero({
           </h1>
           <p
             style={{
-              fontSize: 14,
+              fontSize: 13.5,
               lineHeight: 1.6,
               color: "var(--ink-muted, #4a4438)",
               margin: 0,
@@ -223,7 +223,7 @@ function ProofPage() {
       {decisions.length === 0 ? (
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>
           <p
-            style={{ fontSize: 14, color: "var(--ink-muted, #4a4438)", margin: 0, lineHeight: 1.6 }}
+            style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
             shared by its owner, receipt and all, never seeded or staged — that is why this section
@@ -231,7 +231,7 @@ function ProofPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {decisions.map((d, i) => (
             <Link
               key={d.share_slug}
