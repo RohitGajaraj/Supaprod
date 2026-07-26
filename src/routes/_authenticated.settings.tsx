@@ -10,7 +10,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { agentBlurb, agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
+import {
+  agentBlurb,
+  agentDisplayName,
+  catalogEntry,
+  SPECIALIST_CATALOG,
+} from "@/lib/agent-vocabulary";
 import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { RoomChromeShell } from "@/components/mission/RoomChrome";
@@ -29,7 +34,12 @@ import { useTheme, type Theme } from "@/hooks/use-theme";
 import { Sun, Moon, Monitor, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { listAgents, listAgentRuns, listAgentReflections, setAgentToolCap } from "@/lib/agents.functions";
+import {
+  listAgents,
+  listAgentRuns,
+  listAgentReflections,
+  setAgentToolCap,
+} from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -141,16 +151,10 @@ export const Route = createFileRoute("/_authenticated/settings")({
 // door visible at once (no numbered index, no Advanced fold), ink tokens. The
 // active section wears the raised wash; a group label sits above its sections.
 // Memory now lives in Brain, echoed as a footer note like the mockup.
-function SettingsNav({
-  active,
-  onSet,
-}: {
-  active: SectionId;
-  onSet: (id: SectionId) => void;
-}) {
+function SettingsNav({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
   return (
     <aside
-      className="flex flex-col gap-5 border-r px-4 py-5"
+      className="hidden md:flex flex-col gap-5 border-r px-4 py-5"
       style={{ width: 220, flexShrink: 0, borderColor: "var(--ink-hairline)" }}
     >
       {PRIMARY_GROUPS.map((g) => (
@@ -1790,7 +1794,7 @@ function WorkspaceBindingsSummary() {
                 {b.updated_at ? (
                   <span
                     className="mono-label tabular-nums"
-                    style={{ fontSize: 9, color: "var(--ink-faint)", marginLeft: "auto" }}
+                    style={{ fontSize: 11, color: "var(--ink-faint)", marginLeft: "auto" }}
                   >
                     {relTimeCaps(b.updated_at)}
                   </span>
@@ -1918,7 +1922,7 @@ function ModelsTab() {
             <span className="mono-label" style={{ color: "var(--ink)" }}>
               {defaultModel === AUTO_MODEL ? "Auto" : (current?.label ?? defaultModel)}
             </span>
-            <span className="mono-label" style={{ fontSize: 9 }}>
+            <span className="mono-label" style={{ fontSize: 11 }}>
               {defaultModel === AUTO_MODEL
                 ? "routed"
                 : current
@@ -2002,7 +2006,7 @@ function ModelsTab() {
             <span className="mono-label" style={{ color: "var(--ink)" }}>
               {!agenticModel ? "Auto" : currentAgentic ? currentAgentic.label : agenticModel}
             </span>
-            <span className="mono-label" style={{ fontSize: 9 }}>
+            <span className="mono-label" style={{ fontSize: 11 }}>
               {!agenticModel
                 ? "routed"
                 : currentAgentic
@@ -2226,7 +2230,7 @@ function ByoKeysSection() {
               <span
                 className="mono-label"
                 style={{
-                  fontSize: 8.5,
+                  fontSize: 11,
                   color: testResult.ok ? "var(--emerald)" : "var(--rose)",
                 }}
               >
@@ -2392,7 +2396,7 @@ function AgentToolCap({ agent }: { agent: AgentRow }) {
     <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
       <span
         className="mono-label"
-        style={{ fontSize: 8.5, color: "var(--ink-faint)", flexShrink: 0 }}
+        style={{ fontSize: 11, color: "var(--ink-faint)", flexShrink: 0 }}
       >
         Tool reach
       </span>
@@ -2495,7 +2499,10 @@ function StaffTab() {
         className="rounded-xl border p-6"
         style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
       >
-        <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--voice-human)" }}>
+        <div
+          className="font-mono text-[10px] uppercase tracking-wider"
+          style={{ color: "var(--voice-human)" }}
+        >
           Couldn't load agents
         </div>
         <p style={{ fontSize: 14, color: "var(--ink-subtle)", marginTop: 8 }}>
@@ -2575,8 +2582,8 @@ function StaffTab() {
           need review on risky tools.
         </p>
         <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 6, maxWidth: "70ch" }}>
-          New tools ask for permission the moment they are first needed, inside the run. This page is
-          the ledger; the dials live in Autonomy & approvals.
+          New tools ask for permission the moment they are first needed, inside the run. This page
+          is the ledger; the dials live in Autonomy & approvals.
         </p>
       </div>
 
@@ -2647,7 +2654,11 @@ function AgentRosterRow({
         >
           {agentDisplayName(agent.slug, agent.name)}
         </span>
-        <span className="truncate text-[12.5px]" style={{ color: "var(--ink-body)" }} title={agentBlurb(agent.slug) ?? agent.role}>
+        <span
+          className="truncate text-[12.5px]"
+          style={{ color: "var(--ink-body)" }}
+          title={agentBlurb(agent.slug) ?? agent.role}
+        >
           {agentBlurb(agent.slug) ?? agent.role}
         </span>
         <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
@@ -2811,7 +2822,10 @@ function AgentExpand({ agent }: { agent: AgentRow }) {
         <div style={panelStyle}>
           <div style={titleStyle}>Knowledge &amp; instructions</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
+            <span
+              className="font-mono text-[10px] uppercase"
+              style={{ color: "var(--ink-subtle)" }}
+            >
               Workspace
             </span>
             <span style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
@@ -2819,7 +2833,10 @@ function AgentExpand({ agent }: { agent: AgentRow }) {
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
+            <span
+              className="font-mono text-[10px] uppercase"
+              style={{ color: "var(--ink-subtle)" }}
+            >
               Per product
             </span>
             <span style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
@@ -3097,7 +3114,7 @@ function WorkspaceBriefSection({
                   <span style={{ fontSize: 12.5, fontWeight: 500 }}>{f.label}</span>
                   <span
                     className="mono-label tabular-nums"
-                    style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
+                    style={{ fontSize: 11, color: "var(--ink-faint)" }}
                   >
                     {form[f.key].length} chars
                   </span>
