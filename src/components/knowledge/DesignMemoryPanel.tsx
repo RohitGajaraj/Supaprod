@@ -303,7 +303,7 @@ function DesignMemoryRowView({
             </p>
           ) : null}
           {row.status === "pending" ? (
-            <span className="flex" style={{ gap: 6 }}>
+            <span className="flex" style={{ gap: 8 }}>
               <button
                 type="button"
                 disabled={deciding}
@@ -429,7 +429,7 @@ function AddDesignMemoryDialog({
             m === "url" ? "Import URL" : m === "paste" ? "Paste constitution" : "Use defaults"
           }
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 10 }}>
           {mode === "url" ? (
             <div>
               <MonoLabel style={{ marginBottom: 4 }}>public page url</MonoLabel>

@@ -180,7 +180,7 @@ function SpanInspector({
     : [];
   return (
     <div className="fade-up">
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <MonoLabel>Span · {span.surface}</MonoLabel>
         <code style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--ink-faint)" }}>
           {span.id}
@@ -192,22 +192,22 @@ function SpanInspector({
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: 12,
           marginTop: 12,
-          fontSize: 12.5,
+          fontSize: 12,
         }}
       >
         {meta.map(([l, v]) => (
           <div key={l} style={{ minWidth: 0 }}>
             <MonoLabel style={{ marginBottom: 3 }}>{l}</MonoLabel>
-            <div style={{ ...cellEllipsis, fontFamily: "var(--font-mono)", fontSize: 11.5 }}>
+            <div style={{ ...cellEllipsis, fontFamily: "var(--font-mono)", fontSize: 12 }}>
               {v}
             </div>
           </div>
         ))}
         <div>
           <MonoLabel style={{ marginBottom: 3 }}>Status</MonoLabel>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <span className={`dot ${EVENT_DOT[span.status] ?? "dot-failed"}`}></span>
-            <span style={{ color: statusColor, fontSize: 12.5 }}>{span.status}</span>
+            <span style={{ color: statusColor, fontSize: 12 }}>{span.status}</span>
           </span>
         </div>
       </div>
@@ -232,7 +232,7 @@ function SpanInspector({
           <MonoLabel icon={Shield} style={{ marginBottom: 6 }}>
             Guardrail hits
           </MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {hits.map((h, i) => (
               <div
                 key={i}
@@ -240,7 +240,7 @@ function SpanInspector({
                   border: "1px solid var(--hairline)",
                   borderRadius: 8,
                   padding: "7px 10px",
-                  fontSize: 12.5,
+                  fontSize: 12,
                 }}
               >
                 <span style={{ fontWeight: 500 }}>{h.rule_name}</span>
@@ -305,7 +305,7 @@ function SpanInspector({
 function ToolInspector({ tool }: { tool: ToolCallRow }) {
   return (
     <div className="fade-up">
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <MonoLabel>Tool call · {tool.tool_name}</MonoLabel>
         <code style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--ink-faint)" }}>
           {tool.id}
@@ -317,14 +317,14 @@ function ToolInspector({ tool }: { tool: ToolCallRow }) {
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: 12,
           marginTop: 12,
-          fontSize: 12.5,
+          fontSize: 12,
         }}
       >
         <div>
           <MonoLabel style={{ marginBottom: 3 }}>Status</MonoLabel>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <span className={`dot ${tool.ok ? "dot-completed" : "dot-failed"}`}></span>
-            <span style={{ color: tool.ok ? "var(--emerald)" : "var(--rose)", fontSize: 12.5 }}>
+            <span style={{ color: tool.ok ? "var(--emerald)" : "var(--rose)", fontSize: 12 }}>
               {tool.ok ? "ok" : "failed"}
             </span>
           </span>
@@ -482,7 +482,7 @@ export function TraceDetail({ id }: { id: string }) {
           <div className="mono-label" style={{ color: "var(--rose)" }}>
             Couldn't load this trace
           </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+          <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "8px 0 0" }}>
             {(trace.error as Error).message}
           </p>
           <button
@@ -508,7 +508,7 @@ export function TraceDetail({ id }: { id: string }) {
             padding: "var(--card-pad)",
             display: "flex",
             alignItems: "center",
-            gap: 14,
+            gap: 12,
             flexWrap: "wrap",
           }}
         >
@@ -595,7 +595,7 @@ export function TraceDetail({ id }: { id: string }) {
           style={{
             display: "grid",
             gridTemplateColumns: hopGrid,
-            gap: 10,
+            gap: 12,
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -635,17 +635,17 @@ export function TraceDetail({ id }: { id: string }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: hopGrid,
-                gap: 10,
+                gap: 12,
                 padding: "12px 18px",
                 alignItems: "center",
                 width: "100%",
                 textAlign: "left",
-                fontSize: 12.5,
+                fontSize: 12,
                 borderBottom: isLast ? "none" : "1px solid var(--hairline)",
                 background: isSel ? "var(--surface-2)" : "transparent",
               }}
             >
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span
                   className={`dot ${
                     r.kind === "event"
@@ -797,7 +797,7 @@ export function TraceDetail({ id }: { id: string }) {
         })}
       </div>
 
-      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 10 }}>
+      <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 10 }}>
         Showing every LLM span and tool call on this trace, in wall-clock order. Previews are
         truncated. Select a hop for the full input, system prompt, and output.
         {mission && (

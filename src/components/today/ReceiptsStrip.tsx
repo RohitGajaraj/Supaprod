@@ -218,7 +218,7 @@ export function ReceiptsStrip({
 
 
 
-      style={{ display: "flex", flexDirection: "column", gap: 10 }}
+      style={{ display: "flex", flexDirection: "column", gap: 12 }}
 
 
 
@@ -226,7 +226,7 @@ export function ReceiptsStrip({
 
 
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
 
 
 
@@ -450,7 +450,7 @@ export function ReceiptsStrip({
 
 
 
-                  gap: 10,
+                  gap: 12,
 
 
 

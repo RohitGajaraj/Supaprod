@@ -408,7 +408,7 @@ export function ExecutedCard() {
 
 
 
-                  gap: 6,
+                  gap: 8,
 
 
 

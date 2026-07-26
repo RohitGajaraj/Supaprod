@@ -524,7 +524,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
 
 
 
@@ -878,7 +878,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-              gap: 6,
+              gap: 8,
 
 
 
@@ -990,7 +990,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-          <div style={{ marginLeft: 22, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ marginLeft: 22, display: "flex", flexDirection: "column", gap: 8 }}>
 
 
 
@@ -1080,7 +1080,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 8 }}>
 
 
 
@@ -1172,7 +1172,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-          <div style={{ marginLeft: 22, display: "flex", gap: 6, alignItems: "center" }}>
+          <div style={{ marginLeft: 22, display: "flex", gap: 8, alignItems: "center" }}>
 
 
 
@@ -1346,7 +1346,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
 
 
 
@@ -1402,7 +1402,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
 
 
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 22 }}>
 
 
 

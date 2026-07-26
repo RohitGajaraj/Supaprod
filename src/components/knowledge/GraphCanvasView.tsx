@@ -139,7 +139,7 @@ function GraphSkeleton() {
         <div style={{ flex: 1 }} />
         {bar(140, 34)}
       </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
         {bar(64, 14)}
         {bar(64, 14)}
         {bar(64, 14)}
@@ -386,8 +386,8 @@ export function GraphCanvasView({
     <div>
       <GraphCompoundingStrip nodes={graph.nodes} beliefsRevised={revisedCount} />
 
-      <div className="flex flex-wrap items-center" style={{ gap: 14, marginBottom: 12 }}>
-        <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 12, marginBottom: 12 }}>
+        <div className="flex flex-wrap items-center" style={{ gap: 12 }}>
           {presentKinds.map((kind) => (
             <span key={kind} className="flex items-center" style={{ gap: 5 }}>
               <span
@@ -488,7 +488,7 @@ export function GraphCanvasView({
         </NoticeLine>
       )}
 
-      <div className="flex flex-wrap items-start" style={{ gap: 14 }}>
+      <div className="flex flex-wrap items-start" style={{ gap: 12 }}>
         {/* Loom §2b: the flagship graph card carries the fading hairline (the
             light catching its top edge). On the wrapper, not the canvas card
             itself: the card's overflow-hidden would clip the 1px line. */}

@@ -526,7 +526,7 @@ function FlagsPanel() {
                       <Button
                         variant="secondary"
                         disabled={upsert.isPending}
-                        style={{ fontSize: 11.5, padding: "6px 10px" }}
+                        style={{ fontSize: 12, padding: "6px 10px" }}
                         onClick={() =>
                           saveFlag({ key: f.key, enabled: !f.enabled, payloadJson: f.payload })
                         }
@@ -553,7 +553,7 @@ function FlagsPanel() {
                     <Button
                       variant="secondary"
                       disabled={del.isPending}
-                      style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+                      style={{ fontSize: 12, padding: "6px 10px", color: "var(--text-subtle)" }}
                       onClick={async () => {
                         const ok = await confirm({
                           title: "Delete flag?",
@@ -812,7 +812,7 @@ function input(width?: number): React.CSSProperties {
     background: "var(--raised)",
     color: "var(--text-primary)",
     fontFamily: "var(--font-sans)",
-    fontSize: 12.5,
+    fontSize: 12,
     width,
   };
 }

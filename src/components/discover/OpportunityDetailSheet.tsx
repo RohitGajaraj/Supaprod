@@ -597,7 +597,7 @@ export function OpportunityDetailSheet({
             {/* Critic: verdict + summary if present, honest empty otherwise. */}
             <DetailSection heading="Critic">
               <div style={{ display: "grid", gap: "9px" }}>
-                <div className="flex items-center" style={{ gap: 6 }}>
+                <div className="flex items-center" style={{ gap: 8 }}>
                   <VerdictChip tone={verdict} />
                   {/* RPT-08: disclosed confidence right on the bet's verdict,
                       not buried - reuses the Critic's own already-computed

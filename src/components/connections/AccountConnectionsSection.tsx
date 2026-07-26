@@ -307,7 +307,7 @@ function StatusPill({
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
+        gap: 8,
         fontFamily: "var(--font-mono)",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
@@ -623,7 +623,7 @@ export function AccountConnectionsSection({
             paddingTop: 14,
             display: "flex",
             flexDirection: "column",
-            gap: 14,
+            gap: 12,
           }}
         >
           <RequestConnectorCard compact />
@@ -688,7 +688,7 @@ export function AccountConnectionsSection({
             aria-hidden="true"
             style={{
               display: "grid",
-              gap: 10,
+              gap: 12,
               gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
             }}
           >
@@ -746,7 +746,7 @@ export function AccountConnectionsSection({
           <div
             style={{
               display: "grid",
-              gap: 10,
+              gap: 12,
               // min(320px, 100%) so a pane narrower than 320 clamps the card
               // instead of overflowing horizontally.
               gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
@@ -1061,7 +1061,7 @@ export function ConnectorDetail({
           title={spec.label}
         />
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <StatusPill tone="muted" title="Reading through a workspace-level server credential">
               Active
             </StatusPill>
@@ -1116,7 +1116,7 @@ export function ConnectorDetail({
         />
         <div
           className="bento"
-          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
+          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 12 }}
         >
           <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
             {spec.description} {hint}
@@ -1141,7 +1141,7 @@ export function ConnectorDetail({
         />
         <div
           className="bento"
-          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
+          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 12 }}
         >
           <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
             {spec.description} Connect it once and what it syncs starts feeding the company brain.
@@ -1387,7 +1387,7 @@ export function ConnectorDetail({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 8,
                       color: "var(--ink-muted)",
                     }}
                   >
@@ -1410,7 +1410,7 @@ export function ConnectorDetail({
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 8,
                       color: "var(--ink-muted)",
                     }}
                   >

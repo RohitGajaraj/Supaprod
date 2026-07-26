@@ -165,13 +165,13 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
         {title}
       </div>
       {items.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted, #4a4438)", margin: 0 }}>{empty}</p>
+        <p style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)", margin: 0 }}>{empty}</p>
       ) : (
         <ul
-          style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 16, margin: 0 }}
+          style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 16, margin: 0 }}
         >
           {items.map((it, i) => (
-            <li key={i} style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--ink, #1f1b16)" }}>
+            <li key={i} style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink, #1f1b16)" }}>
               {it}
             </li>
           ))}
@@ -222,7 +222,7 @@ function PublicTeardownPage() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          gap: 12,
           flexWrap: "wrap",
           marginBottom: 14,
         }}
@@ -269,7 +269,7 @@ function PublicTeardownPage() {
 
       <p
         style={{
-          fontSize: 11.5,
+          fontSize: 12,
           color: "var(--ink-subtle, #6b6457)",
           marginTop: 22,
           lineHeight: 1.5,

@@ -180,7 +180,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
             border: "1px solid var(--hairline)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span className="mono-label" style={{ color: "var(--agent)" }}>
               {sel.agent}
             </span>

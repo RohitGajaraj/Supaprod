@@ -397,7 +397,7 @@ function SignupApprovalsList() {
           Nothing waiting.
         </p>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "grid", gap: 6 }}>
+        <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "grid", gap: 8 }}>
           {rows.map((s) => (
             <li
               key={s.id}

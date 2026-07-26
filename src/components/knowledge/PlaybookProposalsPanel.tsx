@@ -101,7 +101,7 @@ function ProposalCard({
         {p.body}
       </p>
 
-      <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 12 }}>
         <Button
           variant="secondary"
           size="sm"
@@ -220,7 +220,7 @@ export function PlaybookProposalsPanel() {
 
   return (
     <section aria-label="Proposed playbooks" style={{ marginBottom: 24 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
         <MonoLabel style={{ }}>Proposed playbooks</MonoLabel>
         <span style={{ color: "var(--text-faint)" }}>
           the same lesson repeated until it became a method - adopt it or dismiss it

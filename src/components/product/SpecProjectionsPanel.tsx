@@ -100,7 +100,7 @@ export function SpecProjectionsPanel({
   }
 
   const stamp = (
-    <div className="flex items-center" style={{ gap: 10, flexWrap: "wrap" }}>
+    <div className="flex items-center" style={{ gap: 12, flexWrap: "wrap" }}>
       <VerdictChip tone={DRIFT_TONE[set.drift.state]}>{set.drift.label}</VerdictChip>
       <span style={{ color: "var(--text-muted)" }}>Generated {set.generatedOn}</span>
     </div>
@@ -179,7 +179,7 @@ export function SpecProjectionsPanel({
             );
           })}
         </div>
-        <div className="flex items-center" style={{ gap: 6, paddingBottom: 8 }}>
+        <div className="flex items-center" style={{ gap: 8, paddingBottom: 8 }}>
           <Button
             variant="tertiary"
             size="sm"

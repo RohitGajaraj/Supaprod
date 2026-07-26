@@ -95,7 +95,7 @@ describe("DetailHeader — Refined detail panel header", () => {
     const header = container.querySelector("header");
     const style = header?.getAttribute("style");
     expect(style).toContain("display: grid");
-    expect(style).toContain("gap: 10px");
+    expect(style).toContain("gap: 12px");
   });
 
   it("should render h2 with correct font styling", () => {
@@ -420,7 +420,7 @@ describe("DetailSection — Consistent section anatomy", () => {
     const headingRow = container.querySelector(".flex.items-center.justify-between");
     expect(headingRow).toBeDefined();
     const style = headingRow?.getAttribute("style");
-    expect(style).toContain("gap: 10px");
+    expect(style).toContain("gap: 12px");
   });
 
   it("should maintain correct heading padding and top border spacing", () => {

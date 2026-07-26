@@ -98,7 +98,7 @@ function JoinPage() {
         </div>
 
         {(state.kind === "checking" || state.kind === "accepting") && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <Loader2 size={20} className="animate-spin" style={{ color: "var(--text-subtle)" }} />
             <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
               {state.kind === "checking" ? "Checking your invitation" : "Joining the workspace"}

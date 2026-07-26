@@ -282,7 +282,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             padding: "var(--card-pad)",
             display: "flex",
             alignItems: "center",
-            gap: 14,
+            gap: 12,
             flexWrap: "wrap",
           }}
         >
@@ -385,7 +385,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
               {baselineDays}d baseline.
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {incidents.map((inc) => {
                 const isOpen = inc.status === "open";
                 return (
@@ -394,7 +394,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
+                      gap: 12,
                       flexWrap: "wrap",
                     }}
                   >
@@ -448,7 +448,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
                   key={d.date}
                   style={{
                     display: "flex",
-                    gap: 10,
+                    gap: 12,
                     padding: "7px 0",
                     borderBottom: i < recentDays.length - 1 ? "1px solid var(--hairline)" : "none",
                   }}

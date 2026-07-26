@@ -385,7 +385,7 @@ function WorkspaceDrawer({
               <div style={{ marginBottom: "var(--space-2)" }}>
                 <MonoLabel>Details</MonoLabel>
               </div>
-              <div style={{ display: "grid", gap: 6 }}>
+              <div style={{ display: "grid", gap: 8 }}>
                 <FieldRow label="Slug" value={d.workspace?.slug} />
                 <FieldRow label="Plan" value={d.workspace?.plan_tier} />
                 <FieldRow label="Created" value={d.workspace?.created_at?.slice(0, 10)} />

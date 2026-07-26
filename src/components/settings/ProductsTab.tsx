@@ -273,7 +273,7 @@ export function ProductsTab() {
           <MonoLabel icon={Target}>
             Portfolio · {active.length} product{active.length === 1 ? "" : "s"}
           </MonoLabel>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {active.length > 1 && (
               <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
                 click to switch
@@ -375,7 +375,7 @@ export function ProductsTab() {
                   </div>
                   <div
                     className="mono-label tabular-nums"
-                    style={{ display: "flex", gap: 14, color: "var(--ink-faint)" }}
+                    style={{ display: "flex", gap: 12, color: "var(--ink-faint)" }}
                   >
                     <span>
                       {p.task_done}/{p.task_total} tasks
@@ -407,7 +407,7 @@ export function ProductsTab() {
           <MonoLabel icon={Archive}>
             Archived · {archived.length} product{archived.length === 1 ? "" : "s"}
           </MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
             {archived.map((p) => (
               <div
                 key={p.id}
@@ -415,7 +415,7 @@ export function ProductsTab() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  gap: 10,
+                  gap: 12,
                   padding: "8px 12px",
                   borderRadius: 8,
                   border: "1px solid var(--hairline)",

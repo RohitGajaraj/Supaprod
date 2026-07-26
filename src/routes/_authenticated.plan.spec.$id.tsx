@@ -97,7 +97,7 @@ const ACTION_BTN: CSSProperties = {
   ...MONO_CAPS,
   display: "inline-flex",
   alignItems: "center",
-  gap: 6,
+  gap: 8,
   color: "var(--text-body)",
   background: "transparent",
   border: "1px solid var(--hairline-strong)",
@@ -608,7 +608,7 @@ function SpecEditorPage() {
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
-            gap: 10,
+            gap: 12,
             padding: "8px 12px",
             background: "color-mix(in srgb, var(--surface-card) 92%, transparent)",
             backdropFilter: "blur(20px)",
@@ -620,7 +620,7 @@ function SpecEditorPage() {
           <div
             role="tablist"
             aria-label="Spec views"
-            style={{ display: "flex", gap: 14 }}
+            style={{ display: "flex", gap: 12 }}
             // Tabs keyboard contract: Left/Right move between tabs (roving focus).
             onKeyDown={(e) => {
               if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
@@ -781,7 +781,7 @@ function SpecEditorPage() {
             </button>
           </div>
           {prdTasks.length > 0 ? (
-            <ol style={{ display: "flex", flexDirection: "column", gap: 6, margin: 0, padding: 0 }}>
+            <ol style={{ display: "flex", flexDirection: "column", gap: 8, margin: 0, padding: 0 }}>
               {[...prdTasks]
                 .sort(
                   (a: { seq?: number | null }, b: { seq?: number | null }) =>
@@ -802,7 +802,7 @@ function SpecEditorPage() {
                       key={t.id}
                       style={{
                         listStyle: "none",
-                        fontSize: 12.5,
+                        fontSize: 12,
                         lineHeight: 1.5,
                         display: "flex",
                         flexWrap: "wrap",
@@ -844,7 +844,7 @@ function SpecEditorPage() {
                 )}
             </ol>
           ) : (
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
               No tasks yet. Generate a graph from the approved spec.
             </p>
           )}
@@ -868,7 +868,7 @@ function SpecEditorPage() {
               gap: 8,
               padding: "12px 16px",
               marginBottom: 24,
-              fontSize: 12.5,
+              fontSize: 12,
             }}
           >
             <span style={{ color: "var(--text-muted)" }}>
@@ -883,7 +883,7 @@ function SpecEditorPage() {
                 border: "1px solid var(--hairline)",
                 borderRadius: "var(--radius-control)",
                 padding: "5px 8px",
-                fontSize: 12.5,
+                fontSize: 12,
                 // No outline:none here: the global [data-obsidian] :focus-visible
                 // ring is the select's focus indicator (Tempo: never removed).
               }}
@@ -989,11 +989,11 @@ function SpecEditorPage() {
             </MonoLabel>
           </h2>
           {provQ.isLoading ? (
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
               Tracing the chain…
             </p>
           ) : provQ.isError ? (
-            <p style={{ fontSize: 12.5, color: "var(--madder)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--madder)", margin: 0 }}>
               Couldn't trace the chain.{" "}
               <button
                 type="button"
@@ -1012,13 +1012,13 @@ function SpecEditorPage() {
               </button>
             </p>
           ) : (provQ.data?.signal_count ?? 0) === 0 ? (
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
               No source signals traced. This spec was added directly, not generated from clustered
               signals.
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>
                 Traces back to {provQ.data!.signal_count} source signal
                 {provQ.data!.signal_count === 1 ? "" : "s"} through {provQ.data!.node_count} step
                 {provQ.data!.node_count === 1 ? "" : "s"} of the discovery chain.
@@ -1038,7 +1038,7 @@ function SpecEditorPage() {
                   className="loom-press hover:[color:var(--text-primary)]"
                   style={{
                     textAlign: "left",
-                    fontSize: 12.5,
+                    fontSize: 12,
                     color: "var(--text-body)",
                     background: "none",
                     border: "none",
@@ -1056,7 +1056,7 @@ function SpecEditorPage() {
                 </button>
               ))}
               {provQ.data!.truncated ? (
-                <span style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
+                <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
                   the chain continues past these first steps
                 </span>
               ) : null}

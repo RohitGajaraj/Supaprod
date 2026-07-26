@@ -56,11 +56,11 @@ const noticeBox: CSSProperties = {
   borderRadius: 12,
   border: "1px solid var(--hairline)",
   background: "var(--surface-1)",
-  fontSize: 13.5,
+  fontSize: 14,
   lineHeight: 1.55,
   color: "var(--text-body)",
   display: "flex",
-  gap: 10,
+  gap: 12,
   alignItems: "flex-start",
 };
 

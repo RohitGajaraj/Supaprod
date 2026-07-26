@@ -168,7 +168,7 @@ function PublicDecisionPage() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          gap: 12,
           flexWrap: "wrap",
           marginBottom: 20,
         }}
@@ -240,7 +240,7 @@ function PublicDecisionPage() {
       </div>
       <p
         style={{
-          fontSize: 11.5,
+          fontSize: 12,
           color: "var(--ink-subtle, #6b6457)",
           marginTop: 18,
           lineHeight: 1.5,

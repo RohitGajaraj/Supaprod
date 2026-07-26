@@ -34,7 +34,7 @@ function StatusPill({ tone, children }: { tone: "moss" | "madder"; children: str
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
+        gap: 8,
         fontFamily: "var(--font-mono)",
         letterSpacing: "0.08em",
         textTransform: "uppercase",

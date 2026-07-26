@@ -45,7 +45,7 @@ function AgentRow({ a }: { a: FleetAgent }) {
       />
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontWeight: 600, color: "var(--ink)" }}>{a.name}</div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 3 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 3 }}>
           <Tally n={a.running} label="running" color="var(--action-blue, #2563eb)" />
           <Tally n={a.queued} label="queued" />
           <Tally n={a.done} label="done" color="var(--emerald, #059669)" />

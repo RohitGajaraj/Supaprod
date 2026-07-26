@@ -364,7 +364,7 @@ export function TriageQueue({
 
 
 
-            <div className="flex flex-col" style={{ gap: 10 }}>
+            <div className="flex flex-col" style={{ gap: 12 }}>
 
 
 
@@ -694,7 +694,7 @@ export function TriageQueue({
 
 
 
-                gap: 10,
+                gap: 12,
 
 
 
@@ -890,7 +890,7 @@ export function TriageQueue({
 
 
 
-                  <div className="flex items-baseline" style={{ gap: 14, flexShrink: 0 }}>
+                  <div className="flex items-baseline" style={{ gap: 12, flexShrink: 0 }}>
 
 
 

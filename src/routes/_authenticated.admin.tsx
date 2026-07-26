@@ -165,7 +165,7 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
         to grant you access.
       </p>
       {!anyAdminExists ? (
-        <div className="flex items-center" style={{ gap: 10 }}>
+        <div className="flex items-center" style={{ gap: 12 }}>
           {/* The screen's one primary CTA: the v4 top-lit ember gradient
               (DESIGN-LOOM §3), on the Button primitive so it gets the focus
               ring and press feedback (register D-40). */}

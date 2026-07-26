@@ -64,7 +64,7 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
                 You are promising: {bet.outcome}. Measured by {bet.measure}.
               </p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <label htmlFor={outcomeId}>
                     <MonoLabel tone="muted">Outcome</MonoLabel>

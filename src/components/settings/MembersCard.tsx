@@ -341,7 +341,7 @@ export function MembersCard() {
                     </div>
                   ) : (
                     (showTransfer || showRemove) && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                         {showTransfer && (
                           <Button
                             variant="ghost"

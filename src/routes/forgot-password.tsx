@@ -70,7 +70,7 @@ function ForgotPasswordPage() {
         <div style={{ textAlign: "center" }}>
           <p
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               color: "var(--text-muted)",
               margin: "4px 0 14px",
               lineHeight: 1.55,

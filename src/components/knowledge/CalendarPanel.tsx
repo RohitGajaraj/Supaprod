@@ -522,7 +522,7 @@ export function CalendarPanel({
                 finding open time…
               </span>
             ) : null}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {slots.map((s) => (
                 <button
                   key={s.start_at}
@@ -601,7 +601,7 @@ export function CalendarPanel({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
+                      gap: 12,
                       justifyContent: "space-between",
                       padding: "7px 2px",
                       borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
@@ -649,7 +649,7 @@ export function CalendarPanel({
 
       {loading ? (
         // Shimmer skeleton matching the loaded layout (view row, then day cards).
-        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[34, 96, 96, 64].map((h, i) => (
             <div
               key={i}
@@ -767,7 +767,7 @@ export function CalendarPanel({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 14,
+                    gap: 12,
                     width: "100%",
                     textAlign: "left",
                     padding: "13px 16px",
@@ -1109,7 +1109,7 @@ const MonthGrid = React.memo(function MonthGrid({
         })}
       </div>
       <div
-        style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
+        style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, padding: "0 2px" }}
       >
         <span className="mono-label" style={{ }}>
           free
@@ -1150,7 +1150,7 @@ const MonthGrid = React.memo(function MonthGrid({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               marginBottom: selItems.length ? 6 : 0,
             }}
           >
@@ -1240,7 +1240,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
         style={{
           display: "flex",
           alignItems: "baseline",
-          gap: 10,
+          gap: 12,
           marginBottom: 10,
           padding: "0 2px",
         }}
@@ -1360,7 +1360,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
         </div>
       </div>
       <div
-        style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
+        style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, padding: "0 2px" }}
       >
         <span className="mono-label" style={{ }}>
           free
@@ -1453,7 +1453,7 @@ function EventEditor({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
+            gap: 12,
             padding: "10px 16px",
             borderBottom: "1px solid var(--hairline)",
           }}
@@ -1468,7 +1468,7 @@ function EventEditor({
             close
           </button>
         </div>
-        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <div
               className="mono-label"

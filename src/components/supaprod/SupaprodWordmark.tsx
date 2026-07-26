@@ -31,7 +31,7 @@ const TIERS = {
   /** Public marketing surfaces: landing, security, updates, privacy, terms, demo, proof. */
   public: { size: 22, textSize: 14, gap: 9 },
   /** App chrome: the room top bar, sharing space with a product switcher, four doors and the account menu. */
-  chrome: { size: 18, textSize: 13, gap: 10 },
+  chrome: { size: 18, textSize: 13, gap: 12 },
 } as const;
 
 export type WordmarkTier = keyof typeof TIERS;

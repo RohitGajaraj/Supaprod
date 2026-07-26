@@ -26,7 +26,7 @@ export function StatusRow() {
   return (
     <div
       className="flex items-center"
-      style={{ gap: 10, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
+      style={{ gap: 12, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
     >
       <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
       <span

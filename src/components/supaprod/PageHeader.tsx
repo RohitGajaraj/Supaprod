@@ -109,7 +109,7 @@ export function PageHeader({
           ) : null}
         </div>
         {actions ? (
-          <div className="shrink-0 flex items-center" style={{ gap: 10 }}>
+          <div className="shrink-0 flex items-center" style={{ gap: 12 }}>
             {actions}
           </div>
         ) : null}

@@ -84,7 +84,7 @@ function AdminAiCosts() {
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Week</th>
@@ -120,7 +120,7 @@ function AdminAiCosts() {
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Agent</th>
@@ -168,7 +168,7 @@ function AdminAiCosts() {
           </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead style={{ background: "var(--raised)" }}>
                 <tr>
                   <th style={th()}>Agent</th>
@@ -192,7 +192,7 @@ function AdminAiCosts() {
             </table>
           </div>
         )}
-        <p style={{ marginTop: "var(--space-3)", fontSize: 11.5, color: "var(--text-subtle)" }}>
+        <p style={{ marginTop: "var(--space-3)", fontSize: 12, color: "var(--text-subtle)" }}>
           These numbers refresh overnight. If they look stale, ask an engineer to turn on the
           nightly refresh job.
         </p>

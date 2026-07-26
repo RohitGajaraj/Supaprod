@@ -159,7 +159,7 @@ function SyncInboxPage() {
         to="/settings"
         search={{ section: "connections" }}
         className={`${FOCUS_RING} hover:underline`}
-        style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}
+        style={{ fontSize: 12, color: "var(--ink-subtle)" }}
       >
         ← Settings · Connections
       </Link>
@@ -248,7 +248,7 @@ function SyncInboxPage() {
           </div>
         ) : null}
         {followedGone && (
-          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
+          <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
             The conflict you followed here is already resolved.
           </p>
         )}
@@ -455,7 +455,7 @@ function SyncInboxPage() {
                       flex: 1,
                       display: "flex",
                       alignItems: "center",
-                      gap: 10,
+                      gap: 12,
                     }}
                   >
                     <span className="mono-label" style={{ width: 92, flexShrink: 0 }}>

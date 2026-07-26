@@ -90,7 +90,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
           <label
             key={s.id}
             className="text-label-13"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
           >
             <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
             {s.label}

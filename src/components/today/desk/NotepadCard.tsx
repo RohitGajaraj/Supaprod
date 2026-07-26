@@ -102,7 +102,7 @@ export function NotepadCard() {
 
   return (
     <section aria-label="Notepad" style={card}>
-      <div className="flex items-baseline" style={{ gap: 10, marginBottom: 8 }}>
+      <div className="flex items-baseline" style={{ gap: 12, marginBottom: 8 }}>
         <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Notepad</h3>
         <div style={{ flex: 1 }} />
         {updatedAt > 0 ? (

@@ -1180,7 +1180,7 @@ export function ObsidianOnboarding() {
               {(criticReview.risks ?? []).length > 0 ? (
                 <div>
                   <p style={sectionLabel}>Key risks</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
                       <div
                         key={i}

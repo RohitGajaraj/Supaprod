@@ -29,7 +29,7 @@ export function LoopThread() {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 10,
+        gap: 12,
         padding: "0 28px",
         height: 30,
         flexShrink: 0,
@@ -85,7 +85,7 @@ export function LoopThread() {
           style={{
             marginLeft: "auto",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
             color: "var(--ds-gray-700)",
             whiteSpace: "nowrap",
           }}

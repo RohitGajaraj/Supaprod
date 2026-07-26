@@ -215,7 +215,7 @@ export function FocusNext({
 
 
 
-      <div className="flex flex-wrap items-center" style={{ gap: 10, marginTop: 10 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 12, marginTop: 10 }}>
 
 
 
@@ -359,7 +359,7 @@ export function FocusNext({
 
 
 
-        <div className="flex flex-wrap" style={{ gap: 6, marginTop: 10 }}>
+        <div className="flex flex-wrap" style={{ gap: 8, marginTop: 10 }}>
 
 
 

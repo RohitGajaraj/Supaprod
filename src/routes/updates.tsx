@@ -62,7 +62,7 @@ function UpdatesPage() {
             <span
               style={{
                 fontFamily: "Geist Mono, monospace",
-                fontSize: 11.5,
+                fontSize: 12,
                 color: "#a1a1aa",
                 paddingTop: 2,
               }}
@@ -80,7 +80,7 @@ function UpdatesPage() {
               >
                 {e.title}
               </h3>
-              <p style={{ fontSize: 13.5, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
                 {e.body}
               </p>
             </div>

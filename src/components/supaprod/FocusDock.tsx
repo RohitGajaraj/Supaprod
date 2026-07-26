@@ -336,10 +336,10 @@ export function FocusDock() {
               animation: "cadRise 200ms var(--ds-motion-timing-swift) both",
               display: "flex",
               flexDirection: "column",
-              gap: 10,
+              gap: 12,
             }}
           >
-            <div className="flex items-center" style={{ gap: 6 }}>
+            <div className="flex items-center" style={{ gap: 8 }}>
               <ComposerTab
                 label="Focus"
                 active={activeTab === "focus"}
@@ -363,7 +363,7 @@ export function FocusDock() {
                   e.preventDefault();
                   start();
                 }}
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
               >
                 <input
                   ref={intentInputRef}
@@ -531,7 +531,7 @@ export function FocusDock() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                   maxWidth: 340,
                   padding: "8px 14px 10px",
                   background: "var(--card)",
@@ -597,7 +597,7 @@ export function FocusDock() {
               </button>
             </PopoverTrigger>
             <PopoverContent side="top" align="center" sideOffset={10} className="w-72 p-3">
-              <div className="flex flex-col" style={{ gap: 10 }}>
+              <div className="flex flex-col" style={{ gap: 12 }}>
                 {intent ? (
                   <p
                     style={{ lineHeight: 1.5, color: "var(--text-body)", margin: 0 }}

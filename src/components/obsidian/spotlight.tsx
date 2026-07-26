@@ -89,13 +89,13 @@ export const SpotlightCard = React.forwardRef<HTMLDivElement, SpotlightCardProps
           background: `radial-gradient(closest-side, ${SPOTLIGHT_GLOW[tone]}, transparent 72%)`,
         }}
       />
-      <div className="relative flex flex-col" style={{ gap: 10 }}>
+      <div className="relative flex flex-col" style={{ gap: 12 }}>
         {kicker ? (
           <MonoLabel style={{ color: SPOTLIGHT_KICKER_COLOR[tone] }}>{kicker}</MonoLabel>
         ) : null}
         <div>{children}</div>
         {actions ? (
-          <div className="flex flex-wrap items-center" style={{ gap: 10, marginTop: 4 }}>
+          <div className="flex flex-wrap items-center" style={{ gap: 12, marginTop: 4 }}>
             {actions}
           </div>
         ) : null}

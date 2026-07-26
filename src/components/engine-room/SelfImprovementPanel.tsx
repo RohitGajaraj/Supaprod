@@ -139,7 +139,7 @@ function ProposalEnricher({
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 6,
+          gap: 8,
           marginTop: 12,
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.06em",
@@ -450,7 +450,7 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {proposals.map((p) => {
             const meta = SEVERITY_META[p.severity];
             const { Icon } = meta;

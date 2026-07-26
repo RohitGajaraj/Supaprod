@@ -234,7 +234,7 @@ export function SupportSignalsPanel() {
             color: "var(--ink)",
           }}
         />
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10 }}>
           <button
             type="button"
             className="btn btn-sm"

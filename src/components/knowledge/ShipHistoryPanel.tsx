@@ -97,7 +97,7 @@ export function ShipHistoryPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {missions.length > 0 ? (
         <MonoLabel style={{ display: "block" }}>
           Completed missions
@@ -110,7 +110,7 @@ export function ShipHistoryPanel() {
           params={{ missionId: m.id }}
           className="flex items-center hover:[background-color:var(--hover)]"
           style={{
-            gap: 14,
+            gap: 12,
             padding: "13px 18px",
             background: "var(--card)",
             border: "1px solid var(--hairline)",
@@ -186,7 +186,7 @@ export function ShipHistoryPanel() {
           key={r.id}
           className="flex items-center"
           style={{
-            gap: 14,
+            gap: 12,
             padding: "13px 18px",
             background: "var(--card)",
             border: "1px solid var(--hairline)",

@@ -151,7 +151,7 @@ function CalibrationHero({
           </h1>
           <p
             style={{
-              fontSize: 13.5,
+              fontSize: 14,
               lineHeight: 1.6,
               color: "var(--ink-muted, #4a4438)",
               margin: 0,
@@ -171,7 +171,7 @@ function CalibrationHero({
           </h1>
           <p
             style={{
-              fontSize: 13.5,
+              fontSize: 14,
               lineHeight: 1.6,
               color: "var(--ink-muted, #4a4438)",
               margin: 0,
@@ -231,7 +231,7 @@ function ProofPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {decisions.map((d, i) => (
             <Link
               key={d.share_slug}

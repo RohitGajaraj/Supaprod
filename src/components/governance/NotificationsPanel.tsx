@@ -60,7 +60,7 @@ export function NotificationsPanel() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {items.map((n) => {
         const s = SEVERITY_STYLE[n.severity];
         return (

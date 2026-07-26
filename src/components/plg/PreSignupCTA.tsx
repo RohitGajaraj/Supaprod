@@ -47,7 +47,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
         Supaprod is the PM chief of staff that red-teams your decisions, runs the reversible work,
         and remembers every outcome. Free to start; Pro keeps your decision memory forever.
       </p>
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <a href={`/signup?from=${sourceType}`} className="btn btn-primary">
           Start free →
         </a>

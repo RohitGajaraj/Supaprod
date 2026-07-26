@@ -569,7 +569,7 @@ function FailingCases({ runId }: { runId: string | null }) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {run ? (
         <MonoLabel style={{ color: "var(--ink-faint)" }}>
           run {run.id.slice(0, 8)} · {relTime(run.created_at)}
@@ -584,7 +584,7 @@ function FailingCases({ runId }: { runId: string | null }) {
       ) : (
         failing.map((r) => (
           <div key={r.id} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <VerdictChip tone="madder">fail</VerdictChip>
               <span style={{ fontWeight: 600 }}>{r.case?.name ?? r.case_id}</span>
               {r.score != null ? (
@@ -661,7 +661,7 @@ function CaseList({
   const [form, setForm] = useState({ name: "", input: "", expected: "", rubric: "" });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button
           type="button"
@@ -750,7 +750,7 @@ function CaseList({
       ) : (
         cases.map((c) => (
           <div key={c.id} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <span style={{ fontWeight: 600 }}>{c.name}</span>
               <span style={{ flex: 1 }}></span>
               <button
@@ -786,7 +786,7 @@ function CaseList({
                 Delete · leaves past runs
               </button>
             </div>
-            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
                 <span className="mono-label" style={{ flexShrink: 0 }}>
                   input

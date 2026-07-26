@@ -53,7 +53,7 @@ function RateStat({
             style={{
               display: "flex",
               alignItems: "baseline",
-              gap: 6,
+              gap: 8,
               marginTop: 3,
             }}
           >
@@ -89,7 +89,7 @@ function ToolChips({ tools }: { tools: ToolRecord[] }) {
   const shown = tools.slice(0, MAX_TOOLS_SHOWN);
   const extra = tools.length - shown.length;
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
       {shown.map((t) => (
         <span
           key={t.tool_name}
@@ -97,7 +97,7 @@ function ToolChips({ tools }: { tools: ToolRecord[] }) {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
             padding: "3px 8px",
             borderRadius: 999,
             border: "1px solid var(--hairline)",
@@ -130,7 +130,7 @@ function ScorecardRow({ card }: { card: AgentScorecard }) {
         borderTop: "1px solid var(--hairline)",
       }}
     >
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <AgentMark slug={card.slug} size={26} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 560, color: hue }}>
@@ -212,7 +212,7 @@ export function AgentScorecardPanel() {
           Reading the record...
         </div>
       ) : query.isError ? (
-        <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ color: "var(--text-body)" }}>
             Could not load the scorecard.
           </span>

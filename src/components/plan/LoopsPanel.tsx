@@ -192,7 +192,7 @@ export function LoopsPanel({
       </div>
 
       {loopsQ.isLoading ? (
-        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <span className="sr-only">Loading recurring missions…</span>
           {[0, 1].map((i) => (
             <div
@@ -239,7 +239,7 @@ export function LoopsPanel({
           here with its cost.
         </p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {(showAll ? loops : loops.slice(0, VISIBLE_LOOPS)).map((l) => (
             <LoopCard
               key={l.id}
@@ -306,7 +306,7 @@ function LoopCard({
         padding: "12px 16px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <span className="text-label-14" style={{ color: "var(--text-primary)" }}>
           <strong>{loop.title}</strong>
         </span>

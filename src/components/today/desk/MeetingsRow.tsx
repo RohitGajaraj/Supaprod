@@ -58,7 +58,7 @@ export function MeetingsRow() {
         // Background rides classes so the hover variant wins (inline beats classes).
         className="loom-press flex w-full items-center text-left outline-none transition-colors [background:transparent] hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
-          gap: 10,
+          gap: 12,
           padding: "10px 6px 8px",
           borderTop: "1px solid var(--hairline)",
           borderLeft: "none",
@@ -95,7 +95,7 @@ export function MeetingsRow() {
               <li
                 key={e.id}
                 className="flex items-baseline"
-                style={{ gap: 10, padding: "4px 0", minWidth: 0 }}
+                style={{ gap: 12, padding: "4px 0", minWidth: 0 }}
               >
                 <span
                   className="text-label-12"

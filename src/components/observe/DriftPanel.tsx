@@ -273,7 +273,7 @@ export function DriftPanel() {
               detection {cfg.enabled ? "on" : "off"}
             </button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {(
               [
                 ["Recent window (days)", "window_days"],

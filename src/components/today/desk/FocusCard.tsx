@@ -173,7 +173,7 @@ export function FocusCard() {
 
   return (
     <section aria-label="Focus block" className="loom-hairline-fade" style={card}>
-      <div className="flex items-baseline" style={{ gap: 10, marginBottom: 12 }}>
+      <div className="flex items-baseline" style={{ gap: 12, marginBottom: 12 }}>
         <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Focus block</h3>
         <div style={{ flex: 1 }} />
         {tally && tally.blocks > 0 ? (
@@ -184,7 +184,7 @@ export function FocusCard() {
       </div>
 
       {isFlowMode ? (
-        <div className="flex flex-col" style={{ gap: 10 }}>
+        <div className="flex flex-col" style={{ gap: 12 }}>
           <span
             aria-live="off"
             style={{
@@ -215,7 +215,7 @@ export function FocusCard() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col" style={{ gap: 10 }}>
+        <div className="flex flex-col" style={{ gap: 12 }}>
           <input
             ref={intentRef}
             value={draftIntent}
@@ -293,11 +293,11 @@ export function FocusCard() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent side="top" align="start" sideOffset={8} className="w-64 p-3">
-                <div className="flex flex-col" style={{ gap: 10 }}>
+                <div className="flex flex-col" style={{ gap: 12 }}>
                   <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)" }}>
                     Ambient sound
                   </span>
-                  <div className="grid grid-cols-3" style={{ gap: 6 }}>
+                  <div className="grid grid-cols-3" style={{ gap: 8 }}>
                     {SOUND_PRESETS.map((preset) => (
                       <Chip
                         key={preset}

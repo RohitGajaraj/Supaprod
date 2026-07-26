@@ -21,7 +21,7 @@ export function MachineViewToggle() {
         padding: "2px 0",
         display: "flex",
         alignItems: "center",
-        gap: 6,
+        gap: 8,
         whiteSpace: "nowrap",
         lineHeight: 1,
       }}

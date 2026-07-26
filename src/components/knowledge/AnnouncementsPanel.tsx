@@ -423,7 +423,7 @@ export function AnnouncementsPanel() {
               Draft what changed for your customers. It stays private until submitted and published.
             </DialogDescription>
           </DialogHeader>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
               <MonoLabel style={{ marginBottom: 4 }}>
                 title

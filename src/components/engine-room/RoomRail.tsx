@@ -187,7 +187,7 @@ export function RoomRail({ room, view, rooms, onOverview, onSelect }: RoomRailPr
       <nav
         aria-label="Engine Room rooms"
         className="flex flex-wrap md:hidden"
-        style={{ gap: 6, marginBottom: 18 }}
+        style={{ gap: 8, marginBottom: 18 }}
       >
         {[
           { key: null as RoomKey | null, label: "Overview" },

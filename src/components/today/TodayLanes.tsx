@@ -192,11 +192,11 @@ function LaneSection({
 
 
 
-    <section aria-label={title} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <section aria-label={title} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
 
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
 
 
 
@@ -912,7 +912,7 @@ export function SwarmActivityLane({
 
 
 
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
 
 
 
@@ -1040,7 +1040,7 @@ export function SwarmActivityLane({
 
 
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
 
 
 
@@ -1552,7 +1552,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
 
 
 
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
 
 
 

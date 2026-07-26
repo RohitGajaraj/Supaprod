@@ -143,7 +143,7 @@ export function TasksCard() {
 
   return (
     <section aria-label="Tasks today" style={card}>
-      <div className="flex items-baseline" style={{ gap: 10, marginBottom: 10 }}>
+      <div className="flex items-baseline" style={{ gap: 12, marginBottom: 10 }}>
         <h3 className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", margin: 0 }}>Tasks today</h3>
         <div style={{ flex: 1 }} />
         {openCount > 0 ? (
@@ -221,7 +221,7 @@ export function TasksCard() {
             {backlogOpen ? "Hide backlog" : `Backlog (${backlogRows.length})`}
           </Button>
           {backlogOpen ? (
-            <div className="flex flex-col" style={{ gap: 6, marginTop: 8 }}>
+            <div className="flex flex-col" style={{ gap: 8, marginTop: 8 }}>
               {backlogRows.map((t) => (
                 <div key={t.id} className="flex items-center" style={{ gap: 9 }}>
                   <span

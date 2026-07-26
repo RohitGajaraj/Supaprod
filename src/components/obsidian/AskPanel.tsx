@@ -222,7 +222,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
   return (
     <div>
       {/* PC-36 G: the answer is signed. Supaprod is the accountable voice. */}
-      <div className="flex items-center" style={{ gap: 6, marginBottom: 6 }}>
+      <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
         <SupaprodMark size={16} strokeWidth={2.6} glow={false} />
         <span
           style={{
@@ -269,7 +269,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
         <div
           className="flex items-center flex-wrap"
           style={{
-            gap: 6,
+            gap: 8,
             marginTop: 6,
             fontFamily: "var(--font-mono)",
             textTransform: "uppercase",
@@ -362,7 +362,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
           arrives after the last token, so a half-streamed answer can never
           be promoted mid-sentence. */}
       {settled && msg.meta && !msg.mission_id ? (
-        <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 8 }}>
+        <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 8 }}>
           {(
             [
               { kind: "note" as const, label: "Save as note" },
@@ -1334,8 +1334,8 @@ export function AskPanel() {
             style={{ padding: "20px", gap: 16 }}
           >
             {messages.length === 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
@@ -1359,7 +1359,7 @@ export function AskPanel() {
                     you can skip the setup.
                   </p>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {suggestedAsksForContext(context).map((suggestion) => (
                     <button
                       key={suggestion}
@@ -1388,7 +1388,7 @@ export function AskPanel() {
                 // over between messages (long-lived panel sessions).
                 const prev = messages[i - 1];
                 const divider = needsDayDivider(prev?.at, m.at) ? (
-                  <div className="flex items-center" style={{ gap: 10 }} aria-hidden="true">
+                  <div className="flex items-center" style={{ gap: 12 }} aria-hidden="true">
                     <span style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
                     <span
                       style={{

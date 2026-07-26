@@ -25,7 +25,7 @@ const sectionLabel: CSSProperties = {
   color: "var(--text-subtle)",
   display: "flex",
   alignItems: "center",
-  gap: 6,
+  gap: 8,
   marginBottom: 10,
 };
 
@@ -50,7 +50,7 @@ function List({
     return <p style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>{empty}</p>;
   }
   return (
-    <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <ul style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {items.map((item, i) => (
         <li key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <Icon size={16} strokeWidth={1.5} style={{ color: tone, flexShrink: 0, marginTop: 2 }} />
@@ -171,7 +171,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
           Critic confidence
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: 200 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, maxWidth: 200 }}>
           <div
             style={{
               flex: 1,

@@ -780,7 +780,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   <div style={{ color: "var(--text-subtle)", marginTop: 6 }}>
                     {g.defaultPosture.rationale}
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
                     {g.tools.map((t) => (
                       <span
                         key={t.id}
@@ -973,7 +973,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   </div>
                   <span className="mono-label tabular-nums">{relTime(e.created_at)}</span>
                   {isPending ? (
-                    <span style={{ display: "flex", gap: 6 }}>
+                    <span style={{ display: "flex", gap: 8 }}>
                       <button
                         className="btn btn-approve btn-sm"
                         disabled={

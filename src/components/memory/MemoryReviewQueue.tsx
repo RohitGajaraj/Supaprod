@@ -76,7 +76,7 @@ export function MemoryReviewQueue() {
   const canSave = draft.trim().length >= 3 && !propose.isPending;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* Composer: the "save this to the brain" affordance. */}
       <div style={{ ...CARD_STYLE, padding: "14px 16px" }}>
         <MonoLabel style={{ marginBottom: 8 }}>Save to brain</MonoLabel>
@@ -103,7 +103,7 @@ export function MemoryReviewQueue() {
             fontFamily: "var(--font-sans)",
           }}
         />
-        <div className="flex items-center" style={{ gap: 10, marginTop: 8 }}>
+        <div className="flex items-center" style={{ gap: 12, marginTop: 8 }}>
           <Button
             variant="secondary"
             size="sm"
@@ -149,7 +149,7 @@ export function MemoryReviewQueue() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <MonoLabel>{items.length} awaiting your review</MonoLabel>
           {items.map((c) => (
             <CandidateRow
@@ -204,7 +204,7 @@ function CandidateRow({
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 6,
+            gap: 8,
             flexWrap: "wrap",
             padding: "7px 9px",
             marginBottom: 10,

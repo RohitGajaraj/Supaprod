@@ -38,7 +38,7 @@ export function AuditTag({
   };
 
   return (
-    <span className="inline-flex items-center" style={{ gap: 6 }}>
+    <span className="inline-flex items-center" style={{ gap: 8 }}>
       <span
         role="button"
         tabIndex={0}

@@ -311,7 +311,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* Who it's for */}
       <p
         style={{
-          fontSize: 12.5,
+          fontSize: 12,
           color: "var(--ink, #1d1a14)",
           fontWeight: 500,
           margin: "0 0 5px",
@@ -324,7 +324,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* Tagline */}
       <p
         style={{
-          fontSize: 11.5,
+          fontSize: 12,
           color: "var(--ink-subtle, #6b6457)",
           margin: 0,
           lineHeight: 1.5,
@@ -356,7 +356,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           </span>
           <span
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "var(--ink-subtle, #6b6457)",
               display: "block",
               marginTop: 2,
@@ -464,7 +464,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: 500,
             border: "1px solid var(--hairline, rgba(0,0,0,0.15))",
             background: "transparent",
@@ -487,7 +487,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             textAlign: "center",
             padding: "11px 0",
             borderRadius: 8,
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: 600,
             background: isBusiness ? "var(--ember, #c2622e)" : "transparent",
             border: isBusiness
@@ -561,7 +561,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             background: "none",
             border: "none",
             padding: "10px 0 0",
-            fontSize: 11.5,
+            fontSize: 12,
             color: "var(--ink-subtle, #6b6457)",
             cursor: "pointer",
             textDecoration: "underline",
@@ -724,7 +724,7 @@ function PricingPage() {
             {/* Footer note */}
             <p
               style={{
-                fontSize: 11.5,
+                fontSize: 12,
                 color: "var(--ink-subtle, #6b6457)",
                 textAlign: "center",
                 marginTop: 28,

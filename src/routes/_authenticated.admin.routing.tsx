@@ -112,7 +112,7 @@ function AdminRouting() {
         onApplyRecommendation={(surface, modelId) => pinMutation.mutate({ surface, modelId })}
       />
 
-      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", margin: 0 }}>
+      <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: 0 }}>
         Cost and latency are the last 7 days of live calls. Eval scores come from completed eval
         runs for that surface and model; a surface with no eval runs shows no recommendation rather
         than a guess.

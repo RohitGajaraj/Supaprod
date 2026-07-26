@@ -84,7 +84,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
                 title="Open this learning"
                 className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  gap: 10,
+                  gap: 12,
                   background: "transparent",
                   border: "none",
                   padding: 0,
@@ -94,7 +94,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
                 {inner}
               </button>
             ) : (
-              <div key={i} className="flex items-baseline" style={{ gap: 10 }}>
+              <div key={i} className="flex items-baseline" style={{ gap: 12 }}>
                 {inner}
               </div>
             );

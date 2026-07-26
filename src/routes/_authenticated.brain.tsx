@@ -378,7 +378,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
         }}
       >
         <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brain · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+        <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
         <button

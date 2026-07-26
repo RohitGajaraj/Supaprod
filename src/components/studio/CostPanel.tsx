@@ -24,7 +24,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               padding: "9px 0",
               borderBottom: i < runs.length - 1 ? "1px solid var(--hairline)" : "none",
             }}
@@ -77,7 +77,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 10,
+          gap: 12,
           marginTop: 2,
           paddingTop: 10,
           borderTop: "1px solid var(--hairline)",

@@ -135,7 +135,7 @@ function BetCardComponent({
         transitionDuration: "var(--dur-press)",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 8,
       }}
       onMouseEnter={(e) => {
         // Hover catches the light: the top-light brightens one step (§2).
@@ -188,7 +188,7 @@ function BetCardComponent({
       )}
 
       {editing ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
           <input
             autoFocus
             value={outcomeVal}
@@ -216,7 +216,7 @@ function BetCardComponent({
               color: "var(--text-primary)",
             }}
           />
-          <span style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <span style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
             <button
               type="button"
               onClick={() => setEditing(false)}
@@ -263,7 +263,7 @@ function BetCardComponent({
         </div>
       ) : (
         <span
-          style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}
+          style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4, flexWrap: "wrap" }}
         >
           {MOVE_TARGETS.map((t) => {
             const isCurrent = t.bucket === column;

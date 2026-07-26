@@ -260,7 +260,7 @@ export function StakeholderPackPanel({
             );
           })}
         </div>
-        <div className="flex items-center" style={{ gap: 6, paddingBottom: 8 }}>
+        <div className="flex items-center" style={{ gap: 8, paddingBottom: 8 }}>
           <Button
             variant="tertiary"
             size="sm"

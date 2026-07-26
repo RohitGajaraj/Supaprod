@@ -71,7 +71,7 @@ function AuthedError({ error }: { error: Error }) {
       <p
         style={{
           margin: 0,
-          fontSize: 12.5,
+          fontSize: 12,
           lineHeight: 1.5,
           maxWidth: "56ch",
           color: "var(--text-muted, #A39D94)",
@@ -86,7 +86,7 @@ function AuthedError({ error }: { error: Error }) {
         style={{
           marginTop: 4,
           padding: "6px 14px",
-          fontSize: 12.5,
+          fontSize: 12,
           borderRadius: 8,
           border: "1px solid var(--hairline)",
           background: "transparent",
@@ -109,7 +109,7 @@ function AuthedNotFound() {
       <a
         href="/today"
         style={{
-          fontSize: 12.5,
+          fontSize: 12,
           color: "var(--text-muted, #A39D94)",
           textDecoration: "underline",
           textUnderlineOffset: 3,

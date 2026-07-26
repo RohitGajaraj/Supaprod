@@ -74,7 +74,7 @@ function inputStyle(): React.CSSProperties {
     border: "1px solid var(--hairline-strong)",
     borderRadius: "var(--radius-control)",
     fontFamily: "var(--font-sans)",
-    fontSize: 12.5,
+    fontSize: 12,
     color: "var(--text-primary)",
     background: "var(--raised)",
   };
@@ -415,7 +415,7 @@ function BundleRow({
           variant="secondary"
           disabled={busy}
           onClick={() => void save()}
-          style={{ fontSize: 11.5, padding: "6px 10px" }}
+          style={{ fontSize: 12, padding: "6px 10px" }}
         >
           {row ? "Save" : "Add"}
         </Button>
@@ -424,7 +424,7 @@ function BundleRow({
             variant="secondary"
             disabled={busy}
             onClick={() => onDelete(row.id)}
-            style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+            style={{ fontSize: 12, padding: "6px 10px", color: "var(--text-subtle)" }}
           >
             Remove
           </Button>
@@ -616,7 +616,7 @@ function TopupRow({
           variant="secondary"
           disabled={busy}
           onClick={() => void save()}
-          style={{ fontSize: 11.5, padding: "6px 10px" }}
+          style={{ fontSize: 12, padding: "6px 10px" }}
         >
           {row ? "Save" : "Add"}
         </Button>
@@ -625,7 +625,7 @@ function TopupRow({
             variant="secondary"
             disabled={busy}
             onClick={() => onDelete(row.id)}
-            style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+            style={{ fontSize: 12, padding: "6px 10px", color: "var(--text-subtle)" }}
           >
             Remove
           </Button>

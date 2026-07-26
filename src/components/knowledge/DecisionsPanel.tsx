@@ -319,7 +319,7 @@ export function DecisionsPanel() {
                   // LOOM QA R2 (one-home law, §9b): approvals have ONE
                   // actionable home — Today's queue. This row stays the
                   // record; deciding happens there.
-                  <span className="flex" style={{ gap: 6, marginTop: 7 }}>
+                  <span className="flex" style={{ gap: 8, marginTop: 7 }}>
                     {/* span, not button: the row itself is a <button>, and a
                         nested button is invalid HTML (hydration warning). */}
                     <span
@@ -440,7 +440,7 @@ function LogDecisionDialog({
             Capture a choice that should outlive this week. Supaprod reads these.
           </DialogDescription>
         </DialogHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <MonoLabel style={{ marginBottom: 4 }}>
               title

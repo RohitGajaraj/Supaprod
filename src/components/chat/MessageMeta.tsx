@@ -330,7 +330,7 @@ export function MessageMetaFooter({
           display: "flex",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 14,
+          gap: 12,
           marginTop: 10,
           fontFamily: "var(--font-mono)",
           color: "var(--ink-faint)",

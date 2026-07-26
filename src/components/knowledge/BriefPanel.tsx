@@ -319,7 +319,7 @@ function TopBetsSection({
       {bets.length === 0 && !isAdding ? (
         <p style={{ color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {bets.map((bet) => {
             const isEditingBet = editing?.kind === "top_bet" && editing.itemId === bet.id;
             return isEditingBet ? (

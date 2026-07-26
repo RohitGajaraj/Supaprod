@@ -149,7 +149,7 @@ export function CreditCapsCard() {
 
         {productCaps.length > 0 && (
           <ul
-            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 6 }}
+            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}
           >
             {productCaps.map((c) => (
               <li
@@ -157,7 +157,7 @@ export function CreditCapsCard() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                   padding: "8px 10px",
                   borderRadius: 8,
                   background: "var(--canvas, #fbf7ef)",
@@ -252,7 +252,7 @@ export function CreditCapsCard() {
 
         {memberCaps.length > 0 && (
           <ul
-            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 6 }}
+            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}
           >
             {memberCaps.map((c) => (
               <li
@@ -260,7 +260,7 @@ export function CreditCapsCard() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                   padding: "8px 10px",
                   borderRadius: 8,
                   background: "var(--canvas, #fbf7ef)",

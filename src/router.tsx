@@ -18,7 +18,7 @@ function RoutePending() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 14,
+        gap: 12,
       }}
     >
       <span
@@ -83,7 +83,7 @@ function RouteError({ error }: { error: Error }) {
       <p
         style={{
           margin: 0,
-          fontSize: 12.5,
+          fontSize: 12,
           lineHeight: 1.5,
           maxWidth: "56ch",
           color: "var(--text-muted, #A39D94)",
@@ -98,7 +98,7 @@ function RouteError({ error }: { error: Error }) {
         style={{
           marginTop: 4,
           padding: "6px 14px",
-          fontSize: 12.5,
+          fontSize: 12,
           borderRadius: 8,
           border: "1px solid var(--line, rgba(255,255,255,0.12))",
           background: "transparent",

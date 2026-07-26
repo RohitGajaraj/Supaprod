@@ -220,7 +220,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               Each call also grows watched assumptions that Supaprod checks against incoming signals,
               so a strategy drifting out of date surfaces itself.
             </p>
-            <div className="flex items-center" style={{ gap: 10, marginTop: 20 }}>
+            <div className="flex items-center" style={{ gap: 12, marginTop: 20 }}>
               <Button variant="accent" onClick={advance}>
                 Start
               </Button>
@@ -272,7 +272,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
               >
                 Back
               </Button>
-              <div className="flex items-center" style={{ gap: 10 }}>
+              <div className="flex items-center" style={{ gap: 12 }}>
                 <Button variant="link" size="sm" onClick={advance} disabled={save.isPending}>
                   Skip
                 </Button>
@@ -309,7 +309,7 @@ export function BriefFormationFlow({ onClose }: { onClose: () => void }) {
             </p>
 
             {bets.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 14 }}>
                 {bets.map((bet) => (
                   <div
                     key={bet.id}

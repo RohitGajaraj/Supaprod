@@ -216,19 +216,19 @@ function JourneyStrip({
         padding: "12px 18px",
         display: "flex",
         alignItems: "center",
-        gap: 10,
+        gap: 12,
         flexWrap: "wrap",
         marginBottom: 16,
       }}
     >
       {stages.map((stage, i) => (
-        <span key={stage.label} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+        <span key={stage.label} style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
           {i > 0 && (
             <span className="mono-label" style={{ color: "var(--text-faint)" }}>
               →
             </span>
           )}
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <StepDot status={stage.status} />
             {stage.href ? (
               <a
@@ -333,7 +333,7 @@ function SteerComposer({
             flexShrink: 0,
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
             fontFamily: "var(--font-sans)",
             fontSize: 13,
             fontWeight: 600,
@@ -417,7 +417,7 @@ function ExecutionLogFold({
           minHeight: 32,
           display: "flex",
           alignItems: "center",
-          gap: 6,
+          gap: 8,
           border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-control)",
           boxShadow: "var(--top-light)",
@@ -458,7 +458,7 @@ function SessionSkeleton() {
       <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
       {/* Same responsive collapse as the loaded grid, so the skeleton never
           overflows at narrow widths while the real layout stacks. */}
-      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 12 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SkeletonBlock height={180} />
           <SkeletonBlock height={88} />
@@ -720,7 +720,7 @@ function BuildSessionPage() {
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 8,
                     color: "var(--glacier)",
                   }}
                 >
@@ -798,7 +798,7 @@ function BuildSessionPage() {
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 14 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 12 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Real heading (quality register: MonoLabel spans left the page
                   with no navigable outline); the mono-caps look stays via style. */}

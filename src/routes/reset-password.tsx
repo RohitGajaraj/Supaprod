@@ -86,7 +86,7 @@ function ResetPasswordPage() {
         <div style={{ textAlign: "center" }}>
           <p
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               color: "var(--text-muted)",
               margin: "4px 0 14px",
               lineHeight: 1.55,
@@ -109,7 +109,7 @@ function ResetPasswordPage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 10,
+            gap: 12,
           }}
         >
           <Loader2
@@ -120,7 +120,7 @@ function ResetPasswordPage() {
           />
           <p
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               color: "var(--text-muted)",
               margin: "4px 0",
               lineHeight: 1.55,
@@ -133,7 +133,7 @@ function ResetPasswordPage() {
         <div style={{ textAlign: "center" }}>
           <p
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               color: "var(--text-muted)",
               margin: "4px 0 14px",
               lineHeight: 1.55,
