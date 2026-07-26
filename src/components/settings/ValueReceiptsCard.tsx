@@ -38,7 +38,7 @@ export function ValueReceiptsCard() {
         never estimated.
       </p>
       {isLoading ? (
-        <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
+        <p className="text-label-12" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
           Loading
         </p>
       ) : (

@@ -191,7 +191,7 @@ function PublicTeardownPage() {
           <div className="font-display" style={{ fontSize: 20, marginBottom: 6 }}>
             Not available
           </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
+          <p style={{ fontSize: 14, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
             This teardown is private, or the link is no longer valid.
           </p>
         </div>

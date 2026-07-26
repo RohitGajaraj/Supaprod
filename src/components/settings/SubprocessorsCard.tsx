@@ -35,7 +35,7 @@ export function SubprocessorsCard() {
       </p>
 
       {q.isLoading ? (
-        <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
+        <p className="text-label-12" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
           Loading
         </p>
       ) : q.isError ? (
@@ -88,7 +88,7 @@ export function SubprocessorsCard() {
           href="/subprocessors"
           target="_blank"
           rel="noreferrer"
-          className="text-label-13 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="text-label-12 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{ color: "var(--link)", textDecoration: "none" }}
         >
           View the public disclosure →

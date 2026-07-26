@@ -95,7 +95,7 @@ export function HealthCard() {
           {rollup.signals.map((s, i) => (
             <li
               key={i}
-              className="text-label-13"
+              className="text-label-12"
               style={{ color: "var(--ink-subtle)", marginTop: 4 }}
             >
               {s}

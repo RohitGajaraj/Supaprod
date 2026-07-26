@@ -448,7 +448,7 @@ export function OpportunityDetailSheet({
                   <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
                     {rank != null ? (
                       <span
-                        className="text-label-13-mono"
+                        className="text-label-12-mono"
                         style={{
                           letterSpacing: "0.04em",
                           color: "var(--text-muted)",

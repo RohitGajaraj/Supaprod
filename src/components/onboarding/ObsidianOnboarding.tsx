@@ -747,7 +747,7 @@ export function ObsidianOnboarding() {
   if (profileQ.isLoading)
     return (
       <Screen>
-        <p className="text-label-13" style={{ color: "var(--ds-gray-900)" }}>
+        <p className="text-label-12" style={{ color: "var(--ds-gray-900)" }}>
           Waking your workspace…
         </p>
       </Screen>

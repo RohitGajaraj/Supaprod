@@ -75,7 +75,7 @@ function Section({ title, note, items }: { title: string; note?: string; items: 
     <section style={{ marginTop: 36 }}>
       <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</h2>
       {note && (
-        <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 14, color: "var(--ink-faint)", margin: "6px 0 0", lineHeight: 1.5 }}>
           {note}
         </p>
       )}

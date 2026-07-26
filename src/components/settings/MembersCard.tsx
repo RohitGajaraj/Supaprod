@@ -201,11 +201,11 @@ export function MembersCard() {
             ))}
           </ul>
         ) : membersQ.isError ? (
-          <div className="text-label-13" style={{ color: "var(--rose)", marginTop: 4 }}>
+          <div className="text-label-12" style={{ color: "var(--rose)", marginTop: 4 }}>
             Could not load members. Try again.
           </div>
         ) : members.length === 0 ? (
-          <p className="text-label-13" style={{ color: "var(--ink-faint)" }}>
+          <p className="text-label-12" style={{ color: "var(--ink-faint)" }}>
             No members yet.
           </p>
         ) : (
@@ -237,7 +237,7 @@ export function MembersCard() {
                 >
                   <div
                     aria-hidden
-                    className="text-label-13"
+                    className="text-label-12"
                     style={{
                       width: 34,
                       height: 34,
@@ -260,7 +260,7 @@ export function MembersCard() {
                       style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
                     >
                       <span
-                        className="text-label-13"
+                        className="text-label-12"
                         style={{
                           color: "var(--ink)",
                           overflow: "hidden",

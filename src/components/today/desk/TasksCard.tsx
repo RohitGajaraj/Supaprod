@@ -155,13 +155,13 @@ export function TasksCard() {
 
       {tasks.isError ? (
         <div className="flex items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 10 }}>
-          <span className="text-label-13" style={{ color: "var(--madder)" }}>Tasks didn't load.</span>
+          <span className="text-label-12" style={{ color: "var(--madder)" }}>Tasks didn't load.</span>
           <Button variant="tertiary" className="text-label-12" onClick={() => void tasks.refetch()}>
             Retry
           </Button>
         </div>
       ) : dueRows.length === 0 ? (
-        <p className="text-label-13" style={{ color: "var(--text-muted)", margin: "0 0 10px" }}>
+        <p className="text-label-12" style={{ color: "var(--text-muted)", margin: "0 0 10px" }}>
           Nothing due today. Add what matters.
         </p>
       ) : (
@@ -177,7 +177,7 @@ export function TasksCard() {
                   style={{ accentColor: "var(--moss)", width: 13, height: 13, flexShrink: 0 }}
                 />
                 <span
-                  className="min-w-0 flex-1 truncate text-label-13"
+                  className="min-w-0 flex-1 truncate text-label-12"
                   style={{
                     color: done ? "var(--text-subtle)" : "var(--text-body)",
                     textDecoration: done ? "line-through" : "none",
@@ -225,7 +225,7 @@ export function TasksCard() {
               {backlogRows.map((t) => (
                 <div key={t.id} className="flex items-center" style={{ gap: 9 }}>
                   <span
-                    className="min-w-0 flex-1 truncate text-label-13"
+                    className="min-w-0 flex-1 truncate text-label-12"
                     style={{ color: "var(--text-body)" }}
                   >
                     {t.title}
@@ -257,7 +257,7 @@ export function TasksCard() {
           onChange={(e) => setDraft(e.target.value)}
           aria-label="New task for today"
           placeholder="Add a task for today"
-          className="text-label-13"
+          className="text-label-12"
           style={{
             flex: 1,
             background: "var(--surface-card-deep)",

@@ -30,7 +30,7 @@ export function StatusRow() {
     >
       <span className="text-label-12" style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
       <span
-        className="min-w-0 flex-1 truncate text-label-13"
+        className="min-w-0 flex-1 truncate text-label-12"
         style={{ color: "var(--text-muted)" }}
       >
         A ready-to-send update from live state, built to paste into email or Slack

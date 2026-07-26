@@ -94,7 +94,7 @@ function AdminRouting() {
 
   return (
     <div style={{ marginTop: "var(--space-3, 12px)", display: "grid", gap: 16 }}>
-      <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.55 }}>
+      <p style={{ fontSize: 14, color: "var(--ink-subtle)", margin: 0, lineHeight: 1.55 }}>
         Every surface, routed. You hold the pins.
       </p>
 

@@ -261,7 +261,7 @@ function TeardownPage() {
           <div style={{ marginTop: 22, textAlign: "center" }}>
             <p
               style={{
-                fontSize: 13,
+                fontSize: 14,
                 color: "var(--text-subtle)",
                 lineHeight: 1.55,
                 maxWidth: 420,

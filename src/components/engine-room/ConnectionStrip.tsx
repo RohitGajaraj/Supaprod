@@ -228,7 +228,7 @@ export function ConnectionStrip() {
         const connected = b.connection_status === "connected";
         return (
           <span key={b.id} className="inline-flex items-center" style={{ gap: "10px" }}>
-            <span className="text-label-13" style={{ color: "var(--text-primary)" }}>
+            <span className="text-label-12" style={{ color: "var(--text-primary)" }}>
               <strong>{providerLabel(b.provider)}</strong>
             </span>
             <span

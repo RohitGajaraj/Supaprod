@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  *
  *   <TableCell className={tableNumericCellClass}>8f21ab...9c04</TableCell>
  */
-export const tableNumericCellClass = "text-label-13-mono tabular-nums";
+export const tableNumericCellClass = "text-label-12-mono tabular-nums";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
@@ -107,7 +107,7 @@ const TableHead = React.forwardRef<
     className={cn(
       // h-(--row-h) = 38px (PC-37 density pass); headers use the label step one
       // size down from body copy, in the secondary text color.
-      "h-(--row-h) px-2 text-left align-middle text-label-13 text-(--ds-gray-900) [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "h-(--row-h) px-2 text-left align-middle text-label-12 text-(--ds-gray-900) [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className,
     )}
     {...props}

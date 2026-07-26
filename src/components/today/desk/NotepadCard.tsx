@@ -115,7 +115,7 @@ export function NotepadCard() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Jot anything. Only you see this."
-        className="text-label-13"
+        className="text-label-12"
         style={{
           width: "100%",
           height: 80,

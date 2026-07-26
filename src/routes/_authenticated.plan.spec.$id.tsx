@@ -140,7 +140,7 @@ export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
           COULDN'T LOAD THE SPEC
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
         <button
@@ -442,7 +442,7 @@ function SpecEditorPage() {
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
               COULDN'T LOAD THE SPEC
             </div>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
               {(prdQ.error as Error)?.message ?? "Unknown error"}
             </p>
             <button
@@ -473,7 +473,7 @@ function SpecEditorPage() {
         {chrome}
         <div style={container}>
           <div style={{ ...CARD, padding: 32, maxWidth: 560, textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0 }}>
               This spec doesn't exist or was deleted. Every live spec is listed on Plan.
             </p>
             <Link
@@ -674,7 +674,7 @@ function SpecEditorPage() {
             disabled={save.isPending}
             className="loom-press"
             style={{
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
               fontFamily: "var(--font-sans)",
               color: "var(--cta-ink)",
@@ -927,7 +927,7 @@ function SpecEditorPage() {
               boxShadow: "var(--top-light)",
               padding: 24,
               fontFamily: "var(--font-mono)",
-              fontSize: 13,
+              fontSize: 14,
               lineHeight: 1.65,
               outline: "none",
             }}

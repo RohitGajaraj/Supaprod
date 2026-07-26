@@ -197,7 +197,7 @@ export function FocusCard() {
           >
             {openEnded ? `${elapsedMin} min in` : remainingLabel}
           </span>
-          <span className="text-label-13" style={{ color: "var(--text-body)" }}>{intent ?? "Open block"}</span>
+          <span className="text-label-12" style={{ color: "var(--text-body)" }}>{intent ?? "Open block"}</span>
           {heldCount > 0 ? (
             <span className="text-label-12" style={{ color: "var(--text-muted)" }}>
               {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly
@@ -226,7 +226,7 @@ export function FocusCard() {
             maxLength={120}
             aria-label="Focus block intent"
             placeholder="What are you closing in this block?"
-            className="text-label-13"
+            className="text-label-12"
             style={{
               width: "100%",
               background: "var(--surface-card-deep)",

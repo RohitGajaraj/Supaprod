@@ -292,7 +292,7 @@ function LaneEmpty({ text }: { text: string }) {
 
 
 
-      className="text-label-13"
+      className="text-label-12"
 
 
 
@@ -540,7 +540,7 @@ export function PushedInsights({
 
 
 
-                className="text-label-13"
+                className="text-label-12"
 
 
 
@@ -1312,7 +1312,7 @@ function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
 
 
 
-              className="text-label-13"
+              className="text-label-12"
 
 
 

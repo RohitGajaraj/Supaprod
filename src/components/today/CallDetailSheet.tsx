@@ -158,7 +158,7 @@ function TimeLine({ iso }: { iso: string }) {
   return (
     <span
 
-      className="flex items-baseline text-label-13" style={{ gap: "8px", color: "var(--text-body)" }}
+      className="flex items-baseline text-label-12" style={{ gap: "8px", color: "var(--text-body)" }}
     >
       <span>{new Date(iso).toLocaleString()}</span>
       <span
@@ -181,7 +181,7 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
     <div style={{ display: "grid", gap: "9px" }}>
       <VerdictChip tone={verdict} style={{ justifySelf: "start" }} />
       {critic?.summary ? (
-        <p className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)", margin: 0 }}>
+        <p className="text-label-12" style={{ lineHeight: 1.6, color: "var(--text-body)", margin: 0 }}>
           {critic.summary}
         </p>
       ) : (
@@ -198,13 +198,13 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
       {critic && critic.risks.length > 0 ? (
         <div style={{ display: "grid", gap: "4px" }}>
           <MonoLabel style={{ color: "var(--madder)" }}>Top risk</MonoLabel>
-          <span className="text-label-12 text-label-13" style={{ color: "var(--text-body)" }}>{critic.risks[0]}</span>
+          <span className="text-label-12 text-label-12" style={{ color: "var(--text-body)" }}>{critic.risks[0]}</span>
         </div>
       ) : null}
       {critic && critic.missing_evidence.length > 0 ? (
         <div style={{ display: "grid", gap: "4px" }}>
           <MonoLabel>Missing</MonoLabel>
-          <span className="text-label-12 text-label-13" style={{ color: "var(--text-body)" }}>
+          <span className="text-label-12 text-label-12" style={{ color: "var(--text-body)" }}>
             {critic.missing_evidence[0]}
           </span>
         </div>
@@ -243,7 +243,7 @@ function ProvenanceSection({
         </button>
       }
     >
-      <span className="text-label-13" style={{ color: "var(--text-body)" }}>{body}</span>
+      <span className="text-label-12" style={{ color: "var(--text-body)" }}>{body}</span>
     </DetailSection>
   );
 }
@@ -327,7 +327,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
       <>
         <DetailSection heading="What happens if you approve">
           <div style={{ display: "grid", gap: "8px" }}>
-            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-12" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {c.effect}
             </span>
             <div className="flex flex-wrap items-center" style={{ gap: "6px" }}>
@@ -362,7 +362,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         </DetailSection>
         {detail.rationale ? (
           <DetailSection heading="Why the agent asked">
-            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-12" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {detail.rationale}
             </span>
           </DetailSection>
@@ -463,13 +463,13 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
     sections = (
       <>
         <DetailSection heading="The assumption under review">
-          <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
+          <span className="text-label-12" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
             {detail.assumptionStatement}
           </span>
         </DetailSection>
         {detail.evidenceText ? (
           <DetailSection heading="What contradicts it">
-            <span className="text-label-13" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
+            <span className="text-label-12" style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
               {detail.evidenceText}
             </span>
           </DetailSection>

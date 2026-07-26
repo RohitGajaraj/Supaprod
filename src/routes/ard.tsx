@@ -96,7 +96,7 @@ function ArdPage() {
           <SupaprodMark size={22} />
           <span style={{ fontWeight: 600 }}>Supaprod</span>
         </Link>
-        <nav style={{ display: "flex", gap: 12, fontSize: 13 }}>
+        <nav style={{ display: "flex", gap: 12, fontSize: 14 }}>
           <a href="/llms.txt" style={{ color: "inherit", textDecoration: "none" }}>
             llms.txt
           </a>

@@ -423,7 +423,7 @@ export function ProductsTab() {
                 }}
               >
                 <span
-                  className="text-label-13"
+                  className="text-label-12"
                   style={{
                     color: "var(--ink-muted)",
                     overflow: "hidden",

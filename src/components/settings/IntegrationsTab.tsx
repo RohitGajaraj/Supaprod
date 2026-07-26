@@ -299,7 +299,7 @@ export function IntegrationsTab() {
               return (
                 <div
                   key={t.id}
-                  className="text-label-13"
+                  className="text-label-12"
                   style={{
                     display: "flex",
                     alignItems: "center",

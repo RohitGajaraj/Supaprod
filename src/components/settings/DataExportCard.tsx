@@ -89,7 +89,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
         {SECTIONS.map((s) => (
           <label
             key={s.id}
-            className="text-label-13"
+            className="text-label-12"
             style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
           >
             <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
@@ -113,7 +113,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
           Recent exports
         </div>
         {history.isLoading ? (
-          <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
+          <p className="text-label-12" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
             Loading
           </p>
         ) : exports.length === 0 ? (
@@ -134,7 +134,7 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
               >
-                <span className="text-label-13" style={{ color: "var(--ink)" }}>
+                <span className="text-label-12" style={{ color: "var(--ink)" }}>
                   {new Date(e.created_at).toLocaleString(undefined, {
                     dateStyle: "medium",
                     timeStyle: "short",

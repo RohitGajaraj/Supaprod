@@ -176,7 +176,7 @@ export function NotificationsTab() {
                       {r.label}
                     </div>
                     <div
-                      className="text-label-13"
+                      className="text-label-12"
                       style={{ color: "var(--ink-muted)", marginTop: 2 }}
                     >
                       {r.desc}
@@ -195,7 +195,7 @@ export function NotificationsTab() {
       <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Digest Settings</MonoLabel>
         <label style={{ display: "block", maxWidth: 320 }}>
-          <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>
+          <div className="text-label-12" style={{ fontWeight: 500, marginBottom: 6 }}>
             Digest Delivery Frequency
           </div>
           <select
@@ -245,7 +245,7 @@ export function NotificationsTab() {
         </p>
         {stakeholderUpdate ? (
           <label style={{ display: "block", maxWidth: 320 }}>
-            <div className="text-label-13" style={{ fontWeight: 500, marginBottom: 6 }}>
+            <div className="text-label-12" style={{ fontWeight: 500, marginBottom: 6 }}>
               Written for
             </div>
             <select

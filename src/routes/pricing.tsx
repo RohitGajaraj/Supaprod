@@ -174,7 +174,7 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
               borderRadius: 99,
               border: "none",
               cursor: "pointer",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: active ? 600 : 500,
               background: active ? "var(--canvas, #faf7ef)" : "transparent",
               color: active ? "var(--ink, #1f1b16)" : "var(--ink-subtle, #6b6457)",
@@ -189,7 +189,7 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
             {mode === "annual" && (
               <span
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 11,
                   fontWeight: 600,
                   color: "var(--moss-success, #4f8a59)",
                   background: "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
@@ -384,7 +384,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             <span className="font-display" style={{ fontSize: 32, fontWeight: 480, lineHeight: 1 }}>
               ${displayPrice}
             </span>
-            <span style={{ fontSize: 13, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
+            <span style={{ fontSize: 14, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
           </div>
           <div
             style={{
@@ -423,7 +423,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             htmlFor={`credits-${tier}`}
             style={{
               display: "block",
-              fontSize: 9.5,
+              fontSize: 11,
               color: "var(--ink-subtle, #6b6457)",
               letterSpacing: "0.08em",
               marginBottom: 5,
@@ -438,7 +438,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             style={{
               width: "100%",
               padding: "8px 10px",
-              fontSize: 13,
+              fontSize: 14,
               border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
               borderRadius: 7,
               background: "var(--paper, #f6f2ea)",
@@ -642,7 +642,7 @@ function PricingPage() {
           <a
             href="/login"
             style={{
-              fontSize: 13,
+              fontSize: 14,
               color: "var(--ink, #f4f4f5)",
               textDecoration: "none",
               border: "1px solid var(--hairline, rgba(255,255,255,0.14))",

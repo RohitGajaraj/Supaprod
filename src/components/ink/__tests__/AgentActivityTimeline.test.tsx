@@ -68,7 +68,7 @@ describe("AgentActivityTimeline Container", () => {
       );
       const timeline = container.querySelector("div");
       expect(timeline?.className).toContain("font-mono");
-      expect(timeline?.className).toContain("text-label-13");
+      expect(timeline?.className).toContain("text-label-12");
     });
 
     test("applies custom className alongside default styles", () => {

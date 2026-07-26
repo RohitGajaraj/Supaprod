@@ -88,7 +88,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           <MonoLabel style={{ color: isNotFound ? "var(--text-subtle)" : "var(--madder)" }}>
             {isNotFound ? "No mission at this address" : "Couldn't load this session"}
           </MonoLabel>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
             {isNotFound
               ? "This mission doesn't exist in your workspace, or it was deleted. Its decisions and learnings stay in Memory."
               : message}
@@ -314,7 +314,7 @@ function SteerComposer({
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: 10,
-            fontSize: 13,
+            fontSize: 14,
             color: "var(--text-primary)",
           }}
         />
@@ -335,7 +335,7 @@ function SteerComposer({
             alignItems: "center",
             gap: 8,
             fontFamily: "var(--font-sans)",
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 600,
             color: "var(--text-primary)",
             background: "var(--surface-raised)",
@@ -782,7 +782,7 @@ function BuildSessionPage() {
         {session.isError ? (
           <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
             <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this session</MonoLabel>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
               {(session.error as Error)?.message?.slice(0, 160)}
             </p>
             <button

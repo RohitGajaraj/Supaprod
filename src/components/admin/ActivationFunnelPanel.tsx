@@ -38,7 +38,7 @@ export function ActivationFunnelPanel() {
 
   if (!activeProductId) {
     return (
-      <div className="text-label-13" style={{ padding: "var(--geist-space-4x)", color: "var(--text-muted)" }}>
+      <div className="text-label-12" style={{ padding: "var(--geist-space-4x)", color: "var(--text-muted)" }}>
         No workspace selected. Pick a workspace to see its funnel.
       </div>
     );
@@ -64,7 +64,7 @@ export function ActivationFunnelPanel() {
   if (error || !snapshot) {
     // Cause + one action, never a mute shrug (checklist point 7).
     return (
-      <div className="text-label-13" style={{ padding: 16 }}>
+      <div className="text-label-12" style={{ padding: 16 }}>
         <span style={{ color: "var(--madder)" }}>
           Couldn't load funnel data.{" "}
           {error instanceof Error ? error.message : "The snapshot came back empty."}

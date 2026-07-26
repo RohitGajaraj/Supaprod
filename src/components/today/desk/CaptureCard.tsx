@@ -74,7 +74,7 @@ export function CaptureCard() {
           }}
           aria-label="Signal content, source optional"
           placeholder="What did you hear, and from where?"
-          className="text-label-13"
+          className="text-label-12"
           style={{
             flex: 1,
             background: "var(--surface-card-deep)",
