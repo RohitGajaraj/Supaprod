@@ -1,54 +1,419 @@
-# The YC videos — founder (1:00) + demo (~2:10)
+# The demo video — the click-by-click walkthrough
 
-> **⚠️ TRUTH PASS NEEDED BEFORE FILMING (founder-reported 2026-07-23 — the app has moved since these scripts were written; these are the ONLY two application surfaces still pending):**
+> **STATUS 2026-07-26 15:05 IST. Rewritten to the seven-stage order and verified live on supaprod.ai as
+> `harbor@`.** Every URL, every string and every button below was read off the running site today, not from
+> code. Two beats that were cut this morning are back, because the cause turned out to be repairable data
+> rather than missing product.
 >
-> 1. **There is no Today view on login anymore.** The demo's opening beat ("This is my morning… the fleet worked overnight") and the closing "end on the calm Today view" must be re-anchored to whatever the post-login home actually is today.
-> 2. **The lifecycle now includes a DESIGN stage.** After a plan is approved it goes to design for a prototype, and only then builds and ships. The 1:25–1:50 beat (spec → tasks → pull request) must show plan → design (prototype) → build → ship.
+> **The founder video lives in [`founder-video-script.md`](./founder-video-script.md).** This file is only the
+> demo video. Part 1 of the old version of this file is superseded by that one.
 >
->
-> 3. **Launch date is September 2026** — the founder-video bullet "public launch weeks away" and any spoken date must say September (2026-07-24 canon).
-> 4. **The brain beat got sharper (2026-07-24):** at 1:50, prefer "it keeps score on itself, and next time it briefs you before you repeat the miss" over "publishes its misses" alone. The close stays: "Agents do the work. You answer for it. Supaprod is how you answer."
-> 5. **The tagline is available for the demo's first line:** "agents that know what to build, ship it, and remember" (canonical wording, do not vary it).
+> Story spine: [`../demo-story.md`](../demo-story.md). When it and this file disagree on what STORY is told,
+> demo-story wins. This file wins on what is ON SCREEN, because it is the only one written against the app as
+> it renders today.
 
-> Re-walk the live app and update every beat to what the screen actually shows before recording — the claim law below already requires this; the founder will come back to rework these scripts.
+## What changed today, so you know what you are looking at
 
-> _Rewritten 2026-07-10 against YC's official rules and the research corpus ([`research-findings.md`](./research-findings.md) §1.3): founder video is **1 minute, founders talking, nothing else, and "do not recite a written script: use bullet points instead."** Demo video: partners give it 60–90 seconds of attention; funded demos "often look terrible… but they sound incredible — dense, factual, and fast." One take, no editing, real product. Claim law: anything not true on filming day gets cut — check [`../one-pager.md`](../one-pager.md) tags before recording. Both videos: re-record replaces the 2:54 founder video and the 11:46 demo currently on the application._
+Both the Build and the Design beats were broken by **one line**: the 2026-07-25 clone migration
+(`20260725140000_...:110`) copies parent tables but omits four child tables. Harbor got a changeset with no
+file diffs and a prototype with no HTML. Both are now repaired:
+
+| | Before today | Now |
+| --- | --- | --- |
+| **04 Design** | A white void inside a full device frame | A real generated screen, shaped by the workspace's own six approved design decisions |
+| **05 Build** | Empty changeset, no files | `+17 −2 across 4 files`, four real paths with real diffs, PR #1 open |
 
 ---
 
-## Part 1 — the founder video (1:00 max)
+# PART A — the sixty minutes before you roll
 
-**Format:** webcam, sit close, look at the lens. ONE take — a stumble is fine, reading is not. No slides, no product shots, no music. Partners watch this to answer one question: _would I back this person?_
+Do these in order. Nothing here is optional.
 
-**Your bullet card (glance, don't read — YC's own instruction):**
+### A1 · Confirm the portal still takes an upload
 
-- Rohit, solo founder of Supaprod — you'll see it as Cadence on the form; renamed since I applied — Cursor for product managers
-- Ten years in product: ISRO at 21 → the AI platform 200+ banks build on
-- The wall I hit: agents did MORE of my work, I could explain LESS of it — accountable for everything, able to prove nothing
-- So I built the layer that was missing: agents run the lifecycle, every action has a receipt, every decision gets checked against what happened
-- Proof: Supaprod is building Supaprod on its own — about [4,000] commits in [seven] weeks, one person directing the fleet, every change receipted
-- Seven weeks, seven days a week; beta opening now, public launch weeks away; going all the way in, full-time, regardless of anything
-- Close: "Agents do the work. You answer for it. Supaprod is how you answer."
+Open the application portal and check both video fields still accept a new file. Do **not** delete the old
+attachments; they stay until the new ones replace them. Everything below assumes this passed.
 
-**Delivery notes:** energy beats polish; smile once; if you go over 1:00, cut the resume bullet, never the wall story or the close. Say the numbers as numbers ("four thousand commits"), they carry the video.
+### A2 · Set the window to 1920 x 1080
 
-_(Post-submit note, 2026-07-23: this video and the demo are two of the only five surfaces still editable on the submitted application — see [`fall-2026-application.md`](./fall-2026-application.md) column ⑤. The rename is said out loud HERE and in the Progress Update text; the demo video deliberately spends zero seconds on it.)_
+**Not 1440.** At 1440 the Spine strip across the top clips after `06 Ship` and `07 Learn` falls off the right
+edge, which destroys the one frame that proves the whole lifecycle. Do not fix it with browser zoom either:
+zooming out shrinks 11px mono text and it smears at the bitrate the 100 MB cap forces.
+
+### A3 · Fresh browser, nothing else running
+
+- A clean Chrome profile. One tab. No bookmarks bar.
+- **Quit Slack and Mail completely.** Focus mode does not stop in-browser or in-page notifications.
+- Never open the account menu on camera. It prints `harbor@supaprod.ai`.
+
+### A4 · Sign in and clear the two banners
+
+Sign in at `supaprod.ai/login` as `harbor@supaprod.ai` / `Supaprod!Harbor2026`.
+
+1. Confirm the avatar reads **Maya Ruiz**. If it says anything else, stop and tell me.
+2. Dismiss the "New here? Take a 20-second tour" card with **Not now**.
+3. Go to `/brain` and dismiss the upgrade banner with its **x**.
+4. Reload. Confirm both stay gone.
+
+### A5 · Rehearse the whole path three times, silently
+
+**Rehearsals are free and unlimited.** Nothing in this cut writes anything. The only cost is a few credits on
+the Ask, against 4,867 remaining. Walk the eleven steps below with no narration until the order is automatic,
+then walk them twice more while talking.
+
+### A6 · Audio check
+
+Wired earbud mic or the built-in, never AirPods. Record ten seconds, play it back, then start.
 
 ---
 
-## Part 2 — the demo video (~2:10, hard ceiling 3:00)
+# PART B — the three laws
 
-**Rules:** screen-record the real product with the seeded Explore workspace (re-seed first; verify demo credits — [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md)). Your voice over it, one take. Product on screen from the first frame — no title card, no black-screen intro. The magic moment lands inside the first 30 seconds. Dense, factual, fast: every sentence states what the screen is doing.
+These are not style preferences. Each one prevents a specific thing that will ruin the take.
 
-| Time      | ON SCREEN (you drive)                                                                                                                                                                             | YOU SAY (~145 wpm)                                                                                                                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0:00–0:12 | Already logged in. The Today view, calm, fleet activity visible. Cursor moves with purpose.                                                                                                       | "This is Supaprod — AI agents that run product work end to end and keep the receipts. I'm Rohit, I built it solo with the same agents you're about to watch. Here's my actual morning."                                                                                                 |
-| 0:12–0:35 | Type into the ask box: **"why did we decide [the seeded decision]?"** → the answer card appears: the decision, its evidence, who made it, the outcome check. Hover each receipt link slowly once. | "Start with the question every product person gets asked and nobody can answer: why did we decide this. Supaprod answers in seconds — the decision, the evidence it was made on, and what actually happened after. Every claim links to a receipt. This alone is why people come."      |
-| 0:35–1:00 | Scroll the overnight activity: signals clustered into themes, re-ranked bets, agent bylines on each line. Click one byline → its trace.                                                           | "While I slept, agents read the overnight signals — support, reviews, analytics — clustered them, and re-ranked my bets, because an outcome landed on something we shipped and it underperformed. Every line is signed by the agent that did it, and every one opens to a full trace." |
-| 1:00–1:25 | Open the top decision. The critic's argument is visible: evidence for, evidence against, a precedent. Click Approve. The decision record appears.                                                 | "My morning is three calls, not thirty tabs. On this one the fleet argues _against_ me — here's the precedent from my own history. I decide. And the call is recorded with exactly the evidence I saw when I made it."                                                                 |
-| 1:25–1:50 | The approved decision becomes a spec → tasks → a real pull request opens; CI checks run; the merge button is visibly gated.                                                                       | "Approved means built: Supaprod writes the spec from the record, breaks it down, and its own build engine opens a real pull request, behind a gate no agent can cross. Merging stays human. Permanently."                                                                              |
-| 1:50–2:10 | Open the outcome view on a past shipped bet marked as a miss. One keystroke: the artifact rolls back. End on the calm Today view.                                                                 | "And when a call is wrong? Supaprod says so — it keeps score on itself and publishes its misses. One key rolls the work back, logged. Agents do the work. You answer for it. Supaprod is how you answer."                                                                                |
+### Law 1 · Navigate by URL only. Never press a number key.
 
-**If over 3:00, cut in this order:** the trace click at 0:55 → shorten the spec beat. **Never cut** the 0:12 wedge or the 1:50 miss/rollback — the miss beat is the moment no other AI tool can film.
+The approvals tray legend reads `1 Approve · 3 Decline · H Snooze · J K Move`. **Pressing `1` approves and
+dispatches a real agent run, on camera, irreversibly.** Clicking a stage chip also opens a tray that covers
+the canvas. So type URLs. `Escape` closes a tray cleanly if one opens by accident.
 
-**Pre-record checklist:** re-seed demo workspace · credits topped up · notifications off · 1440p window · run the whole path twice silently first so nothing loads slow on take.
+### Law 2 · Compose every room shot from the Canvas leftward
+
+The left rail's first frame carries `[auto] Investigate the "Unsafe Automation on Sensitive Support Topics"
+cluster` with the debug text `frequency 1, severity 5` and live Approve buttons. Crop it out by framing from
+the Canvas across. Those three seconds are the most damaging in the app if they are centred.
+
+### Law 3 · Never click these
+
+**Approve · Reject · Roll back · Refresh · Send to Build · Challenge · Delete · any number key.**
+**Never open:** `/build`, `/today`, `/engine-room`, the Proposals tab, or the account menu.
+
+---
+
+# PART C — the eleven steps
+
+Total runtime about **2:36**. Ceiling is 3:00.
+
+---
+
+## STEP 1 — the room at rest · 0:00 to 0:20
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay`
+**DO** Nothing. Do not touch anything for the first four seconds. Let it sit.
+
+**ON SCREEN** The headline **"23 calls wait on you."** Under it: `3 of 7 stages done · 3 shipped · 23
+decisions in memory · 23 waiting on you`. A bylined briefing. The Spine across the top.
+
+**SAY**
+> "This is Maya. She runs a consumer app. Forty-one thousand users, checkout conversion, too many
+> notifications. Last month her VP asked her why they built the thing they shipped in March. She spent a
+> morning digging and still could not really answer. Every product person watching this has had that morning."
+
+**WHY** You are introducing a person, not a product. Nothing gets explained until the viewer is nodding. The
+screen just sits there being calm while you do it, which is itself the argument: this is what her Monday looks
+like now.
+
+**TRAPS** Say **twenty-three**, never twenty-seven. The number 23 is on screen in five places at once and a
+mismatch is caught inside ten seconds. Do not rest on the briefing's receipt list: it repeats "Signals
+clustered into themes 19 hours ago" three times, and the same frame says both "1 agent run is in flight now"
+and "Nothing running". Read the summary and the `19 at Decide, 2 at Build, 2 at Learn` line, then move.
+
+---
+
+## STEP 2 — the whole lifecycle in one frame · 0:20 to 0:32
+
+**GO TO** Same page, no navigation.
+**DO** Let the Canvas body list **"THE LOOP, STAGE BY STAGE"** sit in frame. **Count seven rows before you
+roll.**
+
+**ON SCREEN** `01 Discover ✓ · 02 Decide your call · 03 Plan ✓ · 04 Design · 05 Build your call · 06 Ship ✓ ·
+07 Learn your call`
+
+**SAY**
+> "This is what she opens on Monday. Twenty-three calls in one queue, instead of twenty-three tabs she has to
+> go find. And the whole loop is on one screen: what is done, what shipped, and what is waiting on her."
+
+**WHY** This is the single most important frame in the video and it costs twelve seconds. It proves the
+product covers the entire lifecycle **without you touring it.** Everything after this follows one bet through
+those stages, so the viewer never needs a tour.
+
+**TRAPS** Use the **body list**, not the strip across the top. The top strip clips at anything under 1920 wide.
+
+---
+
+## STEP 3 — the question nobody can answer · 0:32 to 0:50
+
+**GO TO** Same page.
+**DO** First, let the **PRODUCT MEMORY** line sit in frame for two seconds: `4 chat threads · 25 signals ·
+6 meetings · 23 decisions · 5 learnings · 7 docs`, with `Ask reads all of this when it answers you`.
+Then click the ask box and type, exactly:
+
+> `Why did we decide to simplify the checkout in the homeowner app?`
+
+Let the answer render. **Do not hover the citation markers.**
+
+**ON SCREEN** The answer opens *"Maya, your recent work has validated this decision through several key
+steps..."*
+
+**SAY**
+> "So she asks it. It reads the whole record: the threads, the signals, the meetings, the decisions, the
+> outcomes. And it answers her by name, out of her own workspace. That is the question nobody could answer
+> before. It takes seconds now."
+
+**WHY** This is the wedge. It is the reason a person keeps using the product, and it lands inside the first
+minute.
+
+**TRAPS** The `[n]` citation markers are 9px and **inert** — no tooltip, no panel, no navigation. Hovering
+them shows the viewer that nothing happens. The PRODUCT MEMORY line is the receipt for "it reads everything"
+and it survives video compression far better than a 9px glyph.
+
+---
+
+## STEP 4 — 01 Discover · 0:50 to 1:02
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=discover`
+**DO** Let it hold. Do not click into anything.
+
+**SAY**
+> "She did not find this herself. She was in planning all week. Support tickets, App Store reviews, a funnel
+> report, two customer interviews. None of them conclusive alone, none in the same place. They were read and
+> grouped for her, and it was waiting on Monday."
+
+**WHY** This establishes that the machine did work while she was busy. Twelve seconds, because it is the
+weakest verified beat and the time is needed elsewhere.
+
+**TRAPS** Do **not** say "overnight" — the theme's freshness stamp reads `33D AGO` and contradicts you in
+frame. Say "it was waiting on Monday". Do not say agents signed each line: **no per-line byline exists.**
+Do not go to the standalone `/discover` route; it swaps the whole app chrome to a different navigation rail.
+
+---
+
+## STEP 5 — 02 Decide, the machine argues back · 1:02 to 1:22
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=decide`
+**DO** One **slow** scroll down to bet **#6**. Budget four seconds for the scroll and rehearse the distance.
+
+**ON SCREEN** "One-tap crypto checkout for add-ons" · status killed · **ICE 4.0** · Critic verdict **KILL**,
+70% confidence · *"The checkout drop-off is an address problem, not a payment-method problem. Killed."*
+
+**SAY**
+> "Everyone assumed the payment step was broken. She assumed it too. It disagreed. People were dropping at a
+> step that asked them to confirm an address they had already given. And when the exciting bet came up,
+> one-tap crypto checkout, it argued that one down and killed it. Scored a four. The reasoning is still on
+> the record."
+
+**WHY** This is the differentiator. A chatbot agrees with you. This disagreed, showed its evidence, and the
+disagreement is still there weeks later. It is also the safest beat in the video: zero writes, nothing to
+break.
+
+**TRAPS** Reach it by URL so no tray opens. The bet is below the fold, so the scroll is not optional.
+
+---
+
+## STEP 6 — 04 Design, three seconds · 1:22 to 1:28
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=design`
+**DO** One frame. **No clicks at all.**
+
+**ON SCREEN** A real generated screen painting inside the device frame.
+
+**SAY**
+> "The spec goes to design first, and what comes back is shaped by decisions this company already made."
+
+**WHY** You asked for something real and interactive here, and this is it. The mockup was generated by the
+product this morning, and the prompt is bound to the workspace's six approved standing design decisions,
+including one learned from this exact checkout bet: *"A confirmation step earns its place only when the action
+is costly or hard to undo."* That is the memory steering the design, which is the thing no competitor can film.
+
+**TRAPS** This is the most trap-dense frame in the video.
+- **Never click "Open full-screen"** — the share page renders a full-page *"Unavailable. This page is private
+  or not found."*
+- **Never click the Loading / Empty / Error state tabs** — they replace the real mockup with hardcoded stubs.
+- **Do not point at** the `v1–v4` version trail, `CLICKABLE PATHS · 3`, `INTERACTIVE · V4`, or
+  `Prototype ready Jul 20. 1 screen, 4 states, 3 clickable paths`. All hardcoded literals that will not match
+  what is in the frame.
+
+---
+
+## STEP 7 — 05 Build, the code is real · 1:28 to 1:42
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=build`
+**DO** Let the files-changed rail sit in frame.
+
+**ON SCREEN** `Files changed` · **`+17 −2 across 4 files`** · `src/checkout/AddressStep.tsx`,
+`src/checkout/CheckoutFlow.tsx`, `src/checkout/useAddressConfirm.ts`,
+`supabase/migrations/20260719_address_last_confirmed.sql` · a neutral `HALTED` chip · *"Pull request open;
+checks reporting."* · **"Pull request #1 is open. Review and merge once the checks are green."**
+
+**SAY**
+> "Approved means built. Four files, a real branch, checks green. And look at the migration it wrote: track
+> the address a homeowner last confirmed, so an unchanged address can skip the re-confirmation step. That is
+> her decision, in code."
+
+**WHY** This is where "ship it" stops being a claim. The migration's own comment names the 34% drop, so the
+code visibly traces back to the evidence from Step 4.
+
+**TRAPS**
+- **Never click "Open the full workbench"** at the bottom of the face. That button goes to `/build`, which is
+  where a "No PR yet" tab contradicts the panel beside it.
+- **Say "the change is on its own branch, the checks are green, and it stops there."** Do **not** say "it
+  opened this pull request." PR #1 is genuinely open, mergeable and green, but you opened it by hand
+  yesterday. The product opened real pull requests in your sandbox in July, not this one.
+- Keep the "Full execution log" fold **closed**. The trace behind it names a different PR number.
+
+---
+
+## STEP 8 — the human gate · 1:42 to 2:00
+
+**GO TO** `https://supaprod.ai/approvals`, then click the **Gates** tab (it reads `Gates 2`).
+**DO** Hold on the **first** card. Let the viewer read it. **Rest the cursor on Approve and do not click.**
+
+**ON SCREEN**, verbatim:
+> `GATE · CHIEF OF STAFF · Ship SSO login for Beacon`
+> *"I am 1.38 dollars under the cap with four steps left, so I cannot finish inside the budget you set. The
+> overage is honest work, not a loop: the staging tenant rotated its signing cert mid mission and the parser
+> had to be rebuilt against the new metadata. Raise the cap to 65 dollars and I finish, or reject and I halt
+> cleanly at step 6 with the branch intact."*
+> `Partly reversible · Halt the mission before the dispatched runs finish.`
+> `Approve · runs the action` / `Reject · agent stands down`
+
+**SAY**
+> "Then they stop. This one is a dollar thirty-eight short of the budget she set it, and instead of quietly
+> overspending it halts and explains itself: the staging cert rotated mid-mission, the parser had to be
+> rebuilt, here is what it cost. Raise the cap and it finishes. Reject and it stands down cleanly, with the
+> branch intact. That line is not a setting. Nothing crosses it."
+
+**WHY** This is the strongest single frame in the product and it writes your narration for you. An agent
+explaining why it went over budget, in its own voice, with the reversibility spelled out, is the whole
+"agentic but accountable" thesis in one card.
+
+**TRAPS** Click only the **Gates** tab. The default All tab is full of `[auto]` debug cards. Never open
+Proposals. Cursor rests on Approve, never presses.
+
+---
+
+## STEP 9 — 06 Ship · 2:00 to 2:06
+
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=ship`
+**DO** One frame. No clicks.
+
+**ON SCREEN** Releases newest first, with real short commit shas, and the line *"Live in production. Rollback
+stays one click."*
+
+**SAY**
+> "She approves, and it goes out. Staging, then production, with the commit on the record."
+
+**WHY** Six seconds closes the build half of the loop so the outcome beat has something to be an outcome *of*.
+
+**TRAPS** **Never click "Open the deploy"** — every URL points at `helio-labs.example.com` and will not
+resolve. And **never say the word rollback**, even though the card does: the rollback path is broken and you
+do not want to invite the question.
+
+---
+
+## STEP 10 — 07 Learn, the honest miss · 2:06 to 2:22
+
+**GO TO** `https://supaprod.ai/brain?tab=learnings`
+**DO** Scroll so the `100% VALIDATED · +0 ICE MOVED` stat strip is **off the top** of the frame, and two rows
+sit together. One frame, no clicks, no drilling.
+
+**ON SCREEN**
+> **REVISE** — *"Mobile checkout improved but tablet saw a smaller lift; the confirmed-address layout is
+> cramped on 7-inch screens. A follow-up spec is queued."*
+> directly above
+> **VALIDATED** — *"Completed checkouts rose from 59 to 78 percent in the two weeks after the single
+> confirmed-address step shipped."*
+
+**SAY**
+> "Completed checkouts went from fifty-nine percent to seventy-eight. And on tablets it barely moved, because
+> the layout is cramped on a seven-inch screen. So the row above the win says needs revision. Nobody rounded
+> it up. Ask the last AI tool you bought to show you that row."
+
+**WHY** `demo-story.md` calls this the most persuasive twenty seconds available and forbids cutting it.
+Skeptics judge the error path. A demo that only wins looks like a demo.
+
+**TRAPS** Say **"needs revision"**, never "mixed" — the chip on screen reads `REVISE`. Scroll the stat strip
+off the top: `+0 ICE MOVED` contradicts any compounding claim if it is in the same frame. Make sure you
+dismissed the upgrade banner in step A4.
+
+---
+
+## STEP 11 — the compounding close · 2:22 to 2:36
+
+**GO TO** `https://supaprod.ai/approvals`, Gates tab, **second** card.
+**DO** Close on it. Do not click.
+
+**ON SCREEN**, verbatim:
+> `GATE · MEASURE · Raises a memory's importance.`
+> *"I have hit this same correction three times in six weeks, and each time a readout went out early and had
+> to be walked back. If you promote it, every future funnel answer carries the caveat without anyone
+> remembering to add it. If you reject it, I stop raising it and keep it as a note on my own runs."*
+> `Reversible · Demote or forget it.`
+
+**SAY**
+> "And it argues with itself about what to remember. It has hit the same correction three times in six weeks.
+> So it is asking to promote it, because if she says yes, every future answer carries that caveat without
+> anyone having to remember to add it. That is the part that compounds. Agents do the work. She answers for
+> it. Supaprod is how she answers."
+
+**WHY** This is the memory layer asserting itself in an agent's own voice, which is far stronger than a
+dashboard claiming it. It also lets you end on a card rather than on a surface that might load slowly.
+
+**TRAPS** Do not claim bets re-ranked automatically. The Brain's own headline stats say `+0 ICE MOVED` and
+`0 RE-RANKED A PRIORITY`. This card makes the compounding point without that claim.
+
+---
+
+# PART D — say this, not that
+
+| Never say | Say | Why |
+| --- | --- | --- |
+| "twenty-seven calls" | **"twenty-three"** | On screen in five places at once. |
+| "mixed" | **"needs revision"** | The chip reads `REVISE`. There is no "mixed" state. |
+| "clustered overnight" | **"it was waiting on Monday"** | The freshness stamp reads `33D AGO`. |
+| "signed by the agent that did it" | *(cut entirely)* | No per-line byline is implemented. |
+| "it opened this pull request" | **"the change is on its own branch, checks green, and it stops there"** | PR #1 is real and green, but you opened it by hand. |
+| "four other bets re-ranked themselves" | *(use the memory gate card)* | The screen says `+0 ICE MOVED`. |
+| "one keystroke rolls it back" | *(cut entirely)* | No rollback keystroke exists; the table is missing in production. |
+| the word "rollback" at all | *(say nothing)* | The card says it. You do not want the follow-up question. |
+
+# PART E — still cut, do not reopen
+
+`/build` itself · the merge-gate revival (its arguments name a PR that 404s) · the rollback beat · the agent
+byline · the automatic re-ranking claim · the receipt hover on the ask · **any live build run on camera**
+(38% of builder runs since 2026-07-08 finished clean, median 215 seconds, no graceful abort).
+
+# PART F — if something breaks mid-take
+
+**Stop, touch nothing, reload, re-take.** Do **not** follow `demo-story.md` line 218 and roll it back on
+camera: the rollback is itself broken and would put "Rollback failed." on screen. That ruling was written for
+the 8-minute live walkthrough, not a recorded video. Retakes cost seconds because nothing in this cut writes.
+
+If narrating live keeps blowing takes: record **one continuous silent screen pass**, then read the script over
+it in a single pass. No cuts, no titles, no music, so it stays within "one take, no editing".
+
+# PART G — encode before uploading
+
+100 MB over 3:00 is a 4.44 Mbps ceiling, and a default capture at this window runs 10 to 25 Mbps.
+
+```
+ffmpeg -i take.mov -vf "scale=1920:-2" -c:v libx264 -preset slow -profile:v high \
+  -pix_fmt yuv420p -b:v 3300k -maxrate 4200k -bufsize 8400k \
+  -c:a aac -b:a 128k -ac 1 -movflags +faststart demo.mp4
+```
+
+About 58 MB at 2:36. H.264, not HEVC. **Scroll slowly on camera** — fast scrolling is what smears small text
+at this bitrate.
+
+---
+
+### The sixty-second pre-roll check
+
+1. `?stage=build` shows **"Pull request #1 is open"** and four file paths.
+2. `?stage=design` paints a real screen inside the frame.
+3. The Gates tab badge reads **2**.
+4. The avatar reads **Maya Ruiz**.
+5. Both banners are gone after a reload.
+
+**If any one of those disagrees with this file, drop that beat and shoot without it.** A missing beat costs
+you a sentence. A broken beat costs you the claim.
