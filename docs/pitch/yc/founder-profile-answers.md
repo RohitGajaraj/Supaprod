@@ -79,39 +79,46 @@ So this answer does not fake a hacker-portfolio. It answers the question the par
 is *"do you make things, or do you talk about them?"*, using the three real bodies of evidence you have:
 enterprise scale, iteration velocity, and a physical 0-to-1.
 
+> **REVISED after the founder pushed back on linking the repos. He was right, and the exposure is worse than
+> "it is our IP".** See the audit below: those public READMEs publish the full moat thesis, the named
+> competitive positioning, a map of the internal strategy docs, and (in v4) live demo credentials. **Do not
+> link them. Make them private.** This answer is written to work without any repo URL, and to turn that
+> absence into evidence of judgment rather than a gap.
+
 **PASTE THIS:**
 
 ```
-The largest thing I have shipped is the AI platform at Intellect that 200+
-financial institutions across 70+ countries use to build their own AI products.
-I own the product, not the code, and it runs in regulated banking production.
+Most of what I have built shipped inside companies, where the product goes live
+but the repository is not mine to show. The largest is the AI platform at
+Intellect that 200+ financial institutions across 70+ countries use to build
+their own AI products. I own the product, not the code, and it runs in regulated
+banking production. Before that, communication and hardware systems at ISRO,
+Infineon and Bosch.
 
-The four builds that came before this company are all public, each a working
-product I ran my own week on, each thrown away once it had taught me what was
-wrong with it:
-https://github.com/RohitGajaraj/Project-Cadence
-https://github.com/RohitGajaraj/Project-Cadence-v2
-https://github.com/RohitGajaraj/Project-Cadence-v3
-https://github.com/RohitGajaraj/Project-Cadence-v4
+The one I took end to end myself was outside software: one of the first attempts
+to bring bubble tea to the Indian market, from recipe formulation and unit
+economics through user testing and supply chain.
 
-Outside software, I founded one of the first attempts to bring bubble tea to the
-Indian market and took it from recipe formulation and unit economics through
-user testing and supply chain. I set it down to go build product full time.
+Before the version of Supaprod that stands today, I built and threw away four
+complete working versions of it. Those repositories are private because they
+carry the current architecture, and I am glad to walk any of them with you.
 ```
 
-**Why this shape.** It descends by hardness of evidence: scale you can verify, code you can open, and a
-venture you had to physically will into existence. The four URLs are the strongest single item and they are
-real: each of those repos carries a 20 to 28 KB README, built over roughly six weeks. Four complete rebuilds
-of one idea is not a weakness to hide, it is the clearest available proof of how fast you learn and how
-willing you are to throw work away, which is exactly the trait YC selects for.
+**Why this shape works without URLs.**
 
-Note the line *"I own the product, not the code."* Say it once, early, and never again. It disarms the
-obvious partner objection about a PM founder before they can raise it, and the entire Supaprod thesis is that
-this limit no longer binds anyone. Volunteering the weakness is what makes the rest of the application
-credible.
+1. **It names the absence before a partner notices it.** "The repository is not mine to show" is the true
+   reason a ten-year product operator has no GitHub portfolio, and stating it in the first line converts a
+   gap into a fact about your career rather than a hole in your evidence.
+2. **It still descends by hardness of evidence:** verifiable scale, then a venture you physically willed into
+   existence, then velocity.
+3. **The last line does three jobs at once.** It gives the four-rebuild signal, explains why there is no link,
+   and ends on a confident offer instead of an apology. "Private because they carry the current architecture"
+   reads as a founder who protects the asset, which is the correct instinct and a partner will register it.
+4. **"I own the product, not the code"** disarms the PM-founder objection before it is raised. Say it once,
+   here, and never again. The whole Supaprod thesis is that this limit no longer binds anyone.
 
-**Deliberately excluded:** ISRO (boxes 1 and 2 already own it), NSRCEL and Startup India (box 4 owns them).
-Repeating an item across boxes reads as padding a thin record. Yours is not thin.
+**Deliberately excluded:** NSRCEL and Startup India (box 4 owns them). ISRO appears only as a one-word
+career-arc mention here because boxes 1 and 2 already own the story.
 
 ---
 
@@ -129,22 +136,51 @@ initiative.
 
 ---
 
-# ⚠️ Fix your GitHub before you submit (15 minutes, highest leverage on this page)
+# ⚠️ Your GitHub: make four repos private tonight
 
-**The problem, verified 2026-07-28:** `github.com/RohitGajaraj` has **50 public repos, and 44 of them are
-forks** of other people's agent tooling. Only 6 are original, 4 of which are the Cadence lineage. A partner
-opening that link sees a wall of forks and has to hunt for anything you made.
+> **This supersedes the earlier "pin six repos" advice in this file, which was wrong.** A pinned **private**
+> repo renders only for you and collaborators; a logged-out YC partner sees an empty space. Pinning and
+> privacy are mutually exclusive here, and after the audit below, privacy wins outright.
 
-**The fix, in order:**
+## What is publicly readable right now (audited 2026-07-28)
 
-1. **Pin the right six.** GitHub lets you pin six repos to your profile. Pin `Project-Cadence`,
-   `Project-Cadence-v2`, `Project-Cadence-v3`, `Project-Cadence-v4`, and `build-in-public`. The profile then
-   opens on the story you want told.
-2. **Fix two descriptions.** `Project-Cadence-v2` currently reads **"v2 - santa a/c"**, and v3 and v4 have
-   **no description at all**. Box 3 links all four. Give each a one-liner, for example: *"Second rebuild of an
-   agentic product operating system. Superseded by v3."*
-3. **Leave the forks alone.** Do not mass-delete them. Once the six are pinned, the forks read as what they
-   are: someone living inside the agent ecosystem, which supports your thesis rather than undermining it.
+`github.com/RohitGajaraj` is **50 public repos, 44 of them forks** of other people's agent tooling. Six are
+original. The four Cadence repos each carry a 20 to 28 KB README, and those READMEs publish:
+
+| Exposed | Where |
+| --- | --- |
+| The **full moat thesis**, verbatim, including the fast-oracle argument and the three pillars | v4 README |
+| **Named competitive positioning** against factory.ai, Devin, Replit, Linear, Cursor, Lovable | v1 and v4 READMEs |
+| A **map of the internal strategy docs** (`v11-guiding-star.md`, `moat.md`, `competitive-landscape.md`, the feature dashboard) | v4 README |
+| **Live demo credentials in plain text** (`demo@redcadence.app` / `Cadence!Demo2026`) | v4 README |
+
+The credentials are already neutralised (both accounts were rotated and suspended on 2026-07-25), so that one
+is contained. The strategy exposure is not.
+
+## Do this
+
+1. **Make `Project-Cadence`, `Project-Cadence-v2`, `Project-Cadence-v3` and `Project-Cadence-v4` private.**
+   Settings → General → Danger Zone → Change visibility. Box 3 no longer links them, so nothing breaks.
+2. **Make `build-in-public` private.** `CLAUDE.md` already asserts it *is* private, and it is not: it is
+   public and contains `founder-profile.md`, `positioning.md`, unpublished `drafts/`, and a line describing
+   you as "building an agentic product in stealth". No tokens leak (the Buffer token correctly reads from
+   `process.env.BUFFER_TOKEN`), so this is reputational, not a breach. Fix the `CLAUDE.md` claim or the repo,
+   but not neither.
+3. **Leave the 44 forks alone.** Once the originals are private, the profile reads as someone living inside
+   the agent ecosystem, which is consistent with your thesis. Do not mass-delete; churn looks worse than
+   forks.
+
+## What carries the "is he a builder" weight instead
+
+Nothing on GitHub, and that is fine, because you have three stronger receipts:
+
+- **The Paxel builder report**, already connected to your YC account and set to auto-attach. This is YC's own
+  instrument for exactly this question, and it beats any repo link.
+- **The live product** at `supaprod.ai`, which a partner can sign into.
+- **The demo video**, which shows the system doing the work.
+
+A repo is a weaker proof than a working product plus YC's own builder assessment. You are not giving anything
+up by going private.
 
 ---
 
