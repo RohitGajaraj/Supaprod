@@ -100,9 +100,9 @@ the casual version ends on "that's it, really" and lets the personal line do the
 
 ---
 
-# THE HYBRID — v8 (pitch structure, real voice)
+# THE HYBRID — v8.1 (pitch structure, real voice)
 
-**331 words · ~3:53 at your recorded pace (85 wpm) · ~2:41 at your reading pace.**
+**339 words · ~3:59 at your recorded pace (85 wpm) · ~2:46 at your reading pace.**
 
 This is v7.2's spine with the coffee version's texture grafted on. It is not the casual version:
 it keeps every load-bearing line, the three-part enumeration, and the close. What it borrows is
@@ -154,9 +154,11 @@ personal investment.
 > Not a summary. / Something you can **argue** with. //
 >
 > **Second**, / it runs the whole thing end to end. / Discovery, / design, / build, / ship. /
-> And then it **grades** what shipped. / Did that actually work? / Where were we **wrong**? //
+> Agents write the code, / open the pull request, / run the checks. /
+> And then they **stop**. / **Nothing merges without you.** //
 >
-> **Third**, / and this is the one I care about **most**. / Everything gets remembered. /
+> **Third**, / and this is the one I care about **most**. / The **company brain**. /
+> Everything gets remembered. /
 > Every decision, / every outcome, / in one place. / So it learns your **taste**. /
 > And next time you're about to repeat something you already got wrong, /
 > it tells you **before** you do it. ///
@@ -166,6 +168,30 @@ personal investment.
 > The agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
 >
 > (smile) I always wanted this to **exist**. / And now I get to **build** it.
+
+## The layer two / layer three fix (v8.1)
+
+You caught a real overlap. Layer two used to end _"Did that actually work? Where were we wrong?"_
+and layer three ends _"next time you're about to repeat something you already got wrong."_ Both
+were landing on the same idea, which made the third layer feel like a restatement rather than the
+payoff.
+
+**The clean split is execution vs memory:**
+
+- **Layer two is what the system DOES and where it STOPS.** It now ends on the human gate:
+  _"Agents write the code, open the pull request, run the checks. And then they stop. Nothing
+  merges without you."_ That is distinctive, it is the agentic-but-accountable thesis in one
+  breath, and it overlaps with nothing else in the script.
+- **Layer three is what the system REMEMBERS.** Grading moved out of layer two entirely, so
+  learning belongs to the brain alone.
+
+Claim check on the new layer two: `one-pager.md:34` tags "Real build-to-PR" as [PROVEN] (the spine
+merged a real PR through its own gated path, with a real preview deploy and production promote),
+and the merge gate is a non-overridable floor. Both halves are safe to say.
+
+**Layer three now names the company brain out loud**, immediately after the personal line, so the
+emphasis lands on the brand term rather than on the sentiment: _"and this is the one I care about
+most. The company brain."_
 
 ## What I imported from the coffee version, and why each one earns its place
 
@@ -201,7 +227,7 @@ reading. Your working conversion is **words x 0.7 = seconds**.
 | Version | Words | On camera (85) | Reading (123) |
 | --- | --- | --- | --- |
 | v7.2 formal | 254 | ~3:00 (measured) | ~2:03 |
-| **v8 hybrid** | **331** | **~3:53** | ~2:41 |
+| **v8 hybrid** | **339** | **~3:59** | ~2:45 |
 | coffee | ~430 | ~5:00 | ~3:30 |
 
 **Warmth costs words. There is no version that is both fully conversational and under two
