@@ -215,7 +215,13 @@ minutes, but it is close and it is yours.
 
 ---
 
-## PREVIOUS - v7 tiers (superseded by v7.1: one version, dangling and fixed)
+## PREVIOUS - v7 tiers (superseded)
+
+> **Note on version numbers, since this caused confusion:** there is no separate v7.1 section.
+> v7.1 was edited in place into v7.2 when Beat 4 was expanded, so **v7.2 at the top of this file
+> contains everything v7.1 had, plus the AI-shift beat.** The only differences were Beat 4
+> (13 words -> 36) and the Beat 5 layer-three tail. v7.1 was never committed separately, so it
+> exists nowhere else either. **Shoot v7.2.**
 
 ### v7 notes
 
