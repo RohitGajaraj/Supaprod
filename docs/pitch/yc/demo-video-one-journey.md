@@ -79,9 +79,16 @@ Let the answer render. **Do not hover the citation markers** — they are 9px an
 **WHY** The tour opened on a queue. This opens on the *question the whole video then answers*. The viewer now
 has a reason to watch the next two minutes: they have been promised a chain, and every beat pays it off.
 
-**TRAPS** Counts verified today: signals 25, meetings 6, decisions 23, learnings 5. Say twenty-three, never
-twenty-seven. Do not read the briefing's receipt list aloud — it repeats itself and contradicts its own
-"nothing running" line.
+**TRAPS**
+- ⚠️ **The headline reads "21 calls wait on you", not 23** (read off the live room 2026-07-27: 18 at Decide,
+  1 at Build, 2 at Learn). Say **twenty-one**. The separate "23 decisions in memory" stat IS still 23, so both
+  numbers are on screen at once and mixing them up is the easiest mistake in the video.
+- Counts verified today: signals 25, meetings 6, decisions 23, learnings 5.
+- Do not read the briefing's receipt list aloud — it repeats itself and contradicts its own "nothing running"
+  line.
+- **The Ask answer renders in the LEFT RAIL, not the canvas.** As of the 2026-07-27 fix it scrolls itself into
+  view on send; you do not need to touch the scroll wheel. If you are ever on an older build, scroll the left
+  rail down or the answer is invisible.
 
 ---
 
