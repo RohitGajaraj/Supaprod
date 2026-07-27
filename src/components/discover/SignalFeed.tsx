@@ -284,9 +284,7 @@ export function SignalFeed() {
   if (signals.error) {
     return (
       <div className="material-medium" style={{ padding: "20px" }}>
-        <MonoLabel style={{ color: "var(--madder)" }}>
-          Could not load signals
-        </MonoLabel>
+        <MonoLabel style={{ color: "var(--madder)" }}>Could not load signals</MonoLabel>
         <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>
           {(signals.error as Error).message}
         </p>

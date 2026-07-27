@@ -43,6 +43,8 @@
 > _Founder pass #6 (2026-07-23): "when version" now leads with the DATE — "By the second week of September (six weeks from now)" — target first, current standing second (confidence + drive), and the how-far-along close carries the same date so a cross-reading partner sees one consistent target. The tech stack is FOUNDER-FINALIZED in his own structure (Backend and data merged with TypeScript named; bare "Cloudflare Workers"; "feature gates" added to the chokepoint list). Two corrections applied to his paste: "featuregate" smoothed to "feature gates," and "users bring their own keys" kept OUT per his own round-4 ruling (the question asks what WE use, not what we offer customers) — restore it only if he re-rules._
 >
 > _**✅ STATUS (2026-07-23, end of day): FILED.** The founder pasted the three text surfaces into the YC portal: the Progress Update fields and the Team Update (Fundraising untouched — nothing to file). **REMAINING: the founder video (≤1:00) and the demo video (≤3:00).** Before filming, the scripts need a truth pass against the live app — two founder-reported gaps are logged at the top of [`video-scripts.md`](./video-scripts.md): the post-login home is no longer a Today view, and the lifecycle now runs plan → design (prototype) → build → ship. From here until the interview: the one-line daily delta per [`interview-prep.md`](./interview-prep.md) §5._
+>
+> _**🔎 FINAL CHECK PASS (2026-07-28, screenshots vs canon, founder present).** The 07-23 text surfaces are live on the form and match this sheet nearly verbatim. What changed tonight: (1) **launch phrasing is month-only** — "in September", no week or date (founder ruling 2026-07-28); both date-carrying paste blocks below are updated and need a re-paste. (2) **The company-brief pointer** (`https://supaprod.ai/brief`) joins the how-far-along close — the investor-spotlight the founder asked for; verified live, zero YC mentions inside the deck. (3) **Commit count 4,119** (2026-07-28): "4,000+" is settled wording in both fields; the form's "about ~4,000+ commits" mishmash gets cleaned by the re-paste. (4) **The five repos from the profile ruling went private** 2026-07-28 via authenticated API (Project-Cadence v1–v4 + build-in-public; verified, 46 public remain, all forks except `Test-Project-Cadence`, flagged to the founder). (5) **Demo-login queue re-armed** — the seeded 5-pending approval queues had decayed to 1 pending + 4 expired in EVERY demo workspace via `expires_at`; reset 2026-07-28 with a 60-day runway (details in the credentials note below). (6) **Demo video: replaced** — the 4:51 / ~46 MB Supaprod cut is up (the 11:46 Cadence video is retired); it runs past the form's stated 3:00 guidance, a deliberate founder call, wedge front-loaded. (7) **Founder video: still the submit-day 2:53/2:54** — Surface 4 remains the one open surface. (8) The "Are people using your product?" radio stays a founder-fact call: the ruling below still governs (No + availability is consistent; flip to Yes only with literal outside users, then state the true count)._
 
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
@@ -74,8 +76,10 @@ The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American 
 - **PASTE THIS:**
 
 ```
-explore@supaprod.ai / Supaprod!Explore2026 (you log in as a product manager mid-week: five calls are waiting on your judgment, each one opening to the evidence it was made on and what happened last time. Or sign up with any email and you are working in about a minute)
+explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace: calls are waiting on your judgment, each opens to the evidence it was made on; or sign up with any email)
 ```
+
+_(2026-07-28: the parenthetical is now count-free on purpose. The live form's short version, "(seeded workspace; or sign up with any email)", works but wastes the one line that can tell a partner what to do first; this version points at the approval queue without naming a number that can go stale. Health behind it: the seeded queues DECAY — each clone ships five pending approvals whose `expires_at` sits hours out, so by 2026-07-28 every demo workspace had rotted to 1 pending + 4 expired on its own. Re-armed 2026-07-28 across all seven Helio prefixes (undecided rows only, back to pending, 60-day runway; decision history untouched). Re-arm the same way before any interview window. explore@ stays the YC login: it is already filed, owns its own isolated clone, and its queue is live again; the four reserve logins stay untouched for other programmes. All future rehearsals and recordings happen on `harbor@`, never on `explore@`, because explore@ is now what YC holds.)_
 
 _(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace (`70000000-`), provisioned by `20260725120000_investor_demo_accounts.sql`. It used to be an admin of the shared Helio Labs alongside `ember@` and the founder's own testing, which meant a partner could open a workspace someone else had been working in, with an approval queue already emptied by a rehearsal. `ember@` is retired from the showcase workspace: four named, isolated investor logins (`voyage@`, `compass@`, `meridian@`, `lantern@`) now serve that purpose per [`../../operations/demo-credentials.md`](../../operations/demo-credentials.md), and `harbor@` is the founder's rehearsal copy so practice never spends a queue anyone will be shown. The copy above points at the five pending approvals because that is the first thing a partner can act on; it is true as of the 2026-07-25 seed (`agent_approvals` pending = 5, verified live). GATE unchanged: one incognito login on supaprod.ai before pasting. Fallback if it fails: `harbor@supaprod.ai / Supaprod!Harbor2026` (identical workspace, identical story), then fix. The old `demo2@redcadence.app` fallback is DEAD as of 2026-07-25: password rotated, profile suspended. Never quote it.)_
 
@@ -103,8 +107,13 @@ parallel. I talk to users constantly and their feedback goes straight
 back in: design iterations, new roadmap items, and rework on whatever
 they do not love.
 
-Next: public launch, second week of September.
+Next: public launch in September.
+
+The full company brief stays current at https://supaprod.ai/brief:
+product, market, plan, and team on one page.
 ```
+
+_(2026-07-28, two changes. **Launch phrasing** is now "in September", month only — founder ruling 2026-07-28: no week or date named anywhere, so a moving day inside September never contradicts the form. **The brief pointer** is the investor-spotlight the founder asked for: partners get one door to the full positioning (the deck at `/brief` carries the door-body-brain telling the locked fields cannot). `/brief` is the canonical URL per the 2026-07-24 ruling; `/investors` serves the same page for anyone who types it. Verified 2026-07-28: both return 200, the deck has zero YC mentions and no stale dates.)_
 
 _[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
 
@@ -141,7 +150,7 @@ loop.
 - **PASTE THIS:**
 
 ```
-Seven weeks on this build, seven days a week; the repo shows about 4,000
+Seven weeks on this build, seven days a week; the repo shows 4,000+
 commits over that stretch, and a month of nights and weekends on the
 prototype before that. Completely full-time: I am on a break from my
 product role, and leaving it for good is already decided, not contingent
@@ -185,14 +194,14 @@ _(Confirm the exact Kimi model name on paste day — the live field currently sa
 - **PASTE THIS:**
 
 ```
-By the second week of September (six weeks from now), Supaprod launches
-publicly; you will see it on forums like Hacker News and Product Hunt.
-It is already live and open for beta users today; people can get their
-hands on it at https://supaprod.ai, and the last stretch is being shaped
-by their feedback.
+Supaprod launches publicly in September; you will see it on forums like
+Hacker News and Product Hunt. An early version is already live and open
+for beta users today; people can get their hands on it at
+https://supaprod.ai, and the last stretch is being shaped by their
+feedback.
 ```
 
-_(Paste-day sync: the date must be the real target that day. If the launch date moves, update it here AND in the how-far-along close, and keep the "(six weeks from now)" parenthetical matching the actual gap.)_
+_(Founder ruling 2026-07-28: name the month only, never a week or a date — "(six weeks from now)" is gone so the field can never drift stale. If the launch month itself moves, update it here AND in the how-far-along close. This block also fixes two grammar slips that reached the live form: "Early version is" and "shaped by users feedback".)_
 
 **Demo video slot on this form:** see Surface 5.
 
@@ -244,7 +253,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 ### Paste-day checklist (in this order)
 
 1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
-2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except the commit count, which appears in BOTH "how far along" ("4,000+ commits and counting") and "how long" ("about 4,000 commits") — run `git rev-list --count HEAD` the day you paste: if it reads under 4,000, write "about 4,000" in both places; only write "4,000+" once the repo actually shows it (3,986 on 2026-07-23; at the current pace it crosses within a day). Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
+2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except the commit count, which appears in BOTH "how far along" and "how long" as "4,000+ commits" — settled 2026-07-28, the repo reads 4,119, so "4,000+" is literal truth in both places (the "about" hedge is retired). Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
 3. Paste the Progress Update fields; set the radio truthfully; save.
 4. Paste the Team Update; save.
 5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.

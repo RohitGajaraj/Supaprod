@@ -1,244 +1,130 @@
-# Session handoff - 2026-07-27 (founder video SHOT + UPLOADED; demo video is next)
+# Session handoff - 2026-07-28 (demo video SHOT, CUT and UPLOADED; YC founder profile rewritten)
 
-## State: local main = `13f2095e`, working tree has only this file modified.
+## State: local main = `ad2ff15c` + this file. Two production bugs found, fixed, deployed, verified.
 
-## 🚨 READ FIRST: the GitHub remote `main` is an ORPHAN history. Do not push or pull blind.
+The demo video is **done and uploaded**. The YC founder profile answers are **written and paste-ready**.
+Two real product bugs were caught during rehearsal, fixed, published and verified live.
 
-Discovered at session close, 18:09. **Nothing is lost, but `git pull` / `git push` will both
-misbehave until a human decides the fix.**
+---
 
-- `origin/main` = `7eb93a93`, a **6-commit history with NO common ancestor** with local main
-  (`git merge-base` returns nothing). Its root commit `76c35c3a` is dated **today 08:12**.
-- Local main = `13f2095e`, the real history, **4102 commits**, rooted at `f319173a`
-  (template, 2025-01-01). `git rev-list --count`: **4102 ahead, 6 behind.**
-- Cause is visible in the remote tree: it contains a top-level **`.git.broken`**, and commit
-  `6cd257c9` is **"3516 files changed, 849684 insertions"**. Some tool lost its git state and
-  re-committed the whole working tree as a fresh history, then force-pushed over `main`.
-  `origin/HEAD` and `origin/master` also point at `7eb93a93`.
-- **The remote snapshot is MISSING `docs/pitch/yc/founder-video-script.md`** (the v8.3 script).
-  The pitch work exists ONLY locally.
-- **The old objects are still on GitHub**: `origin/archive/final-sweep-2026-07-18` (`b8266a6a`)
-  and `origin/keep/rescued-pieces` (`bbd83680`) still match local exactly.
+## 1. THE DEMO VIDEO — shipped
 
-### STATUS at 18:20: repair is DONE except the final force-push, which is PENDING.
+**Uploaded file:** `~/Library/Mobile Documents/com~apple~CloudDocs/Supaprod/YC/Supaprod_Product Demo.mp4`
+**46.4 MB · 4:51.02 · 1920x1076 · h264 · native 60 fps · AAC 160k.** Under the 100 MB cap with room to spare.
 
-Both histories are now safely **on GitHub**, so nothing can be lost:
+Originals archived by the founder in `.../Supaprod/Archieve Resources/`:
+`Supaprod_Product Demo_Original.mov` (179 MB, 5:35.8) and `Supaprod_Product Demo_web.mp4` (the 5:35 compress).
 
-| remote branch | holds |
-|---|---|
-| `origin/rescue/real-main-2026-07-27` | the real history, 4103 commits, = local main before the recovery commit |
-| `origin/backup/orphan-main-2026-07-27` | the 6-commit orphan (`7eb93a93`) |
+**How it was cut.** The founder gave 7 exact ranges to remove; all applied, total 44.77s removed:
+`1:57-2:08 · 3:14-3:21 · 3:33-3:45 · 4:21-4:23 · 4:27-4:29 · 5:06-5:16 · 5:35-end`.
+Method: 7 per-segment extractions from the ORIGINAL (one encoding generation), 40ms audio fades at each join
+so seams do not click, then concat with stream copy. Script: scratchpad `cut_hq.sh`.
 
-**Recovered already, two commits:**
+**Quality lesson, do not repeat.** The first pass used CRF 20 / 30 fps and came out at 18 MB with SSIM 0.9935.
+The founder rejected it ("please dont compromise on the video quality"). He was right: we were using 18 MB of
+a 100 MB budget. The shipped version is **CRF 10 at native 60 fps**. When re-cutting, probe CRF against a
+busy segment first and spend the budget.
 
-- `d7f23556` lifts the clean orphan commit `0e5c6902`: Geist Pixel brand moments on Settings +
-  Plan Spec Detail, per `DESIGN-TEMPO.md` sections 3 and 8. Local lacked it, applied cleanly.
-- lifts **86 passing tests** that existed nowhere in the real trunk:
-  `src/lib/guardrails.functions.test.ts` (44) and `src/lib/workspaces.functions.test.ts` (42).
-  Verified: imports resolve, `check-test-runner.sh` clean, `tsc --noEmit` clean, and the full
-  suite is **unchanged at 64 fail** before and after (9188 -> 9274 tests, zero new failures).
+**Founder rulings on the video:** keep the multiple browser tabs (they were deliberate, he was showcasing
+other tabs to move faster), do NOT crop the browser chrome, no live build run.
 
-**REJECTED from that same set - `src/components/mission/journey-wiring.test.ts`.** It passes in
-isolation (20 tests) but **breaks 35 OTHER tests** when the full suite runs: 17 in
-`src/lib/__tests__/journeys.test.ts` and 8 in `src/components/mission/__tests__/Spine.test.tsx`,
-the exact two modules it imports. It leaks module mocks across files under `bun test`. Measured
-both ways: suite is 64 fail without it, **99 fail with it**. Do not re-add it without fixing the
-mock isolation first. It is preserved on `backup/orphan-main-2026-07-27`.
+---
 
-**Standing lesson: a test file passing in isolation proves nothing about the suite.** Always
-measure total failures before and after, not just the new file.
+## 2. TWO PRODUCTION BUGS FIXED AND DEPLOYED
 
-**Everything else in the orphan's 79 extra files was checked and is genuinely disposable:** 20
-were deliberately deleted by your own `b94fea4e` Wave 1-2 cleanup, ~30 are `.bak` files, 8 are
-the manual-only e2e specs you removed, ~15 are root-level session summaries that violate the
-file-placement policy, and 2 are breakage debris (`.git.broken`, `.git-staging-note.txt`).
+Both were found by the founder while rehearsing, both root-caused, fixed, pushed and **verified live**.
 
-**THE ONE REMAINING STEP** (denied in-session; run it yourself):
+### a. The Ask answer was invisible (`MissionShellView.tsx`)
+Commit `3e908897` locally, `5131c947` on origin/main. The Thread rail appends the conversation BELOW the
+briefing and every inline gate, so the new exchange landed ~1300px down a rail that never scrolled (measured
+live: scrollHeight 2190, clientHeight 809, **scrollTop 0**, question at top:1341 in a 1080px viewport). The
+composer clears on send, so it read as "I typed, it vanished, nothing happened". The backend was healthy the
+whole time. Fix: pull the newest message into view, and keep it pinned while streaming only when the reader is
+already near the bottom. **Verified live: scrollTop 0 -> 556, question top 1341 -> 785, in viewport.**
 
-```bash
-git push --force-with-lease=main:7eb93a93 origin main:main
-```
+### b. `/discover` crashed on every cold load (`SignalFeed.tsx`)
+Commit `080f7a45` locally, `3faba8f0` on origin/main. React #310, "Rendered more hooks than during the
+previous render". `SignalFeed` returned early for loading and error, then called `useMemo` twice below them.
+Cold mount runs the short hook list; first render with data runs two more. Took the whole route down through
+its errorComponent. **This is a regression of a bug already fixed in `AutoClustered.tsx` on 2026-07-19** (its
+comment describes the identical crash); SignalFeed was missed in that pass. Worth enabling
+`react-hooks/rules-of-hooks` to catch it statically.
 
-That restores the true history to `origin/main`. The `--force-with-lease` guard means it aborts
-if the remote moved since, so it is safe to run. Verify after with
-`git rev-list --count origin/main` (expect 4104+).
+> **Deploy note:** pushing to origin/main is NOT enough. Lovable syncs the commit but the published site keeps
+> serving the old build until the founder hits **publish**. Both fixes only went live after he did.
 
-**ALSO NOT LIFTED: `scripts/verify-tempo-compliance.sh`.** It flags `--surface-card` /
-`--surface-raised` / `--surface-hover` as "legacy tokens" to migrate to raw `--ds-gray-*`. That
-is backwards, and `src/styles.css:3460-3463` proves it: `--surface-card: var(--ds-gray-100)` and
-BOTH `--surface-raised` and `--surface-hover` resolve to `var(--ds-gray-200)`. The roles are the
-API; the scale is the implementation. Adopting that check would weld raised and hover together
-permanently. It would also fail on run (`eslint --max-warnings 0` against 56,905 problems).
+---
 
-**DELIBERATELY NOT LIFTED - needs a reviewed pass:** the orphan's build-screen typography work
-(`src/routes/_authenticated.build.index.tsx`). It contains genuine wins (18 raw `fontSize:`
-values converted to Tempo text classes, spacing snapped to the 4px grid) BUT also a real
-regression: it swaps semantic role tokens for raw scale values, `--surface-card` ->
-`--ds-gray-100` and BOTH `--surface-raised` AND `--surface-hover` -> `--ds-gray-200`. That
-collapses two distinct roles into one and breaks the generated light theme, against the Tempo
-role model. Recover the good half by hand from
-`git show backup/orphan-main-2026-07-27:src/routes/_authenticated.build.index.tsx`.
+## 3. WHAT THE LIVE APP ACTUALLY RENDERS (hard-won, trust this over older docs)
 
-Also left behind on that branch (root-level docs, and they violate the file-placement policy in
-`docs/README.md`, so place them properly if wanted): `MANDATE-COMPLETION-ROADMAP.md`,
-`SESSION-2026-07-27-AUTONOMOUS-BUILD-SUMMARY.md`, plus 3 audit docs from `76c35c3a`.
+Verified by walking supaprod.ai as `harbor@` on 2026-07-27/28.
 
-**The 6 remote-only commits are mostly noise; the real work in them is small:**
+| Claim in older docs | Reality |
+| --- | --- |
+| "`?stage=design` is a white void, cut the beat" | **WRONG.** It renders a real prototype (v1 Flow map .. v4 Interactive). `prototype_files` is empty but that is NOT what the surface renders from. |
+| "`?stage=discover` shows the theme with severity/frequency" | **WRONG.** It is `01 Discover · Evidence`, a flat 25-signal feed. No theme, no severity, no frequency, rows are not clickable. |
+| The theme view | Lives at **`/discover`** (the evidence desk): "Raw signal in, ranked bets out", clustered themes, checkout theme at **rank #4, 9 signals / 8 sources**. Different left nav from the room. |
+| Headline count | Drifts. Was 23, then 21, then 19. **Read it on the day.** |
+| `?stage=plan` | Opens on the WRONG spec (notification digest). The checkout spec needs a tab click. Best frame in the product: Outcome contract commits to 75% by Aug 20 before any code exists. |
+| Brain graph | WebGL 3D constellation; labels smear at video bitrate. Use the **LIST** view. |
 
-| commit | size | what |
-|---|---|---|
-| `76c35c3a` | 4 files, 1566+ | Build screen Composer typography |
-| `6cd257c9` | 3516 files | the bulk re-commit — real P0 typography fixes are buried inside |
-| `0e5c6902` | 2 files | Geist Pixel brand moments, P0 screens |
-| `56080330` | 1 file | Build screen line-break formatting |
-| `9df919c5` | 1 file | doc: typography session summary |
-| `7eb93a93` | 1 file | doc: MANDATE-COMPLETION-ROADMAP.md |
+**Mission dispatch reality:** 176 missions in 45 days, 80 never dispatched, **63 halted, 10 completed**.
+Builder runs 40 clean of 83. A live build run on camera is a 1-in-10 gamble. The engine HAS opened **15 real
+PRs** on `RohitGajaraj/Test-Project-Cadence` (#5-#20, most merged), so the capability is real, it just needs
+rehearsal rather than a live gamble.
 
-**Suggested fix (founder's call, NOT done):** diff the four small commits onto local main, then
-`git push --force-with-lease origin main:main` to restore the real 4102-commit history. Do NOT
-merge with `--allow-unrelated-histories`; it produces a 3500-file mess.
+---
 
-## THE LIVE TASK: demo video. The founder video is DONE and UPLOADED.
+## 4. YC FOUNDER PROFILE — rewritten, paste-ready
 
-YC Fall 2026 is **already filed**. Deadline **08:30 IST, 28 July**. **Both fields are HARD FILE
-UPLOADS, not URLs** (founder confirmed from the live portal). 100 MB cap on both.
+**`docs/pitch/yc/founder-profile-answers.md`** is the single file. Boxes 2 and 3 were blank on the form.
 
-- ✅ **Founder video: SHOT, COMPRESSED, UPLOADED** (confirmed by founder 17:19). Source
-  `~/Documents/YC_Video.mov` 168.3 MB -> `~/Documents/YC_Video_compressed.mp4` **74.9 MB**.
-- ⏭️ **Demo video: NEXT SESSION.** Script is frozen (below). Expect the same 100 MB problem.
+- **Box 2** now names the Moon and Mars missions and converts "space" into a constraint (launches once, no
+  patch release), which is the part a partner scores.
+- **Box 3** deliberately carries **no repo URLs**. The founder challenged linking them as giving away IP and
+  he was right: those public READMEs publish the full moat thesis verbatim, named competitive positioning
+  (factory.ai, Devin, Replit, Linear, Cursor, Lovable), a map of the internal strategy docs, and in v4 **live
+  demo credentials in plain text** (already neutralised, those accounts were suspended 2026-07-25).
+- Domains named per the investor deck's own wording: **semiconductors at Infineon in Munich**, **satellite
+  communication systems** at India's national space agency. **Bosch dropped** (zero mentions in the deck, no
+  documented role anywhere).
 
-### The compression recipe that worked (ffmpeg is NOW INSTALLED via brew)
+### ⚠️ STILL OPEN — the founder has not done these yet
 
-The recorder pins ~7,691 kbps regardless of content; a talking head needs a fraction of that, so
-the cut is nearly free. **CRF 18 + copy the audio** — no rescale, no reframe, no re-encode of sound.
+1. **Make private:** `Project-Cadence`, `-v2`, `-v3`, `-v4`, and `build-in-public`.
+   `build-in-public` is **PUBLIC while `CLAUDE.md` asserts it is private**; it exposes `founder-profile.md`,
+   `positioning.md` and unpublished drafts. No token leak (Buffer token reads from `process.env.BUFFER_TOKEN`).
+2. **Personal website field** must be `https://supaprod.ai`. An older draft recommended
+   `cadence-flow-beta.lovable.app`, which **returns 404** and carries the retired brand.
+3. **Two claims he must defend cold:** which ISRO programme/subsystem, and where the "200+ institutions /
+   70+ countries" figure is published.
+4. Retracted advice: do NOT pin the Cadence repos. A pinned private repo is invisible to visitors, so pinning
+   and privacy are mutually exclusive. Builder evidence rests on the **Paxel report** (already auto-attaching),
+   the live product, and the demo video.
 
-```bash
-ffmpeg -i IN.mov -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p \
-       -c:a copy -movflags +faststart OUT.mp4
-```
+---
 
-Result on the founder video: 168.3 MB -> 74.9 MB (55% cut), identical 1080x720 / 30fps /
-173.46s, audio bit-exact, full-file decode clean. **Budget against 100,000,000 DECIMAL bytes**
-(`ls -lh` shows MiB and reads ~8% smaller than the upload form does). If CRF 18 ever overshoots,
-fall back to two-pass at `(budget*8/duration - audio_bitrate)`. Working script:
-`scratchpad/compress.sh` pattern, reproduced above.
+## 5. 🚨 THE ORPHAN REMOTE — STILL UNRESOLVED, decide before any normal push
 
-### Founder video - `docs/pitch/yc/founder-video-script.md`
+`origin/main` has **no common ancestor** with local main. Local main is **4120 commits**; origin/main is the
+short orphan history Lovable re-committed. **Lovable deploys from origin/main**, which is why both bug fixes
+had to be applied there directly via a temporary worktree rather than pushed from local main.
 
-**v8.3 IS THE ONE TO SHOOT** (372 words, ~3:14 practised). It is the HYBRID: v7.2's pitch spine
-with eleven imports from the conversational register. Venue-neutral: no YC mention, no employer
-named, so it serves other investor applications too.
+- Real history is safe on **`origin/rescue/real-main-2026-07-27`**.
+- The orphan is backed up on **`origin/backup/orphan-main-2026-07-27`**.
+- Tonight's two code fixes exist **only on the orphan main**, not in local main's ancestry, and will need
+  carrying across whenever the histories are reconciled.
+- Tonight's doc commits (`483259c2`..`ad2ff15c` and the demo scripts) exist **only on local main**, and are
+  pushed to `origin/session/2026-07-28-demo-and-yc` for safety.
 
-The file is ordered newest-first: **v8.3 hybrid -> the coffee version -> v7.2 formal -> v7 tiers
--> v6 -> v5 -> v4 -> v3.1**, each with the reasoning, because the founder asked to see where it
-started and what worked. He practised v8.2 himself and got it to ~3:00.
+**Deliberately not force-pushed at 02:00** with the YC video just uploaded and Lovable deploying from that
+branch. This is a founder decision, and it wants a clear head.
 
-**PACE, four data points, and the finding that matters most: PRACTICE IS WORTH ~30 WPM TO HIM.**
-Cold he reads ~85 wpm on camera; practised he hit ~115 on v8.2 and is targeting 125.
-**Do not cut a script for him before he has rehearsed it twice** - v8.2 looked like 4:03 on my
-cold-rate arithmetic and he practised it to 3:00. I sized scripts wrong three times this session:
-first at 145 wpm (way too fast), then at 101, then at 85. Use 115 practised.
+---
 
-**Founder rulings from the script rounds, all binding:**
+## Next session, in order
 
-- No employer names, ever. "Space systems, then semiconductors, now banking" carries the arc.
-- **Layer two is NOT about code generation.** He rejected "agents write the code, open the pull
-  request, run the checks" as a positioning error, and he was right: that is what Cursor and Devin
-  do, and it invites "how is this different from Cursor". Layer two is the LOOP and that it
-  CLOSES: "Discovery, decide, design, build, ship. And then it grades what shipped. Every tool
-  I've used helps with one step. This runs all of them, and the loop actually closes."
-- **Layer two and layer three must not both land on "where we went wrong."** The relationship is a
-  handoff: layer two PRODUCES the grades, layer three REMEMBERS them and warns. Not a repeat.
-- **Layer three names "the company brain" out loud**, right after "the one I care about most".
-- **The pain must read as the profession's, not his.** v8.3 adds the explicit bridge: "And that's
-  not a me problem. That's the job. Every product manager I've ever worked with is answering it
-  the same way. Best guess, then defend the guess." Chose observation over a statistic on purpose:
-  a number invites a sourcing question and breaks the conversational register.
-- **Never say "reinforcement learning."** Say "it learns your taste". `one-pager.md:32` tags
-  "Outcomes move the ranking" [PROVEN], but the mechanism improves context, not weights.
-- **No VP in the pain beat.** It imported an org chart and made him read as disorganised. Beat 3
-  now universalises first ("Every product manager wakes up to that question"), then blames the
-  missing system ("There is no system that keeps it"), never the person. The word "I" does not
-  appear in the failure.
-- Commit counts, the eight-weeks proof block, and "It's live, public launch September" are CUT.
-- MBA is optional and says "an MBA in Germany", never a ranking (application §3d ruling).
-- "Company brain" is fine as the name of layer 03 (it is on the live site in `ThreeLayers.tsx`);
-  what to avoid is claiming it as the whole positioning.
-
-### Demo video - `docs/pitch/yc/video-scripts.md`
-
-11-step click-by-click walkthrough, verified live as `harbor@`. GO TO / DO / ON SCREEN / SAY /
-WHY / TRAPS per step. ~2:36.
-
-**Three safety laws:** navigate by URL only (key `1` = Approve and dispatch a real agent run, on
-camera, irreversibly) · frame every room shot from the Canvas leftward (the left rail shows
-`[auto] ... frequency 1, severity 5` with live Approve buttons) · record at 1920x1080 (at 1440
-the Spine clips and `07 Learn` falls off the edge).
-
-## What was repaired, and the root cause
-
-`supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql:110` has a
-hand-maintained `v_tables` array. It lists parents but **omits four child tables**:
-`studio_changes`, `prd_scaffolds`, `prototype_files`, `agent_run_checkpoints`. Every cloned demo
-workspace got headers with no bodies.
-
-Fixed in harbor (`60000000-`), both verified rendering live:
-
-- **05 Build**: inserted the 4 real `studio_changes` rows from the Helio source changeset. Now
-  reads `+17 -2 across 4 files` with real diffs and "Pull request #1 is open".
-- **04 Design**: clicked the product's own "Generate mockup" on
-  `/plan/spec/60000000-0001-4000-8000-000000000012`. Persisted a 7,163-char `prd_scaffolds` row.
-
-**DB access is `mcp__lovable__query_database` (project `371dd588-...`). The Supabase MCP returns
-Unauthorized.**
-
-## Traps that cost time this session
-
-1. **RTK summarises command output.** A per-file eslint run displayed "react-hooks/exhaustive-deps
-   (1)" while the real log had **22 prettier errors**. Read
-   `~/Library/Application Support/rtk/tee/*_lint.log` for the truth. RTK also rewrites `git diff`,
-   so piping it into `xargs git add` fails.
-2. **This handoff file gets wiped to 0 bytes by something** (THREE times today — again at the
-   18:09 close, recovered with `git show HEAD:.remember/remember.md > .remember/remember.md`).
-   Check `wc -c .remember/remember.md` before editing it, or a read-modify-write silently
-   destroys it. Always restore from HEAD first rather than writing over an empty file.
-
-## After the deadline (do NOT touch before it)
-
-1. **The permanent clone fix**: derive `v_tables` from the FK graph instead of hand-maintaining
-   it, so new child tables are copied automatically. Then re-clone all seven demo workspaces.
-2. **Migration timestamp collisions**: 9 duplicate version strings mean **10 migration files
-   silently never applied**, including `k2_rollbacks` (so `studio_rollbacks` does not exist in
-   production and the rollback button throws). The registry keys on the version string; first
-   file wins.
-3. **Two one-line UI bugs**: `EngineRoomDisclosure.tsx:131` hides the CI Refresh button behind the
-   state it exists to create. `StatusBadge` lacks `waiting_approval` and maps `halted` to red
-   FAILED.
-4. **64 pre-existing test failures** (8,945 pass / 9,188). NOT from the design pass:
-   route-namespace, SignalCard keyboard, CommandBar, 6 AskPanel SSE. All 134 assertions in the
-   four typography-asserting files are green.
-5. **`bun run lint` is unusable as a gate: 56,905 problems**, overwhelmingly `prettier/prettier`.
-   `prettier --check src` lists **191 unformatted files**. Pre-existing, proven twice: 81 of the
-   191 are outside any recent commit, and 8 of 8 sampled files were already unformatted at parent
-   `b2abf5c5`. `.output` IS correctly ignored by eslint; the repo has simply drifted from
-   prettier. Fix is `bun run format`, but that is a ~191-file diff and wants its own commit.
-6. **`rag_chunks` is empty for harbor.** The Ask still answers (it falls back to a structured
-   decision snapshot), but retrieval quality on a real customer workspace needs this.
-
-## Claim law
-
-"Supaprod is building Supaprod on its own" is **out of the founder video**. `one-pager.md:36`
-tags it `[WIRING]`, RPT-50 is partial, and there has never been a PR on the Supaprod repo. The
-filed Progress Update still contains the stronger claim; that is founder-decided, untouched.
-
-**Zero outside users exist on the database.** Nothing may imply usage.
-
-## Wave 1-2 cleanup, for the record
-
-21 scaffolding files removed, all created the same day by `3b9cdb22` / `a80a1f11`: 11 session
-status reports (root + `docs/design/`), `VERCEL_GEIST_DISSECTION.md` (canonical and deeper in
-`DESIGN-TEMPO.md` + `tempo-v5/tokens/` + 75 per-component specs), 7 e2e specs +
-`playwright.wave1-2.config.ts` (~307 assertions but **manual-only**: no e2e script in
-package.json, CI never invokes playwright, 160 of those assertions target the retired `/today`),
-plus a `.bak` and a scratch note.
-**Recovery: `git show 3b9cdb22:e2e/<name>.spec.ts`.**
+1. Founder decision on the orphan remote (section 5). Nothing else in git is safe to reason about until then.
+2. The four GitHub privacy changes + the personal-website URL (section 4).
+3. Optional: rehearse a real build run against `relay-homeowner-app` in a **scratch workspace, never harbor**,
+   so a halted mission never dirties the room used for recording.

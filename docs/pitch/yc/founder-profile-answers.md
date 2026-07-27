@@ -179,6 +179,12 @@ is contained. The strategy exposure is not.
 
 ## Do this
 
+> **✅ EXECUTED 2026-07-28** via authenticated GitHub API: all four Cadence repos AND `build-in-public` are now
+> private (verified: 46 public repos remain, every one a fork except **`Test-Project-Cadence`** — it carries the
+> retired brand name and should go private too unless there is a reason it must stay up; it was not in the
+> original ruling, so it is flagged rather than flipped). Box 3's "those repositories are private" line is now
+> literally true.
+
 1. **Make `Project-Cadence`, `Project-Cadence-v2`, `Project-Cadence-v3` and `Project-Cadence-v4` private.**
    Settings → General → Danger Zone → Change visibility. Box 3 no longer links them, so nothing breaks.
 2. **Make `build-in-public` private.** `CLAUDE.md` already asserts it *is* private, and it is not: it is
@@ -236,6 +242,12 @@ It belongs in the **company/application** section, in the company URL or the "an
 field. If there is a **Personal website** field under Basics, set it to `https://supaprod.ai` (verified HTTP
 200 on 2026-07-28). Do **not** use `cadence-flow-beta.lovable.app`, which an older internal draft recommended
 and which **returns 404** and carries the retired Cadence brand.
+
+> **✅ RESOLVED 2026-07-28.** The company URL field is locked (submitted unanswered), so the brief link rides
+> the one editable field partners read first: the **Progress Update "how far along" close** now ends with
+> "The full company brief stays current at https://supaprod.ai/brief: product, market, plan, and team on one
+> page." (`/brief` is canonical per the 2026-07-24 ruling; `/investors` serves the same page.) Exact paste
+> text: [`fall-2026-application.md`](./fall-2026-application.md), fifth column, Surface 1.
 
 ---
 

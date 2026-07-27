@@ -25,6 +25,12 @@ Application reviewers are the reason isolation is not optional. They log in **as
 
 Provisioned by `supabase/migrations/20260725120000_investor_demo_accounts.sql`; content cloned by `20260725140000_clone_helio_to_investor_workspaces.sql`. Both idempotent.
 
+### ⏳ The queues decay on their own — re-arm before every review window (found 2026-07-28)
+
+The seed gives each workspace **5 pending approvals whose `expires_at` sits only hours out**, so the queue rots with no one touching it: by 2026-07-28 every demo workspace (all seven Helio prefixes, master included) had decayed to **1 pending + 4 expired**, and even the surviving "pending" row was past its expiry. A partner logging in would have found a dead approval room — the exact failure this file exists to prevent, caused by time instead of a shared login.
+
+**Re-armed 2026-07-28:** undecided rows only (`status in (pending, expired)` and `decided_at is null`) reset to `pending` with `expires_at = now() + 60 days`; decision-history rows (approved / rejected / executed / failed) untouched, they are the record partners should see. Verified after: 5 live pending in all seven prefixes. **This holds until late September. Re-run the same reset before any interview window, and after any re-clone** — a fresh clone inherits the short expiries and starts decaying immediately.
+
 > [!IMPORTANT]
 > **Never give two firms the same login.** The demo's signature beat is approving a pending gate, and approving is a *write*. Two firms on one workspace means the second one opens an empty queue and sees a dead room. That is the entire reason these four exist rather than sharing `explore@`.
 
@@ -38,7 +44,7 @@ Provisioned by `supabase/migrations/20260725120000_investor_demo_accounts.sql`; 
 
 | # | Email | Password | Notes |
 | --- | --- | --- | --- |
-| 1 | `explore@supaprod.ai` | `Supaprod!Explore2026` | The founder's recording account. Admin on the shared Helio Labs. |
+| 1 | `explore@supaprod.ai` | `Supaprod!Explore2026` | **The login on the YC application form.** Owns its own isolated Helio Labs clone (`70000000-…`) since 2026-07-25. It was the founder's recording account; from 2026-07-28 rehearse and record on `harbor@` only, because explore@ is what YC holds. |
 | 2 | `ember@supaprod.ai` | `Supaprod!Ember2026` | Codename twin, also on the shared Helio Labs. |
 ### Retired: the `redcadence.app` logins (2026-07-25)
 
