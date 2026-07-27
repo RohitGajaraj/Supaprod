@@ -94,24 +94,52 @@ has a reason to watch the next two minutes: they have been promised a chain, and
 
 ## BEAT 2 — 01 Discover · 0:22 to 0:42
 
-**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=discover`
-**DO** Hold on the theme **"Checkout and notification friction in the homeowner app"**. Do not click into it.
+> ⚠️ **REWRITTEN 2026-07-27 after walking it live. The theme is NOT on this screen.** The earlier draft of
+> this beat said to hold on the theme with its severity and frequency. That view does not exist here. The
+> canvas header reads `01 Discover · Evidence` and it is a flat signal feed: no theme, no severity, no
+> frequency, and **the signal rows are not clickable** (they render as plain paragraphs, not buttons). The
+> founder hit exactly this and was right to. Shoot what is actually there, below.
 
-**ON SCREEN** The theme, severity 4, frequency 9. Underneath it the signals that built it.
+**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=discover`
+**DO** Two moves. **First** hold on the header and the source strip. **Then scroll down past the first five
+rows** (see the trap) until the checkout signals are in frame, slowly, about three seconds.
+
+**ON SCREEN** `01 Discover · Evidence` · **"25 signals in view, newest first."** · a source-count strip:
+`github 5 · analytics 3 · sales-call 3 · nps 3 · support 3 · slack 3 · interview 2 · app-store 2 ·
+churn-survey 1`. Further down, dated late June to early July, the checkout evidence:
+> `analytics · Jun 29` — **"Funnel: 34 percent drop at the checkout confirmation step"**
+> `nps · Jul 3` — **"NPS 3, detractor: it asked me my address twice"**
+> `slack · Jun 24` — **"Slack #relay-eng: everyone assumes the payment step"**
+> `interview · Jul 8` — "Interview: checkout felt like it did not trust the address on file"
+> `support · Jun 30` — "Support ticket, homeowner stuck at checkout"
 
 **SAY**
-> "It starts here, and she did not do this part. Eighteen pieces of evidence, from eight different places:
-> support tickets, App Store reviews, NPS, sales calls, two interviews, a funnel report. One of them says the
-> funnel drops thirty-four percent at the checkout confirmation step. One is an NPS detractor whose entire
-> comment is: it asked me my address twice. None of those is conclusive on its own. Together they are a theme,
+> "It starts here, and she did not do this part. Twenty-five pieces of evidence, pulled from nine different
+> places: support tickets, App Store reviews, NPS, sales calls, interviews, Slack, a funnel report. Look at
+> what is in there. The funnel drops thirty-four percent at the checkout confirmation step. An NPS detractor
+> whose whole comment is: it asked me my address twice. And engineering in Slack, saying everyone assumes the
+> payment step. None of those is conclusive on its own. Together they are the thing she has to make a call on,
 > and it was waiting for her on Monday."
 
-**WHY** This is the root of the tree, and naming the count and the sources is what makes the rest credible.
-Every later beat traces back to this one frame.
+**WHY** The source strip is the credibility: nine named sources on screen at once, with counts. Then the three
+quoted lines are the setup for everything that follows. The funnel number reappears in the spec's assumption
+in Beat 4, and the address complaint literally becomes a database column in Beat 5. This frame is what makes
+those payoffs land.
 
-**TRAPS** Do **not** say "overnight" — the freshness stamp reads `33D AGO`. Say "it was waiting on Monday".
-Do not claim per-line agent bylines; none exist. Do not open the standalone `/discover` route, which swaps the
-whole app chrome.
+**TRAPS**
+- ⚠️ **The top five rows are off-story.** They are `github`-sourced, dated Jul 25, and belong to other
+  products: "PRD — Smart Off-Hours Routing", "Slow first-response on Tier-1 tickets", "Smart routing for
+  off-hours Tier-1", "PRD — Escalation Policy Engine", "Bank-link drop-off at activation". The feed is
+  newest-first, so they sit at the top of the frame. **Do not linger there and do not read them.** Start the
+  scroll almost immediately, or frame so the scroll begins at `analytics · Jul 21`.
+- **The signals are not clickable.** Do not try to open one on camera; nothing happens.
+- **Do not say "eighteen signals."** The screen says **25**. Eighteen is how many belong to this theme in the
+  database, and that number appears nowhere on this surface.
+- Do **not** say "overnight" — the freshness stamp reads `33D AGO`. Say "it was waiting on Monday".
+- Do not claim per-line agent bylines; none exist.
+- **Do not open the standalone `/discover` route.** It swaps the whole app chrome, and as of tonight it also
+  crashed on every cold load (React #310 in `SignalFeed`; fixed and pushed 2026-07-27, but verify before ever
+  putting it on camera).
 
 ---
 
