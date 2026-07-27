@@ -92,8 +92,9 @@ Most of what I have built shipped inside companies, where the product goes live
 but the repository is not mine to show. The largest is the AI platform at
 Intellect that 200+ financial institutions across 70+ countries use to build
 their own AI products. I own the product, not the code, and it runs in regulated
-banking production. Before that, communication and hardware systems at ISRO,
-Infineon and Bosch.
+banking production. Before it, semiconductors at Infineon in Munich, and before
+that the satellite communication systems I started out on at India's national
+space agency.
 
 The one I took end to end myself was outside software: one of the first attempts
 to bring bubble tea to the Indian market, from recipe formulation and unit
@@ -103,6 +104,25 @@ Before the version of Supaprod that stands today, I built and threw away four
 complete working versions of it. Those repositories are private because they
 carry the current architecture, and I am glad to walk any of them with you.
 ```
+
+**On naming the domains (founder ruling 2026-07-28).** The earlier draft said "communication and hardware
+systems at ISRO, Infineon and Bosch", which flattened two domains that carry real weight right now. Naming
+them is not embellishment: it is exactly what the investor deck already says, verbatim, in its own experience
+rows.
+
+| Company | The deck's own wording | Used here as |
+| --- | --- | --- |
+| Infineon | "Product manager at a leading global **semiconductor** company. Munich, Germany" | "semiconductors at Infineon in Munich" |
+| ISRO | "Associate product manager, **communication systems**, at India's national space agency" | "the satellite communication systems I started out on at India's national space agency" |
+
+**Bosch is dropped, deliberately.** It appears nowhere in the investor deck, and no role, domain or dates for
+it exist anywhere in the repo. A three-stop arc that a partner can verify beats a four-stop arc with one stop
+you cannot describe. **If you want Bosch back in, tell me the role and the domain and I will place it.**
+
+**"India's national space agency" rather than "ISRO" a second time** is deliberate too: box 2 already spends
+the word ISRO, and repeating a proper noun across adjacent boxes is what makes an application read as padded.
+Same weight, no echo. Munich earns its place because it is the only line that shows you have operated outside
+India.
 
 **Why this shape works without URLs.**
 
