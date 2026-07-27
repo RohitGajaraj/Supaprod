@@ -35,6 +35,13 @@ fixed; a short list of paste actions waits on the founder. All exact paste text 
    company brief stays current at https://supaprod.ai/brief: product, market, plan, and team on one page.").
    **FOUNDER RULING 2026-07-28: launch is month-only, never a week or date** (supersedes "second week of
    September" in every editable field).
+   **ALSO: the self-build sentence is rewritten** (founder challenged "Supaprod is building Supaprod on its
+   own" as overclaim; he was right — engine PRs live on the test repo, grading ran on seeded content). New
+   sentence: user zero, roadmap in the product, real code + real PRs behind the human merge gate, every call
+   on the record. The same overclaim survives in README.md, the preserved telling, and the founder-video
+   script — honesty-pass them before reuse (especially the video re-record). Lesson learned the hard way:
+   **final checks must audit each ratified sentence against live wiring, not just the form against the sheet.**
+   "Seven weeks" ages out 2026-07-31; every pasted duration is a snapshot (rule now in the paste checklist).
 2. **"When version people can use"**: full replacement block (month-only; also fixes the live form's "Early
    version is" and "users feedback" grammar slips).
 3. **"How long working"**: clean the "about ~4,000+ commits" mishmash to "4,000+ commits".

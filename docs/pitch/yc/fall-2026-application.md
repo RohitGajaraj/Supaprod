@@ -97,10 +97,10 @@ nights and weekends on a prototype, then seven weeks of building it for
 real, 4,000+ commits and counting. In that time it went from an early
 spine to running end to end. It
 is almost there, not finished; I am shaping the last stretch with users,
-not assumptions. The strongest proof of progress: Supaprod is building
-Supaprod on its own. It plans its roadmap, its agents write the code
-behind a merge gate no agent can cross, and it grades what actually
-shipped.
+not assumptions. The strongest proof of progress: I am user zero.
+Supaprod's roadmap runs inside Supaprod, its agents write real code and
+open real pull requests behind a merge gate no agent can cross, and
+every call along the way is on the record with its evidence.
 
 Where I stand today: the beta is live, and building and listening run in
 parallel. I talk to users constantly and their feedback goes straight
@@ -113,7 +113,7 @@ The full company brief stays current at https://supaprod.ai/brief:
 product, market, plan, and team on one page.
 ```
 
-_(2026-07-28, two changes. **Launch phrasing** is now "in September", month only — founder ruling 2026-07-28: no week or date named anywhere, so a moving day inside September never contradicts the form. **The brief pointer** is the investor-spotlight the founder asked for: partners get one door to the full positioning (the deck at `/brief` carries the door-body-brain telling the locked fields cannot). `/brief` is the canonical URL per the 2026-07-24 ruling; `/investors` serves the same page for anyone who types it. Verified 2026-07-28: both return 200, the deck has zero YC mentions and no stale dates.)_
+_(2026-07-28, three changes. **Launch phrasing** is now "in September", month only — founder ruling 2026-07-28: no week or date named anywhere, so a moving day inside September never contradicts the form. **The brief pointer** is the investor-spotlight the founder asked for: partners get one door to the full positioning (the deck at `/brief` carries the door-body-brain telling the locked fields cannot). `/brief` is the canonical URL per the 2026-07-24 ruling; `/investors` serves the same page for anyone who types it. Verified 2026-07-28: both return 200, the deck has zero YC mentions and no stale dates. **The self-build claim is rewritten to match the wiring** — the founder challenged "Supaprod is building Supaprod on its own" and he was right: the engine's real PRs live on the test repo, 10 of 176 missions completed, and outcome grading has run almost entirely on seeded content, while the Team Update tells YC plainly that Claude Code, Codex and Kimi write the code. The claim-never-outruns-wiring law applies to pasted copy above all. The new sentence claims exactly what is true and survives the "show me" probe: user zero, roadmap in the product, real code and real PRs behind the human merge gate, every call on the record. The same overclaim still lives in the preserved what-it-does telling below, `README.md`, and the founder-video script — apply the same honesty pass wherever that telling is reused, especially before the video re-record.)_
 
 _[FOUNDER slot: if real user conversations or beta users exist by paste day, add one sentence with the true count. Never a padded one — the customer-evidence rule (memo §8) stays binding.]_
 
@@ -254,6 +254,7 @@ Re-record per [`video-scripts.md`](./video-scripts.md) Part 2 (~2:10). The old v
 
 1. Incognito: log in `explore@supaprod.ai` on supaprod.ai; land on a populated Today view. Fail → use fallback creds, fix after.
 2. Numbers stay OUT of the pasted copy (founder ruling 2026-07-23) except the commit count, which appears in BOTH "how far along" and "how long" as "4,000+ commits" — settled 2026-07-28, the repo reads 4,119, so "4,000+" is literal truth in both places (the "about" hedge is retired). Counters and register numbers live on the interview card ([`interview-prep.md`](./interview-prep.md) §2); re-pull them before any interview window.
+   **The weeks count ages too:** "seven weeks" appears in BOTH fields and anchors to the 2026-06-03 first commit — true through 2026-07-31, then it undercounts. On any later update, restate the true count ("eight weeks" from Aug 1, and so on), or expect a partner reading in late August to see a number three weeks stale. Every duration in pasted copy is a snapshot; re-pull it the day you paste, same as the commit count.
 3. Paste the Progress Update fields; set the radio truthfully; save.
 4. Paste the Team Update; save.
 5. Read each pasted field aloud once (AI-cadence check); the banned-words list at the bottom of this file still governs; no em dashes in anything pasted.
