@@ -1,6 +1,6 @@
 # The founder video — the operative script
 
-> _Living file. **v7.2 (2026-07-27) is THE SHOOTING SCRIPT. Read only the next two sections.** v3.1 and v2 are preserved below so
+> _Living file. **v8 (2026-07-27) is the HYBRID and the one to shoot. v7.2 kept below as the formal cut. Read only the next two sections.** v3.1 and v2 are preserved below so
 > the progression is legible. Delivery craft, the accepted-video corpus, the practice hour, the fumble rule
 > and the pre-upload checks all live in [`founder-video-script-detailed.md`](./founder-video-script-detailed.md)
 > and are deliberately not repeated here._
@@ -98,7 +98,125 @@ the casual version ends on "that's it, really" and lets the personal line do the
 
 ---
 
-# THE SHOOTING SCRIPT — v7.2
+---
+
+# THE HYBRID — v8 (pitch structure, real voice)
+
+**331 words · ~3:53 at your recorded pace (85 wpm) · ~2:41 at your reading pace.**
+
+This is v7.2's spine with the coffee version's texture grafted on. It is not the casual version:
+it keeps every load-bearing line, the three-part enumeration, and the close. What it borrows is
+contractions, two direct questions to the listener, three concrete details, and one moment of
+personal investment.
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat ·
+**bold** = the one word you punch · `(down)` = voice drops.
+
+> Hi, / I'm **Rohit**, / and I'm building **Supaprod**. //
+>
+> It's for product managers who ship with **agents**. //
+>
+> Because if the agents are doing the work, / somebody still has to make the **calls**. /
+> And answer for them afterwards. / That's the part nobody's **built**. ///
+>
+> I've been in product for about ten years. /
+> Started in **space systems**, / then **semiconductors**, / now **banking**. //
+>
+> Completely different worlds, / right? //
+>
+> But honestly, / the job was the same every single morning. /
+> You sit down and it's just: / **what do we build next?** ///
+>
+> And nobody's really good at answering that. /
+> Not because people are bad at their **jobs**. //
+>
+> It's that every reason you ever had is **scattered**. /
+> A Slack thread somewhere. / A call nobody recorded. //
+>
+> So someone asks why you shipped that thing back in March, /
+> and you know there was a good reason. / You just can't **find** it. //
+>
+> There's no **system** that keeps any of it. ///
+>
+> And then AI made that even sharper. //
+>
+> Building software used to be the **hard** part. / Now you point agents at it, /
+> and it's done in **minutes**. //
+>
+> So the only hard thing **left** / is knowing what to build. /
+> And then knowing whether you were **right**. ///
+>
+> So Supaprod does **three** things. ///
+>
+> **First**, / it tells you what to **build**. /
+> It reads your users, / your product data, / your market, /
+> and comes back with an actual call / and the **evidence** behind it. /
+> Not a summary. / Something you can **argue** with. //
+>
+> **Second**, / it runs the whole thing end to end. / Discovery, / design, / build, / ship. /
+> And then it **grades** what shipped. / Did that actually work? / Where were we **wrong**? //
+>
+> **Third**, / and this is the one I care about **most**. / Everything gets remembered. /
+> Every decision, / every outcome, / in one place. / So it learns your **taste**. /
+> And next time you're about to repeat something you already got wrong, /
+> it tells you **before** you do it. ///
+>
+> That's it, really. //
+>
+> The agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) I always wanted this to **exist**. / And now I get to **build** it.
+
+## What I imported from the coffee version, and why each one earns its place
+
+| Line | What it buys |
+| --- | --- |
+| "Because if the agents are doing the work, somebody still has to make the calls" | Turns a claim into a **logical consequence**. The listener arrives at the need themselves instead of being told. |
+| "That's the part nobody's built." | Positions the whole company in five words. |
+| "Completely different worlds, right?" | The only direct address in the script. One "right?" reads as talking; three would read as a tic. |
+| **"Not because people are bad at their jobs."** | The most valuable import. It is the anti-projection line, and it is warm rather than defensive. |
+| "A Slack thread somewhere. A call nobody recorded." | Concrete beats abstract. "Scattered" is a word; a Slack thread is a picture. |
+| "back in March" | A named month makes an invented example feel remembered. |
+| "You just can't find it." | Contraction plus second person. Formal register would say "one cannot locate it." |
+| "Not a summary. Something you can argue with." | Pre-empts the "so it's a dashboard?" objection before anyone forms it. |
+| "Did that actually work? Where were we wrong?" | Two questions in the middle of a product description keep it from becoming a feature list. |
+| **"and this is the one I care about most"** | The only place your own investment shows. In a founder video that is worth more than a feature. |
+| "That's it, really." | Lands the summary before the slogan, so the slogan arrives as a conclusion rather than a tagline. |
+
+## What I deliberately did NOT import
+
+- **"basically", "like", "the thing is"** as fillers. One or two read as natural; a scatter reads
+  as unprepared. The contractions do that job more cheaply.
+- **"I've been a PM for about ten years"** stayed as "in product", because "PM" is insider
+  shorthand and some investors will not parse it instantly.
+- **The coffee ending "that's it, really" as the FINAL line.** It is now the setup for the slogan
+  rather than the close. A recorded video should end on the strongest sentence you own.
+
+## The honest arithmetic
+
+You recorded v7.2 (254 words) at close to 3:00, which is **~85 wpm on camera** - well below the
+123 you hit reading at a desk. That is normal: performing with real pauses is slower than
+reading. Your working conversion is **words x 0.7 = seconds**.
+
+| Version | Words | On camera (85) | Reading (123) |
+| --- | --- | --- | --- |
+| v7.2 formal | 254 | ~3:00 (measured) | ~2:03 |
+| **v8 hybrid** | **331** | **~3:53** | ~2:41 |
+| coffee | ~430 | ~5:00 | ~3:30 |
+
+**Warmth costs words. There is no version that is both fully conversational and under two
+minutes.** If you want v8 at roughly the runtime you just recorded, cut the three lowest-value
+imports: "back in March" (3), "Completely different worlds, right?" (5), and "That's it, really."
+(3), plus Beat 5's "your product data, your market" (5). That is 16 words, about eleven seconds,
+and the register survives because the load-bearing imports stay.
+
+**If you want under 2:00 on camera you need ~170 words**, which is less than v7.2 and would mean
+dropping one of the three layers. I would not. Pick the runtime you can defend and shoot the
+version you can say naturally.
+
+---
+
+# PREVIOUS — v7.2, the formal cut (254 words)
 
 **254 words · ~2:03 at your practised pace · one version, nothing to decide while filming.**
 
