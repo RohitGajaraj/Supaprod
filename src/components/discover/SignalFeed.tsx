@@ -256,6 +256,23 @@ export function SignalFeed() {
     [confirm, del],
   );
 
+  // Declared BEFORE the loading/error early returns: hooks after a conditional
+  // return violate the Rules of Hooks and crash with React #310, "Rendered more
+  // hooks than during the previous render", on any cold mount that starts in
+  // the loading state. The loading branch ran fewer hooks than the loaded one,
+  // so the first render with data blew up and took the whole /discover route
+  // down with it. Same fix AutoClustered took on 2026-07-19; this component was
+  // missed then and regressed the route (caught 2026-07-27 rehearsing the demo).
+  const rows = signals.data?.signals ?? [];
+  const thisWeekCount = useMemo(() => {
+    const weekAgo = Date.now() - WEEK_MS;
+    return rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
+  }, [rows]);
+  const unclusteredCount = useMemo(() => {
+    const themeIds = new Set(themeById.keys());
+    return rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
+  }, [rows, themeById]);
+
   if (signals.isLoading) {
     return (
       <PanelShell>
@@ -282,17 +299,6 @@ export function SignalFeed() {
       </div>
     );
   }
-
-  const rows = signals.data?.signals ?? [];
-  // Memoize derived counts to avoid recalculating filters every render
-  const thisWeekCount = useMemo(() => {
-    const weekAgo = Date.now() - WEEK_MS;
-    return rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
-  }, [rows]);
-  const unclusteredCount = useMemo(() => {
-    const themeIds = new Set(themeById.keys());
-    return rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
-  }, [rows, themeById]);
 
   const openSignal = openSignalId ? rows.find((s) => s.id === openSignalId) : undefined;
   const openRecord: SignalRecord | null = openSignal
