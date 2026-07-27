@@ -20,9 +20,41 @@ misbehave until a human decides the fix.**
 - **The old objects are still on GitHub**: `origin/archive/final-sweep-2026-07-18` (`b8266a6a`)
   and `origin/keep/rescued-pieces` (`bbd83680`) still match local exactly.
 
-**Protective step already taken (additive, destroys nothing):** local branch
-**`backup/remote-orphan-main-2026-07-27`** now pins `7eb93a93`, so the remote's 6 commits cannot
-be lost to GC no matter what happens next.
+### STATUS at 18:20: repair is DONE except the final force-push, which is PENDING.
+
+Both histories are now safely **on GitHub**, so nothing can be lost:
+
+| remote branch | holds |
+|---|---|
+| `origin/rescue/real-main-2026-07-27` | the real history, 4103 commits, = local main before the recovery commit |
+| `origin/backup/orphan-main-2026-07-27` | the 6-commit orphan (`7eb93a93`) |
+
+**Recovered already:** commit `d7f23556` lifts the clean orphan commit `0e5c6902` (Geist Pixel
+brand moments on Settings + Plan Spec Detail, `DESIGN-TEMPO.md` sections 3 and 8). Verified local
+lacked it, applied cleanly, `tsc --noEmit` passes.
+
+**THE ONE REMAINING STEP** (denied in-session; run it yourself):
+
+```bash
+git push --force-with-lease=main:7eb93a93 origin main:main
+```
+
+That restores the true history to `origin/main`. The `--force-with-lease` guard means it aborts
+if the remote moved since, so it is safe to run. Verify after with
+`git rev-list --count origin/main` (expect 4104+).
+
+**DELIBERATELY NOT LIFTED - needs a reviewed pass:** the orphan's build-screen typography work
+(`src/routes/_authenticated.build.index.tsx`). It contains genuine wins (18 raw `fontSize:`
+values converted to Tempo text classes, spacing snapped to the 4px grid) BUT also a real
+regression: it swaps semantic role tokens for raw scale values, `--surface-card` ->
+`--ds-gray-100` and BOTH `--surface-raised` AND `--surface-hover` -> `--ds-gray-200`. That
+collapses two distinct roles into one and breaks the generated light theme, against the Tempo
+role model. Recover the good half by hand from
+`git show backup/orphan-main-2026-07-27:src/routes/_authenticated.build.index.tsx`.
+
+Also left behind on that branch (root-level docs, and they violate the file-placement policy in
+`docs/README.md`, so place them properly if wanted): `MANDATE-COMPLETION-ROADMAP.md`,
+`SESSION-2026-07-27-AUTONOMOUS-BUILD-SUMMARY.md`, plus 3 audit docs from `76c35c3a`.
 
 **The 6 remote-only commits are mostly noise; the real work in them is small:**
 
