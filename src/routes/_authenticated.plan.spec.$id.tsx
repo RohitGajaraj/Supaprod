@@ -561,7 +561,9 @@ function SpecEditorPage() {
           ) : null}
         </div>
 
-        {/* Title (h1 of the surface) + the thread's maker's mark */}
+        {/* Title (h1 of the surface) + the thread's maker's mark
+            The one Geist Pixel moment on this screen (DESIGN-TEMPO.md §3/§8):
+            the spec title, the hero moment, never more than once per surface. */}
         <div style={{ marginBottom: 24 }}>
           <input
             value={title}
@@ -570,8 +572,8 @@ function SpecEditorPage() {
             style={{
               width: "100%",
               background: "transparent",
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-h1)",
+              fontFamily: "var(--font-pixel)",
+              fontSize: 18,
               fontWeight: 440,
               letterSpacing: "-0.015em",
               lineHeight: 1.15,

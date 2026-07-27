@@ -470,7 +470,15 @@ function SettingsPage() {
                 className="rounded-xl border p-5"
                 style={{ borderColor: "var(--border)", background: "var(--surface)" }}
               >
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
+                {/* The one Geist Pixel moment on Settings (DESIGN-TEMPO.md §3/§8):
+                    the Memory brand moment, never more than once per surface. */}
+                <h2
+                  style={{
+                    fontFamily: "var(--font-pixel)",
+                    fontSize: 18,
+                    color: "var(--text-primary)",
+                  }}
+                >
                   Memory lives in Brain
                 </h2>
                 <p
