@@ -33,10 +33,20 @@ Both histories are now safely **on GitHub**, so nothing can be lost:
 
 - `d7f23556` lifts the clean orphan commit `0e5c6902`: Geist Pixel brand moments on Settings +
   Plan Spec Detail, per `DESIGN-TEMPO.md` sections 3 and 8. Local lacked it, applied cleanly.
-- `65b4e964` lifts **106 passing tests** that existed nowhere in the real trunk:
-  `guardrails.functions.test.ts`, `workspaces.functions.test.ts`,
-  `mission/journey-wiring.test.ts`. Verified before landing: imports all resolve, **106 pass /
-  0 fail** under `bun test`, `scripts/check-test-runner.sh` clean, `tsc --noEmit` clean.
+- lifts **86 passing tests** that existed nowhere in the real trunk:
+  `src/lib/guardrails.functions.test.ts` (44) and `src/lib/workspaces.functions.test.ts` (42).
+  Verified: imports resolve, `check-test-runner.sh` clean, `tsc --noEmit` clean, and the full
+  suite is **unchanged at 64 fail** before and after (9188 -> 9274 tests, zero new failures).
+
+**REJECTED from that same set - `src/components/mission/journey-wiring.test.ts`.** It passes in
+isolation (20 tests) but **breaks 35 OTHER tests** when the full suite runs: 17 in
+`src/lib/__tests__/journeys.test.ts` and 8 in `src/components/mission/__tests__/Spine.test.tsx`,
+the exact two modules it imports. It leaks module mocks across files under `bun test`. Measured
+both ways: suite is 64 fail without it, **99 fail with it**. Do not re-add it without fixing the
+mock isolation first. It is preserved on `backup/orphan-main-2026-07-27`.
+
+**Standing lesson: a test file passing in isolation proves nothing about the suite.** Always
+measure total failures before and after, not just the new file.
 
 **Everything else in the orphan's 79 extra files was checked and is genuinely disposable:** 20
 were deliberately deleted by your own `b94fea4e` Wave 1-2 cleanup, ~30 are `.bak` files, 8 are
