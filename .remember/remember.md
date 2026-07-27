@@ -29,9 +29,19 @@ Both histories are now safely **on GitHub**, so nothing can be lost:
 | `origin/rescue/real-main-2026-07-27` | the real history, 4103 commits, = local main before the recovery commit |
 | `origin/backup/orphan-main-2026-07-27` | the 6-commit orphan (`7eb93a93`) |
 
-**Recovered already:** commit `d7f23556` lifts the clean orphan commit `0e5c6902` (Geist Pixel
-brand moments on Settings + Plan Spec Detail, `DESIGN-TEMPO.md` sections 3 and 8). Verified local
-lacked it, applied cleanly, `tsc --noEmit` passes.
+**Recovered already, two commits:**
+
+- `d7f23556` lifts the clean orphan commit `0e5c6902`: Geist Pixel brand moments on Settings +
+  Plan Spec Detail, per `DESIGN-TEMPO.md` sections 3 and 8. Local lacked it, applied cleanly.
+- `65b4e964` lifts **106 passing tests** that existed nowhere in the real trunk:
+  `guardrails.functions.test.ts`, `workspaces.functions.test.ts`,
+  `mission/journey-wiring.test.ts`. Verified before landing: imports all resolve, **106 pass /
+  0 fail** under `bun test`, `scripts/check-test-runner.sh` clean, `tsc --noEmit` clean.
+
+**Everything else in the orphan's 79 extra files was checked and is genuinely disposable:** 20
+were deliberately deleted by your own `b94fea4e` Wave 1-2 cleanup, ~30 are `.bak` files, 8 are
+the manual-only e2e specs you removed, ~15 are root-level session summaries that violate the
+file-placement policy, and 2 are breakage debris (`.git.broken`, `.git-staging-note.txt`).
 
 **THE ONE REMAINING STEP** (denied in-session; run it yourself):
 
@@ -42,6 +52,13 @@ git push --force-with-lease=main:7eb93a93 origin main:main
 That restores the true history to `origin/main`. The `--force-with-lease` guard means it aborts
 if the remote moved since, so it is safe to run. Verify after with
 `git rev-list --count origin/main` (expect 4104+).
+
+**ALSO NOT LIFTED: `scripts/verify-tempo-compliance.sh`.** It flags `--surface-card` /
+`--surface-raised` / `--surface-hover` as "legacy tokens" to migrate to raw `--ds-gray-*`. That
+is backwards, and `src/styles.css:3460-3463` proves it: `--surface-card: var(--ds-gray-100)` and
+BOTH `--surface-raised` and `--surface-hover` resolve to `var(--ds-gray-200)`. The roles are the
+API; the scale is the implementation. Adopting that check would weld raised and hover together
+permanently. It would also fail on run (`eslint --max-warnings 0` against 56,905 problems).
 
 **DELIBERATELY NOT LIFTED - needs a reviewed pass:** the orphan's build-screen typography work
 (`src/routes/_authenticated.build.index.tsx`). It contains genuine wins (18 raw `fontSize:`
