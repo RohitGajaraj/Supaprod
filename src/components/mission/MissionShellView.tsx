@@ -226,6 +226,30 @@ export function MissionShellView({
   canvas,
   className,
 }: MissionShellViewProps) {
+  // THE ANSWER HAS TO BE VISIBLE (caught live 2026-07-27, rehearsing the demo).
+  // The Thread rail appends the conversation BELOW the briefing and every
+  // inline gate, so in a seeded room the new exchange landed ~1300px down a
+  // rail whose scrollTop never moved (measured: scrollHeight 2190, clientHeight
+  // 809, scrollTop 0). The composer cleared on send and the answer streamed
+  // off-screen, which reads exactly like "I typed, it vanished, nothing
+  // happened". Pull the newest message into view when one arrives, and keep it
+  // pinned while the answer streams - but only while the reader is already near
+  // the bottom, so scrolling up to re-read never fights the stream.
+  const threadScrollRef = useRef<HTMLDivElement>(null);
+  const messageCount = thread.messages.length;
+  useEffect(() => {
+    const el = threadScrollRef.current;
+    if (!el || messageCount === 0) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messageCount]);
+  // No dep array on purpose: streaming re-renders per frame, and this is what
+  // keeps the growing answer in view across those frames.
+  useEffect(() => {
+    const el = threadScrollRef.current;
+    if (!el || !thread.streaming) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (distanceFromBottom < 240) el.scrollTop = el.scrollHeight;
+  });
   return (
     <div
       className={cn("flex h-dvh flex-col", className)}
@@ -354,7 +378,7 @@ export function MissionShellView({
           className="flex min-h-0 flex-col border-r"
           style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-bg)" }}
         >
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+          <div ref={threadScrollRef} className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
             <Thread {...thread} />
             {journeyHandoff ? (
               <div

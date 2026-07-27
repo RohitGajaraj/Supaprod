@@ -1,9 +1,9 @@
 # The demo video — the click-by-click walkthrough
 
-> **STATUS 2026-07-26 15:05 IST. Rewritten to the seven-stage order and verified live on supaprod.ai as
-> `harbor@`.** Every URL, every string and every button below was read off the running site today, not from
-> code. Two beats that were cut this morning are back, because the cause turned out to be repairable data
-> rather than missing product.
+> **STATUS 2026-07-27 20:55 IST. RE-VERIFIED against the live database before the shoot. Two beats are cut.**
+> The 2026-07-26 version below was verified by eye on the running site; today every beat was re-checked by
+> querying production directly (as `harbor@` through RLS, and again with service-role to see the source
+> workspace). **Nine of the eleven steps are confirmed good. Steps 6 and 11 do not survive.** Shoot the nine.
 >
 > **The founder video lives in [`founder-video-script.md`](./founder-video-script.md).** This file is only the
 > demo video. Part 1 of the old version of this file is superseded by that one.
@@ -12,16 +12,21 @@
 > demo-story wins. This file wins on what is ON SCREEN, because it is the only one written against the app as
 > it renders today.
 
-## What changed today, so you know what you are looking at
+## What the database says today, so you know what you are looking at
 
-Both the Build and the Design beats were broken by **one line**: the 2026-07-25 clone migration
-(`20260725140000_...:110`) copies parent tables but omits four child tables. Harbor got a changeset with no
-file diffs and a prototype with no HTML. Both are now repaired:
+The 2026-07-25 clone migration (`20260725140000_...:110`) copies parent tables but omits their children:
+`studio_changes` and `prototype_files` are both absent from its `v_tables` array. That one omission is why
+Build and Design both broke. Only one of the two was really repaired.
 
-| | Before today | Now |
+| Beat | Verified 2026-07-27 | Verdict |
 | --- | --- | --- |
-| **04 Design** | A white void inside a full device frame | A real generated screen, shaped by the workspace's own six approved design decisions |
-| **05 Build** | Empty changeset, no files | `+17 −2 across 4 files`, four real paths with real diffs, PR #1 open |
+| **05 Build** | 4 rows in `studio_changes` with real `base_content`/`new_content`, changeset `status='pr_open'`, `pr_number=1`, repo `RohitGajaraj/relay-homeowner-app` | ✅ **SHOOT IT** |
+| **04 Design** | `prototype_files` = **0 rows** — not just in harbor, in *every* Helio-derived workspace including the `helio-labs` source. Nothing to clone from. | ❌ **CUT** |
+| **Gates badge** | Gates = pending `agent_approvals` (1) + pending `assumption_challenges` (0). Badge reads **1**, not 2. | ⚠️ **do not say "two"** |
+| **The close (11)** | `memory_candidates` render with `filterBucket:"memory"` and chip `MEMORY` — the **Memory** tab, not Gates. No row anywhere matches the scripted `GATE · MEASURE` text. | ❌ **REWRITTEN — see Step 11** |
+
+Everything the narration counts on is confirmed: `decisions=23`, `signals=25`, `meetings=6`, `learnings=5`,
+`deployments=4`, and harbor holds **4,790 credits**, so rehearsals and the Ask are safe.
 
 ---
 
@@ -90,9 +95,13 @@ the Canvas across. Those three seconds are the most damaging in the app if they 
 
 ---
 
-# PART C — the eleven steps
+# PART C — the nine steps you are shooting
 
-Total runtime about **2:36**. Ceiling is 3:00.
+**Steps 6 and 11-as-written are cut.** Nine beats survive: 1, 2, 3, 4, 5, 7, 8, 9, 10, plus the rewritten
+close. Total runtime about **2:30**. Ceiling is 3:00.
+
+Cutting Step 6 pulls every later timestamp about six seconds earlier. Do not chase the old clock — the
+timings below are the pre-cut ones and are there for pacing, not for hitting marks.
 
 ---
 
@@ -210,28 +219,23 @@ break.
 
 ---
 
-## STEP 6 — 04 Design, three seconds · 1:22 to 1:28
+## STEP 6 — 04 Design · ❌ CUT, DO NOT SHOOT
 
-**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=design`
-**DO** One frame. **No clicks at all.**
+**Do not open `?stage=design` on camera.**
 
-**ON SCREEN** A real generated screen painting inside the device frame.
+`prototype_files` holds **zero rows for every Helio-derived workspace**, including the `helio-labs` source the
+others are cloned from. The only prototype with real content anywhere in production belongs to a different
+workspace and a different product story (`explore-9e7958c5`, "Bank-link drop-off at activation"). There is
+nothing to clone and nothing to show: the device frame paints the white void again.
 
-**SAY**
-> "The spec goes to design first, and what comes back is shaped by decisions this company already made."
+**Do not hand-author HTML into `prototype_files` to rescue this beat.** The narration for it was *"what comes
+back is shaped by decisions this company already made"* — over an artifact you typed, that sentence is a
+false claim to an investor. If you want this beat back, generate a prototype through the product as `harbor@`
+so the screen is genuinely the product's output, then re-time the cut. That is a separate sitting, not a
+pre-roll fix.
 
-**WHY** You asked for something real and interactive here, and this is it. The mockup was generated by the
-product this morning, and the prompt is bound to the workspace's six approved standing design decisions,
-including one learned from this exact checkout bet: *"A confirmation step earns its place only when the action
-is costly or hard to undo."* That is the memory steering the design, which is the thing no competitor can film.
-
-**TRAPS** This is the most trap-dense frame in the video.
-- **Never click "Open full-screen"** — the share page renders a full-page *"Unavailable. This page is private
-  or not found."*
-- **Never click the Loading / Empty / Error state tabs** — they replace the real mockup with hardcoded stubs.
-- **Do not point at** the `v1–v4` version trail, `CLICKABLE PATHS · 3`, `INTERACTIVE · V4`, or
-  `Prototype ready Jul 20. 1 screen, 4 states, 3 clickable paths`. All hardcoded literals that will not match
-  what is in the frame.
+**Cost of cutting it:** six seconds and one sentence. The design story survives in the Build beat, where the
+migration comment traces the code back to the evidence.
 
 ---
 
@@ -265,8 +269,13 @@ code visibly traces back to the evidence from Step 4.
 
 ## STEP 8 — the human gate · 1:42 to 2:00
 
-**GO TO** `https://supaprod.ai/approvals`, then click the **Gates** tab (it reads `Gates 2`).
-**DO** Hold on the **first** card. Let the viewer read it. **Rest the cursor on Approve and do not click.**
+**GO TO** `https://supaprod.ai/approvals`, then click the **Gates** tab. **It reads `Gates 1`, not 2.**
+**DO** Hold on the **only** card. Let the viewer read it. **Rest the cursor on Approve and do not click.**
+
+> **Verified 2026-07-27.** This card is real and it will render. Its `expires_at` passed on 2026-07-26 02:20,
+> but `getApprovalsQueue` filters on `status === "pending"` and never reads `expires_at`, so an elapsed expiry
+> does not remove it from the queue. Nothing in the codebase sweeps `pending → expired` on a timer. It is
+> safe. Just never say "two gates" — the badge says 1, and the second card you remember is on the Memory tab.
 
 **ON SCREEN**, verbatim:
 > `GATE · CHIEF OF STAFF · Ship SSO login for Beacon`
@@ -338,29 +347,41 @@ dismissed the upgrade banner in step A4.
 
 ---
 
-## STEP 11 — the compounding close · 2:22 to 2:36
+## STEP 11 — the compounding close · 2:16 to 2:30 · ⚠️ REWRITTEN 2026-07-27
 
-**GO TO** `https://supaprod.ai/approvals`, Gates tab, **second** card.
-**DO** Close on it. Do not click.
+> **The card this step used to describe does not exist.** There is no `GATE · MEASURE · Raises a memory's
+> importance` anywhere in the product. `memory_candidates` are built with `filterBucket: "memory"` and
+> `kind: "MEMORY"` (`approvals-queue.functions.ts:423-438`), so they land on the **Memory** tab with a
+> `MEMORY` chip, and their consequence lines are fixed strings. The old narration quoted a card that was
+> never on screen. **Use the real one below** — it makes the same point and it is actually there.
+
+**GO TO** `https://supaprod.ai/approvals`, then the **Memory** tab.
+**DO** Hold on the kill-criterion card. Close on it. **Do not click.**
 
 **ON SCREEN**, verbatim:
-> `GATE · MEASURE · Raises a memory's importance.`
-> *"I have hit this same correction three times in six weeks, and each time a readout went out early and had
-> to be walked back. If you promote it, every future funnel answer carries the caveat without anyone
-> remembering to add it. If you reject it, I stop raising it and keep it as a note on my own runs."*
-> `Reversible · Demote or forget it.`
+> `MEMORY`
+> *"The annual pricing bet needs a kill criterion: revert if annual conversion stays under 8 percent after
+> the trial"*
+> `importance 3/5 · from user`
+> `Approve · saves to workspace memory` / `Reject · nothing saved`
 
 **SAY**
-> "And it argues with itself about what to remember. It has hit the same correction three times in six weeks.
-> So it is asking to promote it, because if she says yes, every future answer carries that caveat without
-> anyone having to remember to add it. That is the part that compounds. Agents do the work. She answers for
-> it. Supaprod is how she answers."
+> "And it asks her what is worth keeping. This one is a kill criterion: if annual conversion stays under eight
+> percent after the trial, revert. If she approves it, it goes into the workspace memory the Ask reads from,
+> so every future call on that bet carries the condition without anyone having to remember to add it. That is
+> the part that compounds. Agents do the work. She answers for it. Supaprod is how she answers."
 
-**WHY** This is the memory layer asserting itself in an agent's own voice, which is far stronger than a
-dashboard claiming it. It also lets you end on a card rather than on a surface that might load slowly.
+**WHY** It closes the loop the video opened with. Step 3 showed the Ask reading `23 decisions · 5 learnings`;
+this shows the next entry being *proposed* rather than assumed. The promise is falsifiable and true: approving
+writes to workspace memory, and workspace memory is what the Ask reads.
 
-**TRAPS** Do not claim bets re-ranked automatically. The Brain's own headline stats say `+0 ICE MOVED` and
-`0 RE-RANKED A PRIORITY`. This card makes the compounding point without that claim.
+**TRAPS**
+- The chip reads **`MEMORY`**, not `GATE`. Do not call it a gate on camera.
+- The line reads **`from user`**, not "the agent noticed". Do not narrate this as the machine catching itself
+  — say she is being asked what to keep. The second card on this tab (`Helio prefers concise release notes`,
+  `from agent`) is the agent-authored one, and it is far too thin to close on.
+- Do not claim bets re-ranked automatically. The Brain's headline stats say `+0 ICE MOVED` and
+  `0 RE-RANKED A PRIORITY`. This card makes the compounding point without that claim.
 
 ---
 
@@ -376,12 +397,17 @@ dashboard claiming it. It also lets you end on a card rather than on a surface t
 | "four other bets re-ranked themselves" | *(use the memory gate card)* | The screen says `+0 ICE MOVED`. |
 | "one keystroke rolls it back" | *(cut entirely)* | No rollback keystroke exists; the table is missing in production. |
 | the word "rollback" at all | *(say nothing)* | The card says it. You do not want the follow-up question. |
+| "two gates are waiting" | **"this one stops"** | The Gates badge reads **1**. Added 2026-07-27. |
+| anything about a design mockup | *(cut entirely)* | `prototype_files` is empty in every workspace. Added 2026-07-27. |
+| "it asks to promote a memory" | **"it asks her what is worth keeping"** | The chip reads `MEMORY` and the row says `from user`. Added 2026-07-27. |
 
 # PART E — still cut, do not reopen
 
 `/build` itself · the merge-gate revival (its arguments name a PR that 404s) · the rollback beat · the agent
 byline · the automatic re-ranking claim · the receipt hover on the ask · **any live build run on camera**
-(38% of builder runs since 2026-07-08 finished clean, median 215 seconds, no graceful abort).
+(38% of builder runs since 2026-07-08 finished clean, median 215 seconds, no graceful abort) ·
+**the 04 Design beat** (added 2026-07-27, `prototype_files` empty everywhere) · **the `GATE · MEASURE` card**
+(added 2026-07-27, it never existed in the product).
 
 # PART F — if something breaks mid-take
 
@@ -407,13 +433,19 @@ at this bitrate.
 
 ---
 
-### The sixty-second pre-roll check
+### The sixty-second pre-roll check — re-verified 2026-07-27 20:55 IST
 
-1. `?stage=build` shows **"Pull request #1 is open"** and four file paths.
-2. `?stage=design` paints a real screen inside the frame.
-3. The Gates tab badge reads **2**.
-4. The avatar reads **Maya Ruiz**.
-5. Both banners are gone after a reload.
+| # | Check | Expected | Verified today |
+| --- | --- | --- | --- |
+| 1 | `?stage=build` | "Pull request #1 is open" + four file paths | ✅ 4 rows, real content, `pr_open` |
+| 2 | Gates tab badge | **1** (not 2) | ✅ 1 pending tool-call gate, 0 challenges |
+| 3 | Memory tab | the kill-criterion card is there | ✅ 2 pending candidates |
+| 4 | Avatar | **Maya Ruiz** | ✅ `profiles.full_name` |
+| 5 | Both banners gone after a reload | — | do this by hand (A4) |
+| 6 | `?stage=design` | ~~real screen~~ | ❌ **CUT — do not open** |
 
-**If any one of those disagrees with this file, drop that beat and shoot without it.** A missing beat costs
-you a sentence. A broken beat costs you the claim.
+Only #5 is still unverified, because it is browser-local state and no query can see it. Do A4 and confirm it
+yourself.
+
+**If any one of these disagrees with this file on the day, drop that beat and shoot without it.** A missing
+beat costs you a sentence. A broken beat costs you the claim.
