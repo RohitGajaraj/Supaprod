@@ -94,52 +94,63 @@ has a reason to watch the next two minutes: they have been promised a chain, and
 
 ## BEAT 2 — 01 Discover · 0:22 to 0:42
 
-> ⚠️ **REWRITTEN 2026-07-27 after walking it live. The theme is NOT on this screen.** The earlier draft of
-> this beat said to hold on the theme with its severity and frequency. That view does not exist here. The
-> canvas header reads `01 Discover · Evidence` and it is a flat signal feed: no theme, no severity, no
-> frequency, and **the signal rows are not clickable** (they render as plain paragraphs, not buttons). The
-> founder hit exactly this and was right to. Shoot what is actually there, below.
+> ⚠️ **REWRITTEN TWICE on 2026-07-27, founder ruling: use the evidence desk.** The first draft described a
+> theme view that does not exist on `?stage=discover` (that face is `01 Discover · Evidence`, a flat feed with
+> no theme, no severity, no frequency, and unclickable rows). The desk at **`/discover`** is the surface that
+> actually tells this story, and it was crashing on every cold load until tonight's `SignalFeed` fix. It is
+> now live and verified. **This is the one beat that uses a different app shell** (its own left nav, `THE LOOP
+> 1-7`); every other beat is in the Mission Control room. That seam is the price of showing the clustering,
+> and the founder judged it worth paying.
 
-**GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=discover`
-**DO** Two moves. **First** hold on the header and the source strip. **Then scroll down past the first five
-rows** (see the trap) until the checkout signals are in frame, slowly, about three seconds.
+**GO TO** `https://supaprod.ai/discover`
+**DO** Three moves, slowly. **First** hold on the headline. **Second** let one or two signal cards sit in
+frame so their citation line shows. **Third** scroll to **"Clustered into bets"** and land on rank **#4**.
 
-**ON SCREEN** `01 Discover · Evidence` · **"25 signals in view, newest first."** · a source-count strip:
-`github 5 · analytics 3 · sales-call 3 · nps 3 · support 3 · slack 3 · interview 2 · app-store 2 ·
-churn-survey 1`. Further down, dated late June to early July, the checkout evidence:
-> `analytics · Jun 29` — **"Funnel: 34 percent drop at the checkout confirmation step"**
-> `nps · Jul 3` — **"NPS 3, detractor: it asked me my address twice"**
-> `slack · Jun 24` — **"Slack #relay-eng: everyone assumes the payment step"**
-> `interview · Jul 8` — "Interview: checkout felt like it did not trust the address on file"
-> `support · Jun 30` — "Support ticket, homeowner stuck at checkout"
+**ON SCREEN**, verified live 2026-07-27:
+> **"Raw signal in, ranked bets out."**
+> *"The evidence desk: every opportunity ranked and cited back to the signals behind it. The reasoning engine
+> clusters raw signals into ranked, cited bets, so you decide what matters instead of sifting noise."*
+>
+> Signal cards, each with its source chip, freshness, the verbatim quote, then a citation line reading
+> `→ THEME NAME · N SIGNALS` and a trace id like `SIG·DC47C1`. Under the list:
+> **"Every quote is verbatim and keeps its source. Nothing here is a summary."**
+>
+> Then **"Clustered into bets"** · `8 CLUSTERED` · source chips `GITHUB 3 · SALES-CALL 2 · ANALYTICS 1 ·
+> APP-STORE 1 · CHURN-SURVEY 1 · INTERVIEW 1 · NPS 1 · SLACK 1 · SUPPORT 1` · the ranked list:
+> `#1` Support answers the same three homeowner questions every week · 40 signals
+> `#2` Homeowners cannot tell a real outage from a firmware reboot · 31 signals
+> `#3` Meter firmware drift shows yesterday production as today · 12 signals
+> `#4` **Checkout and notification friction in the homeowner app · 9 signals · 8 sources**
 
 **SAY**
-> "It starts here, and she did not do this part. Twenty-five pieces of evidence, pulled from nine different
-> places: support tickets, App Store reviews, NPS, sales calls, interviews, Slack, a funnel report. Look at
-> what is in there. The funnel drops thirty-four percent at the checkout confirmation step. An NPS detractor
-> whose whole comment is: it asked me my address twice. And engineering in Slack, saying everyone assumes the
-> payment step. None of those is conclusive on its own. Together they are the thing she has to make a call on,
-> and it was waiting for her on Monday."
+> "It starts here, and she did not do this part. Raw signal in, ranked bets out. Every one of these is a
+> verbatim quote that keeps its source, and each one carries the line showing which theme it rolled into. It
+> reads them continuously and clusters them by corroboration. And this is the one she is going to act on:
+> checkout and notification friction, nine signals behind it, from eight different sources. Support tickets,
+> an App Store review, NPS, a sales call, an interview, Slack, a funnel report. Not one of them is conclusive
+> alone. Together they are a bet, and it was waiting for her on Monday."
 
-**WHY** The source strip is the credibility: nine named sources on screen at once, with counts. Then the three
-quoted lines are the setup for everything that follows. The funnel number reappears in the spec's assumption
-in Beat 4, and the address complaint literally becomes a database column in Beat 5. This frame is what makes
-those payoffs land.
+**WHY** This is the root of the tree and the only frame that shows the machine doing the clustering rather
+than a person doing it. "Nine signals, eight sources" is the corroboration claim in the product's own numbers,
+and it is what makes the funnel figure in Beat 4's assumption and the address column in Beat 5 land as
+consequences rather than assertions.
 
 **TRAPS**
-- ⚠️ **The top five rows are off-story.** They are `github`-sourced, dated Jul 25, and belong to other
-  products: "PRD — Smart Off-Hours Routing", "Slow first-response on Tier-1 tickets", "Smart routing for
-  off-hours Tier-1", "PRD — Escalation Policy Engine", "Bank-link drop-off at activation". The feed is
-  newest-first, so they sit at the top of the frame. **Do not linger there and do not read them.** Start the
-  scroll almost immediately, or frame so the scroll begins at `analytics · Jul 21`.
-- **The signals are not clickable.** Do not try to open one on camera; nothing happens.
-- **Do not say "eighteen signals."** The screen says **25**. Eighteen is how many belong to this theme in the
-  database, and that number appears nowhere on this surface.
-- Do **not** say "overnight" — the freshness stamp reads `33D AGO`. Say "it was waiting on Monday".
+- ⛔ **Never click the `⋯` "Theme actions" menu.** It holds promote, draft spec, and frame-the-bet, and all
+  three dispatch real work. Same for **"Ask Supaprod to investigate"** on a signal card: it starts a mission.
+  This beat is look-only.
+- **Our theme is ranked #4, not #1.** Ranks 1 to 3 are bigger themes on other products (40, 31 and 12
+  signals). **Do not call this the top theme or the biggest one.** Say "this is the one she is going to act
+  on". If a viewer sees you claim #1 while `#4` is on screen, the whole video loses its footing.
+- **Ranks 1 to 3 read `0 sources`** while ours reads `8 sources`. Do not point at the others or invite the
+  comparison; frame so #4 leads.
+- **Keep "Market watch" out of frame.** It sits directly below the themes and is completely empty
+  (`WEEKLY BRIEFS 0`, `TRACKED ENTITIES 0`). End the scroll on #4.
+- **This beat has different chrome.** Cut into it and back out cleanly; do not pan around its left nav.
+- Do **not** say "overnight" — freshness stamps read in days. Say "it was waiting on Monday".
 - Do not claim per-line agent bylines; none exist.
-- **Do not open the standalone `/discover` route.** It swaps the whole app chrome, and as of tonight it also
-  crashed on every cold load (React #310 in `SignalFeed`; fixed and pushed 2026-07-27, but verify before ever
-  putting it on camera).
+- The top signal cards are `github`-sourced and off-story (Tier-1 routing, bank-link drop-off). They are
+  fine as texture while you talk about verbatim quotes and citations, but **do not read them aloud**.
 
 ---
 
@@ -407,6 +418,7 @@ Re-verified end to end on the live site as `harbor@` on 2026-07-27 at 22:10 IST.
 | 1 | Avatar reads **Maya Ruiz** | ✅ verified in `profiles` |
 | 2 | The Ask answers AND scrolls itself into view | ✅ **fixed and verified live tonight** |
 | 3 | Headline reads **21 calls**, memory stat reads **23 decisions** | ✅ read off the live room |
+| 3b | `/discover` loads (was crashing) and shows `#4 · 9 signals · 8 sources` | ✅ **fixed, published and verified tonight** |
 | 4 | `?stage=decide` shows crypto killed ICE 4.0 + address ICE 8.0 | ✅ data verified |
 | 5 | `?stage=plan` → **click the checkout tab** → contract + assumptions | ✅ **verified rendering tonight** |
 | 6 | `?stage=build` shows PR #1 and four paths | ✅ data verified |
