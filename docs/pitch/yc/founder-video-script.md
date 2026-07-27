@@ -100,9 +100,9 @@ the casual version ends on "that's it, really" and lets the personal line do the
 
 ---
 
-# THE HYBRID — v8.1 (pitch structure, real voice)
+# THE HYBRID — v8.2 (pitch structure, real voice)
 
-**339 words · ~3:59 at your recorded pace (85 wpm) · ~2:46 at your reading pace.**
+**345 words · ~4:03 at your recorded pace (85 wpm) · ~2:46 at your reading pace.**
 
 This is v7.2's spine with the coffee version's texture grafted on. It is not the casual version:
 it keeps every load-bearing line, the three-part enumeration, and the close. What it borrows is
@@ -153,9 +153,13 @@ personal investment.
 > and comes back with an actual call / and the **evidence** behind it. /
 > Not a summary. / Something you can **argue** with. //
 >
-> **Second**, / it runs the whole thing end to end. / Discovery, / design, / build, / ship. /
-> Agents write the code, / open the pull request, / run the checks. /
-> And then they **stop**. / **Nothing merges without you.** //
+> **Second**, / it runs the whole **loop**. / End to end. //
+>
+> Discovery, / decide, / design, / build, / ship. /
+> And then it **grades** what shipped. //
+>
+> Every tool I've used helps with **one** step. /
+> This runs all of them, / and the loop actually **closes**. //
 >
 > **Third**, / and this is the one I care about **most**. / The **company brain**. /
 > Everything gets remembered. /
@@ -169,7 +173,40 @@ personal investment.
 >
 > (smile) I always wanted this to **exist**. / And now I get to **build** it.
 
-## The layer two / layer three fix (v8.1)
+## Layer two, take three (v8.2) - why the code-gen framing was wrong
+
+You rejected _"agents write the code, open the pull request, run the checks"_ and you were right.
+That is a **positioning error**, not a wording one.
+
+Writing code, opening a PR and running checks is exactly what Cursor, Devin and Copilot already
+do. Leading layer two with it frames Supaprod as a coding tool competing in the most crowded
+category in software, and it invites the one question you cannot win: "how is this different from
+Cursor?" The investor canon says it directly: _the models are interchangeable parts; the system is
+ours: the loop, the gates, the ledger._ Code generation is the commodity you spent Beat 4
+explaining.
+
+**Layer two is now the thing nobody else does: the whole loop, and it closes.**
+
+> Discovery, decide, design, build, ship. And then it grades what shipped.
+> Every tool I've used helps with one step. This runs all of them, and the loop actually closes.
+
+Three reasons this is stronger:
+
+1. **It differentiates without naming anyone.** "Every tool I've used helps with one step" is
+   first-person experience, so it is credible and not contestable. A market claim invites
+   argument; a personal observation does not.
+2. **Grading is back where you wanted it,** and it no longer collides with layer three. The
+   relationship is now a handoff rather than a repeat: **layer two produces the grades, layer
+   three remembers them and acts on them.** That makes the brain follow logically from the loop
+   instead of restating it.
+3. **"The loop actually closes"** is the whole thesis in four words, and it is the one claim a
+   coding agent structurally cannot make.
+
+Dropped: _"nothing merges without you."_ It is a strong line but it sits inside the code-gen
+frame, and the governance point is already carried twice - Beat 1's "somebody still has to make
+the calls and answer for them afterwards", and the close's "you answer for it".
+
+## The earlier layer two / layer three fix (v8.1)
 
 You caught a real overlap. Layer two used to end _"Did that actually work? Where were we wrong?"_
 and layer three ends _"next time you're about to repeat something you already got wrong."_ Both
@@ -227,7 +264,7 @@ reading. Your working conversion is **words x 0.7 = seconds**.
 | Version | Words | On camera (85) | Reading (123) |
 | --- | --- | --- | --- |
 | v7.2 formal | 254 | ~3:00 (measured) | ~2:03 |
-| **v8 hybrid** | **339** | **~3:59** | ~2:45 |
+| **v8.2 hybrid** | **345** | **~4:03** | ~2:48 |
 | coffee | ~430 | ~5:00 | ~3:30 |
 
 **Warmth costs words. There is no version that is both fully conversational and under two
