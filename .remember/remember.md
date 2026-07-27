@@ -1,6 +1,6 @@
-# Session handoff - 2026-07-27 (YC founder video script, v3.1 -> v7.2 + coffee version)
+# Session handoff - 2026-07-27 (YC founder video script, v3.1 -> v8.3)
 
-## State: SAFE. main = b94fea4e + this commit. Working tree otherwise clean.
+## State: SAFE. main = 42946181, remote verified identical. Working tree clean.
 
 Prior commits this session: `b2abf5c5` (YC video scripts frozen) · `5fd2e176` (Wave 1-2
 typography + spacing, 172 files) · `b94fea4e` (Wave 1-2 scaffolding removed, 21 files).
@@ -13,22 +13,35 @@ confirmed from the live portal). 100 MB cap on both; encode specs are in each fi
 
 ### Founder video - `docs/pitch/yc/founder-video-script.md`
 
-**v7.2 is THE SHOOTING SCRIPT** (254 words, ~2:03 practised). Venue-neutral: no YC mention, no
-employer named, so it serves other investor applications too.
+**v8.3 IS THE ONE TO SHOOT** (372 words, ~3:14 practised). It is the HYBRID: v7.2's pitch spine
+with eleven imports from the conversational register. Venue-neutral: no YC mention, no employer
+named, so it serves other investor applications too.
 
-The file also carries **THE COFFEE VERSION** above the script: the same content in conversational
-register (~430 words). **Learn the coffee version first, then the script.** That is what stops
-the recorded take sounding recited, which is YC's actual objection ("do not recite a written
-script"). Every version v3.1 -> v7.2 is preserved below with its reasoning, because the founder
-asked to see where it started and what worked.
+The file is ordered newest-first: **v8.3 hybrid -> the coffee version -> v7.2 formal -> v7 tiers
+-> v6 -> v5 -> v4 -> v3.1**, each with the reasoning, because the founder asked to see where it
+started and what worked. He practised v8.2 himself and got it to ~3:00.
 
-**MEASURED PACE, the number that governs everything: ~123 wpm practised, ~108 unpractised.**
-Derived from three real reads (304w->3:00, 216w->2:00, and his own 1:45 estimate). **Do not size
-a script for him at 145 wpm.** I did that twice and was wrong twice.
+**PACE, four data points, and the finding that matters most: PRACTICE IS WORTH ~30 WPM TO HIM.**
+Cold he reads ~85 wpm on camera; practised he hit ~115 on v8.2 and is targeting 125.
+**Do not cut a script for him before he has rehearsed it twice** - v8.2 looked like 4:03 on my
+cold-rate arithmetic and he practised it to 3:00. I sized scripts wrong three times this session:
+first at 145 wpm (way too fast), then at 101, then at 85. Use 115 practised.
 
 **Founder rulings from the script rounds, all binding:**
 
 - No employer names, ever. "Space systems, then semiconductors, now banking" carries the arc.
+- **Layer two is NOT about code generation.** He rejected "agents write the code, open the pull
+  request, run the checks" as a positioning error, and he was right: that is what Cursor and Devin
+  do, and it invites "how is this different from Cursor". Layer two is the LOOP and that it
+  CLOSES: "Discovery, decide, design, build, ship. And then it grades what shipped. Every tool
+  I've used helps with one step. This runs all of them, and the loop actually closes."
+- **Layer two and layer three must not both land on "where we went wrong."** The relationship is a
+  handoff: layer two PRODUCES the grades, layer three REMEMBERS them and warns. Not a repeat.
+- **Layer three names "the company brain" out loud**, right after "the one I care about most".
+- **The pain must read as the profession's, not his.** v8.3 adds the explicit bridge: "And that's
+  not a me problem. That's the job. Every product manager I've ever worked with is answering it
+  the same way. Best guess, then defend the guess." Chose observation over a statistic on purpose:
+  a number invites a sourcing question and breaks the conversational register.
 - **Never say "reinforcement learning."** Say "it learns your taste". `one-pager.md:32` tags
   "Outcomes move the ranking" [PROVEN], but the mechanism improves context, not weights.
 - **No VP in the pain beat.** It imported an org chart and made him read as disorganised. Beat 3
