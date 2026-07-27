@@ -1,17 +1,41 @@
-# YC founder profile — the Accomplishments section, paste-ready
+# YC founder profile — rewritten to win
 
-> **Created 2026-07-28.** The four Accomplishments boxes, in form order, ready to copy straight into the YC
-> application. Boxes 1 and 4 were already filled in the form; boxes 2 and 3 were blank.
+> **Rewritten 2026-07-28 (v2).** The founder read v1 and rejected it as not strong enough. This version is
+> repositioned from the ground up, and it is built on what was actually verified on 2026-07-28: the live
+> GitHub account, the repo/fork split, the READMEs, and the founder-facts canon in `CLAUDE.md`.
 >
-> Every claim here is drawn from [`fall-2026-application.md`](./fall-2026-application.md) (drafted 2026-07-25)
-> and the founder-facts canon in `CLAUDE.md`. **Nothing is invented.** The two claims you must be able to
-> defend cold are flagged at the bottom.
+> **The positioning, in one line:** *a decade as the human glue between product and engineering, in rooms where
+> being wrong is expensive, who then removed the need for the glue and built the replacement alone.*
+>
+> Nothing here is invented. Two claims need founder backup and are flagged at the end.
 
 ---
 
-## Box 1 — "a time you most successfully hacked some (non-computer) system to your advantage"
+## What the form already says (verified from the screenshots)
 
-**Status: already filled in the form. Leave it.**
+| Field | Value | Verdict |
+| --- | --- | --- |
+| Title | CEO | fine |
+| Equity | 100% | **strong, leave it** |
+| Technical founder | **Yes** | defensible, but know the defense (below) |
+| Commit exclusively | Yes | correct |
+| LinkedIn | linkedin.com/in/rohit-gajaraj | fine |
+| Education | TUM (MBA, 2019-2022) + VTU (BE Mechatronics, 2012-2016) | **keep both, see note** |
+| GitHub | github.com/RohitGajaraj | ⚠️ **fix before submit, see below** |
+| X | twitter.com/rohit_gajaraj | fine |
+| Builder Profile | Paxel connected, report received | good, leave attached |
+
+**On education:** the outward-facing canon says "TUM only", but that rule exists for prose bios where you lead
+with the strongest credential. This is a structured field, YC may ask for transcripts, and **the BE in
+Mechatronics is what makes "technical founder: Yes" defensible.** Keep both. Removing the engineering degree
+while claiming to be a technical founder is the worst of both worlds.
+
+---
+
+# Box 1 — "a time you most successfully hacked some (non-computer) system"
+
+**Already filled. Keep it exactly as is.** It is specific, true, and the pattern it describes (build the
+evidence first, then ask) is literally what this application does.
 
 ```
 I wanted to move from hardware and communication engineering at ISRO into product,
@@ -23,60 +47,78 @@ industries since: build the evidence first, then ask.
 
 ---
 
-## Box 2 — "the most impressive thing other than this startup that you have built or achieved"
+# Box 2 — "the most impressive thing other than this startup"
 
-**Status: WAS BLANK. Paste this.**
+**Replace what is in the form now.** The current text reads *"building communication systems at space &
+satellites for India's space agency"*, which is broken grammar, and it leaves out the strongest detail you
+have: the missions.
+
+**PASTE THIS:**
 
 ```
-At 21 I was building communication systems at ISRO, India's space agency, for
-missions where a mistake is unrecoverable. The systems I worked on flew.
+At 21 I was building satellite communication systems at ISRO, India's space
+agency, for its Moon and Mars missions, where the hardware launches once and
+there is no patch release and no second attempt. The systems I worked on flew.
 ```
 
-**Why this one.** Paul Graham has said this is the most important question on the application. It rewards one
-concrete thing over a list. Two sentences, a hard age, a named institution, and a verifiable outcome. It also
-pairs with box 1 without repeating it: box 1 is how you moved into product, box 2 is what you did before that.
-
-**In the interview, be ready to name** the programme or subsystem, what you personally owned, and roughly
-when. If you can say the mission publicly, say it there. Do not add it to the box; the short version hits
-harder.
+**Why this wins.** Paul Graham has called this the most important question on the application, and what it
+rewards is an objective bar that most people cannot clear. This has four things almost no applicant has: an
+age (21), a named institution (ISRO), a named stakes-level (Moon and Mars), and a binary outcome (it flew).
+The middle clause does the real work: it converts "space" from a brag into a *constraint you worked under*,
+which is what a partner is actually assessing. Two sentences, no adjectives doing evidence's job.
 
 ---
 
-## Box 3 — "things you've built before. Include URLs if possible"
+# Box 3 — "things you've built before"
 
-**Status: WAS BLANK. Paste this.**
+This is the box you were right to worry about, and the honest answer is that you do not have a portfolio of
+side-project apps. **That is fine, and pretending otherwise is the losing move** — your GitHub is public and a
+partner will check it inside thirty seconds.
+
+So this answer does not fake a hacker-portfolio. It answers the question the partner is actually asking, which
+is *"do you make things, or do you talk about them?"*, using the three real bodies of evidence you have:
+enterprise scale, iteration velocity, and a physical 0-to-1.
+
+**PASTE THIS:**
 
 ```
-Supaprod is the third build of this idea. The first was a side project I hacked
-together on Lovable to run my own product work, and it kept growing until I
-rebuilt it properly: https://github.com/RohitGajaraj/Project-Cadence-v2
+The largest thing I have shipped is the AI platform at Intellect that 200+
+financial institutions across 70+ countries use to build their own AI products.
+I own the product, not the code, and it runs in regulated banking production.
 
-At Intellect, where I lead product on the AI platform that 200+ financial
-institutions across 70+ countries use to build their own AI products. I did not
-write that code; I shipped the product.
+The four builds that came before this company are all public, each a working
+product I ran my own week on, each thrown away once it had taught me what was
+wrong with it:
+https://github.com/RohitGajaraj/Project-Cadence
+https://github.com/RohitGajaraj/Project-Cadence-v2
+https://github.com/RohitGajaraj/Project-Cadence-v3
+https://github.com/RohitGajaraj/Project-Cadence-v4
 
-Earlier, at IIM Bangalore, I founded a food and beverage venture: one of the
-first attempts to bring bubble tea to the Indian market. I took it from ideation
-through recipe formulation, user testing and competitive analysis, then set it
-down to go build product full time.
-
-Live: https://supaprod.ai
+Outside software, I founded one of the first attempts to bring bubble tea to the
+Indian market and took it from recipe formulation and unit economics through
+user testing and supply chain. I set it down to go build product full time.
 ```
 
-**Why it is shaped this way.** Three builds across three eras (a shipped side project, an enterprise product,
-a physical venture) shows range without padding. The Intellect line volunteers its own limit, *"I did not
-write that code; I shipped the product"*, which pre-empts the obvious partner objection about a PM founder,
-and the whole Supaprod thesis is that the limit no longer binds. Volunteering the weakness is what makes the
-rest credible.
+**Why this shape.** It descends by hardness of evidence: scale you can verify, code you can open, and a
+venture you had to physically will into existence. The four URLs are the strongest single item and they are
+real: each of those repos carries a 20 to 28 KB README, built over roughly six weeks. Four complete rebuilds
+of one idea is not a weakness to hide, it is the clearest available proof of how fast you learn and how
+willing you are to throw work away, which is exactly the trait YC selects for.
 
-**NSRCEL and Startup India are deliberately NOT repeated here.** They are already in box 4. Repeating an award
-across two boxes reads as padding a thin record, and yours is not thin.
+Note the line *"I own the product, not the code."* Say it once, early, and never again. It disarms the
+obvious partner objection about a PM founder before they can raise it, and the entire Supaprod thesis is that
+this limit no longer binds anyone. Volunteering the weakness is what makes the rest of the application
+credible.
+
+**Deliberately excluded:** ISRO (boxes 1 and 2 already own it), NSRCEL and Startup India (box 4 owns them).
+Repeating an item across boxes reads as padding a thin record. Yours is not thin.
 
 ---
 
-## Box 4 — "competitions/awards you have won, or papers you've published"
+# Box 4 — "competitions/awards or papers"
 
-**Status: already filled in the form. Leave it.**
+**Already filled. One change: cut the ranking adjective.** "One of Europe's top-ranked programs" is an
+adjective doing evidence's job, and partners discount it automatically.
 
 ```
 MBA from TUM School of Management, where my thesis explored the creator and
@@ -87,52 +129,73 @@ initiative.
 
 ---
 
-# Three fixes before you submit
+# ⚠️ Fix your GitHub before you submit (15 minutes, highest leverage on this page)
 
-These are separate from the four boxes and cost you nothing to fix.
+**The problem, verified 2026-07-28:** `github.com/RohitGajaraj` has **50 public repos, and 44 of them are
+forks** of other people's agent tooling. Only 6 are original, 4 of which are the Cadence lineage. A partner
+opening that link sees a wall of forks and has to hunt for anything you made.
 
-### 1. The "Personal website" field points at a dead URL ⚠️
+**The fix, in order:**
 
-An older plan in `fall-2026-application.md` recommended setting it to `https://cadence-flow-beta.lovable.app`.
-**That URL returns HTTP 404** (verified 2026-07-28). Set the field to:
+1. **Pin the right six.** GitHub lets you pin six repos to your profile. Pin `Project-Cadence`,
+   `Project-Cadence-v2`, `Project-Cadence-v3`, `Project-Cadence-v4`, and `build-in-public`. The profile then
+   opens on the story you want told.
+2. **Fix two descriptions.** `Project-Cadence-v2` currently reads **"v2 - santa a/c"**, and v3 and v4 have
+   **no description at all**. Box 3 links all four. Give each a one-liner, for example: *"Second rebuild of an
+   agentic product operating system. Superseded by v3."*
+3. **Leave the forks alone.** Do not mass-delete them. Once the six are pinned, the forks read as what they
+   are: someone living inside the agent ecosystem, which supports your thesis rather than undermining it.
 
-```
-https://supaprod.ai
-```
+---
 
-`supaprod.ai` returns HTTP 200. Sending a YC partner to a 404 is the cheapest avoidable mistake on the form,
-and that old URL also carries the retired Cadence brand.
+# The "technical founder: Yes" defense
 
-### 2. `Project-Cadence-v2` is public, and its description reads "v2 - santa a/c"
+You have answered **Yes**, and YC defines that as *"a programmer, engineer, or scientist who can build the
+product without outside assistance."* This is the single highest-risk field on the page, so do not improvise
+it in an interview.
 
-Box 3 links it, and partners do open these links. It is public and last pushed 2026-06-06. Give it a one-line
-description saying what it actually is, for example: *"First working version of what became Supaprod: an
-agentic product operating system, built as a side project."*
+**Your answer holds, on three legs:** a BE in Mechatronics Engineering, engineering work on flight hardware at
+ISRO, and a product you have built solo where no non-founder has touched the codebase.
 
-### 3. The `Supaprod` repo is private
+**If asked "but do you write the code yourself?":**
 
-Nothing wrong with that, and it is the right default. But it means the demo video and the live site are your
-only code evidence for partners. If you want them to see how you build, a public snapshot is the way. Your
-call, not required.
+> "I direct all of it and agents write it. I read and review every line, everything goes through typecheck,
+> build and a review pass before merge, and no non-founder has touched this codebase. My Paxel report is
+> attached."
+
+This is a position YC has stated publicly this cycle: Garry Tan has said you can tell a great deal about
+whether someone can build from how they prompt agents, and Harj Taggar has said the Parker Conrad of today is
+in Claude Code. **Your Paxel builder report is already connected and attached, which is the strongest possible
+receipt for exactly this question.** Leave the auto-attach box ticked.
+
+---
+
+# On the investor link
+
+**Your instinct is right: it does not belong in the founder profile.** This page has no field for it. The
+Social Media block is LinkedIn, GitHub and X only, and a briefing link would have to be jammed into a field
+that means something else.
+
+It belongs in the **company/application** section, in the company URL or the "anything else we should know"
+field. If there is a **Personal website** field under Basics, set it to `https://supaprod.ai` (verified HTTP
+200 on 2026-07-28). Do **not** use `cadence-flow-beta.lovable.app`, which an older internal draft recommended
+and which **returns 404** and carries the retired Cadence brand.
 
 ---
 
 # The two claims to be able to defend cold
 
-Everything else in these answers is checkable from public record. These two are not, so know them:
+Everything else here is checkable from public record. These two are not, so know them before an interview.
 
-| Claim | Where it appears | Be ready to say |
+| Claim | Where | Be ready to say |
 | --- | --- | --- |
-| **200+ financial institutions across 70+ countries** | Box 3 | The platform's name, your actual scope on it, and where the number comes from. |
-| **"The systems I worked on flew"** | Box 2 | Which programme, what you owned, when. |
-
-Both are drawn from your own canon (`CLAUDE.md` founder-facts, and the role arc ISRO associate PM to Infineon
-PM to Intellect senior AI PM). They are yours to stand behind, not mine.
+| **Moon and Mars missions at ISRO at 21** | Box 2 | Which programme, which subsystem, what you personally owned, and roughly when. A partner who knows ISRO will ask, and "I was on the comms side of X" must come instantly. |
+| **200+ institutions, 70+ countries** | Box 3 | The platform's name, your actual scope, and where the number is published. |
 
 ---
 
 ## Related
 
 - [`fall-2026-application.md`](./fall-2026-application.md) — the full application, every question
-- [`interview-prep.md`](./interview-prep.md) — objection handling and the rehearsed one-liners
-- [`application-strategy.md`](./application-strategy.md) — why the application is shaped the way it is
+- [`interview-prep.md`](./interview-prep.md) — objection handling and rehearsed one-liners
+- [`application-strategy.md`](./application-strategy.md) — why the application is shaped this way
