@@ -1,15 +1,68 @@
-# Session handoff - 2026-07-27 (YC founder video script, v3.1 -> v8.3)
+# Session handoff - 2026-07-27 (founder video SHOT + UPLOADED; demo video is next)
 
-## State: SAFE. main = 42946181, remote verified identical. Working tree clean.
+## State: local main = `13f2095e`, working tree has only this file modified.
 
-Prior commits this session: `b2abf5c5` (YC video scripts frozen) · `5fd2e176` (Wave 1-2
-typography + spacing, 172 files) · `b94fea4e` (Wave 1-2 scaffolding removed, 21 files).
+## 🚨 READ FIRST: the GitHub remote `main` is an ORPHAN history. Do not push or pull blind.
 
-## THE LIVE TASK: two videos, still pending on the submitted application
+Discovered at session close, 18:09. **Nothing is lost, but `git pull` / `git push` will both
+misbehave until a human decides the fix.**
 
-YC Fall 2026 is **already filed**. Only the founder video and the demo video remain editable.
-Deadline **08:30 IST, 28 July**. **Both fields are HARD FILE UPLOADS, not URLs** (founder
-confirmed from the live portal). 100 MB cap on both; encode specs are in each file.
+- `origin/main` = `7eb93a93`, a **6-commit history with NO common ancestor** with local main
+  (`git merge-base` returns nothing). Its root commit `76c35c3a` is dated **today 08:12**.
+- Local main = `13f2095e`, the real history, **4102 commits**, rooted at `f319173a`
+  (template, 2025-01-01). `git rev-list --count`: **4102 ahead, 6 behind.**
+- Cause is visible in the remote tree: it contains a top-level **`.git.broken`**, and commit
+  `6cd257c9` is **"3516 files changed, 849684 insertions"**. Some tool lost its git state and
+  re-committed the whole working tree as a fresh history, then force-pushed over `main`.
+  `origin/HEAD` and `origin/master` also point at `7eb93a93`.
+- **The remote snapshot is MISSING `docs/pitch/yc/founder-video-script.md`** (the v8.3 script).
+  The pitch work exists ONLY locally.
+- **The old objects are still on GitHub**: `origin/archive/final-sweep-2026-07-18` (`b8266a6a`)
+  and `origin/keep/rescued-pieces` (`bbd83680`) still match local exactly.
+
+**Protective step already taken (additive, destroys nothing):** local branch
+**`backup/remote-orphan-main-2026-07-27`** now pins `7eb93a93`, so the remote's 6 commits cannot
+be lost to GC no matter what happens next.
+
+**The 6 remote-only commits are mostly noise; the real work in them is small:**
+
+| commit | size | what |
+|---|---|---|
+| `76c35c3a` | 4 files, 1566+ | Build screen Composer typography |
+| `6cd257c9` | 3516 files | the bulk re-commit — real P0 typography fixes are buried inside |
+| `0e5c6902` | 2 files | Geist Pixel brand moments, P0 screens |
+| `56080330` | 1 file | Build screen line-break formatting |
+| `9df919c5` | 1 file | doc: typography session summary |
+| `7eb93a93` | 1 file | doc: MANDATE-COMPLETION-ROADMAP.md |
+
+**Suggested fix (founder's call, NOT done):** diff the four small commits onto local main, then
+`git push --force-with-lease origin main:main` to restore the real 4102-commit history. Do NOT
+merge with `--allow-unrelated-histories`; it produces a 3500-file mess.
+
+## THE LIVE TASK: demo video. The founder video is DONE and UPLOADED.
+
+YC Fall 2026 is **already filed**. Deadline **08:30 IST, 28 July**. **Both fields are HARD FILE
+UPLOADS, not URLs** (founder confirmed from the live portal). 100 MB cap on both.
+
+- ✅ **Founder video: SHOT, COMPRESSED, UPLOADED** (confirmed by founder 17:19). Source
+  `~/Documents/YC_Video.mov` 168.3 MB -> `~/Documents/YC_Video_compressed.mp4` **74.9 MB**.
+- ⏭️ **Demo video: NEXT SESSION.** Script is frozen (below). Expect the same 100 MB problem.
+
+### The compression recipe that worked (ffmpeg is NOW INSTALLED via brew)
+
+The recorder pins ~7,691 kbps regardless of content; a talking head needs a fraction of that, so
+the cut is nearly free. **CRF 18 + copy the audio** — no rescale, no reframe, no re-encode of sound.
+
+```bash
+ffmpeg -i IN.mov -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p \
+       -c:a copy -movflags +faststart OUT.mp4
+```
+
+Result on the founder video: 168.3 MB -> 74.9 MB (55% cut), identical 1080x720 / 30fps /
+173.46s, audio bit-exact, full-file decode clean. **Budget against 100,000,000 DECIMAL bytes**
+(`ls -lh` shows MiB and reads ~8% smaller than the upload form does). If CRF 18 ever overshoots,
+fall back to two-pass at `(budget*8/duration - audio_bitrate)`. Working script:
+`scratchpad/compress.sh` pattern, reproduced above.
 
 ### Founder video - `docs/pitch/yc/founder-video-script.md`
 
@@ -86,8 +139,10 @@ Unauthorized.**
    (1)" while the real log had **22 prettier errors**. Read
    `~/Library/Application Support/rtk/tee/*_lint.log` for the truth. RTK also rewrites `git diff`,
    so piping it into `xargs git add` fails.
-2. **This handoff file gets wiped to 0 bytes by something** (twice today). Check
-   `wc -c .remember/remember.md` before editing it, or a read-modify-write silently destroys it.
+2. **This handoff file gets wiped to 0 bytes by something** (THREE times today — again at the
+   18:09 close, recovered with `git show HEAD:.remember/remember.md > .remember/remember.md`).
+   Check `wc -c .remember/remember.md` before editing it, or a read-modify-write silently
+   destroys it. Always restore from HEAD first rather than writing over an empty file.
 
 ## After the deadline (do NOT touch before it)
 
