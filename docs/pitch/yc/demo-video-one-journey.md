@@ -141,20 +141,37 @@ Never press a number key. Verified today: crypto = `killed`, ICE 4.0; address = 
 ## BEAT 4 — 03 Plan · 1:08 to 1:22
 
 **GO TO** `https://supaprod.ai/helio-labs-harbor/relay?stage=plan`
-**DO** Hold on the spec **"Simplify checkout in the homeowner app"** (status approved).
+**DO** ⚠️ **The page opens on the WRONG spec.** Two tabs sit above the spec body and the *notification digest*
+one is selected by default. **Click the second tab, "Simplify checkout in the homeowner app."** Then hold.
+
+**ON SCREEN**, verified live 2026-07-27:
+> `03 Plan · Spec · ✓ Approved` · `SPEC · approved`
+> **Requirements (4)** — R1 skip the confirmation when the address matches the last order … R4 *"Every skipped
+> confirmation stays reversible: the homeowner can edit the address inline."*
+> **Assumptions on watch (3)** — A1 *"The 34 percent drop is the redundant confirm, not the price. Watching
+> checkout completion."*
+> **Outcome contract** — *"Landed means: within 30 days of ship, checkout completion rises from 66 percent to
+> 75 percent or better. Check-by date: August 20."*
+> **Task graph** — T1..T5
 
 **SAY**
-> "The call becomes a spec, and the spec is not something she sat down and wrote. It is generated off the
-> ruling, which came off the bet, which came off the eighteen signals. Nobody retyped anything, and nothing
-> got lost between the evidence and the plan."
+> "The call becomes a spec, and she did not sit down and write it. Look at what it carries. The assumption is
+> written down as something to watch: the thirty-four percent drop is the redundant confirm, not the price.
+> And it commits to a number before anybody builds anything: completion goes to seventy-five percent or
+> better, checked by August the twentieth. That is a spec you can be wrong against."
 
-**WHY** This is the beat the tour skipped entirely, and it is the joint that makes the chain feel unbroken.
-Discover → Decide → Build with no Plan in between is where a viewer stops believing it is one system.
+**WHY** This is the beat the tour skipped entirely, and it turns out to be the strongest frame in the video.
+The outcome contract is the thing no competitor films: the spec names a falsifiable bar and a date **before**
+the code exists, which is what makes the outcome in Beat 7 mean anything. Discover → Decide → Build with no
+Plan in between is also where a viewer stops believing it is one system.
 
-**TRAPS** ⚠️ **Least-verified beat in this cut.** The PRD and its lineage edge (`opportunity → prd`,
-`derived_from`) are confirmed in the database, but I have not seen `?stage=plan` render. **Walk this one
-first.** If it does not paint cleanly, cut it and go straight to Build — the story survives, it just loses a
-sentence.
+**TRAPS**
+- **The tab click is mandatory.** Default is the digest spec, which is a different bet and breaks the thread.
+- **Do not read both baselines aloud.** The contract says completion rises "from 66 percent", and Beat 7's
+  learning says it "rose from 59 to 78 percent". Two different baselines for the same metric, and reading them
+  in the same breath invites the question. Say the **target** here ("seventy-five or better") and the
+  **result** in Beat 7 ("seventy-eight"). Both are true, and 78 clears 75.
+- Do not click "Design this" or "Build this feature" at the bottom of the spec. Both dispatch real work.
 
 ---
 
@@ -244,11 +261,19 @@ following for two minutes.
 ## BEAT 8 — the loop closes · 2:16 to 2:36
 
 **GO TO** `https://supaprod.ai/brain?tab=graph&focusKind=decision&focusId=60000000-0a00-4000-8000-000000000002`
-**DO** Let the graph settle. Close on it. **Do not click a node.**
+**DO** Two moves, verified live 2026-07-27. **First** let the 3D constellation settle for about three seconds
+(it is genuinely striking, and it is the only frame that shows the whole workspace at once). **Then click the
+`LIST` tab** in the "Graph view" toggle and close on that. **Do not click a node.**
 
-**ON SCREEN** The whole thread as one picture: theme → the two bets → the two rulings → the spec → the mission
-→ the changeset → the release → both learnings, with the edge running back from the tablet learning into the
-original bet.
+**ON SCREEN** in LIST, verbatim:
+> `16 nodes · 8 depth · 1.7 avg branching`
+> **DECISION** — One confirmed address step lifts completed checkouts
+> **LEARNING** — *"The ruling predicted a lift from removing the second address step. Completed checkouts went
+> from 59 to 78 percent, so the ruling holds."*
+> **LEARNING** — *"The ruling assumed the address step hurt every device the same way. Tablet checkouts moved
+> 4 points against 21 on phones, so the ruling is only partly right and the record says so."*
+> **PRD** — Simplify checkout in the homeowner app · *"The approved ruling was written up as the checkout PRD.
+> Every requirement in it traces back to the one confirmed address step."*
 
 **SAY**
 > "And this is the part that compounds. Everything you just watched is one chain, and the product kept it:
@@ -261,16 +286,20 @@ original bet.
 drawing it, not a slide. It closes the loop the Ask opened in Beat 1.
 
 **TRAPS**
-- ⚠️ **Verify this renders before you commit to it.** The graph is real and the edges are in the database,
-  but I have not seen this canvas paint. If it is slow, noisy, or unreadable at video bitrate, switch the
-  view toggle to **list** (the tree view), which shows the same chain as text and survives compression better.
+- **Close on LIST, not on the 3D universe.** The constellation is WebGL and its labels are drawn into the
+  canvas, so at the 3.3 Mbps the 100 MB cap forces they smear into noise. The LIST text is what carries the
+  argument, and it survives compression. Use the 3D purely as a three-second establishing shot.
+- **The learnings show a title of `Untitled`** in this view. Do not point at or read the titles; read the
+  bodies, which are the good part.
+- **Dismiss the upgrade banner first.** It is back on `/brain` ("On Star, your decision memory fades after 30
+  days"), and it sits directly above this panel. A4 covers it; confirm it is gone after a reload.
+- `+0 ICE MOVED` and `100% VALIDATED` sit in the Brain header above the panel. Frame the LIST panel so the
+  stat strip is off the top, and never claim bets re-ranked automatically.
 - Focus only on `theme` / `opportunity` / `decision` / `prd` / `mission`. `changeset`, `deployment` and
   `learning` edges exist in the data but are **not** in the `ARTIFACT_KINDS` enum, so focusing on them may
   fail validation.
 - Alternate focus if the decision node is a poor center:
   `?tab=graph&focusKind=theme&focusId=60000000-0002-4000-8000-000000000001`
-- Do not claim bets re-ranked automatically. The Brain's own stats read `+0 ICE MOVED` and
-  `0 RE-RANKED A PRIORITY`.
 
 ---
 
@@ -343,17 +372,22 @@ at this bitrate.
 
 ### The pre-roll check for this cut
 
+Re-verified end to end on the live site as `harbor@` on 2026-07-27 at 22:10 IST.
+
 | # | Check | Status |
 | --- | --- | --- |
 | 1 | Avatar reads **Maya Ruiz** | ✅ verified in `profiles` |
-| 2 | Both banners gone after reload | do by hand |
-| 3 | `?stage=discover` shows the checkout theme | ✅ data verified · **confirm it renders** |
+| 2 | The Ask answers AND scrolls itself into view | ✅ **fixed and verified live tonight** |
+| 3 | Headline reads **21 calls**, memory stat reads **23 decisions** | ✅ read off the live room |
 | 4 | `?stage=decide` shows crypto killed ICE 4.0 + address ICE 8.0 | ✅ data verified |
-| 5 | `?stage=plan` shows the approved checkout spec | ⚠️ **least verified — walk this first** |
+| 5 | `?stage=plan` → **click the checkout tab** → contract + assumptions | ✅ **verified rendering tonight** |
 | 6 | `?stage=build` shows PR #1 and four paths | ✅ data verified |
 | 7 | `?stage=ship` shows `7bd0e14` to production | ✅ data verified |
 | 8 | `/brain?tab=learnings` shows REVISE above VALIDATED | ✅ data verified |
-| 9 | The graph paints and is readable | ⚠️ **unverified — have the list view ready** |
+| 9 | Graph LIST view shows the 16-node chain | ✅ **verified rendering tonight** |
+| 10 | Both banners gone after a reload | ⚠️ **do this by hand — the `/brain` one is back** |
+
+Only #10 is unverified, because it is browser-local state no query can see. Do A4 and confirm it yourself.
 
 **Any beat that disagrees with this file on the night: drop it and keep going.** The thread survives losing
 Plan or the graph. It does not survive a frame that contradicts what you are saying over it.
