@@ -100,7 +100,7 @@ the casual version ends on "that's it, really" and lets the personal line do the
 
 ---
 
-# THE HYBRID — v8.2 (pitch structure, real voice)
+# THE HYBRID — v8.3 (pitch structure, real voice)
 
 **345 words · ~4:03 at your recorded pace (85 wpm) · ~2:46 at your reading pace.**
 
@@ -127,7 +127,11 @@ personal investment.
 > But honestly, / the job was the same every single morning. /
 > You sit down and it's just: / **what do we build next?** ///
 >
-> And nobody's really good at answering that. /
+> And that's not a me problem. / That's the **job**. /
+> Every product manager I've ever worked with / is answering it the same way. /
+> Best guess, / then defend the guess. //
+>
+> And nobody's really good at it. /
 > Not because people are bad at their **jobs**. //
 >
 > It's that every reason you ever had is **scattered**. /
@@ -172,6 +176,36 @@ personal investment.
 > The agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
 >
 > (smile) I always wanted this to **exist**. / And now I get to **build** it.
+
+## Making it the profession's problem, not yours (v8.3)
+
+You asked whether the video reads as your personal pain rather than the whole product-management
+domain. I audited every line before changing anything, and the answer was more specific than
+either of us expected.
+
+**The script was already 18 lines in profession voice against 4 personal.** Beats 3, 4 and 5 are
+entirely in "you / nobody / people". So the ratio was never the problem.
+
+**The real gap: you never said it out loud.** The universality was carried by second person and
+left implied, and the seam between Beat 2 (your decade) and Beat 3 (the universal pain) had no
+bridge. A listener could still hear Beat 3 as one person generalising from their own frustration,
+which is exactly the read you want to kill.
+
+**One sentence fixes it**, placed at that seam:
+
+> And that's not a me problem. That's the job.
+> Every product manager I've ever worked with is answering it the same way.
+> Best guess, then defend the guess.
+
+Why this and not a statistic: a number ("2.6 million product managers") is deck material. Spoken,
+it invites "where is that from?" and it breaks the conversational register you just built.
+**"Every product manager I've ever worked with"** does the widening through your own standing as a
+ten-year PM, which is credible, unfalsifiable in a good way, and costs no citation.
+
+**"Best guess, then defend the guess"** is the line doing the heaviest lifting. It names the
+actual behaviour of the profession in five words, and every PM watching will recognise themselves
+in it. It also sets up your product as the alternative to guessing, which nothing else in the
+script had done explicitly.
 
 ## Layer two, take three (v8.2) - why the code-gen framing was wrong
 
@@ -261,11 +295,15 @@ You recorded v7.2 (254 words) at close to 3:00, which is **~85 wpm on camera** -
 123 you hit reading at a desk. That is normal: performing with real pauses is slower than
 reading. Your working conversion is **words x 0.7 = seconds**.
 
-| Version | Words | On camera (85) | Reading (123) |
-| --- | --- | --- | --- |
-| v7.2 formal | 254 | ~3:00 (measured) | ~2:03 |
-| **v8.2 hybrid** | **345** | **~4:03** | ~2:48 |
-| coffee | ~430 | ~5:00 | ~3:30 |
+| Version | Words | Cold (85) | Practised (115) | Target (125) |
+| --- | --- | --- | --- | --- |
+| v7.2 formal | 254 | ~3:00 (measured cold) | ~2:13 | ~2:02 |
+| **v8.3 hybrid** | **372** | ~4:22 | **~3:14 (measured)** | ~2:58 |
+| coffee | ~430 | ~5:03 | ~3:44 | ~3:26 |
+
+**PACE FINDING, fourth data point and the most useful one: practice is worth ~30 wpm to him.**
+Cold he reads 85 wpm; practised on v8.2 he hit ~115 and expects 125. So earlier scripts were not
+too long, they were under-rehearsed. Do not cut a script for him before he has practised it twice.
 
 **Warmth costs words. There is no version that is both fully conversational and under two
 minutes.** If you want v8 at roughly the runtime you just recorded, cut the three lowest-value
