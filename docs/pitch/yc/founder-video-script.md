@@ -1,108 +1,28 @@
-# The founder video — the operative script
+# The founder video
 
-> _Living file. **v8 (2026-07-27) is the HYBRID and the one to shoot. v7.2 kept below as the formal cut. Read only the next two sections.** v3.1 and v2 are preserved below so
-> the progression is legible. Delivery craft, the accepted-video corpus, the practice hour, the fumble rule
-> and the pre-upload checks all live in [`founder-video-script-detailed.md`](./founder-video-script-detailed.md)
-> and are deliberately not repeated here._
+> _Living file, ordered newest first._
+>
+> **v8.3 is THE ONE TO SHOOT.** It is the hybrid: the pitch spine with the conversational
+> register grafted on. 372 words, about 3:14 at your practised pace.
+>
+> **Read in this order:** the shooting script below, then the coffee version (learn that one
+> FIRST when practising, it is what stops the take sounding recited), then the previous cuts
+> v7.2 -> v3.1, which are kept only so the progression is legible.
+>
+> Delivery craft, the accepted-video corpus, the practice hour, the fumble rule and the
+> pre-upload checks all live in
+> [`founder-video-script-detailed.md`](./founder-video-script-detailed.md) and are not repeated
+> here._
 
 ---
 
----
+# THE SHOOTING SCRIPT — v8.3 (hybrid: pitch spine, real voice)
 
----
 
----
+**372 words · ~3:14 at your practised pace (115 wpm) · ~2:58 if you hit 125.**
 
----
-
----
-
-# THE COFFEE VERSION — how you would actually say it to a person
-
-**Not a script. Do not memorise this.** It is the same content in the register you would really
-use across a table, and its job is to make the scripted version sound spoken.
-
-**Use it like this: learn the coffee version FIRST, then read v7.2.** Once the ideas live in your
-own casual voice, the script stops being lines you recite and becomes lines you happen to be
-saying. That is exactly what YC is asking for when it says "do not recite a written script: use
-bullet points instead" - they are not objecting to preparation, they are objecting to a video that
-sounds read. This is the cheapest way to fix that.
-
-It also happens to be the version you need for every investor call, every customer conversation,
-and every time someone at a party asks what you do.
-
----
-
-> So, I'm building this thing called **Supaprod**.
->
-> It's for product managers, basically. You know how everyone's talking about agents writing code
-> now? So if the agents are doing the work, somebody still has to decide what they should be
-> working on. And answer for it afterwards. That's the part nobody's built.
->
-> I've been a PM for about ten years. Started out in space systems, then semiconductors, and now
-> banking. Completely different worlds, right? But honestly, the job was the same every single
-> morning. You sit down and it's just: okay, what do we build next?
->
-> And the thing is, nobody's really good at answering that. Not because people are bad at their
-> jobs. It's that every reason you ever had for anything is scattered. It's in a Slack thread
-> somewhere, in a call nobody recorded, in a doc that stopped being true three months ago. So
-> someone asks you why you shipped that thing back in March, and you know there was a good
-> reason. You just can't find it. There's no system that keeps any of it.
->
-> And now AI has made that way sharper. Building software used to be the expensive part. Now you
-> point agents at it and it's done in minutes. So the only hard thing left is knowing what to
-> build. And then knowing whether you were right.
->
-> So Supaprod does three things, really.
->
-> First, it tells you what to build. It reads your users, your product data, your market, and
-> comes back with an actual call and the evidence behind it. Not a summary. Something you can
-> argue with.
->
-> Second, it runs the whole thing end to end. Discovery, design, build, ship. And then it grades
-> what shipped. Like, did that actually work? Where were we wrong?
->
-> And the third bit is the one I care about most. Everything gets remembered. Every decision,
-> every outcome, in one place. So it starts to learn your taste, what your team actually values.
-> And next time you're about to do something you already got wrong once, it tells you before you
-> do it.
->
-> That's it, really. The agents do the work, you make the calls, and every call is on the record.
->
-> I've wanted something like this to exist for years. Now I actually get to build it.
-
----
-
-## What makes this sound spoken, so you can do it yourself
-
-Worth reading once, because these are the moves you can apply to anything, not just this.
-
-| Move | Pitch version | Coffee version |
-| --- | --- | --- |
-| **Discourse markers** | (none) | "So", "basically", "the thing is", "honestly", "really", "like" |
-| **Questions to the listener** | (none) | "You know how everyone's talking about...?", "Completely different worlds, right?" |
-| **Contractions, always** | "it is scattered" | "it's scattered" |
-| **Concrete over abstract** | "the reasoning is scattered" | "it's in a Slack thread somewhere" |
-| **Named time** | "months ago" | "back in March", "three months ago" |
-| **Self-qualification** | "nobody can answer it well" | "nobody's really good at answering that. Not because people are bad at their jobs." |
-| **Loose rhythm** | every sentence tight | some long, some three words |
-| **No slogan close** | "Supaprod is how you answer" | "That's it, really." |
-
-**The one thing that carries over unchanged:** _"the agents do the work, you make the calls, and
-every call is on the record."_ It survives in both registers, which is how you know it is the real
-sentence. If you only ever remember one line about your own company, make it that one.
-
-**The one line that is deliberately different.** The pitch closes on "Supaprod is how you answer",
-which is a slogan and belongs in a recorded video. Over coffee a slogan sounds like a slogan, so
-the casual version ends on "that's it, really" and lets the personal line do the work instead.
-
----
-
----
-
-# THE HYBRID — v8.3 (pitch structure, real voice)
-
-**345 words · ~4:03 at your recorded pace (85 wpm) · ~2:46 at your reading pace.**
+You practised v8.2 (345 words) to about 3:00 yourself, which is ~115 wpm against the 85 you read
+cold. **Practice is worth ~30 wpm to you**, so do not judge this on a first cold read.
 
 This is v7.2's spine with the coffee version's texture grafted on. It is not the casual version:
 it keeps every load-bearing line, the three-part enumeration, and the close. What it borrows is
@@ -314,6 +234,90 @@ and the register survives because the load-bearing imports stay.
 **If you want under 2:00 on camera you need ~170 words**, which is less than v7.2 and would mean
 dropping one of the three layers. I would not. Pick the runtime you can defend and shoot the
 version you can say naturally.
+
+---
+
+# THE COFFEE VERSION — how you would actually say it to a person
+
+
+**Not a script. Do not memorise this.** It is the same content in the register you would really
+use across a table, and its job is to make the scripted version sound spoken.
+
+**Use it like this: learn the coffee version FIRST, then read v7.2.** Once the ideas live in your
+own casual voice, the script stops being lines you recite and becomes lines you happen to be
+saying. That is exactly what YC is asking for when it says "do not recite a written script: use
+bullet points instead" - they are not objecting to preparation, they are objecting to a video that
+sounds read. This is the cheapest way to fix that.
+
+It also happens to be the version you need for every investor call, every customer conversation,
+and every time someone at a party asks what you do.
+
+---
+
+> So, I'm building this thing called **Supaprod**.
+>
+> It's for product managers, basically. You know how everyone's talking about agents writing code
+> now? So if the agents are doing the work, somebody still has to decide what they should be
+> working on. And answer for it afterwards. That's the part nobody's built.
+>
+> I've been a PM for about ten years. Started out in space systems, then semiconductors, and now
+> banking. Completely different worlds, right? But honestly, the job was the same every single
+> morning. You sit down and it's just: okay, what do we build next?
+>
+> And the thing is, nobody's really good at answering that. Not because people are bad at their
+> jobs. It's that every reason you ever had for anything is scattered. It's in a Slack thread
+> somewhere, in a call nobody recorded, in a doc that stopped being true three months ago. So
+> someone asks you why you shipped that thing back in March, and you know there was a good
+> reason. You just can't find it. There's no system that keeps any of it.
+>
+> And now AI has made that way sharper. Building software used to be the expensive part. Now you
+> point agents at it and it's done in minutes. So the only hard thing left is knowing what to
+> build. And then knowing whether you were right.
+>
+> So Supaprod does three things, really.
+>
+> First, it tells you what to build. It reads your users, your product data, your market, and
+> comes back with an actual call and the evidence behind it. Not a summary. Something you can
+> argue with.
+>
+> Second, it runs the whole thing end to end. Discovery, design, build, ship. And then it grades
+> what shipped. Like, did that actually work? Where were we wrong?
+>
+> And the third bit is the one I care about most. Everything gets remembered. Every decision,
+> every outcome, in one place. So it starts to learn your taste, what your team actually values.
+> And next time you're about to do something you already got wrong once, it tells you before you
+> do it.
+>
+> That's it, really. The agents do the work, you make the calls, and every call is on the record.
+>
+> I've wanted something like this to exist for years. Now I actually get to build it.
+
+---
+
+## What makes this sound spoken, so you can do it yourself
+
+Worth reading once, because these are the moves you can apply to anything, not just this.
+
+| Move | Pitch version | Coffee version |
+| --- | --- | --- |
+| **Discourse markers** | (none) | "So", "basically", "the thing is", "honestly", "really", "like" |
+| **Questions to the listener** | (none) | "You know how everyone's talking about...?", "Completely different worlds, right?" |
+| **Contractions, always** | "it is scattered" | "it's scattered" |
+| **Concrete over abstract** | "the reasoning is scattered" | "it's in a Slack thread somewhere" |
+| **Named time** | "months ago" | "back in March", "three months ago" |
+| **Self-qualification** | "nobody can answer it well" | "nobody's really good at answering that. Not because people are bad at their jobs." |
+| **Loose rhythm** | every sentence tight | some long, some three words |
+| **No slogan close** | "Supaprod is how you answer" | "That's it, really." |
+
+**The one thing that carries over unchanged:** _"the agents do the work, you make the calls, and
+every call is on the record."_ It survives in both registers, which is how you know it is the real
+sentence. If you only ever remember one line about your own company, make it that one.
+
+**The one line that is deliberately different.** The pitch closes on "Supaprod is how you answer",
+which is a slogan and belongs in a recorded video. Over coffee a slogan sounds like a slogan, so
+the casual version ends on "that's it, really" and lets the personal line do the work instead.
+
+---
 
 ---
 
