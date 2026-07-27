@@ -137,8 +137,16 @@ India.
 4. **"I own the product, not the code"** disarms the PM-founder objection before it is raised. Say it once,
    here, and never again. The whole Supaprod thesis is that this limit no longer binds anyone.
 
-**Deliberately excluded:** NSRCEL and Startup India (box 4 owns them). ISRO appears only as a one-word
-career-arc mention here because boxes 1 and 2 already own the story.
+**Deliberately excluded:** NSRCEL and Startup India (box 4 owns them). ISRO is referenced as "India's
+national space agency", never by name, because boxes 1 and 2 already spend the word (see the naming ruling
+above).
+
+> **📋 FORM CHECK (2026-07-28, against the live screenshot):** boxes 1, 2 and 4 match this file verbatim.
+> **Box 3 on the form carries only the first paragraph** — the bubble-tea 0-to-1 and the four-rebuilds close
+> are missing, which leaves the "things YOU have built" question answered only with employer work and no
+> explanation for the absent URLs. Paste the full three-paragraph block. The closing line's "those
+> repositories are private" became literally true on 2026-07-28 (see the executed note above), so the
+> paragraph is safe to state.
 
 ---
 
