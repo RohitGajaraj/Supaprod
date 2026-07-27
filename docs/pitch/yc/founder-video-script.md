@@ -1,11 +1,746 @@
 # The founder video — the operative script
 
-> _Living file. **v3.1 (2026-07-26 15:00 IST) is the operative script.** v2's cut is preserved at the bottom so
+> _Living file. **v7.2 (2026-07-27) is THE SHOOTING SCRIPT. Read only the next two sections.** v3.1 and v2 are preserved below so
 > the progression is legible. Delivery craft, the accepted-video corpus, the practice hour, the fumble rule
 > and the pre-upload checks all live in [`founder-video-script-detailed.md`](./founder-video-script-detailed.md)
 > and are deliberately not repeated here._
 
-## Founder changes applied in v3.1 (2026-07-26 15:00)
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+# THE COFFEE VERSION — how you would actually say it to a person
+
+**Not a script. Do not memorise this.** It is the same content in the register you would really
+use across a table, and its job is to make the scripted version sound spoken.
+
+**Use it like this: learn the coffee version FIRST, then read v7.2.** Once the ideas live in your
+own casual voice, the script stops being lines you recite and becomes lines you happen to be
+saying. That is exactly what YC is asking for when it says "do not recite a written script: use
+bullet points instead" - they are not objecting to preparation, they are objecting to a video that
+sounds read. This is the cheapest way to fix that.
+
+It also happens to be the version you need for every investor call, every customer conversation,
+and every time someone at a party asks what you do.
+
+---
+
+> So, I'm building this thing called **Supaprod**.
+>
+> It's for product managers, basically. You know how everyone's talking about agents writing code
+> now? So if the agents are doing the work, somebody still has to decide what they should be
+> working on. And answer for it afterwards. That's the part nobody's built.
+>
+> I've been a PM for about ten years. Started out in space systems, then semiconductors, and now
+> banking. Completely different worlds, right? But honestly, the job was the same every single
+> morning. You sit down and it's just: okay, what do we build next?
+>
+> And the thing is, nobody's really good at answering that. Not because people are bad at their
+> jobs. It's that every reason you ever had for anything is scattered. It's in a Slack thread
+> somewhere, in a call nobody recorded, in a doc that stopped being true three months ago. So
+> someone asks you why you shipped that thing back in March, and you know there was a good
+> reason. You just can't find it. There's no system that keeps any of it.
+>
+> And now AI has made that way sharper. Building software used to be the expensive part. Now you
+> point agents at it and it's done in minutes. So the only hard thing left is knowing what to
+> build. And then knowing whether you were right.
+>
+> So Supaprod does three things, really.
+>
+> First, it tells you what to build. It reads your users, your product data, your market, and
+> comes back with an actual call and the evidence behind it. Not a summary. Something you can
+> argue with.
+>
+> Second, it runs the whole thing end to end. Discovery, design, build, ship. And then it grades
+> what shipped. Like, did that actually work? Where were we wrong?
+>
+> And the third bit is the one I care about most. Everything gets remembered. Every decision,
+> every outcome, in one place. So it starts to learn your taste, what your team actually values.
+> And next time you're about to do something you already got wrong once, it tells you before you
+> do it.
+>
+> That's it, really. The agents do the work, you make the calls, and every call is on the record.
+>
+> I've wanted something like this to exist for years. Now I actually get to build it.
+
+---
+
+## What makes this sound spoken, so you can do it yourself
+
+Worth reading once, because these are the moves you can apply to anything, not just this.
+
+| Move | Pitch version | Coffee version |
+| --- | --- | --- |
+| **Discourse markers** | (none) | "So", "basically", "the thing is", "honestly", "really", "like" |
+| **Questions to the listener** | (none) | "You know how everyone's talking about...?", "Completely different worlds, right?" |
+| **Contractions, always** | "it is scattered" | "it's scattered" |
+| **Concrete over abstract** | "the reasoning is scattered" | "it's in a Slack thread somewhere" |
+| **Named time** | "months ago" | "back in March", "three months ago" |
+| **Self-qualification** | "nobody can answer it well" | "nobody's really good at answering that. Not because people are bad at their jobs." |
+| **Loose rhythm** | every sentence tight | some long, some three words |
+| **No slogan close** | "Supaprod is how you answer" | "That's it, really." |
+
+**The one thing that carries over unchanged:** _"the agents do the work, you make the calls, and
+every call is on the record."_ It survives in both registers, which is how you know it is the real
+sentence. If you only ever remember one line about your own company, make it that one.
+
+**The one line that is deliberately different.** The pitch closes on "Supaprod is how you answer",
+which is a slogan and belongs in a recorded video. Over coffee a slogan sounds like a slogan, so
+the casual version ends on "that's it, really" and lets the personal line do the work instead.
+
+---
+
+# THE SHOOTING SCRIPT — v7.2
+
+**254 words · ~2:03 at your practised pace · one version, nothing to decide while filming.**
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat, look
+away and back · **bold** = the one word you punch · `(down)` = voice drops.
+
+> Hi. / I'm **Rohit**. / I'm building **Supaprod**. //
+>
+> It's for product managers who ship with **agents**. //
+>
+> The agents do the **work**. / You make the **calls**. / And every call is on the **record**. ///
+>
+> I've been in product for close to a **decade**. /
+> I started in **space systems**, / then **semiconductors**, / now **banking**. //
+>
+> Three completely different domains. /
+> And in every one of them, / my job came down to the **same** question. //
+>
+> **What do we build next?** ///
+>
+> Every product manager wakes up to that question. / And nobody can answer it **well**. //
+>
+> Because the reasoning behind every decision is **real**, / but it is **scattered**. /
+> There is no **system** that keeps it. ///
+>
+> Then AI changed the equation. //
+>
+> Building software used to be the **hard** part. / Now agents do it, / in **minutes**. //
+>
+> So the only hard part **left** / is knowing **what** to build. /
+> And whether the call was **right**. ///
+>
+> So Supaprod does **three** things. ///
+>
+> **One.** / It tells you what to **build**. /
+> It reads your **users**, / your **data**, / your **market**, /
+> and comes back with the call / and the **evidence** behind it. //
+>
+> **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
+> Then it **grades** what shipped, / and tells you where you went **wrong**. //
+>
+> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> Every decision, / every outcome, / in one place. / It learns your **taste**. /
+> So it warns you before you repeat what did **not** work. ///
+>
+> Agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) That's **Supaprod**. / I always wanted this to **exist**. /
+> And now I get to **build** it.
+
+## Why Beat 4 grew, and what paid for it
+
+You were right: 13 words for the central market thesis, against 92 for the product, was out of
+proportion. Beat 4 is the **why now**, and for an investor it is the beat that decides whether the
+company needs to exist at all. It is now 36 words and it does three things in order:
+
+1. **Plain-language shift.** "Building software used to be the hard part. Now agents do it, in
+   minutes." No "commoditized", as you asked. Nothing to decode.
+2. **The antithesis.** "used to be the **hard** part" then "the only hard part **left**". Saying
+   hard twice on purpose is what makes the turn land.
+3. **It names both halves of the real problem.** "Knowing **what** to build. And whether the call
+   was **right**." That second half is new and it is load-bearing: it is what makes Beat 5's
+   grading and the company brain feel inevitable rather than bolted on.
+
+**What paid for it.** Beat 5's layer three used to end "it tells you what worked, and warns you
+before you repeat what did not". The "what worked" half is now covered upstream by Beat 4, so the
+tail is one clause instead of two. Plus two words of redundancy elsewhere. Net cost: 15 words,
+about seven seconds.
+
+**If you need under 2:00**, the next 8 words are Beat 5 layer one's "and comes back with the call"
+(you would say "and comes back with the evidence behind it"). I would not: "the call" is the third
+beat of a motif that runs "you make the **calls**" -> "whether the **call** was right" -> "comes
+back with the **call**", and that repetition is doing real work.
+
+## The three places to get right
+
+**It reads your users, your data, your market.** Say these three as three, with a beat between
+each. This is the only line in the script that says what the system actually reads, and it is
+what turns "it tells you what to build" from a claim into a mechanism. You were right to want it
+back.
+
+**There is no system that keeps it.** Land this one flat and certain. It is the sentence that
+makes the whole video a diagnosis rather than a complaint, and it is why nothing here reads as
+you being disorganised.
+
+**"So the only hard part left is knowing what to build. And whether the call was right."** Slow
+down on this one. It is your thesis in two sentences, and everything after it is the answer to it.
+
+**The last three lines.** Slower and warmer than everything before them. Let your face change on
+the smile. A partner is answering one question while they watch, would I back this person, and
+"now I get to build it" answers it better than any credential in the script.
+
+## The one optional add
+
+If you want the MBA in: after "now **banking**", add
+
+> With an MBA in Germany in the middle. //
+
+Eight words, taking you to 247 and **~2:00 exactly**. It is the least valuable eight words in the
+script by your own logic: it connects nothing for the listener, where every other line does. Say
+"an MBA in Germany", never a ranking. My call is leave it out and keep clear daylight under two
+minutes, but it is close and it is yours.
+
+## The bullet card (the only thing under the lens)
+
+1. **Rohit. Building Supaprod. For PMs who ship with agents. Agents do the work, you make the calls, every call on the record.**
+2. **Close to a decade. Space systems, then semiconductors, now banking. Three different domains, same question.**
+3. **WHAT DO WE BUILD NEXT?**
+4. **Every PM wakes up to it. Nobody answers it well. Reasoning is real but scattered. No system keeps it.**
+5. **AI changed the equation. Building used to be hard. Now agents do it in minutes. Only hard part left: knowing WHAT to build, and whether the call was RIGHT.**
+6. **THREE THINGS. One: what to build. Reads your users, your data, your market. Comes back with the call and the evidence. Two: the whole lifecycle. Discovery, design, build, ship. Then grades it and tells you where you went wrong. Three: the company brain. Compounds. Every decision, every outcome, one place. Learns your taste. Warns you before you repeat what did not work.**
+7. **Agents do the work. You answer for it. Supaprod is how you answer.**
+8. **(smile) That's Supaprod. I always wanted this to exist. And now I get to build it.**
+
+---
+
+## PREVIOUS - v7 tiers (superseded by v7.1: one version, dangling and fixed)
+
+### v7 notes
+
+Two changes from v6, both yours:
+
+1. **Beat 5 restored to the v5 wording**, which explains each of the three things instead of
+   compressing them. Costs 23 words and it is worth it: layer one gets what it reads, layer two
+   gets grading _and_ "where you went wrong", layer three gets "every decision, every outcome, in
+   one place" before "taste" lands.
+2. **The ending you picked**, without the ten-years framing.
+
+### The honest arithmetic
+
+Restoring Beat 5 puts the script over 1:45. At your practised pace (~123 wpm):
+
+| Version | Words | Practised | Drop |
+| --- | --- | --- | --- |
+| **v7 FULL** | **260** | ~2:06 | nothing |
+| **v7 LEAN** | **239** | ~1:56 | OPT + CUT 1 |
+| **v7 TIGHT** | **231** | **~1:52** ✅ | OPT + CUT 1 + CUT 2 |
+
+**~1:52 is fine, and I would not fight for the last seven seconds.** For scale: the accepted
+application videos measured for this file run 46s to 97s, and YC's own showcased exemplar runs
+2:37. A well-told 1:50 with all three layers explained beats a rushed 1:45 with them clipped.
+
+If you do want 1:45 exactly you need ~16 words off 231. The cheapest are Beat 1's _"And every call is on the
+record"_ (7) plus Beat 2's _"completely"_ and Beat 5's _"So next time"_. But that line in Beat 1
+plants "record" for the close, so I would take the extra five seconds instead.
+
+---
+
+### THE SCRIPT — v7 (FINAL)
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat,
+look away and back · **bold** = the one word you punch · `(down)` = voice drops.
+
+### Beat 1 · what it is (0:00 to 0:14)
+
+> Hi. / I'm **Rohit**. / I'm building **Supaprod**. //
+>
+> It's for product managers who ship with **agents**. //
+>
+> The agents do the **work**. / You make the **calls**. / And every call is on the **record**. ///
+
+### Beat 2 · the decade, and the bridge (0:14 to 0:37)
+
+> I've been in product for close to a **decade**. /
+> I started in **space systems**, / then **semiconductors**, / now **banking**. /
+> `[OPT →]` With an MBA in Germany in the middle. `[← end OPT]` //
+>
+> Three completely different domains. /
+> And in every one of them, / my job came down to the **same** question. //
+>
+> **What do we build next?** ///
+
+### Beat 3 · the pain, as an industry condition (0:37 to 0:58)
+
+> Every product manager wakes up to that question. / And nobody can answer it **well**. //
+>
+> Because the reasoning behind every decision is **real**, / but it is **scattered**. /
+> `[CUT 1 →]` A chat thread. / A call nobody recorded. / A doc that stopped being true.
+> `[← end CUT 1]` //
+>
+> There is no **system** that keeps it. ///
+
+### Beat 4 · what AI changed (0:58 to 1:06)
+
+> Then AI changed the equation. //
+>
+> Building software used to be the **hard** part. / Now agents do it, / in **minutes**. //
+>
+> So the only hard part **left** / is knowing **what** to build. /
+> And whether the call was **right**. ///
+
+### Beat 5 · the three things, explained (1:06 to 1:44)
+
+> So Supaprod does **three** things. ///
+>
+> **One.** / It tells you what to **build**. /
+> `[CUT 2 →]` It reads your users, / your data, / your market, `[← end CUT 2]` /
+> and comes back with the call / and the **evidence** behind it. //
+>
+> **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
+> Then it **grades** what shipped, / and tells you where you went **wrong**. //
+>
+> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> Every decision, / every outcome, / in one place. / It learns your **taste**. /
+> So it warns you before you repeat what did **not** work. ///
+
+### Beat 6 · the close (1:44 to 1:52)
+
+> Agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) That's **Supaprod**. / I always wanted this to **exist**. /
+> And now I get to **build** it.
+
+**Say the last three lines slower and warmer than everything before them.** Let your face change
+on the smile. This is the one moment in the video where you stop presenting and just talk to the
+person watching, and it is the line a partner will remember.
+
+---
+
+### The bullet card for v7 (the only thing in front of you when you roll)
+
+Tape it under the lens. Glance, never read.
+
+1. **Rohit. Building Supaprod. For PMs who ship with agents. Agents do the work, you make the calls, every call on the record.**
+2. **Close to a decade. Space systems, then semiconductors, now banking. MBA in Germany. Three different domains, same question.**
+3. **WHAT DO WE BUILD NEXT?**
+4. **Every PM wakes up to it. Nobody answers it well. The reasoning is real but scattered. No system keeps it.**
+5. **AI changed the equation. Building used to be hard. Now agents do it in minutes. Only hard part left: knowing WHAT to build, and whether the call was RIGHT.**
+6. **THREE THINGS. One: what to build, with the evidence. Two: the whole lifecycle, then grades it and tells you where you went wrong. Three: the company brain, compounds, learns your taste, warns you.**
+7. **Agents do the work. You answer for it. Supaprod is how you answer.**
+8. **(smile) That's Supaprod. I always wanted this to exist. And now I get to build it.**
+
+---
+
+## PREVIOUS — v6 (superseded by v7: Beat 5 restored to v5 wording, new ending)
+
+### The projection problem, and how v6 fixed it
+
+You asked: does _"someone would ask me why we built something, and I could not find the reasons"_
+make you look inefficient, rather than describing a pain every product manager has?
+
+**Yes, it can, and you were right to catch it.** I defended that line in v5 as "competence being
+wasted", but you are the one who has to say it out loud, and the risk is real: a listener can
+hear "this person should keep better notes." That is the worst possible read, because it turns
+your founding insight into a personal shortcoming.
+
+Three structural fixes, all applied in v6. None of them is a wording tweak.
+
+**1. Universalise BEFORE you confess.** v5 told your story and hoped the listener generalised.
+v6 states the condition first: _"Every product manager wakes up to that question. And nobody can
+answer it well."_ Once that is established, your experience is **evidence for a diagnosis**
+rather than an admission about you.
+
+**2. Blame the absence of a system, not the person.** The new line is _"There is no system that
+keeps it."_ That single sentence moves the agency off you entirely. The reasoning did not go
+missing because you were careless; it went missing because nothing was built to hold it. And it
+sets up your product as the answer, which "I could not find them" never did.
+
+**3. Make it structural, not about diligence.** The reasoning is _"scattered"_ across a chat
+thread, a call, a doc. Distribution is a structural fact. No amount of personal effort fixes it,
+so nobody can read it as effort you failed to make.
+
+The net effect: v5 had you saying "I lost the reasons." v6 has you saying "the industry has no
+place to keep them, and I noticed." That is the difference between a candidate and a founder.
+
+---
+
+### Pace, and what 1:45 actually buys
+
+Your readings: 304 words -> ~3:00 (101 wpm) · 216 words -> ~2:00 (108 wpm) · and you expect
+**1:45 after practice**, which is ~123 wpm on the same words.
+
+So the useful way to read this: **practice is worth about 15 wpm to you.** That means I do not
+need to cut v5 down to fit 1:45. I need to keep the total roughly where it was and spend
+~25 words of new connective tissue by trimming ~25 elsewhere. That is what v6 does.
+
+| Version | Words | Unpractised (108) | Practised (123) |
+| --- | --- | --- | --- |
+| **v6 FULL** | **228** | 2:06 | ~1:51 |
+| **v6 LEAN** | **207** | 1:55 | **~1:40** ✅ target |
+
+Drop order if long: the MBA clause, then the three hiding places.
+
+---
+
+### THE SCRIPT — v6
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat,
+look away and back · **bold** = the one word you punch · `(down)` = voice drops.
+
+### Beat 1 · what it is (0:00 to 0:14)
+
+> Hi. / I'm **Rohit**. / I'm building **Supaprod**. //
+>
+> It's for product managers who ship with **agents**. //
+>
+> The agents do the **work**. / You make the **calls**. / And every call is on the **record**. ///
+
+### Beat 2 · the decade, and the bridge you asked for (0:14 to 0:37)
+
+> I've been in product for close to a **decade**. /
+> I started in **space systems**, / then **semiconductors**, / now **banking**. /
+> `[OPT →]` With an MBA in Germany in the middle. `[← end OPT]` //
+>
+> Three completely different domains. /
+> And in every one of them, / my job came down to the **same** question. //
+>
+> **What do we build next?** ///
+
+_The bridge is "and in every one of them, my job came down to the same question." That is the
+interconnecting link that was missing. v5 listed three domains and then jumped to the problem
+with nothing joining them; now the domains are the **evidence** that the question is universal,
+which is also what earns your decade. The MBA sits inside the arc as a subordinate clause._
+
+### Beat 3 · the pain, as an industry condition (0:37 to 0:58)
+
+> Every product manager wakes up to that question. / And nobody can answer it **well**. //
+>
+> Because the reasoning behind every decision is **real**, / but it is **scattered**. /
+> `[CUT 1 →]` A chat thread. / A call nobody recorded. / A doc that stopped being true.
+> `[← end CUT 1]` //
+>
+> There is no **system** that keeps it. ///
+
+_This is the rewritten beat. Note what is gone: the word "I". You are no longer the subject of
+the failure. You are the person describing it accurately._
+
+### Beat 4 · what AI changed (0:58 to 1:06)
+
+> Then AI changed the equation. //
+>
+> Building software used to be the **hard** part. / Now agents do it, / in **minutes**. //
+>
+> So the only hard part **left** / is knowing **what** to build. /
+> And whether the call was **right**. ///
+
+_Compressed from 24 words to 13. The personal wall ("agents did more of my work, I could explain
+less") is gone because Beat 3 now carries the diagnosis systemically, and repeating it in the
+first person would reintroduce exactly the projection problem you flagged._
+
+### Beat 5 · the three things (1:06 to 1:29)
+
+> So Supaprod does **three** things. ///
+>
+> **One.** / It tells you what to **build**. / It reads everything your company knows, /
+> and comes back with the **evidence**. //
+>
+> **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
+> Then it **grades** what shipped. //
+>
+> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> It learns your **taste**, / and warns you before you repeat what did **not** work. ///
+
+### Beat 6 · the close, with more life in it (1:29 to 1:40)
+
+> Agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) That's **Supaprod**. / I'd love to show you the **rest** of it.
+
+**Alternative endings**, if you want more personal energy. Pick one, do not stack them:
+
+- _"(smile) I've wanted this to exist for ten years. / Now I get to build it."_ — the warmest
+  option, and the only one that shows what this costs you. Strongest if you can say it without
+  it sounding rehearsed.
+- _"(smile) That's the company. / I'm building it either way. / I'd rather build it with you."_ —
+  confident, and it carries the right posture: this is happening, you are welcome to come along.
+- **Not** "looking forward to hearing from you." That reads as needing to be picked, which is the
+  one posture the research is unambiguous about avoiding.
+
+---
+
+### What changed from v5
+
+| Your note | What I did |
+| --- | --- |
+| "Beat 2 jumps to the problem with no interconnecting link" | Added _"And in every one of them, my job came down to the same question."_ The domains now prove the question is universal. |
+| "MBA from Germany after the first sentence" | In, as an optional clause inside the arc. Say "an MBA in Germany", not the ranking. |
+| "Every product manager out there has been facing this every single morning" | Beat 3 now opens on exactly that: _"Every product manager wakes up to that question."_ |
+| "Does this project me as inefficient?" | Beat 3 rebuilt. No "I" in the failure. See the section above. |
+| "Make the ending more exciting than thanks for watching" | Replaced, plus two alternatives. |
+| 1:45 target | v6 LEAN is 207 words, ~1:40 at your practised pace. |
+
+---
+
+## PREVIOUS — v5 (2026-07-27, ran ~2:00; superseded by v6)
+
+### Pace note from the v5 round
+
+| Read | Words | Your time | Implied pace |
+| --- | --- | --- | --- |
+| v3.1 | 304 | ~3:00 | ~101 wpm |
+| v4 lean | 149 | ~1:00 | **~149 wpm** |
+
+I am sizing v5 off the **149 wpm** figure, because v4 is the script you actually read and the
+shorter sentences are probably why it flowed. But the two numbers are 48% apart, so **stopwatch
+v5 before you commit to it.** If it lands over 1:35, drop the marked blocks in order.
+
+| Version | Words | At 149 wpm | Drop these |
+| --- | --- | --- | --- |
+| **v5 FULL** | **240** | ~1:36 | nothing |
+| **v5 LEAN** | **216** | **~1:26** ✅ start here | OPT + CUT 1 |
+| **v5 TIGHT** | **208** | ~1:23 | OPT + CUT 1 + CUT 2 |
+
+Drop them in that order: the MBA first (it is a credential, not a story), then the three places
+the reasons hide, then the users/data/market list. Never speed up to fit.
+
+---
+
+### THE SCRIPT — v5
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat,
+look away and back · **bold** = the one word you punch · `(down)` = voice drops.
+
+### Beat 1 · what it is, sharpened (0:00 to 0:14)
+
+> Hi. / I'm **Rohit**. / I'm building **Supaprod**. //
+>
+> It's for product managers who ship with **agents**. //
+>
+> The agents do the **work**. / You make the **calls**. / And every call is on the **record**. ///
+
+_You asked whether to keep "I'm building Supaprod". **Keep it.** All 22 accepted application
+videos state name and company in the first breath, and nothing is gained by delaying it. The
+sharpening happens in the next two lines instead._
+
+_"Product managers who ship with agents" is your agentic-first emphasis without the jargon.
+It positions the audience, not the architecture. Then **work / calls / record** is the whole
+product in three words, and it sets up the close, which reuses "answer" the same way._
+
+### Beat 2 · the decade, three domains (0:14 to 0:31)
+
+> I've been in product for close to a **decade**. /
+> I started in **space systems**, / then **semiconductors**, / and now **banking**. /
+> Three completely different domains. /
+> `[OPT →]` With an MBA in Germany in the middle. `[← end OPT]` //
+>
+> Same question every **morning**. / **What do we build next?** ///
+
+_"Every morning" as you asked, and the domains now read as one arc inside the decade._
+
+_On the MBA: marked optional because the repo deliberately dropped the ranking adjective from
+this exact claim. Application §3d records the ruling: "KEEP, drop the ranking adjective
+(adjectives doing evidence's job)". So say **"an MBA in Germany"**, never "Europe's top school".
+The ranking is the kind of phrase that makes a partner discount the sentences around it._
+
+### Beat 3 · the pain, no VP (0:31 to 0:47)
+
+> And every few weeks, / someone would ask me / **why** we built something. //
+>
+> The reasons were **real**. / I just could not **find** them. /
+> `[CUT 1 →]` They were in a chat thread, / a call nobody recorded, /
+> a doc that stopped being **true**. `[← end CUT 1]` ///
+
+_You were right to question the VP. It imported an org chart the video never established, and a
+listener who does not have a VP fell out of the sentence. **"Every few weeks, someone would ask
+me"** is your own experience, needs no hierarchy, and is true of every product person watching._
+
+### Beat 4 · what AI changed (0:47 to 0:57)
+
+> Then AI made building **cheap**. / Deciding what to build got **harder**. //
+>
+> Agents did more of my work, / and I could explain **less** of it. ///
+
+### Beat 5 · the three things, each with room to land (0:57 to 1:24)
+
+> So Supaprod does **three** things. ///
+>
+> **One.** / It tells you what to **build**. /
+> `[CUT 2 →]` It reads your users, / your data, / your market, `[← end CUT 2]` /
+> and comes back with the call / and the **evidence** behind it. //
+>
+> **Two.** / It runs the whole **lifecycle**. / Discovery, / design, / build, / ship. /
+> Then it **grades** what shipped, / and tells you where you went **wrong**. //
+>
+> **Three.** / And this is the part that **compounds**. / The **company brain**. /
+> Every decision, / every outcome, / in one place. / It learns your **taste**. /
+> So it warns you before you repeat what did **not** work. ///
+
+_This is the spotlight you asked for. Each layer now gets a mechanism, not just a claim: layer
+one gets "the call and the evidence", layer two gets the four stages plus grading, layer three
+gets "compounds" as its own beat before the name lands._
+
+_**On "taste".** Claim-safe and it is the best word available. `one-pager.md:32` tags "Outcomes
+move the ranking" as [PROVEN] via RF-01..08. But **do not say "reinforcement learning"** on
+camera. The same source quotes the mechanism honestly: "it's not improving its weights, it's
+improving its context." "It learns your taste" is true, plainer, and cannot be cross-examined._
+
+### Beat 6 · the close (1:24 to 1:32)
+
+> Agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) Thanks for watching.
+
+---
+
+### What changed from v4
+
+**"It's live. Public launch in September" is cut,** as you asked. One consequence worth naming:
+nothing in the video now states where you are. That is fine here, because the application text
+carries it, but if you ever send this video with no covering material, add those two facts back.
+
+**The VP is gone**, replaced with your own experience.
+
+**"Every Monday" became "every morning."**
+
+**Beat 1 sharpened** to work / calls / record, which also sets up the close.
+
+**"Taste" and the compounding beat are new**, and they are what gives layer three its spotlight.
+
+**Space systems / semiconductors / banking now reads as an arc** with "started... then... and now",
+rather than a bare list.
+
+---
+
+## PREVIOUS — v4 (2026-07-27, ran ~1:00; superseded by v5)
+
+### Pace note from the v4 round
+
+You practised v3.1 and it ran **close to 3:00** against a 1:30 cap. That is the single most
+useful number in this file, because it settles what I had been guessing at:
+
+> **304 words in ~3:00 = about 101 words per minute.**
+> So 1:30 (90 seconds) = **about 150 words.** Not 277. Not 161.
+
+101 wpm is a deliberate, careful pace and there is nothing wrong with it. Do not try to fix a
+long read by speaking faster: that is the one thing a viewer hears immediately, and it is the
+failure mode you told me you have. **Cut words instead.** v4 below is 160 words full, 149 with both cut blocks dropped.
+**Shoot the LEAN.** 149 words is the version that actually lands inside 1:30.
+
+| Version | Words | At your pace |
+| --- | --- | --- |
+| v3.1 | 304 | ~3:00 (over) |
+| **v4 FULL** | **160** | **~1:35** (marginally over) |
+| **v4 LEAN** (both cuts dropped) | **149** | **~1:28** ✅ shoot this |
+
+---
+
+### THE SCRIPT — v4 (160 words full · 149 lean · shoot the lean, ~1:28)
+
+`/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat,
+look away and back · **bold** = the one word you punch · `(down)` = voice drops.
+
+### Beat 1 · what it is, straight away (0:00 to 0:18)
+
+> Hi. / I'm **Rohit**, / and I'm building **Supaprod**. //
+>
+> It's for **product managers**. / The agents do the work, / and you stay **accountable** for it. //
+>
+> `[CUT 1 →]` On the application it still says **Cadence**. `[← end CUT 1]` ///
+
+_You asked to lead with what we are building, with clarity. This does it in the first two
+sentences: who it is for, and the one-line shape of it. Keep CUT 1 for the application that
+still carries the old name; drop it for any other investor._
+
+### Beat 2 · the pain, short (0:18 to 0:42)
+
+> I've been in product for close to a **decade**. /
+> `[CUT 2 →]` Space systems, / semiconductors, / banking. `[← end CUT 2]` //
+>
+> Same question every Monday. / **What do we build next?** //
+>
+> And when your VP asks **why** you built something, / the reasons are real, /
+> but you cannot **find** them. ///
+
+_"The reasons are real, but you cannot find them" is the line to slow down on. It makes the
+pain read as competence being wasted, not as someone being disorganised._
+
+### Beat 3 · what AI changed (0:42 to 0:56)
+
+> Then AI made building **cheap**. / Deciding what to build got **harder**. //
+>
+> Agents did more of my work, / and I could explain **less** of it. ///
+
+### Beat 4 · the three things, in your priority order (0:56 to 1:22)
+
+> So Supaprod does **three** things. ///
+>
+> **One.** / It tells you what to **build**. / From everything your company already knows. //
+>
+> **Two.** / It runs the whole **lifecycle**. / Discovery, / shipping, / grading what shipped, /
+> and telling you where you went **wrong**. //
+>
+> **Three.** / The **company brain**. / It remembers, / and it **guides**. ///
+
+_This is the crisp close you asked for, in the order you named, and it matches the website
+exactly. `ThreeLayers.tsx` publishes: 01 the director "It tells you what to build" · 02 the
+loop "It runs the whole lifecycle" · 03 the company brain "It remembers, and it guides."
+Saying **One, Two, Three** out loud is what makes a viewer able to repeat your company back
+after one watch, which is the actual test a partner runs._
+
+### Beat 5 · the close (1:19 to 1:28)
+
+> It's **live**. / Public launch in **September**. //
+>
+> Agents do the **work**. / You **answer** for it. / **Supaprod is how you answer.** (down) ///
+>
+> (smile) Thanks for watching.
+
+---
+
+### What I cut from v3.1, and why
+
+**Beat 6 is gone, as you asked.** The solo / eight weeks / four thousand commits / one person
+directing agents block is out. Your read is right for this video: it answers "how hard did you
+work", which is not the question a 90-second video has room for. **"It's live. Public launch in
+September" survives** because those are the only two facts a partner needs in order to know
+where you are.
+
+**The long pain telling is gone.** v3.1 spent 59 words on the chat thread, the call nobody
+recorded, the document that stopped being true in March, and the morning spent digging. v4
+spends 19 on the same idea. The specifics were good writing and they were costing you 40
+seconds.
+
+**"Nothing merges without you" is gone.** It is a strong line and it hurt to cut. It now lives
+inside "you stay accountable for it" in Beat 1, which is doing the same work earlier and in
+fewer words.
+
+**One note on "company brain".** It is on the live site as the name of layer 03, so it is
+already your published vocabulary and I have used it. Worth knowing why the caution existed:
+`repositioning-2026-07-22.md` treats it as a phrase to quote and attribute rather than claim as
+brand identity. Saying it as the name of your third layer, as the site does, is fine. Saying
+"we are a company brain" as the whole positioning is the thing to avoid.
+
+---
+
+### The bullet card for v4 (the only thing in front of you when you roll)
+
+Tape this under the lens. Glance, never read.
+
+1. **Rohit. Building Supaprod. For product managers: agents do the work, you stay accountable.** _(app still says Cadence)_
+2. **Close to a decade in product. Same question every Monday: what do we build next?**
+3. **Your VP asks why. The reasons are real. You cannot find them.**
+4. **AI made building cheap. Deciding got harder. Agents did more, I explained less.**
+5. **THREE THINGS. One: tells you what to build. Two: runs the whole lifecycle, and tells you where you went wrong. Three: the company brain, remembers and guides.**
+6. **Live. Launch September.**
+7. **Agents do the work. You answer for it. Supaprod is how you answer.** _(smile) Thanks for watching._
+
+---
+
+## PREVIOUS — v3.1 (superseded 2026-07-27: ran ~3:00 against a 1:30 cap)
+
+### Founder changes applied in v3.1 (2026-07-26 15:00)
 
 | Your note | Applied |
 | --- | --- |
@@ -20,7 +755,7 @@ application research flags as the seventh deadly sin: nothing may read as *I nee
 that works is **this is happening; you are welcome to come along**. So the sign-off **offers** instead of
 asking: _"I'd love to show you the rest of it. Thanks for watching."_ Same warmth, none of the asking.
 
-## Your two questions, answered first
+### Your two questions, answered first
 
 **"Does 'for ten years I've been a product manager' sound like bragging, or does it say I know product and
 have lived the pain?"**
@@ -51,10 +786,10 @@ and the founder canon restricts institution naming on non-YC surfaces anyway.
 
 ---
 
-## On length, honestly
+### On length, honestly
 
-The storytelling you asked for costs words. This script is **304 words full, 277 lean**, which lands roughly
-**1:35 to 1:45** depending on your pace. That is over the 1:30 you named.
+**STALE ARITHMETIC, kept only to show the error.** This claimed 304 words lands 1:35-1:45. Measured on
+2026-07-27 it ran ~3:00, because the real pace is ~101 wpm, not the 125-145 assumed here.
 
 **My recommendation: shoot the lean and let it land at 1:35.** The accepted corpus supports it: 14 of 19
 accepted videos run past 60 seconds, one accepted at 97 seconds, and YC's own showcased exemplar runs 2:37.
@@ -66,7 +801,7 @@ If it lands over 1:45, drop to the TIGHT cut marked at the bottom.
 
 ---
 
-## THE SCRIPT — v3.1, the storytelling cut
+### The v3.1 script (too long, kept for reference)
 
 `/` half-second breath · `//` one second, breathe through the nose · `///` two-second beat, look away and back
 · **bold** = the one word you punch · `(down)` = voice drops · `[CUT]` = drop these first, in the order marked.
@@ -143,7 +878,7 @@ It is the one moment in the video where you stop presenting and just talk to the
 
 ---
 
-## Why each beat is shaped this way
+### Why each beat is shaped this way
 
 **Beat 2 does the work your title claim was not doing.** "Three industries that have nothing in common, and in
 all three, the same question every Monday" is the sentence that earns your decade. It converts tenure into
@@ -175,7 +910,7 @@ first.
 
 ---
 
-## Facts, and what stays out
+### Facts, and what stays out
 
 Everything in v1's fact table still binds. These are the ones that changed with v3.
 
@@ -197,7 +932,7 @@ in the script is venue-neutral, so one recording serves both with that single cu
 
 ---
 
-## THE TIGHT CUT (about 1:10) — only if the lean read goes past 1:45
+### THE TIGHT CUT — label was wrong (said 1:10; at the measured 101 wpm its 218 words are ~2:09). Superseded by v4.
 
 Beats 1, 2, 3 and 7 intact. Beat 4 reduced to its turn, Beat 5 to the tagline plus the memory, Beat 6 to one
 line.
@@ -230,7 +965,7 @@ line.
 
 ---
 
-## The bullet card (the only thing in front of you when you roll)
+### The bullet card (the only thing in front of you when you roll)
 
 1. **Rohit. Building Supaprod. Application says Cadence.**
 2. **Close to a decade in the product space. Space, semiconductors, banking. Same question every Monday: what next?**
@@ -243,7 +978,7 @@ line.
 
 ---
 
-## Previous cut — v2 (2026-07-26 13:10), superseded
+### Previous cut — v2 (2026-07-26 13:10), superseded
 
 Kept for comparison. Replaced because it opened "Before that I worked on space systems" (the decade contains
 those years, it does not follow them), claimed "for ten years I've been a product manager" (inert, and it is
