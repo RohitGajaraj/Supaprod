@@ -29,6 +29,65 @@ Related: [`memory.md`](./memory.md) (the memory stack), [`commits.md`](./commits
 
 ---
 
+# Session handoff - 2026-07-28 afternoon (git repair: orphan main reclaimed, guard installed)
+
+## State: main = 4,128 commits, `origin/main` IN SYNC (`0 0`). The orphan is gone. tsc 0, build 0.
+
+### ACTION WAITING ON THE FOUNDER
+
+**Lovable needs a manual publish.** Reclaiming `main` changed the deployed tree by roughly
+1,100 files, because `origin/main` had been based on `landing/premium-revamp`, not `main`.
+Pushing did **not** deploy it. Verify by a changed asset hash, not by trusting the push.
+
+The YC paste actions from the previous session are **still pending** and are preserved verbatim
+in the section below. Nothing there was lost.
+
+### What happened
+
+1. **Root-caused the orphan.** `cadence-lane-4` was a linked worktree. Renaming
+   `project_cadence_v5` -> `Superprod` updated only the forward worktree pointers, so git
+   inside every lane died with `fatal: not a git repository: (null)`. The 2026-07-27 recovery
+   was `git init` + `git add -A` + force-push, which orphaned 4,124 commits. Proof:
+   `.git.broken` and `.git-staging-note.txt` committed into the remote tree.
+2. **There was only ONE orphan.** It read as several because four survival refs were created
+   around the same two commits. Details and the full ledger:
+   [`git-recovery-and-orphan-guard.md`](./git-recovery-and-orphan-guard.md).
+3. **The same failure happened on 2026-07-07** and was handled correctly then by snapshotting
+   the tree. It recurs. The fix is always `git worktree repair`, never `git init`.
+4. **Rescued three fixes** from the orphan before reclaiming (commit `41012ba6`): the
+   cross-workspace `workspace_id` leak in `today.functions.ts`, the FlowMode/Confirm re-render
+   cascade, and the FigmaEmbed save-reload URL corruption.
+5. **Reclaimed `main`** by lease-protected force-push; orphan preserved as the archive tag.
+6. **Installed a `pre-push` guard** blocking orphan pushes to `main`. Tested against six cases.
+   Present in Superprod (shared by lane-0/1) and lane-2/3; lane-4's remote was removed.
+7. **Cleaned branches:** remote 17 -> 2, and 11 local removed, each verified by content on
+   `main`. Restore SHAs are tabled in the guard doc §5.
+8. **Fixed `remember.md`:** it empties by design; the git noise came from it being the only
+   tracked file in a `*`-ignored directory. Now untracked.
+
+### Not done, deliberately
+
+Lovable's a11y work is still missing from `main` and is safe on the archive tag:
+`174344ba` (focus-visible rings on 30 buttons; `settings.tsx` 11 vs 30, `sync.tsx` 1 vs 10)
+and four aria-label commits (`SpecList`, `StakeholderPackPanel`, `GoalsPanel`, `LoopsPanel`).
+All five fail `git apply` because the orphan was based on a different branch, so each needs a
+manual pass. Also unported: Lovable's `components/` -> `src/components/` duplicate cleanup,
+which `main` still carries.
+
+### Standing notes
+
+- **64 pre-existing test failures** (was 66; the two removed were ours). AskPanel, CommandBar
+  (marked KNOWN ISSUE), DetailHeader, SignalCard, StatCell. Not caused by this session.
+- Run `bash scripts/install-git-hooks.sh` in any fresh clone; `.git/hooks` is not tracked.
+- GitHub branch protection is **unavailable** (403, needs Pro on a private repo). It would be
+  strictly better than the hook; revisit if the repo goes public or onto a paid plan.
+- **RTK's hook filters the output of shell text tools.** It rewrote `git worktree repair` into
+  a `worktree list`, and it elided a `head`/`cat` pipeline into the literal string
+  `[99 more lines]`, corrupting this very file once. Use `rtk proxy git ...` for anything
+  unusual, and rebuild files with the editor, never by piping `cat`/`head`/`tail`.
+
+---
+
 # Session handoff - 2026-07-28 late night (YC application FINAL CHECK; queues re-armed; repos private)
 
 ## State: local main = `a5a79660`, pushed to `origin/rescue/real-main-2026-07-28`. Orphan origin/main untouched.

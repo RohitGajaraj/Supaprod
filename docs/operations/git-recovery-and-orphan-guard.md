@@ -180,7 +180,21 @@ Kept:
 | --- | --- | --- |
 | `main` | `51bc3119` | canonical, 4,126 commits |
 | `archive/final-sweep-2026-07-18` | `b8266a6a` | the rejected front-end rebuild. Founder ruling F6 protects it; the `pre-merge-commit` hook blocks merging it without per-merge approval |
-| `archive/lovable-orphan-2026-07-28` | `2a20e6e7` | the full orphan, all 33 Lovable commits, preserved before `main` was reclaimed |
+| **tag** `archive-lovable-orphan-2026-07-28` | `2a20e6e7` | the full orphan, all 33 Lovable commits, preserved before `main` was reclaimed |
+
+A **tag, not a branch**, for two reasons. It matches the convention already in the repo
+(`archive-final-sweep-2026-07-18` is a tag), and a recently-pushed *branch* makes GitHub show a
+persistent "had recent pushes / Compare & pull request" banner, which on an orphan is an
+invitation to merge two unrelated histories into `main`. A tag keeps every object reachable and
+safe from GC while offering nobody a merge button. Restore it as a branch if ever needed:
+
+```bash
+git push origin archive-lovable-orphan-2026-07-28^{commit}:refs/heads/<name>
+```
+
+Note that the `pre-merge-commit` archive lock matches `archive[/-]`, so it catches the tag form
+too. A slash-only pattern (what it had before 2026-07-28) would have let the orphan merge into
+`main` unchallenged.
 
 Deleted, after verifying every unique commit's content is present on `main`. SHAs are
 recorded here so any of them can be restored with `git push origin <sha>:refs/heads/<name>`:
@@ -202,8 +216,9 @@ Why they had unique SHAs but no unique content: the parallel-lane era committed 
 lane branch and then the work was re-landed on `main` as fresh commits rather than
 merged. The branches were bookkeeping, not the work.
 
-**Remote went from 17 branches to 3** (13 at audit time, plus the four survival refs
-from §3 removed just before).
+**Remote went from 17 branches to 2** (13 at audit time, plus the four survival refs from §3
+removed just before, and the orphan archive converted from a branch to a tag). What remains is
+`main` and `archive/final-sweep-2026-07-18`, plus two `archive-*` tags.
 
 ### Local branches
 
@@ -218,7 +233,7 @@ Deleted locally too, same verification. Recover any of them with
 | `sandbox/mission-control-v2` | `3494c13e` | fully merged |
 | `worktree-wf_3dd0ade5-50c-1` | `ebbd6b1f` | fully merged; its worktree was already pruned |
 | `worktree-wf_3dd0ade5-50c-2` | `e5094e77` | fully merged; its worktree was already pruned |
-| `backup/remote-orphan-main-2026-07-27` | `7eb93a93` | contained in `archive/lovable-orphan-2026-07-28` |
+| `backup/remote-orphan-main-2026-07-27` | `7eb93a93` | contained in the `archive-lovable-orphan-2026-07-28` tag |
 | `parallel/lane-4` | `9a664d34` | CNV-03, content on `main` |
 | `parallel/lane-ma2` | `b5ac147e` | telemetry churn only, content on `main` |
 | `rescue/lane4-tree-2026-07-07` | `6f0db5f8` | the 2026-07-07 precedent above; content on `main` |
@@ -236,11 +251,13 @@ Kept locally: `main`, both archives, and `parallel/lane-0-fresh` /
 5. **Push with an explicit refspec** (`git push origin <branch>:main`), per [`commits.md`](./commits.md).
 6. **Before deleting a branch, verify content and not just ancestry.** A branch can be 1,400 commits behind with unique SHAs whose content is already on `main`; it can also look stale and hold the only copy of something. Check the files.
 7. **Revisit server-side protection if the repo ever goes public or onto a paid plan.** Blocking force-pushes to `main` is strictly better than a client-side hook, because it also covers Lovable and any checkout that skipped the installer.
+8. **Never rebuild a file by piping `cat` / `head` / `tail`.** RTK's hook rewrites shell commands to token-optimised equivalents, and it *silently elides* output. Two live failures on 2026-07-28: `git worktree repair <path>` was rewritten into a plain `git worktree list` (the repair appeared to succeed and had done nothing, caught only because the back pointers were re-checked afterwards), and a `head`/`cat` rebuild of `session-handoff.md` replaced most of the file with the literal string `[99 more lines]`. Use `rtk proxy git ...` for any git command that is not routine, edit files with the editor, and verify the result rather than trusting the exit code.
+9. **Archives are tags, not branches.** A recently-pushed branch makes GitHub display a "Compare & pull request" banner; on an orphan that is an invitation to merge unrelated histories into `main`. Tags keep the objects reachable and offer no merge button. The `pre-merge-commit` lock matches `archive[/-]` so it catches both naming forms.
 
 ## 7. Not done, deliberately
 
 The orphan carried a11y work that `main` still lacks, left on
-`archive/lovable-orphan-2026-07-28` rather than ported mid-repair:
+the `archive-lovable-orphan-2026-07-28` tag rather than ported mid-repair:
 
 - **`174344ba`** focus-visible rings on 30 buttons across 4 routes. Real gap:
   `settings.tsx` has 11 locally vs 30 there, `sync.tsx` 1 vs 10.
