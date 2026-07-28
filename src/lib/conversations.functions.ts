@@ -23,17 +23,40 @@ export const getConversation = createServerFn({ method: "GET" })
     // answer blocks; the generated types predate it), a bound (the newest 80
     // rows, returned oldest-first), and surfaced errors instead of a silent
     // { conversation: null } that reads like an empty thread.
-    const [convRes, msgRes] = await Promise.all([
-      supabase.from("conversations").select("*").eq("id", data.id).maybeSingle(),
+    //
+    // messages.mission_id and messages.metadata are OPTIONAL at runtime. Two
+    // migrations race to add mission_id (20260607095340 adds it referencing
+    // agent_runs with IF NOT EXISTS; 20260607100000 adds it referencing
+    // missions without one), so whichever lands first makes the other fail and
+    // neither column is guaranteed. Asking for a column Postgres does not have
+    // fails the WHOLE select with 42703, which is why every rehydration used to
+    // reject and the Ask panel rendered its empty state on a thread that had
+    // messages. Try enriched, fall back to the columns the base table has
+    // always had. hydrateMessages already treats both as optional, so the
+    // fallback loses answer blocks and mission deep-links, never the prose --
+    // and the enriched path starts working by itself the day the column lands.
+    const BASE_COLUMNS = "id,role,content,model,created_at";
+    const ENRICHED_COLUMNS = `${BASE_COLUMNS},mission_id,metadata`;
+
+    const messagesFor = (columns: string) =>
       supabase
         .from("messages")
-        .select("id,role,content,model,created_at,mission_id,metadata" as "*")
+        .select(columns as "*")
         .eq("conversation_id", data.id)
         .order("created_at", { ascending: false })
-        .limit(80),
+        .limit(80);
+
+    const [convRes, enrichedRes] = await Promise.all([
+      supabase.from("conversations").select("*").eq("id", data.id).maybeSingle(),
+      messagesFor(ENRICHED_COLUMNS),
     ]);
     if (convRes.error) throw new Error(convRes.error.message);
+
+    // 42703 is undefined_column. Anything else is a real failure and still throws.
+    const msgRes =
+      enrichedRes.error?.code === "42703" ? await messagesFor(BASE_COLUMNS) : enrichedRes;
     if (msgRes.error) throw new Error(msgRes.error.message);
+
     return { conversation: convRes.data, messages: (msgRes.data ?? []).reverse() };
   });
 

@@ -34,18 +34,29 @@ export const markMessagePromoted = createServerFn({ method: "POST" })
           eq: (
             c: string,
             v: string,
-          ) => { maybeSingle: () => Promise<{ data: { metadata: unknown } | null }> };
+          ) => {
+            maybeSingle: () => Promise<{
+              data: { metadata: unknown } | null;
+              error: { message: string } | null;
+            }>;
+          };
         };
         update: (p: Record<string, unknown>) => {
           eq: (c: string, v: string) => Promise<{ error: { message: string } | null }>;
         };
       };
     };
-    const { data: row } = await db
+    // Surface the read error instead of discarding it. Discarding it turned a
+    // missing messages.metadata column into a silent { ok: false }: the promote
+    // did nothing and told nobody, for as long as the column was absent
+    // (see 20260728234500_messages_metadata_and_mission_id.sql). A promote that
+    // cannot happen must say so, not shrug.
+    const { data: row, error: readError } = await db
       .from("messages")
       .select("metadata")
       .eq("id", data.messageId)
       .maybeSingle();
+    if (readError) throw new Error(readError.message);
     if (!row) return { ok: false };
     const metadata = (row.metadata ?? {}) as Record<string, unknown>;
     const promoted = { ...(metadata.promoted as Record<string, string> | undefined) };
