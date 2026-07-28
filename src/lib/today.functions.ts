@@ -294,14 +294,19 @@ export async function countNeedsYouCalls(
     // a Critic verdict, ANY verdict. Revise/kill rows are already in the
     // opportunities count above; a 'ship' verdict was silently dropped, so
     // it is added back below (the first-teardown filter fix).
-    supabase
-      .from("opportunities")
-      .select("id,critic_review")
-      .not("critic_review", "is", null)
-      .eq("status", "backlog")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle(),
+    // Workspace-scoped so a multi-workspace owner never sees another
+    // workspace's teardown in this one's judgment lane or call count.
+    wsId
+      ? supabase
+          .from("opportunities")
+          .select("id,critic_review")
+          .eq("workspace_id", wsId)
+          .not("critic_review", "is", null)
+          .eq("status", "backlog")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
     // Pushed Brain insights in the judgment lane: today's pushes plus the
     // open scored judgment kinds (the same predicate family queryLane1
     // renders from). Pre-migration tolerant — handled after the join.
@@ -509,14 +514,18 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         : Promise.resolve({ data: [] as unknown[] }),
       // The pinned first teardown (ANY verdict; the revise/kill filter above
       // dropped 'ship' verdicts from the queue entirely).
-      supabase
-        .from("opportunities")
-        .select("id,title,critic_review,created_at")
-        .not("critic_review", "is", null)
-        .eq("status", "backlog")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
+      // Workspace-scoped, same reason as countNeedsYouCalls above.
+      workspaceId
+        ? supabase
+            .from("opportunities")
+            .select("id,title,critic_review,created_at")
+            .eq("workspace_id", workspaceId)
+            .not("critic_review", "is", null)
+            .eq("status", "backlog")
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(

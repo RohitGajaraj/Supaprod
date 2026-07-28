@@ -122,9 +122,31 @@ describe("FigmaEmbed.config.parseHTML()", () => {
     expect(parseRules[0]).toBeDefined();
   });
 
-  test("getAttrs callback extracts src from a child iframe", () => {
+  test("getAttrs callback prefers the div's own src over the iframe's", () => {
+    // renderHTML puts the ORIGINAL url on the div and the embed-wrapped one on
+    // the iframe. Reading the iframe would overwrite the attribute with the
+    // embed url on every save-reload, losing the original permanently.
+    const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
+    const original = "https://www.figma.com/file/abc123/My-Design";
+    const mockDom = {
+      getAttribute: (attr: string) => (attr === "src" ? original : null),
+      querySelector: () => ({
+        getAttribute: (attr: string) =>
+          attr === "src"
+            ? `https://www.figma.com/embed?embed_host=supaprod&url=${encodeURIComponent(original)}`
+            : null,
+      }),
+    } as any;
+
+    const attrs = getAttrs?.(mockDom);
+    expect(attrs?.src).toBe(original);
+  });
+
+  test("getAttrs callback falls back to the child iframe for legacy html", () => {
+    // Html written before the div carried src: the iframe is all there is.
     const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
     const mockDom = {
+      getAttribute: () => null,
       querySelector: (selector: string) => ({
         getAttribute: (attr: string) =>
           attr === "src" ? "https://www.figma.com/embed?file-key=abc123" : null,
@@ -137,7 +159,7 @@ describe("FigmaEmbed.config.parseHTML()", () => {
 
   test("getAttrs callback falls back to empty src when the div has no child iframe", () => {
     const getAttrs = FigmaEmbed.config.parseHTML()[0].getAttrs;
-    const mockDom = { querySelector: () => null } as any;
+    const mockDom = { getAttribute: () => null, querySelector: () => null } as any;
 
     const attrs = getAttrs?.(mockDom);
     expect(attrs?.src).toBe("");

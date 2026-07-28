@@ -37,9 +37,15 @@ export const FigmaEmbed = Node.create({
       {
         tag: "div[data-figma-embed]",
         getAttrs: (dom: HTMLElement) => {
-          // Extract the src from the child iframe's src attribute.
-          // The iframe is the rendered output of the parsed node;
-          // we need to reverse-engineer the original src for persistence.
+          // renderHTML puts the ORIGINAL url on the div and the embed-wrapped
+          // one on the iframe. Read the div, or a save-reload cycle overwrites
+          // the attribute with the embed url and the original is gone for good.
+          const divSrc = dom.getAttribute("src");
+          if (divSrc) {
+            return { src: divSrc };
+          }
+          // Legacy html written before the div carried src: fall back to the
+          // iframe and accept the already-wrapped url.
           const iframe = dom.querySelector("iframe");
           const iframeSrc = iframe?.getAttribute("src") ?? "";
           return { src: iframeSrc };

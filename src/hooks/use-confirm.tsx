@@ -1,4 +1,11 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,8 +96,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 
   const typedOk = !confirmState?.typedConfirm || typed === confirmState.typedConfirm;
 
+  // Without this, every keystroke in a confirm/prompt dialog re-renders the app.
+  const value = useMemo(() => ({ confirm, prompt }), [confirm, prompt]);
+
   return (
-    <ConfirmContext.Provider value={{ confirm, prompt }}>
+    <ConfirmContext.Provider value={value}>
       {children}
 
       <AlertDialog

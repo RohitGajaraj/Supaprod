@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -384,23 +385,46 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [isFlowMode, endsAt]);
 
-  const value: FlowContextValue = {
-    isFlowMode,
-    remainingMs: remaining,
-    remainingLabel: formatRemaining(remaining),
-    heldCount: held,
-    soundResumable,
-    soundUnavailable,
-    intent,
-    startedAt,
-    phase,
-    config,
-    setConfig,
-    enterFlow,
-    exitFlow: () => exitFlow("manual"),
-    extendSession,
-    resumeSound,
-  };
+  // Stable exit callback so the closure does not invalidate the memo below.
+  const exitFlowManual = useCallback(() => exitFlow("manual"), [exitFlow]);
+
+  // The 1s tick would otherwise hand every consumer a fresh object each
+  // heartbeat, re-rendering the whole authenticated shell during a focus block.
+  const value = useMemo<FlowContextValue>(
+    () => ({
+      isFlowMode,
+      remainingMs: remaining,
+      remainingLabel: formatRemaining(remaining),
+      heldCount: held,
+      soundResumable,
+      soundUnavailable,
+      intent,
+      startedAt,
+      phase,
+      config,
+      setConfig,
+      enterFlow,
+      exitFlow: exitFlowManual,
+      extendSession,
+      resumeSound,
+    }),
+    [
+      isFlowMode,
+      remaining,
+      held,
+      soundResumable,
+      soundUnavailable,
+      intent,
+      startedAt,
+      phase,
+      config,
+      setConfig,
+      enterFlow,
+      exitFlowManual,
+      extendSession,
+      resumeSound,
+    ],
+  );
 
   return <FlowContext.Provider value={value}>{children}</FlowContext.Provider>;
 }
