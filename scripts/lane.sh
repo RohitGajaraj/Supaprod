@@ -475,7 +475,10 @@ cmd_board() { # per-lane "who is building what right now"
   echo "Parallel build board (live @ $LEDGER):"
   local n dir item lane pinned found now beat age
   now="$(_now)"
-  for n in 0 1 2 3 4; do
+  # Two lanes since 2026-07-28. Lanes 2-4 were standalone clones, not worktrees,
+  # each duplicating the whole git history; removed to reclaim disk. Add a number
+  # back here if you re-create a lane with `git worktree add`.
+  for n in 0 1; do
     found=""
     for dir in "$CLAIMS"/*/; do
       [ -d "$dir" ] || continue

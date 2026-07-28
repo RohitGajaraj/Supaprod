@@ -8,21 +8,51 @@
 
 ## The one rule
 
-**One lane = one terminal = one worktree = one autonomous `/loop`.** Each lane is a numbered worker (Lane 0..4). It pulls the **lowest-numbered unclaimed, un-gated item from THE BUILD SEQUENCE** at the top of `docs/planning/feature-dashboard.md` (pick by number, do not deliberate; founder ruling 2026-06-21), **claims it atomically** so no other lane can take it, builds it, marks it done on the board in the same commit, and immediately moves to the next number - never stopping until you stop it. (Monetization / credit / pricing rows are **Lovable-owned** and are NOT in the sequence; never pick them.)
+**One lane = one terminal = one worktree = one autonomous `/loop`.** Each lane is a numbered worker (Lane 0..1). It pulls the **lowest-numbered unclaimed, un-gated item from THE BUILD SEQUENCE** at the top of `docs/planning/feature-dashboard.md` (pick by number, do not deliberate; founder ruling 2026-06-21), **claims it atomically** so no other lane can take it, builds it, marks it done on the board in the same commit, and immediately moves to the next number - never stopping until you stop it. (Monetization / credit / pricing rows are **Lovable-owned** and are NOT in the sequence; never pick them.)
 
 ## The lane map (the legend)
 
-Five equal peer worktrees (`cadence-lane-0` .. `cadence-lane-4`). None is reserved for anything; each claims one item at a time from the ledger.
+**Two** equal peer worktrees (`cadence-lane-0`, `cadence-lane-1`). Neither is reserved for anything; each claims one item at a time from the ledger.
 
-| Lane  | Skill                    | Folder           | Branch            | Prefers (then roams the whole board) |
-| ----- | ------------------------ | ---------------- | ----------------- | ------------------------------------ |
-| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0` | Monetization, Credit, Foundational   |
-| **1** | `/overnight-build-1`     | `cadence-lane-1` | `parallel/lane-1` | Cockpit, then Governance             |
-| **2** | `/overnight-build-2`     | `cadence-lane-2` | `parallel/lane-2` | Sense, Decide, Interop               |
-| **3** | `/overnight-build-3`     | `cadence-lane-3` | `parallel/lane-3` | Governance, then Cockpit             |
-| **4** | `/overnight-build-4`     | `cadence-lane-4` | `parallel/lane-4` | Build, then Interop                  |
+| Lane  | Skill                    | Folder           | Branch                  | Prefers (then roams the whole board) |
+| ----- | ------------------------ | ---------------- | ----------------------- | ------------------------------------ |
+| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0-fresh` | Monetization, Credit, Foundational   |
+| **1** | `/overnight-build-1`     | `cadence-lane-1` | `parallel/lane-1-fresh` | Cockpit, then Governance             |
 
 The lane folders are siblings of this repo, under `~/Projects/My Projects/My Builds/`. The _number_ is the identity, not the folder word; branch names are stable internal handles and are not renamed. Lane 0 used to be the special whole-product "WM/overnight" lane; as of 2026-06-21 it is a normal peer that claims per item like the rest.
+
+### Why two and not five (2026-07-28)
+
+Lanes 2, 3 and 4 were removed. They had drifted into being **standalone clones rather than
+worktrees**, and the difference is stark on disk:
+
+| | `.git` size | Total |
+| --- | --- | --- |
+| lane-0, lane-1 (worktrees) | **4 KB each** (pointer files) | 73M, 69M |
+| lane-2, lane-3, lane-4 (clones) | **165-177M each** | 1.2G, 281M, 1.2G |
+
+A worktree shares the main checkout's object store, so it costs only its working tree. A clone
+carries its own full copy of the same history. Those three were holding roughly 509 MB of
+duplicated git objects plus 1.7 GB of duplicated `node_modules`, had been idle for weeks, and
+lane-4 was the folder the 2026-07-27 orphan-main incident was pushed from
+([`git-recovery-and-orphan-guard.md`](./git-recovery-and-orphan-guard.md)). Removing them and
+the redundant `_supaprod-clone-archive` reclaimed about 3.1 GB.
+
+Note that a lane is only cheap while it has no `node_modules`. Running a lane installs about
+1.1 GB into it. Worktrees save you the duplicated **git history**, not the duplicated
+dependencies, so lane count is still a real disk decision.
+
+**To add a lane back:**
+
+```bash
+git -C "<repo>" worktree add ../cadence-lane-N -b parallel/lane-N
+```
+
+then widen the loop in [`../../scripts/lane.sh`](../../scripts/lane.sh) (`for n in 0 1`), add a
+block to [`../../.vscode/tasks.json`](../../.vscode/tasks.json), extend `dependsOn` in the
+"Lanes 0-1: open all" task, add the folder to
+[`../../cadence-parallel.code-workspace`](../../cadence-parallel.code-workspace), and update the
+`0-1` range in the `overnight-build` function in `~/.zshrc`.
 
 ## How to launch a lane
 
@@ -34,16 +64,13 @@ From **any** terminal, in **any** directory (even the main repo), just type:
 overnight-build 1      # or: ob 1
 ```
 
-It jumps to worktree `cadence-lane-1` and starts that lane's continuous build loop, **on Opus 4.8 (1M) at ultracode (xhigh) effort**. **You never type `cd` - the command does it for you.** `overnight-build 2` → worktree 2, `overnight-build 3` → worktree 3, and so on (0-4).
+It jumps to worktree `cadence-lane-1` and starts that lane's continuous build loop, **on Opus 4.8 (1M) at ultracode (xhigh) effort**. **You never type `cd` - the command does it for you.** `overnight-build 0` → worktree 0, `overnight-build 1` → worktree 1 (valid range 0-1).
 
 **One terminal runs one lane** (the lane's `claude` session takes over that terminal). So to run several lanes in parallel, open a new VS Code terminal tab for each and type its number:
 
 ```
 tab 1:  ob 0
 tab 2:  ob 1
-tab 3:  ob 2
-tab 4:  ob 3
-tab 5:  ob 4
 ```
 
 (`Ctrl-Shift-` `or the`+`in the terminal panel opens a new tab.) Watch them all with`ob board`(or`bash scripts/lane.sh board`).
@@ -52,7 +79,7 @@ tab 5:  ob 4
 
 ### Click-to-launch alternative (spawns the terminals for you)
 
-If you'd rather not open tabs by hand: `Cmd+Shift+P` → **"Tasks: Run Task"** → **"Lanes 0-4: open all"** spawns all five lane terminals at once (or pick a single **"Lane N"**). Same result; the task opens the integrated terminal in the right worktree and starts the lane. (Open the repo - or `cadence-parallel.code-workspace` - in VS Code first.)
+If you'd rather not open tabs by hand: `Cmd+Shift+P` → **"Tasks: Run Task"** → **"Lanes 0-1: open all"** spawns both lane terminals at once (or pick a single **"Lane N"**). Same result; the task opens the integrated terminal in the right worktree and starts the lane. (Open the repo - or `cadence-parallel.code-workspace` - in VS Code first.)
 
 ### Model + effort (Opus 4.8 / ultracode) is pinned per lane
 
@@ -106,7 +133,7 @@ A lane does not halt when its preferred category empties - it **roams** to the n
 Two views answer "which lane is building which item right now":
 
 ```bash
-bash scripts/lane.sh board   # per-lane summary: Lane 0..4 -> current item (or idle) + standing reservations
+bash scripts/lane.sh board   # per-lane summary: Lane 0..1 -> current item (or idle) + standing reservations
 bash scripts/lane.sh list    # every active claim with its file-globs and age
 ```
 
@@ -114,7 +141,7 @@ bash scripts/lane.sh list    # every active claim with its file-globs and age
 
 ## Migrating the folder names (DONE 2026-06-21)
 
-All five worktrees are on the clean `cadence-lane-0` .. `cadence-lane-4` names (done via `scripts/lane-migrate.sh`, which only moves a worktree once its session has exited and its tree is clean - `FORCE=1` for an operator-confirmed exit). Nothing left to migrate. If you ever need to re-migrate a worktree:
+Both worktrees are on the clean `cadence-lane-0` / `cadence-lane-1` names (done via `scripts/lane-migrate.sh`, which only moves a worktree once its session has exited and its tree is clean - `FORCE=1` for an operator-confirmed exit). Nothing left to migrate. If you ever need to re-migrate a worktree:
 
 ```bash
 FORCE=1 bash scripts/lane-migrate.sh <oldFolder> <newFolder> <pinId-or-NONE> <laneNum>
