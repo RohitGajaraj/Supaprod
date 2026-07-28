@@ -490,6 +490,12 @@ If you hit the same friction twice, add a row here before the third time. The co
 - **Symptom:** `File has not been read yet` on a file you read under its old path.
 - **Permanent behavior:** After any `git mv`/`mv`, re-Read the file at its new absolute path before the first Edit.
 
+### `fatal: not a git repository: (null)` inside a lane worktree
+
+- **Symptom:** every git command in a `cadence-lane-*` folder fails with `fatal: not a git repository: (null)`, even though the folder is obviously part of the project.
+- **Cause:** a linked worktree records its location in two places. Renaming the main checkout (`project_cadence_v5` -> `Superprod`) fixed the forward pointers but left each worktree's `.git` **file** naming the old path.
+- **Permanent behavior:** run `git -C <main-checkout> worktree repair <worktree-path>`. That is the whole fix. **Never `git init` inside the broken folder** — on 2026-07-27 that recovery, plus a force-push, replaced `origin/main` with a zero-parent history and orphaned 4,124 commits. A `pre-push` hook now blocks that push, but the hook lives in untracked `.git/hooks`, so run `bash scripts/install-git-hooks.sh` in every fresh clone and worktree. Full incident record, guard tests, and branch ledger: [`docs/operations/git-recovery-and-orphan-guard.md`](./docs/operations/git-recovery-and-orphan-guard.md).
+
 ### Cost discipline
 
 - **Symptom:** repeated `COST WARNING`.

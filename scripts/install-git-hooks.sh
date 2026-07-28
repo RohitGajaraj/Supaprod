@@ -65,3 +65,68 @@ exit 0
 INNER
 chmod +x "$PREMERGE"
 echo "[git-hooks] pre-merge-commit archive lock installed"
+
+# ORPHAN-MAIN GUARD (added 2026-07-28 after the incident below).
+#
+# On 2026-07-27 origin/main was force-replaced with a zero-parent history,
+# orphaning 4,124 commits. Root cause: cadence-lane-4 was a linked worktree
+# whose .git pointer file still named the pre-rename checkout
+# (project_cadence_v5) after the folder became Superprod, so git inside it died
+# with "fatal: not a git repository: (null)". The recovery taken was `git init`
+# + `git add -A` + force-push. The correct recovery is `git worktree repair`.
+#
+# GitHub branch protection would catch this server-side, but it needs GitHub Pro
+# on a private repo (verified 403 on both the protection and rulesets APIs), so
+# this hook is the guard. Install it in EVERY checkout and worktree.
+PREPUSH=".git/hooks/pre-push"
+cat > "$PREPUSH" <<'INNER'
+#!/usr/bin/env bash
+# Auto-installed by scripts/install-git-hooks.sh: orphan-history guard on main.
+# Background: docs/operations/git-recovery-and-orphan-guard.md
+zero="0000000000000000000000000000000000000000"
+blocked=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+  case "$remote_ref" in
+    refs/heads/main) ;;
+    *) continue ;;
+  esac
+
+  # 1. Orphan guard: a push to main must share history with what main already is.
+  if [ "$remote_sha" != "$zero" ] &&
+     ! git merge-base "$local_sha" "$remote_sha" >/dev/null 2>&1; then
+    if [ "${ALLOW_ORPHAN_MAIN:-0}" = "1" ]; then
+      echo "[pre-push] orphan push to main allowed via ALLOW_ORPHAN_MAIN=1."
+    else
+      echo ""
+      echo "BLOCKED: this push to main has NO common ancestor with origin/main."
+      echo "That is an orphan history. It is what wiped 4,124 commits on 2026-07-27."
+      echo ""
+      echo "Hit 'fatal: not a git repository: (null)' in a worktree? The fix is:"
+      echo "    git -C <main-checkout> worktree repair <worktree-path>"
+      echo "NEVER run 'git init' inside a broken worktree and push the result."
+      echo ""
+      echo "If you truly mean to replace main's history: archive the current main"
+      echo "first, then re-run this one command with ALLOW_ORPHAN_MAIN=1."
+      blocked=1
+    fi
+  fi
+
+  # 2. Re-init fingerprint: these files only ever exist because a broken
+  #    worktree was re-initialised and 'git add -A' swept them in.
+  for junk in .git.broken .git-staging-note.txt; do
+    if git cat-file -e "$local_sha:$junk" 2>/dev/null; then
+      echo ""
+      echo "BLOCKED: '$junk' is committed in the history being pushed to main."
+      echo "That file is the fingerprint of a re-initialised broken worktree."
+      echo "Remove it first:  git rm --cached '$junk'"
+      blocked=1
+    fi
+  done
+done
+
+exit $blocked
+INNER
+chmod +x "$PREPUSH"
+echo "[git-hooks] pre-push orphan-main guard installed"
