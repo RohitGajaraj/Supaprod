@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supaprod · Direction C · Luminous console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   LUMINOUS CONSOLE  ·  Supaprod authenticated application
+   Light is the material. The ground is deep and quiet so that luminance can
+   carry meaning. A surface that emits is a surface where something is alive.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. TOKENS · DARK IS THE ORIGIN ───────────────────────────────────────── */
+:root{
+  /* FACES ─ two faces, three weights, no exceptions */
+  --face-ui:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --face-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --w-regular:400; --w-medium:500; --w-semibold:600;
+
+  /* TYPE SCALE ─ ten sizes, twelve roles, optically tuned rather than multiplied */
+  --fs-display:44px;  --lh-display:48px;  --tr-display:-0.032em;
+  --fs-t1:26px;       --lh-t1:32px;       --tr-t1:-0.022em;
+  --fs-t2:20px;       --lh-t2:26px;       --tr-t2:-0.017em;
+  --fs-t3:16px;       --lh-t3:22px;       --tr-t3:-0.010em;
+  --lh-t3-prose:26px; /* the same 16px at reading leading, for paragraphs only */
+  --fs-body:14px;     --lh-body:21px;     --tr-body:-0.004em;
+  --fs-sub:13px;      --lh-sub:19px;      --tr-sub:0em;
+  --fs-label:12px;    --lh-label:16px;    --tr-label:0.004em;
+  --fs-micro:11px;    --lh-micro:14px;    --tr-micro:0.085em;
+  --fs-mono:12px;     --lh-mono:18px;     --tr-mono:-0.01em;
+  --fs-mono-xs:11px;  --lh-mono-xs:16px;
+  --fs-metric:28px;   --lh-metric:30px;   --tr-metric:-0.02em;
+  --fs-metric-sm:22px;--lh-metric-sm:26px;--tr-metric-sm:-0.018em;
+
+  /* MEASURE ─ prose never runs wider than this */
+  --measure-wide:64ch;  /* 16px paragraphs */
+  --measure:58ch;       /* 14px and 13px paragraphs */
+
+  /* SPACE ─ 4px base governs layout: page pad, gutters, stacks */
+  --s1:2px; --s2:4px; --s3:6px; --s4:8px; --s5:12px; --s6:16px; --s7:20px;
+  --s8:24px; --s9:32px; --s10:40px; --s11:56px; --s12:72px; --s13:96px;
+  /* OPTICAL INSETS ─ the sanctioned exceptions inside components. No others. */
+  --in-card:16px 18px;   --in-cardhead:14px 18px;  --in-gate:22px 26px;
+  --in-row:13px 18px;    --in-row-dense:11px 14px; --in-row-tight:9px 14px;
+  --in-file:7px 14px;    --in-well:12px 16px;
+
+  /* LAYOUT ─ the frame an engineer builds against */
+  --h-topbar:56px; --w-nav:240px; --w-rail:372px; --w-crew:296px; --w-checks:336px;
+  --pad-page:32px; --gutter:24px; --stack:22px;
+
+  /* RADII */
+  --r-xs:4px; --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-2xl:20px; --r-pill:999px;
+
+  /* CONTROL HEIGHTS */
+  --h-chip:24px; --h-compact:28px; --h-control:32px; --h-comfort:36px; --h-primary:44px;
+
+  /* LAYER ORDER */
+  --z-base:0; --z-sticky:10; --z-topbar:20; --z-popover:30; --z-modal:40; --z-toast:50;
+
+  /* ── COLOUR · BASALT (neutral ground, cool cast, hue 218) ── */
+  --basalt-990:#05070B; --basalt-960:#080B11; --basalt-930:#0C1017; --basalt-900:#10151E;
+  --basalt-860:#151B26; --basalt-820:#1B2230; --basalt-760:#232B3B; --basalt-700:#2E374A;
+  --basalt-620:#3E4859; --basalt-520:#5B6678; --basalt-420:#7A8595; --basalt-320:#9AA4B4;
+  --basalt-220:#BFC7D4; --basalt-140:#DDE3EB; --basalt-060:#F1F4F9; --basalt-000:#FFFFFF;
+
+  /* ── COLOUR · STATE HUES · each one means exactly one thing ── */
+  /* GATE (amber) · a human decision is required and nothing moves until it happens */
+  --gate-core:#F5B544; --gate-text:#FBCF87; --gate-deep:#8A5A06;
+  --gate-tint:rgba(245,181,68,.10); --gate-tint-2:rgba(245,181,68,.05);
+  --gate-edge:rgba(245,181,68,.30); --gate-glow:rgba(245,181,68,.30);
+  /* PULSE (cyan) · a machine is working right now */
+  --pulse-core:#46C6E0; --pulse-text:#8FE0F2; --pulse-deep:#0A6C83;
+  --pulse-tint:rgba(70,198,224,.09); --pulse-tint-2:rgba(70,198,224,.045);
+  --pulse-edge:rgba(70,198,224,.26); --pulse-glow:rgba(70,198,224,.28);
+  /* VERIFIED (mint) · checked, passed, shipped, recorded */
+  --verified-core:#45CE93; --verified-text:#8BE7C0; --verified-deep:#0A6E48;
+  --verified-tint:rgba(69,206,147,.09); --verified-edge:rgba(69,206,147,.24);
+  --verified-glow:rgba(69,206,147,.24);
+  /* MEMORY (iris) · the company brain speaking from the past */
+  --memory-core:#8B8FF8; --memory-text:#BABCFF; --memory-deep:#4A4CC7;
+  --memory-tint:rgba(139,143,248,.10); --memory-edge:rgba(139,143,248,.26);
+  --memory-glow:rgba(139,143,248,.26);
+  /* RISK (flare) · rationed, only when something is actually wrong */
+  --risk-core:#F0616E; --risk-text:#FF9AA3; --risk-deep:#A8202E;
+  --risk-tint:rgba(240,97,110,.10); --risk-edge:rgba(240,97,110,.28);
+  --risk-glow:rgba(240,97,110,.26);
+
+  /* ── SEMANTIC ROLES · DARK ── */
+  --bg-void:#05070B;
+  --bg-canvas:#080B11;
+  --bg-panel:#0C1017;
+  --bg-card:#10151E;
+  --bg-raised:#151B26;
+  --bg-inset:#06080D;
+  --bg-control:rgba(255,255,255,.045);
+  --bg-control-hover:rgba(255,255,255,.078);
+  --bg-control-press:rgba(255,255,255,.11);
+
+  --edge-faint:rgba(255,255,255,.055);
+  --edge:rgba(255,255,255,.088);
+  --edge-strong:rgba(255,255,255,.15);
+  --edge-top:rgba(255,255,255,.10);
+
+  --text-primary:#ECF0F6;
+  --text-secondary:#A8B2C1;
+  --text-tertiary:#7A8595;
+  --text-disabled:#5D6879;
+  --text-inverse:#06090E;
+
+  --action-bg:#F1F4F9;
+  --action-bg-hover:#FFFFFF;
+  --action-fg:#06090E;
+  --action-quiet-bg:rgba(255,255,255,.055);
+  --action-quiet-bg-hover:rgba(255,255,255,.095);
+  --action-disabled-bg:rgba(255,255,255,.05);
+  --action-disabled-fg:var(--text-disabled);
+
+  /* COMPONENT ROLES ─ so nothing is ever hand mixed in a component */
+  --on-gate:#1A1200;                    /* text sitting on solid amber */
+  --avatar-bg:linear-gradient(150deg,#2C3648,#171E2A);
+  --avatar-fg:var(--text-primary);
+  --avatar-edge:var(--edge-strong);
+  --diff-add-bg:rgba(69,206,147,.07);
+  --diff-del-bg:rgba(240,97,110,.06);
+  --prog-track:var(--edge);
+  --prog-pulse:linear-gradient(90deg,rgba(70,198,224,.22),var(--pulse-core));
+  --prog-memory:linear-gradient(90deg,rgba(139,143,248,.22),var(--memory-core));
+
+  /* ELEVATION · dark leans on emission, light leans on shadow */
+  --e0:none;
+  --e1:0 1px 2px rgba(0,0,0,.45), inset 0 1px 0 var(--edge-top);
+  --e2:0 6px 16px -6px rgba(0,0,0,.6), inset 0 1px 0 var(--edge-top);
+  --e3:0 24px 56px -20px rgba(0,0,0,.72), inset 0 1px 0 var(--edge-top);
+  --lift-top:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 96px);
+
+  /* EMISSION · the direction's one special material. Ceiling is 0.34 alpha. */
+  --emit-gate:0 0 0 1px var(--gate-edge), 0 0 32px -10px var(--gate-glow);
+  --emit-pulse:0 0 0 1px var(--pulse-edge), 0 0 28px -12px var(--pulse-glow);
+  --emit-memory:0 0 0 1px var(--memory-edge), 0 0 28px -14px var(--memory-glow);
+  --emit-dot:0 0 10px -1px currentColor;
+
+  /* MOTION */
+  --ease-emit:cubic-bezier(.16,.84,.44,1);
+  --ease-settle:cubic-bezier(.32,.72,0,1);
+  --ease-exit:cubic-bezier(.4,0,.9,.3);
+  --ease-confirm:cubic-bezier(.2,1.25,.5,1);
+  --t-tap:80ms; --t-state:140ms; --t-reveal:220ms; --t-surface:320ms; --t-breathe:2600ms;
+
+  /* FOCUS ─ focus is a live state, so it wears the live hue */
+  --focus-hue:#7BDDF2;
+  --focus-gap:2px;   /* the dark halo that separates ring from control */
+  --focus-w:2px;     /* the ring itself */
+  --focus-ring:0 0 0 var(--focus-gap) var(--bg-canvas), 0 0 0 calc(var(--focus-gap) + var(--focus-w)) var(--focus-hue);
+  --focus-field:0 0 0 3px rgba(70,198,224,.13);  /* the softer ring inside a text field */
+}
+
+/* ── LIGHT · a real translation, not an inversion ─────────────────────────── */
+.t-light,[data-theme="light"]{
+  --bg-void:#E9EDF3;
+  --bg-canvas:#F6F8FC;
+  --bg-panel:#FFFFFF;
+  --bg-card:#FFFFFF;
+  --bg-raised:#FFFFFF;
+  --bg-inset:#F1F4F9;
+  --bg-control:rgba(11,18,32,.045);
+  --bg-control-hover:rgba(11,18,32,.075);
+  --bg-control-press:rgba(11,18,32,.10);
+
+  --edge-faint:rgba(11,18,32,.06);
+  --edge:rgba(11,18,32,.105);
+  --edge-strong:rgba(11,18,32,.18);
+  --edge-top:rgba(255,255,255,.9);
+
+  --text-primary:#0B1220;
+  --text-secondary:#4B5566;
+  --text-tertiary:#616B7D;
+  --text-disabled:#7C8593;
+  --text-inverse:#FFFFFF;
+
+  --action-bg:#0E1626;
+  --action-bg-hover:#1B2637;
+  --action-fg:#FFFFFF;
+  --action-quiet-bg:rgba(11,18,32,.05);
+  --action-quiet-bg-hover:rgba(11,18,32,.085);
+  --action-disabled-bg:rgba(11,18,32,.04);
+  --action-disabled-fg:var(--text-disabled);
+
+  --on-gate:#FFFFFF;
+  --avatar-bg:linear-gradient(150deg,#E7ECF3,#CFD8E4);
+  --avatar-fg:#0B1220;
+  --avatar-edge:var(--edge);
+  --diff-add-bg:rgba(14,143,93,.08);
+  --diff-del-bg:rgba(199,48,63,.07);
+  --prog-track:rgba(11,18,32,.10);
+  --prog-pulse:linear-gradient(90deg,rgba(14,144,174,.28),var(--pulse-core));
+  --prog-memory:linear-gradient(90deg,rgba(90,92,224,.26),var(--memory-core));
+
+  --e1:0 1px 2px rgba(11,18,32,.07), 0 0 0 1px rgba(11,18,32,.05);
+  --e2:0 8px 20px -10px rgba(11,18,32,.16), 0 0 0 1px rgba(11,18,32,.05);
+  --e3:0 28px 60px -24px rgba(11,18,32,.24), 0 0 0 1px rgba(11,18,32,.06);
+  --lift-top:linear-gradient(180deg,rgba(11,18,32,.012),rgba(255,255,255,0) 96px);
+
+  /* In light, emission becomes tint plus a saturated hairline. No blur haze. */
+  --emit-gate:0 0 0 1px rgba(201,132,7,.34), 0 2px 10px -4px rgba(201,132,7,.22);
+  --emit-pulse:0 0 0 1px rgba(14,144,174,.30), 0 2px 10px -4px rgba(14,144,174,.18);
+  --emit-memory:0 0 0 1px rgba(90,92,224,.28), 0 2px 10px -4px rgba(90,92,224,.16);
+  --emit-dot:0 0 0 3px rgba(0,0,0,.04);
+
+  /* The deep shade becomes the text role: dark ink on a pale tint of its own hue. */
+  --gate-core:#C98407; --gate-text:var(--gate-deep); --gate-tint:rgba(201,132,7,.09); --gate-tint-2:rgba(201,132,7,.045); --gate-edge:rgba(201,132,7,.30);
+  --pulse-core:#0E90AE; --pulse-text:var(--pulse-deep); --pulse-tint:rgba(14,144,174,.08); --pulse-tint-2:rgba(14,144,174,.04); --pulse-edge:rgba(14,144,174,.26);
+  --verified-core:#0E8F5D; --verified-text:var(--verified-deep); --verified-tint:rgba(14,143,93,.08); --verified-edge:rgba(14,143,93,.24);
+  --memory-core:#5A5CE0; --memory-text:var(--memory-deep); --memory-tint:rgba(90,92,224,.08); --memory-edge:rgba(90,92,224,.24);
+  --risk-core:#C7303F; --risk-text:var(--risk-deep); --risk-tint:rgba(199,48,63,.08); --risk-edge:rgba(199,48,63,.26);
+
+  /* No bloom on paper. Every glow collapses to a faint tint of its own hue. */
+  --gate-glow:rgba(201,132,7,.16); --pulse-glow:rgba(14,144,174,.14);
+  --verified-glow:rgba(14,143,93,.12); --memory-glow:rgba(90,92,224,.13);
+  --risk-glow:rgba(199,48,63,.14);
+
+  --focus-hue:#0E90AE;
+  --focus-ring:0 0 0 var(--focus-gap) #FFFFFF, 0 0 0 calc(var(--focus-gap) + var(--focus-w)) var(--focus-hue);
+  --focus-field:0 0 0 3px rgba(14,144,174,.15);
+}
+
+/* ── 2. RESET + REVIEW PAGE CHROME ────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(900px 420px at 50% -180px, rgba(70,198,224,.055), transparent 70%),
+    #07090D;
+  font-family:var(--face-ui);
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  color:var(--text-primary);
+  padding:64px 40px 120px;
+}
+.docmast{margin:0 auto 72px;max-width:1440px}
+.docmast .eyebrow{font:var(--w-medium) var(--fs-micro)/var(--lh-micro) var(--face-ui);letter-spacing:var(--tr-micro);text-transform:uppercase;color:var(--pulse-text);margin-bottom:14px}
+.docmast h1{font:var(--w-semibold) var(--fs-display)/var(--lh-display) var(--face-ui);letter-spacing:var(--tr-display);margin:0 0 14px;color:var(--text-primary)}
+.docmast p{font:var(--w-regular) var(--fs-t3)/var(--lh-t3-prose) var(--face-ui);color:var(--text-secondary);max-width:var(--measure-wide);margin:0}
+.cap{display:flex;align-items:baseline;gap:12px;margin:0 auto 16px;max-width:1440px}
+.cap-n{font:var(--w-medium) var(--fs-micro)/var(--lh-micro) var(--face-mono);letter-spacing:.1em;color:var(--pulse-core);text-transform:uppercase}
+.cap-t{font:var(--w-semibold) var(--fs-t3)/22px var(--face-ui);letter-spacing:var(--tr-t3);color:var(--text-primary)}
+.cap-m{font:var(--w-regular) var(--fs-label)/16px var(--face-mono);color:var(--text-tertiary);margin-left:auto;font-variant-numeric:tabular-nums}
+/* Frames hold their true pixel width. On a narrower screen the frame itself
+   scrolls, so the review page never scrolls sideways as a whole. */
+.frame{border-radius:18px;overflow:auto;box-shadow:0 40px 80px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.07);margin:0 auto 88px;background:var(--bg-canvas);max-width:100%;scrollbar-width:thin}
+.frame > .app{min-width:100%}
+.frame.w1440{width:1440px}
+.frame.w1440 > .app{min-width:1440px}
+.frame.w768{width:768px}
+.frame.w768 > .app{min-width:768px}
+.sectionrule{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);margin:8px auto 72px;max-width:1440px}
+@media (max-width:1560px){body{padding:48px 24px 96px}}
+@media (max-width:840px){body{padding:32px 16px 72px}}
+
+/* ── 3. APPLICATION PRIMITIVES ────────────────────────────────────────────── */
+.app{
+  background:
+    radial-gradient(1100px 380px at 26% -8%, var(--pulse-tint-2), transparent 68%),
+    radial-gradient(760px 300px at 78% -6%, var(--gate-tint-2), transparent 70%),
+    var(--bg-canvas);
+  color:var(--text-primary);
+  font:var(--w-regular) var(--fs-body)/var(--lh-body) var(--face-ui);
+  letter-spacing:var(--tr-body);
+}
+.mono{font-family:var(--face-mono)}
+.micro{font:var(--w-medium) var(--fs-micro)/var(--lh-micro) var(--face-ui);letter-spacing:var(--tr-micro);text-transform:uppercase;color:var(--text-tertiary)}
+.label{font:var(--w-medium) var(--fs-label)/var(--lh-label) var(--face-ui);letter-spacing:var(--tr-label)}
+.sub{font:var(--w-regular) var(--fs-sub)/var(--lh-sub) var(--face-ui);color:var(--text-secondary)}
+.prose{font:var(--w-regular) var(--fs-t3)/var(--lh-t3-prose) var(--face-ui);letter-spacing:var(--tr-t3);max-width:var(--measure-wide)}
+.t3{font:var(--w-semibold) var(--fs-t3)/var(--lh-t3) var(--face-ui);letter-spacing:var(--tr-t3)}
+.t2{font:var(--w-semibold) var(--fs-t2)/var(--lh-t2) var(--face-ui);letter-spacing:var(--tr-t2)}
+.t1{font:var(--w-semibold) var(--fs-t1)/var(--lh-t1) var(--face-ui);letter-spacing:var(--tr-t1)}
+/* Numbers that are read, not scanned. Never written as a font shorthand,
+   because the shorthand silently resets font-variant-numeric to normal. */
+.metric{font-family:var(--face-mono);font-weight:var(--w-medium);font-size:var(--fs-metric);line-height:var(--lh-metric);letter-spacing:var(--tr-metric);color:var(--text-primary)}
+.metric-sm{font-family:var(--face-mono);font-weight:var(--w-medium);font-size:var(--fs-metric-sm);line-height:var(--lh-metric-sm);letter-spacing:var(--tr-metric-sm);color:var(--text-primary)}
+.dim{color:var(--text-tertiary)}
+.sec{color:var(--text-secondary)}
+
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cursor:pointer}
+input{font:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+
+/* TOPBAR */
+.topbar{height:56px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid var(--edge);background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);backdrop-filter:blur(8px)}
+.mark{width:26px;height:26px;display:block;flex:none}
+.wsbtn{display:inline-flex;align-items:center;gap:8px;height:var(--h-control);padding:0 9px 0 7px;border-radius:var(--r-sm);transition:background var(--t-state) var(--ease-settle)}
+.wsbtn:hover{background:var(--bg-control-hover)}
+.wsbtn .nm{font:var(--w-medium) var(--fs-body)/1 var(--face-ui);letter-spacing:var(--tr-body)}
+.vr{width:1px;height:18px;background:var(--edge);flex:none}
+.prodbtn{display:inline-flex;align-items:center;gap:7px;height:var(--h-control);padding:0 9px;border-radius:var(--r-sm);transition:background var(--t-state) var(--ease-settle)}
+.prodbtn:hover{background:var(--bg-control-hover)}
+.cmd{margin:0 auto;width:400px;height:var(--h-control);border-radius:var(--r-md);background:var(--bg-control);border:1px solid var(--edge-faint);display:flex;align-items:center;gap:9px;padding:0 10px;color:var(--text-tertiary);font-size:var(--fs-sub);transition:border-color var(--t-state) var(--ease-settle),background var(--t-state) var(--ease-settle)}
+.cmd:hover{border-color:var(--edge-strong);background:var(--bg-control-hover)}
+.kbd{margin-left:auto;font:var(--w-medium) var(--fs-mono-xs)/1 var(--face-mono);color:var(--text-secondary);border:1px solid var(--edge);border-radius:var(--r-xs);padding:3px 5px;background:var(--bg-control)}
+.iconbtn{width:var(--h-control);height:var(--h-control);border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary);position:relative;transition:background var(--t-state) var(--ease-settle),color var(--t-state) var(--ease-settle)}
+.iconbtn:hover{background:var(--bg-control-hover);color:var(--text-primary)}
+.avatar{width:28px;height:28px;border-radius:var(--r-pill);background:var(--avatar-bg);border:1px solid var(--avatar-edge);display:inline-flex;align-items:center;justify-content:center;font:var(--w-semibold) var(--fs-label)/1 var(--face-ui);color:var(--avatar-fg);letter-spacing:.02em}
+.badge-n{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:var(--r-pill);background:var(--gate-core);color:var(--on-gate);font:var(--w-semibold) var(--fs-micro)/16px var(--face-ui);letter-spacing:0;text-align:center;box-shadow:0 0 0 2px var(--bg-canvas), 0 0 10px -2px var(--gate-glow)}
+
+/* CHIPS + PILLS */
+.chip{display:inline-flex;align-items:center;gap:6px;height:var(--h-chip);padding:0 8px;border-radius:var(--r-xs);border:1px solid var(--edge);background:var(--bg-control);font:var(--w-medium) var(--fs-label)/1 var(--face-ui);color:var(--text-secondary);white-space:nowrap}
+.chip.mono{font-family:var(--face-mono);font-size:var(--fs-mono-xs);letter-spacing:0}
+a.chip:hover{border-color:var(--edge-strong);color:var(--text-primary);background:var(--bg-control-hover)}
+a.chip:active{background:var(--bg-control-press)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:var(--r-pill);font:var(--w-medium) var(--fs-label)/1 var(--face-ui);white-space:nowrap;border:1px solid transparent}
+.pill.gate{background:var(--gate-tint);border-color:var(--gate-edge);color:var(--gate-text)}
+.pill.pulse{background:var(--pulse-tint);border-color:var(--pulse-edge);color:var(--pulse-text)}
+.pill.verified{background:var(--verified-tint);border-color:var(--verified-edge);color:var(--verified-text)}
+.pill.memory{background:var(--memory-tint);border-color:var(--memory-edge);color:var(--memory-text)}
+.pill.risk{background:var(--risk-tint);border-color:var(--risk-edge);color:var(--risk-text)}
+.pill.quiet{background:var(--bg-control);border-color:var(--edge);color:var(--text-tertiary)}
+
+/* EMITTER DOT · the smallest unit of the language */
+.dot{width:7px;height:7px;border-radius:50%;flex:none;position:relative;display:inline-block;box-shadow:var(--emit-dot)}
+.dot.gate{background:var(--gate-core);color:var(--gate-glow)}
+.dot.pulse{background:var(--pulse-core);color:var(--pulse-glow)}
+.dot.verified{background:var(--verified-core);color:var(--verified-glow)}
+.dot.memory{background:var(--memory-core);color:var(--memory-glow)}
+.dot.risk{background:var(--risk-core);color:var(--risk-glow)}
+.dot.idle{background:var(--basalt-620);box-shadow:none;color:transparent}
+/* THE BREATH · spent only on gate and pulse, and only twice per screen:
+   the one open gate, and the one focal live process. Verified is finished and
+   memory is a record, so neither is ever animated. The selector enforces it. */
+.dot.gate.live::after,.dot.pulse.live::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:radial-gradient(circle,currentColor,transparent 68%);animation:breathe var(--t-breathe) var(--ease-settle) infinite}
+@keyframes breathe{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.25)}}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--h-comfort);padding:0 14px;border-radius:var(--r-md);font:var(--w-medium) var(--fs-body)/1 var(--face-ui);letter-spacing:var(--tr-body);border:1px solid transparent;transition:background var(--t-state) var(--ease-settle),transform var(--t-tap) var(--ease-settle),box-shadow var(--t-state) var(--ease-settle),border-color var(--t-state) var(--ease-settle);white-space:nowrap}
+.btn:active{transform:translateY(.5px)}
+.btn-primary{background:var(--action-bg);color:var(--action-fg);font-weight:var(--w-semibold)}
+.btn-primary:hover{background:var(--action-bg-hover);box-shadow:0 0 24px -10px rgba(255,255,255,.5)}
+.btn-primary:active{box-shadow:none}
+.btn-secondary{background:var(--action-quiet-bg);color:var(--text-primary);border-color:var(--edge)}
+.btn-secondary:hover{background:var(--action-quiet-bg-hover);border-color:var(--edge-strong)}
+.btn-secondary:active{background:var(--bg-control-press)}
+.btn-ghost{background:transparent;color:var(--text-secondary)}
+.btn-ghost:hover{background:var(--action-quiet-bg);color:var(--text-primary)}
+.btn-ghost:active{background:var(--bg-control-press)}
+.btn-risk{background:transparent;color:var(--risk-text);border-color:var(--risk-edge)}
+.btn-risk:hover{background:var(--risk-tint)}
+.btn-risk:active{background:var(--risk-tint);border-color:var(--risk-core)}
+.btn:disabled,.btn[aria-disabled="true"]{background:var(--action-disabled-bg);color:var(--action-disabled-fg);border-color:var(--edge-faint);box-shadow:none;cursor:not-allowed;transform:none}
+.btn-sm{height:var(--h-control);padding:0 11px;font-size:var(--fs-sub)}
+.btn-xs{height:var(--h-compact);padding:0 9px;font-size:var(--fs-label)}
+.btn-lg{height:var(--h-primary);padding:0 18px;font-size:var(--fs-t3);border-radius:var(--r-md)}
+.btn-block{width:100%}
+.link{color:var(--pulse-text);font-weight:var(--w-medium);border-bottom:1px solid transparent;transition:border-color var(--t-state) var(--ease-settle)}
+.link:hover{border-bottom-color:var(--pulse-edge)}
+
+/* SURFACES */
+.panel{background:var(--bg-panel);border:1px solid var(--edge);border-radius:var(--r-lg);background-image:var(--lift-top);box-shadow:var(--e1)}
+.card{background:var(--bg-card);border:1px solid var(--edge);border-radius:var(--r-lg);background-image:var(--lift-top);box-shadow:var(--e1)}
+.cardhead{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)}
+.cardhead .t{font:var(--w-semibold) var(--fs-body)/1.2 var(--face-ui);letter-spacing:var(--tr-body)}
+.cardhead .r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.cardbody{padding:16px 18px}
+.hr{height:1px;background:var(--edge-faint)}
+
+/* THE LOOP TRACK · seven stages, entered and exited anywhere */
+.loop{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--edge);background:var(--bg-panel)}
+.stage{position:relative;padding:14px 16px 15px;border-right:1px solid var(--edge-faint);display:block;transition:background var(--t-state) var(--ease-settle)}
+.stage:last-child{border-right:0}
+.stage:hover{background:var(--bg-control)}
+.stage .top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.stage .num{font:var(--w-medium) var(--fs-mono-xs)/1 var(--face-mono);color:var(--text-tertiary);letter-spacing:.04em}
+.stage .nm{font:var(--w-semibold) var(--fs-sub)/1 var(--face-ui);letter-spacing:-.006em;color:var(--text-secondary)}
+.stage .val{font:var(--w-medium) var(--fs-body)/18px var(--face-ui);color:var(--text-primary)}
+.stage .note{font:var(--w-regular) var(--fs-label)/16px var(--face-ui);color:var(--text-tertiary);margin-top:3px}
+.stage::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:transparent}
+.stage.alive{background:linear-gradient(180deg,var(--pulse-tint-2),transparent 72px)}
+.stage.alive::before{background:linear-gradient(90deg,transparent,var(--pulse-core) 22%,var(--pulse-core) 78%,transparent);box-shadow:0 0 14px -1px var(--pulse-glow)}
+.stage.alive .nm{color:var(--text-primary)}
+.stage.needsyou{background:linear-gradient(180deg,var(--gate-tint),transparent 84px)}
+.stage.needsyou::before{background:linear-gradient(90deg,transparent,var(--gate-core) 18%,var(--gate-core) 82%,transparent);box-shadow:0 0 18px 0 var(--gate-glow)}
+.stage.needsyou .nm,.stage.needsyou .val{color:var(--gate-text)}
+
+/* THE GATE CARD · the single primary emitter allowed per screen */
+.gatecard{
+  position:relative;border-radius:var(--r-xl);border:1px solid var(--gate-edge);
+  background:
+    radial-gradient(520px 160px at 6% -10%, var(--gate-tint), transparent 72%),
+    var(--bg-card);
+  box-shadow:var(--emit-gate), var(--e2);
+}
+.gatecard::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:2px;border-radius:0 2px 2px 0;background:linear-gradient(180deg,transparent,var(--gate-core) 18%,var(--gate-core) 82%,transparent);box-shadow:0 0 16px 0 var(--gate-glow)}
+
+/* AGENT ROW */
+.arow{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--edge-faint);position:relative;transition:background var(--t-state) var(--ease-settle)}
+.arow:last-child{border-bottom:0}
+.arow:hover{background:var(--bg-control)}
+.arow:active{background:var(--bg-control-press)}
+.arow.alive{background:linear-gradient(90deg,var(--pulse-tint-2),transparent 260px)}
+.arow.alive::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;background:var(--pulse-core);box-shadow:0 0 12px 0 var(--pulse-glow)}
+.agl{width:26px;height:26px;border-radius:var(--r-sm);flex:none;display:inline-flex;align-items:center;justify-content:center;font:var(--w-semibold) var(--fs-mono-xs)/1 var(--face-mono);background:var(--bg-raised);border:1px solid var(--edge);color:var(--text-secondary);letter-spacing:0}
+.agl.on{border-color:var(--pulse-edge);color:var(--pulse-text);background:var(--pulse-tint)}
+.agl.done{border-color:var(--verified-edge);color:var(--verified-text);background:var(--verified-tint)}
+.agl.mem{border-color:var(--memory-edge);color:var(--memory-text);background:var(--memory-tint)}
+
+/* PROGRESS · thin track, luminous head */
+.prog{height:2px;border-radius:2px;background:var(--prog-track);overflow:hidden;position:relative}
+.prog i{display:block;height:100%;border-radius:2px;background:var(--prog-pulse);box-shadow:0 0 10px 0 var(--pulse-glow);transition:width var(--t-state) var(--ease-settle)}
+.prog.mem i{background:var(--prog-memory);box-shadow:0 0 10px 0 var(--memory-glow)}
+
+/* TIMELINE */
+.tl{position:relative;padding-left:26px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:1px;background:linear-gradient(180deg,transparent,var(--edge) 8%,var(--edge) 92%,transparent)}
+.tli{position:relative;display:flex;gap:12px;padding:9px 0;align-items:flex-start}
+.tli::before{content:"";position:absolute;left:-22px;top:14px;width:5px;height:5px;border-radius:50%;background:var(--basalt-620);border:2px solid var(--bg-panel);box-sizing:content-box}
+.tli.on::before{background:var(--pulse-core);box-shadow:0 0 10px 0 var(--pulse-glow)}
+.tli.gate::before{background:var(--gate-core);box-shadow:0 0 10px 0 var(--gate-glow)}
+.tli.mem::before{background:var(--memory-core);box-shadow:0 0 10px 0 var(--memory-glow)}
+.tli .ts{font:var(--w-regular) var(--fs-mono-xs)/18px var(--face-mono);color:var(--text-tertiary);width:38px;flex:none}
+.tli .tx{font:var(--w-regular) var(--fs-sub)/19px var(--face-ui);color:var(--text-secondary)}
+.tli .tx b{font-weight:var(--w-medium);color:var(--text-primary)}
+.receipt{font:var(--w-medium) var(--fs-mono-xs)/16px var(--face-mono);color:var(--text-secondary);border-bottom:1px dotted var(--edge-strong);white-space:nowrap}
+.receipt:hover{color:var(--pulse-text);border-bottom-color:var(--pulse-edge)}
+
+/* DIFF + TERMINAL WELLS */
+.well{background:var(--bg-inset);border:1px solid var(--edge-faint);border-radius:var(--r-md)}
+/* A code well scrolls sideways as one block, so every gutter stays aligned. */
+.diff{font:var(--w-regular) var(--fs-mono)/var(--lh-mono) var(--face-mono);letter-spacing:var(--tr-mono);overflow-x:auto;scrollbar-width:thin}
+.diffrows{min-width:max-content}
+.dl{display:grid;grid-template-columns:38px 38px minmax(0,1fr);column-gap:0;white-space:pre;width:100%}
+.dl span:nth-child(1),.dl span:nth-child(2){color:var(--text-tertiary);text-align:right;padding-right:10px;user-select:none}
+.dl .code{padding-left:12px;padding-right:16px;color:var(--basalt-220)}
+.dl.add{background:var(--diff-add-bg);box-shadow:inset 2px 0 0 var(--verified-core)}
+.dl.add .code{color:var(--verified-text)}
+.dl.del{background:var(--diff-del-bg);box-shadow:inset 2px 0 0 var(--risk-core)}
+.dl.del .code{color:var(--risk-text)}
+/* A hunk header is a paragraph break in code. It gets air on both sides. */
+.dl.hunk{background:var(--bg-control);color:var(--text-tertiary);padding:5px 0;margin:6px 0}
+.dl.hunk:first-child{margin-top:0}
+.dl.hunk .code{color:var(--memory-text)}
+.term{font:var(--w-regular) var(--fs-mono)/20px var(--face-mono);letter-spacing:var(--tr-mono);color:var(--basalt-320)}
+.term .t{color:var(--text-tertiary)}
+.term .a{color:var(--pulse-text)}
+.term .ok{color:var(--verified-text)}
+.term .warn{color:var(--gate-text)}
+.caret{display:inline-block;width:7px;height:14px;background:var(--pulse-core);vertical-align:-2px;box-shadow:0 0 10px 0 var(--pulse-glow);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.12}}
+
+/* FILE LIST · every row is a target, so every row answers the pointer */
+.filelist a{transition:background var(--t-state) var(--ease-settle),color var(--t-state) var(--ease-settle)}
+.filelist a:hover{background:var(--bg-control-hover)}
+.filelist a:active{background:var(--bg-control-press)}
+
+/* CHECK ROW */
+.crow{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--edge-faint)}
+.crow:last-child{border-bottom:0}
+.crow .nm{font:var(--w-medium) var(--fs-sub)/1.3 var(--face-ui)}
+.crow .dur{margin-left:auto;font:var(--w-regular) var(--fs-mono-xs)/1 var(--face-mono);color:var(--text-tertiary)}
+
+/* FORM */
+.field{display:block;margin-bottom:16px}
+.field > .lb{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+.field .lb span{font:var(--w-medium) var(--fs-sub)/1 var(--face-ui);color:var(--text-secondary)}
+.input{width:100%;height:var(--h-primary);padding:0 13px;border-radius:var(--r-md);background:var(--bg-control);border:1px solid var(--edge);color:var(--text-primary);font-size:var(--fs-body);transition:border-color var(--t-state) var(--ease-settle),background var(--t-state) var(--ease-settle),box-shadow var(--t-state) var(--ease-settle)}
+.input::placeholder{color:var(--text-disabled)}
+.input:hover{border-color:var(--edge-strong)}
+.input:focus{outline:none;border-color:var(--pulse-edge);background:var(--bg-raised);box-shadow:var(--focus-field)}
+.input:disabled{background:var(--action-disabled-bg);color:var(--text-disabled);border-color:var(--edge-faint);cursor:not-allowed}
+.input.err{border-color:var(--risk-edge)}
+.input.err:focus{border-color:var(--risk-core);box-shadow:0 0 0 3px var(--risk-tint)}
+.field .msg{display:flex;align-items:center;gap:6px;margin-top:7px;font:var(--w-regular) var(--fs-label)/var(--lh-label) var(--face-ui);color:var(--text-tertiary)}
+.field .msg.err{color:var(--risk-text)}
+.seg{display:inline-flex;padding:2px;background:var(--bg-control);border:1px solid var(--edge);border-radius:var(--r-md);height:var(--h-control)}
+.seg button{height:26px;padding:0 12px;border-radius:var(--r-sm);font:var(--w-medium) var(--fs-label)/1 var(--face-ui);color:var(--text-tertiary);transition:background var(--t-state) var(--ease-settle),color var(--t-state) var(--ease-settle)}
+.seg button:hover{color:var(--text-primary)}
+.seg button:active{background:var(--bg-control-press)}
+.seg button.on{background:var(--bg-raised);color:var(--text-primary);box-shadow:var(--e1)}
+.seg button.on.gate{background:var(--gate-tint);color:var(--gate-text);box-shadow:0 0 0 1px var(--gate-edge)}
+.seg button[aria-disabled="true"]{color:var(--text-disabled);cursor:not-allowed}
+.seg button[aria-disabled="true"]:hover{color:var(--text-disabled);background:none}
+
+/* SETTINGS NAV */
+.snav a{display:flex;align-items:center;gap:10px;height:var(--h-comfort);padding:0 11px;border-radius:var(--r-sm);font:var(--w-medium) var(--fs-sub)/1 var(--face-ui);color:var(--text-secondary);transition:background var(--t-state) var(--ease-settle),color var(--t-state) var(--ease-settle)}
+.snav a:hover{background:var(--bg-control);color:var(--text-primary)}
+.snav a.on{background:var(--bg-control);color:var(--text-primary);box-shadow:inset 2px 0 0 var(--pulse-core)}
+.empty{border:1px dashed var(--edge-strong);border-radius:var(--r-lg);padding:34px;text-align:center;background:repeating-linear-gradient(135deg,var(--bg-control),var(--bg-control) 1px,transparent 1px,transparent 9px)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+
+/* ── 4. TOKENS + RATIONALE SECTIONS ───────────────────────────────────────── */
+.tk{max-width:1440px;margin:0 auto;padding:0}
+.tk h2{font:var(--w-semibold) var(--fs-t1)/var(--lh-t1) var(--face-ui);letter-spacing:var(--tr-t1);margin:0 0 8px}
+.tk h3{font:var(--w-semibold) var(--fs-t3)/22px var(--face-ui);letter-spacing:var(--tr-t3);margin:40px 0 14px;color:var(--text-primary)}
+.tk p{font:var(--w-regular) var(--fs-body)/22px var(--face-ui);color:var(--text-secondary);max-width:var(--measure)}
+.swrap{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
+.sw{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--edge)}
+.sw .c{height:56px}
+.sw .m{padding:8px 9px;background:var(--bg-card)}
+.sw .m b{display:block;font:var(--w-medium) var(--fs-label)/15px var(--face-ui)}
+.sw .m code{display:block;font:var(--w-regular) var(--fs-mono-xs)/15px var(--face-mono);color:var(--text-tertiary)}
+.roleset{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.role{border:1px solid var(--edge);border-radius:var(--r-md);padding:12px 13px;background:var(--bg-card)}
+.role .h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.role .h b{font:var(--w-semibold) var(--fs-sub)/1 var(--face-ui)}
+.role p{font:var(--w-regular) var(--fs-label)/17px var(--face-ui);color:var(--text-tertiary);margin:0}
+.spec{border:1px solid var(--edge);border-radius:var(--r-md);padding:20px 22px;background:var(--bg-card);margin-bottom:12px;display:flex;align-items:flex-end;gap:24px}
+.spec .meta{margin-left:auto;text-align:right;font:var(--w-regular) var(--fs-mono-xs)/16px var(--face-mono);color:var(--text-tertiary);white-space:pre;flex:none;font-variant-numeric:tabular-nums}
+/* State matrix and paired theme specimens */
+.states{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.state{border:1px solid var(--edge);border-radius:var(--r-md);background:var(--bg-card);padding:18px 16px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-height:132px}
+.state .cap-s{font:var(--w-medium) var(--fs-micro)/var(--lh-micro) var(--face-ui);letter-spacing:var(--tr-micro);text-transform:uppercase;color:var(--text-tertiary);margin-top:auto}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pair > div{border-radius:var(--r-lg);padding:20px}
+.pair .dark,.pair .lite{background:var(--bg-canvas);border:1px solid var(--edge);color:var(--text-primary)}
+pre.tokens{background:var(--bg-inset);border:1px solid var(--edge);border-radius:var(--r-lg);padding:24px 26px;overflow-x:auto;font:var(--w-regular) var(--fs-mono)/20px var(--face-mono);color:var(--basalt-220);letter-spacing:var(--tr-mono)}
+pre.tokens .cm{color:var(--text-tertiary)}
+.tkbar{display:flex;align-items:center;gap:10px;margin:0 0 18px}
+.rat{max-width:780px;margin:0 auto}
+.rat h3{margin-top:28px}
+.rat p{font:var(--w-regular) var(--fs-t3)/var(--lh-t3-prose) var(--face-ui);color:var(--text-secondary);max-width:var(--measure-wide)}
+
+/* ── LAST RULE IN THE SHEET, DELIBERATELY ──────────────────────────────────
+   The CSS font shorthand resets font-variant-numeric to normal, so anything
+   that sets `font:` silently kills tabular figures. This rule sits at the end
+   so it outranks every shorthand above it and numbers stay in their columns. */
+.mono,.metric,.metric-sm,.term,.diff,.cap-m,.tli .ts,.crow .dur,.stage .num,.kbd,
+.dl span:nth-child(1),.dl span:nth-child(2),.role p.mono,.spec .meta{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="docmast">
+  <div class="eyebrow">Supaprod · authenticated application · direction C</div>
+  <h1>Luminous console</h1>
+  <p>Light is the material. The ground is deep and quiet so that luminance can carry meaning instead of decoration. A surface that emits is a surface where something is alive, and the brightest thing on any screen is the one thing waiting on your judgment.</p>
+</div>
+
+<!-- ══════════════ FRAME 1 · SIGN IN ══════════════════════════════════════ -->
+<div class="cap"><span class="cap-n">Frame 01</span><span class="cap-t">Sign in</span><span class="cap-m">1440 x 900 · dark</span></div>
+<div class="frame w1440">
+<div class="app" style="display:grid;grid-template-columns:835px 605px;min-height:900px">
+
+  <!-- left field -->
+  <div style="position:relative;padding:56px 72px;display:flex;flex-direction:column;background:
+      radial-gradient(700px 420px at 18% 8%, rgba(70,198,224,.09), transparent 66%),
+      radial-gradient(560px 380px at 88% 92%, rgba(139,143,248,.07), transparent 70%),
+      var(--bg-void);border-right:1px solid var(--edge)">
+    <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(var(--edge-faint) 1px,transparent 1px),linear-gradient(90deg,var(--edge-faint) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(680px 480px at 22% 24%,#000,transparent 72%);-webkit-mask-image:radial-gradient(680px 480px at 22% 24%,#000,transparent 72%)"></div>
+
+    <div style="position:relative;display:flex;align-items:center;gap:11px">
+      <svg class="mark" style="width:30px;height:30px" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,.14)" stroke-width="1"/>
+        <path d="M16 3a13 13 0 0 1 11.26 6.5" stroke="#46C6E0" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M27.26 22.5A13 13 0 0 1 16 29" stroke="#8B8FF8" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M4.74 22.5A13 13 0 0 1 4.74 9.5" stroke="#F5B544" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="4.2" fill="#F4F8FC"/>
+        <circle cx="16" cy="16" r="7.4" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+      </svg>
+      <span style="font:var(--w-semibold) 18px/1 var(--face-ui);letter-spacing:-.02em">supaprod</span>
+    </div>
+
+    <div style="position:relative;margin-top:auto;max-width:560px">
+      <div class="micro" style="color:var(--pulse-text);margin-bottom:20px">Discover · decide · plan · design · build · ship · learn</div>
+      <h2 style="font:var(--w-semibold) var(--fs-display)/var(--lh-display) var(--face-ui);letter-spacing:var(--tr-display);margin:0 0 22px">Agents that know what to build, ship it, and remember.</h2>
+      <p style="font:var(--w-regular) var(--fs-t3)/var(--lh-t3-prose) var(--face-ui);color:var(--text-secondary);margin:0 0 44px;max-width:470px">One system runs the whole lifecycle. Every call it makes is on the record.</p>
+
+      <div style="display:grid;gap:2px;border-top:1px solid var(--edge-faint)">
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--edge-faint)">
+          <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:20px;padding-top:4px">01</span>
+          <span class="dot gate" style="margin-top:7px"></span>
+          <div><div style="font:var(--w-medium) var(--fs-body)/1.4 var(--face-ui)">The director</div><div class="sub" style="color:var(--text-tertiary)">Tells you what to build, and shows the signals it read.</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--edge-faint)">
+          <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:20px;padding-top:4px">02</span>
+          <span class="dot pulse" style="margin-top:7px"></span>
+          <div><div style="font:var(--w-medium) var(--fs-body)/1.4 var(--face-ui)">The operating system</div><div class="sub" style="color:var(--text-tertiary)">Runs the seven stages above, end to end. You judge at the gates.</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:16px 0">
+          <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:20px;padding-top:4px">03</span>
+          <span class="dot memory" style="margin-top:7px"></span>
+          <div><div style="font:var(--w-medium) var(--fs-body)/1.4 var(--face-ui)">The company brain</div><div class="sub" style="color:var(--text-tertiary)">Remembers. Next time it tells you what is right, and warns before you repeat what was wrong.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="position:relative;margin-top:auto;padding-top:52px;display:flex;align-items:center;gap:14px">
+      <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);letter-spacing:.09em;text-transform:uppercase">signal</span>
+      <svg width="16" height="8" viewBox="0 0 16 8" fill="none" aria-hidden="true"><path d="M0 4h13m0 0-3.5-3.5M13 4l-3.5 3.5" stroke="rgba(255,255,255,.22)" stroke-width="1"/></svg>
+      <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);letter-spacing:.09em;text-transform:uppercase">shipped</span>
+      <svg width="16" height="8" viewBox="0 0 16 8" fill="none" aria-hidden="true"><path d="M0 4h13m0 0-3.5-3.5M13 4l-3.5 3.5" stroke="rgba(255,255,255,.22)" stroke-width="1"/></svg>
+      <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);letter-spacing:.09em;text-transform:uppercase">remembered</span>
+    </div>
+  </div>
+
+  <!-- right, the sign in panel -->
+  <div style="display:flex;flex-direction:column;justify-content:center;padding:56px 76px;background:var(--bg-canvas)">
+    <div style="max-width:420px;width:100%">
+      <h2 class="t1" style="margin:0 0 8px">Sign in</h2>
+      <p class="sub" style="margin:0 0 32px;color:var(--text-tertiary)">Helio Labs and 3 other workspaces are on this address.</p>
+
+      <label class="field" for="f1-email">
+        <span class="lb"><span>Work email</span></span>
+        <input class="input" id="f1-email" type="email" value="you@heliolabs.com" title="Work email field. Type the address your workspace was created with." autocomplete="email">
+      </label>
+
+      <label class="field" for="f1-pw" style="margin-bottom:24px">
+        <span class="lb"><span>Password</span><a href="#" class="link" style="margin-left:auto;font-size:var(--fs-label)" title="Reset your password. Sends a one time link to your work email.">Forgot it</a></span>
+        <span style="position:relative;display:block">
+          <input class="input" id="f1-pw" type="password" value="............" title="Password field. Minimum 12 characters." autocomplete="current-password" style="padding-right:64px">
+          <button class="btn btn-ghost btn-xs" title="Show the password in plain text on this screen only." style="position:absolute;right:6px;top:6px">Show</button>
+        </span>
+      </label>
+
+      <button class="btn btn-primary btn-lg btn-block" title="Sign in and open your Home for Helio Labs, the workspace you used last.">Sign in to Helio Labs</button>
+
+      <div style="display:flex;align-items:center;gap:14px;margin:24px 0">
+        <span class="hr" style="flex:1"></span>
+        <span class="micro" style="color:var(--text-tertiary)">or</span>
+        <span class="hr" style="flex:1"></span>
+      </div>
+
+      <button class="btn btn-secondary btn-lg btn-block" title="Continue with Google. Opens the Google account chooser, then returns you to Home." style="margin-bottom:10px">
+        <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <button class="btn btn-ghost btn-lg btn-block" title="Continue with single sign on. Asks for your company domain, then hands off to your identity provider.">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 7V5a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="7" width="11" height="7" rx="1.6" stroke="currentColor" stroke-width="1.3"/></svg>
+        Continue with single sign on
+      </button>
+
+      <div class="hr" style="margin:32px 0 20px"></div>
+      <p class="sub" style="margin:0 0 6px;color:var(--text-tertiary)">No workspace yet? <a href="#" class="link" title="Create a new workspace. Takes about two minutes and connects your first source.">Create one</a>, it takes two minutes.</p>
+      <p style="font:var(--w-regular) var(--fs-label)/17px var(--face-ui);color:var(--text-tertiary);margin:0">
+        By signing in you accept the <a href="#" class="link" title="Read the terms of service. Opens in a new tab." style="color:var(--text-tertiary)">terms</a> and the <a href="#" class="link" title="Read the privacy notice. Opens in a new tab." style="color:var(--text-tertiary)">privacy notice</a>.
+      </p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ FRAME 2 · THE HOME ═════════════════════════════════════ -->
+<div class="cap"><span class="cap-n">Frame 02</span><span class="cap-t">Home, mid work, one open gate</span><span class="cap-m">1440 x 1335, scrolls below 900 · dark</span></div>
+<div class="frame w1440">
+<div class="app">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,.14)" stroke-width="1"/>
+      <path d="M16 3a13 13 0 0 1 11.26 6.5" stroke="#46C6E0" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M27.26 22.5A13 13 0 0 1 16 29" stroke="#8B8FF8" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M4.74 22.5A13 13 0 0 1 4.74 9.5" stroke="#F5B544" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="4.2" fill="#F4F8FC"/>
+      <circle cx="16" cy="16" r="7.4" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+    </svg>
+    <a href="#" class="wsbtn" title="Switch workspace. You are in Helio Labs, you also belong to 3 others.">
+      <span class="nm">Helio Labs</span>
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.3" opacity=".5"/></svg>
+    </a>
+    <span class="vr"></span>
+    <a href="#" class="prodbtn" title="Switch product. You are looking at Relay. Atlas, Comet and Beacon are also in this workspace.">
+      <span class="dot pulse"></span>
+      <span style="font:var(--w-medium) var(--fs-body)/1 var(--face-ui)">Relay</span>
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.3" opacity=".5"/></svg>
+    </a>
+    <a href="#" class="cmd" title="Open the command bar. Search everything, or run a command such as start a mission or ask the brain.">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.3"/><path d="M10.6 10.6L14 14" stroke="currentColor" stroke-width="1.3"/></svg>
+      Search, or run a command
+      <span class="kbd">Cmd K</span>
+    </a>
+    <a href="#" class="chip" title="Open the ledger. Every agent action is hash chained, last verification ran at 12:30." style="height:var(--h-control);gap:7px">
+      <span class="dot verified"></span> Ledger verified <span class="mono dim" style="font-size:var(--fs-mono-xs)">12:30</span>
+    </a>
+    <a href="#" class="iconbtn" title="Open notifications. 2 unread, both from the Decide stage.">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6.5a4 4 0 1 1 8 0c0 3 1 4 1 4H3s1-1 1-4z" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 13a1.6 1.6 0 0 0 3 0" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span class="badge-n">2</span>
+    </a>
+    <a href="#" class="avatar" title="Your account and settings. Signed in as you, owner of Helio Labs." style="margin-left:4px">RG</a>
+  </div>
+
+  <!-- the loop -->
+  <div class="loop">
+    <a href="#" class="stage alive" title="Open Discover. Scout is sweeping 4 sources right now, 214 signals today.">
+      <div class="top"><span class="num">01</span><span class="nm">Discover</span><span class="dot pulse" style="margin-left:auto"></span></div>
+      <div class="val">6 ranked bets</div>
+      <div class="note">Scout sweeping 4 sources</div>
+    </a>
+    <a href="#" class="stage needsyou" title="Open Decide. One decision, DEC-19, is waiting on your judgment since 11:52.">
+      <div class="top"><span class="num">02</span><span class="nm">Decide</span><span class="dot gate" style="margin-left:auto"></span></div>
+      <div class="val">1 waiting on you</div>
+      <div class="note">DEC-19, open 38 minutes</div>
+    </a>
+    <a href="#" class="stage" title="Open Plan. Two cited specs are drafted and ready to read.">
+      <div class="top"><span class="num">03</span><span class="nm">Plan</span><span class="dot idle" style="margin-left:auto"></span></div>
+      <div class="val">2 specs drafted</div>
+      <div class="note">Architect, last at 10:05</div>
+    </a>
+    <a href="#" class="stage" title="Open Design. One prototype is rendered in the Helio Labs brand and ready for review.">
+      <div class="top"><span class="num">04</span><span class="nm">Design</span><span class="dot idle" style="margin-left:auto"></span></div>
+      <div class="val">1 prototype</div>
+      <div class="note">Relay message search, v3</div>
+    </a>
+    <a href="#" class="stage alive" title="Open Build. Three agents are working on mission m-2477, Relay message search, on branch studio/m-2477.">
+      <div class="top"><span class="num">05</span><span class="nm">Build</span><span class="dot pulse" style="margin-left:auto"></span></div>
+      <div class="val">3 agents on m-2477</div>
+      <div class="note">Branch studio/m-2477</div>
+    </a>
+    <a href="#" class="stage alive" title="Open Ship. Release REL-20 is live on preview and waiting for the production gate.">
+      <div class="top"><span class="num">06</span><span class="nm">Ship</span><span class="dot pulse" style="margin-left:auto"></span></div>
+      <div class="val">REL-20 on preview</div>
+      <div class="note">Production gate not open</div>
+    </a>
+    <a href="#" class="stage" title="Open Learn. Outcome LRN-13 is closing on release REL-18 and will be written into the brain.">
+      <div class="top"><span class="num">07</span><span class="nm">Learn</span><span class="dot memory" style="margin-left:auto"></span></div>
+      <div class="val">LRN-13 closing</div>
+      <div class="note">Historian, on REL-18</div>
+    </a>
+  </div>
+
+  <!-- body -->
+  <div style="display:grid;grid-template-columns:980px 372px;gap:24px;padding:28px 32px 40px;align-items:start">
+
+    <!-- main column -->
+    <div style="display:grid;gap:22px">
+
+      <div style="display:flex;align-items:baseline;gap:12px">
+        <h2 class="t2" style="margin:0">Good afternoon. One thing needs you.</h2>
+        <span class="sub dim" style="margin-left:auto">Friday 28 July, 12:30. Everything else is running.</span>
+      </div>
+
+      <!-- THE GATE -->
+      <div class="gatecard">
+        <div style="padding:22px 26px 20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span class="pill gate"><span class="dot gate live"></span> Needs your judgment</span>
+            <span class="chip mono" title="Decision DEC-19 in the Decide stage.">DEC-19</span>
+            <span class="sub dim">Decide · raised by Critic at 11:52 · open 38 minutes</span>
+            <a href="#" class="btn btn-ghost btn-xs" title="Snooze this gate until 16:00 today. Work behind it stays paused." style="margin-left:auto">Snooze to 16:00</a>
+          </div>
+
+          <h3 class="t1" style="margin:0 0 12px;max-width:var(--measure-wide)">Keep or kill presence indicators in Relay</h3>
+          <p style="margin:0 0 20px;max-width:var(--measure-wide);color:var(--text-secondary);font-size:var(--fs-t3);line-height:var(--lh-t3-prose)">
+            Critic recommends <b style="color:var(--text-primary);font-weight:var(--w-medium)">keep, with a smaller first cut</b>. Presence alone repeats a shape that did not move retention. Ship presence and typing state together, or do not ship it.
+          </p>
+
+          <!-- evidence -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <a href="#" class="chip" title="Open BET-35. Analyst ranked it second at 9:41 on reach and effort."><span class="dot verified"></span> BET-35 ranked 2nd, Analyst 9:41</a>
+            <a href="#" class="chip" title="Open the 41 source signals Scout clustered into this bet."><span class="dot pulse"></span> 41 signals, 4 sources, Scout 9:05</a>
+            <a href="#" class="chip" title="Open the outcome record for REL-14, the presence release from March that the brain matched against this bet."><span class="dot memory"></span> REL-14 outcome, Historian 12:15</a>
+            <a href="#" class="chip" title="Open the effort estimate Architect produced from the code in the Relay repository."><span class="dot verified"></span> 11 files, 2.5 days, Architect 10:05</a>
+          </div>
+
+          <!-- the brain speaks -->
+          <div style="border:1px solid var(--memory-edge);background:linear-gradient(90deg,var(--memory-tint),transparent 70%);border-radius:var(--r-md);padding:14px 16px;margin-bottom:22px;box-shadow:var(--emit-memory)">
+            <div style="display:flex;gap:11px;align-items:flex-start">
+              <span class="dot memory" style="margin-top:6px"></span>
+              <div>
+                <div class="micro" style="color:var(--memory-text);margin-bottom:5px">The brain is warning you</div>
+                <div style="font-size:var(--fs-body);line-height:var(--lh-body);color:var(--text-secondary);max-width:var(--measure)">
+                  You shipped presence without typing state in <b style="color:var(--text-primary);font-weight:var(--w-medium)">REL-14</b>, March. Six week retention did not move and the feature was rolled back in <b style="color:var(--text-primary);font-weight:var(--w-medium)">DEC-11</b>. Two of the four signals behind BET-35 are the same customers who asked then.
+                  <a href="#" class="receipt" title="Open the full memory record for REL-14 and DEC-11, with the outcome data behind it." style="margin-left:6px">see the record</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- actions -->
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-primary" title="Approve keep with a smaller first cut. Architect starts the plan and Build opens a mission on Relay.">Approve, keep with typing state</button>
+            <button class="btn btn-secondary" title="Send back to Critic with a note. The decision stays open and Critic re runs the analysis.">Send back to Critic</button>
+            <button class="btn btn-risk" title="Decline this bet. Requires a one line reason, which is written to the brain as an outcome.">Decline and record why</button>
+            <a href="#" class="link" title="Open the full evidence view for DEC-19, all 41 signals, the rank maths and every receipt." style="margin-left:auto;font-size:var(--fs-sub)">Open all evidence</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- working now -->
+      <div class="card">
+        <div class="cardhead">
+          <span class="dot pulse live"></span>
+          <span class="t">Working now</span>
+          <span class="sub dim">5 agents, nothing blocked</span>
+          <span class="r"><a href="#" class="btn btn-ghost btn-xs" title="Open the crew view. See all 5 running agents, plus the 8 idle ones and what each is for.">See all 5</a></span>
+        </div>
+
+        <a href="#" class="arow alive" title="Watch Builder work on mission m-2477, Relay message search. Opens the live run with the diff and the terminal.">
+          <span class="agl on">BU</span>
+          <div style="width:132px;flex:none">
+            <div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Builder</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">m-2477</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="sub" style="color:var(--text-secondary);margin-bottom:7px">Writing <span class="mono" style="color:var(--pulse-text);font-size:var(--fs-mono)">src/lib/relay/SearchIndex.ts</span>, applying a review note about batch size</div>
+            <div class="prog"><i style="width:68%"></i></div>
+          </div>
+          <div style="width:96px;text-align:right;flex:none">
+            <div class="mono" style="font-size:var(--fs-mono);color:var(--pulse-text)">68%</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">running 14m</div>
+          </div>
+          <span class="btn btn-secondary btn-xs" style="flex:none">Watch</span>
+        </a>
+
+        <a href="#" class="arow alive" title="Watch Scout sweep. Opens the source list with the raw signals arriving.">
+          <span class="agl on">SC</span>
+          <div style="width:132px;flex:none">
+            <div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Scout</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">discovery</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="sub" style="color:var(--text-secondary);margin-bottom:7px">Sweeping support, sales calls, app reviews and the Relay changelog, 214 signals today</div>
+            <div class="prog"><i style="width:41%"></i></div>
+          </div>
+          <div style="width:96px;text-align:right;flex:none">
+            <div class="mono" style="font-size:var(--fs-mono);color:var(--pulse-text)">41%</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">running 3m</div>
+          </div>
+          <span class="btn btn-secondary btn-xs" style="flex:none">Watch</span>
+        </a>
+
+        <a href="#" class="arow alive" title="Watch Historian close LRN-13. Opens the outcome record it is writing into the brain.">
+          <span class="agl mem">HI</span>
+          <div style="width:132px;flex:none">
+            <div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Historian</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">LRN-13</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="sub" style="color:var(--text-secondary);margin-bottom:7px">Closing the outcome on release REL-18 and filing it as LRN-13, so the next search bet can be judged against it</div>
+            <div class="prog mem"><i style="width:86%"></i></div>
+          </div>
+          <div style="width:96px;text-align:right;flex:none">
+            <div class="mono" style="font-size:var(--fs-mono);color:var(--memory-text)">86%</div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">running 21m</div>
+          </div>
+          <span class="btn btn-secondary btn-xs" style="flex:none">Watch</span>
+        </a>
+
+        <a href="#" class="arow" style="padding-top:11px;padding-bottom:11px" title="Open the two agents also running on mission m-2477. Reviewer is reading the diff and Critic is on the risk pass.">
+          <span class="agl">+2</span>
+          <div style="flex:1;min-width:0">
+            <div class="sub" style="color:var(--text-secondary)">Reviewer and Critic are also on <span class="mono" style="font-size:var(--fs-mono-xs)">m-2477</span>, both under three minutes in</div>
+          </div>
+          <span class="sub dim" style="flex:none">Open</span>
+        </a>
+      </div>
+
+      <!-- since you left -->
+      <div class="panel">
+        <div class="cardhead">
+          <span class="t">Since you left, 9:05 to 12:30</span>
+          <span class="sub dim">6 actions, each with a receipt</span>
+          <span class="r"><a href="#" class="btn btn-ghost btn-xs" title="Open the full activity stream for Relay, filtered to today.">Open the full stream</a></span>
+        </div>
+        <div class="cardbody" style="padding-top:6px;padding-bottom:10px">
+          <div class="tl">
+            <div class="tli on"><span class="ts">9:05</span><span class="tx"><b>Scout</b> clustered 214 raw signals into 6 ranked bets from 4 sources. <a href="#" class="receipt" title="Open the receipt for the 9:05 Scout run, inputs, model, cost and output.">receipt</a></span></div>
+            <div class="tli on"><span class="ts">9:41</span><span class="tx"><b>Analyst</b> ranked BET-35 second on reach and effort, above two larger bets. <a href="#" class="receipt" title="Open the receipt for the 9:41 Analyst ranking, including the scoring inputs.">receipt</a></span></div>
+            <div class="tli on"><span class="ts">10:05</span><span class="tx"><b>Architect</b> read the Relay repository and scoped the presence work, 11 files, 2.5 days. <a href="#" class="receipt" title="Open the receipt for the 10:05 Architect estimate, with the files it read.">receipt</a></span></div>
+            <div class="tli gate"><span class="ts">11:52</span><span class="tx"><b>Critic</b> stopped at the Decide gate and asked for your judgment on DEC-19. <a href="#" class="receipt" title="Open the receipt for the 11:52 Critic analysis that raised DEC-19.">receipt</a></span></div>
+            <div class="tli mem"><span class="ts">12:15</span><span class="tx"><b>Historian</b> matched DEC-19 against the brain and attached the March outcome, REL-14, as a warning. <a href="#" class="receipt" title="Open the receipt for the 12:15 Historian match against the company brain.">receipt</a></span></div>
+            <div class="tli on"><span class="ts">12:30</span><span class="tx"><b>Reviewer</b> opened pull request 409 on Relay from branch studio/m-2477. <a href="#" class="receipt" title="Open the receipt for the 12:30 Reviewer pull request 409 on m-2477, with the diff it read.">receipt</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- right rail -->
+    <div style="display:grid;gap:22px">
+
+      <div class="card" style="border-color:var(--memory-edge);box-shadow:var(--emit-memory),var(--e1)">
+        <div class="cardhead">
+          <span class="dot memory"></span>
+          <span class="t">The company brain</span>
+          <span class="r"><a href="#" class="btn btn-ghost btn-xs" title="Open the brain. Ask it anything about past decisions and outcomes in this workspace.">Ask it</a></span>
+        </div>
+        <div class="cardbody" style="padding-top:14px">
+          <div style="display:flex;gap:22px;margin-bottom:18px">
+            <div><div class="metric">213</div><div class="micro" style="margin-top:4px">decisions</div></div>
+            <div><div class="metric">47</div><div class="micro" style="margin-top:4px">outcomes</div></div>
+            <div><div class="metric" style="color:var(--memory-text)">9</div><div class="micro" style="margin-top:4px">warnings live</div></div>
+          </div>
+          <a href="#" style="display:block;border-top:1px solid var(--edge-faint);padding:13px 0" title="Open the warning about presence releases, and the two outcomes it was built from.">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px"><span class="pill memory">warns</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">REL-14, DEC-11</span></div>
+            <div class="sub" style="color:var(--text-secondary)">Presence without typing state did not move retention. Do not ship the half again.</div>
+          </a>
+          <a href="#" style="display:block;border-top:1px solid var(--edge-faint);padding:13px 0" title="Open the confirmation about small first cuts, and the four outcomes behind it.">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px"><span class="pill verified">confirms</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">4 outcomes</span></div>
+            <div class="sub" style="color:var(--text-secondary)">Small first cuts on Relay reached production 3 times faster than full builds.</div>
+          </a>
+          <a href="#" style="display:block;border-top:1px solid var(--edge-faint);padding:13px 0 0" title="Open the note about Comet, where the same signal cluster is still unanswered.">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px"><span class="pill quiet">notices</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">Comet</span></div>
+            <div class="sub" style="color:var(--text-secondary)">The same customers asked Comet for presence in June. Nobody answered them.</div>
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <span class="dot verified"></span>
+          <span class="t">Ledger</span>
+          <span class="sub dim" style="margin-left:auto">tamper evident</span>
+        </div>
+        <div class="cardbody" style="padding:0">
+          <div style="padding:12px 18px;border-bottom:1px solid var(--edge-faint);display:flex;gap:10px;align-items:center">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:38px">12:30</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--basalt-320)">a41f9c2</span>
+            <span class="sub dim" style="margin-left:auto">Reviewer, pr.open</span>
+          </div>
+          <div style="padding:12px 18px;border-bottom:1px solid var(--edge-faint);display:flex;gap:10px;align-items:center">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:38px">12:15</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--basalt-320)">7e0b38d</span>
+            <span class="sub dim" style="margin-left:auto">Historian, brain.match</span>
+          </div>
+          <div style="padding:12px 18px;display:flex;gap:10px;align-items:center">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);width:38px">11:52</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--basalt-320)">c93da10</span>
+            <span class="sub dim" style="margin-left:auto">Critic, gate.raise</span>
+          </div>
+          <div style="padding:12px 18px;border-top:1px solid var(--edge-faint)">
+            <a href="#" class="btn btn-secondary btn-xs btn-block" title="Open the full ledger. Verify the hash chain for any range of time and export it.">Open the ledger and verify</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead"><span class="t">Spend today</span><span class="sub dim" style="margin-left:auto">your keys</span></div>
+        <div class="cardbody" style="padding-top:14px">
+          <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">
+            <span class="metric">$14.20</span>
+            <span class="sub dim" style="padding-bottom:4px">of $60 daily cap</span>
+          </div>
+          <div class="prog" style="height:3px"><i style="width:24%"></i></div>
+          <div style="display:flex;justify-content:space-between;margin-top:11px">
+            <span class="sub dim">Build 61%, Discover 24%, rest 15%</span>
+            <a href="#" class="link" style="font-size:var(--fs-sub)" title="Open spend settings. Change the daily cap, the model routing and which keys are used.">Adjust</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ FRAME 3 · DENSE ════════════════════════════════════════ -->
+<div class="cap"><span class="cap-n">Frame 03</span><span class="cap-t">Build, a crew of five on one mission, two hours after you opened the gate</span><span class="cap-m">1440 x 1231, scrolls below 900 · dark</span></div>
+<div class="frame w1440">
+<div class="app">
+
+  <div class="topbar">
+    <a href="#" class="btn btn-ghost btn-xs" title="Back to Build. Shows every mission running on Relay." style="gap:6px">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" stroke="currentColor" stroke-width="1.4"/></svg> Build
+    </a>
+    <span class="vr"></span>
+    <span class="chip mono" title="Mission identifier m-2481.">m-2481</span>
+    <span style="font:var(--w-medium) var(--fs-body)/1 var(--face-ui)">Relay, presence and typing indicators</span>
+    <a href="#" class="chip" title="Open DEC-19, the decision that authorised this mission. You approved keep with typing state at 12:34, and Build started at 12:36." style="gap:7px">
+      <span class="dot verified"></span> From DEC-19, you approved 12:34
+    </a>
+    <a href="#" class="chip mono" title="Open branch studio/m-2481 on GitHub. Agents commit here, never to main." style="gap:6px">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="3" cy="3" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="3" cy="9" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="4" r="1.6" stroke="currentColor" stroke-width="1.2"/><path d="M3 4.6v2.8M4.6 3.4h1.9c1 0 1.5.6 1.5 1.4v.6" stroke="currentColor" stroke-width="1.2"/></svg>
+      studio/m-2481
+    </a>
+    <span class="pill pulse" style="margin-left:4px"><span class="dot pulse"></span> 4 of 5 running</span>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <a href="#" class="btn btn-secondary btn-sm" title="Open pull request 418 on GitHub in a new tab.">Open PR 418</a>
+      <button class="btn btn-ghost btn-sm" title="Pause the four agents still running. Work in flight finishes, nothing new starts.">Pause the crew</button>
+      <a href="#" class="avatar" title="Your account and settings. Signed in as you, owner of Helio Labs.">RG</a>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:296px 1fr 336px;gap:20px;padding:20px 24px 0;align-items:start">
+
+    <!-- crew + files -->
+    <div style="display:grid;gap:16px">
+      <div class="panel">
+        <div class="cardhead" style="padding:12px 14px"><span class="t" style="font-size:var(--fs-sub)">Crew on this mission</span><span class="sub dim" style="margin-left:auto;font-size:var(--fs-label)">4 running, 1 done</span></div>
+        <a href="#" class="arow" style="padding:11px 14px;gap:10px" title="Open the Architect run. The plan was written and accepted at 12:41, 11 files scoped.">
+          <span class="agl done">AR</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font:var(--w-medium) var(--fs-sub)/16px var(--face-ui)">Architect</span><span class="dot verified" style="width:5px;height:5px"></span></div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">plan accepted 12:41</div>
+          </div>
+        </a>
+        <a href="#" class="arow alive" style="padding:11px 14px;gap:10px" title="Open the Builder run. Writing PresenceChannel.ts, 68 percent through the plan.">
+          <span class="agl on">BU</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font:var(--w-medium) var(--fs-sub)/16px var(--face-ui)">Builder</span><span class="dot pulse" style="width:5px;height:5px"></span></div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--pulse-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">writing PresenceChannel.ts</div>
+            <div class="prog" style="margin-top:7px"><i style="width:68%"></i></div>
+          </div>
+        </a>
+        <a href="#" class="arow alive" style="padding:11px 14px;gap:10px" title="Open the Reviewer run. Reading the diff across 11 files, 2 notes raised so far.">
+          <span class="agl on">RE</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font:var(--w-medium) var(--fs-sub)/16px var(--face-ui)">Reviewer</span><span class="dot pulse" style="width:5px;height:5px"></span></div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--pulse-text)">reading diff, 2 notes</div>
+            <div class="prog" style="margin-top:7px"><i style="width:44%"></i></div>
+          </div>
+        </a>
+        <a href="#" class="arow alive" style="padding:11px 14px;gap:10px" title="Open the Critic run. Running the risk pass against the plan and the diff.">
+          <span class="agl on">CR</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font:var(--w-medium) var(--fs-sub)/16px var(--face-ui)">Critic</span><span class="dot pulse" style="width:5px;height:5px"></span></div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--pulse-text)">risk pass, 3 of 7 rules</div>
+            <div class="prog" style="margin-top:7px"><i style="width:38%"></i></div>
+          </div>
+        </a>
+        <a href="#" class="arow alive" style="padding:11px 14px;gap:10px" title="Open the Historian run. Linking this mission back to DEC-19 and to the March record it was judged against.">
+          <span class="agl mem">HI</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font:var(--w-medium) var(--fs-sub)/16px var(--face-ui)">Historian</span><span class="dot memory" style="width:5px;height:5px"></span></div>
+            <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--memory-text)">linking m-2481 to DEC-19</div>
+            <div class="prog mem" style="margin-top:7px"><i style="width:86%"></i></div>
+          </div>
+        </a>
+      </div>
+
+      <div class="panel">
+        <div class="cardhead" style="padding:12px 14px"><span class="t" style="font-size:var(--fs-sub)">Files changed</span><span class="mono" style="margin-left:auto;font-size:var(--fs-mono-xs)"><span style="color:var(--verified-text)">+412</span> <span style="color:var(--risk-text)">-87</span></span></div>
+        <div class="filelist" style="padding:8px 0 10px">
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px;background:var(--bg-control);box-shadow:inset 2px 0 0 var(--pulse-core)" title="Now open. src/lib/relay/PresenceChannel.ts, 96 lines added and 12 removed.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">lib/relay/PresenceChannel.ts</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+96</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--risk-text)">-12</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for src/lib/relay/useRoomPresence.ts, 74 lines added.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">lib/relay/useRoomPresence.ts</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+74</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">-0</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for src/components/relay/TypingDots.tsx, 41 lines added.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">components/relay/TypingDots.tsx</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+41</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">-0</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for src/components/relay/MemberStack.tsx, 63 added and 21 removed.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">components/relay/MemberStack.tsx</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+63</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--risk-text)">-21</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for src/routes/relay.$roomId.tsx, 28 added and 9 removed.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">routes/relay.$roomId.tsx</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+28</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--risk-text)">-9</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for src/lib/relay/presence.test.ts, 72 lines added.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">lib/relay/presence.test.ts</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+72</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">-0</span>
+          </a>
+          <a href="#" style="display:flex;gap:8px;padding:7px 14px" title="Open the diff for supabase/migrations/20260728_presence.sql, 14 lines added.">
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">migrations/20260728_presence.sql</span>
+            <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--verified-text)">+14</span><span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">-0</span>
+          </a>
+          <a href="#" style="display:block;padding:8px 14px 4px" class="sub dim" title="Show the remaining 4 changed files in this mission.">4 more files</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- diff -->
+    <div class="panel" style="overflow:hidden">
+      <div class="cardhead" style="padding:11px 14px">
+        <span class="dot pulse live"></span>
+        <span class="mono" style="font-size:var(--fs-mono);color:var(--text-primary)">src/lib/relay/PresenceChannel.ts</span>
+        <span class="pill pulse" style="margin-left:8px">Builder is editing</span>
+        <span class="r">
+          <span class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary)">unified</span>
+          <a href="#" class="btn btn-ghost btn-xs" title="Switch to the split diff view, old on the left and new on the right.">Split</a>
+          <a href="#" class="btn btn-ghost btn-xs" title="Open this file at commit 4c1a8e0 on GitHub in a new tab.">Open on GitHub</a>
+        </span>
+      </div>
+      <div class="diff" style="padding:12px 0 14px;background:var(--bg-inset)">
+        <div class="diffrows">
+        <div class="dl hunk"><span></span><span></span><span class="code">@@ -14,7 +14,9 @@ export class PresenceChannel</span></div>
+        <div class="dl"><span>14</span><span>14</span><span class="code">  private readonly room: string</span></div>
+        <div class="dl"><span>15</span><span>15</span><span class="code">  private members = new Map&lt;string, Member&gt;()</span></div>
+        <div class="dl"><span>16</span><span>16</span><span class="code">  private lastSeen = 0</span></div>
+        <div class="dl add"><span></span><span>17</span><span class="code">+ private typingTimers = new Map&lt;string, Timer&gt;()</span></div>
+        <div class="dl add"><span></span><span>18</span><span class="code">+ private typingDebounceMs = 180</span></div>
+        <div class="dl"><span>17</span><span>19</span><span class="code"> </span></div>
+        <div class="dl"><span>18</span><span>20</span><span class="code">  constructor(room: string, private socket: RelaySocket) {</span></div>
+        <div class="dl"><span>19</span><span>21</span><span class="code">    this.room = room</span></div>
+        <div class="dl"><span>20</span><span>22</span><span class="code">  }</span></div>
+        <div class="dl hunk"><span></span><span></span><span class="code">@@ -41,10 +43,25 @@ export class PresenceChannel</span></div>
+        <div class="dl"><span>41</span><span>43</span><span class="code">  join(member: Member) {</span></div>
+        <div class="dl"><span>42</span><span>44</span><span class="code">    this.members.set(member.id, member)</span></div>
+        <div class="dl del"><span>43</span><span></span><span class="code">-   this.socket.send({ t: 'presence.join', room: this.room, id: member.id })</span></div>
+        <div class="dl add"><span></span><span>45</span><span class="code">+   this.socket.send({ t: 'presence.join', room: this.room, member })</span></div>
+        <div class="dl"><span>44</span><span>46</span><span class="code">  }</span></div>
+        <div class="dl"><span>45</span><span>47</span><span class="code"> </span></div>
+        <div class="dl add"><span></span><span>48</span><span class="code">+ /** Typing state is debounced, one send per member per 180ms. */</span></div>
+        <div class="dl add"><span></span><span>49</span><span class="code">+ setTyping(memberId: string, typing: boolean) {</span></div>
+        <div class="dl add"><span></span><span>50</span><span class="code">+   const m = this.members.get(memberId)</span></div>
+        <div class="dl add"><span></span><span>51</span><span class="code">+   if (!m) return</span></div>
+        <div class="dl add"><span></span><span>52</span><span class="code">+   clearTimeout(this.typingTimers.get(memberId))</span></div>
+        <div class="dl add"><span></span><span>53</span><span class="code">+   this.typingTimers.set(memberId, setTimeout(() =&gt; {</span></div>
+        <div class="dl add"><span></span><span>54</span><span class="code">+     m.typing = typing</span></div>
+        <div class="dl add"><span></span><span>55</span><span class="code">+     m.typingAt = typing ? Date.now() : null</span></div>
+        <div class="dl add"><span></span><span>56</span><span class="code">+     this.socket.send({</span></div>
+        <div class="dl add"><span></span><span>57</span><span class="code">+       t: 'presence.typing', room: this.room, id: memberId, typing,</span></div>
+        <div class="dl add"><span></span><span>58</span><span class="code">+     })</span></div>
+        <div class="dl add"><span></span><span>59</span><span class="code">+   }, this.typingDebounceMs))</span></div>
+        <div class="dl add"><span></span><span>60</span><span class="code">+ }</span></div>
+        <div class="dl"><span>46</span><span>61</span><span class="code"> </span></div>
+        <div class="dl"><span>47</span><span>62</span><span class="code">  leave(memberId: string) {</span></div>
+        <div class="dl add"><span></span><span>63</span><span class="code">+   clearTimeout(this.typingTimers.get(memberId))</span></div>
+        <div class="dl add"><span></span><span>64</span><span class="code">+   this.typingTimers.delete(memberId)</span></div>
+        <div class="dl"><span>48</span><span>65</span><span class="code">    this.members.delete(memberId)</span></div>
+        <div class="dl"><span>49</span><span>66</span><span class="code">    this.socket.send({ t: 'presence.leave', room: this.room, id: memberId })</span></div>
+        <div class="dl"><span>50</span><span>67</span><span class="code">  }</span></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--edge-faint)">
+        <span class="dot verified"></span>
+        <span class="sub" style="color:var(--text-secondary)">Reviewer note applied at 14:52:12, debounce set to 180ms</span>
+        <a href="#" class="link" style="font-size:var(--fs-sub);margin-left:auto" title="Open the Reviewer note thread for this file, with the original comment and the fix.">See the note</a>
+      </div>
+    </div>
+
+    <!-- checks + PR -->
+    <div style="display:grid;gap:16px">
+      <div class="panel">
+        <div class="cardhead" style="padding:12px 14px"><span class="t" style="font-size:var(--fs-sub)">Checks</span><span class="sub dim" style="margin-left:auto;font-size:var(--fs-label)">4 passed, 1 running</span></div>
+        <div class="crow"><span class="dot verified"></span><span class="nm">Typecheck</span><span class="dur">1m 04s</span></div>
+        <div class="crow"><span class="dot verified"></span><span class="nm">Unit tests, 128 passed</span><span class="dur">1m 12s</span></div>
+        <div class="crow"><span class="dot verified"></span><span class="nm">Lint</span><span class="dur">22s</span></div>
+        <div class="crow"><span class="dot verified"></span><span class="nm">Build, worker bundle</span><span class="dur">48s</span></div>
+        <div class="crow"><span class="dot pulse"></span><span class="nm" style="color:var(--pulse-text)">End to end, 3 of 9</span><span class="dur">running</span></div>
+      </div>
+
+      <div class="panel" style="border-color:var(--gate-edge)">
+        <div style="padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="pill gate"><span class="dot gate"></span> Merge gate</span>
+            <span class="sub dim" style="margin-left:auto">closed, nothing waiting on you</span>
+          </div>
+          <div class="sub" style="color:var(--text-secondary);margin-bottom:14px">Nothing merges to main without you. End to end has 6 tests left, about 4 minutes. The gate lights up when they pass.</div>
+          <button class="btn btn-primary btn-sm btn-block" title="Approve the merge in advance. Pull request 418 merges to main the moment all 5 checks pass, without asking again." style="margin-bottom:8px">Approve the merge in advance</button>
+          <button class="btn btn-secondary btn-sm btn-block" title="Review the full diff across all 11 files before deciding on the merge.">Review all 11 files first</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="cardhead" style="padding:12px 14px"><span class="t" style="font-size:var(--fs-sub)">Pull request</span><a href="#" class="mono" style="margin-left:auto;font-size:var(--fs-mono-xs);color:var(--pulse-text)" title="Open pull request 418 on GitHub in a new tab.">418</a></div>
+        <div style="padding:12px 14px 14px">
+          <div style="font:var(--w-medium) var(--fs-sub)/19px var(--face-ui);margin-bottom:10px">Relay, presence and typing indicators</div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:var(--fs-label);line-height:17px">
+            <span class="dim">base</span><span class="mono" style="font-size:var(--fs-mono-xs)">main</span>
+            <span class="dim">head</span><span class="mono" style="font-size:var(--fs-mono-xs)">studio/m-2481</span>
+            <span class="dim">opened</span><span>14:38 by Reviewer</span>
+            <span class="dim">receipts</span><span><a href="#" class="link" title="Open the receipt bundle attached to this pull request, 34 agent actions with evidence.">34 actions attached</a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- terminal -->
+  <div style="padding:20px 24px 24px">
+    <div class="well" style="overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--edge-faint);background:var(--bg-panel)">
+        <span class="dot pulse"></span>
+        <span class="label" style="color:var(--text-secondary)">Live output, mission m-2481</span>
+        <span class="mono dim" style="font-size:var(--fs-mono-xs)">merged stream from the 4 running agents</span>
+        <span style="margin-left:auto;display:flex;gap:6px">
+          <a href="#" class="btn btn-ghost btn-xs" title="Filter the stream to one agent at a time.">Filter by agent</a>
+          <a href="#" class="btn btn-ghost btn-xs" title="Download the full log for mission m-2481 as a text file.">Download log</a>
+        </span>
+      </div>
+      <div class="term" style="padding:16px 16px 18px">
+        <div><span class="t">14:51:41</span>  <span class="a">builder  </span> › bun test src/lib/relay/presence.test.ts</div>
+        <div><span class="t">14:51:44</span>  <span class="a">builder  </span> <span class="ok">✓ 128 pass, 0 fail, 1.12s</span></div>
+        <div><span class="t">14:51:44</span>  <span class="a">builder  </span> › bun run typecheck</div>
+        <div><span class="t">14:52:02</span>  <span class="a">builder  </span> <span class="ok">✓ tsc clean, 0 errors across 1,204 files</span></div>
+        <div><span class="t">14:52:03</span>  <span class="a">reviewer </span> › reading diff, 11 files, +412 / -87</div>
+        <div><span class="t">14:52:11</span>  <span class="a">reviewer </span> <span class="warn">note: setTyping has no debounce, 3 sends per keystroke on fast typists</span></div>
+        <div><span class="t">14:52:12</span>  <span class="a">builder  </span> › applying reviewer note, typing debounce set to 180ms</div>
+        <div><span class="t">14:52:14</span>  <span class="a">critic   </span> › risk pass 3 of 7, checking migration reversibility</div>
+        <div><span class="t">14:52:16</span>  <span class="a">historian</span> › linking m-2481 to DEC-19, writing to the brain</div>
+        <div><span class="t">14:52:19</span>  <span class="a">builder  </span> › writing src/lib/relay/PresenceChannel.ts <span class="caret"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ FRAME 4 · QUIET, LIGHT ═════════════════════════════════ -->
+<div class="cap"><span class="cap-n">Frame 04</span><span class="cap-t">Settings, gates and judgment</span><span class="cap-m">1440 x 1378, scrolls below 900 · light</span></div>
+<div class="frame w1440">
+<div class="app t-light" style="min-height:900px">
+
+  <div class="topbar">
+    <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" stroke="rgba(11,18,32,.16)" stroke-width="1"/>
+      <path d="M16 3a13 13 0 0 1 11.26 6.5" stroke="#0E90AE" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M27.26 22.5A13 13 0 0 1 16 29" stroke="#5A5CE0" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M4.74 22.5A13 13 0 0 1 4.74 9.5" stroke="#C98407" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="4.2" fill="#0B1220"/>
+      <circle cx="16" cy="16" r="7.4" stroke="rgba(11,18,32,.22)" stroke-width="1"/>
+    </svg>
+    <a href="#" class="wsbtn" title="Switch workspace. You are in Helio Labs."><span class="nm">Helio Labs</span>
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.3" opacity=".5"/></svg></a>
+    <span class="vr"></span>
+    <span style="font:var(--w-medium) var(--fs-body)/1 var(--face-ui);color:var(--text-secondary)">Settings</span>
+    <a href="#" class="cmd" title="Open the command bar. Search everything, or run a command.">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.3"/><path d="M10.6 10.6L14 14" stroke="currentColor" stroke-width="1.3"/></svg>
+      Search, or run a command <span class="kbd">Cmd K</span>
+    </a>
+    <a href="#" class="btn btn-ghost btn-sm" title="Leave settings and go back to Home for Relay.">Back to Home</a>
+    <a href="#" class="avatar" title="Your account. Signed in as you, owner of Helio Labs.">RG</a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:240px 1fr;gap:0;min-height:844px">
+
+    <nav class="snav" style="padding:24px 16px;border-right:1px solid var(--edge);display:grid;gap:2px;align-content:start;background:var(--bg-canvas)">
+      <div class="micro" style="padding:0 11px 10px">Workspace</div>
+      <a href="#" title="Workspace settings. Name, domain, time zone and the default product.">General</a>
+      <a href="#" title="People and roles. Invite teammates and set who can approve.">People and roles</a>
+      <a href="#" title="Products. Relay, Atlas, Comet and Beacon, and which sources feed each.">Products</a>
+      <div class="micro" style="padding:18px 11px 10px">The machine</div>
+      <a href="#" title="Crew. All 13 agents, what each one is for and which model it runs on.">Crew</a>
+      <a href="#" class="on" title="Gates and judgment. You are here. Choose where a human decides.">Gates and judgment</a>
+      <a href="#" title="Repositories. Connect the repositories agents are allowed to write to.">Repositories</a>
+      <a href="#" title="Model keys. Bring your own keys, or use managed access.">Model keys</a>
+      <div class="micro" style="padding:18px 11px 10px">Record</div>
+      <a href="#" title="Ledger. Verify the hash chain and export a range for audit.">Ledger and audit</a>
+      <a href="#" title="Plan and usage. Credits, caps and invoices.">Plan and usage</a>
+    </nav>
+
+    <div style="padding:44px 56px 64px;background:var(--bg-panel)">
+      <div style="max-width:720px">
+
+        <h2 class="t1" style="margin:0 0 8px">Gates and judgment</h2>
+        <p style="margin:0 0 40px;max-width:var(--measure);color:var(--text-secondary);font-size:var(--fs-body);line-height:var(--lh-body)">A gate is a place where the machine stops and waits for a person. Everything before a gate runs on its own. Nothing after it moves until you decide.</p>
+
+        <div class="micro" style="margin-bottom:14px">Where you decide, by stage</div>
+        <div class="card" style="margin-bottom:44px">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">01</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Discover</div><div class="sub dim" style="font-size:var(--fs-label)">Scout clusters signals into ranked bets</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button class="on" title="Agents decide at Discover. Scout ranks bets without asking you." aria-pressed="true">Agents decide</button><button title="Switch Discover to a gate. You approve every ranked bet before it moves on." aria-pressed="false">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint);background:var(--gate-tint)">
+            <span class="mono" style="font-size:var(--fs-mono-xs);width:20px;color:var(--gate-text)">02</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui);display:flex;align-items:center;gap:8px">Decide <span class="dot gate"></span></div><div class="sub" style="font-size:var(--fs-label);color:var(--gate-text)">Open now, DEC-19 since 11:52</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button title="Let agents keep or kill bets on their own. Not recommended, this is the judgment stage." aria-pressed="false">Agents decide</button><button class="on gate" title="You decide at Decide. Every keep or kill waits for a person. This is the current setting." aria-pressed="true">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">03</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Plan</div><div class="sub dim" style="font-size:var(--fs-label)">Architect writes cited specs and the roadmap</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button title="Let Architect publish specs without review." aria-pressed="false">Agents decide</button><button class="on" title="You decide at Plan. Every spec waits for your approval. This is the current setting." aria-pressed="true">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">04</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Design</div><div class="sub dim" style="font-size:var(--fs-label)">Prototypes rendered in the Helio Labs brand</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button class="on" title="Agents decide at Design. Prototypes are produced without a gate. This is the current setting." aria-pressed="true">Agents decide</button><button title="Switch Design to a gate. Every prototype waits for your approval." aria-pressed="false">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">05</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Build</div><div class="sub dim" style="font-size:var(--fs-label)">Agents write code on a branch and open a pull request</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button class="on" title="Agents decide at Build. They write code and open pull requests. Merging is still gated at Ship." aria-pressed="true">Agents decide</button><button title="Switch Build to a gate. Nothing is written until you approve the plan for each mission." aria-pressed="false">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">06</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Ship</div><div class="sub dim" style="font-size:var(--fs-label)">Preview to production</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button aria-disabled="true" title="Not available. Production always waits for a person on the Team plan, so this cannot be switched off here." aria-pressed="false">Agents decide</button><button class="on" title="You decide at Ship. Nothing reaches production without a person. This is the current setting." aria-pressed="true">I decide</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+            <span class="mono dim" style="font-size:var(--fs-mono-xs);width:20px">07</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui);display:flex;align-items:center;gap:8px">Learn <span class="dot memory"></span></div><div class="sub dim" style="font-size:var(--fs-label)">Historian closes outcomes into the brain, 9 warnings live</div></div>
+            <div class="seg" role="group" aria-label="Who decides at this stage"><button class="on" title="Agents decide at Learn. Outcomes are written to the brain automatically. This is the current setting." aria-pressed="true">Agents decide</button><button title="Switch Learn to a gate. Every outcome waits for you before it enters the brain." aria-pressed="false">I decide</button></div>
+          </div>
+        </div>
+
+        <div class="micro" style="margin-bottom:14px">Who can approve</div>
+        <div class="card" style="margin-bottom:44px">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--edge-faint)">
+            <span class="avatar">RG</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">You, owner</div><div class="sub dim" style="font-size:var(--fs-label)">Can approve every gate on all four products</div></div>
+            <span class="pill quiet">always</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 18px">
+            <span class="avatar" style="background:var(--bg-inset);color:var(--text-secondary);border-color:var(--edge)">3</span>
+            <div style="flex:1"><div style="font:var(--w-medium) var(--fs-body)/18px var(--face-ui)">Product leads, 3 people</div><div class="sub dim" style="font-size:var(--fs-label)">Can approve Decide and Ship on Relay and Atlas</div></div>
+            <a href="#" class="btn btn-secondary btn-xs" title="Change which gates the product leads group can approve, and on which products.">Change</a>
+          </div>
+        </div>
+
+        <div class="micro" style="margin-bottom:14px">Custom gates</div>
+        <div class="empty" style="margin-bottom:36px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="margin:0 auto 14px;display:block;opacity:.5" aria-hidden="true">
+            <rect x="3.5" y="10" width="17" height="10.5" rx="2" stroke="currentColor" stroke-width="1.3"/>
+            <path d="M7.5 10V7a4.5 4.5 0 0 1 9 0v3" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+          <div style="font:var(--w-medium) var(--fs-t3)/22px var(--face-ui);margin-bottom:6px">No custom gates yet</div>
+          <p class="sub" style="max-width:440px;margin:0 auto 18px;color:var(--text-tertiary)">A custom gate stops a named agent on a condition you write. Stop Builder whenever a change touches billing. Stop Ship whenever the brain holds a live warning against the same shape.</p>
+          <button class="btn btn-secondary btn-sm" title="Create a custom gate. Opens a two step form, first the condition, then who it waits for.">Add a custom gate</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;padding-top:20px;border-top:1px solid var(--edge-faint)">
+          <span class="dot verified"></span>
+          <span class="sub dim">Changes save as you make them. Last saved 12:28 by you.</span>
+          <a href="#" class="link" style="font-size:var(--fs-sub);margin-left:auto" title="Open the ledger filtered to gate settings, showing every change and who made it.">See every change to these settings</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ FRAME 5 · HOME AT 768 ══════════════════════════════════ -->
+<div class="cap"><span class="cap-n">Frame 05</span><span class="cap-t">Home at a narrow viewport</span><span class="cap-m">768 x 1446, scrolls below 900 · dark</span></div>
+<div class="frame w768">
+<div class="app">
+
+  <div class="topbar" style="padding:0 14px;gap:8px">
+    <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,.14)" stroke-width="1"/>
+      <path d="M16 3a13 13 0 0 1 11.26 6.5" stroke="#46C6E0" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M27.26 22.5A13 13 0 0 1 16 29" stroke="#8B8FF8" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M4.74 22.5A13 13 0 0 1 4.74 9.5" stroke="#F5B544" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="4.2" fill="#F4F8FC"/>
+      <circle cx="16" cy="16" r="7.4" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+    </svg>
+    <a href="#" class="wsbtn" title="Switch workspace or product. Helio Labs, Relay.">
+      <span class="nm">Helio Labs</span><span class="dim" style="font-size:var(--fs-sub)">Relay</span>
+      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.3" opacity=".5"/></svg>
+    </a>
+    <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
+      <a href="#" class="iconbtn" title="Open the command bar. Search everything, or run a command.">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.3"/><path d="M10.6 10.6L14 14" stroke="currentColor" stroke-width="1.3"/></svg>
+      </a>
+      <a href="#" class="iconbtn" title="Open notifications. 2 unread, both from the Decide stage.">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6.5a4 4 0 1 1 8 0c0 3 1 4 1 4H3s1-1 1-4z" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 13a1.6 1.6 0 0 0 3 0" stroke="currentColor" stroke-width="1.3"/></svg>
+        <span class="badge-n">2</span>
+      </a>
+      <a href="#" class="avatar" title="Your account and settings.">RG</a>
+    </div>
+  </div>
+
+  <!-- loop becomes a scrolling instrument strip -->
+  <div style="border-bottom:1px solid var(--edge);background:var(--bg-panel);position:relative">
+    <div style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none">
+      <a href="#" class="stage needsyou" style="min-width:196px;flex:none" title="Open Decide. DEC-19 is waiting on your judgment.">
+        <div class="top"><span class="num">02</span><span class="nm">Decide</span><span class="dot gate" style="margin-left:auto"></span></div>
+        <div class="val">1 waiting on you</div><div class="note">DEC-19, open 38 minutes</div>
+      </a>
+      <a href="#" class="stage alive" style="min-width:196px;flex:none" title="Open Build. Three agents are on mission m-2477, Relay message search.">
+        <div class="top"><span class="num">05</span><span class="nm">Build</span><span class="dot pulse" style="margin-left:auto"></span></div>
+        <div class="val">3 agents on m-2477</div><div class="note">Branch studio/m-2477</div>
+      </a>
+      <a href="#" class="stage alive" style="min-width:196px;flex:none" title="Open Discover. Scout is sweeping 4 sources.">
+        <div class="top"><span class="num">01</span><span class="nm">Discover</span><span class="dot pulse" style="margin-left:auto"></span></div>
+        <div class="val">6 ranked bets</div><div class="note">Scout sweeping 4 sources</div>
+      </a>
+      <a href="#" class="stage alive" style="min-width:196px;flex:none" title="Open Ship. REL-20 is on preview.">
+        <div class="top"><span class="num">06</span><span class="nm">Ship</span><span class="dot pulse" style="margin-left:auto"></span></div>
+        <div class="val">REL-20 on preview</div><div class="note">Production gate not open</div>
+      </a>
+      <a href="#" class="stage" style="min-width:150px;flex:none;display:flex;flex-direction:column;justify-content:center" title="Open the whole loop. Plan, Design and Learn are quiet right now.">
+        <div class="val" style="color:var(--text-secondary)">3 quiet stages</div>
+        <div class="note">Plan, Design, Learn</div>
+      </a>
+    </div>
+    <div style="position:absolute;right:0;top:0;bottom:1px;width:40px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg-panel))"></div>
+  </div>
+
+  <div style="padding:20px 16px 32px;display:grid;gap:18px">
+
+    <div>
+      <h2 class="t2" style="margin:0 0 4px">Good afternoon. One thing needs you.</h2>
+      <div class="sub dim">Friday 28 July, 12:30. Everything else is running.</div>
+    </div>
+
+    <div class="gatecard">
+      <div style="padding:18px 18px 18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <span class="pill gate"><span class="dot gate live"></span> Needs your judgment</span>
+          <span class="chip mono" title="Decision DEC-19 in the Decide stage.">DEC-19</span>
+          <span class="sub dim">open 38 minutes</span>
+        </div>
+        <h3 class="t2" style="margin:0 0 10px">Keep or kill presence indicators in Relay</h3>
+        <p style="margin:0 0 16px;color:var(--text-secondary);font-size:var(--fs-body);line-height:var(--lh-body)">
+          Critic recommends <b style="color:var(--text-primary);font-weight:var(--w-medium)">keep, with a smaller first cut</b>. Ship presence and typing state together, or do not ship it.
+        </p>
+        <div style="border:1px solid var(--memory-edge);background:var(--memory-tint);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px">
+          <div class="micro" style="color:var(--memory-text);margin-bottom:5px">The brain is warning you</div>
+          <div class="sub" style="color:var(--text-secondary)">Presence without typing state shipped in REL-14 and was rolled back in DEC-11. <a href="#" class="receipt" title="Open the memory record for REL-14 and DEC-11.">see the record</a></div>
+        </div>
+        <div style="display:grid;gap:8px">
+          <button class="btn btn-primary btn-block" title="Approve keep with a smaller first cut. Architect starts the plan and Build opens a mission on Relay.">Approve, keep with typing state</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" style="flex:1" title="Send back to Critic with a note. The decision stays open.">Send back</button>
+            <button class="btn btn-risk" style="flex:1" title="Decline this bet. Requires a one line reason, written to the brain.">Decline</button>
+          </div>
+          <a href="#" class="btn btn-ghost btn-sm" title="Open the full evidence view for DEC-19, all 41 signals and every receipt.">Open all evidence, 4 sources</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardhead" style="padding:12px 16px"><span class="dot pulse live"></span><span class="t">Working now</span><span class="sub dim" style="margin-left:auto">5 agents</span></div>
+      <a href="#" class="arow alive" style="padding:12px 16px;gap:10px" title="Watch Builder work on mission m-2477, Relay message search.">
+        <span class="agl on">BU</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:baseline"><span style="font:var(--w-medium) var(--fs-sub)/18px var(--face-ui)">Builder</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">m-2477</span><span class="mono" style="margin-left:auto;font-size:var(--fs-mono-xs);color:var(--pulse-text)">68%</span></div>
+          <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 7px">writing SearchIndex.ts</div>
+          <div class="prog"><i style="width:68%"></i></div>
+        </div>
+      </a>
+      <a href="#" class="arow alive" style="padding:12px 16px;gap:10px" title="Watch Scout sweep 4 sources.">
+        <span class="agl on">SC</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:baseline"><span style="font:var(--w-medium) var(--fs-sub)/18px var(--face-ui)">Scout</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">discovery</span><span class="mono" style="margin-left:auto;font-size:var(--fs-mono-xs);color:var(--pulse-text)">41%</span></div>
+          <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 7px">214 signals from 4 sources today</div>
+          <div class="prog"><i style="width:41%"></i></div>
+        </div>
+      </a>
+      <a href="#" class="arow alive" style="padding:12px 16px;gap:10px" title="Watch Historian close LRN-13 into the brain.">
+        <span class="agl mem">HI</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:baseline"><span style="font:var(--w-medium) var(--fs-sub)/18px var(--face-ui)">Historian</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">LRN-13</span><span class="mono" style="margin-left:auto;font-size:var(--fs-mono-xs);color:var(--memory-text)">86%</span></div>
+          <div class="mono" style="font-size:var(--fs-mono-xs);color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 7px">closing the outcome on REL-18</div>
+          <div class="prog mem"><i style="width:86%"></i></div>
+        </div>
+      </a>
+      <a href="#" class="arow" style="padding:12px 16px;gap:10px" title="Open the two agents also running on mission m-2477. Reviewer is reading the diff and Critic is on the risk pass.">
+        <span class="agl">+2</span>
+        <div style="flex:1;min-width:0"><div class="sub" style="color:var(--text-secondary)">Reviewer and Critic, also on m-2477</div></div>
+        <span class="sub dim" style="flex:none">Open</span>
+      </a>
+    </div>
+
+    <div class="panel">
+      <div class="cardhead" style="padding:12px 16px"><span class="t">Since you left</span><span class="sub dim" style="margin-left:auto">9:05 to 12:30</span></div>
+      <div class="cardbody" style="padding:6px 16px 12px">
+        <div class="tl">
+          <div class="tli on"><span class="ts">9:05</span><span class="tx"><b>Scout</b> clustered 214 signals into 6 ranked bets. <a href="#" class="receipt" title="Open the receipt for the 9:05 Scout run.">receipt</a></span></div>
+          <div class="tli gate"><span class="ts">11:52</span><span class="tx"><b>Critic</b> asked for your judgment on DEC-19. <a href="#" class="receipt" title="Open the receipt for the 11:52 Critic analysis.">receipt</a></span></div>
+          <div class="tli mem"><span class="ts">12:15</span><span class="tx"><b>Historian</b> attached the March record, REL-14, to DEC-19. <a href="#" class="receipt" title="Open the receipt for the 12:15 brain match.">receipt</a></span></div>
+          <div class="tli on"><span class="ts">12:30</span><span class="tx"><b>Reviewer</b> opened pull request 409 on Relay. <a href="#" class="receipt" title="Open the receipt for the 12:30 pull request 409 on m-2477.">receipt</a></span></div>
+        </div>
+        <a href="#" class="btn btn-secondary btn-sm btn-block" style="margin-top:8px" title="Open the full activity stream for Relay, filtered to today.">See all 6 actions</a>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--memory-edge);box-shadow:var(--emit-memory),var(--e1)">
+      <div class="cardhead" style="padding:12px 16px"><span class="dot memory"></span><span class="t">The company brain</span><a href="#" class="btn btn-ghost btn-xs" style="margin-left:auto" title="Ask the brain anything about past decisions and outcomes.">Ask it</a></div>
+      <div class="cardbody" style="padding:14px 16px">
+        <div style="display:flex;gap:22px;margin-bottom:14px">
+          <div><div class="metric-sm">213</div><div class="micro" style="margin-top:3px">decisions</div></div>
+          <div><div class="metric-sm">47</div><div class="micro" style="margin-top:3px">outcomes</div></div>
+          <div><div class="metric-sm" style="color:var(--memory-text)">9</div><div class="micro" style="margin-top:3px">warnings live</div></div>
+        </div>
+        <a href="#" style="display:block;border-top:1px solid var(--edge-faint);padding-top:12px" title="Open the warning about presence releases and the outcomes behind it.">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px"><span class="pill memory">warns</span><span class="mono dim" style="font-size:var(--fs-mono-xs)">REL-14, DEC-11</span></div>
+          <div class="sub" style="color:var(--text-secondary)">Presence without typing state did not move retention.</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="sectionrule"></div>
+
+<!-- ══════════════ TOKENS ═════════════════════════════════════════════════ -->
+<div class="tk">
+  <h2>Tokens</h2>
+  <p>Two faces, three weights, ten sizes across twelve roles, six radii, five control heights, four state hues plus one rationed risk hue, one action colour, and one special material called emission. The block at the end of this section is the whole system: paste it in and every screen above is buildable, in both themes, without asking a question.</p>
+
+  <h3>Ground · Basalt, hue 218, low chroma</h3>
+  <div class="swrap">
+    <div class="sw"><div class="c" style="background:#05070B"></div><div class="m"><b>990 void</b><code>#05070B</code></div></div>
+    <div class="sw"><div class="c" style="background:#080B11"></div><div class="m"><b>960 canvas</b><code>#080B11</code></div></div>
+    <div class="sw"><div class="c" style="background:#0C1017"></div><div class="m"><b>930 panel</b><code>#0C1017</code></div></div>
+    <div class="sw"><div class="c" style="background:#10151E"></div><div class="m"><b>900 card</b><code>#10151E</code></div></div>
+    <div class="sw"><div class="c" style="background:#151B26"></div><div class="m"><b>860 raised</b><code>#151B26</code></div></div>
+    <div class="sw"><div class="c" style="background:#1B2230"></div><div class="m"><b>820 hover</b><code>#1B2230</code></div></div>
+    <div class="sw"><div class="c" style="background:#232B3B"></div><div class="m"><b>760 press</b><code>#232B3B</code></div></div>
+    <div class="sw"><div class="c" style="background:#2E374A"></div><div class="m"><b>700 rule</b><code>#2E374A</code></div></div>
+    <div class="sw"><div class="c" style="background:#3E4859"></div><div class="m"><b>620 icon off</b><code>#3E4859</code></div></div>
+    <div class="sw"><div class="c" style="background:#5B6678"></div><div class="m"><b>520 disabled</b><code>#5B6678</code></div></div>
+    <div class="sw"><div class="c" style="background:#7A8595"></div><div class="m"><b>420 tertiary</b><code>#7A8595</code></div></div>
+    <div class="sw"><div class="c" style="background:#9AA4B4"></div><div class="m"><b>320</b><code>#9AA4B4</code></div></div>
+    <div class="sw"><div class="c" style="background:#BFC7D4"></div><div class="m"><b>220 code</b><code>#BFC7D4</code></div></div>
+    <div class="sw"><div class="c" style="background:#DDE3EB"></div><div class="m"><b>140</b><code>#DDE3EB</code></div></div>
+    <div class="sw"><div class="c" style="background:#F1F4F9"></div><div class="m"><b>060 action</b><code>#F1F4F9</code></div></div>
+    <div class="sw"><div class="c" style="background:#FFFFFF"></div><div class="m"><b>000</b><code>#FFFFFF</code></div></div>
+  </div>
+
+  <h3>State hues · each one carries exactly one meaning</h3>
+  <div class="roleset">
+    <div class="role" style="border-color:var(--gate-edge)"><div class="h"><span class="dot gate live"></span><b style="color:var(--gate-text)">Gate, amber</b></div><p>A human decision is required and nothing behind it moves. Highest priority emitter. One per screen.</p><p style="margin-top:8px" class="mono">core #F5B544 · text #FBCF87 · light #C98407</p></div>
+    <div class="role" style="border-color:var(--pulse-edge)"><div class="h"><span class="dot pulse live"></span><b style="color:var(--pulse-text)">Pulse, cyan</b></div><p>A machine is working right now. Also the focus ring, because focus is also a live state.</p><p style="margin-top:8px" class="mono">core #46C6E0 · text #8FE0F2 · light #0E90AE</p></div>
+    <div class="role" style="border-color:var(--verified-edge)"><div class="h"><span class="dot verified"></span><b style="color:var(--verified-text)">Verified, mint</b></div><p>Checked, passed, shipped, recorded. Never animated, because it is finished.</p><p style="margin-top:8px" class="mono">core #45CE93 · text #8BE7C0 · light #0E8F5D</p></div>
+    <div class="role" style="border-color:var(--memory-edge)"><div class="h"><span class="dot memory"></span><b style="color:var(--memory-text)">Memory, iris</b></div><p>The company brain speaking from the past. Only ever used when there is a real record behind it.</p><p style="margin-top:8px" class="mono">core #8B8FF8 · text #BABCFF · light #5A5CE0</p></div>
+  </div>
+  <div class="roleset" style="grid-template-columns:1fr 3fr;margin-top:12px">
+    <div class="role" style="border-color:var(--risk-edge)"><div class="h"><span class="dot risk"></span><b style="color:var(--risk-text)">Risk, flare</b></div><p>Rationed. Failure, decline, deletion, removed lines in a diff. Nothing else.</p><p style="margin-top:8px" class="mono">core #F0616E · light #C7303F</p></div>
+    <div class="role"><div class="h"><span class="dot" style="background:#F1F4F9;color:rgba(255,255,255,.5)"></span><b>Action, light</b></div><p>The primary action colour is light itself, near white on dark and near black on light. It is not a brand hue, so no state hue is ever spent on a button. This is the rule that keeps the palette honest: colour means state, light means do it.</p></div>
+  </div>
+
+  <h3>Type · Instrument Sans for everything, JetBrains Mono for anything a machine produced</h3>
+  <div class="spec"><span style="font:var(--w-semibold) var(--fs-display)/var(--lh-display) var(--face-ui);letter-spacing:var(--tr-display)">Ship it, remember it</span><span class="meta">display   44 / 48 / 600 / -0.032em
+one per screen, hero only</span></div>
+  <div class="spec"><span style="font:var(--w-semibold) var(--fs-t1)/var(--lh-t1) var(--face-ui);letter-spacing:var(--tr-t1)">Keep or kill presence in Relay</span><span class="meta">title-1   26 / 32 / 600 / -0.022em
+the gate headline, page titles</span></div>
+  <div class="spec"><span style="font:var(--w-semibold) var(--fs-t2)/var(--lh-t2) var(--face-ui);letter-spacing:var(--tr-t2)">Good afternoon. One thing needs you.</span><span class="meta">title-2   20 / 26 / 600 / -0.017em
+section leads</span></div>
+  <div class="spec"><span style="font:var(--w-semibold) var(--fs-t3)/var(--lh-t3) var(--face-ui);letter-spacing:var(--tr-t3)">The company brain</span><span class="meta">title-3   16 / 22 / 600 / -0.010em
+card titles, large buttons</span></div>
+  <div class="spec"><span style="font:var(--w-regular) var(--fs-body)/var(--lh-body) var(--face-ui);letter-spacing:var(--tr-body)">Critic recommends keep, with a smaller first cut.</span><span class="meta">body      14 / 21 / 400 / -0.004em
+the default, and every control label at 500</span></div>
+  <div class="spec"><span style="font:var(--w-regular) var(--fs-sub)/var(--lh-sub) var(--face-ui);color:var(--text-secondary)">Raised by Critic at 11:52, open 38 minutes</span><span class="meta">sub       13 / 19 / 400 / 0
+supporting lines, dense rows</span></div>
+  <div class="spec"><span style="font:var(--w-medium) var(--fs-label)/var(--lh-label) var(--face-ui);letter-spacing:var(--tr-label)">Needs your judgment</span><span class="meta">label     12 / 16 / 500 / 0.004em
+pills, chips, compact buttons</span></div>
+  <div class="spec"><span class="micro" style="color:var(--pulse-text)">The brain is warning you</span><span class="meta">micro     11 / 14 / 500 / 0.085em upper
+eyebrows only, never a sentence</span></div>
+  <div class="spec"><span class="mono" style="font-size:var(--fs-mono);line-height:var(--lh-mono);letter-spacing:var(--tr-mono);color:var(--basalt-220)">studio/m-2481  a41f9c2  +412 -87  12:30:19</span><span class="meta">mono      12 / 18 / 400 / -0.01em
+ids, hashes, times, code, counts</span></div>
+  <div class="spec"><span class="metric">213</span><span class="meta">metric    28 / 30 / 500 mono tabular
+numbers that are read, not scanned</span></div>
+  <div class="spec"><span class="metric-sm">213</span><span class="meta">metric-sm 22 / 26 / 500 mono tabular
+the same number in a rail or at 768</span></div>
+
+  <h3>Space, radius, control, elevation</h3>
+  <div class="roleset" style="grid-template-columns:repeat(3,1fr)">
+    <div class="role"><div class="h"><b>Space, for layout</b></div><p class="mono" style="line-height:20px">2 4 6 8 12 16 20 24 32 40 56 72 96<br>page pad 32 · gutter 24 · stack 22 · topbar 56 · nav 240 · rail 372</p></div>
+    <div class="role"><div class="h"><b>Optical inset, inside a component</b></div><p class="mono" style="line-height:20px">gate 22 26 · card 16 18 · card head 14 18 · row 13 18 · dense row 11 14 · tight row 9 14 · file row 7 14 · well 12 16<br>This list is closed. A new inset means one of these was wrong.</p></div>
+    <div class="role"><div class="h"><b>Radius and control height</b></div><p class="mono" style="line-height:20px">r: 4 chip · 6 control · 8 input, button · 12 card · 16 gate card · 20 modal · 999 pill<br>h: 24 chip · 28 compact · 32 control · 36 comfortable · 44 primary and input</p></div>
+  </div>
+  <div class="roleset" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
+    <div class="role" style="box-shadow:var(--e1)"><div class="h"><b>e1, resting</b></div><p>Cards and panels. On dark it is a top hairline of light plus a soft drop. Light comes from above, always.</p></div>
+    <div class="role" style="box-shadow:var(--e2)"><div class="h"><b>e2, lifted</b></div><p>The gate card, popovers, the command bar.</p></div>
+    <div class="role" style="box-shadow:var(--e3)"><div class="h"><b>e3, floating</b></div><p>Modals and sheets only. Never more than one on screen.</p></div>
+  </div>
+
+  <h3>Every state a control can be in</h3>
+  <p>Specimens, not controls. Nothing here is clickable, because a state matrix that responds to the pointer cannot show you all five states at once.</p>
+  <div class="states">
+    <div class="state"><span class="btn btn-primary">Approve</span><span class="cap-s">rest</span></div>
+    <div class="state"><span class="btn btn-primary" style="background:var(--action-bg-hover);box-shadow:0 0 24px -10px rgba(255,255,255,.5)">Approve</span><span class="cap-s">hover</span></div>
+    <div class="state"><span class="btn btn-primary" style="transform:translateY(.5px)">Approve</span><span class="cap-s">press, 0.5px</span></div>
+    <div class="state"><span class="btn btn-primary" style="box-shadow:var(--focus-ring)">Approve</span><span class="cap-s">focus visible</span></div>
+    <div class="state"><span class="btn btn-primary" aria-disabled="true">Approve</span><span class="cap-s">disabled</span></div>
+  </div>
+  <div class="states" style="margin-top:12px">
+    <div class="state"><input class="input" value="you@heliolabs.com" aria-label="Field at rest" readonly><span class="cap-s">field, rest</span></div>
+    <div class="state"><input class="input" value="you@heliolabs.com" style="border-color:var(--edge-strong)" aria-label="Field on hover" readonly><span class="cap-s">field, hover</span></div>
+    <div class="state"><input class="input" value="you@heliolabs.com" style="border-color:var(--pulse-edge);background:var(--bg-raised);box-shadow:var(--focus-field)" aria-label="Field focused" readonly><span class="cap-s">field, focus</span></div>
+    <div class="state" style="gap:0"><input class="input err" value="you@helio" aria-label="Field with an error" readonly><div class="msg err" style="margin-bottom:14px"><span class="dot risk" style="width:5px;height:5px"></span>That domain has no workspace</div><span class="cap-s">field, error</span></div>
+    <div class="state"><input class="input" value="heliolabs.com" disabled aria-label="Field disabled"><span class="cap-s">field, disabled</span></div>
+  </div>
+
+  <h3>The same gate in both themes</h3>
+  <p>Light is a translation, not a filter. The tint stays, the hairline gets more saturated, and the bloom is gone, because a glow on paper reads as a printing fault.</p>
+  <div class="pair">
+    <div class="dark">
+      <div class="gatecard" style="border-radius:var(--r-lg)">
+        <div style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="pill gate"><span class="dot gate live"></span> Needs your judgment</span><span class="sub dim">DEC-19, open 38 minutes</span></div>
+          <div class="t3" style="margin-bottom:8px">Keep or kill presence indicators</div>
+          <div class="sub" style="margin-bottom:14px;color:var(--memory-text)">The brain warns: this shape did not move retention in March.</div>
+          <div style="display:flex;gap:8px"><span class="btn btn-primary btn-sm">Approve</span><span class="btn btn-secondary btn-sm">Send back</span></div>
+        </div>
+      </div>
+      <div class="micro" style="margin-top:12px">dark, the origin</div>
+    </div>
+    <div class="lite t-light">
+      <div class="gatecard" style="border-radius:var(--r-lg)">
+        <div style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="pill gate"><span class="dot gate live"></span> Needs your judgment</span><span class="sub dim">DEC-19, open 38 minutes</span></div>
+          <div class="t3" style="margin-bottom:8px">Keep or kill presence indicators</div>
+          <div class="sub" style="margin-bottom:14px;color:var(--memory-text)">The brain warns: this shape did not move retention in March.</div>
+          <div style="display:flex;gap:8px"><span class="btn btn-primary btn-sm">Approve</span><span class="btn btn-secondary btn-sm">Send back</span></div>
+        </div>
+      </div>
+      <div class="micro" style="margin-top:12px">light, the translation</div>
+    </div>
+  </div>
+
+  <h3>Emission · the one special material</h3>
+  <p>Emission is a coloured hairline plus a wide, low alpha bloom. Alpha never exceeds 0.34, blur is never below 20px, and it is never placed behind text. One primary emitter per screen, and it is always a gate that is actually open: a merge gate waiting on green carries the amber hairline but not the bloom, because nothing is waiting on you yet. Live work emits at roughly a third of that intensity. In light mode emission becomes a tint fill plus a saturated hairline with no bloom, because bloom on paper reads as a printing fault.</p>
+  <p style="margin-top:14px">The breath is separate and stricter. It is spent at most twice per screen, on the one open gate and the one focal live process, and it is available only to gate and pulse. Verified is finished and memory is a record, so neither is ever animated. The selector is written as <span class="mono" style="font-size:var(--fs-mono-xs)">.dot.gate.live, .dot.pulse.live</span> so the rule cannot be broken by adding a class.</p>
+
+  <h3>Copy the tokens</h3>
+  <div class="tkbar">
+    <button class="btn btn-primary btn-sm" data-preview="dark" aria-pressed="true" title="Preview the token set rendered in dark, the origin theme." onclick="setTheme('dark')">Preview dark</button>
+    <button class="btn btn-secondary btn-sm" data-preview="light" aria-pressed="false" title="Preview the token set rendered in light, the translated theme." onclick="setTheme('light')">Preview light</button>
+    <span class="sub dim" id="themenote">Showing the dark origin.</span>
+  </div>
+<pre class="tokens">:root{
+  <span class="cm">/* ── FACES ─ two faces, three weights, no exceptions ── */</span>
+  --face-ui:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --face-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --w-regular:400; --w-medium:500; --w-semibold:600;
+
+  <span class="cm">/* ── TYPE ─ size / line / tracking. Ten sizes, twelve roles, no others.
+        44 28 26 22 20 16 14 13 12 11. A new size means one of these is wrong. ── */</span>
+  --fs-display:44px; --lh-display:48px; --tr-display:-0.032em;  <span class="cm">/* hero, one per screen */</span>
+  --fs-t1:26px;      --lh-t1:32px;      --tr-t1:-0.022em;       <span class="cm">/* page and gate titles */</span>
+  --fs-t2:20px;      --lh-t2:26px;      --tr-t2:-0.017em;       <span class="cm">/* section leads */</span>
+  --fs-t3:16px;      --lh-t3:22px;      --tr-t3:-0.010em;       <span class="cm">/* card titles, lg button */</span>
+  --lh-t3-prose:26px;                                           <span class="cm">/* same 16px as a paragraph */</span>
+  --fs-body:14px;    --lh-body:21px;    --tr-body:-0.004em;     <span class="cm">/* default, controls at 500 */</span>
+  --fs-sub:13px;     --lh-sub:19px;     --tr-sub:0em;           <span class="cm">/* supporting, dense rows */</span>
+  --fs-label:12px;   --lh-label:16px;   --tr-label:0.004em;     <span class="cm">/* pills, chips, xs button */</span>
+  --fs-micro:11px;   --lh-micro:14px;   --tr-micro:0.085em;     <span class="cm">/* eyebrow, uppercase only */</span>
+  --fs-mono:12px;    --lh-mono:18px;    --tr-mono:-0.01em;      <span class="cm">/* ids, hashes, code, time */</span>
+  --fs-mono-xs:11px; --lh-mono-xs:16px;                         <span class="cm">/* inline metadata */</span>
+  --fs-metric:28px;  --lh-metric:30px;  --tr-metric:-0.02em;    <span class="cm">/* mono, tabular figures */</span>
+  --fs-metric-sm:22px;--lh-metric-sm:26px;--tr-metric-sm:-0.018em; <span class="cm">/* metric in a rail */</span>
+  <span class="cm">/* The font shorthand resets font-variant-numeric. Any element carrying a
+     number sets font-variant-numeric:tabular-nums as its own declaration. */</span>
+
+  <span class="cm">/* ── MEASURE ─ prose never runs wider ── */</span>
+  --measure-wide:64ch;  <span class="cm">/* 16px paragraphs */</span>
+  --measure:58ch;       <span class="cm">/* 14px and 13px paragraphs */</span>
+
+  <span class="cm">/* ── SPACE ─ the 4px scale governs layout ── */</span>
+  --s1:2px;  --s2:4px;  --s3:6px;  --s4:8px;  --s5:12px; --s6:16px; --s7:20px;
+  --s8:24px; --s9:32px; --s10:40px; --s11:56px; --s12:72px; --s13:96px;
+
+  <span class="cm">/* ── OPTICAL INSET ─ the closed list of exceptions inside components ── */</span>
+  --in-gate:22px 26px;      --in-card:16px 18px;     --in-cardhead:14px 18px;
+  --in-row:13px 18px;       --in-row-dense:11px 14px; --in-row-tight:9px 14px;
+  --in-file:7px 14px;       --in-well:12px 16px;
+
+  <span class="cm">/* ── LAYOUT ─ the frame to build against ── */</span>
+  --h-topbar:56px; --w-nav:240px; --w-rail:372px; --w-crew:296px; --w-checks:336px;
+  --pad-page:32px; --gutter:24px; --stack:22px;
+
+  <span class="cm">/* ── RADIUS ── */</span>
+  --r-xs:4px;   <span class="cm">/* chip */</span>
+  --r-sm:6px;   <span class="cm">/* icon button, segmented item */</span>
+  --r-md:8px;   <span class="cm">/* button, input, inner block */</span>
+  --r-lg:12px;  <span class="cm">/* card, panel */</span>
+  --r-xl:16px;  <span class="cm">/* the gate card, the only 16 on screen */</span>
+  --r-2xl:20px; <span class="cm">/* modal, sheet */</span>
+  --r-pill:999px;
+
+  <span class="cm">/* ── CONTROL HEIGHT ── */</span>
+  --h-chip:24px; --h-compact:28px; --h-control:32px; --h-comfort:36px; --h-primary:44px;
+
+  <span class="cm">/* ── LAYER ORDER ── */</span>
+  --z-base:0; --z-sticky:10; --z-topbar:20; --z-popover:30; --z-modal:40; --z-toast:50;
+
+  <span class="cm">/* ── BREAKPOINTS ─ media queries cannot read a custom property, so these are
+        the contract in prose. Below each width, the named change happens.
+        1280  the right rail (372) drops under the main column
+        1024  the Build screen goes two columns: crew and diff, checks below
+         900  the loop track becomes a horizontal instrument strip,
+              stage names stay one word, and quiet stages collapse to one tile
+         768  one column, page pad 32 -> 16, the gate card actions stack,
+              the topbar keeps only workspace, search, alerts, account
+         420  metric drops to metric-sm, dense rows lose the right hand column */</span>
+
+  <span class="cm">/* ── GROUND ─ Basalt, hue 218, low chroma ── */</span>
+  --basalt-990:#05070B; --basalt-960:#080B11; --basalt-930:#0C1017; --basalt-900:#10151E;
+  --basalt-860:#151B26; --basalt-820:#1B2230; --basalt-760:#232B3B; --basalt-700:#2E374A;
+  --basalt-620:#3E4859; --basalt-520:#5B6678; --basalt-420:#7A8595; --basalt-320:#9AA4B4;
+  --basalt-220:#BFC7D4; --basalt-140:#DDE3EB; --basalt-060:#F1F4F9; --basalt-000:#FFFFFF;
+
+  <span class="cm">/* ── STATE HUES ─ one meaning each, never decorative ── */</span>
+  <span class="cm">/* GATE · a human decision is required, nothing behind it moves */</span>
+  --gate-core:#F5B544; --gate-text:#FBCF87; --gate-deep:#8A5A06;
+  --gate-tint:rgba(245,181,68,.10); --gate-tint-2:rgba(245,181,68,.05);
+  --gate-edge:rgba(245,181,68,.30); --gate-glow:rgba(245,181,68,.30);
+  <span class="cm">/* PULSE · a machine is working right now, and the focus ring */</span>
+  --pulse-core:#46C6E0; --pulse-text:#8FE0F2; --pulse-deep:#0A6C83;
+  --pulse-tint:rgba(70,198,224,.09); --pulse-tint-2:rgba(70,198,224,.045);
+  --pulse-edge:rgba(70,198,224,.26); --pulse-glow:rgba(70,198,224,.28);
+  <span class="cm">/* VERIFIED · checked, passed, shipped, recorded. Never animated. */</span>
+  --verified-core:#45CE93; --verified-text:#8BE7C0; --verified-deep:#0A6E48;
+  --verified-tint:rgba(69,206,147,.09); --verified-edge:rgba(69,206,147,.24);
+  --verified-glow:rgba(69,206,147,.24);
+  <span class="cm">/* MEMORY · the company brain speaking from a real record */</span>
+  --memory-core:#8B8FF8; --memory-text:#BABCFF; --memory-deep:#4A4CC7;
+  --memory-tint:rgba(139,143,248,.10); --memory-edge:rgba(139,143,248,.26);
+  --memory-glow:rgba(139,143,248,.26);
+  <span class="cm">/* RISK · rationed. Failure, decline, deletion, removed diff lines. */</span>
+  --risk-core:#F0616E; --risk-text:#FF9AA3; --risk-deep:#A8202E;
+  --risk-tint:rgba(240,97,110,.10); --risk-edge:rgba(240,97,110,.28);
+  --risk-glow:rgba(240,97,110,.26);
+
+  <span class="cm">/* ── SEMANTIC ROLES · DARK is the origin ── */</span>
+  --bg-void:#05070B;          <span class="cm">/* behind the app, auth field */</span>
+  --bg-canvas:#080B11;        <span class="cm">/* the app canvas */</span>
+  --bg-panel:#0C1017;         <span class="cm">/* panels, nav, the loop track */</span>
+  --bg-card:#10151E;          <span class="cm">/* cards, one step up from panel */</span>
+  --bg-raised:#151B26;        <span class="cm">/* popovers, active segment */</span>
+  --bg-inset:#06080D;         <span class="cm">/* wells: diff, terminal, code */</span>
+  --bg-control:rgba(255,255,255,.045);
+  --bg-control-hover:rgba(255,255,255,.078);
+  --bg-control-press:rgba(255,255,255,.11);
+
+  --edge-faint:rgba(255,255,255,.055);  <span class="cm">/* inside a surface */</span>
+  --edge:rgba(255,255,255,.088);        <span class="cm">/* between surfaces */</span>
+  --edge-strong:rgba(255,255,255,.15);  <span class="cm">/* hover, dashed empty state */</span>
+  --edge-top:rgba(255,255,255,.10);     <span class="cm">/* the top lit hairline */</span>
+
+  --text-primary:#ECF0F6;
+  --text-secondary:#A8B2C1;   <span class="cm">/* supporting copy, receipts, affordances */</span>
+  --text-tertiary:#7A8595;    <span class="cm">/* the quietest tone a person still READS:
+                                   diff gutters, log timestamps, eyebrows.
+                                   Clears 4.5:1 on every ground in the set. */</span>
+  --text-disabled:#5D6879;    <span class="cm">/* disabled controls only. Never body copy,
+                                   never a number a person has to read. */</span>
+  --text-inverse:#06090E;
+
+  --action-bg:#F1F4F9;        <span class="cm">/* light is the action colour */</span>
+  --action-bg-hover:#FFFFFF;
+  --action-fg:#06090E;
+  --action-quiet-bg:rgba(255,255,255,.055);
+  --action-quiet-bg-hover:rgba(255,255,255,.095);
+  --action-disabled-bg:rgba(255,255,255,.05);
+  --action-disabled-fg:var(--text-disabled);
+
+  <span class="cm">/* ── COMPONENT ROLES ─ so nothing is ever hand mixed in a component ── */</span>
+  --on-gate:#1A1200;          <span class="cm">/* text sitting on solid amber */</span>
+  --avatar-bg:linear-gradient(150deg,#2C3648,#171E2A);
+  --avatar-fg:var(--text-primary);
+  --avatar-edge:var(--edge-strong);
+  --diff-add-bg:rgba(69,206,147,.07);
+  --diff-del-bg:rgba(240,97,110,.06);
+  --prog-track:var(--edge);
+  --prog-pulse:linear-gradient(90deg,rgba(70,198,224,.22),var(--pulse-core));
+  --prog-memory:linear-gradient(90deg,rgba(139,143,248,.22),var(--memory-core));
+
+  <span class="cm">/* ── ELEVATION ─ light always comes from above ── */</span>
+  --e1:0 1px 2px rgba(0,0,0,.45), inset 0 1px 0 var(--edge-top);
+  --e2:0 6px 16px -6px rgba(0,0,0,.6), inset 0 1px 0 var(--edge-top);
+  --e3:0 24px 56px -20px rgba(0,0,0,.72), inset 0 1px 0 var(--edge-top);
+  --lift-top:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 96px);
+
+  <span class="cm">/* ── EMISSION ─ the one special material.
+        Alpha ceiling 0.34, blur floor 20px, never behind text.
+        One primary emitter per screen, and only for a gate that is open.
+        A gate that is merely armed gets the hairline and no bloom. ── */</span>
+  --emit-gate:0 0 0 1px var(--gate-edge), 0 0 32px -10px var(--gate-glow);
+  --emit-pulse:0 0 0 1px var(--pulse-edge), 0 0 28px -12px var(--pulse-glow);
+  --emit-memory:0 0 0 1px var(--memory-edge), 0 0 28px -14px var(--memory-glow);
+  --emit-dot:0 0 10px -1px currentColor;
+
+  <span class="cm">/* ── MOTION ─ confirm, never perform ── */</span>
+  --ease-emit:cubic-bezier(.16,.84,.44,1);     <span class="cm">/* things appearing, fade and 4px rise */</span>
+  --ease-settle:cubic-bezier(.32,.72,0,1);     <span class="cm">/* state to state, hover, progress */</span>
+  --ease-exit:cubic-bezier(.4,0,.9,.3);        <span class="cm">/* things leaving, fast out */</span>
+  --ease-confirm:cubic-bezier(.2,1.25,.5,1);   <span class="cm">/* approve only, one small overshoot */</span>
+  --t-tap:80ms;        <span class="cm">/* press feedback, 0.5px translate */</span>
+  --t-state:140ms;     <span class="cm">/* hover, colour, border */</span>
+  --t-reveal:220ms;    <span class="cm">/* popover, inline expand */</span>
+  --t-surface:320ms;   <span class="cm">/* route change, sheet, modal */</span>
+  --t-breathe:2600ms;  <span class="cm">/* the live emitter, the only loop allowed */</span>
+  <span class="cm">/* THE BREATH ─ at most twice per screen: the one open gate and the one
+     focal live process. Available to gate and pulse only. Verified is
+     finished and memory is a record, so the selector excludes them:
+       .dot.gate.live::after, .dot.pulse.live::after { animation: breathe } */</span>
+
+  <span class="cm">/* ── FOCUS ─ focus is a live state, so it uses the live hue ── */</span>
+  --focus-hue:#7BDDF2;
+  --focus-gap:2px;   <span class="cm">/* the halo of canvas between control and ring */</span>
+  --focus-w:2px;     <span class="cm">/* the ring itself */</span>
+  --focus-ring:0 0 0 var(--focus-gap) var(--bg-canvas), 0 0 0 calc(var(--focus-gap) + var(--focus-w)) var(--focus-hue);
+  --focus-field:0 0 0 3px rgba(70,198,224,.13);  <span class="cm">/* softer, inside a text field */</span>
+}
+
+<span class="cm">/* ── LIGHT ─ a real translation, not an inversion.
+      Emission becomes tint plus a saturated hairline. No bloom on paper. ── */</span>
+[data-theme="light"]{
+  --bg-void:#E9EDF3; --bg-canvas:#F6F8FC; --bg-panel:#FFFFFF; --bg-card:#FFFFFF;
+  --bg-raised:#FFFFFF; --bg-inset:#F1F4F9;
+  --bg-control:rgba(11,18,32,.045);
+  --bg-control-hover:rgba(11,18,32,.075);
+  --bg-control-press:rgba(11,18,32,.10);
+
+  --edge-faint:rgba(11,18,32,.06);
+  --edge:rgba(11,18,32,.105);
+  --edge-strong:rgba(11,18,32,.18);
+  --edge-top:rgba(255,255,255,.9);
+
+  --text-primary:#0B1220; --text-secondary:#4B5566; --text-tertiary:#616B7D;
+  --text-disabled:#7C8593; --text-inverse:#FFFFFF;
+
+  --action-bg:#0E1626; --action-bg-hover:#1B2637; --action-fg:#FFFFFF;
+  --action-quiet-bg:rgba(11,18,32,.05);
+  --action-quiet-bg-hover:rgba(11,18,32,.085);
+  --action-disabled-bg:rgba(11,18,32,.04);
+  --action-disabled-fg:var(--text-disabled);
+
+  --on-gate:#FFFFFF;
+  --avatar-bg:linear-gradient(150deg,#E7ECF3,#CFD8E4);
+  --avatar-fg:#0B1220;
+  --avatar-edge:var(--edge);
+  --diff-add-bg:rgba(14,143,93,.08);
+  --diff-del-bg:rgba(199,48,63,.07);
+  --prog-track:rgba(11,18,32,.10);
+  --prog-pulse:linear-gradient(90deg,rgba(14,144,174,.28),var(--pulse-core));
+  --prog-memory:linear-gradient(90deg,rgba(90,92,224,.26),var(--memory-core));
+
+  --e1:0 1px 2px rgba(11,18,32,.07), 0 0 0 1px rgba(11,18,32,.05);
+  --e2:0 8px 20px -10px rgba(11,18,32,.16), 0 0 0 1px rgba(11,18,32,.05);
+  --e3:0 28px 60px -24px rgba(11,18,32,.24), 0 0 0 1px rgba(11,18,32,.06);
+  --lift-top:linear-gradient(180deg,rgba(11,18,32,.012),rgba(255,255,255,0) 96px);
+
+  --emit-gate:0 0 0 1px rgba(201,132,7,.34), 0 2px 10px -4px rgba(201,132,7,.22);
+  --emit-pulse:0 0 0 1px rgba(14,144,174,.30), 0 2px 10px -4px rgba(14,144,174,.18);
+  --emit-memory:0 0 0 1px rgba(90,92,224,.28), 0 2px 10px -4px rgba(90,92,224,.16);
+  --emit-dot:0 0 0 3px rgba(0,0,0,.04);
+
+  <span class="cm">/* The deep shade becomes the text role: dark ink on a tint of its own hue. */</span>
+  --gate-core:#C98407;     --gate-text:var(--gate-deep);
+  --pulse-core:#0E90AE;    --pulse-text:var(--pulse-deep);
+  --verified-core:#0E8F5D; --verified-text:var(--verified-deep);
+  --memory-core:#5A5CE0;   --memory-text:var(--memory-deep);
+  --risk-core:#C7303F;     --risk-text:var(--risk-deep);
+  --gate-tint:rgba(201,132,7,.09);     --gate-tint-2:rgba(201,132,7,.045);
+  --pulse-tint:rgba(14,144,174,.08);   --pulse-tint-2:rgba(14,144,174,.04);
+  --verified-tint:rgba(14,143,93,.08); --memory-tint:rgba(90,92,224,.08);
+  --risk-tint:rgba(199,48,63,.08);
+  --gate-edge:rgba(201,132,7,.30);     --pulse-edge:rgba(14,144,174,.26);
+  --verified-edge:rgba(14,143,93,.24); --memory-edge:rgba(90,92,224,.24);
+  --risk-edge:rgba(199,48,63,.26);
+  <span class="cm">/* Every glow collapses to a faint tint. Nothing blooms on paper. */</span>
+  --gate-glow:rgba(201,132,7,.16);     --pulse-glow:rgba(14,144,174,.14);
+  --verified-glow:rgba(14,143,93,.12); --memory-glow:rgba(90,92,224,.13);
+  --risk-glow:rgba(199,48,63,.14);
+
+  --focus-hue:#0E90AE;
+  --focus-ring:0 0 0 var(--focus-gap) #FFFFFF, 0 0 0 calc(var(--focus-gap) + var(--focus-w)) var(--focus-hue);
+  --focus-field:0 0 0 3px rgba(14,144,174,.15);
+}
+
+<span class="cm">/* ── THE SIX RULES THAT KEEP IT PREMIUM ──
+   1. Colour means state. Light means act. No button ever wears a state hue.
+   2. One primary emitter per screen, and it is a gate that is actually open.
+      An armed gate gets the hairline, not the bloom.
+   3. The breath is spent twice at most: the open gate, and the one focal live
+      process. Verified and memory never breathe.
+   4. Three weights, ten sizes. If a new size is needed, one of the ten is wrong.
+   5. Optical spacing beats numeric spacing, but the optical list is closed.
+      A 26px title sits on 18px card pad, a 13px row sits on 11px. Measure the
+      gap you see, not the gap you typed, then add it to the list or drop it.
+   6. Motion confirms. Nothing loops except the live emitter at 2600ms. ── */</span>
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important}
+}</pre>
+</div>
+
+<div class="sectionrule" style="margin-top:64px"></div>
+
+<!-- ══════════════ RATIONALE ══════════════════════════════════════════════ -->
+<div class="tk rat">
+  <h2>Rationale</h2>
+
+  <h3>The idea</h3>
+  <p>Supaprod is a machine that runs while you are not looking, so the interface has one job above all others: tell you instantly where the machine is alive and where it is stuck waiting for you. Luminous console makes light do that work. The ground is deep and almost silent, drawn in hairlines and neutral type, so that any emitted light is information. Amber means a person must decide and nothing behind it moves. Cyan means a machine is working this second. Mint means finished and recorded. Iris means the company brain is speaking from a real record. Light itself, near white on dark and near black on light, is the only action colour, which means no button ever borrows a state hue and the palette cannot drift into decoration.</p>
+
+  <h3>What makes it premium</h3>
+  <p>Restraint with a reason. Two faces, three weights, ten type sizes, five control heights. Every card is lit from above with a single top hairline, so elevation reads as physics rather than as a drop shadow preset. Spacing is optical, not numeric: a 26px title sits against 18px of card padding while a 13px dense row sits against 11px, because equal numbers look unequal. That licence would rot the system, so the optical list is closed and written into the tokens as eight named insets. The emission material has a hard specification, alpha ceiling 0.34 and blur floor 20px, never behind text, one primary emitter per screen, and the breath is stricter still: twice per screen, on the open gate and the one focal live process, with verified and memory excluded in the selector itself so the rule cannot be broken by adding a class. That specification is the difference between a console and a gaming keyboard. Motion is small and confirming: 80ms for a press, 140ms for a state, 320ms for a surface, one 2600ms breath and nothing else loops.</p>
+
+  <h3>What it costs to live in every day</h3>
+  <p>Dark by default is easy at 21:00 and harder in a bright meeting room, so light is a real translation rather than a filter. In light, emission drops the bloom entirely and becomes a tint plus a saturated hairline, because a glow on paper reads as a printing fault. The bigger daily cost is discipline. Emission is addictive and every future feature will want to glow. The alpha ceiling, the blur floor and the one emitter per screen rule have to be enforced in review or the interface will be neon within a year. The second cost is that the state hues are promises. The moment iris appears without a real memory record behind it, the whole language stops being trustworthy.</p>
+
+  <h3>Where it strains</h3>
+  <p>Four places. First, very dense tables at 11px, where cyan on basalt starts to fail contrast and the fix is to drop back to neutral text with a coloured dot rather than colouring the text. Second, the loop track at narrow widths, where seven stages become a horizontal instrument strip: stage names have to stay one word, and the quiet stages collapse into a single tile rather than hiding behind a label you cannot reach. Third, print and export, where a deep ground eats ink and a screenshot for an investor deck loses the emission entirely, so the light theme has to be the export default rather than an afterthought. Fourth, the moment two gates are genuinely open at once. The budget says one primary emitter, so the second gate has to queue as a hairline row with a count, and the rule is that the interface picks the older one to light. That is a product decision as much as a visual one, and it has to be made before the second gate ever ships.</p>
+</div>
+
+<script>
+// Review page helpers. Links are inert on this sheet.
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('a[href="#"]');
+  if (a) e.preventDefault();
+});
+// Token preview theme switch, applied to the swatch and specimen area only.
+function setTheme(mode) {
+  var light = mode === 'light';
+  var tk = document.querySelectorAll('.tk');
+  for (var i = 0; i < tk.length; i++) {
+    tk[i].classList.toggle('t-light', light);
+    tk[i].style.background = light ? 'var(--bg-canvas)' : 'transparent';
+    tk[i].style.padding = light ? '28px' : '0';
+    tk[i].style.borderRadius = '14px';
+  }
+  var btns = document.querySelectorAll('.tkbar button[data-preview]');
+  for (var j = 0; j < btns.length; j++) {
+    var on = btns[j].getAttribute('data-preview') === mode;
+    btns[j].setAttribute('aria-pressed', on ? 'true' : 'false');
+    btns[j].classList.toggle('btn-secondary', !on);
+    btns[j].classList.toggle('btn-primary', on);
+  }
+  var n = document.getElementById('themenote');
+  if (n) n.textContent = light ? 'Showing the light translation.' : 'Showing the dark origin.';
+}
+</script>
+
+</body>
+</html>
