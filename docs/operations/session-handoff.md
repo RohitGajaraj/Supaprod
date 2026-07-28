@@ -60,8 +60,12 @@ in the section below. Nothing there was lost.
 5. **Reclaimed `main`** by lease-protected force-push; orphan preserved as the archive tag.
 6. **Installed a `pre-push` guard** blocking orphan pushes to `main`. Tested against six cases.
    Present in Superprod (shared by lane-0/1) and lane-2/3; lane-4's remote was removed.
-7. **Cleaned branches:** remote 17 -> 2, and 11 local removed, each verified by content on
-   `main`. Restore SHAs are tabled in the guard doc §5.
+7. **Cleaned branches:** remote 17 -> 2 (`main`, `archive/final-sweep-2026-07-18`), and 11
+   local removed, each verified by content on `main`. Restore SHAs are tabled in the guard
+   doc §5. The orphan is kept as the **tag** `archive-lovable-orphan-2026-07-28` rather than a
+   branch, because a recently-pushed branch made GitHub show a "Compare & pull request" banner
+   inviting a merge of two unrelated histories into `main`. The `pre-merge-commit` lock was
+   widened to `archive[/-]` so it catches the tag form too.
 8. **Fixed `remember.md`:** it empties by design; the git noise came from it being the only
    tracked file in a `*`-ignored directory. Now untracked.
 
