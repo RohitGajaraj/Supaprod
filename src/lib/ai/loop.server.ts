@@ -827,9 +827,22 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
   const checkpoint = async (stepIndex: number) => {
     if (!runId) return;
     try {
-      // O(n²) fix: store only the latest conversation message and step delta,
-      // not the entire accumulated conv/steps arrays. Full history is already
-      // in agent_run_steps and agent_run_messages; checkpoint is for recovery state only.
+      // conv and steps MUST be stored. The resume path gates rehydration on
+      // `cp.state.conv` (see resumeAgentLoop), so dropping them silently sent
+      // every resumed run down the fresh-state branch: empty conversation,
+      // empty steps, but a partly spent step budget. An agent that paused for
+      // an approval came back with no memory of its own work and fewer steps
+      // left to redo it.
+      //
+      // The "O(n²) fix" that removed them justified itself with
+      // `agent_run_steps` and `agent_run_messages`. Neither table exists: zero
+      // migrations, zero writers. The history had nowhere else to live.
+      //
+      // The cost it was avoiding is small and bounded. adaptiveStepBudget caps
+      // a run in the single digits, so this is a handful of upserts of a
+      // conversation measured in tens of kilobytes. Correctness first; if the
+      // payload ever genuinely bites, the fix is a real history table plus a
+      // reader, not a silent drop.
       const latestMessage = conv[conv.length - 1] ?? null;
       const latestStep = steps[steps.length - 1] ?? null;
       await supabase.from("agent_run_checkpoints").upsert(
@@ -844,6 +857,8 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             model,
             traceId,
             goal: s.goal,
+            conv,
+            steps,
             latestMessage,
             latestStep,
             stepCount: steps.length,
