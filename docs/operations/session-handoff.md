@@ -1,3 +1,34 @@
+# Session handoff (durable)
+
+> _Created: 2026-07-28 - the tracked half of the handoff pair._
+
+**This file is the durable, git-tracked session handoff.** It replaces
+`.remember/remember.md` as the committed record, and here is why.
+
+`.remember/remember.md` is owned by the `remember` plugin, which treats it as a
+**one-shot mailbox**: its SessionStart hook reads the file, injects the contents
+into the new session's context, then truncates it to zero bytes
+(`scripts/session-start-hook.sh`, the `: > "$REMEMBER_HANDOFF"` line). That is
+deliberate and useful, but it is incompatible with also being a committed
+artifact: the file was the single git-tracked entry inside a directory whose
+`.gitignore` is `*`, so every single session start showed up as a phantom
+multi-kilobyte deletion in `git status` and got swept into unrelated commits.
+
+**The convention, therefore, is to write both:**
+
+| File | Owner | Lifetime | Purpose |
+| --- | --- | --- | --- |
+| `.remember/remember.md` | remember plugin | cleared on read | auto-injected into the next session's context. Untracked. |
+| `docs/operations/session-handoff.md` | this repo | permanent | the durable cross-tool record, reviewable in git history. |
+
+Write the handoff to **both** before you pause or end a session. The first buys
+the automatic injection; the second buys the audit trail and survives the read.
+
+Related: [`memory.md`](./memory.md) (the memory stack), [`commits.md`](./commits.md)
+(git discipline), [`AGENTS.md`](../../AGENTS.md) (the session loop standing order).
+
+---
+
 # Session handoff - 2026-07-28 late night (YC application FINAL CHECK; queues re-armed; repos private)
 
 ## State: local main = `a5a79660`, pushed to `origin/rescue/real-main-2026-07-28`. Orphan origin/main untouched.

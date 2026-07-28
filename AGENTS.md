@@ -78,11 +78,11 @@ Three principles govern every decision in this repo:
 >
 > ### The session loop (do this, in order)
 >
-> 1. **Start:** read the SSOT (the boot hook surfaces it) for the live cursor + queue + founder list, and `.remember/remember.md` for the conversational context the docs do not carry. That is enough to know where things stand. Do not re-read the whole corpus.
+> 1. **Start:** read the SSOT (the boot hook surfaces it) for the live cursor + queue + founder list, and the handoff for the conversational context the docs do not carry. The handoff arrives two ways: the `remember` plugin injects `.remember/remember.md` into your context automatically at SessionStart (and clears it as it reads, so it is gone from disk by the time you look), and the durable copy is committed at [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) — read that one if the injected block is missing or truncated. That is enough to know where things stand. Do not re-read the whole corpus.
 > 2. **Before picking work:** take the next item from SSOT section 0 (cursor) or section 3 (queue). Check the Active-claims table in the dashboard so you do not collide with a parallel session.
 > 3. **On claim (before writing code, same commit):** add an Active-claims line in the dashboard (`<tool>`, date) and set the SSOT section 0 cursor to the pick.
 > 4. **On done (same unit of work as the change):** update (a) the SSOT (section 0 cursor + section 6 progress log) and (b) the ONE typed ledger you touched (the build-bible row, known-issues, etc.), then run [`docs/conventions/doc-closure-checklist.md`](./docs/conventions/doc-update-cadence.md). A change is not done until its docs are true.
-> 5. **Before you pause or end:** leave the boards true; write the handoff to `.remember/remember.md` (what shipped with IDs, open work in priority order, founder-gated items, env notes). This is what lets the next session start without re-deriving context. Saving tokens is part of the job.
+> 5. **Before you pause or end:** leave the boards true; write the handoff (what shipped with IDs, open work in priority order, founder-gated items, env notes) to **both** `.remember/remember.md` (untracked, plugin-owned, bought you the automatic injection above) **and** [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) (tracked, committed, survives the plugin's read-and-clear). Writing only the first loses the record the moment the next session starts; writing only the second loses the automatic injection. This is what lets the next session start without re-deriving context. Saving tokens is part of the job.
 >
 > ### The new-initiative rule (when a new feature or strategy spawns several sub-items)
 >
