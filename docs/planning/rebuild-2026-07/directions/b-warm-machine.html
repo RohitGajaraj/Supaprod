@@ -361,10 +361,10 @@ b,strong{font-weight:var(--w-semi)}
 /* the agent monogram: a small machined key with the crew colour on its rim */
 .mono-key{width:28px;height:28px;flex:none;border-radius:9px;display:grid;place-items:center;
   background:var(--raised);border:1px solid var(--line-strong);
-  box-shadow:var(--shadow-key);font-size:11px;font-weight:var(--w-semi);
+  box-shadow:var(--shadow-key);font-size:var(--fs-micro);font-weight:var(--w-semi);
   letter-spacing:.02em;color:var(--ink-2);font-family:var(--face-mono)}
 .mono-key.sz-24{width:24px;height:24px;border-radius:8px;font-size:var(--fs-monosm)}
-.mono-key.sz-32{width:32px;height:32px;border-radius:10px;font-size:12px}
+.mono-key.sz-32{width:32px;height:32px;border-radius:10px;font-size:var(--fs-meta)}
 .mk-ion{border-color:var(--tint-ion-line);color:var(--ion-text);background:var(--tint-ion)}
 .mk-verd{border-color:var(--tint-verd-line);color:var(--verd-text);background:var(--tint-verd)}
 .mk-brass{border-color:var(--tint-brass-line);color:var(--brass-text);background:var(--tint-brass)}
@@ -386,7 +386,7 @@ b,strong{font-weight:var(--w-semi)}
 .mk-ring{stroke:var(--brass-400);opacity:.32;fill:none;stroke-width:1}
 .mk-core{fill:var(--brass-400)}
 .mk-plate{fill:var(--raised);stroke:var(--line-strong)}
-.wordmark{font-size:16px;font-weight:var(--w-semi);letter-spacing:-.02em;color:var(--ink)}
+.wordmark{font-size:var(--fs-subhead);font-weight:var(--w-semi);letter-spacing:-.02em;color:var(--ink)}
 
 /* scrollable regions inside frames keep their own scrollbar out of sight */
 .scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
@@ -434,6 +434,9 @@ b,strong{font-weight:var(--w-semi)}
 .navitem .tail{margin-left:auto;font-family:var(--face-mono);font-size:var(--fs-monosm);color:var(--ink-3)}
 .navitem .tail-brass{color:var(--brass-text)}
 .navitem-icon{justify-content:center;padding:0;width:44px;height:var(--h-primary);margin:0 auto}
+/* with no label beside it, the glyph is the whole affordance, so it runs at
+   full strength rather than the 80 percent used next to a word */
+.navitem-icon svg{opacity:1}
 
 .crew{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
 .crew-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);
@@ -601,8 +604,8 @@ b,strong{font-weight:var(--w-semi)}
 /* structural numbering, not a signal, so it is ink and never brass */
 .ladder .cell .n{font-family:var(--face-mono);font-size:var(--fs-monosm);line-height:var(--lh-monosm);
   color:var(--ink-4);letter-spacing:var(--tr-monocaps)}
-.ladder .cell .l{font-size:var(--fs-meta);line-height:var(--lh-meta);font-weight:var(--w-medium);
-  color:var(--ink-2);letter-spacing:-.002em}
+.ladder .cell .l{font-size:var(--fs-label);line-height:var(--lh-label);font-weight:var(--w-medium);
+  color:var(--ink);letter-spacing:-.008em}
 
 .spec{margin-top:0;max-width:520px}
 .spec-cap{font-size:var(--fs-micro);line-height:var(--lh-micro);letter-spacing:var(--tr-micro);
@@ -667,7 +670,7 @@ b,strong{font-weight:var(--w-semi)}
 .diffhead{display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;flex:none;
   border-bottom:1px solid var(--line);background:var(--sunken)}
 /* A diff is a dense element, so it gets air above and below its own body. */
-.diff{font-family:var(--face-mono);font-size:var(--fs-mono);line-height:20px;
+.diff{font-family:var(--face-mono);font-size:var(--fs-mono);line-height:19px;
   background:var(--inset);padding:8px 0}
 .dline{display:grid;grid-template-columns:36px 36px 1fr;white-space:pre}
 .dline .g{color:var(--ink-4);text-align:right;padding-right:9px;font-size:var(--fs-monosm);
@@ -709,7 +712,10 @@ b,strong{font-weight:var(--w-semi)}
    11. QUIET: settings, light
    ========================================================================== */
 .set{display:grid;grid-template-columns:224px minmax(0,1fr);height:100%;min-height:0;overflow:hidden}
-.setnav{border-right:1px solid var(--line);padding:20px 12px;background:var(--sunken);overflow:auto;min-height:0}
+.setnav{border-right:1px solid var(--line);padding:20px 12px;background:var(--sunken);
+  overflow:auto;min-height:0;display:flex;flex-direction:column}
+.setnav-foot{margin-top:auto;padding:14px 11px 2px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:flex-start}
 .setitem{display:flex;align-items:center;height:var(--h-default);padding:0 11px;border-radius:var(--r-sm);
   font-size:var(--fs-label);font-weight:var(--w-medium);color:var(--ink-2);
   transition:background var(--d-quick) var(--ease-quiet),color var(--d-quick) var(--ease-quiet)}
@@ -790,7 +796,7 @@ b,strong{font-weight:var(--w-semi)}
 .mot .m b{font-size:12px;color:#EDE6DA;font-weight:500;display:block}
 .mot .m code{font-family:var(--face-mono);font-size:10px;color:#D9A441;display:block;margin-top:5px;word-break:break-all}
 .mot .m p{font-size:11px;line-height:17px;color:#8A8072;margin-top:7px}
-.mot .track{margin-top:11px;height:4px;background:#2A2620;border-radius:99px;overflow:hidden}
+.mot .track{display:block;margin-top:11px;height:4px;background:#2A2620;border-radius:99px;overflow:hidden}
 .mot .track i{display:block;width:26%;height:100%;background:#D9A441;border-radius:99px}
 .mot .m:hover .track i{width:100%}
 .mot .m1 .track i{transition:width 200ms var(--ease-quiet)}
@@ -968,9 +974,9 @@ pre.tokens .v{color:#D9A441}
 <!-- ======================= FRAME 2 : THE HOME ======================= -->
 <section class="block">
   <div class="cap"><span class="cap-n">Frame 02</span><span class="cap-t">Home, mid work</span>
-    <span class="cap-note">1440 &times; 1180 &middot; dark &middot; one gate, a mission with five agents, four still running</span></div>
+    <span class="cap-note">1440 &times; 1124 &middot; dark &middot; one gate, a mission with five agents, four still running</span></div>
   <div class="frame-wrap">
-  <div class="frame" data-theme="dark" style="width:1440px;height:1180px">
+  <div class="frame" data-theme="dark" style="width:1440px;height:1124px">
     <div class="app">
 
       <!-- ---------------- rail ---------------- -->
@@ -1426,7 +1432,7 @@ pre.tokens .v{color:#D9A441}
             <span class="chip chip-mono" style="height:20px" title="This terminal is the Builder run sandbox on branch studio/m-2481.">builder &middot; studio/m-2481</span>
             <span class="c">live</span>
           </div>
-          <div class="term" style="height:286px;flex:none"><span class="p">$</span> bun run test src/handoff
+          <div class="term" style="height:300px;flex:none"><span class="p">$</span> bun run test src/handoff
 <span class="mut">bun test v1.2.9 (macos arm64)</span>
 src/handoff/inline-handoff.test.ts:
   <span class="ok">&#10003;</span> mounts inline when mode is inline           <span class="mut">12ms</span>
@@ -1541,7 +1547,7 @@ src/handoff/inline-handoff.test.ts:
 .n768 .app{grid-template-columns:68px minmax(0,1fr)}
 .n768 .content{padding:20px 20px 20px;gap:16px}
 .n768 .pagehead{flex-direction:column;align-items:flex-start;gap:10px}
-.n768 .pagehead h1{font-size:22px;line-height:28px}
+.n768 .pagehead h1{font-size:var(--fs-title);line-height:var(--lh-title);letter-spacing:var(--tr-title)}
 .n768 .gate{padding:18px 18px 16px}
 .n768 .gate-h{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-heading)}
 .n768 .gate-actions{flex-wrap:wrap;gap:8px}
@@ -1581,9 +1587,9 @@ src/handoff/inline-handoff.test.ts:
 <!-- ======================= FRAME 4 : QUIET (LIGHT) ======================= -->
 <section class="block">
   <div class="cap"><span class="cap-n">Frame 04</span><span class="cap-t">Settings, and a genuine empty state</span>
-    <span class="cap-note">1440 &times; 1300 &middot; light</span></div>
+    <span class="cap-note">1440 &times; 1488 &middot; light</span></div>
   <div class="frame-wrap">
-  <div class="frame" data-theme="light" style="width:1440px;height:1300px">
+  <div class="frame" data-theme="light" style="width:1440px;height:1488px">
     <div class="app">
 
       <aside class="rail">
@@ -1669,6 +1675,11 @@ src/handoff/inline-handoff.test.ts:
             <a class="setitem" aria-current="page" href="#" title="Connected repositories. You are here.">Connected repositories</a>
             <a class="setitem" href="#" title="Receipts and ledger. Retention, export and tamper checks.">Receipts and ledger</a>
             <a class="setitem" href="#" title="Billing. Plan, credits and invoices.">Billing</a>
+            <div class="setnav-foot">
+              <div class="t-micro dim">Where your data lives</div>
+              <div class="t-monosm" style="margin-top:5px;color:var(--ink-2)">eu-central &middot; Frankfurt</div>
+              <a class="link-quiet" style="margin-top:8px" href="#" title="Data residency. Opens the region, the retention window and how to request an export of your ledger.">Residency and export</a>
+            </div>
           </nav>
 
           <div class="setbody scroll">
@@ -1809,9 +1820,9 @@ src/handoff/inline-handoff.test.ts:
 <!-- ======================= FRAME 5 : HOME AT 768 ======================= -->
 <section class="block">
   <div class="cap"><span class="cap-n">Frame 05</span><span class="cap-t">Home at a narrow viewport</span>
-    <span class="cap-note">768 &times; 1400 &middot; dark &middot; same content, same receipts, nothing hidden that matters</span></div>
+    <span class="cap-note">768 &times; 1348 &middot; dark &middot; same content, same receipts, nothing hidden that matters</span></div>
   <div class="frame-wrap">
-  <div class="frame n768" data-theme="dark" style="width:768px;height:1400px">
+  <div class="frame n768" data-theme="dark" style="width:768px;height:1348px">
     <div class="app">
 
       <aside class="rail rail-narrow">
@@ -2132,12 +2143,12 @@ src/handoff/inline-handoff.test.ts:
         <div class="spec-item"><div class="spec-key"><b>.t-subhead</b>Instrument Sans 600<br/>15 / 20 / -0.010em</div><div class="spec-demo t-subhead">Working now</div></div>
         <div class="spec-item"><div class="spec-key"><b>.t-body</b>Instrument Sans 400<br/>15 / 24 / -0.006em</div><div class="spec-demo t-body">Analyst ranked this first of nine bets at 9:41. Critic disagrees and cites one precedent from your own ledger.</div></div>
         <div class="spec-item"><div class="spec-key"><b>.t-bodysm</b>Instrument Sans 400<br/>13 / 20 / -0.003em</div><div class="spec-demo t-bodysm">Agents plan and design without a repository. They need one before they can write code.</div></div>
-        <div class="spec-item"><div class="spec-key"><b>.t-label</b>Instrument Sans 500<br/>13 / 16 / -0.002em</div><div class="spec-demo t-label">Approve and send to Plan</div></div>
-        <div class="spec-item"><div class="spec-key"><b>.t-meta</b>Instrument Sans 400<br/>12 / 16 / 0</div><div class="spec-demo t-meta">waiting 2h 25m &middot; you are the only approver</div></div>
+        <div class="spec-item"><div class="spec-key"><b>.t-label</b>Instrument Sans 500<br/>13 / 16 / -0.002em</div><div class="spec-demo t-label">Continue, I accept the risk</div></div>
+        <div class="spec-item"><div class="spec-key"><b>.t-meta</b>Instrument Sans 400<br/>12 / 16 / 0</div><div class="spec-demo t-meta">waiting 8m &middot; you are the only approver</div></div>
         <div class="spec-item"><div class="spec-key"><b>.t-micro</b>Instrument Sans 500<br/>11 / 14 / 0.12em, upper</div><div class="spec-demo t-micro" style="color:var(--brass-200)">Gate &middot; raised mid build</div></div>
         <div class="spec-item"><div class="spec-key"><b>.t-mono</b>IBM Plex Mono 400<br/>12 / 19</div><div class="spec-demo t-mono">m-2481 &middot; studio/m-2481 &middot; block 4,182 &middot; +318 -74</div></div>
-        <div class="spec-item"><div class="spec-key"><b>.t-monosm</b>IBM Plex Mono 400<br/>11 / 17</div><div class="spec-demo t-monosm">09:41 &middot; run a-9d41 &middot; 6 sources cited</div></div>
-        <div class="spec-item" style="border-bottom:0"><div class="spec-key"><b>.t-serif</b>Instrument Serif 400<br/>44 / 50 / -0.018em<br/>two places only</div><div class="spec-demo t-serif" style="font-size:36px;line-height:42px">Agents that know what to build, ship it, and <i style="color:var(--brass-200)">remember</i>.</div></div>
+        <div class="spec-item"><div class="spec-key"><b>.t-monosm</b>IBM Plex Mono 400<br/>11 / 17</div><div class="spec-demo t-monosm">09:41 &middot; run a-9d41 &middot; 3 sources cited</div></div>
+        <div class="spec-item" style="border-bottom:0"><div class="spec-key"><b>.t-serif</b>Instrument Serif 400<br/>44 / 50 / -0.018em<br/>two places only</div><div class="spec-demo t-serif" style="font-size:36px;line-height:42px">Agents that know what to build, ship it, and <i style="color:var(--quartz-200)">remember</i>.</div></div>
       </div>
     </div>
 
@@ -2203,28 +2214,29 @@ src/handoff/inline-handoff.test.ts:
     <!-- controls and focus -->
     <div class="tok-sec">
       <div class="tok-lab">Control heights and the focus ring</div>
-      <p class="role">Six heights, and the choice is contextual rather than aesthetic. <b>32 is the default</b>, 28 inside dense columns, 36 where a control sits beside 15px body text, 40 for the one primary action on a screen, 48 only on sign in where nothing competes.</p>
+      <p class="role">Six heights, each with its own class so nothing is set in markup. The choice is contextual rather than aesthetic. <b>32 is the default</b>, 28 inside dense columns, 36 where a control sits beside 15px body text or shares a row under a primary button, 40 for the one primary action on a screen, 48 only on sign in where nothing competes.</p>
       <div class="ctl">
-        <div class="c"><i style="height:22px"></i><span>22 &middot; chip</span></div>
-        <div class="c"><i style="height:28px"></i><span>28 &middot; compact</span></div>
-        <div class="c"><i style="height:32px"></i><span>32 &middot; default</span></div>
-        <div class="c"><i style="height:36px"></i><span>36 &middot; comfort</span></div>
-        <div class="c"><i style="height:40px"></i><span>40 &middot; primary</span></div>
-        <div class="c"><i style="height:48px"></i><span>48 &middot; entry</span></div>
+        <div class="c"><i style="height:22px"></i><span>22 &middot; .chip</span></div>
+        <div class="c"><i style="height:28px"></i><span>28 &middot; .btn-sm</span></div>
+        <div class="c"><i style="height:32px"></i><span>32 &middot; .btn</span></div>
+        <div class="c"><i style="height:36px"></i><span>36 &middot; .btn-md</span></div>
+        <div class="c"><i style="height:40px"></i><span>40 &middot; .btn-lg</span></div>
+        <div class="c"><i style="height:48px"></i><span>48 &middot; .btn-entry</span></div>
       </div>
 
       <div class="plate" data-theme="dark" style="margin-top:26px;padding:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-        <div style="max-width:38ch">
+        <div style="max-width:40ch">
           <div class="t-subhead">Focus visible</div>
-          <p class="t-bodysm dim" style="margin-top:6px">Two rings. The inner ring is the surface colour, so the outer brass ring reads at full strength on canvas, on a rail, on a diff row, on the terminal. Press tab to walk these.</p>
-          <p class="t-monosm" style="margin-top:10px;color:var(--brass-200)">box-shadow: 0 0 0 2px var(--canvas), 0 0 0 4px var(--brass-400)</p>
+          <p class="t-bodysm dim" style="margin-top:6px">An outline, not a box shadow. Buttons, inputs, the switch and the current nav item all carry a box shadow of their own, so a shadow ring is cancelled on exactly the controls a person tabs to. The 2px offset shows whatever surface the control sits on, which is why one rule is correct on canvas, on a rail, on a diff row and on the terminal. Press tab to walk these.</p>
+          <p class="t-monosm" style="margin-top:10px;color:var(--brass-200)">outline: 2px solid var(--brass-400); outline-offset: 2px</p>
         </div>
         <div class="row g-5" style="margin-left:auto;flex-wrap:wrap">
           <button class="btn btn-primary" type="button" title="Focus ring specimen on a primary button. Nothing happens when pressed.">Primary</button>
           <button class="btn btn-secondary" type="button" title="Focus ring specimen on a secondary button. Nothing happens when pressed.">Secondary</button>
           <button class="btn btn-quiet" type="button" title="Focus ring specimen on a quiet button. Nothing happens when pressed.">Quiet</button>
           <button class="btn btn-danger" type="button" title="Focus ring specimen on a destructive button. Nothing happens when pressed.">Destructive</button>
-          <input class="input" style="width:180px;height:32px" value="input" title="Focus ring specimen on a text input." />
+          <span class="switch" role="switch" aria-checked="true" tabindex="0" title="Focus ring specimen on a switch. It owns a box shadow, which is exactly why the ring is an outline. Nothing happens when toggled."><i></i></span>
+          <input class="input" style="width:150px;height:var(--h-default)" value="input" title="Focus ring specimen on a text input. Nothing is submitted." />
         </div>
       </div>
     </div>
@@ -2243,12 +2255,21 @@ src/handoff/inline-handoff.test.ts:
 
 :root{
   /* ---------- neutral: umber, the warm ground ------------------------ */
-  --umber-1000:#0C0B09; --umber-950:#100E0C; --umber-900:#171411;
-  --umber-850:#1C1915;  --umber-800:#241F1A; --umber-750:#2B2620;
-  --umber-700:#342E27;  --umber-600:#463F36; --umber-500:#5E564B;
-  --umber-400:#7D7468;  --umber-300:#9E9588; --umber-200:#C0B7A9;
-  --umber-150:#D8CFC2;  --umber-100:#E9E2D6; --umber-75:#F2ECE3;
-  --umber-50:#F7F3EC;   --umber-25:#FBF8F3;
+  /* 23 steps. Both themes are built only from this ladder.             */
+  --umber-1000:#0C0B09; --umber-950:#100E0C; --umber-925:#131110;
+  --umber-900:#171411;  --umber-850:#1C1915; --umber-800:#241F1A;
+  --umber-780:#1F1B16;  --umber-750:#2B2620; --umber-700:#342E27;
+  --umber-600:#463F36;  --umber-500:#5E564B; --umber-400:#7D7468;
+  --umber-300:#9E9588;  --umber-200:#C0B7A9; --umber-150:#D8CFC2;
+  --umber-100:#E9E2D6;  --umber-85:#F0EAE0;  --umber-75:#F2ECE3;
+  --umber-70:#F3EEE5;   --umber-50:#F7F3EC;  --umber-25:#FBF8F3;
+  --umber-10:#FFFDFA;   --umber-0:#FFFFFF;
+
+  /* ---------- ink. one warm text ramp per theme ---------------------- */
+  /* steps 1 to 3 clear 4.5:1 on the surface they are used on. step 4 is
+     about 3.3:1 and is only for disabled, gutters and structural marks. */
+  --ink-d1:#F5EFE6; --ink-d2:#C2B9AD; --ink-d3:#948B80; --ink-d4:#736B60;
+  --ink-l1:#1C1814; --ink-l2:#4E463B; --ink-l3:#786E61; --ink-l4:#8E8477;
 
   /* ---------- hues. one meaning each, no exceptions ------------------ */
   /* brass    : your judgment is required. gates, the one primary CTA,
@@ -2267,8 +2288,9 @@ src/handoff/inline-handoff.test.ts:
   /* rust     : declined, failed, removed, at risk, destructive.        */
   --rust-100:#F7D8CE; --rust-200:#EDB2A0; --rust-300:#DE856A;
   --rust-400:#CC6146; --rust-500:#A94A33; --rust-600:#7C3524;
-  /* LAW: at most four of the five hues may appear in one frame, and a
-     hue may never appear except to carry its meaning. */
+  /* LAW: a hue may never appear except to carry its meaning, and brass
+     names exactly one thing per screen. Everything brass on a frame
+     points at the same waiting decision. Count brass, not colours. */
 
   /* ---------- type ---------------------------------------------------- */
   --face-ui:"Instrument Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont,
@@ -2279,6 +2301,7 @@ src/handoff/inline-handoff.test.ts:
   --w-regular:400; --w-medium:500; --w-semi:600;   /* there is no bold */
 
   --fs-display:36px; --lh-display:40px; --tr-display:-0.022em;  /* .t-display */
+  --fs-titlelg:26px; --lh-titlelg:32px; --tr-titlelg:-0.020em;  /* .t-titlelg */
   --fs-title:22px;   --lh-title:28px;   --tr-title:-0.018em;    /* .t-title   */
   --fs-heading:18px; --lh-heading:24px; --tr-heading:-0.014em;  /* .t-heading */
   --fs-subhead:15px; --lh-subhead:20px; --tr-subhead:-0.010em;  /* .t-subhead */
@@ -2286,10 +2309,13 @@ src/handoff/inline-handoff.test.ts:
   --fs-bodysm:13px;  --lh-bodysm:20px;  --tr-bodysm:-0.003em;   /* .t-bodysm  */
   --fs-label:13px;   --lh-label:16px;   --tr-label:-0.002em;    /* .t-label   */
   --fs-meta:12px;    --lh-meta:16px;    --tr-meta:0em;          /* .t-meta    */
-  --fs-micro:11px;   --lh-micro:14px;   --tr-micro:0.045em;     /* .t-micro   */
+  --fs-micro:11px;   --lh-micro:14px;   --tr-micro:0.12em;      /* .t-micro   */
   --fs-mono:12px;    --lh-mono:19px;                            /* .t-mono    */
-  --fs-monosm:11px;  --lh-monosm:17px;                          /* .t-monosm  */
-  /* every number a person may compare uses font-variant-numeric:tabular-nums */
+  --fs-monosm:11px;  --lh-monosm:17px;  --tr-monocaps:0.08em;   /* .t-monosm  */
+  --fs-serif:44px;   --lh-serif:50px;   --tr-serif:-0.018em;    /* .t-serif   */
+  /* ten sizes and nothing between them. no 10px, no 21px, no 25px.
+     every number a person may compare uses font-variant-numeric:tabular-nums.
+     b and strong are reset to 600 globally, so nothing reaches 700. */
 
   /* ---------- spacing. 4 based, 2 and 6 kept for optical work --------- */
   --s-1:2px;  --s-2:4px;  --s-3:6px;  --s-4:8px;  --s-5:10px; --s-6:12px;
@@ -2307,12 +2333,13 @@ src/handoff/inline-handoff.test.ts:
   --r-full:999px;
 
   /* ---------- control heights ------------------------------------------ */
-  --h-micro:22px;   /* chip                                   */
-  --h-compact:28px; /* dense columns, table row actions       */
-  --h-default:32px; /* the default control                    */
-  --h-comfort:36px; /* beside 15px body text, rail nav items  */
-  --h-primary:40px; /* the one primary action on a screen     */
-  --h-entry:48px;   /* sign in only, nothing competes there   */
+  --h-micro:22px;   /* chip                                    .chip      */
+  --h-compact:28px; /* dense columns, table row actions        .btn-sm    */
+  --h-default:32px; /* the default control                     .btn       */
+  --h-comfort:36px; /* beside 15px body text, rail nav items   .btn-md    */
+  --h-primary:40px; /* the one primary action on a screen      .btn-lg    */
+  --h-entry:48px;   /* sign in only, nothing competes there    .btn-entry */
+  /* every height has a button class. there is no sixth size in markup. */
 
   /* ---------- motion. five curves, five durations ---------------------- */
   --ease-quiet:cubic-bezier(.22,.61,.36,1);    /* hover, tint, colour, border */
@@ -2338,8 +2365,9 @@ src/handoff/inline-handoff.test.ts:
   --sunken:var(--umber-950);    /* rails, panel heads, receipt wells    */
   --surface:var(--umber-850);   /* every plate, card and panel          */
   --raised:var(--umber-800);    /* hover, secondary buttons, keys       */
-  --inset:#131110;              /* inputs, diff body, terminal          */
-  --overlay:#1F1B16;            /* dialogs, command menu                */
+  --inset:var(--umber-925);     /* inputs, diff body                    */
+  --overlay:var(--umber-780);   /* dialogs, command menu                */
+  --well:var(--umber-1000);     /* the terminal, the deepest well       */
 
   --line:rgba(247,236,220,.075);       /* the default hairline          */
   --line-strong:rgba(247,236,220,.145);/* control and input borders     */
@@ -2347,10 +2375,12 @@ src/handoff/inline-handoff.test.ts:
   --edge:rgba(255,246,232,.055);       /* 1px top light on every plate  */
   --edge-strong:rgba(255,246,232,.10);
 
-  --ink:#F5EFE6;    /* primary text                    */
-  --ink-2:#C2B9AD;  /* secondary text and descriptions */
-  --ink-3:#948B80;  /* metadata and timestamps         */
-  --ink-4:#6B6359;  /* disabled, watermark, gutters    */
+  --ink:var(--ink-d1);    /* primary text                         */
+  --ink-2:var(--ink-d2);  /* secondary text and descriptions      */
+  --ink-3:var(--ink-d3);  /* metadata, timestamps, durations      */
+  --ink-4:var(--ink-d4);  /* disabled, gutters, structural marks  */
+  --ink-well:#B8AEA0;     /* body text inside the terminal well   */
+  --ink-well-2:#8B8276;   /* muted text inside the terminal well  */
 
   --brass:var(--brass-400);   --brass-text:var(--brass-200);
   --ion:var(--ion-400);       --ion-text:var(--ion-200);
@@ -2363,6 +2393,9 @@ src/handoff/inline-handoff.test.ts:
   --tint-verd:rgba(62,158,143,.11);    --tint-verd-line:rgba(62,158,143,.30);
   --tint-quartz:rgba(156,121,196,.11); --tint-quartz-line:rgba(156,121,196,.30);
   --tint-rust:rgba(204,97,70,.11);     --tint-rust-line:rgba(204,97,70,.30);
+  /* diff tints sit below the threshold where a run of lines reads as a
+     coloured field. the signal is a 2px edge, not a wash. */
+  --diff-add:rgba(62,158,143,.055);    --diff-del:rgba(204,97,70,.055);
 
   --shadow-1:0 1px 2px rgba(6,4,2,.55);
   --shadow-2:0 1px 2px rgba(6,4,2,.5), 0 5px 12px rgba(6,4,2,.36);
@@ -2374,15 +2407,16 @@ src/handoff/inline-handoff.test.ts:
   --btn-primary-bg:linear-gradient(180deg,#E3B255 0%,#D19936 100%);
   --btn-primary-ink:#241802;
   --btn-primary-line:rgba(70,48,8,.42);
-  --field-bg:#131110;
+  --field-bg:var(--umber-925);
   --scrim:rgba(10,7,4,.62);
   color-scheme:dark;
 }
 
 /* ---------- LIGHT, generated from the same steps ---------------------- */
 [data-theme="light"]{
-  --ground:#E9E2D6; --canvas:var(--umber-50); --sunken:#F0EAE0;
-  --surface:#FFFDFA; --raised:#FFFFFF; --inset:#F3EEE5; --overlay:#FFFFFF;
+  --ground:var(--umber-100); --canvas:var(--umber-50); --sunken:var(--umber-85);
+  --surface:var(--umber-10); --raised:var(--umber-0);  --inset:var(--umber-70);
+  --overlay:var(--umber-0);  --well:var(--umber-900);
 
   --line:rgba(52,40,26,.11);
   --line-strong:rgba(52,40,26,.19);
@@ -2390,7 +2424,8 @@ src/handoff/inline-handoff.test.ts:
   --edge:rgba(255,255,255,.9);
   --edge-strong:rgba(255,255,255,1);
 
-  --ink:#1C1814; --ink-2:#4E463B; --ink-3:#786E61; --ink-4:#9B9184;
+  --ink:var(--ink-l1); --ink-2:var(--ink-l2); --ink-3:var(--ink-l3); --ink-4:var(--ink-l4);
+  --ink-well:#CFC6B8;  --ink-well-2:#9A9083;
 
   /* the hue core drops one step in light so contrast holds on paper */
   --brass:var(--brass-500);   --brass-text:var(--brass-600);
@@ -2404,6 +2439,7 @@ src/handoff/inline-handoff.test.ts:
   --tint-verd:rgba(47,127,115,.09);    --tint-verd-line:rgba(47,127,115,.32);
   --tint-quartz:rgba(126,93,164,.09);  --tint-quartz-line:rgba(126,93,164,.32);
   --tint-rust:rgba(169,74,51,.09);     --tint-rust-line:rgba(169,74,51,.32);
+  --diff-add:rgba(47,127,115,.07);     --diff-del:rgba(169,74,51,.07);
 
   --shadow-1:0 1px 1px rgba(70,52,30,.07);
   --shadow-2:0 1px 2px rgba(70,52,30,.06), 0 3px 8px rgba(70,52,30,.06);
@@ -2415,21 +2451,38 @@ src/handoff/inline-handoff.test.ts:
   --btn-primary-bg:linear-gradient(180deg,#D9A441 0%,#C08E2F 100%);
   --btn-primary-ink:#231702;
   --btn-primary-line:rgba(90,62,10,.34);
-  --field-bg:#FFFFFF;
+  --field-bg:var(--umber-0);
   --scrim:rgba(40,30,18,.36);
   color-scheme:light;
 }
 
-/* ---------- the two rules that make it a material --------------------- */
+/* ---------- the three rules that make it a material ------------------- */
+/* 1. a surface is a machined plate: warm body, hairline, 1px of edge
+      light, warm shadow. shadow and edge light always ship as a pair. */
 .plate{
   background:var(--surface);
   border:1px solid var(--line);
   border-radius:var(--r-lg);
   box-shadow:var(--shadow-2), inset 0 1px 0 var(--edge);
 }
+/* 2. focus is an outline, never a box-shadow. buttons, inputs, the switch
+      and the current nav item all own a box-shadow, so a shadow ring gets
+      silently cancelled on exactly the controls people tab to. put this
+      rule last in the sheet. */
 :where(a,button,input,select,textarea,[tabindex]):focus-visible{
-  outline:none;
-  box-shadow:0 0 0 2px var(--canvas), 0 0 0 4px var(--brass-400);
+  outline:2px solid var(--brass-400);
+  outline-offset:2px;
+}
+/* rows flush inside a clipped container take the ring on the inside */
+.receipt:focus-visible,.stage:focus-visible,.filerow:focus-visible,
+.workrow:focus-visible,.brainrow:focus-visible,.runrow:focus-visible{
+  outline-offset:-3px;
+}
+/* 3. only two things move without a person acting. everything else moves
+      because someone did something. */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important}
 }
 </pre>
     </div>
@@ -2440,12 +2493,12 @@ src/handoff/inline-handoff.test.ts:
 <section class="block" data-theme="dark">
   <div class="cap"><span class="cap-n">Rationale</span><span class="cap-t">Why this, what it costs, where it strains</span></div>
   <div class="tok-block">
-    <p class="lead">The idea is that the product should feel like <b>an instrument you own</b> rather than a document you visit. Pure black reads as a void and pure grey reads as a spreadsheet, so the ground is umber, a warm neutral where red sits above green sits above blue at very low chroma. Every surface is treated as a machined plate: a warm body, a translucent hairline edge, one pixel of light along the top, and a warm shadow underneath. That single material rule, applied without exception, is what carries the whole system, which is why the component list is short. On top of the ground sit five hues that are never decorative. Brass means a person is being asked for something, ion means a machine is working right now, verdigris means it actually happened, quartz means memory is speaking, rust means it stopped or was removed. A person can learn that vocabulary in one session and then read a dense screen without reading a single word, which is the point: the mission frame shows five agents in parallel and still answers what needs me at a glance, because only one thing on it is brass.</p>
+    <p class="lead">The idea is that the product should feel like <b>an instrument you own</b> rather than a document you visit. Pure black reads as a void and pure grey reads as a spreadsheet, so the ground is umber, a warm neutral where red sits above green sits above blue at very low chroma. Every surface is treated as a machined plate: a warm body, a translucent hairline edge, one pixel of light along the top, and a warm shadow underneath. That single material rule, applied without exception, is what carries the whole system, which is why the component list is short. On top of the ground sit five hues that are never decorative. Brass means a person is being asked for something, ion means a machine is working right now, verdigris means it actually happened, quartz means memory is speaking, rust means it stopped or was removed. A person can learn that vocabulary in one session and then read a dense screen without reading a single word, which is the point: <b>the mission frame runs four agents in parallel, a live diff, a terminal, five checks and a pull request, and still answers what needs me in about a second, because only one thing on it is brass.</b> The discipline is not a colour count, it is that brass names exactly one thing per screen and everything brass on that screen points at it. That is why the diff's added lines are a 2px verdigris edge on a tint below the threshold of a coloured field, rather than the green slab most diff views settle for: a slab would outrank the gate.</p>
 
     <div class="rat">
       <div class="r">
         <h4>What makes it premium</h4>
-        <p><b>Material, not decoration.</b> Depth comes from an edge light and a warm shadow acting as a pair, never from a gradient wash. <b>A real type scale.</b> Nine sizes, three weights, no bold at all, and the tracking tightens as the size grows rather than staying at zero. <b>Optical spacing over numeric spacing.</b> A panel head is 13 tall, not 12 or 16, because a 15px title sits low otherwise. <b>Restraint with a floor.</b> Four hues on a working frame is the ceiling and also close to the floor, so nothing reads as grayscale. <b>Motion that confirms.</b> Two things loop, everything else moves only because a person acted.</p>
+        <p><b>Material, not decoration.</b> Depth comes from an edge light and a warm shadow acting as a pair, never from a gradient wash. <b>A real type scale.</b> Ten sizes, three weights, no bold at all, b and strong reset to 600 so a stray tag cannot break it, and the tracking tightens as the size grows rather than staying at zero. <b>Optical spacing over numeric spacing.</b> A panel head is 13 tall, not 12 or 16, because a 15px title sits low otherwise. <b>Restraint with a floor.</b> Four hues on a calm frame is close to the floor, not the ceiling, so nothing reads as grayscale. <b>Focus you cannot lose.</b> The ring is an outline rather than a shadow, because every control worth tabbing to already owns a shadow. <b>Motion that confirms.</b> Two things loop, everything else moves only because a person acted.</p>
       </div>
       <div class="r">
         <h4>What it costs to live in</h4>
@@ -2457,7 +2510,7 @@ src/handoff/inline-handoff.test.ts:
       </div>
       <div class="r">
         <h4>What I would test first</h4>
-        <p><b>The gate under load.</b> Put three gates on Home instead of one and see whether the brass rule survives, or whether it needs a queue treatment where only the top gate is brass and the rest are quiet rows. <b>Ion at scale.</b> Twenty parallel agents means twenty sweeping bars, which may need a single aggregate pulse instead. <b>The serif.</b> Instrument Serif appears twice in the whole product, which is either a signature or an inconsistency, and only the founder can call it. <b>Density on a laptop.</b> The mission frame was drawn at 1000 tall, and at 800 the terminal is the first thing that should collapse to a summary line.</p>
+        <p><b>The gate under load.</b> Put three gates on Home instead of one and see whether the brass rule survives, or whether it needs a queue treatment where only the top gate is brass and the rest are quiet rows. <b>Ion with twenty agents.</b> Twenty parallel runs means twenty sweeping bars, which probably needs a single aggregate pulse and a count instead. <b>The serif.</b> Instrument Serif appears twice in the whole product, which is either a signature or an inconsistency, and only the founder can call it. <b>Density on a laptop.</b> The mission frame was drawn at 1000 tall, and at 800 the terminal is the first thing that should collapse to a summary line. <b>The receipt line on Home.</b> Every running row now carries its ledger block, which is the product's whole claim on the surface, but it is also five more lines of mono on the calmest screen. Watch whether it still reads calm after a week.</p>
       </div>
     </div>
   </div>
