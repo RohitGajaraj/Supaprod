@@ -303,3 +303,59 @@ only 2 of 11 lanes ever ran. Produce code, not more documents.
   taste passes. He reviews element by element and expects every item in a feedback batch closed or
   explicitly declined. He invites pushback but wants a recommendation, not a survey. Congestion is
   a defect; near-grayscale blandness is equally a defect.
+
+## Phase 0 COMPLETE (2026-07-29 ~00:15). Eight doctrines committed.
+
+All under `docs/planning/rebuild-2026-07/`. Read `craft-law.md` first, then the FINAL of each.
+
+| Track | Decision |
+|---|---|
+| `ia/FINAL-ia.md` | ONE ROOM, 4 of 5 tests. Later amended by the shell ruling. |
+| `language/FINAL-language.md` | Ratified. In-app line: "You make the calls. Your crew does the work between them." Run replaces mission/session/changeset. Engine room replaces Pulse. Library replaces Artifacts. Approve / Send back / Decline. ~90 banned words. |
+| `adaptive/FINAL-adaptive-layout.md` | Container queries, not viewport breakpoints. Five tiers, arithmetic floors. Band caps at 3159px on reading-measure and eye-travel grounds. |
+| `agents/FINAL-agent-presence.md` | Mechanism hides, labour does not. Crew Bar is permanent. Attribution is square (agent) vs circle (you). The Commit is the signature moment. |
+| `interaction/FINAL-interaction.md` | Point at a thing and change it. The marks ARE the run's scope, so nobody learns "touch list". Enter places a mark, Cmd+Enter sends. |
+| `depth/FINAL-depth.md` | Alt-click anything opens the Record. Collapses five existing provenance surfaces into one. |
+| `shell-question/FINAL-shell-ruling.md` | The preview is a viewer of a CONSEQUENCE, not of a thing. Overrides ONE ROOM in places. |
+| `edge/FINAL-edge.md` | Absorb the labour, prove the judgment. Tokens deleted everywhere. Environments collapse to Preview and Release. |
+| `clicks/FINAL-click-register.md` | Every interactive element as works / silent / dead / lies / orphan. |
+
+**Four visual directions** in `directions/`. A, B and C are fixed 1440px artboards with INVENTED
+marks (dispatched before the adaptive and brand rulings; judge them for language only). **D is the
+only one built to the current brief**: the real epitrochoid mark, 36 `clamp()` sizes, 9 container
+queries. The founder picks one. If he prefers a palette from A/B/C, port that language onto D's
+skeleton rather than retrofitting fluidity into a fixed artboard.
+
+## THREE SILENT BUGS FOUND AND FIXED (all would have broken the demo on camera)
+
+1. **The Ask panel had never shown history.** `getConversation` selected
+   `messages.mission_id` and `messages.metadata`; neither exists in production (two June
+   migrations raced to add `mission_id` and neither landed). PostgREST 42703 failed the whole
+   select, and `use-ask-stream` reads only `hydration.data`, never `hydration.error`. Fixed with a
+   forward-compatible fallback plus migration `20260728234500`. Commit `e5110be9`.
+2. **Promote-an-answer silently did nothing.** `ask-promote` discarded its read error and returned
+   `{ ok: false }`. Same commit.
+3. **Every resumed agent run came back amnesiac.** `checkpoint()` never wrote `conv` or `steps`
+   while `resumeAgentLoop` gates on `cp.state.conv`, so every resume took the fresh-state branch
+   at a partly spent step budget. The removing commit cited `agent_run_steps` and
+   `agent_run_messages`; both have ZERO migrations. Commit `2a4ec387`, 940 tests pass.
+
+## TWO DEFECTS RECORDED, NOT YET FIXED
+
+- **The mockup generator ships AI slop by default.** `design-scaffold.functions.ts:48` hardcodes
+  `#4f46e5` (indigo-600, banned by the craft law) over default Tailwind slate and a system font
+  stack, and line 100 brands every customer's prototype **"Supaprod"** instead of their product.
+  Design memory itself is fully built and wired; only the fallback is wrong. A few lines.
+- **Realtime may be leaking across users right now.** `20260611085122` removed `agent_runs` from
+  the publication because *"the Realtime channel does not honor table RLS"*. `20260716120000` then
+  added `agent_approvals`, asserting the opposite. Both cannot be true. Needs a live check before
+  any table is added for the live build feed, and the correct design is a workspace-scoped
+  broadcast channel, not raw `postgres_changes`.
+
+## Next session, in order
+
+1. The founder picks a visual direction. Nothing else starts first.
+2. Fix Lovable MCP (`bash ~/fix-lovable-mcp.sh` with Claude Code QUIT), then verify the realtime
+   leak. This is now blocking, not housekeeping.
+3. Converge the eight doctrines into ONE build spec, then Phase 1: one shell, one nav model, one
+   front door, one primitive layer.
