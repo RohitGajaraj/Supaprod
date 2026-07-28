@@ -85,6 +85,25 @@ git -C <main-checkout> worktree repair <worktree-path>
 `git worktree repair` rewrites exactly the pointers that broke. It is the entire fix.
 Never run `git init` inside a worktree that reports `not a git repository`.
 
+### This was the second time, and the first time was handled correctly
+
+The branch `rescue/lane4-tree-2026-07-07` carried this commit, three weeks earlier:
+
+```
+3c492f6e 2026-07-07  chore(rescue): snapshot lane-4 worktree state after parent-repo loss
+6f0db5f8 2026-07-07  chore(rescue): absorb claude-flow daemon telemetry churn so branch switch is clean
+```
+
+Same folder, same failure, same cause. On 2026-07-07 the response was to **snapshot
+the working tree onto a branch** and carry on, which lost nothing. On 2026-07-27 the
+response was `git init` plus a force-push, which cost the repository its history on
+`main` for a day.
+
+So this is a **recurring** breakage of the lane worktree system, not a freak event, and
+the repo already contained a worked example of the right answer. That is precisely why
+the guard and this document exist: the knowledge was here but not where the next agent
+would look.
+
 ## 3. There was only ever ONE orphan
 
 It looked like several, because the incident produced a cluster of rescue refs that
@@ -182,6 +201,31 @@ recorded here so any of them can be restored with `git push origin <sha>:refs/he
 Why they had unique SHAs but no unique content: the parallel-lane era committed on a
 lane branch and then the work was re-landed on `main` as fresh commits rather than
 merged. The branches were bookkeeping, not the work.
+
+**Remote went from 17 branches to 3** (13 at audit time, plus the four survival refs
+from §3 removed just before).
+
+### Local branches
+
+Deleted locally too, same verification. Recover any of them with
+`git branch <name> <sha>`; the objects stay in this clone's store and reflog:
+
+| Local branch | Tip | Note |
+| --- | --- | --- |
+| `keep/rescued-pieces` | `bbd83680` | fully merged |
+| `landing/premium-revamp` | `06a1fb76` | fully merged (a *different* commit from the remote branch of the same name, which was `0fd56b08`) |
+| `parallel/lane-D` | `fcc0a215` | fully merged |
+| `sandbox/mission-control-v2` | `3494c13e` | fully merged |
+| `worktree-wf_3dd0ade5-50c-1` | `ebbd6b1f` | fully merged; its worktree was already pruned |
+| `worktree-wf_3dd0ade5-50c-2` | `e5094e77` | fully merged; its worktree was already pruned |
+| `backup/remote-orphan-main-2026-07-27` | `7eb93a93` | contained in `archive/lovable-orphan-2026-07-28` |
+| `parallel/lane-4` | `9a664d34` | CNV-03, content on `main` |
+| `parallel/lane-ma2` | `b5ac147e` | telemetry churn only, content on `main` |
+| `rescue/lane4-tree-2026-07-07` | `6f0db5f8` | the 2026-07-07 precedent above; content on `main` |
+| `wip/sw5-builder-t-partials` | `0d494c32` | seam-3 compounding pass, content on `main` |
+
+Kept locally: `main`, both archives, and `parallel/lane-0-fresh` /
+`parallel/lane-1-fresh` because they are checked out in the two live lane worktrees.
 
 ## 6. Standing rules
 
