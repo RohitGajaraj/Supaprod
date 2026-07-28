@@ -29,7 +29,49 @@ Related: [`memory.md`](./memory.md) (the memory stack), [`commits.md`](./commits
 
 ---
 
-# ⭐ START HERE - 2026-07-29 01:15, the design session closed
+# ⭐ START HERE - 2026-07-29 01:55, the design session closed
+
+## Read in this order tomorrow
+
+1. [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](../planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md)
+   and [`governance/FINAL-governance.md`](../planning/rebuild-2026-07/governance/FINAL-governance.md)
+   - **the frame the design must start from.**
+2. [`docs/planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md`](../planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md)
+   - all four directions rejected, and the target state.
+3. [`docs/planning/rebuild-2026-07/craft-law.md`](../planning/rebuild-2026-07/craft-law.md).
+
+## The governance ruling (founder, 01:18, now canon in CLAUDE.md and README.md)
+
+Quoting MuleSoft: *"AI agents don't submit change requests before they act... when governance is
+fragmented, the business still owns every outcome."* His test for every decision:
+**_"every approval, if it passes to a human, then what is the purpose of agents?"_**
+
+**Policy is set in advance and does not block. Permission is asked in the moment and does.** The
+human's job is to set the boundaries and judge the few things that cross them. The gate is the
+exception, not the loop. This invalidated the gate-centric assumption in all nine 2026-07-28
+doctrines, and the audit reconciling them is `governance/FINAL-governance.md`.
+
+**Three things from that audit to act on:**
+
+- **A correction to me.** I recorded in CLAUDE.md that `loop.server.ts:1103`'s `?? "confirm"`
+  inverted the principle in code. **Wrong.** `loadAgentArc` returns `trusted` with no row, commented
+  *"Founder ruling 2026-07-08 (SW-7): autonomous by default"*, and
+  `resolveApprovalMode("confirm","trusted")` returns `"auto"`. Autonomy is already the default and
+  the founder ruled it three weeks ago. Corrected in place.
+- **There is no spend ceiling, and this is live.** `mission_spend_cap_usd` is enforced fail-closed
+  at `runtime.server.ts:226-238` while every writer passes `?? null` (`handoff.server.ts:419`,
+  `loop.server.ts:491`, `:523`). The cap has never fired. **Ship a workspace default before the
+  autonomy story goes near an enterprise buyer.**
+- **UNVERIFIED, check first:** the audit asserts we are currently violating its own never-line N5,
+  *an agent may not author or approve its own standing rule*. Verify before acting on it.
+
+Also from the audit: the **spec approval already authorizes the reversible work under it**
+(`resolveToolMode` carries a plan-level consent scope, shipped and unit-tested), so mid-run tool
+approvals ask twice for the same consent. That dissolves the largest block of gates in the design,
+with an honest residue of two: the merge, and handing work to an outside coding agent. Proposed
+in-app line: **"Your crew does the work. You decide what it may do alone."**
+
+---
 
 **The founder rejected all four design directions.** Read
 [`docs/planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md`](../planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md)
