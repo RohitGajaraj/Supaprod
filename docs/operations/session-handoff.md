@@ -29,6 +29,65 @@ Related: [`memory.md`](./memory.md) (the memory stack), [`commits.md`](./commits
 
 ---
 
+# ⭐ START HERE - 2026-07-29 01:15, the design session closed
+
+**The founder rejected all four design directions.** Read
+[`docs/planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md`](../planning/rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md)
+**before anything else.** It carries his verbatim reasoning, what he liked, what he rejected, the
+target state, and where to begin. It amends `craft-law.md` and outranks everything in `directions/`.
+
+**His diagnosis, which is the whole lesson:** *"We have built all four directions only from the
+perspective of assembling things, not really thought through from a user lens."* Four parallel
+authors produced four competent assemblies with no point of view. Parallelism does not buy a user
+lens. Tomorrow: start from a person doing a real task, walk their whole session, let the
+composition fall out of that, and take **one** direction to a high finish.
+
+**What changed materially:** the interface is now **monochrome by default** (black, grey, white,
+slate, silver on pure dark), **ember is rare** and is NOT the default for approval buttons or
+actions, **blue carries agent activity**, **green and red carry status**. **Geist Pixel is retired**
+and the typeface choice is ours. **Ask moves to the top right and opens a pane**, which contradicts
+two existing doctrine files that need reconciling. The **seven-stage toolbar is questioned outright**
+and is no longer a given.
+
+**Phase 0 research (eight doctrines) is still valid** and is NOT rejected. Only the visual
+directions are. `docs/planning/rebuild-2026-07/` holds: `craft-law.md` (read second),
+`ia/FINAL-ia.md`, `language/FINAL-language.md`, `adaptive/FINAL-adaptive-layout.md`,
+`agents/FINAL-agent-presence.md`, `interaction/FINAL-interaction.md`, `depth/FINAL-depth.md`,
+`shell-question/FINAL-shell-ruling.md`, `edge/FINAL-edge.md`, `clicks/FINAL-click-register.md`.
+
+**Three silent bugs were found and fixed this session** (commits `e5110be9`, `2a4ec387`), all of
+which would have broken the demo on camera:
+
+1. **The Ask panel had never once rendered history.** `getConversation` selected
+   `messages.mission_id` and `messages.metadata`; neither exists in production. PostgREST 42703
+   failed the whole select, and `use-ask-stream` reads only `hydration.data`, never
+   `hydration.error`. Fixed with a forward-compatible fallback plus migration `20260728234500`.
+2. **Promoting an answer to a note or decision silently did nothing** - the read error was
+   discarded and it returned `{ ok: false }`.
+3. **Every resumed agent run came back with no memory of its own work.** `checkpoint()` never wrote
+   `conv` or `steps` while `resumeAgentLoop` gates on `cp.state.conv`, so every resume took the
+   fresh-state branch at a partly spent step budget. The removing commit cited `agent_run_steps` and
+   `agent_run_messages`; both have **zero migrations**. 940 tests pass.
+
+**Two defects recorded, not fixed:**
+
+- **The mockup generator ships AI slop by default.** `design-scaffold.functions.ts:48` hardcodes
+  `#4f46e5` (indigo-600, banned) over default Tailwind slate and a system font stack, and line 100
+  brands every customer's prototype **"Supaprod"** instead of their product. Design memory itself is
+  fully built and correctly wired into generation; only the fallback is wrong.
+- **Realtime may be leaking across users right now.** `20260611085122` removed `agent_runs` from the
+  publication because *"the Realtime channel does not honor table RLS"*; `20260716120000` then added
+  `agent_approvals` asserting the opposite. Both cannot be true. Must be verified before any table
+  is added for a live build feed, and the correct design is a workspace-scoped broadcast channel,
+  not raw `postgres_changes`.
+
+**Still blocked:** no database access by any route. Lovable MCP is a server-side bug on their end
+(see below) and the plugin is uninstalled; Supabase MCP is misconfigured (`.mcp.json` interpolates
+`${SUPABASE_ACCESS_TOKEN}` and `${SUPABASE_PROJECT_REF}`, neither of which exists). Setting those
+two is now the cheapest route back to the database.
+
+---
+
 # Session handoff - 2026-07-29 00:15-00:43 (Lovable MCP OAuth root-caused; plugin uninstalled)
 
 ## State: no repo source changed. The Lovable plugin is UNINSTALLED (founder's call).
@@ -241,10 +300,10 @@ fixed; a short list of paste actions waits on the founder. All exact paste text 
    **FOUNDER RULING 2026-07-28: launch is month-only, never a week or date** (supersedes "second week of
    September" in every editable field).
    **ALSO: the self-build sentence is rewritten** (founder challenged "Supaprod is building Supaprod on its
-   own" as overclaim; he was right — engine PRs live on the test repo, grading ran on seeded content). New
+   own" as overclaim; he was right - engine PRs live on the test repo, grading ran on seeded content). New
    sentence: user zero, roadmap in the product, real code + real PRs behind the human merge gate, every call
    on the record. The same overclaim survives in README.md, the preserved telling, and the founder-video
-   script — honesty-pass them before reuse (especially the video re-record). Lesson learned the hard way:
+   script - honesty-pass them before reuse (especially the video re-record). Lesson learned the hard way:
    **final checks must audit each ratified sentence against live wiring, not just the form against the sheet.**
    "Seven weeks" ages out 2026-07-31; every pasted duration is a snapshot (rule now in the paste checklist).
 2. **"When version people can use"**: full replacement block (month-only; also fixes the live form's "Early

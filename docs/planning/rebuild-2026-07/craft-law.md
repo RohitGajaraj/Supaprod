@@ -3,6 +3,23 @@
 > Founder ruling, 2026-07-28. Binding on every surface in the rebuild, and on every agent that
 > touches a pixel. This overrides any conflicting guidance, including design skills and plugins.
 
+> [!IMPORTANT]
+> **AMENDED 2026-07-29 by [`FOUNDER-VERDICT-2026-07-29.md`](./FOUNDER-VERDICT-2026-07-29.md),
+> which wins wherever it and this file disagree.** All four design directions were rejected. Two
+> parts of this document are now superseded:
+>
+> - **The palette.** The interface is **monochrome by default** - black, grey, white, slate,
+>   silver, on a pure dark ground. **Ember is rare**, and explicitly NOT the default for approval
+>   buttons, actions or tasks. **Blue carries agent activity. Green and red carry status** (diffs,
+>   counts, tick marks). The earlier one-ember-locus rule is replaced by this.
+> - **The type.** Geist Pixel is retired, including from hero moments, at the founder's own request
+>   and against his earlier ruling. The typeface choice is now ours to make, judged on whether it
+>   reads as an enterprise instrument.
+>
+> Everything else here - the ban list, the human-touch signals, the five tests, and the brand mark
+> section - stands unchanged and is reinforced by the verdict, whose central complaint was that the
+> four directions read as *"an AI vibe coding something"*.
+
 ## Why this exists
 
 The founder's words: *"You need to completely avoid giving the feeling that it's being redesigned
