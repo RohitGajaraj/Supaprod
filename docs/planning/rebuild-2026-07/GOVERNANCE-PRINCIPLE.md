@@ -82,9 +82,15 @@ gates anyway.
 
 ## What this changes, concretely
 
-1. **The default posture inverts.** An action is `auto` unless policy says otherwise. Today the
-   loop's fallback is `confirm` (`loop.server.ts:1103` notes the default `?? "confirm"`), which
-   quietly makes permission the default and autonomy the exception.
+1. **The default posture is already autonomous, and the audit corrected me on this.** `loadAgentArc`
+   returns `trusted` with no row, commented _"Founder ruling 2026-07-08 (SW-7): autonomous by
+   default"_, and `resolveApprovalMode("confirm", "trusted")` returns `"auto"`. My earlier claim
+   that `loop.server.ts:1103`'s `?? "confirm"` inverted the principle was **wrong**: the loop fails
+   closed before that line and only control-flow tools reach the fallback, so it cannot cause an
+   approval. The founder was three weeks ahead of this document.
+   **The real exposure is elsewhere:** `mission_spend_cap_usd` is enforced fail-closed at
+   `runtime.server.ts:226-238` and every writer passes `?? null`, so **no spend ceiling exists**.
+   Ship a workspace default before the autonomy story goes anywhere near an enterprise buyer.
 2. **The gate stops being the signature moment.** The signature moment becomes **an agent earning
    autonomy** - a graduation - because that is the only moment in the product where the machine
    visibly gets better and the human's leverage visibly increases. It is also uncopyable, because it

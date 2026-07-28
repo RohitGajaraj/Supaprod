@@ -42,9 +42,18 @@ purpose of agents?"_**
 - **The human's job is not to approve work. It is to set the boundaries, and to judge the small
   number of things that genuinely cross them.** The gate is the exception, not the loop. A product
   where a human approves each step has not automated the work, it has added a queue to it.
-- **Default posture is autonomous.** An action is `auto` unless a boundary says otherwise. Today the
-  loop's fallback is `?? "confirm"` (`src/lib/ai/loop.server.ts:1103`), which is this principle
-  inverted in code and is a bug against canon, not a preference.
+- **Default posture is autonomous, and the code already does this.** `loadAgentArc` returns
+  `trusted` when no row exists (explicitly commented _"Founder ruling 2026-07-08 (SW-7): autonomous
+  by default"_), and `resolveApprovalMode("confirm", "trusted")` returns `"auto"`. A brand-new
+  workspace is autonomous on arrival, not on probation. _(An earlier draft of this section claimed
+  `loop.server.ts:1103`'s `?? "confirm"` inverted the principle. That was wrong: the loop fails
+  closed before that line, and the only calls reaching the fallback are control-flow tools that
+  short-circuit the queue branch, so it cannot cause a single approval.)_
+- **The one indefensible default, and it is live:** `mission_spend_cap_usd` is enforced fail-closed
+  at `runtime.server.ts:226-238`, and **every writer passes `?? null`** (`handoff.server.ts:419`,
+  `loop.server.ts:491` and `:523`), so the ceiling never fires. **There is no spend cap.** Ship a
+  workspace default before telling the autonomy story, because arguing for more autonomy without a
+  ceiling is the one version of this that a risk officer will refuse.
 - **The machinery already exists; promote it from Settings to the centre of the product.**
   `resolveToolMode` + `toolRisk` (per-tool auto/confirm/off with hard risk floors),
   `ai/trust.server.ts` (agents earn autonomy from their record), `trust_graduation_proposals` +
