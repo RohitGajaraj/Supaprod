@@ -203,3 +203,103 @@ fixed; a short list of paste actions waits on the founder. All exact paste text 
 1. Confirm the founder pasted section 2 (the four fields) and decided section 3.
 2. The founder video re-record remains the one open YC surface.
 3. The orphan-remote reconciliation still wants a clear-headed founder decision before any normal push.
+
+---
+
+# Session handoff - 2026-07-28 evening (THE FRONT-END REBUILD FROM ZERO)
+
+## State: main clean, `tsc` 0 errors. Phase 0 (design directions) dispatched and running.
+
+## The mandate (founder, 2026-07-28)
+
+Rebuild the authenticated app **from zero**, from the **login page** through every surface and
+deep-linked subpage. All prior design constraints revoked: any font, any colour, any component
+language. Target is a **premium consumer** feel, not enterprise-dry.
+
+**Rejected as a baseline** (inspiration and salvaged components only, never a floor): Tempo v5
+(`DESIGN-TEMPO.md`), Loom v4, Obsidian v3, Ember Editorial, and the 2026-07-24 Round-3 mockups in
+`docs/planning/front-end-reimagining/mockups/`. His words on Round-3: *"not at all to the
+satisfied level."* `UI-REVAMP-HANDOFF.md` is 14 days stale and describes a rejected app shape;
+treat it as retired.
+
+**Deadline 2026-07-31** - re-record the demo and apply to accelerators. He wants it closed in two
+days. Approved plan: `~/.claude/plans/the-thing-is-uh-sequential-bonbon.md`.
+
+## The diagnosis (verified against code, not docs)
+
+This is **not** a taste problem.
+
+1. **Two complete app shells run in the same build.** `src/routes/_authenticated.tsx:146-185`
+   picks between them with a hardcoded pathname allowlist. 7 paths get the ink room
+   (`RoomChromeShell`); the other ~68 get the retired 236px Obsidian rail (`AppShell.tsx`, 1033
+   lines). Crossing `/build` -> `/settings` visibly changes apps. Diagnosed 2026-07-20 as root
+   cause #1, written up as WO-B on 07-23, sequenced into wave 2, never executed.
+2. **The entry point disagrees with itself.** Login -> `/m`. Onboarding completion -> `/today`
+   (`ObsidianOnboarding.tsx:684,1132`, `MissionOnboarding.tsx:63,72`). Nav home key -> `/today`.
+   A new user's first authenticated screen is the *rejected* app.
+3. **Five design systems, no primitives.** `ui/` + `supaprod/` + `obsidian/` + `ink/` +
+   `mission/primitives/`. Four Buttons, three `VerdictChip`s, two `EmptyState`s, three copies of
+   the loop-stage model, five skeleton approaches, zero shared data-table (nine files hand-roll
+   `<table style={{borderCollapse:"collapse"}}>` while `ui/table.tsx` sits vendored, unused).
+   66% of shadcn dead. 485 hardcoded hex. 275 inline styles in `settings.tsx`. Emoji in mobile nav.
+
+**The backend is NOT the bottleneck and must not be rebuilt.** 721 `createServerFn` exports across
+269 files, 168 tables, 393 migrations, a 50-tool agent registry, a checkpointing agent loop that
+survives Worker restarts, a SHA-256 trust ledger, 36 crons, 18 OAuth connectors - and almost all
+of it already has UI calling it. Only 4 files hold orphaned server functions; 13 components are
+unmounted (standout: `AudioTranscriptPanel`, a complete 393-line transcription backend with no
+door). Anyone repeating "the backend just needs assembling" should verify that claim first.
+
+**Prior attempts failed at dispatch, not design:** 28 mockups and 13 work-order packets authored,
+only 2 of 11 lanes ever ran. Produce code, not more documents.
+
+## Where this session got to
+
+- **Phase 0 running.** Workflow `supaprod-design-directions`, run `wf_4ef59e16-799`, authors,
+  hardens, and ranks three directions into `docs/planning/rebuild-2026-07/directions/`:
+  `a-quiet-instrument.html`, `b-warm-machine.html`, `c-luminous-console.html`. Each carries four
+  frames (sign in, home, dense, quiet) plus a 768px frame, dark and light, and a complete
+  copy-pasteable token set. Three judges score via founder / investor / engineer lenses.
+  **The founder picks one; that pick becomes design law. Phase 1 does not start before then.**
+- **Lovable MCP fixed** (see traps below). Baseline `tsc` green.
+
+## Next steps, in order
+
+1. Founder picks a direction from the three rendered files.
+2. **Phase 1 - the spine.** One shell (delete the fork in `_authenticated.tsx`); one nav model
+   (merge `src/lib/nav-model.ts` + `mission/Spine.tsx` + `ink/Spine.tsx`, which currently hold
+   three different stage lists); one front door (login -> onboarding -> the room, and rebuild
+   sign-in/sign-up/reset); one primitive layer (Button, Surface, PageHeader, EmptyState, Skeleton,
+   DataTable, Chip, Dialog, Sheet, Field). Use `supaprod/Primitives.tsx` (427 lines, 56 importers)
+   as the migration map. Also fix the dead deep links: `/briefing` -> a `section=brief` that does
+   not exist, `/calendar` and `/meetings/$id` -> `?tab=calendar` which folds to Decisions and
+   drops `?meeting=`, `/impact` -> `?tab=insights` which folds to Decisions.
+3. **Phase 2 - the golden path.** Sign in -> land -> a gate needs you -> approve -> agents work
+   visibly -> artifact -> ship -> the brain records it. Real data, zero dead ends. Re-seed first:
+   the 2026-07-24 pre-flight found `approvals = 0` and no `account_credits` row for the demo
+   account. Founder ruling: drop "Solar Rebate Calculator", use an enterprise-credible product.
+4. **Phase 3 - reachability.** Every capability <=2 clicks, proved by a test over
+   `src/lib/surface-registry.ts`. Mount the orphans. Delete `delegate-poll.functions.ts` (dead).
+5. **Phase 4 - the sweep**, after the 31st. All remaining surfaces and subpages, parallel lanes.
+
+## Traps added this session
+
+- **Lovable MCP OAuth: FIXED, and the obvious cause was not the real one.** It was registered
+  twice (user-scope `lovable` + `plugin:lovable:lovable`), but removing the duplicate did not fix
+  it. The real cause was **stale credentials in the macOS Keychain**: service
+  `Claude Code-credentials`, account = mac username, one JSON blob holding `mcpOAuth` alongside
+  `claudeAiOauth`. Both lovable records had `redirectUri: http://localhost:3118/callback`
+  persisted while the live authorize request used an ephemeral port, so the token exchange was
+  rejected. Both entries deleted, `claudeAiOauth` verified intact. **DB tools are
+  `mcp__plugin_lovable_lovable__*`**, not `mcp__lovable__*` as `CLAUDE.md` still claims.
+- **Supabase MCP is broken.** Reports "Connected", every call returns Unauthorized. `.mcp.json`
+  interpolates `${SUPABASE_ACCESS_TOKEN}` and `${SUPABASE_PROJECT_REF}`; neither exists. `.env`
+  has `SUPABASE_PROJECT_ID` and no access token.
+- **gbrain is dead.** `~/.bun/bin/gbrain` is a dangling symlink into a `node_modules` directory
+  removed during the 2026-07-28 storage reclaim. Every gbrain instruction in the global
+  `CLAUDE.md` is a no-op until it is reinstalled.
+- **Working with the founder** (observed, and self-described in the 2026-07-15 applied record):
+  he refines by seeing, not by specifying. Ship a faithful attempt fast, then expect two or three
+  taste passes. He reviews element by element and expects every item in a feedback batch closed or
+  explicitly declined. He invites pushback but wants a recommendation, not a survey. Congestion is
+  a defect; near-grayscale blandness is equally a defect.
