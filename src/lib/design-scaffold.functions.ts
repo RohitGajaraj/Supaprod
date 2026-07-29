@@ -45,7 +45,7 @@ const MOCKUP_CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff; color: #1e293b; font-size: 14px; line-height: 1.5; }
   nav { display: flex; align-items: center; gap: 12px; padding: 0 24px; height: 48px; border-bottom: 1px solid #e2e8f0; background: #fff; }
-  nav .brand { font-weight: 700; font-size: 15px; color: #4f46e5; }
+  nav .brand { font-weight: 700; font-size: 15px; color: #0f172a; }
   nav .nav-links { display: flex; gap: 16px; font-size: 13px; color: #64748b; }
   main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
   h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
@@ -58,11 +58,11 @@ const MOCKUP_CSS = `
   .badge-green { background: #f0fdf4; color: #15803d; }
   .badge-slate { background: #f1f5f9; color: #475569; }
   .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
-  .btn-primary { background: #4f46e5; color: #fff; }
+  .btn-primary { background: #0f172a; color: #fff; }
   .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
   .btn-sm { padding: 4px 10px; font-size: 12px; }
   input, textarea, select { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 7px; font-size: 13px; color: #1e293b; background: #fff; outline: none; }
-  input:focus, textarea:focus, select:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+  input:focus, textarea:focus, select:focus { border-color: #0f172a; box-shadow: 0 0 0 2px rgba(15,23,42,0.1); }
   label { display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px; }
   .form-group { margin-bottom: 16px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -93,11 +93,11 @@ Rules:
 - Do NOT include any <script> tags or external CDN links. CSS only.
 - Use an inline <style> block in <head> for any additional custom styles beyond the base stylesheet.
 - Use a clean SaaS design aesthetic: white background, slate/gray text, subtle borders.
-- For accent color use #4f46e5 (indigo) for buttons and highlights.
+- For accent color use #0f172a (slate) for buttons and highlights; never use indigo or bright colors.
 - Show the MAIN screen for the spec — the primary user interaction surface.
 - Use placeholder text for variable content: [User Name], [Date], [Description], etc.
 - Mark interactive elements clearly (buttons, inputs, dropdowns) using the class names: btn btn-primary, btn btn-secondary, input, .card, .badge.
-- Include a slim <nav> with class="brand" span containing "Supaprod" as the product name.
+- Include a slim <nav> with class="brand" span for the product name; use [Product Name] as a placeholder since the spec itself names the product.
 - Keep the page under 250 lines.`;
   if (!hasDesignMemory) return base;
   return `${base}

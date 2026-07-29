@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { CriticReview } from "@/lib/discovery.functions";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+
+// The reviewer's display name comes from the catalog, never from a literal, so
+// these assertions survive a rename the same way the code does. Asserting the
+// string "Critic" here is what let the UI drift: the mark rendered "Challenge"
+// while the sentence beside it said "Critic", and the test agreed with the bug.
+const REVIEWER = agentDisplayName("critic");
 import {
   compareOpportunities,
   deriveDesignation,
@@ -201,7 +208,9 @@ describe("rankOpportunities", () => {
     const corr = (o: RankableOpportunity) => (o.id === "top" ? 7 : 0);
     const ranked = rankOpportunities(opps, corr);
     const best = ranked[0];
-    expect(best.rationale).toBe("Ranked #1: top ICE score, Critic endorsed, backed by 7 signals");
+    expect(best.rationale).toBe(
+      `Ranked #1: top ICE score, ${REVIEWER} endorsed, backed by 7 signals`,
+    );
     // SHIP verdict now gets "Proceed with the spec" instead of generic "Draft the spec"
     expect(best.nextAction).toMatch(/proceed|spec|build/);
     // A not-yet-reviewed bet is told to Challenge first.
@@ -221,7 +230,7 @@ describe("rankOpportunities", () => {
     expect(ranked[0].rationale).toContain("flagged to watch");
   });
 
-  test("rationale includes 'Critic says revise' for REVISE verdict", () => {
+  test("rationale names the reviewer from the catalog for a REVISE verdict", () => {
     const opps = [
       mk({
         id: "revise",
@@ -231,10 +240,10 @@ describe("rankOpportunities", () => {
       }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
-    expect(ranked[0].rationale).toContain("Critic says revise");
+    expect(ranked[0].rationale).toContain(`${REVIEWER} says revise`);
   });
 
-  test("rationale includes 'Critic says kill' for KILL verdict", () => {
+  test("rationale names the reviewer from the catalog for a KILL verdict", () => {
     const opps = [
       mk({
         id: "killed",
@@ -244,7 +253,7 @@ describe("rankOpportunities", () => {
       }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
-    expect(ranked[0].rationale).toContain("Critic says kill");
+    expect(ranked[0].rationale).toContain(`${REVIEWER} says kill`);
   });
 
   test("rationale includes ICE score for non-rank-1 bets", () => {
@@ -264,7 +273,7 @@ describe("rankOpportunities", () => {
   test("rationale handles zero corroboration (no 'backed by' clause)", () => {
     const opps = [mk({ id: "no-corr", ice_score: 5, critic_review: critic("ship") })];
     const ranked = rankOpportunities(opps, () => 0);
-    expect(ranked[0].rationale).toContain("Critic endorsed");
+    expect(ranked[0].rationale).toContain(`${REVIEWER} endorsed`);
     expect(ranked[0].rationale).not.toContain("backed by");
   });
 
@@ -275,8 +284,8 @@ describe("rankOpportunities", () => {
     ];
     const ranked = rankOpportunities(opps, noCorr);
     const noIce = ranked.find((r) => r.opp.id === "no-ice");
-    // Should have "Critic endorsed" but no ice clause
-    expect(noIce?.rationale).toContain("Critic endorsed");
+    // Should name the reviewer, but carry no ice clause
+    expect(noIce?.rationale).toContain(`${REVIEWER} endorsed`);
     expect(noIce?.rationale).not.toMatch(/ICE \d/);
   });
 

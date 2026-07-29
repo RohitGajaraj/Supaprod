@@ -1,5 +1,6 @@
 import { iceNum } from "@/lib/moat-vis";
 import { verdictFor, type OpportunityVerdictInput, type VerdictWord } from "./format";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 /**
  * Deterministic opportunity ranking.
@@ -165,7 +166,7 @@ export function compareOpportunities<T extends RankableOpportunity>(
 }
 
 /** Build the short rationale sentence from the discriminators that are true or
- * nonzero for this bet, e.g. "Ranked #1: top ICE score, Critic endorsed,
+ * nonzero for this bet, e.g. "Ranked #1: top ICE score, Challenge endorsed,
  * backed by 7 signals". */
 function rationaleFor(
   opp: RankableOpportunity,
@@ -185,10 +186,16 @@ function rationaleFor(
   if (rank === 1) clauses.push("top ICE score");
   else if (ice != null) clauses.push(`ICE ${ice.toFixed(1)}`);
 
-  if (verdict === "SHIP") clauses.push("Critic endorsed");
+  // The reviewer is named by the catalog, never by a literal. These clauses
+  // render beside an AgentMark whose label comes from agentDisplayName, so a
+  // hardcoded "Critic" put two names for the same worker on one screen: the
+  // mark said "Challenge" and the sentence next to it said "Critic". DB slugs
+  // never move, display names do, and this is display.
+  const reviewer = agentDisplayName("critic");
+  if (verdict === "SHIP") clauses.push(`${reviewer} endorsed`);
   else if (verdict === "WATCH") clauses.push("flagged to watch");
-  else if (verdict === "REVISE") clauses.push("Critic says revise");
-  else if (verdict === "KILL") clauses.push("Critic says kill");
+  else if (verdict === "REVISE") clauses.push(`${reviewer} says revise`);
+  else if (verdict === "KILL") clauses.push(`${reviewer} says kill`);
 
   // Qualitative on purpose: the support number is a capped NET of validated
   // minus missed, so quoting it as a raw count could overstate or understate
