@@ -209,7 +209,18 @@ export async function computeAllAgentTrust(
     const score = Math.round(Math.max(0, Math.min(1, raw)) * 100);
 
     const suggested_arc = suggestArc(score, samples);
-    const arc = autonomy.get(a.id) ?? "observing";
+    // "trusted", NOT "observing". This defaulted the other way and disagreed
+    // with `loadAgentArc` below, which is the function the agent loop actually
+    // calls and which returns "trusted" when no `agent_autonomy` row exists
+    // (founder ruling 2026-07-08, SW-7: autonomous by default). Same file,
+    // same column, opposite fallbacks.
+    //
+    // The consequence was not cosmetic. Every workspace that has never touched
+    // the dial has no row, so the Trust Dial and getCapabilities told the user
+    // their crew was on probation while the loop ran it autonomously. The
+    // product was misreporting its own governance posture, in the safe-looking
+    // direction, which is the harder kind to notice.
+    const arc = autonomy.get(a.id) ?? "trusted";
 
     out.push({
       agent_id: a.id,

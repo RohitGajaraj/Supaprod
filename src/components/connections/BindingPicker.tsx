@@ -67,17 +67,16 @@ export function BindingPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          disabled={mBind.isPending}
-          className="inline-flex h-(--ds-size-small) items-center gap-1.5 rounded-md border hairline px-3 text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-50"
-        >
+        {/* The system's own button, so a picker trigger and a Save button are
+            the same object. It used to carry its own tailwind geometry and a
+            token (`hairline`) that no longer exists. */}
+        <button type="button" className="sp-btn" disabled={mBind.isPending}>
           {mBind.isPending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            <Loader2 size={15} className="animate-spin" />
           ) : (
-            <ChevronsUpDown className="h-3 w-3" />
+            <ChevronsUpDown size={15} />
           )}
-          Bind a {kindLabel.toLowerCase()}…
+          Point it at a {kindLabel.toLowerCase()}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align="end">

@@ -1,58 +1,229 @@
 /**
- * Crew. The roster, ported onto the rebuild primitives (step 4).
+ * CREW. Redesigned, not ported (SURFACE-JUSTIFICATION.md, founder-directed
+ * 2026-07-29). The prototype decided the roster GRID and its stage-hue
+ * encoding, so that part is a legitimate re-skin and survives verbatim.
+ * Everything else on this surface is new, because the founder's own reading of
+ * the old one was that it had nothing to do:
  *
- * Crew is one of the five decided rail rows (session-handoff.md), and until
- * now it was the only one with no surface: /agents was mothballed in v5 and
- * the roster was folded into Engine Room > Safety > Team. That made the rail
- * light "Engine room" when you asked for Crew, which this closes.
+ *   "If you see the crew section, it is just a display of what it is, but there
+ *    is no action items there. So if I click on a Discover agent, what will
+ *    happen inside? In Settings we have something called agent roster. Can we
+ *    bring all those things here, or queue things here?"
  *
- * THIS IS THE ONE SURFACE WHERE COLOUR IS THE SUBJECT. Everywhere else in the
- * product the crew is monochrome and colour arrives only when something
- * happens. Here the roster IS the content, so each stage group wears its hue
- * and the marks take it, which is how you learn the encoding in one look:
- * the shape is the agent, the colour is the stage it works in.
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
+ *    The person who owns the workspace, here to change how much rope ONE agent
+ *    gets, and then leave. The sentence in their head is "stop asking me before
+ *    Engineer opens a pull request" or "Watch has been wrong twice, pull it
+ *    back". Nobody opens Crew to admire thirteen icons, which is exactly what
+ *    the old surface offered, and why it failed.
  *
- * The roster is read from SPECIALIST_CATALOG (agent-vocabulary.ts), the
- * product's own source of truth, deduplicated by display name because many DB
- * slugs roll onto one identity. Live state is read from real missions: an
- * agent is "running" only when a mission says so.
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE.
+ *    Setting how much a named worker may decide alone. That is the governance
+ *    canon's own split (GOVERNANCE-PRINCIPLE.md): policy is set in advance and
+ *    does not block; permission is asked in the moment and does. It is also why
+ *    these controls belong HERE rather than in Settings. Settings is where you
+ *    configure an application. Crew is where you decide how much rope your
+ *    workforce gets, and that is a different act by a person in a different
+ *    frame of mind. Everything else on this page supports that or is gone.
+ *
+ * 3. KEEP / MOVE / KILL, every element.
+ *    KEEP  the roster grid, the stage groups and the hue encoding. Decided by
+ *          the prototype, and it is the one surface where colour is the
+ *          subject: shape says which agent, colour says which stage.
+ *    KEEP  the live mark states. A running agent wears its stage hue while it
+ *          runs and stops when the run does.
+ *    KILL  the standing sentence "The shape is the agent, the colour is the
+ *          stage it works in. Ember and blinking means it is waiting on you."
+ *          Every stage group is already headed by its own coloured bar and its
+ *          own name, so the legend teaches itself; and the ember half now sits
+ *          next to the thing actually asking, where it is a fact rather than a
+ *          rule to memorise. Three sentences of instruction for a legend that
+ *          the layout already draws is scaffolding, not design.
+ *    KILL  the listMissions read. It answered "is this agent running" through a
+ *          mission's current_agent_id, one indirection away from the truth. The
+ *          run rows themselves are what the loop writes, so the surface reads
+ *          those, workspace scoped, in the same call as everything else.
+ *    MOVE IN, from Settings > Roster: the per-agent tool reach cap. It moved
+ *          because the tool list on this page is ALREADY filtered by it
+ *          (capToolsByRisk runs before anything else in the loop), so reading
+ *          "nine tools" without being able to see or change the cap that
+ *          produced the nine is reading a derived number with its input
+ *          hidden. This leaves the same control in two places until that lane
+ *          retires its copy; flagged in the report rather than reached for.
+ *    MOVE IN, from Settings > Autonomy: the per-agent dial. It was a
+ *          workspace-wide panel; autonomy is per agent and always was.
+ *    MOVE IN, the per-agent on/off switch that Settings correctly KILLED for
+ *          calling no server function. It is drawn again here because a real
+ *          one exists (setAgentEnabled, onboarding.functions.ts) and is wired.
+ *    NEW   the per-tool policy, and the graduation queue. Neither existed on
+ *          any surface a product lead can reach.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
+ *    Everything about one agent. A roster card is a mark, a name and one line,
+ *    and it never wraps. Its record, its boundary, its tool policy and what it
+ *    is asking for all live on its own page, which is one click. The only thing
+ *    promoted onto the roster is what genuinely needs a person: an agent asking
+ *    for more room, which is drawn above the grid as a short queue.
+ *
+ * 5. WHAT WOULD DELIGHT, AND WHAT WOULD CONFUSE.
+ *    The moment is an agent proposing its own promotion. "Engineer has opened
+ *    five pull requests in a row that you did not change. Let it stop asking?"
+ *    is the product's whole thesis in one card: the machine earned something,
+ *    the record proves it, and the human rules on the boundary rather than on
+ *    the work. It is real (trust_graduation_proposals, written by the
+ *    reflection pass) and it is rendered as a Gate with a Receipt, so the
+ *    judgment leaves a mark instead of vanishing into a toast.
+ *    What would confuse, and is therefore refused: a control that draws a
+ *    setting the runtime would silently override. Every per-tool control here
+ *    offers only the modes that survive resolveToolMode unchanged, so a
+ *    force-review tool shows its floor in words and no dropdown at all.
+ *
+ * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
+ *    This surface IS the crew, so the test has to be sharper than "are agents
+ *    visible". It proves three things. Attribution: every boundary on the page
+ *    is attached to a named worker with a face, never to an abstract setting.
+ *    Work in motion: a running agent wears its hue while it runs, read from the
+ *    run rows and not from a status column someone might forget to clear.
+ *    Judgment leaves a trace: deciding a graduation renders what the decision
+ *    caused. And nothing overclaims: what an agent may do is composed by
+ *    calling the loop's own resolveToolMode rather than by restating its rules,
+ *    so the page cannot promise a permission the wiring lacks. Remove the
+ *    agents and this surface does not exist at all, which is the strongest
+ *    possible answer to the test.
+ *
+ * ONE KNOWN DIVERGENCE, INHERITED, AND FOLLOWED DELIBERATELY. loadAgentArc,
+ * which the loop calls, defaults an agent with no autonomy row to "trusted"
+ * (founder ruling 2026-07-08). computeAllAgentTrust, ten lines away in the same
+ * file, defaults the same field to "observing". This surface follows the LOOP,
+ * because it must describe what will happen. See crew.functions.ts's header.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import {
   AGENT_STATION_ORDER,
   AGENT_STATIONS,
   agentBlurb,
+  agentDisplayName,
   castEntries,
+  catalogEntry,
   type AgentStation,
   type CatalogEntry,
 } from "@/lib/agent-vocabulary";
-import { listMissions } from "@/lib/missions.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { stageHueForStation } from "@/components/shell/agent-glyphs";
-import { AgentMark, Num, PageHead, Surface } from "@/components/shell/primitives";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
+  Empty,
+  Failed,
+  Gate,
+  Line,
+  Loading,
+  Num,
+  PageHead,
+  Receipt,
+  // Aliased: the primitive is a value, the TypeScript utility type of the same
+  // name is used all over this file, and one of them shadowing the other in a
+  // reader's head is a bug waiting to be written.
+  Record as RecordSays,
+  Row,
+  Select,
+  Surface,
+  Switch,
+  type MarkState,
+} from "@/components/shell/primitives";
+import {
+  listCrew,
+  getCrewMember,
+  setCrewToolMode,
+  type CrewArc,
+  type CrewMember,
+  type CrewRosterMember,
+  type CrewToolMode,
+  type CrewToolPolicy,
+} from "@/lib/crew.functions";
+import { setAgentArc, decideTrustGraduation } from "@/lib/trust.functions";
+import { setAgentToolCap, listAgentReflections } from "@/lib/agents.functions";
+import { setAgentEnabled } from "@/lib/onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/crew")({
+  // One agent open at a time, in the URL, so the browser's own back button
+  // closes the detail and a teammate can be sent straight to it. A modal would
+  // have neither, and a governance pane with three controls in it is exactly
+  // the modal abuse the anti-slop list bans.
+  validateSearch: (search: Record<string, unknown>): { agent?: string } => ({
+    agent: typeof search.agent === "string" && search.agent ? search.agent : undefined,
+  }),
   component: Crew,
   head: () => ({ meta: [{ title: "Crew · Supaprod" }] }),
 });
 
-/** One entry per identity. The catalog carries five slugs that all mean
- *  "Watch"; the roster should show one Watch, not five. */
-function roster(): CatalogEntry[] {
-  const seen = new Set<string>();
-  const out: CatalogEntry[] = [];
-  for (const e of castEntries()) {
-    if (seen.has(e.name)) continue;
-    seen.add(e.name);
-    out.push(e);
+/* ------------------------------------------------------------------ *
+ * Vocabulary. Mechanism words (arc, mode, graduation) never reach the
+ * screen; they are the correct technical whisper in the Engine Room and
+ * nowhere else.
+ * ------------------------------------------------------------------ */
+
+const ARC_ORDER: CrewArc[] = ["observing", "proving", "trusted", "ambient"];
+
+/** What the dial means, said once, in the words a person would use. */
+const ARC_CHOICE: Record<CrewArc, string> = {
+  observing: "Everything waits for you",
+  proving: "Asks before it acts",
+  trusted: "Runs alone, except the risky calls",
+  ambient: "Runs alone, always",
+};
+
+/** The same fact as a headline about a named worker. */
+function arcHeadline(name: string, arc: CrewArc): string {
+  switch (arc) {
+    case "ambient":
+      return `${name} decides everything itself.`;
+    case "trusted":
+      return `${name} runs alone.`;
+    case "proving":
+      return `${name} asks before it acts.`;
+    default:
+      return `${name} waits for you on everything.`;
   }
-  return out;
 }
+
+const MODE_CHOICE: Record<CrewToolMode, string> = {
+  auto: "On its own",
+  confirm: "Asks you first",
+  review: "Waits for your review",
+};
+
+/** The same fact inside a sentence. */
+const MODE_PHRASE: Record<CrewToolMode, string> = {
+  auto: "on its own",
+  confirm: "only after asking you",
+  review: "only after your review",
+};
+
+/** What a tool would touch. Second-line information, never a restatement of
+ *  the mode the control beside it already shows. */
+const RISK_NOTE: Record<"low" | "medium" | "high", string> = {
+  low: "Stays in this workspace, and you can undo it.",
+  medium: "Reaches outside, and it can be walked back.",
+  high: "Hard to walk back.",
+};
+
+const REACH_CHOICE: { value: string; label: string }[] = [
+  { value: "", label: "Anything its tools allow" },
+  { value: "low", label: "Only what it can undo here" },
+  { value: "medium", label: "Nothing that leaves a mark outside" },
+  { value: "high", label: "Everything, including the one way doors" },
+];
 
 const NUMBER_WORD = [
   "None",
@@ -73,17 +244,87 @@ const NUMBER_WORD = [
   "Fifteen",
 ];
 
-function Crew() {
-  const { activeWorkspace } = useWorkspace();
-  const fetchMissions = useServerFn(listMissions);
+function count(n: number): string {
+  return n < NUMBER_WORD.length ? NUMBER_WORD[n] : String(n);
+}
 
-  const missions = useQuery({
-    queryKey: ["crew", "missions", activeWorkspace?.id ?? null],
-    queryFn: () => fetchMissions({ data: {} }),
+/** Plain-words relative time. Mono is applied by the row, not here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+/** A card is a button here, and the roster's own class carries the shape. The
+ *  four properties below are the button reset, which the class cannot supply
+ *  because it was written for a div and this lane does not own the stylesheet. */
+const CARD_RESET: React.CSSProperties = {
+  appearance: "none",
+  background: "none",
+  border: 0,
+  font: "inherit",
+  textAlign: "left",
+  width: "100%",
+  cursor: "pointer",
+  color: "inherit",
+};
+
+/* ------------------------------------------------------------------ *
+ * The surface
+ * ------------------------------------------------------------------ */
+
+function Crew() {
+  const { agent } = Route.useSearch();
+  const navigate = useNavigate();
+
+  const open = React.useCallback(
+    (slug: string | null) => {
+      void navigate({ to: "/crew", search: slug ? { agent: slug } : {} });
+    },
+    [navigate],
+  );
+
+  return agent ? <MemberView slug={agent} onBack={() => open(null)} /> : <Roster onOpen={open} />;
+}
+
+/* ------------------------------------------------------------------ *
+ * The roster
+ * ------------------------------------------------------------------ */
+
+/** One entry per identity. The catalog carries five slugs that all mean
+ *  "Watch"; the roster should show one Watch, not five. */
+function rosterCatalog(): CatalogEntry[] {
+  const seen = new Set<string>();
+  const out: CatalogEntry[] = [];
+  for (const e of castEntries()) {
+    if (seen.has(e.name)) continue;
+    seen.add(e.name);
+    out.push(e);
+  }
+  return out;
+}
+
+function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
+  const { activeWorkspace } = useWorkspace();
+  const fList = useServerFn(listCrew);
+  const crew = useQuery({
+    queryKey: ["crew", "roster", activeWorkspace?.id ?? null],
+    queryFn: () => fList({ data: { workspaceId: activeWorkspace?.id ?? null } }),
     staleTime: 30_000,
   });
 
-  const all = React.useMemo(roster, []);
+  const all = React.useMemo(rosterCatalog, []);
+  const bySlug = React.useMemo(() => {
+    const map = new Map<string, CrewRosterMember>();
+    for (const m of crew.data?.members ?? []) map.set(m.slug, m);
+    return map;
+  }, [crew.data]);
 
   const byStation = React.useMemo(() => {
     const map = new Map<AgentStation, CatalogEntry[]>();
@@ -95,28 +336,121 @@ function Crew() {
     return map;
   }, [all]);
 
-  // Live state, from real runs only. A mission carries the agent that owns it
-  // right now, so an agent reads as running when one of its missions is.
-  const running = React.useMemo(() => {
-    const ids = new Set<string>();
-    for (const m of missions.data?.missions ?? []) {
-      if (m.status === "running" && m.current_agent_id) ids.add(m.current_agent_id);
-    }
-    return ids;
-  }, [missions.data]);
+  // The census. It counts the CARDS, so the four buckets add back up to the
+  // number in the title. An identity the account has no row for is its own
+  // bucket rather than being quietly dropped, which is how a census on a
+  // screen stops reconciling and starts being ignored.
+  const asking = React.useMemo(
+    () =>
+      all.map((e) => bySlug.get(e.slug)).filter((m): m is CrewRosterMember => !!m?.asking.length),
+    [all, bySlug],
+  );
+  const present = all.map((e) => bySlug.get(e.slug)).filter((m): m is CrewRosterMember => !!m);
+  const alone = present.filter(
+    (m) => m.enabled && (m.arc === "trusted" || m.arc === "ambient"),
+  ).length;
+  const asks = present.filter(
+    (m) => m.enabled && (m.arc === "proving" || m.arc === "observing"),
+  ).length;
+  const off = present.filter((m) => !m.enabled).length;
+  const absent = all.length - present.length;
 
-  const count = all.length;
-  const headline =
-    count < NUMBER_WORD.length ? `${NUMBER_WORD[count]} work here.` : `${count} work here.`;
+  // Exactly one mark on a screen may blink, so the blink means "look here".
+  const blinkSlug = asking[0]?.slug ?? null;
+
+  function stateFor(slug: string): MarkState {
+    const m = bySlug.get(slug);
+    // No row means nothing to run and nothing to govern, which reads the same
+    // way as switched off: present in the crew, absent from the work.
+    if (!m) return "quiet";
+    if (m.asking.length > 0) return slug === blinkSlug ? "gate" : "waiting";
+    if (m.runs.running > 0) return "running";
+    if (!m.enabled) return "quiet";
+    return "idle";
+  }
+
+  const sub = crew.isLoading ? (
+    "Reading the boundary in force."
+  ) : crew.isError ? (
+    "The boundary did not load."
+  ) : crew.data?.empty ? (
+    "This account has no agent rows yet, so nothing here can be set."
+  ) : (
+    <>
+      <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
+      {off > 0 ? (
+        <>
+          , <Num>{off}</Num> are switched off
+        </>
+      ) : null}
+      {absent > 0 ? (
+        <>
+          , and <Num>{absent}</Num> have not arrived yet
+        </>
+      ) : null}
+      .
+    </>
+  );
 
   return (
     // wide: the roster is a grid, not prose, so it wants the room rather than
     // the 74ch measure.
     <Surface wide>
-      <PageHead
-        title={headline}
-        sub="The shape is the agent, the colour is the stage it works in. Ember and blinking means it is waiting on you."
-      />
+      <PageHead title={`${count(all.length)} work here.`} sub={sub} />
+
+      {crew.isError ? (
+        <Block>
+          <Failed onRetry={() => crew.refetch()}>
+            The crew did not load, so nothing below is the real boundary.
+          </Failed>
+        </Block>
+      ) : null}
+
+      {asking.length > 0 ? (
+        <Block
+          title="Asking for more room"
+          sub="Each one has done the same thing cleanly enough times to propose it stops asking. Open it to rule."
+        >
+          {asking.map((m) => (
+            <Row
+              key={m.slug}
+              marks={
+                <AgentMark
+                  slug={m.slug}
+                  name={m.name}
+                  state={m.slug === blinkSlug ? "gate" : "waiting"}
+                />
+              }
+              lead={
+                // One ask reads as one sentence. Several would need one phrase
+                // per tool, and a row in a list never wraps, so the count goes
+                // here and the tools go on its own page.
+                m.asking.length === 1 ? (
+                  <>
+                    {agentDisplayName(m.slug, m.name)} wants to run {m.asking[0].toolLabel}{" "}
+                    {MODE_PHRASE[m.asking[0].toMode]}.
+                  </>
+                ) : (
+                  <>
+                    {agentDisplayName(m.slug, m.name)} is asking about {m.asking.length} tools.
+                  </>
+                )
+              }
+              sub={
+                m.runs.total > 0 ? (
+                  <>
+                    <Num>{m.runs.total}</Num> runs in this workspace
+                  </>
+                ) : (
+                  "No runs in this workspace yet"
+                )
+              }
+              tight
+              onClick={() => onOpen(m.slug)}
+            />
+          ))}
+        </Block>
+      ) : null}
 
       {AGENT_STATION_ORDER.map((station) => {
         const members = byStation.get(station);
@@ -136,23 +470,675 @@ function Crew() {
               </span>
             </div>
             <div className="sp-agrid">
-              {members.map((e) => (
-                <div className="sp-acard" key={e.slug}>
-                  <AgentMark
-                    slug={e.slug}
-                    size="lg"
-                    state={running.has(e.slug) ? "running" : "idle"}
-                  />
-                  <span>
-                    <div className="sp-aname">{e.name}</div>
-                    <div className="sp-asub">{agentBlurb(e.slug) ?? e.relayVerb}</div>
-                  </span>
-                </div>
-              ))}
+              {members.map((e) => {
+                const m = bySlug.get(e.slug);
+                return (
+                  <button
+                    type="button"
+                    className="sp-acard"
+                    key={e.slug}
+                    style={CARD_RESET}
+                    onClick={() => onOpen(e.slug)}
+                  >
+                    <AgentMark slug={e.slug} size="lg" state={stateFor(e.slug)} />
+                    <span>
+                      <div className="sp-aname">{e.name}</div>
+                      <div className="sp-asub">
+                        {/* The blurb says what it does, which is what the roster
+                            teaches. The two exceptions are facts that
+                            contradict the blurb: it is switched off, or this
+                            account has no row for it at all. */}
+                        {!m
+                          ? "Not in this workspace yet."
+                          : !m.enabled
+                            ? "Switched off. It will not be dispatched."
+                            : (agentBlurb(e.slug) ?? e.relayVerb)}
+                      </div>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         );
       })}
     </Surface>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * One agent
+ * ------------------------------------------------------------------ */
+
+type Decided = { accept: boolean; toolLabel: string; mode: CrewToolMode; at: string };
+
+function MemberView({ slug, onBack }: { slug: string; onBack: () => void }) {
+  const { activeWorkspace } = useWorkspace();
+  const qc = useQueryClient();
+  const wsId = activeWorkspace?.id ?? null;
+  const memberKey = ["crew", "member", slug, wsId];
+
+  const fMember = useServerFn(getCrewMember);
+  const member = useQuery({
+    queryKey: memberKey,
+    queryFn: () => fMember({ data: { slug, workspaceId: wsId } }),
+  });
+
+  const invalidate = React.useCallback(() => {
+    void qc.invalidateQueries({ queryKey: memberKey });
+    void qc.invalidateQueries({ queryKey: ["crew", "roster", wsId] });
+    // The rail badge and Settings read the same rows.
+    void qc.invalidateQueries({ queryKey: ["agents"] });
+  }, [qc, slug, wsId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const back = (
+    <Button variant="ghost" onClick={onBack}>
+      All of them
+    </Button>
+  );
+
+  if (member.isLoading) {
+    return (
+      <Surface>
+        <PageHead title={agentDisplayName(slug)} />
+        <Loading>Reading what this one is allowed to do.</Loading>
+      </Surface>
+    );
+  }
+
+  if (member.isError) {
+    return (
+      <Surface>
+        <PageHead title={agentDisplayName(slug)} />
+        <Block>
+          <Failed onRetry={() => member.refetch()}>
+            This one did not load, so the boundary shown would not be the real one.
+          </Failed>
+        </Block>
+        <Block>{back}</Block>
+      </Surface>
+    );
+  }
+
+  const m = member.data;
+  if (!m) {
+    return (
+      <Surface>
+        <PageHead title="No agent by that name." />
+        <Empty action={back}>
+          Nothing in this account answers to that name, and nothing in the catalog does either.
+        </Empty>
+      </Surface>
+    );
+  }
+
+  return (
+    <Surface context={<MemberRecord member={m} />}>
+      <PageHead
+        // The headline is the boundary in force, which is the one thing this
+        // page exists to change. It is never stated for an agent that has no
+        // row, because that one is not running under any boundary at all and
+        // saying otherwise would be the surface overclaiming.
+        title={
+          m.agentId === null
+            ? `${m.name} has not arrived yet.`
+            : !m.enabled
+              ? `${m.name} is switched off.`
+              : arcHeadline(m.name, m.arc)
+        }
+        sub={m.blurb}
+      />
+
+      {m.agentId === null ? (
+        <Block>
+          <Empty action={back}>
+            The catalog knows this one, but this account has no row for it, so there is nothing to
+            govern yet. It arrives with the first mission that needs it.
+          </Empty>
+        </Block>
+      ) : (
+        <>
+          <Proposals member={m} onDecided={invalidate} />
+          <Boundary member={m} onChanged={invalidate} />
+          <ToolPolicy member={m} onChanged={invalidate} />
+          <Lessons slug={m.slug} name={m.name} />
+          <Block>{back}</Block>
+        </>
+      )}
+    </Surface>
+  );
+}
+
+/* ---------------- the moment: an agent asking for itself --------------- */
+
+function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () => void }) {
+  const fDecide = useServerFn(decideTrustGraduation);
+  const [decided, setDecided] = React.useState<Decided[]>([]);
+
+  const decide = useMutation({
+    mutationFn: (v: { proposalId: string; accept: boolean }) => fDecide({ data: v }),
+  });
+
+  if (member.proposals.length === 0 && decided.length === 0) return null;
+
+  // Exactly one thing asks at a time, so there is one primary action on the
+  // screen and the end of the queue is visible from the start. The rest are
+  // one-line rows that take the Gate's place as it is settled.
+  const [live, ...behind] = member.proposals;
+
+  function settle(accept: boolean) {
+    if (!live) return;
+    decide.mutate(
+      { proposalId: live.id, accept },
+      {
+        onSuccess: () => {
+          setDecided((d) => [
+            ...d,
+            {
+              accept,
+              toolLabel: live.toolLabel,
+              mode: accept ? live.toMode : live.fromMode,
+              at: new Date().toISOString(),
+            },
+          ]);
+          onDecided();
+        },
+      },
+    );
+  }
+
+  return (
+    <>
+      {live ? (
+        <Gate
+          question={`Let ${member.name} run ${live.toolLabel} ${MODE_PHRASE[live.toMode]}?`}
+          lines={[
+            <>
+              It has done this <Num>{live.cleanStreak}</Num> times in a row and you changed nothing.
+            </>,
+            <>
+              Today it runs {MODE_PHRASE[live.fromMode]}. It is asking to run{" "}
+              {MODE_PHRASE[live.toMode]}.
+            </>,
+            ...(live.rationale ? [<>{live.rationale}</>] : []),
+          ]}
+        >
+          <Button variant="primary" disabled={decide.isPending} onClick={() => settle(true)}>
+            Give it the room
+          </Button>
+          <Button disabled={decide.isPending} onClick={() => settle(false)}>
+            Not yet
+          </Button>
+        </Gate>
+      ) : null}
+
+      {behind.length > 0 ? (
+        <Block title="Behind it" sub="Settle the one above and the next takes its place.">
+          {behind.map((p) => (
+            <Row
+              key={p.id}
+              marks={<AgentMark slug={member.slug} name={member.name} state="waiting" />}
+              lead={
+                <>
+                  {p.toolLabel}, asking to run {MODE_PHRASE[p.toMode]}
+                </>
+              }
+              sub={
+                <>
+                  <Num>{p.cleanStreak}</Num> clean in a row
+                </>
+              }
+              time={ago(p.createdAt)}
+              tight
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      {decide.isError ? (
+        <Block>
+          <Failed>{(decide.error as Error).message}</Failed>
+        </Block>
+      ) : null}
+
+      {/* THE COMMIT. A toast confirms that your click registered; this renders
+          what your click caused. No arrow is drawn: nothing picks this up, it
+          is a standing rule from now on, and an arrow to nowhere is worse than
+          no arrow. */}
+      {decided.map((d, i) => (
+        <Receipt
+          key={`${d.at}-${i}`}
+          verb={d.accept ? "You gave it the room" : "You said not yet"}
+          consequence={
+            d.accept ? (
+              <>
+                {member.name} runs {d.toolLabel} {MODE_PHRASE[d.mode]} from now on.
+              </>
+            ) : (
+              <>
+                {member.name} still runs {d.toolLabel} {MODE_PHRASE[d.mode]}.
+              </>
+            )
+          }
+          time={ago(d.at)}
+        />
+      ))}
+    </>
+  );
+}
+
+/* ---------------- the boundary --------------- */
+
+function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => void }) {
+  const fArc = useServerFn(setAgentArc);
+  const fCap = useServerFn(setAgentToolCap);
+  const fEnabled = useServerFn(setAgentEnabled);
+  const agentId = member.agentId as string;
+
+  const arc = useMutation({
+    mutationFn: (v: CrewArc) => fArc({ data: { agentId, arc: v } }),
+    onSuccess: onChanged,
+  });
+  const cap = useMutation({
+    mutationFn: (v: string) =>
+      fCap({
+        data: { agentId, maxToolRisk: v === "" ? null : (v as "low" | "medium" | "high") },
+      }),
+    onSuccess: onChanged,
+  });
+  const enabled = useMutation({
+    mutationFn: (v: boolean) => fEnabled({ data: { agentId, enabled: v } }),
+    onSuccess: onChanged,
+  });
+
+  const failure = arc.error ?? cap.error ?? enabled.error;
+
+  // The record speaking. Only drawn when there is enough history for the
+  // suggestion to mean anything: suggestArc returns "observing" below three
+  // signals, and rendering that as advice would be inventing a verdict out of
+  // an absence of evidence.
+  const t = member.trust;
+  const suggestion =
+    t && t.samples >= 3 && t.suggestedArc !== member.arc
+      ? ARC_ORDER.indexOf(t.suggestedArc) > ARC_ORDER.indexOf(member.arc)
+        ? ("up" as const)
+        : ("down" as const)
+      : null;
+
+  return (
+    <Block
+      title="The boundary"
+      sub="Set once, and it holds inside every run. Nothing here asks you again in the moment."
+    >
+      <Line
+        label="Working in this workspace"
+        sub={
+          member.enabled
+            ? "Switch it off and the loop will not dispatch it."
+            : "It is off. Nothing dispatches it and its tools are unreachable."
+        }
+      >
+        <Switch
+          checked={member.enabled}
+          disabled={enabled.isPending}
+          label={`${member.name} works in this workspace`}
+          onChange={(next) => enabled.mutate(next)}
+        />
+      </Line>
+
+      <Line
+        label="How much it decides by itself"
+        // Different information from the control beside it: who set this, not
+        // what it is set to. The dropdown already says what it is set to.
+        sub={
+          !member.enabled
+            ? "Only takes effect once it is switched back on."
+            : member.arcIsDefault
+              ? "Nobody set this. It is our default, and it is yours to change."
+              : "You set this."
+        }
+      >
+        <Select
+          value={member.arc}
+          disabled={arc.isPending}
+          aria-label={`How much ${member.name} decides by itself`}
+          onChange={(e) => arc.mutate(e.target.value as CrewArc)}
+        >
+          {ARC_ORDER.map((a) => (
+            <option key={a} value={a}>
+              {ARC_CHOICE[a]}
+            </option>
+          ))}
+        </Select>
+      </Line>
+
+      <Line
+        label="How far its tools may reach"
+        sub="Anything past this is removed from its hands before a run starts, not gated during one."
+      >
+        <Select
+          value={member.maxToolRisk ?? ""}
+          disabled={cap.isPending}
+          aria-label={`How far ${member.name} may reach`}
+          onChange={(e) => cap.mutate(e.target.value)}
+        >
+          {REACH_CHOICE.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+      </Line>
+
+      {failure ? <Failed>{(failure as Error).message}</Failed> : null}
+
+      {suggestion && t ? (
+        <>
+          <RecordSays
+            evidence={
+              <>
+                <Num>{t.score}</Num> out of <Num>100</Num>, from <Num>{t.samples}</Num> signals
+              </>
+            }
+          >
+            {suggestion === "up"
+              ? `${member.name} has earned more room than you have given it. On what it has actually done, it belongs at "${ARC_CHOICE[t.suggestedArc]}".`
+              : `${member.name} has more room than its record backs. On what it has actually done, it belongs at "${ARC_CHOICE[t.suggestedArc]}".`}
+          </RecordSays>
+          <Actions>
+            <Button
+              variant="ghost"
+              disabled={arc.isPending}
+              onClick={() => arc.mutate(t.suggestedArc)}
+            >
+              {suggestion === "up" ? "Give it that" : "Pull it back"}
+            </Button>
+          </Actions>
+        </>
+      ) : null}
+    </Block>
+  );
+}
+
+/* ---------------- the per tool policy --------------- */
+
+function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () => void }) {
+  const fMode = useServerFn(setCrewToolMode);
+  const mode = useMutation({
+    mutationFn: (v: { toolName: string; mode: CrewToolMode }) =>
+      fMode({ data: { agentSlug: member.slug, ...v } }),
+    onSuccess: onChanged,
+  });
+
+  if (member.noToolsEnabled) {
+    return (
+      <Block title="What it still asks about">
+        <Empty>
+          No tools are switched on for this account, so there is nothing for it to ask about yet.
+        </Empty>
+      </Block>
+    );
+  }
+
+  if (member.tools.length === 0) {
+    return (
+      <Block title="What it still asks about">
+        <Empty>
+          Its reach is set narrow enough that none of the switched-on tools are in its hands. Widen
+          the reach above to give it some.
+        </Empty>
+      </Block>
+    );
+  }
+
+  const alone = member.tools.filter((t) => t.resolvedMode === "auto");
+  const gated = member.tools.filter((t) => t.resolvedMode !== "auto");
+
+  // When the dial alone gates everything, listing sixty rows would be sixty
+  // rows that all say the same thing and cannot be changed. Say it once.
+  const dialGatesAll = member.arc === "observing";
+
+  return (
+    <Block
+      title="What it still asks about"
+      sub={
+        <>
+          <Num>{alone.length}</Num> of <Num>{member.tools.length}</Num> tools run without coming
+          back to you.
+        </>
+      }
+    >
+      {dialGatesAll ? (
+        <Empty>
+          While it waits for you on everything, all <Num>{member.tools.length}</Num> tools go to
+          review whatever each one is set to. Give it more room above to set them one at a time.
+        </Empty>
+      ) : gated.length === 0 ? (
+        <Empty>
+          Nothing. Every tool in its hands runs without asking. The safety floors still hold: a one
+          way door would come back to you even here.
+        </Empty>
+      ) : (
+        gated.map((t) => (
+          <ToolLine
+            key={t.toolName}
+            tool={t}
+            pending={mode.isPending}
+            onSet={(next) => mode.mutate({ toolName: t.toolName, mode: next })}
+          />
+        ))
+      )}
+
+      {mode.error ? <Failed>{(mode.error as Error).message}</Failed> : null}
+    </Block>
+  );
+}
+
+function ToolLine({
+  tool,
+  pending,
+  onSet,
+}: {
+  tool: CrewToolPolicy;
+  pending: boolean;
+  onSet: (mode: CrewToolMode) => void;
+}) {
+  // A floor that leaves one choice is not a choice. Drawing a dropdown there
+  // would be a control that cannot do the thing it draws, which is the exact
+  // defect the justification wave found in Settings.
+  const settable = tool.offerable.length > 1;
+
+  // The second line always carries DIFFERENT information from the control:
+  // why it is pinned, who pinned it, or what it would touch. Never a restating
+  // of the value the dropdown already shows.
+  const note = tool.floor
+    ? tool.floor === "review"
+      ? "Pinned. There is no way back from this one."
+      : "Pinned. It reaches something outside this workspace."
+    : tool.storedSource === "operator"
+      ? "You set this one."
+      : tool.storedSource === "graduation"
+        ? "It earned this one."
+        : RISK_NOTE[tool.risk];
+
+  return (
+    <Line label={tool.label} sub={note}>
+      {settable ? (
+        <Select
+          value={tool.resolvedMode}
+          disabled={pending}
+          aria-label={`How ${tool.label} runs`}
+          onChange={(e) => onSet(e.target.value as CrewToolMode)}
+        >
+          {tool.offerable.map((m) => (
+            <option key={m} value={m}>
+              {MODE_CHOICE[m]}
+            </option>
+          ))}
+        </Select>
+      ) : null}
+    </Line>
+  );
+}
+
+/* ---------------- what it has learned --------------- */
+
+function Lessons({ slug, name }: { slug: string; name: string }) {
+  const fReflections = useServerFn(listAgentReflections);
+  const q = useQuery({
+    queryKey: ["crew", "lessons", slug],
+    queryFn: () => fReflections({ data: { agentSlug: slug, limit: 5 } }),
+    staleTime: 60_000,
+  });
+
+  if (q.isLoading) {
+    return (
+      <Block title="What it has learned">
+        <Loading>Reading its lessons.</Loading>
+      </Block>
+    );
+  }
+  if (q.isError) {
+    return (
+      <Block title="What it has learned">
+        <Failed onRetry={() => q.refetch()}>Its lessons did not load.</Failed>
+      </Block>
+    );
+  }
+
+  const rows = q.data?.reflections ?? [];
+  if (rows.length === 0) {
+    return (
+      <Block title="What it has learned">
+        <Empty>
+          {name} has written nothing down yet. It records a lesson after a run it can learn from.
+        </Empty>
+      </Block>
+    );
+  }
+
+  return (
+    <Block title="What it has learned" sub="Written by the agent itself, after its own runs.">
+      {rows.map((r) => (
+        <Row
+          key={r.id}
+          marks={<AgentMark slug={slug} name={name} />}
+          lead={r.content}
+          sub={r.metadata?.what_to_change ?? undefined}
+          time={ago(r.created_at)}
+          tight
+        />
+      ))}
+    </Block>
+  );
+}
+
+/* ---------------- the record, in the context column --------------- */
+
+function MemberRecord({ member }: { member: CrewMember }) {
+  const r = member.runs;
+  const t = member.trust;
+  const entry = catalogEntry(member.slug);
+
+  return (
+    <>
+      <CtxHead>What it has done here</CtxHead>
+
+      {r.total === 0 ? (
+        <CtxBody>It has not run in this workspace yet.</CtxBody>
+      ) : (
+        <>
+          <CtxRow
+            name={
+              <>
+                <Num>{r.total}</Num> runs
+              </>
+            }
+            sub={
+              <>
+                <Num>{r.finished}</Num> finished
+                {r.failed > 0 ? (
+                  <>
+                    , <Num>{r.failed}</Num> failed
+                  </>
+                ) : null}
+                {r.running > 0 ? (
+                  <>
+                    , <Num>{r.running}</Num> running now
+                  </>
+                ) : null}
+              </>
+            }
+          />
+          {r.lastAt ? <CtxRow name="Last run" sub={`${ago(r.lastAt)} ago`} /> : null}
+        </>
+      )}
+
+      {t ? (
+        <>
+          {/* A different scope, and it is labelled rather than blended into the
+              numbers above: the roster, the dial and the record are per
+              account, and only the run history is per workspace. */}
+          <CtxHead>Across everything it has done for you</CtxHead>
+          {t.samples === 0 ? (
+            <CtxBody>
+              No signals yet, so there is no record to read. The boundary is yours to set until
+              there is one.
+            </CtxBody>
+          ) : (
+            <>
+              <CtxRow
+                name={
+                  <>
+                    <Num>{t.score}</Num> out of <Num>100</Num>
+                  </>
+                }
+                sub={
+                  <>
+                    from <Num>{t.samples}</Num> signals
+                  </>
+                }
+              />
+              {t.approvalsTotal > 0 ? (
+                <CtxRow
+                  name={
+                    <>
+                      You said yes to <Num>{t.approvalsApproved}</Num> of{" "}
+                      <Num>{t.approvalsTotal}</Num>
+                    </>
+                  }
+                  sub="calls it brought you"
+                />
+              ) : null}
+              {t.outcomesTotal > 0 ? (
+                <CtxRow
+                  name={
+                    <>
+                      <Num>{t.outcomesValidated}</Num> of <Num>{t.outcomesTotal}</Num> turned out
+                      right
+                    </>
+                  }
+                  sub="once real signal came in"
+                />
+              ) : null}
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <CtxHead>Its record</CtxHead>
+          <CtxBody>Not read. The boundary above is still yours to set.</CtxBody>
+        </>
+      )}
+
+      {entry ? (
+        <>
+          <CtxHead>Where it works</CtxHead>
+          <CtxBody>
+            {AGENT_STATIONS[entry.station].name}. {AGENT_STATIONS[entry.station].blurb}
+          </CtxBody>
+        </>
+      ) : null}
+    </>
   );
 }

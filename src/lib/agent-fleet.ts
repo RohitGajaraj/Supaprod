@@ -70,6 +70,11 @@ const RUN_STATE: Readonly<Record<string, RunBucket>> = {
   scheduled: "queued",
   proposed: "queued",
   completed: "done",
+  // `complete`, singular, is what runAgent writes on the happy path
+  // (agents.functions.ts). It was missing here, so every run that finished
+  // through that path fell to the "other" bucket and went uncounted as
+  // finished wherever the fleet model is read.
+  complete: "done",
   done: "done",
   succeeded: "done",
   success: "done",

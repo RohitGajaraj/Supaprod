@@ -11,45 +11,37 @@ import {
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
-import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
+import { Block, Button, Empty, Failed, Line, Loading, Num } from "@/components/shell/primitives";
 
 /**
- * Workspace bindings: maps account-level connections to this workspace's
- * resources (which repo, team, database the agents act on). Each row is a
- * first-class object (design-anatomy §2): the provider brand mark, a plain
- * status pill, the bound resource with its account, a last-bound recency, and
- * one clear bind / unbind affordance. Rendered from CONNECTOR_REGISTRY, one row
- * per provider resource type; states are bound (pill + unbind) /
- * bound-but-reconnect-needed (madder pill) / connected-but-unbound (picker) /
- * not connected (calm Settings link). Obsidian tokens only, matched to /sync.
+ * WORKSPACE BINDINGS. What each connected source is actually pointed at.
+ *
+ * Rebuilt on the primitives 2026-07-29. The old shape was a bordered card
+ * holding one bordered row per provider resource, each with a 28px brand tile,
+ * a coloured status pill, a right-aligned three-line stack and a button: five
+ * pieces of chrome to say one fact. What it says now is a sentence with the
+ * control at the end of it, because a binding is a boundary you set and the
+ * governance canon says a boundary is a sentence, not a panel.
+ *
+ * KILLED, and what each cost:
+ *   - The 28px ProviderLogo tile. Ban 8: the decoration was taller than the
+ *     line it introduced, and the provider's name is right beside it.
+ *   - The moss/madder status pill. "Bound" under a heading that says bindings
+ *     is the redundancy ban; the resource name IS the proof it is bound. Red
+ *     survives for the one state a person must act on: bound, but the
+ *     connection behind it stopped reading.
+ *   - The bordered card and the per-row borders. One bordered container per
+ *     region, and a rule already divides Lines.
+ *   - The animate-pulse skeletons. Motion that carries no information, and the
+ *     system now has a Loading primitive that says so in words instead.
+ *
+ * KEPT: every server function, query key and state. Four states per resource,
+ * unchanged: bound / bound-but-not-reading / connected-and-unbound / not
+ * connected. Attribution is now on the line (`bound by`), because a binding is
+ * the reach the crew acts through and an unattributed one is a surface
+ * pretending the work did itself.
  */
-
-/** A quiet status pill: a role-colored dot + mono-caps word. Matches the
- *  connected-accounts pill language (moss = live, madder = needs a human). */
-function StatusPill({ tone, children }: { tone: "moss" | "madder"; children: string }) {
-  const color = tone === "moss" ? "var(--moss)" : "var(--madder)";
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        color,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{ width: 5, height: 5, borderRadius: 99, background: color, flexShrink: 0 }}
-      />
-      {children}
-    </span>
-  );
-}
 
 export function WorkspaceBindingsSection() {
   const qc = useQueryClient();
@@ -58,10 +50,7 @@ export function WorkspaceBindingsSection() {
   const fRemove = useServerFn(removeBinding);
 
   const qConnections = useQuery({ queryKey: ["connections"], queryFn: () => fConnections() });
-  const qBindings = useQuery({
-    queryKey: ["workspace-bindings"],
-    queryFn: () => fBindings(),
-  });
+  const qBindings = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
   const connections = (qConnections.data?.connections ?? []) as ConnectionRow[];
   const bindings = (qBindings.data?.bindings ?? []) as WorkspaceBindingRow[];
 
@@ -74,178 +63,124 @@ export function WorkspaceBindingsSection() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Unbind failed"),
   });
 
+  // Only providers that HAVE something to point at. A source with no resource
+  // types (Stripe, Zendesk) has nothing to bind, so drawing a row for it would
+  // be drawing a decision nobody can make.
   const providers = (Object.keys(CONNECTOR_REGISTRY) as ProviderId[])
     .map((id) => CONNECTOR_REGISTRY[id])
-    .filter((spec) => spec.resourceTypes.length > 0);
+    .filter((spec) => spec.userFacing !== false && spec.resourceTypes.length > 0);
 
   const isLoading = qConnections.isLoading || qBindings.isLoading;
-  const hasError = qConnections.error || qBindings.error;
+  const failed = qConnections.isError || qBindings.isError;
+
+  const boundCount = bindings.length;
+  const notReading = bindings.filter((b) => b.connection_status !== "connected").length;
 
   return (
-    <section style={{ marginBottom: 40 }}>
-      <h2 className="mono-label" style={{ margin: "0 0 4px", color: "var(--ink-subtle)" }}>
-        Workspace bindings
-      </h2>
-      <p style={{ color: "var(--ink-subtle)", margin: "0 0 12px", maxWidth: 560 }}>
-        Map your connected accounts to this workspace: which repo, team, or database the agents act
-        on.
-      </p>
-
-      {isLoading ? (
-        <div className="bento" style={{ padding: "var(--card-pad)", display: "grid", gap: 12 }}>
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{
-                height: 40,
-                borderRadius: 8,
-                background: "var(--surface-2)",
-              }}
-              aria-hidden="true"
-            />
-          ))}
-        </div>
-      ) : hasError ? (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <div className="mono-label" style={{ color: "var(--madder)" }}>
-            Couldn't load workspace bindings
-          </div>
-          <p style={{ color: "var(--ink-muted)", margin: "8px 0 0" }}>
-            {(qConnections.error as Error)?.message ??
-              (qBindings.error as Error)?.message ??
-              "Unknown error"}
-          </p>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={() => {
-              qConnections.refetch();
-              qBindings.refetch();
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div
-          className="bento"
-          style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
+    <Block
+      title="What each source is pointed at"
+      sub={
+        isLoading || failed
+          ? undefined
+          : boundCount === 0
+            ? "Nothing is pointed anywhere yet, so the crew reads a source but acts on nothing inside it."
+            : notReading > 0
+              ? `${boundCount} pointed. ${notReading} stopped reading because the connection behind it needs attention.`
+              : `${boundCount} pointed, all reading.`
+      }
+    >
+      {failed ? (
+        <Failed
+          onRetry={() => {
+            void qConnections.refetch();
+            void qBindings.refetch();
+          }}
         >
-          {providers.flatMap((spec, si) =>
-            spec.resourceTypes.map((rt, ri) => {
-              const isFirst = si === 0 && ri === 0;
-              const binding = bindings.find(
-                (b) => b.provider === spec.id && b.resource_kind === rt.kind,
-              );
-              const connection =
-                connections.find((c) => c.provider === spec.id && c.status === "connected") ??
-                connections.find((c) => c.provider === spec.id);
-              const boundTime = binding
-                ? latestIso([binding.updated_at, binding.created_at])
-                : null;
-              const healthy = binding?.connection_status === "connected";
+          The bindings did not load.{" "}
+          {(qConnections.error as Error)?.message ??
+            (qBindings.error as Error)?.message ??
+            "The read failed."}
+        </Failed>
+      ) : isLoading ? (
+        <Loading>Reading what each source is pointed at.</Loading>
+      ) : (
+        providers.flatMap((spec) =>
+          spec.resourceTypes.map((rt) => {
+            const binding = bindings.find(
+              (b) => b.provider === spec.id && b.resource_kind === rt.kind,
+            );
+            const connection =
+              connections.find((c) => c.provider === spec.id && c.status === "connected") ??
+              connections.find((c) => c.provider === spec.id);
+            const boundTime = binding ? latestIso([binding.updated_at, binding.created_at]) : null;
+            const healthy = binding?.connection_status === "connected";
 
-              return (
-                <div
-                  key={`${spec.id}:${rt.kind}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "var(--geist-space-3x)",
-                    padding: "12px 16px",
-                    borderTop: isFirst ? "none" : "1px solid var(--hairline)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-3x)", minWidth: 0 }}>
-                    <ProviderLogo provider={spec.id} size={28} />
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 500, color: "var(--ink)" }}>
-                        {spec.label}
-                      </div>
-                      <div style={{ color: "var(--ink-subtle)" }}>{rt.label}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 12 }}>
-                    {binding ? (
-                      <>
-                        <div style={{ textAlign: "right", minWidth: 0 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "var(--geist-space-2x)",
-                              justifyContent: "flex-end",
-                            }}
-                          >
-                            <StatusPill tone={healthy ? "moss" : "madder"}>
-                              {healthy ? "Bound" : "Reconnect needed"}
-                            </StatusPill>
-                          </div>
-                          <div
-                            style={{
-                              color: "var(--ink)",
-                              marginTop: 3,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              maxWidth: 260,
-                            }}
-                          >
-                            {binding.resource_label ?? binding.resource_id}
-                            <span style={{ color: "var(--ink-subtle)" }}>
-                              {" "}
-                              · via {binding.account_label ?? spec.label}
-                              {binding.owner_display ? ` (${binding.owner_display})` : ""}
-                            </span>
-                          </div>
-                          {boundTime ? (
-                            <div
-                              className="mono-label tabular-nums"
-                              style={{ color: "var(--ink-faint)", marginTop: 2 }}
-                            >
-                              bound {relTimeCaps(boundTime)}
-                            </div>
-                          ) : null}
-                        </div>
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-sm"
-                          disabled={mUnbind.isPending}
-                          onClick={() => mUnbind.mutate(binding.id)}
-                        >
-                          Unbind
-                        </button>
-                      </>
-                    ) : connection ? (
-                      <BindingPicker
-                        connectionId={connection.id}
-                        resourceKind={rt.kind}
-                        kindLabel={rt.label}
-                      />
-                    ) : (
-                      <span style={{ color: "var(--ink-subtle)" }}>
-                        Connect {spec.label} in{" "}
-                        <Link
-                          to="/settings"
-                          search={{ section: "connections" }}
-                          className="hover:underline"
-                          style={{ color: "var(--link)" }}
-                        >
-                          Settings · Connections
-                        </Link>{" "}
-                        first
-                      </span>
-                    )}
-                  </div>
-                </div>
+            let sub: React.ReactNode;
+            if (binding) {
+              sub = (
+                <>
+                  {binding.resource_label ?? binding.resource_id}
+                  {healthy ? null : (
+                    <>
+                      {" · "}
+                      <span className="sp-fail">not reading</span>
+                    </>
+                  )}
+                  {binding.account_label ? <> · via {binding.account_label}</> : null}
+                  {binding.owner_display ? <> · bound by {binding.owner_display}</> : null}
+                  {boundTime ? (
+                    <>
+                      {" · "}
+                      <Num>{relTimeCaps(boundTime).toLowerCase()}</Num>
+                    </>
+                  ) : null}
+                </>
               );
-            }),
-          )}
-        </div>
+            } else if (connection) {
+              sub = `Connected, but no ${rt.label.toLowerCase()} chosen. The crew can see the account and nothing inside it.`;
+            } else {
+              sub = `${spec.label} is not connected, so there is nothing to point yet.`;
+            }
+
+            return (
+              <Line
+                key={`${spec.id}:${rt.kind}`}
+                label={`${spec.label} ${rt.label.toLowerCase()}`}
+                sub={sub}
+              >
+                {binding ? (
+                  <Button
+                    variant="ghost"
+                    disabled={mUnbind.isPending}
+                    onClick={() => mUnbind.mutate(binding.id)}
+                  >
+                    Unbind
+                  </Button>
+                ) : connection ? (
+                  <BindingPicker
+                    connectionId={connection.id}
+                    resourceKind={rt.kind}
+                    kindLabel={rt.label}
+                  />
+                ) : (
+                  <Link
+                    to="/settings"
+                    search={{ section: "connections", connector: spec.id }}
+                    className="sp-btn"
+                    data-variant="ghost"
+                  >
+                    Connect it
+                  </Link>
+                )}
+              </Line>
+            );
+          }),
+        )
       )}
-    </section>
+
+      {!failed && !isLoading && providers.length === 0 ? (
+        <Empty>No source in the catalog has anything to point at yet.</Empty>
+      ) : null}
+    </Block>
   );
 }

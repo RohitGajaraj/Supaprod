@@ -23,6 +23,7 @@ import {
   deleteConnection,
   type ConnectionRow as AccountConnection,
   type ProviderAvailability,
+  type WorkspaceBindingRow,
 } from "@/lib/connections.functions";
 import {
   listMySuiteConnections,
@@ -45,49 +46,84 @@ import {
   Failed,
   Input,
   Line,
+  Loading,
   Num,
   PageHead,
   Row,
+  Select,
 } from "@/components/shell/primitives";
 
 /**
- * Sources. The account-level connect surface, inside Settings.
+ * SOURCES. Redesigned 2026-07-29 against the founder's own words: "the
+ * connector section, on the right side, if you see it's a lot of vertical
+ * scrolling. How can we make it better?"
  *
- * PORTED 2026-07-29 onto the rebuild primitives. What the port decided, and
- * why, because the shape changed and the reasons must survive it:
+ * The six questions (SURFACE-JUSTIFICATION.md), answered before a line changed.
  *
- * A SOURCE IS A BOUNDARY YOU SET, so it renders as a Line: what it is on the
- * left, the one control that changes it on the right, divided from its
- * neighbour by a rule. It is not a card. The old surface drew a two-pane
- * console (a 210px filter rail plus a grid of bordered per-provider cards)
- * inside a region that was already a Block, which is a card inside a region,
- * and forty of them at once. Governance canon: policy is set in advance and
- * does not block, so a boundary reads as a sentence with a control at the end
- * of it, never as a panel demanding attention.
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
+ *    Someone who just read "not reading" somewhere else in the product, or who
+ *    is about to start a mission and wants the crew to see Linear. One person,
+ *    one source, one round trip. Nobody has ever opened this pane to browse
+ *    twenty logos.
  *
- * KILLED, and what each cost:
- *   - The panel masthead ("Connect what you already use" plus its sub). The
- *     route already titles this surface with PageHead; a second heading inside
- *     it doubles the heading grammar.
- *   - The bordered card per provider, and the card shell around the error and
- *     the request box. One bordered container per region, maximum.
- *   - The left rail. Search survives as one input; Connected/All survive as two
- *     text tabs; the ten categories stop being ten filters and become quiet
- *     group labels down the list, which keeps the information and removes the
- *     facet wall.
- *   - The green Connected/Active pills. The row says "Connected as <account>",
- *     which is the same fact plus the one that was missing (WHICH account), and
- *     the interface stays monochrome. Colour is kept for the exception: a
- *     connection that stopped authorising reads red, because that is an outcome
- *     the reader has to act on.
- *   - The 34px provider logo tile. Ban 8, and the rebuild has no source-mark
- *     primitive to replace it with.
- *   - The vendor-neutrality paragraph. Three sentences of positioning in a
- *     settings rail is not what anyone came here for.
- *   - The skeleton card block and the disabled "Connect" button on a provider
- *     nobody can connect. A disabled primary is an affordance that lies.
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE:
+ *    Answering "what is the crew actually reading, on whose account, pointed at
+ *    what" without scrolling, and then connecting the one thing that is
+ *    missing. Those are two different questions and the old pane answered
+ *    neither: it was one flat alphabet of nineteen providers under ten category
+ *    headings, so the three you own were buried among the sixteen you do not,
+ *    and the account and the binding were nowhere on the line.
  *
- * Every server function, query key, mutation and exported prop is untouched.
+ * 3. KEEP / MOVE / KILL:
+ *    KEEP - the connect flows (GitHub App install, native OAuth, the suite
+ *      multi-account path, the last gateway popup), the trust interstitial, the
+ *      per-provider drill, the request box, the honest "not available yet"
+ *      state, and every server function and query key. None of that was the
+ *      problem.
+ *    KEEP, PROMOTED - the account behind a connection, and what it is bound to
+ *      in this workspace. Those were one and two clicks away respectively; they
+ *      are the answer to the question the pane exists for, so they are now on
+ *      the line.
+ *    KILL - the single flat list. Connected and available are different
+ *      questions asked by different people in different moods, so they are now
+ *      two regions with two shapes: a list you read, and a catalog you scan.
+ *    KILL - the ten category headings, each carrying 32px of top margin. Ten
+ *      headings and their air were roughly 440px of the scroll and they carried
+ *      one bit of information apiece. The category survives as one Select
+ *      beside the search box, which is the same information with none of the
+ *      height, and search already matched category names anyway.
+ *    KILL - the All / Connected tabs. The split they performed is now
+ *      structural, so a control that reproduces it is a control that does
+ *      nothing new.
+ *    KILL - the "Nothing connected yet" empty state standing in for a failed
+ *      read. Failed says so and offers one retry (it already did; kept).
+ *    MOVE - nothing off this surface. /sync keeps conflicts and the picker;
+ *      this pane now SHOWS the binding it owns rather than hiding the fact.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
+ *    Every account on a multi-account source, the scopes, the verify button,
+ *    the disconnect, and the full binding list live in the per-source drill
+ *    (?connector=). Changing a binding, and resolving a two-sided edit, live on
+ *    /sync. A source line is two lines and never wraps.
+ *
+ * 5. DELIGHT, AND CONFUSION:
+ *    The delight is the credential chain said out loud in plain words. A person
+ *    can read one line and know which of the four links is carrying the source:
+ *    their own account, an admin's workspace credential, a binding, or nothing.
+ *    That chain is real (resolve.server.ts: product binding, then workspace
+ *    binding, then user connection, then env fallback) and it was invisible.
+ *    What would confuse, and is therefore not drawn: a plan-tier lock we cannot
+ *    verify from the client, a green pill that means four different things, and
+ *    a Connect button on a provider whose OAuth app nobody registered.
+ *
+ * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
+ *    A source is the crew's reach. The connected line names who bound it, which
+ *    is attribution on the one artifact this surface owns, and it says what the
+ *    crew is reading through right now rather than what it could read in
+ *    principle. Nothing here animates a capability the wiring lacks: a source
+ *    whose connection stopped authorising says "not reading" in red on the same
+ *    line as the binding it has stopped feeding. There is no agent mark on this
+ *    pane because no agent acts here, and drawing one would be decoration.
  *
  * WHAT IS STILL TRUE. Four states per provider, resolved by statusFor():
  * connected (a real account row or suite account), env-active (an admin-managed
@@ -98,9 +134,7 @@ import {
  * (effectively dead) Lovable gateway popup. The Google/Microsoft suite is
  * multi-account so it connects through user_calendar_connections rather than
  * the single-connection-per-provider connections table, with the same UX.
- * Per-connection management lives in the ConnectorDetail drill below;
- * workspace-level resource bindings live on /sync. Anchorable via
- * /settings?section=connections.
+ * Anchorable via /settings?section=connections and ?connector=<id>.
  */
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
@@ -258,25 +292,126 @@ function useConnectorActions(qc: QueryClient) {
   return { mGithub, mGateway, mNative, mSuite, mVerify, busy };
 }
 
-// Per-provider status the list renders and the tabs count.
+// Per-provider status the two regions are built from.
 type CardStatus = "connected" | "active" | "connect" | "soon";
 
-/** The category label that heads a run of sources. A label, not a heading: the
- *  surface is already titled, and a second heading grammar inside it is the
- *  defect the port was called to remove. */
-function GroupLabel({ children, count }: { children: string; count: number }) {
+/** A source line never wraps. Founder ruling: one or two lines, depth on click. */
+const CLAMP = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+} as const;
+
+/** The catalog grid.
+ *
+ *  A GRID rather than a column, because a catalog is scanned and a boundary is
+ *  read. Nineteen providers in one column is nineteen rows; the same nineteen
+ *  at three or four across is five. That is the founder's vertical scroll, and
+ *  it is arithmetic rather than taste.
+ *
+ *  Reported as a gap: the system has no neutral grid-of-cells primitive. The
+ *  only one that exists is the crew roster's .sp-agrid / .sp-acard, whose names
+ *  say "agent" and whose hover lives in the stylesheet, which this lane does not
+ *  own. So the grid and the cell are built from tokens here rather than
+ *  borrowing a shape that means something else.
+ */
+const CATALOG_GRID = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
+  gap: "var(--sp-space-2)",
+} as const;
+
+/** The cell.
+ *
+ *  No border: a bordered cell repeated nineteen times is nineteen bordered
+ *  containers in one region, which the anti-slop standard caps at one. It reads
+ *  as a cell because it is tinted, and the WHOLE cell is the affordance rather
+ *  than carrying a button, which is what keeps it two lines tall.
+ */
+function CatalogCell({
+  label,
+  sub,
+  onConnect,
+  hint,
+  disabled,
+}: {
+  label: string;
+  sub: string;
+  /** Absent when nobody can connect this yet. An affordance is a promise. */
+  onConnect?: () => void;
+  hint?: string;
+  disabled?: boolean;
+}) {
+  const [lit, setLit] = useState(false);
+
+  const shell = {
+    display: "block",
+    width: "100%",
+    textAlign: "left" as const,
+    font: "inherit",
+    border: 0,
+    padding: "10px 12px",
+    borderRadius: "var(--sp-radius-card)",
+    background: "var(--sp-lift)",
+  };
+
+  const body = (
+    <>
+      <span
+        style={{
+          display: "block",
+          fontSize: "var(--sp-text-body)",
+          fontWeight: "var(--sp-weight-medium)",
+          color: "var(--sp-ink)",
+          ...CLAMP,
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          display: "block",
+          marginTop: 1,
+          fontSize: "var(--sp-text-label)",
+          color: "var(--sp-mute)",
+          ...CLAMP,
+        }}
+      >
+        {sub}
+      </span>
+    </>
+  );
+
+  // Not connectable: a plain box, so it never lights up under the cursor. A
+  // hover state on something that does nothing is a lie about what will happen.
+  if (!onConnect) {
+    return (
+      <div style={{ ...shell, opacity: 0.5 }} title={hint}>
+        {body}
+      </div>
+    );
+  }
+
   return (
-    <div
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onConnect}
+      onMouseEnter={() => setLit(true)}
+      onMouseLeave={() => setLit(false)}
+      onFocus={() => setLit(true)}
+      onBlur={() => setLit(false)}
       style={{
-        marginTop: "var(--sp-space-8)",
-        marginBottom: "var(--sp-space-2)",
-        fontSize: "var(--sp-text-label)",
-        fontWeight: "var(--sp-weight-medium)",
-        color: "var(--sp-mute)",
+        ...shell,
+        background: lit && !disabled ? "var(--sp-float)" : "var(--sp-lift)",
+        color: "inherit",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        transition: "background var(--sp-dur-fast) var(--sp-ease)",
       }}
     >
-      {children} <Num>{count}</Num>
-    </div>
+      {body}
+    </button>
   );
 }
 
@@ -317,13 +452,15 @@ export function AccountConnectionsSection({
 
   const fList = useServerFn(listConnections);
   const fSuiteList = useServerFn(listMySuiteConnections);
+  const fBindings = useServerFn(listWorkspaceBindings);
   const fRequest = useServerFn(requestConnector);
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
-  const suite = useQuery({
-    queryKey: ["calendar-connections"],
-    queryFn: () => fSuiteList(),
-  });
+  const suite = useQuery({ queryKey: ["calendar-connections"], queryFn: () => fSuiteList() });
+  // Same query key /sync and ConnectorDetail read, so the cache is shared and
+  // this costs no second fetch. It is here because "which repo does it read"
+  // is half the question this pane exists to answer.
+  const bindings = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
 
   // Detect a newly-appeared GitHub connection (for the new-tab polling flow).
   // hadGithubRef starts null so we skip the toast on first data load.
@@ -366,12 +503,11 @@ export function AccountConnectionsSection({
     byProvider.set(c.provider, arr);
   }
   const suiteAccounts = suite.data?.connections ?? [];
-
-  // End-user providers only: internal/service connectors (firecrawl, anything
-  // flagged userFacing: false in the registry) never render here.
-  const visibleProviders = Object.values(CONNECTOR_REGISTRY).filter(
-    (spec) => spec.id !== "firecrawl" && spec.userFacing !== false,
-  );
+  const bindingRows: WorkspaceBindingRow[] = bindings.data?.bindings ?? [];
+  // The bindings read is independent of the sources read, so it can fail on its
+  // own. When it has not answered, the line says nothing about bindings rather
+  // than saying "nothing bound yet", which would be a claim we cannot make.
+  const bindingsKnown = bindings.isSuccess;
 
   const availability = list.data?.providerAvailability;
 
@@ -387,18 +523,14 @@ export function AccountConnectionsSection({
     return (byProvider.get(spec.id)?.length ?? 0) > 0;
   };
 
-  // Four states, resolved once per provider (same logic drives the line and the
-  // Connected tab count): a live connection, an env-active workspace token, an
-  // OAuth app that is configured (real Connect), or not available yet.
+  // Four states, resolved once per provider: a live connection, an env-active
+  // workspace token, an OAuth app that is configured (real Connect), or not
+  // available yet.
   const statusFor = (spec: ProviderSpec): CardStatus => {
     if (isConnected(spec)) return "connected";
     if (providerEnvActive(spec, availability)) return "active";
     if (providerConfigured(spec, availability)) return "connect";
     return "soon";
-  };
-  const isConnectedish = (spec: ProviderSpec): boolean => {
-    const s = statusFor(spec);
-    return s === "connected" || s === "active";
   };
 
   // The single, honest "last synced / verified" recency for a connected
@@ -440,6 +572,12 @@ export function AccountConnectionsSection({
   const brokenFor = (spec: ProviderSpec): boolean =>
     (byProvider.get(spec.id) ?? []).some((c) => c.status === "error");
 
+  /** What this source is pointed at in this workspace. The third link of the
+   *  credential chain, and the founder's own test question: "is Linear
+   *  connected, and to which workspace?" */
+  const boundFor = (spec: ProviderSpec): WorkspaceBindingRow[] =>
+    bindingRows.filter((b) => b.provider === spec.id);
+
   // The connect flow for a not-yet-connected provider (GitHub App redirect,
   // suite OAuth redirect, native OAuth redirect, or the legacy gateway popup).
   const connectProvider = (spec: ProviderSpec) => {
@@ -451,104 +589,137 @@ export function AccountConnectionsSection({
   };
 
   // The one canonical catalog, flattened, each entry carrying its category so
-  // the list can be searched flat and still grouped on the way out.
+  // the catalog can be searched flat and filtered without ten headings.
+  const catalogGroups = useMemo(() => buildConnectorCatalog(), []);
   const allEntries = useMemo(() => {
     const out: { entry: CatalogEntry; category: ConnectorCategory; categoryLabel: string }[] = [];
-    for (const g of buildConnectorCatalog()) {
+    for (const g of catalogGroups) {
       for (const e of g.entries) out.push({ entry: e, category: g.id, categoryLabel: g.label });
     }
     return out;
-  }, []);
+  }, [catalogGroups]);
 
-  // Live search plus one status tab. The ten category filters became group
-  // labels: the same information, without a wall of facets in a settings pane.
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "connected">("all");
+  const [category, setCategory] = useState<ConnectorCategory | "all">("all");
   const clearFilters = () => {
-    setStatusFilter("all");
+    setCategory("all");
     setQuery("");
   };
 
-  const connectedCount = visibleProviders.filter(isConnectedish).length;
-  const allCount = allEntries.length;
-
   const q = query.trim().toLowerCase();
-  const filtered = allEntries.filter((a) => {
-    const spec = CONNECTOR_REGISTRY[a.entry.id];
-    if (statusFilter === "connected" && !isConnectedish(spec)) return false;
-    if (!q) return true;
-    return (
-      a.entry.label.toLowerCase().includes(q) ||
-      a.entry.description.toLowerCase().includes(q) ||
-      a.categoryLabel.toLowerCase().includes(q)
-    );
+
+  // THE SPLIT, and it is the whole redesign: what you have is a list you read,
+  // what you could have is a catalog you scan. Same nineteen providers, two
+  // questions, two shapes.
+  const reading = allEntries.filter((a) => {
+    const s = statusFor(CONNECTOR_REGISTRY[a.entry.id]);
+    return s === "connected" || s === "active";
+  });
+  const catalog = allEntries.filter((a) => {
+    const s = statusFor(CONNECTOR_REGISTRY[a.entry.id]);
+    return s === "connect" || s === "soon";
   });
 
-  // Catalog order is category order, so consecutive runs are the groups.
-  const groups: { id: ConnectorCategory; label: string; entries: CatalogEntry[] }[] = [];
-  for (const a of filtered) {
-    const last = groups[groups.length - 1];
-    if (last && last.id === a.category) last.entries.push(a.entry);
-    else groups.push({ id: a.category, label: a.categoryLabel, entries: [a.entry] });
-  }
+  const filteredCatalog = catalog
+    .filter((a) => {
+      if (category !== "all" && a.category !== category) return false;
+      if (!q) return true;
+      return (
+        a.entry.label.toLowerCase().includes(q) ||
+        a.entry.description.toLowerCase().includes(q) ||
+        a.categoryLabel.toLowerCase().includes(q)
+      );
+    })
+    // Connectable first: what you can do now outranks what an admin has to do
+    // first. Category order holds inside each half so relatives stay adjacent.
+    .sort((a, b) => {
+      const ca = statusFor(CONNECTOR_REGISTRY[a.entry.id]) === "connect" ? 0 : 1;
+      const cb = statusFor(CONNECTOR_REGISTRY[b.entry.id]) === "connect" ? 0 : 1;
+      return ca - cb;
+    });
 
-  const sourceLine = (e: CatalogEntry) => {
+  const connectableCount = catalog.filter(
+    (a) => statusFor(CONNECTOR_REGISTRY[a.entry.id]) === "connect",
+  ).length;
+  const pendingCount = catalog.length - connectableCount;
+
+  // Sorted so the thing you have to act on is first, then alphabetical. Never
+  // insert order: a list whose order changes under you is a list you re-read.
+  const readingSorted = [...reading].sort((a, b) => {
+    const ba = brokenFor(CONNECTOR_REGISTRY[a.entry.id]) ? 0 : 1;
+    const bb = brokenFor(CONNECTOR_REGISTRY[b.entry.id]) ? 0 : 1;
+    return ba - bb || a.entry.label.localeCompare(b.entry.label);
+  });
+
+  const loading = list.isLoading || suite.isLoading;
+  const failed = list.isError;
+
+  /** The head states the boundary currently in force, from real rows only.
+   *  While the read is in flight or after it failed it says so instead. */
+  const headSub: ReactNode = failed
+    ? "Your sources did not load, so nothing below is the whole picture."
+    : loading
+      ? "Reading what the crew is connected to."
+      : reading.length === 0
+        ? `The crew reads nothing yet. ${connectableCount > 0 ? `${connectableCount} sources are ready to connect.` : "Every source is still waiting on an admin to register its app."}`
+        : `The crew reads ${reading.length} ${reading.length === 1 ? "source" : "sources"}. ${connectableCount > 0 ? `${connectableCount} more are ready to connect.` : "Everything else is waiting on an admin."}`;
+
+  const readingLine = (a: { entry: CatalogEntry }) => {
+    const e = a.entry;
     const spec = CONNECTOR_REGISTRY[e.id];
     const status = statusFor(spec);
+    const broken = brokenFor(spec);
+    const bound = boundFor(spec);
+    const activity = lastActivityFor(spec);
+    const { count, label } = accountsFor(spec);
 
-    let sub: ReactNode = e.description;
-    let control: ReactNode = null;
-
-    if (status === "connected") {
-      const { count, label } = accountsFor(spec);
-      const activity = lastActivityFor(spec);
-      sub = brokenFor(spec) ? (
-        <span className="sp-fail">It stopped authorising. Reconnect it.</span>
-      ) : (
-        <>
-          {count > 1 ? (
-            <>
-              Connected on <Num>{count}</Num> accounts
-            </>
-          ) : label ? (
-            <>Connected as {label}</>
-          ) : (
-            <>Connected</>
-          )}
-          {activity ? (
-            <>
-              {" · "}
-              {activity.verb} <Num>{ago(activity.iso)}</Num>
-            </>
-          ) : null}
-        </>
-      );
-      control = (
-        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
-          Manage
-        </Button>
-      );
+    // The credential chain, in plain words, in the order resolve.server.ts
+    // walks it: the binding, then whose account carries it.
+    const parts: ReactNode[] = [];
+    if (broken) {
+      parts.push(<span className="sp-fail">It stopped authorising. Reconnect it.</span>);
     } else if (status === "active") {
-      sub = "Reading through a workspace credential. Nothing for you to connect.";
-      control = (
-        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
-          Manage
-        </Button>
+      parts.push(<>Reading on a workspace credential an admin set</>);
+    } else if (count > 1) {
+      parts.push(
+        <>
+          Connected on <Num>{count}</Num> accounts
+        </>,
       );
-    } else if (status === "connect") {
-      control = (
-        <Button disabled={busy} onClick={() => setTrustFor(spec)}>
-          Connect
-        </Button>
-      );
+    } else if (label) {
+      parts.push(<>Connected as {label}</>);
     } else {
-      control = (
-        <span
-          title={setupHintFor(spec)}
-          style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)" }}
-        >
-          Not available yet
-        </span>
+      parts.push(<>Connected</>);
+    }
+
+    if (bound.length === 1) {
+      const b = bound[0];
+      parts.push(
+        <>
+          reads {b.resource_label ?? b.resource_id}
+          {b.connection_status === "connected" ? null : (
+            <>
+              {" "}
+              <span className="sp-fail">not reading</span>
+            </>
+          )}
+        </>,
+      );
+    } else if (bound.length > 1) {
+      parts.push(
+        <>
+          reads <Num>{bound.length}</Num> bound resources
+        </>,
+      );
+    } else if (bindingsKnown && spec.resourceTypes.length > 0) {
+      parts.push(<>nothing bound yet</>);
+    }
+
+    if (!broken && activity) {
+      parts.push(
+        <>
+          {activity.verb} <Num>{ago(activity.iso)}</Num>
+        </>,
       );
     }
 
@@ -556,96 +727,122 @@ export function AccountConnectionsSection({
       <Line
         key={e.id}
         label={e.label}
-        // One line, and it is a different fact from the name: what this source
-        // brings in, or what it is currently letting through.
         sub={
-          <span
-            style={{
-              display: "block",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {sub}
+          <span style={{ display: "block", ...CLAMP }}>
+            {parts.map((p, i) => (
+              <span key={i}>
+                {i > 0 ? " · " : null}
+                {p}
+              </span>
+            ))}
           </span>
         }
       >
-        {control}
+        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
+          Manage
+        </Button>
       </Line>
     );
   };
 
   return (
     <div id="connections">
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--sp-space-3)",
-          flexWrap: "wrap",
-        }}
-      >
-        <Input
-          value={query}
-          onChange={(ev) => setQuery(ev.target.value)}
-          placeholder="Search sources"
-          aria-label="Search sources"
-          style={{ width: 220 }}
-        />
-        <span
-          className="sp-tabs"
-          role="tablist"
-          aria-label="Filter sources"
-          style={{ marginTop: 0 }}
-        >
-          <button
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={statusFilter === "all"}
-            onClick={() => setStatusFilter("all")}
-          >
-            All<span className="sp-tab-count">{allCount}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className="sp-tab"
-            aria-selected={statusFilter === "connected"}
-            onClick={() => setStatusFilter("connected")}
-          >
-            Connected<span className="sp-tab-count">{connectedCount}</span>
-          </button>
-        </span>
-      </div>
+      <PageHead title="Sources" sub={headSub} />
 
-      {list.isLoading ? (
-        <Empty>Reading your sources.</Empty>
-      ) : list.isError ? (
-        // A failed read must never wear an empty state's clothes: painting every
-        // provider "not available yet" would be a lie about the catalog.
-        <Failed onRetry={() => void list.refetch()}>
-          Your sources did not load. {(list.error as Error)?.message ?? "The read failed."}
-        </Failed>
-      ) : groups.length === 0 ? (
-        <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
-          {q ? `Nothing matches ${query.trim()}.` : "Nothing connected yet."}
-        </Empty>
-      ) : (
-        groups.map((g) => (
-          <div key={g.id}>
-            <GroupLabel count={g.entries.length}>{g.label}</GroupLabel>
-            {g.entries.map(sourceLine)}
+      <Block
+        title="What the crew reads"
+        sub="Each line says which account carries the source and what it is pointed at in this workspace."
+      >
+        {failed ? (
+          <Failed onRetry={() => void list.refetch()}>
+            Your sources did not load. {(list.error as Error)?.message ?? "The read failed."}
+          </Failed>
+        ) : loading ? (
+          <Loading>Reading your sources.</Loading>
+        ) : readingSorted.length === 0 ? (
+          <Empty>
+            Nothing connected. The crew reads only what you connect, so every mission currently runs
+            on what you type into it.
+          </Empty>
+        ) : (
+          readingSorted.map(readingLine)
+        )}
+      </Block>
+
+      <Block
+        title="Add a source"
+        sub={
+          failed || loading
+            ? undefined
+            : pendingCount > 0
+              ? `${connectableCount} you can connect now. ${pendingCount} still need an admin to register the app.`
+              : `${connectableCount} you can connect now.`
+        }
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--sp-space-2)",
+            flexWrap: "wrap",
+            marginBottom: "var(--sp-space-3)",
+          }}
+        >
+          <Input
+            value={query}
+            onChange={(ev) => setQuery(ev.target.value)}
+            placeholder="Search"
+            aria-label="Search sources"
+            style={{ width: 200 }}
+          />
+          {/* The ten category headings, and their 32px of air apiece, said as
+              one control. Same information, none of the height. */}
+          <Select
+            value={category}
+            aria-label="Filter by category"
+            onChange={(ev) => setCategory(ev.target.value as ConnectorCategory | "all")}
+            style={{ width: 190 }}
+          >
+            <option value="all">Every kind</option>
+            {catalogGroups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        {failed ? (
+          <Empty>The catalog needs the sources read above. Retry it and this fills in.</Empty>
+        ) : loading ? (
+          <Loading>Reading the catalog.</Loading>
+        ) : filteredCatalog.length === 0 ? (
+          <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
+            {q ? `Nothing matches ${query.trim()}.` : "Nothing left to connect in that kind."}
+          </Empty>
+        ) : (
+          <div style={CATALOG_GRID}>
+            {filteredCatalog.map((a) => {
+              const spec = CONNECTOR_REGISTRY[a.entry.id];
+              const can = statusFor(spec) === "connect";
+              return (
+                <CatalogCell
+                  key={a.entry.id}
+                  label={a.entry.label}
+                  sub={can ? a.entry.flowLabel : "Waiting on an admin"}
+                  hint={can ? undefined : setupHintFor(spec)}
+                  disabled={busy}
+                  onConnect={can ? () => setTrustFor(spec) : undefined}
+                />
+              );
+            })}
           </div>
-        ))
-      )}
+        )}
+      </Block>
 
       {/* The two things that are not a source: where sources bind, and the one
-          you wish we carried. One form so the two lines divide from each other
-          the way every other pair of Lines on this surface does. */}
+          you wish we carried. */}
       <form
-        style={{ marginTop: "var(--sp-space-8)" }}
         onSubmit={(ev) => {
           ev.preventDefault();
           const trimmed = wanted.trim();
@@ -653,14 +850,14 @@ export function AccountConnectionsSection({
         }}
       >
         <Line
-          label="Workspace bindings"
-          sub="Which repo, project or page each source reads in this workspace."
+          label="Point a source at something else"
+          sub="Which repo, team, channel or database each one reads, and any two-sided edit waiting to be settled."
         >
-          <Link to="/sync" className="sp-btn">
+          <Link to="/sync" className="sp-btn" data-variant="ghost">
             Open sync
           </Link>
         </Line>
-        <Line label="Request a source">
+        <Line label="Ask for a source we do not carry">
           <Input
             value={wanted}
             onChange={(ev) => setWanted(ev.target.value)}
@@ -693,12 +890,6 @@ export function AccountConnectionsSection({
 /* ---- ConnectorDetail: the per-provider drill, reached with ?connector= and
    rendered in place of the whole Sources pane, so it owns a PageHead of its
    own rather than the retired DrillHeader.
-
-   Ported with the same two cuts as the list. The three "stat" cards collapsed
-   into the subtitle, because "since Jun 3 · 2 accounts · verified Jul 27" is
-   one sentence of facts, not three panels. The bindings card and the account
-   table became Blocks of Rows: a table header, a grid template and a per-row
-   border are three ways of drawing what a rule already draws.
 
    Four states, unchanged: setup required (no OAuth app and no env token),
    active via an admin-managed env credential (nothing for this user to
@@ -811,7 +1002,7 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <Empty>Reading {spec.label}.</Empty>
+        <Loading>Reading {spec.label}.</Loading>
       </>
     );
   }
@@ -1069,6 +1260,7 @@ export function ConnectorDetail({
               sub={
                 <>
                   {b.resource_kind}
+                  {b.owner_display ? <> · bound by {b.owner_display}</> : null}
                   {b.connection_status === "connected" ? null : (
                     <>
                       {" · "}

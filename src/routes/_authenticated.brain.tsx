@@ -1,82 +1,126 @@
 /**
- * Brain. What the record already knows.
+ * Brain. What the record has learned, and what it now tells the crew.
  *
  * The prototype does not draw this surface, so it is not a re-skin. It is
  * redesigned from the person standing on it, per
- * docs/planning/rebuild-2026-07/SURFACE-JUSTIFICATION.md. The five answers,
- * written before the code, so the next session reads a decision and not an
- * assembly:
+ * docs/planning/rebuild-2026-07/SURFACE-JUSTIFICATION.md. A first pass took it
+ * from fifteen rendered panels to six plus two behind a click. That pass was
+ * subtraction only. This one asks the harder question the founder put to it:
+ * "In Brain, you need to see what and all we can change, modify, kill, and
+ * consolidate."
+ *
+ * THE TEST EVERY PANEL HERE NOW HAS TO PASS. CLAUDE.md investor canon, binding:
+ * "The brain is never storage. Banned framing: where the record lives. Canon:
+ * it compounds; next time it tells you what is right, and warns before you
+ * repeat what was wrong." So the question is not "is this true", it is "does
+ * this make the brain look like it COMPOUNDS". A panel that lists stored rows
+ * is a filing cabinet and fails no matter how accurate it is.
  *
  * 1. WHO IS HERE, AND WHAT DID THEY COME TO DO.
  *    A PM about to make a call, or about to defend one they made, who wants to
- *    know what this workspace already settled: was this decided before, what
- *    happened the last time we tried it, where is the standing brief. One task:
- *    recall, with the receipt attached.
+ *    know what this workspace already settled and what it cost: was this
+ *    decided before, what happened the last time we tried it, what does the
+ *    crew now do differently because of it. One task: recall, with the receipt
+ *    attached.
  *
  * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE.
- *    Finding what the workspace already knows before you decide again. Without
- *    it you ask people, or you re-derive it, or you repeat a miss. Everything
- *    else on this page either serves that or was removed.
+ *    Finding out what the workspace already knows before you decide again, and
+ *    seeing that the knowing changed something. Without it you ask people, or
+ *    you re-derive it, or you repeat a miss.
  *
- * 3. EVERY ELEMENT, KEEP / MOVE / KILL.
+ * 3. EVERY ELEMENT, KEEP / MERGE / KILL.
  *    KEPT, because the recall happens here:
- *      DecisionsPanel + DecisionDetail  the ledger of calls, and its drill.
- *      CompoundingPanel + LearningDetail  what the outcome taught, with cause.
- *      MemoryList  what the crew will recall on the next run. /memory redirects
- *        here, so this is its only home.
- *      MemoryReviewQueue  behind a click ("Add to the record"). Its queue half
- *        duplicates Approvals, but its composer is the ONLY way a human writes
- *        to memory by hand, and this is where you would look for it.
- *      BriefPanel, DocsPanel  the standing written record.
- *      GraphPanel  how it all connects, with the focus drill intact.
- *      MemoryUpgradeNudge  free memory fades; that is a real constraint on the
- *        very thing you are reading, stated where it bites. Free tier only.
- *      The substrate counts  behind one disclosure, because they are inventory,
- *        not recall.
- *    MOVED, and NOT moved by this file (another agent owns the destination):
- *      InsightsPanel        -> /analytics. Charts over getBrainInsights. A
- *                              dashboard, not recall.
- *      ImpactLedgerPanel    -> /learn, which already renders getImpactLedger
- *                              with the same copy and download. The /impact
- *                              stub currently redirects to /brain?tab=insights
- *                              and must be re-pointed.
- *      ChangelogPanel       -> /ship. The /changelog stub redirects here and
- *                              must be re-pointed.
- *      AnnouncementsPanel   -> /ship. Authoring and publishing outbound is an
- *                              act, not a record.
- *      ShipHistoryPanel     -> /ship or Runs. Completed runs are Runs' subject.
- *      CapabilitiesPanel    -> /crew or Settings. It edits agent instructions
- *                              and toggles skills: configuration, not memory.
+ *      The Record recess       the newest call an outcome re-ranked, in the
+ *                              record's own words. The one lit surface, and
+ *                              the product's claim made literal.
+ *      DecisionsPanel          the ledger, and the "was this decided before"
+ *        + DecisionDetail      tool. The drill carries the contradiction
+ *                              auditor, which is where a warning belongs: at
+ *                              the point of decision, not on a browse page.
+ *      CompoundingPanel        what the outcome taught, with the cause.
+ *        + LearningDetail
+ *      MemoryList              what the crew will recall on the next run.
+ *                              /memory redirects here, so this is its only home.
+ *      MemoryReviewQueue       behind a click. Its queue half duplicates
+ *                              Approvals, but its composer is the ONLY way a
+ *                              human writes to memory by hand.
+ *      BriefPanel, DocsPanel   the standing written record.
+ *      GraphPanel              how it all connects, focus drill intact.
+ *      The substrate counts    behind one disclosure. Inventory, not recall.
+ *
+ *    ADDED, because nothing on the surface passed the compounding test on its
+ *    own and the schema already held two things that do:
+ *      StandingRules   the house rules the steward distilled out of validated
+ *                      outcomes, that a human approved, and that go into every
+ *                      agent's prompt before it acts (loop.server.ts:387-388).
+ *                      This is "next time it tells you what is right", wired,
+ *                      dated, and citing the outcomes it came from. It had no
+ *                      reader on this surface at all.
+ *      CrewCarries     one line over the memory list: how many of those
+ *                      memories a run has actually read back, and how many a
+ *                      human's later rating marked as having helped or as
+ *                      contradicted. agent_memory.last_used_at and
+ *                      memory_recall_log.outcome were both being written and
+ *                      neither was ever read by a surface.
+ *
+ *    MERGED:
+ *      The headline    was "72 calls and 49 learnings are on the record", which
+ *                      is the banned framing exactly: a manifest of what is
+ *                      stored. It now states what the record DID, and the
+ *                      manifest moves down to the second line where a size
+ *                      belongs. One head, two registers, nothing said twice.
+ *      MemoryList's    the list counts what is stored; the region above it now
+ *        region head   counts what was used. Two different facts, one region,
+ *                      and the used one leads because it is the one that
+ *                      proves anything.
+ *      Tab labels      "Learnings" named a table; the panel under it says
+ *                      "outcomes" in its own copy, so the door says Outcomes.
+ *                      "Docs" undersold a tab that opens with the standing
+ *                      strategic calls, so it says Written. Decisions and Graph
+ *                      keep their names because inbound links and the panels'
+ *                      own vocabulary already use them.
+ *
  *    KILLED:
- *      The PageHeader hero  sold the surface ("Your product's brain.", plus a
- *        marketing line) and put ember on a heading. Ember marks the human.
- *      BrainStatTrio  the same getImpactLedger read as ImpactLedgerPanel, in
- *        retired Geist Pixel, headed by a raw ICE number.
- *      PlaybookProposalsPanel  a pending human decision. approvals-queue
- *        already sources playbook_proposals; a decision belongs to one place.
- *      PresenceChip and AgentRelay  a live line for one agent on a surface
- *        about the past. The shell draws the live line now.
- *      The seven-count card, the pulsing dot, "Ask reads all of this when it
- *        answers you"  a boast and a duplicate. Three counts that map to the
- *        three doors stay in the head; the other six are one click down.
- *      The four tab descriptions  a third paragraph explaining four one-word
- *        labels.
+ *      MemoryUpgradeNudge   an ember-tinted banner built on the retired Tempo
+ *                      tokens (--ember, --canvas, --ink). None of the three
+ *                      resolve against this shell, so its hardcoded fallbacks
+ *                      painted a cream box on a pure-dark surface, and it spent
+ *                      ember, which marks the human and nothing else, on a
+ *                      billing upsell. The FACT survives as one plain line
+ *                      (RetentionLine), because a retention default the user
+ *                      never set is our policy choice and has to be visible and
+ *                      changeable.
+ *
+ *    MOVED, by the earlier pass and not re-litigated here: InsightsPanel to
+ *      /analytics, ImpactLedgerPanel to /learn, ChangelogPanel and
+ *      AnnouncementsPanel and ShipHistoryPanel to /ship, CapabilitiesPanel to
+ *      /crew or Settings.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
- *    The rest of the substrate (chat threads, signals, meetings, specs, saved
- *    notes, live connections), the memory composer and its pending queue, every
- *    decision's evidence (?decision=), every learning's full record
- *    (?learning=), and every graph node's history. The surface itself is a
- *    title, one thing the record has to say, four doors, and one list.
+ *    The rest of the substrate, the memory composer and its pending queue,
+ *    every decision's evidence and contradiction audit (?decision=), every
+ *    learning's full record (?learning=), every graph node's history, and every
+ *    standing rule past the third. Deciding a rule is not one click away, it is
+ *    somewhere else entirely: the Safety room owns rule management, and a
+ *    decision belongs to one place.
  *
  * 5. DELIGHT, AND CONFUSION.
- *    The moment: you open Brain and the record speaks first. The newest
- *    re-scored call sits in the lit recess, in its own words, with the priority
- *    it moved and the day it moved, and one click opens the whole learning.
- *    That is the product's claim made literal, and it is drawn only when it is
- *    true. The confusion this avoided: twenty stacked panels across four tabs,
- *    where every answer looked equally important and none of them was the one
- *    you came for.
+ *    The moment: the record speaks first, in its own words, and then shows you
+ *    the sentence it has since written into every agent's prompt because of it.
+ *    Outcome, then consequence, in two elements, above the fold. The confusion
+ *    this avoids: a page whose first screen counts rows, which teaches you that
+ *    the brain is a database with a nice font.
+ *
+ * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE.
+ *    Honestly: before this pass, barely, and the test failed. Every panel was
+ *    attributed, but attribution on a list of rows is not agency. Remove every
+ *    agent from the product and the old Brain lost nothing except some names in
+ *    grey. It now has one element that cannot survive that removal: a standing
+ *    rule exists only to be injected into an agent's prompt, so with no agents
+ *    it is not a diminished feature, it is a meaningless one. The recall line
+ *    is the same: last_used_at only moves when a run reaches for a memory. The
+ *    parts that still would not survive the test are named in the report, and
+ *    the Docs tab is the clearest of them.
  *
  * UNCHANGED: the route contract. Four tabs, every legacy tab id still resolving
  * through LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId=
@@ -88,10 +132,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
+import type { CompoundingSummary } from "@/lib/moat-vis";
+import { RetentionLine } from "@/components/brain/RetentionLine";
+import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
   Block,
   Button,
@@ -165,10 +211,12 @@ const LEGACY_TABS: Record<LegacyTab, Tab> = {
   capabilities: "docs",
 };
 
+// The ids are the URL contract and never change. The labels name the QUESTION
+// the door answers rather than the table behind it.
 const TAB_LABEL: Record<Tab, string> = {
   decisions: "Decisions",
-  learnings: "Learnings",
-  docs: "Docs",
+  learnings: "Outcomes",
+  docs: "Written",
   graph: "Graph",
 };
 
@@ -286,9 +334,28 @@ export const Route = createFileRoute("/_authenticated/brain")({
   ),
 });
 
-/** The first line is a fact, assembled from counts that are real or absent.
- *  A count that did not load contributes no clause, and never a zero. */
-function recordHeadline(calls: number | null, learnings: number | null, loading: boolean): string {
+/**
+ * The first line says what the record DID, not what it holds. "N calls are on
+ * the record" is the banned framing exactly: a manifest of storage. The size of
+ * the record is real and useful, so it moves to the second line, where a size
+ * belongs.
+ *
+ * Priority is by strength of claim: an outcome that moved a ranking beats a
+ * count of anything. A young workspace that has not compounded yet falls back
+ * to the honest manifest rather than to a claim it has not earned.
+ */
+function recordHeadline(
+  summary: CompoundingSummary | null,
+  calls: number | null,
+  learnings: number | null,
+  loading: boolean,
+): string {
+  const rescored = summary?.rescoreCount ?? 0;
+  if (rescored > 0) {
+    return rescored === 1
+      ? "A real outcome has re-scored one call."
+      : `Real outcomes have re-scored ${rescored} calls.`;
+  }
   if (calls === null && learnings === null) {
     return loading ? "Reading the record." : "The record did not load.";
   }
@@ -297,7 +364,7 @@ function recordHeadline(calls: number | null, learnings: number | null, loading:
   if (learnings) clauses.push(learnings === 1 ? "one learning" : `${learnings} learnings`);
   if (clauses.length === 0) return "Nothing is on the record yet.";
   const verb = clauses.length === 1 && clauses[0].startsWith("one ") ? "is" : "are";
-  const sentence = `${clauses.join(" and ")} ${verb} on the record.`;
+  const sentence = `${clauses.join(" and ")} ${verb} on the record, and nothing has come back yet.`;
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
@@ -351,9 +418,15 @@ function MemoryPage() {
 
   const counts = brain.data?.counts ?? null;
   const learningCount = stats.data?.learnings ?? null;
+  const summary = compounding.data?.summary ?? null;
   const countsLoading = brain.isLoading || stats.isLoading;
   const countsFailed = (brain.isError || stats.isError) && !counts && learningCount === null;
-  const headline = recordHeadline(counts?.decisions ?? null, learningCount, countsLoading);
+  const headline = recordHeadline(
+    summary,
+    counts?.decisions ?? null,
+    learningCount,
+    countsLoading || compounding.isLoading,
+  );
   const lastAdded = day(brain.data?.latest);
   const emptyRecord =
     counts !== null &&
@@ -377,31 +450,52 @@ function MemoryPage() {
       : null;
 
   // The newest call an outcome re-ranked. Drawn only when it is real, and not
-  // on the Learnings tab, where the feed below already leads with it.
-  const latest = compounding.data?.summary.latest ?? null;
+  // on the Outcomes tab, where the feed below already leads with it.
+  const latest = summary?.latest ?? null;
   const showRecord = !decision && !learning && tab !== "learnings" && latest !== null;
 
-  // The second line carries what the title does not: how much standing writing
-  // there is, and how fresh the record is. Absent entirely when neither is
-  // known, so the head never draws an empty line.
-  const showDocs = counts !== null && counts.docs > 0;
-  const sub: ReactNode = emptyRecord ? (
-    "The first call you settle lands here, with what it was based on."
-  ) : showDocs || lastAdded ? (
-    <>
-      {showDocs && counts ? (
-        <>
-          <Num>{counts.docs}</Num> docs
-        </>
-      ) : null}
-      {showDocs && lastAdded ? " · " : null}
-      {lastAdded ? (
-        <>
-          last added <Num>{lastAdded}</Num>
-        </>
-      ) : null}
-    </>
-  ) : undefined;
+  // The second line is the SIZE of the record: what the headline no longer
+  // says, because a manifest is not a claim. Every clause is a count that
+  // loaded, so a failed read contributes no clause and never a zero.
+  const sizeClauses: ReactNode[] = [];
+  if (counts && counts.decisions > 0) {
+    sizeClauses.push(
+      <span key="calls">
+        <Num>{counts.decisions}</Num> {counts.decisions === 1 ? "call" : "calls"}
+      </span>,
+    );
+  }
+  if (learningCount) {
+    sizeClauses.push(
+      <span key="learnings">
+        <Num>{learningCount}</Num> {learningCount === 1 ? "learning" : "learnings"}
+      </span>,
+    );
+  }
+  if (counts && counts.docs > 0) {
+    sizeClauses.push(
+      <span key="docs">
+        <Num>{counts.docs}</Num> docs
+      </span>,
+    );
+  }
+  if (lastAdded) {
+    sizeClauses.push(
+      <span key="added">
+        last added <Num>{lastAdded}</Num>
+      </span>,
+    );
+  }
+  const sub: ReactNode = emptyRecord
+    ? "The first call you settle lands here, with what it was based on."
+    : sizeClauses.length > 0
+      ? sizeClauses.map((c, i) => (
+          <span key={i}>
+            {i > 0 ? " · " : null}
+            {c}
+          </span>
+        ))
+      : undefined;
 
   return (
     <Surface wide>
@@ -420,6 +514,8 @@ function MemoryPage() {
           </Button>
         </div>
       ) : null}
+
+      <RetentionLine />
 
       {showRecord && latest ? (
         <button
@@ -453,7 +549,11 @@ function MemoryPage() {
         </button>
       ) : null}
 
-      <MemoryUpgradeNudge />
+      {/* What changed BECAUSE of all that. The outcome speaks in the recess
+          above; this is the sentence the record has since written into every
+          agent's prompt. Cause, then consequence, and it stands above the tabs
+          because it is true whichever door you are behind. */}
+      <StandingRules />
 
       <div className="sp-tabs" role="tablist" aria-label="What the record holds">
         {TABS.map((id) => (
@@ -491,9 +591,11 @@ function MemoryPage() {
               <Block>
                 <CompoundingPanel />
               </Block>
-              <Block title="What the crew recalls">
+              {/* The region says what was USED; the list inside says what is
+                  STORED. Two different facts, and the used one leads. */}
+              <CrewCarries>
                 <MemoryList />
-              </Block>
+              </CrewCarries>
               {/* The composer that writes to memory by hand, and whatever is
                   waiting on you. Closed by default: the reading comes first. */}
               <Disclosure label="Add to the record" id="brain-memory-composer">

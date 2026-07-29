@@ -58,7 +58,7 @@ export function ProviderLogo({ provider, size = 34 }: { provider: ProviderId; si
         justifyContent: "center",
         borderRadius: Math.max(8, Math.round(size * 0.26)),
         // Monotone: one muted tone on a subtle tile, consistent across every
-        // provider (premium, frictionless — founder ruling 2026-07-13).
+        // provider (premium, frictionless, founder ruling 2026-07-13).
         background: "var(--surface-raised)",
         boxShadow: "inset 0 0 0 1px var(--hairline)",
         color: "var(--text-body)",

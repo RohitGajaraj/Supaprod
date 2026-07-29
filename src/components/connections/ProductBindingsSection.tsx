@@ -1,17 +1,26 @@
 /**
- * BYO-P1b — Per-product repo binding UI.
- *
- * Shows the product's current repo binding (if any) and lets a workspace member
- * override the workspace-level binding with a product-specific one. The product
- * binding is the most specific tier of the resolution chain:
+ * PER-PRODUCT OVERRIDE. The most specific link in the credential chain:
  *   product binding > workspace binding > user connection > env fallback
  *
- * Used on /sync (per-product section) and in the product Settings drawer.
+ * Rebuilt on the primitives 2026-07-29 alongside the rest of /sync. The old
+ * shape was a bordered card of bordered rows with a green check glyph, an
+ * inline select that appeared on click, and an icon-only X for the destructive
+ * action. What it is now is one Line per resource, with the override named on
+ * the second line, because an override that does not say what it overrides is
+ * a setting nobody can audit.
+ *
+ * KILLED: the nested bordered containers, the CheckCircle2 glyph (the resource
+ * name is the proof), the icon-only remove (a destructive action says what it
+ * does in words), the animate-pulse skeleton, and the "Not connected" dead
+ * text with no door. KEPT: every server function, the CreateRepoModal, and the
+ * pick-then-bind flow.
+ *
+ * Only renders when this workspace has at least one connection: a per-product
+ * override of nothing is a decision nobody can make.
  */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Link2, Loader2, Plus, X } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { CreateRepoModal } from "./CreateRepoModal";
 import {
@@ -23,6 +32,16 @@ import {
   type ConnectionRow,
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Select,
+} from "@/components/shell/primitives";
 
 type Props = {
   projectId: string;
@@ -79,7 +98,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
   const mRemove = useMutation({
     mutationFn: (id: string) => fRemove({ data: { id } }),
     onSuccess: () => {
-      toast.success("Product binding removed, falling back to the workspace binding");
+      toast.success("Override removed. This product falls back to the workspace binding.");
       qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Unbind failed"),
@@ -87,161 +106,131 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
 
   const providers = (Object.keys(CONNECTOR_REGISTRY) as ProviderId[])
     .map((id) => CONNECTOR_REGISTRY[id])
-    .filter((spec) => spec.resourceTypes.length > 0);
+    .filter((spec) => spec.userFacing !== false && spec.resourceTypes.length > 0);
 
-  // Never a dead blank under the "Product repo override" heading: skeleton
-  // while loading, a real error with retry on failure (checklist points 5/7).
-  if (qConnections.isLoading || qBindings.isLoading) {
-    return (
-      <div
-        className="rounded-xl border hairline bg-background/60 p-4 grid gap-2"
-        aria-hidden="true"
-      >
-        {[0, 1].map((i) => (
-          <div key={i} className="h-8 animate-pulse rounded bg-[var(--raised)]" />
-        ))}
-      </div>
-    );
-  }
-  if (qConnections.isError || qBindings.isError) {
+  const title = projectName ? `Just for ${projectName}` : "Just for this product";
+  const isLoading = qConnections.isLoading || qBindings.isLoading;
+  const failed = qConnections.isError || qBindings.isError;
+
+  if (failed) {
     const err = (qConnections.error ?? qBindings.error) as Error | null;
     return (
-      <div className="rounded-xl border hairline bg-background/60 p-4">
-        <div className="text-xs font-medium text-[color:var(--madder)]">
-          Couldn't load product bindings
-        </div>
-        <p className="text-[11px] text-muted-foreground mt-1">{err?.message ?? "Unknown error"}</p>
-        <button
-          type="button"
-          className="mt-2 text-[11px] text-foreground underline outline-none hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          onClick={() => {
+      <Block title={title}>
+        <Failed
+          onRetry={() => {
             void qConnections.refetch();
             void qBindings.refetch();
           }}
         >
-          Retry
-        </button>
-      </div>
+          The overrides did not load. {err?.message ?? "The read failed."}
+        </Failed>
+      </Block>
     );
   }
 
-  const hasAnyConnection = connections.length > 0;
-  if (!hasAnyConnection) return null;
+  if (isLoading) {
+    return (
+      <Block title={title}>
+        <Loading>Reading this product's overrides.</Loading>
+      </Block>
+    );
+  }
+
+  // An override of nothing is a decision nobody can make.
+  if (connections.length === 0) return null;
+
+  const hasGithub = connections.some((c) => c.provider === "github" && c.status === "connected");
 
   return (
-    <>
-      <div className="rounded-xl border hairline bg-background/60 divide-y divide-border/40">
-        <div className="px-4 py-2.5 flex items-center gap-2">
-          <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs font-semibold text-muted-foreground">
-            {projectName ? `${projectName} · repo binding` : "Product repo binding"}
-          </span>
-          <span className="text-[10px] text-muted-foreground/60 ml-1">
-            overrides workspace default
-          </span>
-        </div>
+    <Block
+      title={title}
+      sub={
+        bindings.length === 0
+          ? "Nothing overridden, so this product uses whatever the workspace is pointed at."
+          : `${bindings.length} ${bindings.length === 1 ? "override" : "overrides"} in force. They win over the workspace binding above.`
+      }
+    >
+      {providers.flatMap((spec) =>
+        spec.resourceTypes.map((rt) => {
+          const binding = bindings.find(
+            (b) => b.provider === spec.id && b.resource_kind === rt.kind,
+          );
+          const connected = connections.filter(
+            (c) => c.provider === spec.id && c.status === "connected",
+          );
+          const pickKey = `${spec.id}:${rt.kind}`;
 
-        {/* Create repo affordance — only when GitHub is connected */}
-        {connections.some((c) => c.provider === "github" && c.status === "connected") && (
-          <div className="px-4 py-2 flex justify-end">
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            >
-              <Plus className="h-3 w-3" />
-              Create new GitHub repo
-            </button>
-          </div>
-        )}
-
-        {providers.flatMap((spec) =>
-          spec.resourceTypes.map((rt) => {
-            const binding = bindings.find(
-              (b) => b.provider === spec.id && b.resource_kind === rt.kind,
+          let sub: React.ReactNode;
+          if (binding) {
+            sub = (
+              <>{binding.resource_label ?? binding.resource_id} · overrides the workspace default</>
             );
-            const connected = connections.filter(
-              (c) => c.provider === spec.id && c.status === "connected",
-            );
-            const pickKey = `${spec.id}:${rt.kind}`;
+          } else if (connected.length > 0) {
+            sub = "Follows the workspace default.";
+          } else {
+            sub = `${spec.label} has no connected account, so there is nothing to override with.`;
+          }
 
-            return (
-              <div key={pickKey} className="px-4 py-2.5 flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-foreground font-medium">{rt.label ?? rt.kind}</div>
-                  <div className="text-[11px] text-muted-foreground">{spec.label}</div>
-                </div>
-
-                {binding ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3 w-3 text-[color:var(--moss)] shrink-0" />
-                    <code className="text-[11px] text-foreground">{binding.resource_id}</code>
-                    <button
-                      type="button"
-                      onClick={() => mRemove.mutate(binding.id)}
-                      disabled={mRemove.isPending}
-                      title="Remove product override (falls back to workspace binding)"
-                      aria-label="Remove product override"
-                      className="text-muted-foreground outline-none hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-40"
-                    >
-                      {mRemove.isPending ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <X className="h-3 w-3" />
-                      )}
-                    </button>
-                  </div>
-                ) : picking === pickKey ? (
-                  <div className="flex items-center gap-2">
-                    <select
-                      aria-label={`Pick the account for ${spec.label}`}
-                      className="h-(--ds-size-small) text-xs border border-border rounded px-2 bg-background"
-                      defaultValue=""
-                      onChange={(e) => {
-                        const conn = connected.find((c) => c.id === e.target.value);
-                        if (!conn) return;
-                        mAdd.mutate({
-                          connectionId: conn.id,
-                          provider: spec.id,
-                          resourceKind: rt.kind,
-                          resourceId: conn.account_label ?? conn.id,
-                          resourceLabel: conn.account_label ?? undefined,
-                        });
-                      }}
-                    >
-                      <option value="" disabled>
-                        Pick account...
-                      </option>
-                      {connected.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.account_label ?? c.id.slice(0, 8)}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => setPicking(null)}
-                      className="text-[10px] text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : connected.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setPicking(pickKey)}
-                    className="text-[11px] text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          return (
+            <Line key={pickKey} label={`${spec.label} ${rt.label.toLowerCase()}`} sub={sub}>
+              {binding ? (
+                <Button
+                  variant="ghost"
+                  disabled={mRemove.isPending}
+                  onClick={() => mRemove.mutate(binding.id)}
+                >
+                  {mRemove.isPending ? "Removing" : "Use the workspace one"}
+                </Button>
+              ) : picking === pickKey ? (
+                <>
+                  <Select
+                    aria-label={`Pick the account for ${spec.label}`}
+                    defaultValue=""
+                    disabled={mAdd.isPending}
+                    onChange={(e) => {
+                      const conn = connected.find((c) => c.id === e.target.value);
+                      if (!conn) return;
+                      mAdd.mutate({
+                        connectionId: conn.id,
+                        provider: spec.id,
+                        resourceKind: rt.kind,
+                        resourceId: conn.account_label ?? conn.id,
+                        resourceLabel: conn.account_label ?? undefined,
+                      });
+                    }}
                   >
-                    Set product override
-                  </button>
-                ) : (
-                  <span className="text-[11px] text-muted-foreground/50">Not connected</span>
-                )}
-              </div>
-            );
-          }),
-        )}
-      </div>
+                    <option value="" disabled>
+                      Pick an account
+                    </option>
+                    {connected.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.account_label ?? c.id.slice(0, 8)}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button variant="ghost" onClick={() => setPicking(null)}>
+                    Cancel
+                  </Button>
+                </>
+              ) : connected.length > 0 ? (
+                <Button variant="ghost" onClick={() => setPicking(pickKey)}>
+                  Override it
+                </Button>
+              ) : null}
+            </Line>
+          );
+        }),
+      )}
+
+      {providers.length === 0 ? (
+        <Empty>No connected source has anything this product could override.</Empty>
+      ) : null}
+
+      {hasGithub ? (
+        <Actions>
+          <Button onClick={() => setShowCreateModal(true)}>Create a new GitHub repo</Button>
+        </Actions>
+      ) : null}
 
       <CreateRepoModal
         open={showCreateModal}
@@ -253,6 +242,6 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
           qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
         }}
       />
-    </>
+    </Block>
   );
 }

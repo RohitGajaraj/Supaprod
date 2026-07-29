@@ -1,86 +1,117 @@
 /**
- * SETTINGS. Redesigned, not ported (SURFACE-JUSTIFICATION.md, founder-directed
- * 2026-07-29). The prototype does not draw this surface, so it does not get a
- * re-skin. The five questions, answered before a line was written:
+ * SETTINGS. Redesigned again 2026-07-29 after the founder's verdict on the
+ * first pass: "On the Settings page, still there, you need to work on
+ * completely." The first pass cut the file from 3433 lines to 2351 and answered
+ * the five questions, but it did two things wrong. It kept every door the
+ * retired IA had, including two that led nowhere. And it hand-rolled its own
+ * setting line, control, label and note as local style objects, because at the
+ * time the rebuild had no such primitives. It has them now (Line, Field, Input,
+ * Select, Textarea, Switch, Actions, Loading, Failed), and a surface carrying
+ * its own private copy of a system shape is the drift the primitives file
+ * exists to stop. All of that is gone.
+ *
+ * The six questions (SURFACE-JUSTIFICATION.md):
  *
  * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
  *    The person who owns this workspace, here to change ONE boundary the crew
  *    will obey from now on, and then leave. Not to browse. The real sentence in
- *    their head is "stop asking me before it edits code" or "cap what a top-up
- *    can cost me". Nobody has ever opened Settings to look at things.
+ *    their head is "stop asking me before it edits code", or "cap what a top-up
+ *    can cost me", or "why can Engineer not see the repo". Nobody has ever
+ *    opened Settings to look at things.
  *
  * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE:
  *    Setting policy in advance so it never has to be asked for in the moment.
- *    That is the governance canon's own split (GOVERNANCE-PRINCIPLE.md): policy
- *    is set ahead and does not block, permission is asked live and does. Every
- *    element here earns its place by being a boundary that, once set, removes
- *    an interruption later. A number that only REPORTS is not a boundary, and
- *    that single test decided most of the verdicts below.
+ *    That is the governance canon's own split: policy is set ahead and does not
+ *    block, permission is asked live and does. Every element here earns its
+ *    place by being a boundary that, once set, removes an interruption later. A
+ *    number that only REPORTS is not a boundary, and that single test decided
+ *    most of the verdicts below.
+ *
+ *    A consequence worth stating, because it is a decision and not an
+ *    oversight: there is no Settings landing page and /settings still opens on
+ *    Profile. An overview screen would be a surface whose job is "look at
+ *    things", which question 1 says is the finding rather than the design.
  *
  * 3. KEEP / MOVE / KILL, every element:
- *    KEEP - profile identity + working hours (working hours ARE quiet hours: a
- *      boundary the digest obeys) · appearance and density (a preference set
- *      once) · notifications (when the product may interrupt you) · the brief
- *      and voice anchor (the policy injected into every agent's prompt, and the
- *      most load-bearing thing on this surface) · brand · autonomy · models and
- *      BYO keys · sources · sync · agent access · your data · plan · the credit
- *      cap and buying a top-up · per-agent tool reach.
- *    MOVE - the legal and trust links: OUT of Profile, INTO "Your data", beside
- *      the subprocessor list and the export they actually belong with. Done
- *      here, in this file.
- *    MOVE (needs another agent to receive it, see the report) -
- *      · the agent roster's run ledger and its lessons -> /crew and the agent
- *        detail. A 7-column table with an expander holding three sub-cards was
- *        the clearest evidence on this page of things put where they had
- *        nowhere else to go, and it is the horizontal scroll the founder named
- *        twice. What stayed is the one control that is genuinely policy: how
- *        far each agent's tools may reach.
- *      · the credit debit ledger and the per-product attribution bars ->
- *        Engine room, Spend. Those are a report on what happened; the Engine
- *        room is the surface whose whole job is reports on what happened. The
- *        purchase receipts stayed, because the purchase is made here.
- *      · Members and Team duplicate /admin ("members, roles, audit, billing").
- *        Left rendering for now because /admin is gated behind being an admin;
- *        they want their own People section once settings-sections.ts can move.
- *    KILL - the per-agent on/off switch. It called no server function; it
- *      opened a toast saying the real control is somewhere else. A control that
- *      cannot do the thing it draws is the definition of slop.
- *    KILL - the workspace-bindings summary under Sources. It rendered the same
- *      bindings the Sync section one nav row below renders in full, plus /sync.
- *      Three places, one fact.
- *    KILL - the avatar identity header (name + role + workspace) that sat
- *      directly above the fields holding the same name and role. Ban 10.
- *    KILL - every animate-pulse skeleton. Motion that carries no information.
- *    DEAD DOOR, flagged - "Memory" is a nav row whose entire content is "it
- *      moved to Brain". It should be deleted from settings-sections.ts, which
- *      this agent does not own. Same shape of question hangs over Diagnostics,
- *      which is a health REPORT and belongs in the Engine room; it still
- *      renders here because removing it before the destination exists would
- *      leave a second dead door.
+ *    KEEP - profile identity and working hours (working hours ARE quiet hours,
+ *      a boundary the digest obeys) · appearance and density · notifications ·
+ *      the brief and the voice anchor (the policy injected into every agent's
+ *      prompt, and the most load-bearing thing on this surface) · brand ·
+ *      products · autonomy · models and BYO keys · sources · agent access ·
+ *      your data · plan · the credit cap and buying a top-up · per-agent tool
+ *      reach.
+ *    KILL - the "Sync and bindings" door. It rendered the workspace bindings
+ *      and then a button to /sync, which renders the same bindings. Two doors
+ *      to one room, and the room is better. Sources now SHOWS what each
+ *      connected source is pointed at on its own line, and carries the one door
+ *      to /sync for changing it. `?section=sync` still lands, on Sources.
+ *    KILL - the "Memory" door, whose entire content was a sentence saying it
+ *      moved to Brain. A nav row that exists to apologise for itself is a dead
+ *      door. `?section=memory` still answers, so no old link breaks; it just
+ *      has no entry in the index any more.
+ *    KILL - the local CONTROL / AREA / LINE / LABEL / NOTE / ACTS style objects
+ *      and the local Lines, Line, Stack, Acts and Failed components. Every one
+ *      of them now exists in primitives.tsx. Roughly 130 lines of private
+ *      system.
+ *    KILL - the seven-checkbox export picker in Your data. It passed `sections`
+ *      to exportWorkspace, and that handler ignores the argument and exports
+ *      everything unconditionally. A control that cannot do the thing it draws
+ *      is the definition of slop, and this is the second one found on this
+ *      surface.
+ *    KILL - five stacked cards in Your data, four in Notifications, and the
+ *      four-column notification matrix inside a sideways scroll. Rebuilt as
+ *      DataSection and NotificationsSection.
+ *    KILL - the mission-by-mission churn table in Diagnostics. That is a
+ *      report; the count stays and the table is one click away in the engine
+ *      room. Rebuilt as DiagnosticsSection.
+ *    KILL (earlier pass, still true) - the per-agent on/off switch that called
+ *      no server function; the workspace-bindings summary that duplicated Sync;
+ *      the avatar identity header sitting above the fields holding the same
+ *      name; every animate-pulse skeleton.
+ *    MOVE (needs another agent to receive it) -
+ *      · the agent roster and the autonomy controls -> /crew, which a parallel
+ *        lane owns. They are left exactly as they are here, deliberately, so
+ *        that lane can lift them without a merge fight.
+ *      · the credit debit ledger and per-product attribution -> Engine room,
+ *        Spend. Purchases stay, because the purchase is made here.
+ *      · Members and Team duplicate /admin. Left rendering because /admin is
+ *        gated behind being an admin.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
  *    Each agent's lessons and run history (/crew) · the credit debit ledger and
- *    who spent it (Engine room, Spend) · sync conflicts and per-product
- *    bindings (/sync) · members, roles and audit (/admin) · the memory ledger
- *    (/brain). Depth is a click away, never on the list.
+ *    who spent it (Engine room, Spend) · what a source is pointed at, and any
+ *    two-sided edit (/sync) · every account and scope on a source (?connector=)
+ *    · members, roles and audit (/admin) · the memory ledger (/brain) · the
+ *    run-by-run reliability detail (Engine room, Quality).
  *
  * 5. DELIGHT, AND CONFUSION:
- *    The delight available here is honest and cheap: every section opens by
- *    stating the boundary CURRENTLY IN FORCE, derived from real data, before
- *    offering to change it. The Agents section says "9 run alone, 3 ask first"
- *    rather than making you read a table to work it out. Nothing is invented:
- *    where the number is not stored, the line says what the section governs
- *    instead. What would confuse: a control that does nothing (killed), the
- *    same bindings in three places (killed), and a pane that scrolls sideways
- *    (killed with the table).
+ *    Every section opens by stating the boundary CURRENTLY IN FORCE, derived
+ *    from real rows, before offering to change it. Agents says "9 run alone, 3
+ *    ask first"; Sources says what the crew reads and what each source is
+ *    pointed at; Notifications says how many of the four things that can
+ *    interrupt you actually do. Nothing is invented: where a number is not
+ *    stored, the line says what the section governs instead, and where a read
+ *    failed it says so rather than rendering a confident default.
+ *    What would confuse, and is therefore not drawn: a control with no server
+ *    function behind it, the same fact in three places, and a pane that scrolls
+ *    sideways.
  *
- * LAYOUT. The founder liked the left-hand settings navigation and said the
- * right-hand pane still needed work, so the nav shape survives verbatim and the
- * pane was rebuilt: one section at a time, sections are Blocks, and a setting
- * is a label on the left with its control on the right, one per line, dividers
- * rather than a card each. The page-level header, breadcrumb and room chrome
- * are gone; AppFrame already draws the header, the workspace scope, the live
- * line and Ask.
+ * 6. WHERE DOES THE CREW APPEAR ON THIS SURFACE, AND WHAT DOES IT PROVE?
+ *    Settings is where the crew's boundaries are set, so the crew appears as
+ *    the thing every boundary is about, and each section says so in the crew's
+ *    terms rather than the system's: what the crew reads before it acts (the
+ *    brief), how far each one may reach (the roster), what it is allowed to
+ *    read (sources), which model runs its work, and what happens when it needs
+ *    you. The roster carries a real AgentMark per agent, and a disabled agent
+ *    wears the quiet state rather than disappearing. No mark is drawn anywhere
+ *    an agent does not actually act, because a decorative agent is exactly the
+ *    overclaim the presence doctrine bans.
+ *
+ * LAYOUT. The founder liked the left-hand settings index, so its shape survives
+ * verbatim: five named groups, every door visible at once, no numbering and no
+ * fold. The pane beside it renders one section at a time, sections are Blocks,
+ * and a setting is a label on the left with its control on the right, one per
+ * line, divided by a rule rather than boxed in a card each.
  *
  * UNCHANGED: the ?section= / ?tab= / ?connector= / ?checkout= contract, every
  * legacy deep link, and every server function, mutation and query key still
@@ -90,7 +121,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Children, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   agentBlurb,
@@ -130,18 +161,12 @@ import { planPresentation, type PlanTier } from "@/lib/entitlements";
 import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
-import {
-  PRIMARY_GROUPS,
-  normalizeSection,
-  sectionLabel,
-  type SectionId,
-} from "@/lib/settings-sections";
+import { normalizeSection, type SectionId } from "@/lib/settings-sections";
 
 import {
   AccountConnectionsSection,
   ConnectorDetail,
 } from "@/components/connections/AccountConnectionsSection";
-import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/billing/PaymentTestModeBanner";
 import { PlanTable } from "@/components/billing/PlanPicker";
@@ -149,201 +174,99 @@ import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
 import { UsageIndicator } from "@/components/billing/UsageIndicator";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
-import { DataExportCard } from "@/components/settings/DataExportCard";
-import { SkillsFileExportCard } from "@/components/settings/SkillsFileExportCard";
-import { ValueReceiptsCard } from "@/components/settings/ValueReceiptsCard";
-import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
-import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
-import { HealthCard } from "@/components/settings/HealthCard";
-import { NotificationsTab } from "@/components/settings/NotificationsTab";
+import { DataSection } from "@/components/settings/DataSection";
+import { DiagnosticsSection } from "@/components/settings/DiagnosticsSection";
+import { NotificationsSection } from "@/components/settings/NotificationsSection";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
 import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 
-import { AgentMark, Block, Button, Empty, Num, PageHead, Row } from "@/components/shell/primitives";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Num,
+  PageHead,
+  Row,
+  Select,
+  Textarea,
+} from "@/components/shell/primitives";
 
 /* ================================================================== *
- * The pieces this surface is built from.
+ * The index
  *
- * The rebuild has no field, select, textarea or setting-line primitive
- * yet, so they live here as token-only style objects rather than as new
- * css classes (which this agent does not own). Reported as a gap.
+ * The doors, decided here rather than read from settings-sections.ts,
+ * because which doors EXIST is a design decision belonging to this
+ * surface while that module owns the deep-link contract (SectionId and
+ * normalizeSection, both still imported and still authoritative). Two
+ * rows the retired IA carried are absent: Sync, which duplicated /sync,
+ * and Memory, which was a sentence saying it moved to Brain.
  * ================================================================== */
 
-const CONTROL: CSSProperties = {
-  font: "inherit",
-  fontSize: "var(--sp-text-body)",
-  color: "var(--sp-ink)",
-  background: "var(--sp-lift)",
-  border: "1px solid var(--sp-line)",
-  borderRadius: "var(--sp-radius-ctl)",
-  height: "var(--sp-ctl-lg)",
-  padding: "0 var(--sp-space-3)",
-  outline: "none",
-  minWidth: 0,
-};
+type Door = { id: SectionId; label: string };
+type DoorGroup = { id: string; label: string; doors: Door[] };
 
-const AREA: CSSProperties = {
-  ...CONTROL,
-  width: "100%",
-  height: "auto",
-  padding: "10px var(--sp-space-3)",
-  lineHeight: "var(--sp-leading-body)",
-  resize: "vertical",
-};
+const GROUPS: DoorGroup[] = [
+  {
+    id: "you",
+    label: "You",
+    doors: [
+      { id: "profile", label: "Profile" },
+      { id: "notifications", label: "Notifications" },
+    ],
+  },
+  {
+    id: "workspace",
+    label: "Workspace",
+    doors: [
+      { id: "workspace", label: "Brief and voice" },
+      { id: "brand", label: "Brand" },
+      { id: "products", label: "Products" },
+    ],
+  },
+  {
+    id: "agents",
+    label: "Agents",
+    doors: [
+      { id: "staff", label: "Roster" },
+      { id: "autonomy", label: "Autonomy" },
+      { id: "ai", label: "Models and keys" },
+    ],
+  },
+  {
+    id: "sources",
+    label: "Sources and data",
+    doors: [
+      { id: "connections", label: "Sources" },
+      { id: "interop", label: "Agent access" },
+      { id: "data", label: "Your data" },
+    ],
+  },
+  {
+    id: "plan",
+    label: "Plan",
+    doors: [
+      { id: "billing", label: "Plan" },
+      { id: "credits", label: "Credits" },
+      { id: "health", label: "Diagnostics" },
+    ],
+  },
+];
 
-/** A setting: what it is on the left, the control that changes it on the
- *  right, one per line. Dividers, never a card each. */
-const LINE: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "var(--sp-space-5)",
-  minHeight: "var(--sp-row-h)",
-  padding: "10px 0",
-};
-const LINE_DIVIDED: CSSProperties = { ...LINE, borderTop: "1px solid var(--sp-line-soft)" };
-
-const LABEL: CSSProperties = {
-  display: "block",
-  fontSize: "var(--sp-text-body)",
-  color: "var(--sp-ink)",
-  lineHeight: "var(--sp-leading-row)",
-};
-const NOTE: CSSProperties = {
-  display: "block",
-  fontSize: "var(--sp-text-meta)",
-  color: "var(--sp-mute)",
-  marginTop: 2,
-  lineHeight: "var(--sp-leading-row)",
-};
-const ACTS: CSSProperties = {
-  flex: "none",
-  display: "flex",
-  alignItems: "center",
-  gap: "var(--sp-space-2)",
-};
-
-function Lines({ children }: { children: ReactNode }) {
-  const items = Children.toArray(children).filter(Boolean);
-  return (
-    <div>
-      {items.map((child, i) => (
-        <div key={i} style={i === 0 ? LINE : LINE_DIVIDED}>
-          {child}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Line({
-  label,
-  note,
-  htmlFor,
-  children,
-}: {
-  label: ReactNode;
-  /** The second line carries DIFFERENT information, or it is absent. */
-  note?: ReactNode;
-  htmlFor?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <>
-      <label htmlFor={htmlFor} style={{ flex: 1, minWidth: 0 }}>
-        <span style={LABEL}>{label}</span>
-        {note ? <span style={NOTE}>{note}</span> : null}
-      </label>
-      {children ? <span style={ACTS}>{children}</span> : null}
-    </>
-  );
-}
-
-/** A field whose control wants the full measure: the label sits above it. */
-function Stack({
-  id,
-  label,
-  note,
-  trailing,
-  children,
-}: {
-  id: string;
-  label: string;
-  note?: string;
-  trailing?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div style={{ marginTop: "var(--sp-space-4)" }}>
-      <label htmlFor={id} style={{ display: "block" }}>
-        <span
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "var(--sp-space-3)",
-          }}
-        >
-          <span style={LABEL}>{label}</span>
-          {trailing}
-        </span>
-        {note ? <span style={NOTE}>{note}</span> : null}
-      </label>
-      <div style={{ marginTop: "var(--sp-space-2)" }}>{children}</div>
-    </div>
-  );
-}
-
-/** One or more actions under a block. */
-function Acts({ children }: { children: ReactNode }) {
-  return <div className="sp-acts">{children}</div>;
-}
-
-/** A read that failed says so and offers one retry. It never wears a healthy
- *  state's clothes. */
-function Failed({ what, error, onRetry }: { what: string; error?: unknown; onRetry: () => void }) {
-  return (
-    <>
-      <Empty>
-        <span className="sp-fail">{what}</span> {(error as Error)?.message ?? "The read failed."}
-      </Empty>
-      <Acts>
-        <Button onClick={onRetry}>Try again</Button>
-      </Acts>
-    </>
-  );
-}
-
-/** A choice made of two or three named options. */
-function Choice<T extends string>({
-  value,
-  options,
-  onPick,
-  label,
-}: {
-  value: T;
-  options: { id: T; label: string }[];
-  onPick: (id: T) => void;
-  label: string;
-}) {
-  return (
-    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--sp-space-1)" }}>
-      {options.map((o) => (
-        <Button
-          key={o.id}
-          variant={o.id === value ? "default" : "ghost"}
-          aria-pressed={o.id === value}
-          onClick={() => onPick(o.id)}
-        >
-          {o.label}
-        </Button>
-      ))}
-    </span>
-  );
-}
+/** Retired doors whose ADDRESS still answers, so no saved link breaks. `sync`
+ *  folds into Sources, which now shows the bindings it used to duplicate.
+ *  `memory` keeps its own one-line pane because sending it to Brief and voice
+ *  would land a person somewhere that does not explain their click. */
+const FOLDED: Partial<Record<SectionId, SectionId>> = { sync: "connections" };
 
 /* ================================================================== *
  * Route
@@ -377,20 +300,18 @@ export const Route = createFileRoute("/_authenticated/settings")({
           title="Settings did not open."
           sub={(error as Error)?.message ?? "The read failed."}
         />
-        <Block>
-          <Acts>
-            <Button variant="primary" onClick={reset}>
-              Try again
-            </Button>
-          </Acts>
-        </Block>
+        <Actions>
+          <Button variant="primary" onClick={reset}>
+            Try again
+          </Button>
+        </Actions>
       </div>
     </div>
   ),
 });
 
-/** The left-hand index. The founder liked this shape, so it keeps it: five
- *  named groups, every door visible at once, no numbering and no fold. */
+/** The left-hand index. The founder liked this shape, so it keeps it: named
+ *  groups, every door visible at once, no numbering and no fold. */
 function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
   return (
     <nav
@@ -406,24 +327,24 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         top: 0,
       }}
     >
-      {PRIMARY_GROUPS.map((g) => (
+      {GROUPS.map((g) => (
         <div key={g.id}>
           <div className="sp-ctx-head" style={{ marginBottom: "var(--sp-space-2)" }}>
             {g.label}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}>
-            {g.sections.map((s) => {
-              const here = s.id === active;
+            {g.doors.map((d) => {
+              const here = d.id === active;
               return (
                 <button
-                  key={s.id}
+                  key={d.id}
                   type="button"
                   // A nav, not a tablist: aria-current says where you are, so
                   // the active look is set here rather than by sp-tab's
                   // aria-selected rule.
                   className="sp-tab"
                   aria-current={here ? "page" : undefined}
-                  onClick={() => onSet(s.id)}
+                  onClick={() => onSet(d.id)}
                   style={{
                     textAlign: "left",
                     ...(here
@@ -435,7 +356,7 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
                       : null),
                   }}
                 >
-                  {s.label}
+                  {d.label}
                 </button>
               );
             })}
@@ -450,7 +371,8 @@ function SettingsPage() {
   const { section, tab, connector, checkout } = Route.useSearch();
   // ?section= is canonical; legacy ?tab= keeps landing.
   const rawSection = section ?? tab;
-  const active = normalizeSection(rawSection);
+  const resolved = normalizeSection(rawSection);
+  const active = FOLDED[resolved] ?? resolved;
   const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
   const navigate = useNavigate({ from: "/settings" });
   const { activeWorkspace } = useWorkspace();
@@ -469,19 +391,11 @@ function SettingsPage() {
         alignItems: "flex-start",
         gap: "var(--sp-space-6) var(--sp-ctx-gap)",
       }}
-      data-screen-label="Settings"
     >
       <SettingsIndex active={active} onSet={setTab} />
-      <div className="sp-main" style={{ flex: "1 1 420px" }}>
+      <div className="sp-main" style={{ flex: "1 1 460px", maxWidth: "none" }}>
         {active === "profile" && <ProfileSection />}
-        {active === "notifications" && (
-          <>
-            <PageHead title="Notifications" sub="When the product may interrupt you, and where." />
-            <Block>
-              <NotificationsTab />
-            </Block>
-          </>
-        )}
+        {active === "notifications" && <NotificationsSection />}
 
         {active === "workspace" && <WorkspaceSection scrollToBrief={rawSection === "brief"} />}
         {active === "brand" && (
@@ -499,6 +413,7 @@ function SettingsPage() {
             <ProductsTab />
           </>
         )}
+        {/* No door in the index; the address still answers so old links land. */}
         {active === "memory" && <MemorySection onOpen={() => navigate({ to: "/brain" })} />}
 
         {active === "staff" && <RosterSection />}
@@ -513,27 +428,17 @@ function SettingsPage() {
         )}
         {active === "ai" && <ModelsSection />}
 
-        {active === "connections" && (
-          <ConnectionsSection
-            connector={activeConnector}
-            onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
-            onCloseDetail={() => navigate({ search: { section: "connections" } })}
-          />
-        )}
-        {active === "sync" && (
-          <>
-            <PageHead
-              title="Sync and bindings"
-              sub="Which repo, team or database the agents in this workspace act on."
+        {active === "connections" &&
+          (activeConnector ? (
+            <ConnectorDetail
+              provider={activeConnector}
+              onBack={() => navigate({ search: { section: "connections" } })}
             />
-            <WorkspaceBindingsSection />
-            <Acts>
-              <Button variant="ghost" onClick={() => navigate({ to: "/sync" })}>
-                Open sync and conflicts
-              </Button>
-            </Acts>
-          </>
-        )}
+          ) : (
+            <AccountConnectionsSection
+              onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
+            />
+          ))}
         {active === "interop" && (
           <>
             <PageHead
@@ -547,15 +452,7 @@ function SettingsPage() {
 
         {active === "billing" && <PlanSection checkout={checkout} />}
         {active === "credits" && <CreditsSection />}
-        {active === "health" && (
-          <>
-            <PageHead
-              title="Diagnostics"
-              sub="Whether the parts this workspace depends on are answering."
-            />
-            <HealthCard />
-          </>
-        )}
+        {active === "health" && <DiagnosticsSection />}
       </div>
     </div>
   );
@@ -575,6 +472,34 @@ const DENSITY_CHOICES = [
   { id: "comfortable" as const, label: "Comfortable" },
   { id: "compact" as const, label: "Compact" },
 ];
+
+/** A choice made of two or three named options. */
+function Choice<T extends string>({
+  value,
+  options,
+  onPick,
+  label,
+}: {
+  value: T;
+  options: { id: T; label: string }[];
+  onPick: (id: T) => void;
+  label: string;
+}) {
+  return (
+    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--sp-space-1)" }}>
+      {options.map((o) => (
+        <Button
+          key={o.id}
+          variant={o.id === value ? "default" : "ghost"}
+          aria-pressed={o.id === value}
+          onClick={() => onPick(o.id)}
+        >
+          {o.label}
+        </Button>
+      ))}
+    </span>
+  );
+}
 
 function ProfileSection() {
   const qc = useQueryClient();
@@ -645,18 +570,11 @@ function ProfileSection() {
 
   const name = displayName || fullName;
 
-  const head = (
-    <PageHead
-      title="Profile"
-      sub={`Anything scheduled waits for your window, ${whStart}:00 to ${whEnd}:00 in ${timezone || "your timezone"}.`}
-    />
-  );
-
   if (profile.isLoading) {
     return (
       <>
         <PageHead title="Profile" sub="How you are named, and when you are reachable." />
-        <Empty>Reading your profile.</Empty>
+        <Loading>Reading your profile.</Loading>
       </>
     );
   }
@@ -667,13 +585,10 @@ function ProfileSection() {
     return (
       <>
         <PageHead title="Profile" sub="How you are named, and when you are reachable." />
-        <Block>
-          <Failed
-            what="Your profile did not load."
-            error={profile.error}
-            onRetry={() => profile.refetch()}
-          />
-        </Block>
+        <Failed onRetry={() => void profile.refetch()}>
+          Your profile did not load, so nothing here is safe to save yet.{" "}
+          {(profile.error as Error)?.message ?? "The read failed."}
+        </Failed>
       </>
     );
   }
@@ -685,126 +600,118 @@ function ProfileSection() {
         save.mutate();
       }}
     >
-      {head}
+      <PageHead
+        title="Profile"
+        sub={`Anything scheduled waits for your window, ${whStart}:00 to ${whEnd}:00 in ${timezone || "your timezone"}.`}
+      />
 
       <Block title="Identity">
-        <Lines>
-          <Line
-            label="Full name"
-            note="Signs documents, briefs and stakeholder updates."
-            htmlFor="p-full"
-          >
-            <input
-              id="p-full"
-              style={{ ...CONTROL, width: 240 }}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jane Q. Doe"
-            />
-          </Line>
-          <Line label="Display name" note="What the agents call you." htmlFor="p-display">
-            <input
-              id="p-display"
-              style={{ ...CONTROL, width: 240 }}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Jane"
-            />
-          </Line>
-          <Line label="Role" htmlFor="p-role">
-            <input
-              id="p-role"
-              style={{ ...CONTROL, width: 240 }}
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="AI Product Manager"
-            />
-          </Line>
-          <Line label="Timezone" note="Every time on every surface is read in it." htmlFor="p-tz">
-            <input
-              id="p-tz"
-              style={{ ...CONTROL, width: 240 }}
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              placeholder="America/New_York"
-            />
-          </Line>
-          <Line
-            label="Mark"
-            note={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
-          >
-            <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
-              {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
-                const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => chooseAvatar(i)}
-                    aria-label={`Mark ${i + 1}`}
-                    aria-pressed={selected}
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: "50%",
-                      padding: 0,
-                      background: orbBackground(i),
-                      border: selected ? "1.5px solid var(--sp-ink)" : "1px solid var(--sp-line)",
-                      cursor: "pointer",
-                    }}
-                  />
-                );
-              })}
-            </span>
-          </Line>
-        </Lines>
+        <Line label="Full name" sub="Signs documents, briefs and stakeholder updates.">
+          <Input
+            aria-label="Full name"
+            style={{ width: 240 }}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Jane Q. Doe"
+          />
+        </Line>
+        <Line label="Display name" sub="What the agents call you.">
+          <Input
+            aria-label="Display name"
+            style={{ width: 240 }}
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Jane"
+          />
+        </Line>
+        <Line label="Role">
+          <Input
+            aria-label="Role"
+            style={{ width: 240 }}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            placeholder="AI Product Manager"
+          />
+        </Line>
+        <Line label="Timezone" sub="Every time on every surface is read in it.">
+          <Input
+            aria-label="Timezone"
+            style={{ width: 240 }}
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            placeholder="America/New_York"
+          />
+        </Line>
+        <Line
+          label="Mark"
+          sub={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
+        >
+          <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
+            {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
+              const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => chooseAvatar(i)}
+                  aria-label={`Mark ${i + 1}`}
+                  aria-pressed={selected}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    padding: 0,
+                    background: orbBackground(i),
+                    border: selected ? "1.5px solid var(--sp-ink)" : "1px solid var(--sp-line)",
+                    cursor: "pointer",
+                  }}
+                />
+              );
+            })}
+          </span>
+        </Line>
       </Block>
 
       <Block title="Working hours">
-        <Lines>
-          <Line
-            label="Reachable from"
-            note="Outside it, a scheduled digest waits rather than pinging you."
-            htmlFor="p-wh-start"
-          >
-            <input
-              id="p-wh-start"
-              type="number"
-              min={0}
-              max={23}
-              style={{ ...CONTROL, width: 88 }}
-              value={whStart}
-              onChange={(e) => setWhStart(Number(e.target.value))}
-            />
-          </Line>
-          <Line label="Until" htmlFor="p-wh-end">
-            <input
-              id="p-wh-end"
-              type="number"
-              min={1}
-              max={24}
-              style={{ ...CONTROL, width: 88 }}
-              value={whEnd}
-              onChange={(e) => setWhEnd(Number(e.target.value))}
-            />
-          </Line>
-        </Lines>
-        <Acts>
+        <Line
+          label="Reachable from"
+          sub="Outside it, a scheduled digest waits rather than pinging you."
+        >
+          <Input
+            aria-label="Reachable from"
+            type="number"
+            min={0}
+            max={23}
+            style={{ width: 88 }}
+            value={whStart}
+            onChange={(e) => setWhStart(Number(e.target.value))}
+          />
+        </Line>
+        <Line label="Until">
+          <Input
+            aria-label="Reachable until"
+            type="number"
+            min={1}
+            max={24}
+            style={{ width: 88 }}
+            value={whEnd}
+            onChange={(e) => setWhEnd(Number(e.target.value))}
+          />
+        </Line>
+        <Actions>
           <Button variant="primary" type="submit" disabled={save.isPending}>
             {save.isPending ? "Saving" : "Save profile"}
           </Button>
-        </Acts>
+        </Actions>
       </Block>
 
       <Block title="Appearance">
-        <Lines>
-          <Line label="Theme" note="System follows your device. Dark is the default.">
-            <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
-          </Line>
-          <Line label="Density" note="Compact drops a row of breathing room. Type stays the same.">
-            <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
-          </Line>
-        </Lines>
+        <Line label="Theme" sub="System follows your device. Dark is the default.">
+          <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
+        </Line>
+        <Line label="Density" sub="Compact drops a row of breathing room. Type stays the same.">
+          <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
+        </Line>
       </Block>
     </form>
   );
@@ -962,75 +869,70 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
 
       <Block title="What the crew reads before it acts">
         {brief.isLoading ? (
-          <Empty>Reading the brief.</Empty>
+          <Loading>Reading the brief.</Loading>
         ) : brief.isError ? (
           // A failed read must never render blank fields whose save would wipe
           // the real brief.
-          <Failed
-            what="The brief did not load."
-            error={brief.error}
-            onRetry={() => brief.refetch()}
-          />
+          <Failed onRetry={() => void brief.refetch()}>
+            The brief did not load. {(brief.error as Error)?.message ?? "The read failed."}
+          </Failed>
         ) : (
           <>
-            <div
-              style={{
-                boxShadow: scrollToBrief
-                  ? "0 0 0 1px color-mix(in oklab, var(--sp-gate) 35%, transparent)"
-                  : undefined,
-                borderRadius: "var(--sp-radius-panel)",
-              }}
-            >
-              {BRIEF_FIELDS.map((f) => (
-                <Stack
-                  key={f.key}
+            {BRIEF_FIELDS.map((f) => (
+              <Field key={f.key} label={f.label} htmlFor={`brief-${f.key}`}>
+                <Textarea
                   id={`brief-${f.key}`}
-                  label={f.label}
-                  note={f.hint}
-                  trailing={
-                    form[f.key].length > 0 ? (
-                      <span className="sp-num" style={{ color: "var(--sp-mute)" }}>
-                        {form[f.key].length}
-                      </span>
-                    ) : undefined
-                  }
-                >
-                  <textarea
-                    id={`brief-${f.key}`}
-                    style={AREA}
-                    value={form[f.key]}
-                    rows={f.rows}
-                    placeholder={f.placeholder}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm((prev) => ({ ...prev, [f.key]: val }));
-                      setBriefDirty(true);
-                    }}
-                  />
-                </Stack>
-              ))}
-
-              <Stack
-                id="voice-anchor"
-                label="Voice"
-                note="The tone and stance every agent writes in. Leave it empty to skip."
-              >
-                <textarea
-                  id="voice-anchor"
-                  style={AREA}
-                  value={voiceAnchor}
-                  rows={3}
-                  maxLength={2000}
-                  placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
+                  value={form[f.key]}
+                  rows={f.rows}
+                  placeholder={f.placeholder}
+                  aria-describedby={`brief-hint-${f.key}`}
                   onChange={(e) => {
-                    setVoiceAnchor(e.target.value);
-                    setVoiceDirty(true);
+                    const val = e.target.value;
+                    setForm((prev) => ({ ...prev, [f.key]: val }));
+                    setBriefDirty(true);
                   }}
                 />
-              </Stack>
-            </div>
+                <span
+                  id={`brief-hint-${f.key}`}
+                  style={{
+                    display: "block",
+                    marginTop: 5,
+                    fontSize: "var(--sp-text-label)",
+                    color: "var(--sp-mute)",
+                  }}
+                >
+                  {f.hint}
+                </span>
+              </Field>
+            ))}
 
-            <Acts>
+            <Field label="Voice" htmlFor="voice-anchor">
+              <Textarea
+                id="voice-anchor"
+                value={voiceAnchor}
+                rows={3}
+                maxLength={2000}
+                placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
+                aria-describedby="voice-hint"
+                onChange={(e) => {
+                  setVoiceAnchor(e.target.value);
+                  setVoiceDirty(true);
+                }}
+              />
+              <span
+                id="voice-hint"
+                style={{
+                  display: "block",
+                  marginTop: 5,
+                  fontSize: "var(--sp-text-label)",
+                  color: "var(--sp-mute)",
+                }}
+              >
+                The tone and stance every agent writes in. Leave it empty to skip.
+              </span>
+            </Field>
+
+            <Actions>
               <Button
                 variant="primary"
                 disabled={!dirty || save.isPending || profile.isLoading}
@@ -1038,7 +940,7 @@ function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
               >
                 {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
               </Button>
-            </Acts>
+            </Actions>
           </>
         )}
       </Block>
@@ -1074,16 +976,14 @@ function AdminDoor() {
   if (q.data?.isAdmin) {
     return (
       <Block>
-        <Lines>
-          <Line
-            label="Admin console"
-            note="Members, roles, the audit trail and billing for the whole workspace."
-          >
-            <Button variant="ghost" onClick={() => navigate({ to: "/admin" })}>
-              Open
-            </Button>
-          </Line>
-        </Lines>
+        <Line
+          label="Admin console"
+          sub="Members, roles, the audit trail and billing for the whole workspace."
+        >
+          <Button variant="ghost" onClick={() => navigate({ to: "/admin" })}>
+            Open
+          </Button>
+        </Line>
       </Block>
     );
   }
@@ -1099,17 +999,15 @@ function AdminDoor() {
     };
     return (
       <Block>
-        <Lines>
-          <Line
-            label="This workspace has no admin yet"
-            note="Claiming it puts members, roles, the audit trail and billing under one person."
-          >
-            <Button onClick={() => navigate({ to: "/admin" })}>Claim admin</Button>
-            <Button variant="ghost" onClick={dismiss}>
-              Not now
-            </Button>
-          </Line>
-        </Lines>
+        <Line
+          label="This workspace has no admin yet"
+          sub="Claiming it puts members, roles, the audit trail and billing under one person."
+        >
+          <Button onClick={() => navigate({ to: "/admin" })}>Claim admin</Button>
+          <Button variant="ghost" onClick={dismiss}>
+            Not now
+          </Button>
+        </Line>
       </Block>
     );
   }
@@ -1117,25 +1015,25 @@ function AdminDoor() {
   return null;
 }
 
+/** No door in the index any more. The address answers so old links land. */
 function MemorySection({ onOpen }: { onOpen: () => void }) {
   return (
     <>
       <PageHead title="Memory" sub="It is not set here any more." />
-      <Block>
-        <Empty>
-          What the loop knows, what it learned, and the gate that reviews a new memory all live in
-          Brain now.
-        </Empty>
-        <Acts>
-          <Button onClick={onOpen}>Open Brain</Button>
-        </Acts>
-      </Block>
+      <Empty action={<Button onClick={onOpen}>Open Brain</Button>}>
+        What the loop knows, what it learned, and the gate that reviews a new memory all live in
+        Brain now.
+      </Empty>
     </>
   );
 }
 
 /* ================================================================== *
  * Agents - roster reach, models, keys
+ *
+ * The Crew lane is lifting the roster and the autonomy controls onto
+ * /crew. Left exactly as they are so that lift is a move rather than a
+ * merge.
  * ================================================================== */
 
 type AgentRow = {
@@ -1198,19 +1096,19 @@ function AgentReach({ agent }: { agent: AgentRow }) {
     onError: (e) => toast((e as Error).message),
   });
   return (
-    <select
+    <Select
       value={agent.max_tool_risk ?? ""}
       disabled={m.isPending}
       onChange={(e) => m.mutate(e.target.value)}
       aria-label={`How far ${agent.name} may reach`}
-      style={{ ...CONTROL, height: "var(--sp-ctl-md)", width: 150 }}
+      style={{ width: 150 }}
     >
       {TOOL_CAP_OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 
@@ -1222,7 +1120,7 @@ function RosterSection() {
     return (
       <>
         <PageHead title="Roster" sub="How far each agent's tools may reach." />
-        <Empty>Reading the roster.</Empty>
+        <Loading>Reading the roster.</Loading>
       </>
     );
   }
@@ -1231,13 +1129,9 @@ function RosterSection() {
     return (
       <>
         <PageHead title="Roster" sub="How far each agent's tools may reach." />
-        <Block>
-          <Failed
-            what="The roster did not load."
-            error={agentsQ.error}
-            onRetry={() => agentsQ.refetch()}
-          />
-        </Block>
+        <Failed onRetry={() => void agentsQ.refetch()}>
+          The roster did not load. {(agentsQ.error as Error)?.message ?? "The read failed."}
+        </Failed>
       </>
     );
   }
@@ -1281,47 +1175,43 @@ function RosterSection() {
       />
 
       <Block title="How far each one may reach">
-        <Lines>
-          {ordered.map((a) => {
-            const entry = catalogEntry(a.slug);
-            const approval = approvalForAgent(a, entry);
-            const off = a.enabled === false;
-            return (
-              <Line
-                key={a.slug}
-                label={
-                  <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
-                    <AgentMark slug={a.slug} name={a.name} state={off ? "quiet" : "idle"} />
-                    {agentDisplayName(a.slug, a.name)}
-                  </span>
-                }
-                note={
-                  off ? (
-                    "Off. Turning an agent back on is set in Autonomy and approvals."
-                  ) : (
-                    <>
-                      <span className={approval.review ? "sp-warn" : undefined}>
-                        {approval.label}
-                      </span>
-                      {" · "}
-                      {agentBlurb(a.slug) ?? a.role}
-                    </>
-                  )
-                }
-              >
-                <AgentReach agent={a} />
-              </Line>
-            );
-          })}
-        </Lines>
+        {ordered.map((a) => {
+          const entry = catalogEntry(a.slug);
+          const approval = approvalForAgent(a, entry);
+          const off = a.enabled === false;
+          return (
+            <Line
+              key={a.slug}
+              label={
+                <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
+                  <AgentMark slug={a.slug} name={a.name} state={off ? "quiet" : "idle"} />
+                  {agentDisplayName(a.slug, a.name)}
+                </span>
+              }
+              sub={
+                off ? (
+                  "Off. Turning an agent back on is set in Autonomy."
+                ) : (
+                  <>
+                    <span className={approval.review ? "sp-warn" : undefined}>
+                      {approval.label}
+                    </span>
+                    {" · "}
+                    {agentBlurb(a.slug) ?? a.role}
+                  </>
+                )
+              }
+            >
+              <AgentReach agent={a} />
+            </Line>
+          );
+        })}
       </Block>
 
-      <Block>
-        <Empty>
-          A new tool asks for permission the moment it is first needed, inside the run. What each
-          agent has learned, and every run it has taken, live on Crew.
-        </Empty>
-      </Block>
+      <Empty>
+        A new tool asks for permission the moment it is first needed, inside the run. What each
+        agent has learned, and every run it has taken, live on Crew.
+      </Empty>
     </>
   );
 }
@@ -1388,17 +1278,33 @@ function ModelsSection() {
     return (
       <>
         <PageHead title="Models and keys" sub="Which model runs your work, and whose key pays." />
-        <Block>
-          <Failed
-            what="Your model settings did not load."
-            error={profile.error}
-            onRetry={() => profile.refetch()}
-          />
-        </Block>
+        <Failed onRetry={() => void profile.refetch()}>
+          Your model settings did not load.{" "}
+          {(profile.error as Error)?.message ?? "The read failed."}
+        </Failed>
         <ByoKeysBlock />
       </>
     );
   }
+
+  const modelOptions = (
+    <>
+      <optgroup label="On our key">
+        {MODELS.filter((m) => m.live).map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.label}: {m.desc}
+          </option>
+        ))}
+      </optgroup>
+      <optgroup label="Needs your own key">
+        {MODELS.filter((m) => !m.live).map((m) => (
+          <option key={m.id} value={m.id} disabled>
+            {m.label}: {m.desc}
+          </option>
+        ))}
+      </optgroup>
+    </>
+  );
 
   return (
     <>
@@ -1413,69 +1319,34 @@ function ModelsSection() {
 
       <Block title="Which model runs the work">
         {profile.isLoading ? (
-          <Empty>Reading your model settings.</Empty>
+          <Loading>Reading your model settings.</Loading>
         ) : (
           <>
-            <Lines>
-              <Line
-                label="Work you start"
-                note={`Chat and any run you kick off · ${via(defaultModel, current)}`}
-              >
-                <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
-                  {defaultName}
-                </span>
-                <Button
-                  variant="ghost"
-                  aria-expanded={editing}
-                  onClick={() => setEditing((v) => !v)}
-                >
-                  Change
-                </Button>
-              </Line>
-              <Line
-                label="Work the loop starts"
-                note={`Research, clustering and reflection ticks · ${via(agenticModel, currentAgentic)}`}
-              >
-                <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
-                  {agenticName}
-                </span>
-                <Button
-                  variant="ghost"
-                  aria-expanded={editingAgentic}
-                  onClick={() => setEditingAgentic((v) => !v)}
-                >
-                  Change
-                </Button>
-              </Line>
-            </Lines>
-
+            <Line
+              label="Work you start"
+              sub={`Chat and any run you kick off · ${via(defaultModel, current)}`}
+            >
+              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                {defaultName}
+              </span>
+              <Button variant="ghost" aria-expanded={editing} onClick={() => setEditing((v) => !v)}>
+                Change
+              </Button>
+            </Line>
             {editing ? (
-              <Stack id="model-default" label="Work you start">
+              <Field label="Work you start" htmlFor="model-default">
                 <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
-                  <select
+                  <Select
                     id="model-default"
-                    style={{ ...CONTROL, flex: 1 }}
+                    style={{ flex: 1 }}
                     value={defaultModel}
                     onChange={(e) => setDefaultModel(e.target.value)}
                   >
                     <optgroup label="Recommended">
                       <option value={AUTO_MODEL}>Auto: the best model per task</option>
                     </optgroup>
-                    <optgroup label="On our key">
-                      {MODELS.filter((m) => m.live).map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.label}: {m.desc}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Needs your own key">
-                      {MODELS.filter((m) => !m.live).map((m) => (
-                        <option key={m.id} value={m.id} disabled>
-                          {m.label}: {m.desc}
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
+                    {modelOptions}
+                  </Select>
                   <Button
                     variant="primary"
                     disabled={saveModel.isPending}
@@ -1484,34 +1355,36 @@ function ModelsSection() {
                     {saveModel.isPending ? "Saving" : "Save"}
                   </Button>
                 </div>
-              </Stack>
+              </Field>
             ) : null}
 
+            <Line
+              label="Work the loop starts"
+              sub={`Research, clustering and reflection ticks · ${via(agenticModel, currentAgentic)}`}
+            >
+              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                {agenticName}
+              </span>
+              <Button
+                variant="ghost"
+                aria-expanded={editingAgentic}
+                onClick={() => setEditingAgentic((v) => !v)}
+              >
+                Change
+              </Button>
+            </Line>
             {editingAgentic ? (
-              <Stack id="model-agentic" label="Work the loop starts">
+              <Field label="Work the loop starts" htmlFor="model-agentic">
                 <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
-                  <select
+                  <Select
                     id="model-agentic"
-                    style={{ ...CONTROL, flex: 1 }}
+                    style={{ flex: 1 }}
                     value={agenticModel ?? ""}
                     onChange={(e) => setAgenticModel(e.target.value || null)}
                   >
                     <option value="">Auto: the best model per task</option>
-                    <optgroup label="On our key">
-                      {MODELS.filter((m) => m.live).map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.label}: {m.desc}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Needs your own key">
-                      {MODELS.filter((m) => !m.live).map((m) => (
-                        <option key={m.id} value={m.id} disabled>
-                          {m.label}: {m.desc}
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
+                    {modelOptions}
+                  </Select>
                   <Button
                     variant="primary"
                     disabled={saveAgenticModel.isPending}
@@ -1520,7 +1393,7 @@ function ModelsSection() {
                     {saveAgenticModel.isPending ? "Saving" : "Save"}
                   </Button>
                 </div>
-              </Stack>
+              </Field>
             ) : null}
           </>
         )}
@@ -1609,20 +1482,14 @@ function ByoKeysBlock() {
   const keyList = keys.data?.keys ?? [];
 
   return (
-    <Block title="Your own provider keys">
-      {isEnterprise ? (
-        <p style={{ ...NOTE, marginTop: 0, maxWidth: "62ch" }}>
-          Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a
-          compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers
-          that host their own.
-        </p>
-      ) : (
-        <p style={{ ...NOTE, marginTop: 0, maxWidth: "62ch" }}>
-          An Enterprise boundary. Every other plan runs on Supaprod credits, and the same
-          model-agnostic routing applies. It just uses our keys.
-        </p>
-      )}
-
+    <Block
+      title="Your own provider keys"
+      sub={
+        isEnterprise
+          ? "Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers that host their own."
+          : "An Enterprise boundary. Every other plan runs on Supaprod credits, with the same model-agnostic routing. It just uses our keys."
+      }
+    >
       {isEnterprise ? (
         <form
           onSubmit={(e) => {
@@ -1635,11 +1502,9 @@ function ByoKeysBlock() {
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
               gap: "var(--sp-space-2)",
-              marginTop: "var(--sp-space-4)",
             }}
           >
-            <select
-              style={CONTROL}
+            <Select
               value={keyProv}
               onChange={(e) => setKeyProv(e.target.value)}
               aria-label="Provider"
@@ -1649,24 +1514,21 @@ function ByoKeysBlock() {
                   {p.label}
                 </option>
               ))}
-            </select>
-            <input
-              style={CONTROL}
+            </Select>
+            <Input
               value={keyLabel}
               onChange={(e) => setKeyLabel(e.target.value)}
               aria-label="Label"
               placeholder="Label, optional"
             />
-            <input
-              style={CONTROL}
+            <Input
               value={keyValue}
               onChange={(e) => setKeyValue(e.target.value)}
               type="password"
               aria-label="API key"
               placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
             />
-            <input
-              style={CONTROL}
+            <Input
               value={keyBase}
               onChange={(e) => setKeyBase(e.target.value)}
               aria-label="Base URL"
@@ -1674,15 +1536,15 @@ function ByoKeysBlock() {
             />
           </div>
           {keyProv === "custom" || keyBase.trim() ? (
-            <input
-              style={{ ...CONTROL, width: "100%", marginTop: "var(--sp-space-2)" }}
+            <Input
+              style={{ width: "100%", marginTop: "var(--sp-space-2)" }}
               value={keyModelId}
               onChange={(e) => setKeyModelId(e.target.value)}
               aria-label="Model id"
               placeholder="Model id, exactly as the provider names it"
             />
           ) : null}
-          <Acts>
+          <Actions>
             {/* Not primary: the primary on this section is the model save. */}
             <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
               {mSaveKey.isPending ? "Saving" : "Add key"}
@@ -1707,138 +1569,51 @@ function ByoKeysBlock() {
                 )}
               </span>
             ) : null}
-          </Acts>
+          </Actions>
         </form>
       ) : null}
 
       {isEnterprise || keyList.length > 0 ? (
-        <div style={{ marginTop: "var(--sp-space-4)" }}>
+        <>
           {keys.isLoading ? (
-            <Empty>Reading your keys.</Empty>
+            <Loading>Reading your keys.</Loading>
           ) : keys.isError ? (
-            <Failed
-              what="Your keys did not load."
-              error={keys.error}
-              onRetry={() => keys.refetch()}
-            />
+            <Failed onRetry={() => void keys.refetch()}>
+              Your keys did not load. {(keys.error as Error)?.message ?? "The read failed."}
+            </Failed>
           ) : keyList.length === 0 ? (
             <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
           ) : (
-            <Lines>
-              {keyList.map((k) => (
-                <Line
-                  key={k.id}
-                  label={
-                    <>
-                      {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                      {k.label ? (
-                        <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span>
-                      ) : null}
-                    </>
-                  }
-                  note={
-                    <span className="sp-num">
-                      {k.preview}
-                      {k.model_id ? ` · ${k.model_id}` : ""}
-                      {k.base_url ? ` · ${k.base_url}` : ""}
-                    </span>
-                  }
+            keyList.map((k) => (
+              <Line
+                key={k.id}
+                label={
+                  <>
+                    {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
+                    {k.label ? <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span> : null}
+                  </>
+                }
+                sub={
+                  <Num>
+                    {k.preview}
+                    {k.model_id ? ` · ${k.model_id}` : ""}
+                    {k.base_url ? ` · ${k.base_url}` : ""}
+                  </Num>
+                }
+              >
+                <Button
+                  variant="ghost"
+                  disabled={mDelKey.isPending && mDelKey.variables === k.id}
+                  onClick={() => mDelKey.mutate(k.id)}
                 >
-                  <Button
-                    variant="ghost"
-                    disabled={mDelKey.isPending && mDelKey.variables === k.id}
-                    onClick={() => mDelKey.mutate(k.id)}
-                  >
-                    Remove
-                  </Button>
-                </Line>
-              ))}
-            </Lines>
+                  Remove
+                </Button>
+              </Line>
+            ))
           )}
-        </div>
+        </>
       ) : null}
     </Block>
-  );
-}
-
-/* ================================================================== *
- * Connections and data
- * ================================================================== */
-
-function ConnectionsSection({
-  connector,
-  onOpenDetail,
-  onCloseDetail,
-}: {
-  connector?: ProviderId;
-  onOpenDetail: (provider: ProviderId) => void;
-  onCloseDetail: () => void;
-}) {
-  // The detail replaces the whole pane; the index stays beside it.
-  if (connector) {
-    return <ConnectorDetail provider={connector} onBack={onCloseDetail} />;
-  }
-
-  return (
-    <>
-      <PageHead
-        title="Sources"
-        sub="What the crew is allowed to read, connected once and under your account."
-      />
-      <Block>
-        <AccountConnectionsSection onOpenDetail={onOpenDetail} />
-      </Block>
-    </>
-  );
-}
-
-const LEGAL_LINKS = [
-  { href: "/security", label: "Security" },
-  { href: "/privacy", label: "Privacy policy" },
-  { href: "/terms", label: "Terms of service" },
-  { href: "/updates", label: "Changelog" },
-];
-
-function DataSection({ workspaceId }: { workspaceId?: string }) {
-  return (
-    <>
-      <PageHead
-        title="Your data"
-        sub="Where it sits, who else touches it, and how to take it out."
-      />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--sp-space-3)",
-          marginTop: "var(--sp-space-6)",
-        }}
-      >
-        <DataSubstrateCard />
-        <ValueReceiptsCard />
-        <DataExportCard workspaceId={workspaceId} />
-        <SkillsFileExportCard />
-        <SubprocessorsCard />
-      </div>
-
-      {/* MOVED here from Profile: the trust documents belong beside the
-          subprocessor list and the export, not beside your display name. */}
-      <Block title="The terms this runs under">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--sp-space-5)" }}>
-          {LEGAL_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
-            >
-              {l.label}
-            </a>
-          ))}
-        </div>
-      </Block>
-    </>
   );
 }
 
@@ -1965,7 +1740,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
     return (
       <>
         <PageHead title="Plan" sub="What this workspace is entitled to." />
-        <Empty>Reading your plan.</Empty>
+        <Loading>Reading your plan.</Loading>
       </>
     );
   }
@@ -1976,13 +1751,9 @@ function PlanSection({ checkout }: { checkout?: string }) {
     return (
       <>
         <PageHead title="Plan" sub="What this workspace is entitled to." />
-        <Block>
-          <Failed
-            what="Your plan did not load."
-            error={billing.error}
-            onRetry={() => billing.refetch()}
-          />
-        </Block>
+        <Failed onRetry={() => void billing.refetch()}>
+          Your plan did not load. {(billing.error as Error)?.message ?? "The read failed."}
+        </Failed>
       </>
     );
   }
@@ -2000,25 +1771,23 @@ function PlanSection({ checkout }: { checkout?: string }) {
       <PaymentTestModeBanner />
 
       <Block title="What you are on">
-        <Lines>
-          <Line label={current.name} note={current.tagline}>
-            {hasSub ? (
-              <span className={statusClass} style={{ fontSize: "var(--sp-text-meta)" }}>
-                {statusWord}
-              </span>
-            ) : null}
-          </Line>
-          {hasSub && renewsLabel ? (
-            <Line label={sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}>
-              <Num>{renewsLabel}</Num>
-            </Line>
+        <Line label={current.name} sub={current.tagline}>
+          {hasSub ? (
+            <span className={statusClass} style={{ fontSize: "var(--sp-text-meta)" }}>
+              {statusWord}
+            </span>
           ) : null}
-        </Lines>
+        </Line>
+        {hasSub && renewsLabel ? (
+          <Line label={sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}>
+            <Num>{renewsLabel}</Num>
+          </Line>
+        ) : null}
 
         {state && !state.isOwner ? (
           <Empty>Only the workspace owner can change or cancel the plan.</Empty>
         ) : (
-          <Acts>
+          <Actions>
             {hasSub ? (
               <Button
                 variant={isPastDue ? "primary" : "default"}
@@ -2044,7 +1813,7 @@ function PlanSection({ checkout }: { checkout?: string }) {
                 Buy a credit top-up
               </Button>
             ) : null}
-          </Acts>
+          </Actions>
         )}
       </Block>
 
@@ -2149,13 +1918,11 @@ function CreditsSection() {
 
       <Block title="Balance">
         {credits.isError ? (
-          <Failed
-            what="Your balance did not load."
-            error={credits.error}
-            onRetry={() => credits.refetch()}
-          />
+          <Failed onRetry={() => void credits.refetch()}>
+            Your balance did not load. {(credits.error as Error)?.message ?? "The read failed."}
+          </Failed>
         ) : credits.isLoading ? (
-          <Empty>Reading your balance.</Empty>
+          <Loading>Reading your balance.</Loading>
         ) : (
           <>
             <div
@@ -2169,18 +1936,16 @@ function CreditsSection() {
               {balance !== null ? balance.toLocaleString() : "--"}
             </div>
             {data ? (
-              <div style={{ marginTop: "var(--sp-space-3)" }}>
-                <Lines>
-                  <Line
-                    label="Granted this cycle"
-                    note={cycleLabel ? `Since ${cycleLabel}` : undefined}
-                  >
-                    <Num>{data.monthlyGrantCredits.toLocaleString()}</Num>
-                  </Line>
-                  <Line label="Bought on top">
-                    <Num>{data.topupCredits.toLocaleString()}</Num>
-                  </Line>
-                </Lines>
+              <>
+                <Line
+                  label="Granted this cycle"
+                  sub={cycleLabel ? `Since ${cycleLabel}` : undefined}
+                >
+                  <Num>{data.monthlyGrantCredits.toLocaleString()}</Num>
+                </Line>
+                <Line label="Bought on top">
+                  <Num>{data.topupCredits.toLocaleString()}</Num>
+                </Line>
                 {data.enabled && data.monthlyGrantCredits > 0 ? (
                   <div style={{ marginTop: "var(--sp-space-3)", maxWidth: 260 }}>
                     <UsageIndicator
@@ -2189,7 +1954,7 @@ function CreditsSection() {
                     />
                   </div>
                 ) : null}
-              </div>
+              </>
             ) : null}
           </>
         )}
@@ -2199,13 +1964,11 @@ function CreditsSection() {
 
       <Block title="Buy more">
         {catalog.isLoading ? (
-          <Empty>Reading the price list.</Empty>
+          <Loading>Reading the price list.</Loading>
         ) : catalog.error ? (
-          <Failed
-            what="The price list did not load."
-            error={catalog.error}
-            onRetry={() => catalog.refetch()}
-          />
+          <Failed onRetry={() => void catalog.refetch()}>
+            The price list did not load. {(catalog.error as Error)?.message ?? "The read failed."}
+          </Failed>
         ) : BUNDLES.length === 0 ? (
           <Empty>
             No top-up is published yet. When one is, it appears here at the price that will actually
@@ -2213,11 +1976,16 @@ function CreditsSection() {
           </Empty>
         ) : (
           <>
+            {/* A grid, for the same reason the source catalog is one: a ladder
+                of prices is scanned across, not read down. Token-built rather
+                than borrowing the crew roster's classes, which mean something
+                else. Selection is a ring, never a fill: ember marks the human
+                and a chosen bundle is not one. */}
             <div
               style={{
                 display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
                 gap: "var(--sp-space-2)",
-                gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
               }}
             >
               {BUNDLES.map((b) => {
@@ -2234,34 +2002,39 @@ function CreditsSection() {
                     title={wouldExceed ? "Past your per-cycle top-up limit." : undefined}
                     onClick={() => setSelectedKey(b.key)}
                     style={{
-                      textAlign: "left",
+                      display: "block",
+                      width: "100%",
                       font: "inherit",
-                      padding: "var(--sp-space-3)",
-                      borderRadius: "var(--sp-radius-ctl)",
-                      border: `1px solid ${selected ? "var(--sp-ink)" : "var(--sp-line)"}`,
-                      background: selected ? "var(--sp-lift)" : "transparent",
+                      textAlign: "left",
+                      border: 0,
+                      padding: "10px 12px",
+                      borderRadius: "var(--sp-radius-card)",
+                      boxShadow: selected ? "inset 0 0 0 1px var(--sp-ink)" : undefined,
+                      background: "var(--sp-lift)",
                       color: "var(--sp-ink)",
                       cursor: wouldExceed ? "not-allowed" : "pointer",
                       opacity: wouldExceed ? 0.45 : 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 3,
                     }}
                   >
                     <span
                       style={{
-                        fontFamily: "var(--sp-font-mono)",
-                        fontVariantNumeric: "tabular-nums",
+                        display: "block",
                         fontSize: "var(--sp-text-body)",
+                        fontWeight: "var(--sp-weight-medium)",
                       }}
                     >
-                      {b.credits.toLocaleString()}
+                      <Num>{b.credits.toLocaleString()}</Num> credits
                     </span>
-                    <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-body)" }}>
-                      {fmtPrice(b.priceCents)}
-                    </span>
-                    <span style={{ fontSize: "var(--sp-text-data)", color: "var(--sp-mute)" }}>
-                      {(perCredit / 100).toFixed(3)} each{isBest ? " · best rate" : ""}
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: 1,
+                        fontSize: "var(--sp-text-label)",
+                        color: "var(--sp-mute)",
+                      }}
+                    >
+                      {fmtPrice(b.priceCents)} · {(perCredit / 100).toFixed(3)} each
+                      {isBest ? " · best rate" : ""}
                     </span>
                   </button>
                 );
@@ -2271,7 +2044,7 @@ function CreditsSection() {
             {/* Honest checkout: while payments are dormant there is no Buy
                 button at all, because a disabled buy is still a dead promise. */}
             {selectedBundle && envSafe ? (
-              <Acts>
+              <Actions>
                 <Button
                   variant="primary"
                   disabled={
@@ -2287,7 +2060,7 @@ function CreditsSection() {
                   Buy {selectedBundle.credits.toLocaleString()} credits ·{" "}
                   {fmtPrice(selectedBundle.priceCents)}
                 </Button>
-              </Acts>
+              </Actions>
             ) : selectedBundle ? (
               <Empty>
                 Buying is not switched on in this build. The prices are live so you can plan against
@@ -2318,7 +2091,7 @@ function CreditsSection() {
           is a report, and it lives in the Engine room's Spend view. */}
       <Block title="What you bought">
         {credits.isLoading ? (
-          <Empty>Reading your purchases.</Empty>
+          <Loading>Reading your purchases.</Loading>
         ) : credits.isError ? (
           <Empty>Your purchases did not load. Use the retry above.</Empty>
         ) : !data || data.topups.length === 0 ? (
@@ -2327,6 +2100,7 @@ function CreditsSection() {
           data.topups.map((t) => (
             <Row
               key={`top-${t.id}`}
+              tight
               lead="Credit top-up"
               sub={
                 <span className="sp-pass">+{Number(t.credits_added).toLocaleString()} credits</span>
