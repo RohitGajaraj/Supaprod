@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supaprod structure sketch</title>
+<style>
+@font-face{font-family:"GeistS";src:url("../../../../public/fonts/geist/Geist-Variable.woff2")format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"GeistM";src:url("../../../../public/fonts/geist/GeistMono-Variable.woff2")format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"GeistPx";src:url("../../../../public/fonts/geist/GeistPixel-Square.woff2")format("woff2");font-weight:400;font-display:swap}
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* neutrals tinted very slightly cool, never pure black or pure white */
+  --bg:#0a0a0b; --panel:#101012; --sunk:#0c0c0e; --raised:#17171a;
+  --t:#f2f2f4; --b:#a6a6ad; --s:#78787f; --f:#56565d;
+  --line:rgba(255,255,255,.11); --line2:rgba(255,255,255,.055);
+  --blue:#6cb0f5; --ember:#ff6b2c; --pass:#4ac26b; --fail:#e5534b;
+  --sans:"GeistS",ui-sans-serif,system-ui,sans-serif;
+  --mono:"GeistM",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --px:"GeistPx","GeistM",monospace;
+}
+html{background:var(--bg)}
+body{font-family:var(--sans);color:var(--t);line-height:1.55;-webkit-font-smoothing:antialiased;
+  background:var(--bg);padding:0 0 110px}
+
+.wrap{max-width:1160px;margin:0 auto;padding:0 26px}
+
+/* ---- document head. one kicker in the whole document, and it is a date line ---- */
+.docHead{padding:86px 0 48px}
+h1{font-size:42px;font-weight:600;letter-spacing:-.03em;line-height:1.08;max-width:22ch}
+.lede{color:var(--b);font-size:17.5px;max-width:66ch;margin-top:20px}
+.lede b{color:var(--t);font-weight:550}
+.meta{font-family:var(--mono);font-size:12px;color:var(--f);margin-top:34px}
+
+/* ---- sections. sentence case, no tracking, no numbers, no uppercase ---- */
+h2{font-size:23px;font-weight:600;letter-spacing:-.022em;margin:78px 0 8px}
+.intro{color:var(--b);font-size:15.5px;max-width:70ch;margin-bottom:26px}
+.intro b{color:var(--t);font-weight:550}
+p{color:var(--b);font-size:15.5px;max-width:70ch;margin:14px 0}
+p b{color:var(--t);font-weight:550}
+
+/* ---- a frame ---- */
+.frame{margin:0 0 52px}
+.ft{font-size:17px;font-weight:600;letter-spacing:-.016em;margin-bottom:5px}
+.fs{color:var(--b);font-size:14.5px;max-width:72ch;margin-bottom:18px}
+.fbody{display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:26px;align-items:start}
+@media (max-width:940px){.fbody{grid-template-columns:minmax(0,1fr)}}
+
+/* annotations. numbers anchor to the drawing, so they do work. no stripe. */
+.notes{font-family:var(--mono);font-size:12px;line-height:1.62;color:var(--b);padding-top:2px}
+.notes li{list-style:none;margin-bottom:14px;display:flex;gap:9px}
+.notes li b{color:var(--t);font-weight:500}
+.n{color:var(--f);flex:none;font-size:12px;padding-top:1px}
+.gone{color:var(--fail)}
+.ok{color:var(--pass)}
+
+/* ---- wireframe. exactly one container. nothing bordered inside it. ---- */
+.wf{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden;
+  font-family:var(--mono);font-size:12px;color:var(--b)}
+.hdr{height:40px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:13px;
+  padding:0 12px;background:var(--raised)}
+.mk{width:13px;height:13px;border:1px solid var(--s);border-radius:50%;flex:none}
+.scope{color:var(--t)}
+.live{flex:1;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis}
+.dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--f)}
+.dot.on{background:var(--blue)}
+.dot.gate{background:var(--ember);width:6px;height:6px;border-radius:1px;transform:rotate(45deg)}
+.rt{display:flex;align-items:center;gap:11px;flex:none;color:var(--s)}
+.pill{border:1px solid var(--line);border-radius:5px;padding:4px 8px;color:var(--t)}
+.pill.hot{border-color:var(--t)}
+
+.split{display:flex;min-height:312px}
+.rail{width:164px;border-right:1px solid var(--line);padding:10px 0;flex:none}
+.rail.cl{width:46px}
+.crew{padding:5px 12px 11px;border-bottom:1px solid var(--line2);margin-bottom:9px}
+.marks{display:flex;flex-wrap:wrap;gap:3px}
+.mq{width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,.14)}
+.mq.w{background:var(--blue)}
+.mq.n{background:var(--ember)}
+.census{color:var(--f);font-size:12px;margin-top:7px}
+.rr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;height:30px}
+.ic{width:12px;height:12px;border:1px solid var(--f);border-radius:2px;flex:none}
+.lb{flex:1}
+.ct{color:var(--f);font-size:12px}
+.rr.sel{background:rgba(255,255,255,.05)}
+.rr.sel .lb,.rr.sel .ct{color:var(--t)}
+.rr.sel .ic{border-color:var(--t)}
+
+.work{flex:1;padding:18px 20px;min-width:0}
+.wh{color:var(--t);font-family:var(--sans);font-size:16.5px;font-weight:550;letter-spacing:-.014em;
+  line-height:1.34}
+.wsub{color:var(--s);font-size:12px;margin-top:4px}
+.grp{margin-top:28px}
+/* group labels: sentence case, normal tracking. not an editorial kicker. */
+.glab{color:var(--f);font-size:12px;margin-bottom:10px}
+
+.row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--line2)}
+.row:last-child{border-bottom:0}
+.sq{width:12px;height:12px;border-radius:3px;border:1px solid var(--s);flex:none;margin-top:3px}
+.ci{width:12px;height:12px;border-radius:50%;border:1px solid var(--ember);flex:none;margin-top:3px}
+.rmain{flex:1;min-width:0}
+.l1{color:var(--t);font-size:12.5px;line-height:1.5}
+.l1 .who{color:var(--b)}
+.l2{color:var(--f);font-size:12px;margin-top:2px;line-height:1.5}
+.age{color:var(--f);font-size:12px;flex:none;margin-top:3px}
+.num{font-variant-numeric:tabular-nums}
+.g{color:var(--pass)}.r{color:var(--fail)}.bl{color:var(--blue)}.em{color:var(--ember)}
+
+/* the consequence: a tint, no border. flattened, not a card in a card. */
+.tint{background:var(--sunk);border-radius:5px;padding:11px 13px;margin-top:4px}
+.btns{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.bt{border:1px solid var(--line);border-radius:5px;padding:6px 12px;color:var(--t);font-size:12px}
+.bt.pri{background:var(--t);color:#0a0a0b;border-color:var(--t);font-weight:550}
+.bt.q{border:0;color:var(--f);padding-left:0}
+.keys{color:var(--f);font-size:12px;margin-top:10px}
+
+/* the record speaking: a recess and a leading mark. no stripe, no glow, no border. */
+.rec{background:var(--sunk);border-radius:5px;padding:12px 14px;display:flex;gap:10px}
+.dia{color:var(--s);flex:none;font-size:12px;padding-top:1px}
+.rec .txt{color:var(--t);font-size:12.5px;line-height:1.5}
+.rec .ev{color:var(--f);font-size:12px;margin-top:4px}
+
+.ask{width:250px;border-left:1px solid var(--line);background:var(--raised);padding:14px;flex:none}
+.askh{display:flex;justify-content:space-between;color:var(--s);font-size:12px;margin-bottom:14px}
+.msg{margin-bottom:13px}
+.from{color:var(--f);font-size:12px;margin-bottom:3px}
+.mbody{color:var(--t);font-size:12px;line-height:1.5}
+.box{border:1px solid var(--line);border-radius:5px;height:32px;margin-top:14px}
+
+.stages{border-bottom:1px solid var(--line);padding:13px 14px;display:flex}
+.st{flex:1;padding-right:12px;border-right:1px solid var(--line2)}
+.st:last-child{border-right:0}
+.st .sn{color:var(--f);font-size:12px}
+.st .snm{color:var(--b);font-size:12px;margin:3px 0 4px}
+.st .ssw{font-size:12px;color:var(--f)}
+.st.done .snm{color:var(--s)}
+.st.act .snm{color:var(--t)} .st.act .ssw{color:var(--blue)}
+.st.gt .snm{color:var(--t)} .st.gt .ssw{color:var(--ember)}
+
+/* the door. stars are content the founder asked for. no grid, no halo, no glow. */
+.auth{position:relative;min-height:344px;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(1px 1px at 12% 22%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 79% 15%,rgba(255,255,255,.38),transparent),
+    radial-gradient(1px 1px at 33% 72%,rgba(255,255,255,.32),transparent),
+    radial-gradient(1px 1px at 64% 61%,rgba(255,255,255,.46),transparent),
+    radial-gradient(1px 1px at 88% 79%,rgba(255,255,255,.27),transparent),
+    radial-gradient(1px 1px at 21% 45%,rgba(255,255,255,.23),transparent),
+    radial-gradient(1px 1px at 71% 34%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1.3px 1.3px at 46% 27%,rgba(255,255,255,.55),transparent),
+    var(--bg)}
+.shoot{position:absolute;top:24%;left:9%;width:118px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6));transform:rotate(13deg)}
+.shoot::after{content:"";position:absolute;right:0;top:-.5px;width:2px;height:2px;border-radius:50%;
+  background:#f2f2f4}
+.card{width:296px;text-align:center;z-index:1}
+.greet{font-family:var(--px);font-size:27px;color:var(--t)}
+.tag{font-family:var(--mono);font-size:12px;color:var(--s);margin:12px 0 22px;line-height:1.5}
+.gbtn{border:1px solid var(--line);border-radius:5px;height:34px;background:var(--raised);
+  display:flex;align-items:center;justify-content:center;color:var(--t);font-size:12px;margin-bottom:18px}
+.field{border:1px solid var(--line);border-radius:5px;height:32px;margin-bottom:8px}
+.sub{background:var(--t);color:#0a0a0b;border-radius:5px;height:34px;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:600;margin-top:4px}
+.foot{color:var(--f);font-size:12px;margin-top:16px}
+
+.beats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:820px){.beats{grid-template-columns:repeat(2,1fr)}}
+.beat{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:12px;min-height:134px}
+.bms{font-family:var(--mono);font-size:12px;color:var(--f);margin-bottom:10px}
+
+.tiers{display:grid;gap:12px}
+.tier{border:1px solid var(--line);border-radius:7px;background:var(--panel);overflow:hidden}
+.tcap{font-family:var(--mono);font-size:12px;color:var(--f);padding:9px 12px;
+  border-bottom:1px solid var(--line2)}
+.tbody{display:flex;height:78px}
+.tb{border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;color:var(--f);text-align:center;padding:0 6px}
+.tb:last-child{border-right:0}
+.tb.workb{background:rgba(255,255,255,.04);color:var(--b)}
+
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.pair{grid-template-columns:1fr}}
+/* light theme: a cool technical sheet, faintly blue. deliberately NOT cream. */
+.lt{--bg:#f4f5f7; --panel:#f7f8fa; --sunk:#eceef2; --raised:#eef0f3;
+  --t:#16171a; --b:#4e5057; --s:#71747c; --f:#8b8e97;
+  --line:rgba(20,22,28,.14); --line2:rgba(20,22,28,.07);
+  --blue:#2f6fd0; --ember:#e0550f; --pass:#1a7f37; --fail:#c8302a;
+  background:var(--panel);color:var(--t);border-color:var(--line)}
+.lt .hdr{background:var(--raised)}
+.lt .sub,.lt .bt.pri{background:var(--t);color:#f7f8fa}
+.lt .mq{background:rgba(20,22,28,.16)}
+.lt .mq.w{background:var(--blue)} .lt .mq.n{background:var(--ember)}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:10px 0 8px}
+th,td{text-align:left;padding:11px 14px 11px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;color:var(--f);font-weight:400;
+  border-bottom:1px solid var(--line)}
+td{color:var(--b)}
+td b{color:var(--t);font-weight:550}
+code{font-family:var(--mono);font-size:.88em;color:var(--t)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+
+.spec{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:20px;margin-bottom:14px}
+.snm2{font-family:var(--mono);font-size:12px;color:var(--f);margin-bottom:14px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.big{font-size:28px;font-weight:600;letter-spacing:-.024em;margin-bottom:9px}
+.mid{font-size:14.5px;color:var(--b);max-width:66ch}
+.dataline{font-family:var(--mono);font-size:13.5px;color:var(--b);line-height:2.05;
+  font-variant-numeric:tabular-nums}
+.flag{font-family:var(--mono);font-size:12.5px;color:var(--t);background:var(--sunk);
+  border-radius:5px;padding:12px 14px;margin-top:14px;line-height:1.6}
+.flag b{color:var(--ember);font-weight:500}
+
+.dens{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px;margin-top:10px}
+.dcell{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:13px}
+.dv{font-family:var(--mono);font-size:19px;color:var(--t);font-variant-numeric:tabular-nums}
+.dk{font-family:var(--mono);font-size:12px;color:var(--f);margin-top:5px;line-height:1.5}
+
+.rule{font-size:16.5px;color:var(--t);max-width:68ch;margin:20px 0;padding:16px 18px;
+  background:var(--sunk);border-radius:6px;line-height:1.55}
+.rule b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="docHead">
+  <h1>The shape, before the pixels</h1>
+  <p class="lede">A structural sketch, deliberately unfinished. It answers <b>where things go and
+  why</b>, not what they look like. Hairlines and labels only, so it gets judged on structure.
+  Colour appears only where a colour has a job to do.</p>
+  <div class="meta">Supaprod &middot; rebuild 2026-07 &middot; 12 frames, each with its empty state
+  &middot; read at 480, 1440 and 2560</div>
+</header>
+
+<h2>The frame</h2>
+<p class="intro">The previous shell drew five permanent regions and the doctrines added three more.
+Eight regions each have to be filled, and filling is how the last four attempts became assemblies.
+Linear ships three. This ships four, and the fourth is summoned rather than permanent.</p>
+<div class="frame">
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">helio-labs / relay &#9662;</span>
+        <div class="live"><span class="dot on"></span>the live line, one line, always</div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail">
+          <div class="crew">
+            <div class="marks">
+              <span class="mq w"></span><span class="mq w"></span><span class="mq n"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span>
+            </div>
+            <div class="census">13 marks, always</div>
+          </div>
+          <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct num">2</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct num">4</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+        </div>
+        <div class="work">
+          <div class="wh">the work</div>
+          <div class="wsub">the only region that stretches. everything else holds its width.</div>
+          <div class="grp">
+            <div class="glab">what lives here</div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1">the brief, a run, the record, a call</div>
+              <div class="l2">whatever the selected rail row points at</div></div></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1">receipts arrive in place, as they happen</div>
+              <div class="l2">so you watch your sentence take effect without a second column</div></div></div>
+          </div>
+        </div>
+        <div class="ask">
+          <div class="askh"><span>Ask</span><span>esc</span></div>
+          <div class="msg"><div class="from">summoned</div>
+            <div class="mbody">slides in over the work. the work stays visible beneath it.</div></div>
+          <div class="box"></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Header, 40px.</b> Mark, scope, the live line, Ask,
+        settings, you.</span></li>
+      <li><span class="n">2</span><span><b>Rail, 220 or 56.</b> Collapsed is icons only, expanded is
+        one line of label. Five rows, ratified names, live counts.</span></li>
+      <li><span class="n">3</span><span><b>Thirteen crew marks at the rail head</b>, not at the
+        bottom. You rejected the bottom strip; the thirteen-always rule is sound and stays.</span></li>
+      <li><span class="n">4</span><span><b>The work</b> is the only elastic region.</span></li>
+      <li><span class="n">5</span><span><b>Ask is summoned</b> from the top right, never
+        permanent.</span></li>
+      <li><span class="n">6</span><span class="gone">Removed: the seven-segment band, the 380px
+        thread, the bottom composer, the second right-hand rail.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>The door</h2>
+<p class="intro">The only moment a person is outside the system looking in. It should feel like
+looking at something awake. It is also the one surface where Geist Pixel lives, which turns a face
+you had retired into a deliberate threshold identity.</p>
+<div class="frame">
+  <div class="fbody">
+    <div class="wf">
+      <div class="auth">
+        <div class="shoot"></div>
+        <div class="card">
+          <div class="greet">Still up.</div>
+          <div class="tag">You make the calls. Your crew does the work between them.</div>
+          <div class="gbtn">Continue with Google</div>
+          <div class="field"></div>
+          <div class="field"></div>
+          <div class="sub">Sign in</div>
+          <div class="foot">Create an account &nbsp; Forgot password</div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>The greeting is a fact.</b> Two words, changing with the
+        hour and the day: <b>Still up.</b> / <b>Early.</b> / <b>New week.</b> / <b>Friday.</b> No
+        name, because before you sign in we do not have one, and no workspace data, because that
+        would leak.</span></li>
+      <li><span class="n">2</span><span><b>Geist Pixel, here and nowhere else</b> in the
+        product.</span></li>
+      <li><span class="n">3</span><span><b>Stars, and no grid.</b> A decorative grid over a surface
+        that is not a canvas or a measurement is a listed slop pattern, so the engineering grid comes
+        off both this and the landing page.</span></li>
+      <li><span class="n">4</span><span><b>One shooting star</b>, every 20 to 40 seconds, irregular
+        so it is never predictable. 700ms, transform and opacity only, off under reduced
+        motion.</span></li>
+      <li><span class="n">5</span><span class="gone">Removed: the <code>or</code> divider, the helper
+        line above Google, the 520px rotating watermark, its white glow, the
+        <code>data-obsidian</code> mount.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>The front door</h2>
+<p class="intro">Neither an inbox nor a dashboard. The system reports what your company did while you
+were gone, one or two lines per event, with depth a click below. Our own governance ruling says a long
+queue is a policy failure to surface rather than a workload to render, so an inbox here would design
+for the failure state.</p>
+
+<div class="frame">
+  <div class="ft">Today, after a night of work</div>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">helio-labs / relay &#9662;</span>
+        <div class="live"><span class="dot"></span>Nothing running &middot; last: shipped the autofill fix, 2h ago</div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail">
+          <div class="crew">
+            <div class="marks">
+              <span class="mq"></span><span class="mq"></span><span class="mq n"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span>
+            </div>
+            <div class="census">nobody running, 1 waiting on you</div>
+          </div>
+          <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct num">1</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct num">4</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+        </div>
+        <div class="work">
+          <div class="wh">Four runs finished while you were gone. One needs you.</div>
+          <div class="wsub">Tuesday 29 July &middot; the record covers 41 days</div>
+
+          <div class="grp">
+            <div class="glab">needs you</div>
+            <div class="l1" style="font-family:var(--sans);font-size:14px;font-weight:550;margin-bottom:8px">
+              Planner wants to ship the pricing spec</div>
+            <div class="tint">
+              <div class="l1 num">what changes: <span class="g">+3 sections</span>,
+                <span class="r">1 removed</span>, and 4 open questions close</div>
+              <div class="l2">what you are approving is the outcome, not the request</div>
+            </div>
+            <div class="btns"><span class="bt pri">Approve</span><span class="bt">Send back</span>
+              <span class="bt">Decline</span><span class="bt q">Snooze</span></div>
+          </div>
+
+          <div class="grp">
+            <div class="glab">done without you</div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Engineer</span> shipped the autofill fix</div>
+              <div class="l2 num">12 files, tests pass, run 41</div></div>
+              <span class="age num">2h</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Critic</span> dropped the referral bet</div>
+              <div class="l2">for the reason you gave in March</div></div>
+              <span class="age num">5h</span></div>
+            <div class="row"><span class="sq"></span><span class="ci"></span><div class="rmain">
+              <div class="l1"><span class="who">Writer</span> drafted the onboarding spec,
+                <span class="em">edited</span></div>
+              <div class="l2">you changed the second section</div></div>
+              <span class="age num">6h</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Reviewer</span> sent the migration back to Engineer</div>
+              <div class="l2">no rollback path</div></div>
+              <span class="age num">8h</span></div>
+          </div>
+
+          <div class="grp">
+            <div class="glab">it learned one thing</div>
+            <div class="rec">
+              <span class="dia">&#9670;</span>
+              <div><div class="txt">Checkout changes ship twice as fast when Critic reviews before
+                Engineer starts.</div>
+                <div class="ev num">6 of 6 runs, since 12 June</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>The heading is the fact.</b> No greeting, no date as a
+        title. The sentence changes because the facts change.</span></li>
+      <li><span class="n">2</span><span><b>One or two lines per event.</b> The second line is the
+        evidence, the whole row is a door.</span></li>
+      <li><span class="n">3</span><span><b>Square is an agent, circle is you</b>, at the leading edge
+        of every row, never a hover. Row three carries both plus <code>edited</code>: the crew
+        drafted it, you changed it.</span></li>
+      <li><span class="n">4</span><span><b>A gate shows the consequence.</b> What will be true if you
+        approve, set as a tinted block rather than a card inside a card.</span></li>
+      <li><span class="n">5</span><span><b>Three buttons, Snooze demoted.</b> Approve is monochrome
+        and high contrast. Ember on approve would make every screen shout.</span></li>
+      <li><span class="n">6</span><span><b>The record speaks as a recess and a mark</b>, with no
+        border and no side stripe. That pattern is the top listed tell of a generated
+        interface.</span></li>
+      <li><span class="n">7</span><span><b>One call, not a queue.</b> A normal build run gates exactly
+        once, verified in the migration that set the defaults.</span></li>
+      <li><span class="n">8</span><span class="ok">Ember on this frame: two. Your circle, and
+        <code>edited</code> beside it. Both are human acts.</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="frame">
+  <div class="ft">Today, day one</div>
+  <p class="fs">The only day every user has. Seven identical grey dots shipped last time because
+  nobody drew this frame. There is no create button here: the first act is to read.</p>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">helio-labs / relay &#9662;</span>
+        <div class="live"><span class="dot"></span>Nothing has run yet</div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail">
+          <div class="crew">
+            <div class="marks">
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span>
+            </div>
+            <div class="census">13 employed, none running yet</div>
+          </div>
+          <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+        </div>
+        <div class="work">
+          <div class="wh">Nothing has run yet. Your crew is employed and waiting for something to
+            read.</div>
+          <div class="wsub">day one &middot; the record starts today</div>
+          <div class="grp">
+            <div class="glab">what happens once you connect one source</div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Scout</span> reads it at 2am, every night</div>
+              <div class="l2">and tells you what changed</div></div></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Critic</span> argues against your next idea</div>
+              <div class="l2">before anyone builds it</div></div></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Engineer</span> opens the pull request</div>
+              <div class="l2">a human still merges it</div></div></div>
+          </div>
+          <div class="btns"><span class="bt pri">Connect a source</span>
+            <span class="bt q">or look through the sample workspace</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>No create button.</b> Ratified break B9: the first act is a
+        read, because a blank composer on day one asks a person to imagine the product for us.</span></li>
+      <li><span class="n">2</span><span><b>Thirteen marks drawn even at zero.</b> A crew that only
+        appears once it runs teaches that it is a feature you switch on.</span></li>
+      <li><span class="n">3</span><span><b>Counts render at zero</b>, as the word none rather than a
+        hidden row. A count invisible at zero is invisible on the only day everyone has.</span></li>
+      <li><span class="n">4</span><span>The promise is three specific future acts, not a feature
+        list.</span></li>
+      <li><span class="n">5</span><span class="ok">Ember on this frame: zero, correctly. No human has
+        acted yet.</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="frame">
+  <div class="ft">Today, nothing waiting</div>
+  <p class="fs">The good day. Most products render this as an empty page with a celebration, which
+  teaches you to stop looking.</p>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">helio-labs / relay &#9662;</span>
+        <div class="live"><span class="dot on"></span>Build &middot; Engineer is writing the change
+          &middot; <span class="num">2m10s</span></div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail">
+          <div class="crew">
+            <div class="marks">
+              <span class="mq w"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span>
+            </div>
+            <div class="census">1 running, 12 quiet</div>
+          </div>
+          <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct num">1</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+          <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+        </div>
+        <div class="work">
+          <div class="wh">Nothing needs you.</div>
+          <div class="wsub">you have approved 27 of 30 without changing anything</div>
+          <div class="grp">
+            <div class="glab">running now</div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="bl">Engineer</span> is writing the change</div>
+              <div class="l2 num">autofill.tsx, step 6 of up to 24</div></div>
+              <span class="age num bl">2m10s</span></div>
+          </div>
+          <div class="grp">
+            <div class="glab">done today</div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Reviewer</span> approved the migration on its own</div>
+              <div class="l2">you let it, and it went fine</div></div><span class="age num">1h</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Analyst</span> closed the referral experiment</div>
+              <div class="l2"><span class="r">no lift</span>, so the bet is dropped</div></div>
+              <span class="age num">3h</span></div>
+          </div>
+          <div class="grp">
+            <div class="glab">a policy you could set</div>
+            <div class="rec"><span class="dia">&#9670;</span>
+              <div><div class="txt">You approved 14 spec gates without a single change. Let Writer do
+                it alone?</div>
+                <div class="ev">a long queue is a policy that has not been set yet</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Blue means working, and only that.</b> The name, the age,
+        the mark. Nothing else on this screen is blue.</span></li>
+      <li><span class="n">2</span><span><b>Rates carry denominators.</b> <code>27 of 30</code>, never
+        <code>90%</code>.</span></li>
+      <li><span class="n">3</span><span><b>The product offers to need you less.</b> The gate is the
+        exception, so the product keeps proposing to remove the gates it has earned out of.</span></li>
+      <li><span class="n">4</span><span>Autonomy is only comfortable when the record can prove
+        it, which is why row two says what happened rather than that it was allowed.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>A run, and what replaced the toolbar</h2>
+<p class="intro">The seven-segment band leaves the chrome. Where work sits in its journey is a
+property of the work, so it lives in one line. And the consequence of a code change is the diff plus
+the verdict, because <code>resolveBuildPreview()</code> returns false for anything but a single
+standalone file, so a live app preview would be a drawing of something we cannot deliver.</p>
+<div class="frame">
+  <div class="ft">A run, live</div>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">relay / Run 41 &#9662;</span>
+        <div class="live"><span class="dot on"></span>Build &middot; Engineer is writing the change
+          &middot; autofill.tsx &middot; <span class="num">4m20s</span> &middot;
+          <span class="num">step 6 of up to 24</span></div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail cl">
+          <div class="crew" style="padding:5px 7px 11px">
+            <div class="marks">
+              <span class="mq w"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span><span class="mq"></span><span class="mq"></span>
+              <span class="mq"></span>
+            </div>
+          </div>
+          <div class="rr sel" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+        </div>
+        <div class="work">
+          <div class="wh">Fix the checkout redirect</div>
+          <div class="wsub">you asked for this at 09:02 &middot; run 41 &middot; a human merges it</div>
+          <div class="grp">
+            <div class="glab">what happened, in order</div>
+            <div class="row"><span class="ci"></span><div class="rmain">
+              <div class="l1">you asked for it</div>
+              <div class="l2">"the redirect drops the query string"</div></div>
+              <span class="age num">09:02</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Researcher</span> read 4 files and the last 3 reports</div>
+              <div class="l2">found the same bug closed in March, differently</div></div>
+              <span class="age num">09:03</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="who">Engineer</span> wrote the test first</div>
+              <div class="l2">it failed, which is what a test is for</div></div>
+              <span class="age num">09:06</span></div>
+            <div class="row"><span class="sq"></span><div class="rmain">
+              <div class="l1"><span class="bl">Engineer</span> is writing the change</div>
+              <div class="l2 num">autofill.tsx, no step for 12s</div></div>
+              <span class="age num bl">4m20s</span></div>
+          </div>
+          <div class="grp">
+            <div class="glab">the consequence, so far</div>
+            <div class="tint">
+              <div class="l1 num"><span class="g">+24</span> <span class="r">6 removed</span> across 3
+                files, and the test now passes</div>
+              <div class="l2">autofill.tsx &nbsp; redirect.ts &nbsp; redirect.test.ts</div>
+            </div>
+            <div class="rec" style="margin-top:10px"><span class="dia">&#9670;</span>
+              <div><div class="txt">In March you fixed this by changing the caller instead, and that
+                decision is still standing.</div>
+                <div class="ev">decision 88, you wrote it, 14 March</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>The live line expands on click</b> into the full seven
+        stages, in the next frame. At rest it is one line about one thing.</span></li>
+      <li><span class="n">2</span><span><b>The rail is collapsed during work</b>, because navigation
+        is not the point while a run is going. Icons only, 56px.</span></li>
+      <li><span class="n">3</span><span><b>What the crew did is a receipt, what it said is a
+        quotation.</b> No line is both, and a thought is never rendered as an achievement.</span></li>
+      <li><span class="n">4</span><span><b>Silence carries an age.</b> <code>no step for 12s</code>,
+        never <code>Thinking</code>, which turns a worker into a chatbot.</span></li>
+      <li><span class="n">5</span><span><b>The record interrupts because it contradicts you.</b> It
+        fires at the moment it is relevant, which is the whole differentiation in one row.</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="frame">
+  <div class="ft">The live line, expanded</div>
+  <p class="fs">The seven stages still exist. They stop being permanent chrome. Click the live line
+  and the journey drops down with real per-stage state, then closes.</p>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">relay / Run 41 &#9662;</span>
+        <div class="live"><span class="dot on"></span>Build &middot; Engineer is writing the change</div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="stages">
+        <div class="st done"><div class="sn">01</div><div class="snm">Discover</div><div class="ssw">4 signals</div></div>
+        <div class="st done"><div class="sn">02</div><div class="snm">Decide</div><div class="ssw">you kept it</div></div>
+        <div class="st done"><div class="sn">03</div><div class="snm">Plan</div><div class="ssw">spec 12</div></div>
+        <div class="st done"><div class="sn">04</div><div class="snm">Design</div><div class="ssw">no surface to change</div></div>
+        <div class="st act"><div class="sn">05</div><div class="snm">Build</div><div class="ssw">writing the change</div></div>
+        <div class="st gt"><div class="sn">06</div><div class="snm">Ship</div><div class="ssw">your call, next</div></div>
+        <div class="st"><div class="sn">07</div><div class="snm">Learn</div><div class="ssw">not yet</div></div>
+      </div>
+      <div class="split" style="min-height:132px">
+        <div class="rail cl"><div class="rr" style="padding:0 7px"><span class="ic"></span></div></div>
+        <div class="work"><div class="wsub" style="margin:0">the work continues underneath, unmoved.
+          the panel pushes it down, it never covers it.</div></div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Each stage carries a receipt, not a dot.</b> On a new
+        product the old band rendered seven identical grey dots, which is a diagram of our internal
+        model with no state in it.</span></li>
+      <li><span class="n">2</span><span><b>Skipped is said out loud.</b> "no surface to change" beats
+        a greyed dot a person has to interpret.</span></li>
+      <li><span class="n">3</span><span><b>Ember marks the one stage that will need you</b>, and
+        nothing else here.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>Judgment, and the moment after it</h2>
+<div class="frame">
+  <div class="ft">A call</div>
+  <p class="fs">The one place a person is genuinely required. It states what will be true rather than
+  what is being asked, and the largest thing on it is the outcome.</p>
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">relay / Run 41 &#9662;</span>
+        <div class="live"><span class="dot gate"></span>Ship &middot; waiting on you since
+          <span class="num">09:14</span></div>
+        <div class="rt"><span class="pill">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split" style="min-height:272px">
+        <div class="rail cl"><div class="rr" style="padding:0 7px"><span class="ic"></span></div></div>
+        <div class="work">
+          <div class="wh">Merge the checkout redirect fix?</div>
+          <div class="wsub">Engineer opened it 6 minutes ago, and nothing else is waiting on you</div>
+          <div class="tint" style="margin-top:16px;padding:14px">
+            <div class="glab" style="margin-bottom:9px">what will be true if you approve</div>
+            <div class="row" style="border:0;padding:5px 0"><div class="rmain">
+              <div class="l1 num"><span class="g">+24</span> and <span class="r">6 removed</span>
+                across 3 files</div>
+              <div class="l2">autofill.tsx, redirect.ts, redirect.test.ts</div></div></div>
+            <div class="row" style="border:0;padding:5px 0"><div class="rmain">
+              <div class="l1"><span class="g">14 of 14 checks pass</span>, and the new test covers the
+                bug</div>
+              <div class="l2">this lands on Preview. Release is a separate call.</div></div></div>
+            <div class="row" style="border:0;padding:5px 0"><div class="rmain">
+              <div class="l1">it changes the checkout path <span class="num">1,200</span> people a day
+                use</div>
+              <div class="l2">reversible from inside the product</div></div></div>
+          </div>
+          <div class="btns"><span class="bt pri">Approve</span><span class="bt">Send back</span>
+            <span class="bt">Decline</span><span class="bt q">Snooze</span></div>
+          <div class="keys">a &nbsp; s &nbsp; d &nbsp;&nbsp; z to snooze</div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Consequence, not request.</b> Three facts: what changes,
+        whether it holds up, who it touches. Enough to decide without opening anything.</span></li>
+      <li><span class="n">2</span><span><b>Preview and Release are the only two environment
+        words.</b> No staging, sandbox, prod or canary, and production is always its own separate
+        call.</span></li>
+      <li><span class="n">3</span><span><b>Reversibility is stated</b>, since that is the thing a
+        person is actually weighing.</span></li>
+      <li><span class="n">4</span><span><b>Approve is the only filled button</b>, monochrome and high
+        contrast.</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="frame">
+  <div class="ft">The Commit, 1.2 seconds</div>
+  <p class="fs">A toast confirms that your click registered. This renders what your click caused. The
+  card never vanishes, because an approval that erases itself teaches a person that their judgment
+  left no trace.</p>
+  <div class="beats">
+    <div class="beat">
+      <div class="bms">0 to 180ms</div>
+      <div class="row" style="border:0;padding:0"><span class="ci"></span><div class="rmain">
+        <div class="l1">You approved</div><div class="l2 num">14:32, run 41</div></div></div>
+      <div class="l2" style="margin-top:11px">the card becomes a receipt in place</div>
+    </div>
+    <div class="beat">
+      <div class="bms">180 to 450ms</div>
+      <div class="row" style="border:0;padding:0"><span class="ci"></span><div class="rmain">
+        <div class="l1">You approved &nbsp;&rarr;&nbsp; <span class="who">Engineer</span></div>
+        <div class="l2">merges it</div></div></div>
+      <div class="l2" style="margin-top:11px">the handoff draws to the mark that receives it, never to
+        nowhere</div>
+    </div>
+    <div class="beat">
+      <div class="bms">450 to 800ms</div>
+      <div class="marks" style="margin-bottom:10px">
+        <span class="mq"></span><span class="mq w"></span><span class="mq"></span><span class="mq"></span>
+        <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+        <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+        <span class="mq"></span>
+      </div>
+      <div class="l2">the crew takes it. the mark turns blue and the live line names it.</div>
+    </div>
+    <div class="beat">
+      <div class="bms">800 to 1200ms</div>
+      <div class="rr" style="padding:0;height:auto"><span class="ic"></span>
+        <span class="lb">Today</span><span class="ct">none</span></div>
+      <div class="l2" style="margin-top:11px">the count settles. four regions, one causal chain.</div>
+    </div>
+  </div>
+  <div class="fbody" style="margin-top:18px">
+    <div class="wf" style="padding:14px">
+      <div class="bms" style="margin-bottom:10px">and the failure path, rehearsed</div>
+      <div class="row" style="border:0;padding:0"><span class="ci"></span><div class="rmain">
+        <div class="l1">You approved, the run had already stopped, and nothing ran</div>
+        <div class="l2">the model timed out at step 4, eleven minutes ago.
+          <span class="g">It cost you nothing.</span> &nbsp; why</div></div></div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Never a success animation over a failed write.</b> The same
+        four regions carry the bad news in the same shape.</span></li>
+      <li><span class="n">2</span><span><b>A failed run costs nothing, and says so</b> on the failure
+        itself.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>How the record speaks, without a fifth colour</h2>
+<p class="intro">Vellum gold is retired. At low chroma on near-black it read as a dimmed white rather
+than a decision, and five semantic hues is one more than the system needs. My first replacement was
+worse: a warm hairline down the left edge, which is the single most recognisable tell of a generated
+interface. Both are shown here beside the version that survives.</p>
+<div class="pair">
+  <div class="wf" style="padding:18px">
+    <div class="bms" style="margin-bottom:13px">what it is now: a recess and a leading mark</div>
+    <div class="rec"><span class="dia">&#9670;</span>
+      <div><div class="txt">You decided the opposite in March, and that decision is still
+        standing.</div>
+        <div class="ev num">decision 88, you wrote it, 14 March. open it</div></div></div>
+    <p style="font-size:14px;margin-top:14px;max-width:none">A recess one step darker than its
+    surface, with a filled diamond leading it. No border, no stripe, no glow, no hue. It is the only
+    recess in the system, which is what makes it recognisable, and the fix list for side stripes names
+    exactly this: a background tint with a leading mark.</p>
+  </div>
+  <div class="wf" style="padding:18px">
+    <div class="bms" style="margin-bottom:13px">what I had proposed, and why it is out</div>
+    <div style="background:var(--sunk);border-radius:5px;padding:12px 14px;
+      border-left:3px solid #e8dcc8">
+      <div class="txt" style="color:var(--t);font-size:12.5px">You decided the opposite in March, and
+        that decision is still standing.</div>
+      <div class="ev" style="color:var(--f);font-size:12px;margin-top:4px">decision 88, 14 March</div>
+    </div>
+    <p style="font-size:14px;margin-top:14px;max-width:none">Listed as <b style="color:var(--t)">the
+    most recognizable tell of AI-generated UIs</b>. It also fails a second rule, since a thick accent
+    border on a rounded element clashes with the corner it sits in. And bone at
+    <code>#e8dcc8</code> is in the cream family, which is itself named as the default tasteful AI
+    surface.</p>
+  </div>
+</div>
+
+<h2>Ask</h2>
+<p class="intro">Top right, opening a pane that knows what is underneath it, which is the reason it is
+a pane and not a page. The chat-first shape was considered and declined: seven of seven reference
+products grew a manager over the chat within nine months, each at the point work became parallel and
+long-running, and we start past that line with thirteen agents and runs that pause for days.</p>
+<div class="frame">
+  <div class="fbody">
+    <div class="wf">
+      <div class="hdr">
+        <div class="mk"></div><span class="scope">relay / Run 41 &#9662;</span>
+        <div class="live"><span class="dot on"></span>Build &middot; Engineer is writing the change</div>
+        <div class="rt"><span class="pill hot">Ask</span><span>settings</span><span>you</span></div>
+      </div>
+      <div class="split">
+        <div class="rail cl">
+          <div class="rr sel" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+          <div class="rr" style="padding:0 7px"><span class="ic"></span></div>
+        </div>
+        <div class="work" style="opacity:.58">
+          <div class="wh">Fix the checkout redirect</div>
+          <div class="wsub">the work stays visible. not replaced, and not blurred.</div>
+          <div class="row"><span class="sq"></span><div class="rmain">
+            <div class="l1"><span class="who">Engineer</span> wrote the test first</div></div>
+            <span class="age num">09:06</span></div>
+          <div class="row"><span class="sq"></span><div class="rmain">
+            <div class="l1"><span class="who">Engineer</span> is writing the change</div></div>
+            <span class="age num">4m20s</span></div>
+        </div>
+        <div class="ask" style="width:270px">
+          <div class="askh"><span>Ask, this run</span><span>esc</span></div>
+          <div class="msg"><div class="from">you</div>
+            <div class="mbody">what is Engineer waiting on?</div></div>
+          <div class="msg"><div class="from">answer</div>
+            <div class="mbody">Nothing. It is writing <code>autofill.tsx</code> and has not
+            checkpointed for 12 seconds. Step 6 of up to 24.</div></div>
+          <div class="msg"><div class="from">answer, from the record</div>
+            <div class="rec" style="padding:10px 11px;margin-top:5px"><span class="dia">&#9670;</span>
+              <div class="txt" style="font-size:12px">The last three runs on this file finished under
+              9 minutes.</div></div></div>
+          <div class="box"></div>
+          <div class="keys">enter sends. it already knows you are in run 41.</div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="n">1</span><span><b>Scoped to what is beneath it.</b> The header reads
+        <code>this run</code> here and <code>this workspace</code> on Today, so context never gets
+        restated.</span></li>
+      <li><span class="n">2</span><span><b>The work dims, it does not blur and it does not
+        leave.</b> Blur is chrome material for things that float, and decorative blur is a listed
+        tell.</span></li>
+      <li><span class="n">3</span><span><b>Answers can come from the record</b>, and when they do they
+        wear the recess, so the source is legible without a label.</span></li>
+      <li><span class="n">4</span><span>This replaces two things that both ship today: a centered
+        overlay on two different shortcuts, and a composer docked at the bottom of the room.</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>Ink, and a light theme that is not cream</h2>
+<p class="intro">The light theme shipping today is <code>#ffffff</code> with an inverted grey ramp,
+which is the inversion problem exactly. My first answer was warm paper, and that is worse: a warm
+cream background is named as the default tasteful AI surface, reached for by reflex. So light becomes
+a <b>cool technical sheet</b>, faintly blue, which sits in the same neutral-cool family as the dark
+ink and leaves ember more room to mean something.</p>
+<div class="pair">
+  <div class="wf">
+    <div class="hdr"><div class="mk"></div><span class="scope">relay &#9662;</span>
+      <div class="live"><span class="dot on"></span>Build &middot; Engineer</div>
+      <div class="rt"><span class="pill">Ask</span></div></div>
+    <div class="split" style="min-height:222px">
+      <div class="rail" style="width:138px">
+        <div class="crew"><div class="marks">
+          <span class="mq w"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span></div></div>
+        <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct num">1</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct num">4</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+      </div>
+      <div class="work">
+        <div class="wh">Four runs finished.</div>
+        <div class="wsub">ink, the design target and the default</div>
+        <div class="row"><span class="sq"></span><div class="rmain">
+          <div class="l1">Engineer shipped the autofill fix</div>
+          <div class="l2 num">12 files, tests pass</div></div><span class="age num">2h</span></div>
+        <div class="row"><span class="sq"></span><span class="ci"></span><div class="rmain">
+          <div class="l1">Writer drafted the spec, <span class="em">edited</span></div></div>
+          <span class="age num">6h</span></div>
+        <div class="rec" style="margin-top:14px"><span class="dia">&#9670;</span>
+          <div class="txt">You decided the opposite in March.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="wf lt">
+    <div class="hdr"><div class="mk"></div><span class="scope">relay &#9662;</span>
+      <div class="live"><span class="dot on"></span>Build &middot; Engineer</div>
+      <div class="rt"><span class="pill">Ask</span></div></div>
+    <div class="split" style="min-height:222px">
+      <div class="rail" style="width:138px">
+        <div class="crew"><div class="marks">
+          <span class="mq w"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span><span class="mq"></span><span class="mq"></span><span class="mq"></span>
+          <span class="mq"></span></div></div>
+        <div class="rr sel"><span class="ic"></span><span class="lb">Today</span><span class="ct num">1</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Runs</span><span class="ct num">4</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Brain</span><span class="ct">none</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Crew</span><span class="ct num">13</span></div>
+        <div class="rr"><span class="ic"></span><span class="lb">Engine room</span><span class="ct">none</span></div>
+      </div>
+      <div class="work">
+        <div class="wh">Four runs finished.</div>
+        <div class="wsub">a cool sheet. not white, not cream.</div>
+        <div class="row"><span class="sq"></span><div class="rmain">
+          <div class="l1">Engineer shipped the autofill fix</div>
+          <div class="l2 num">12 files, tests pass</div></div><span class="age num">2h</span></div>
+        <div class="row"><span class="sq"></span><span class="ci"></span><div class="rmain">
+          <div class="l1">Writer drafted the spec, <span class="em">edited</span></div></div>
+          <span class="age num">6h</span></div>
+        <div class="rec" style="margin-top:14px"><span class="dia">&#9670;</span>
+          <div class="txt">You decided the opposite in March.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<ul class="notes" style="margin-top:20px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:0 30px">
+  <li><span class="n">1</span><span><b>Ground</b> <code>#0a0a0b</code> and <code>#f4f5f7</code>.
+    Neither is pure black or pure white, and both carry a trace of cool so the two themes are the same
+    family.</span></li>
+  <li><span class="n">2</span><span><b>The recess works in both</b>, because a recess is a
+    relationship rather than a colour.</span></li>
+  <li><span class="n">3</span><span><b>No grid in either.</b> The engineering grid comes off the app
+    and off the landing page.</span></li>
+  <li><span class="n">4</span><span><b>Both authored in the same pass, dark signed off first.</b>
+    Every token slot already exists in both blocks, so pairing is nearly free while retrofitting is
+    what produced <code>#ffffff</code>.</span></li>
+</ul>
+
+<h2>Adapting by container, not by breakpoint</h2>
+<div class="rule">If resizing the window would change the answer but moving the same component into a
+drawer would not, it is a media query. <b>Otherwise it is a container query.</b> Every layout
+decision in the app fails that test today, because zero container queries exist in it.</div>
+<div class="tiers">
+  <div class="tier">
+    <div class="tcap">S1 focus, 448 to 1224. the work, and two 44px rails</div>
+    <div class="tbody">
+      <div class="tb" style="width:46px">rail</div>
+      <div class="tb workb" style="flex:1">the work</div>
+      <div class="tb" style="width:46px"></div>
+    </div>
+  </div>
+  <div class="tier">
+    <div class="tcap">S2 pair, 1225 to 1945. rail plus work, the everyday tier</div>
+    <div class="tbody">
+      <div class="tb" style="width:156px">rail 220</div>
+      <div class="tb workb" style="flex:1">the work, stretching</div>
+    </div>
+  </div>
+  <div class="tier">
+    <div class="tcap">S4 field, 2427 to 3159. the extra room goes to context and the record, never to
+      a transcript</div>
+    <div class="tbody">
+      <div class="tb" style="width:112px">rail</div>
+      <div class="tb workb" style="flex:1">the work, still the only region that stretches</div>
+      <div class="tb" style="width:156px">context 480</div>
+      <div class="tb" style="width:156px">the record 480</div>
+    </div>
+  </div>
+</div>
+<ul class="notes" style="margin-top:22px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:0 30px">
+  <li><span class="n">1</span><span><b>rem decides composition, ch decides measure.</b> Text caps at
+    48, 64 and 75 characters rather than at a pixel count, since reading comfort is a character
+    count.</span></li>
+  <li><span class="n">2</span><span><b>Floors are arithmetic.</b> S2 is 1225 because it is a 480
+    column plus a 744 minimum work region plus a hairline.</span></li>
+  <li><span class="n">3</span><span><b>The band caps at 3159</b>, three columns plus the work region
+    at its ceiling plus three hairlines. On a 3440 panel that leaves a symmetric 140px
+    gutter.</span></li>
+  <li><span class="n">4</span><span><b>One scale knob</b> at 0.875, 1, 1.125 and 1.25. The fluid
+    viewport-width root is deleted, since the browser already absorbs operating system
+    scaling.</span></li>
+  <li><span class="n">5</span><span><b>Found by testing this sketch:</b> the live line truncates
+    at narrow widths, which is wrong. It carries five facts at S2 and above, and at S1 and S0 it must
+    <b>drop facts rather than clip a sentence</b>: stage plus who at S1, stage alone at S0. A
+    truncated fact is worse than a missing one, and it would also emit an ellipsis character, which
+    the language rules ban.</span></li>
+</ul>
+
+<h2>The colour jobs</h2>
+<p>Near-monochrome by default. Colour says who is speaking, never how important something is. Four
+jobs, and no fifth hue.</p>
+<table>
+<tr><th style="width:150px">Colour</th><th style="width:210px">Job</th><th>The rule that keeps it honest</th></tr>
+<tr><td><span class="sw" style="background:#a6a6ad"></span><b>neutral ramp</b></td>
+  <td>everything structural</td>
+  <td>text, hairlines, chrome, and every button except the one primary action. Tinted faintly cool,
+  never pure black or pure white</td></tr>
+<tr><td><span class="sw" style="background:#6cb0f5"></span><b>blue</b></td>
+  <td>the machine is working, right now</td>
+  <td>a name, an age, a mark. If nothing is running, nothing is blue</td></tr>
+<tr><td><span class="sw" style="background:#4ac26b"></span><span class="sw" style="background:#e5534b"></span><b>green, red</b></td>
+  <td>outcome only</td>
+  <td>pass and fail, added and removed, lift and no lift. Never emphasis</td></tr>
+<tr><td><span class="sw" style="background:#ff6b2c"></span><b>ember</b></td>
+  <td>the human, and nothing else</td>
+  <td><b>Not</b> primary buttons, approvals, actions, tasks, links, icons, focus rings, active nav,
+  badges or chips. Your circle, your voice, your marks. Two frames here carry zero ember, which is
+  correct</td></tr>
+<tr><td><span class="sw" style="background:#0c0c0e;border:1px solid rgba(255,255,255,.2)"></span><b>the recess</b></td>
+  <td>the record is speaking</td>
+  <td>a darker step and a leading diamond. No hue, no border, no stripe, no glow</td></tr>
+</table>
+<p><b>Two glows to remove from production.</b> <code>AuthScaffold.tsx:118</code> puts a white
+<code>drop-shadow</code> halo on the mark, and dark surfaces with coloured shadow glows are a listed
+tell. The rotating watermark goes with it.</p>
+
+<h2>Density</h2>
+<p>Compact with breathing space is a contrast rather than a padding value. Tight inside a group,
+generous between groups. The same spacing value everywhere is what makes an interface read as either
+cramped or empty with nothing in between.</p>
+<div class="dens">
+  <div class="dcell"><div class="dv">8</div><div class="dk">inside a component</div></div>
+  <div class="dcell"><div class="dv">12</div><div class="dk">between components in a group</div></div>
+  <div class="dcell"><div class="dv">32</div><div class="dk">between groups, where the air lives</div></div>
+  <div class="dcell"><div class="dv">24</div><div class="dk">section padding</div></div>
+  <div class="dcell"><div class="dv">36</div><div class="dk">list row. 32 reads cramped, 40 reads loose</div></div>
+  <div class="dcell"><div class="dv">44</div><div class="dk">a row carrying a decision</div></div>
+  <div class="dcell"><div class="dv">36/32</div><div class="dk">controls, default and inline</div></div>
+  <div class="dcell"><div class="dv">1.22</div><div class="dk">type ratio. 12 13 15 17 21 28 40</div></div>
+</div>
+<p style="margin-top:18px">Hierarchy comes from weight and luminance before size, and from size
+before any box or colour. Radii are concentric and computed, inner equals outer minus the gap, and
+they cap at 12 to 16px so cards do not round into soft blobs. Every number that can change uses
+tabular figures so rows never jitter. <b>Floor of 12px on anything a person reads</b>, which this
+document now obeys.</p>
+
+<h2>Type</h2>
+<p>Every candidate is SIL Open Font License 1.1, free for commercial use permanently, self-hosted from
+<code>public/fonts/</code>, no third-party request, nothing renegotiable. The licence file ships beside
+each face.</p>
+
+<div class="spec">
+  <div class="snm2"><span>UI, recommended</span><span>Mona Sans, OFL 1.1, variable 200 to 900</span></div>
+  <div class="big">Four runs finished while you were gone.</div>
+  <div class="mid">Real character in the a, g and R, so it does not read as a default, and it still
+  holds at twelve pixels in a dense row. One variable family covers display and interface, which is
+  how three weights carry the whole hierarchy. Not on any overused list.</div>
+  <div class="flag">This specimen is rendering in <b>Geist</b>, not Mona Sans, because Mona Sans is not
+  on disk yet. The line above is the fallback, not the recommendation.</div>
+</div>
+
+<div class="spec">
+  <div class="snm2"><span>Data, and this is the load-bearing choice</span><span>candidates: IBM Plex Mono, Commit Mono</span></div>
+  <div class="dataline">
+    run 41 &nbsp; step 6 of 24 &nbsp; 4m20s &nbsp; +24 &nbsp; 6 removed<br>
+    14:32 &nbsp; 1,200 a day &nbsp; 27 of 30 &nbsp; 0 O 0O<br>
+    41 days &nbsp; 14 of 14 checks &nbsp; decision 88
+  </div>
+  <div class="mid" style="margin-top:14px">Tabular figures so a column of changing numbers never
+  jitters, and a zero that cannot be read as a capital O. Every number, duration, count, diff,
+  identifier and timestamp in the product lives here, which makes this the highest-leverage
+  typographic decision we make.</div>
+  <div class="flag"><b>Geist Mono is now disqualified.</b> The slop catalogue names Inter, Geist,
+  Space Grotesk and Instrument as faces used on so many sites that they no longer feel distinctive.
+  That removes Geist Sans and Geist Mono as the UI and data pair, and removes Instrument Sans from the
+  shortlist. IBM Plex Mono and Commit Mono are both OFL and both absent from that list. Say the word
+  and I will put real specimens of each on disk for an eye decision.</div>
+</div>
+
+<div class="spec">
+  <div class="snm2"><span>The door, and only the door</span><span>Geist Pixel, OFL 1.1, already installed</span></div>
+  <div class="big" style="font-family:var(--px);font-size:30px;letter-spacing:.01em">Still up.</div>
+  <div class="mid" style="margin-top:12px">A distinct typographic identity at the threshold, and then
+  the product becomes an instrument inside. Sign in, sign up, reset, invite accept. Nowhere else.</div>
+  <div class="flag">Asked directly: should Pixel carry every number, duration, count, diff and
+  identifier? <b>No.</b> The five variants on disk are decorative pixel-grid styles. At 12 to 13px in
+  a dense table the strokes drop out, tabular figures are unreliable, and reading quantity in it is
+  tiring. It reads as retro game rather than as an instrument, and this product is mostly numbers.
+  Scoping it to the door is what saves it.</div>
+</div>
+
+<p style="margin-top:22px">Three weights maximum across the system. Two families, since one family
+for everything flattens the hierarchy and more than two is noise. Tracking tightened optically on
+display sizes, opened on short uppercase labels, and left alone everywhere else. Every remaining
+<code>font-pixel</code> use outside the auth surfaces gets removed.</p>
+
+<h2>The voice law</h2>
+<div class="rule"><b>Never greet, always report.</b> The first line is a fact rather than a
+pleasantry. If a surface has something true and specific to say, it says that instead of a category
+label. Nothing is ever addressed to "the user".</div>
+<p>Generic greeting language exists because generic products have nothing to say at that moment. This
+product knows what happened, so it can say it.</p>
+<table>
+<tr><th style="width:160px">Surface</th><th style="width:200px">The tired version</th><th>The report</th></tr>
+<tr><td><b>the door</b></td><td>Welcome back</td><td>Two words that change with the hour and the day.
+  <code>Still up.</code> <code>Early.</code> <code>New week.</code> <code>Friday.</code></td></tr>
+<tr><td><b>Today</b></td><td>Good morning, Rohit</td><td>Four runs finished while you were gone. One
+  needs you.</td></tr>
+<tr><td><b>nothing waiting</b></td><td>You are all caught up</td><td>Nothing needs you.</td></tr>
+<tr><td><b>day one</b></td><td>No runs yet</td><td>Nothing has run yet. Your crew is employed and
+  waiting for something to read.</td></tr>
+<tr><td><b>working</b></td><td>Thinking, Processing, Loading</td><td>Engineer is writing the change.
+  autofill.tsx. No step for 12 seconds.</td></tr>
+<tr><td><b>failure</b></td><td>Something went wrong</td><td>The run stopped at step 4. The model timed
+  out. It cost you nothing.</td></tr>
+<tr><td><b>success</b></td><td>a green toast</td><td>You approved. Engineer merges it. 14:32,
+  run 41.</td></tr>
+<tr><td><b>empty search</b></td><td>No results</td><td>Nothing in the record matches that. The record
+  covers 41 days.</td></tr>
+</table>
+<p><b>Three rules that keep the voice from becoming its own kind of slop.</b> A fact rather than a
+joke, since a line doing personality instead of information has failed. It has to survive being
+wrong, so every varying line needs a version for the day nothing happened or something broke. And
+<b>no aphoristic cadence</b>: the short manufactured-contrast rebuttal is itself a listed tell, which
+means no run of sentences shaped like "not X, but Y" and no section landing on a neat inversion.
+Once in a document is fine, and repeated is the tell.</p>
+
+<h2>What this replaces</h2>
+<table>
+<tr><th style="width:46%">What ships today</th><th>What the structure does about it</th></tr>
+<tr><td><b>Three shells</b>, chosen by a hand-maintained list of paths. The default landing is one of
+  them, so the 248px rail is only ever seen by wandering onto a legacy route.</td>
+  <td>One shell, four regions. The rail replaces the path list.</td></tr>
+<tr><td><b>The seven stages exist twice and disagree.</b> The band in the room only rewrites a query
+  parameter; the rail rows navigate to real routes. Clicking Discover on the band never reaches the
+  route called Discover, which the room does not link at all.</td>
+  <td>One live line, expandable. The stages become a property of the work, drawn once.</td></tr>
+<tr><td><b>Two Ask implementations</b>: a centered overlay on two shortcuts, and a composer docked at
+  the bottom of the room.</td>
+  <td>One pane, summoned from the top right, scoped to what sits under it.</td></tr>
+<tr><td><b>118 catalogued controls: 41 lie, 34 are dead, 25 are silent, 18 are orphans, 18 work.</b>
+  100 of 118 are present and do not behave.</td>
+  <td>Nothing is drawn here that cannot behave, which is why there is no live app preview anywhere in
+  this document.</td></tr>
+<tr><td><b>76 routes, roughly 40 of them pure redirects</b>, and duplicate component domains for
+  decision, mission, build and today.</td>
+  <td>Five rail rows. Every surface that renders gets one home, or is deleted on purpose.</td></tr>
+<tr><td><b>Seven identical grey dots</b> on a new or empty product, from the stage band.</td>
+  <td>Every stage carries a receipt, and day one says something true.</td></tr>
+</table>
+
+<h2>The slop audit, and what it found in our own work</h2>
+<p>Run against the pattern catalogue at impeccable.style. Nine patterns were present in the first
+version of this sketch and four are live in the product.</p>
+<table>
+<tr><th style="width:236px">Pattern</th><th style="width:34%">Where it was</th><th>Now</th></tr>
+<tr><td><b>Side-tab accent border</b><br><span style="color:var(--f);font-size:13px">the top listed
+  tell</span></td>
+  <td>my brain well, my rule boxes, my annotation column. It was also my <b>recommended</b> answer for
+  how the record speaks.</td><td>a recess and a leading mark, no border anywhere</td></tr>
+<tr><td><b>Decorative grid background</b></td>
+  <td>this document, the auth panel, and <code>LandingBackdrop.tsx</code> in production</td>
+  <td>removed here. Recommend removing it from the landing too</td></tr>
+<tr><td><b>Nested cards</b></td><td>a bordered box inside a bordered card inside a bordered
+  frame</td><td>flattened to spacing, type and one tint</td></tr>
+<tr><td><b>Repeated uppercase kicker labels</b></td><td>six separate label systems in my
+  document</td><td>sentence case, normal tracking, no uppercase</td></tr>
+<tr><td><b>Tiny numbered section labels</b></td><td><code>00</code> <code>01</code> <code>02</code>
+  beside every heading</td><td>gone from headings. Numbers survive only where they anchor a note to a
+  drawing</td></tr>
+<tr><td><b>Tiny body text</b></td><td>10 and 10.5px, under my own 12px floor</td><td>12px floor
+  throughout</td></tr>
+<tr><td><b>Overused font</b></td><td>Geist named directly, and it was two of my three
+  candidates</td><td>Mona Sans for UI, a non-Geist mono for data, Pixel confined to the door</td></tr>
+<tr><td><b>Cream palette</b></td><td>my warm paper light theme, and the bone alternate for the
+  record</td><td>a cool sheet, and no bone</td></tr>
+<tr><td><b>Aphoristic cadence</b></td><td>my prose, throughout</td><td>thinned, and added to the voice
+  law as a rule</td></tr>
+<tr><td><b>Dark mode with glowing accents</b></td><td><code>AuthScaffold.tsx:118</code>, a white glow
+  on the mark, live now</td><td>flagged for removal</td></tr>
+<tr><td><b>Pulsing status dot</b></td><td><code>.ink-working</code> in the codebase</td><td>legal only
+  while data is genuinely changing, which is our case. Keep, but never decorative</td></tr>
+</table>
+
+<h2>Next</h2>
+<p>Structure only. Nothing here is a component, a token or a route. If the shape holds, the next pass
+takes one frame to a real finish, and the type decision gets made by eye once real specimens of the
+mono candidates are on disk.</p>
+<p class="meta">docs/planning/rebuild-2026-07/structure/SKETCH.html &middot; 2026-07-29</p>
+
+</div>
+</body>
+</html>
