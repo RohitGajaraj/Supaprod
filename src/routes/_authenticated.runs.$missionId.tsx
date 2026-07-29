@@ -1107,7 +1107,7 @@ export const Route = createFileRoute("/_authenticated/runs/$missionId")({
     return { tab: (SEARCH_TABS as string[]).includes(t as string) ? (t as SearchTab) : undefined };
   },
   component: BuildRun,
-  head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Run · Supaprod" }] }),
   errorComponent: ({ error, reset }) => {
     // A stale or deleted id deep-links here. getStudioSession throws
     // "Session not found" for a missing row: render that as a real not-found,

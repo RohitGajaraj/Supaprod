@@ -328,7 +328,7 @@ type CommitReceipt = {
 
 export const Route = createFileRoute("/_authenticated/runs/")({
   component: BuildPage,
-  head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Runs · Supaprod" }] }),
   // `view` now carries exactly one meaning again: which view of Runs you are
   // looking at. "board" is the only value read; anything else, including the
   // three dead lens names, reads as the default list. The dead three stay in

@@ -124,10 +124,15 @@ function LandingPage() {
     import("@/integrations/supabase/client")
       .then(({ supabase }) => supabase.auth.getUser())
       .then(({ data }) => {
-        // sandbox/mission-control-v2: an authenticated visitor lands in the
-        // reimagined Mission Control room, not the retired /today shell, so the
-        // reimagined experience is the coherent home (founder ruling 2026-07-20).
-        if (!cancelled && data.user) window.location.replace("/m");
+        // Today, not /m. The 2026-07-20 ruling that sent an authenticated
+        // visitor into Mission Control described /today as "the retired shell",
+        // and that was true then. The 2026-07-29 rebuild reversed it: Today was
+        // rewritten from 1543 lines to a brief, it is the first rail row, and
+        // Mission Control is now the ONE surface the rebuild never ported. So
+        // this line was landing every returning user in the legacy design
+        // before they clicked anything, which is the founder's own complaint
+        // arriving one step earlier than the nav.
+        if (!cancelled && data.user) window.location.replace("/today");
       })
       .catch(() => {});
     return () => {

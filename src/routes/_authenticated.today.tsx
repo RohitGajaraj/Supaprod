@@ -315,7 +315,7 @@ function Today() {
         </Gate>
       ) : loading ? null : (
         <Gate question="Nothing is waiting on you.">
-          <Button variant="ghost" onClick={() => navigate({ to: "/m" })}>
+          <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
             Look at the runs
           </Button>
         </Gate>
@@ -338,7 +338,7 @@ function Today() {
       <Block
         title="Done without you"
         more={rows.length ? `All ${rows.length} runs` : undefined}
-        onMore={() => navigate({ to: "/m" })}
+        onMore={() => navigate({ to: "/runs" })}
       >
         {loading ? null : done.length === 0 ? (
           <Empty>
@@ -363,7 +363,7 @@ function Today() {
                 </>
               }
               time={ago(m.completed_at)}
-              onClick={() => navigate({ to: "/m" })}
+              onClick={() => navigate({ to: "/runs/$missionId", params: { missionId: m.id } })}
             />
           ))
         )}

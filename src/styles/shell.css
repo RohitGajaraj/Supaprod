@@ -304,9 +304,25 @@
   display: block;
 }
 /* The open stage is marked by a rule under it in its own stage hue, not by a
- * filled pill. Emphasis is the run's state; this is only "you are here". */
-.sp-stage[data-on="true"] {
-  box-shadow: inset 0 -2px 0 0 var(--sp-hue, var(--sp-ink));
+ * filled pill. Emphasis is the run's state; this is only "you are here".
+ *
+ * The rule is an ::after bar and NOT an inset box-shadow, which is what it was
+ * first written as. `styles.css:2174` carries an unlayered
+ * `[data-obsidian] :focus-visible { box-shadow: none }` that sits after this
+ * file in source order, so a focused element loses every box-shadow it has.
+ * Clicking a stage chip focuses it, which means the active chip would have
+ * erased its own indicator on the exact interaction that set it. */
+.sp-stage {
+  position: relative;
+}
+.sp-stage[data-on="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 14px;
+  bottom: 0;
+  height: 2px;
+  background: var(--sp-hue, var(--sp-ink));
 }
 .sp-stage[data-on="true"] .sp-stage-name {
   color: var(--sp-ink);
