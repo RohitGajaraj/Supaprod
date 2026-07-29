@@ -17,6 +17,7 @@ import {
 } from "./runtime.server";
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
+import { resolveMissionSpendCap } from "./mission-caps.server";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
@@ -488,7 +489,11 @@ export async function runAgentLoop(
           status: "queued",
           workspace_id: workspaceId,
           mission_id: input.missionId ?? null,
-          mission_spend_cap_usd: input.missionSpendCapUsd ?? null,
+          mission_spend_cap_usd: await resolveMissionSpendCap(
+            supabase,
+            workspaceId,
+            input.missionSpendCapUsd,
+          ),
           mission_token_cap: input.missionTokenCap ?? null,
           model: resolvedModel,
         })
@@ -520,7 +525,11 @@ export async function runAgentLoop(
       status: "running",
       workspace_id: workspaceId,
       mission_id: input.missionId ?? null,
-      mission_spend_cap_usd: input.missionSpendCapUsd ?? null,
+      mission_spend_cap_usd: await resolveMissionSpendCap(
+        supabase,
+        workspaceId,
+        input.missionSpendCapUsd,
+      ),
       mission_token_cap: input.missionTokenCap ?? null,
       model: resolvedModel,
     })

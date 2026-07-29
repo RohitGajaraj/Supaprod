@@ -201,21 +201,25 @@ async function checkMissionCaps(
   runId: string | null | undefined,
 ): Promise<void> {
   if (!runId) return;
-  const { data, error } = await supabase
-    .from("agent_runs")
-    .select(
-      "mission_spend_cap_usd,mission_token_cap,tokens_used,spend_used_usd,halted_reason,status",
-    )
-    .eq("id", runId)
-    .maybeSingle();
-  if (error || !data) return;
-  const r = data as {
+  // mission_cap_state returns the run's caps AND the totals summed across every
+  // run in the same mission, in one round trip because this runs before every
+  // model call. It replaced a plain select on agent_runs that compared the cap
+  // against THIS RUN's spend only: `mission_spend_cap_usd` sits on agent_runs
+  // and record_mission_usage credits one run, so a ten hop mission got ten
+  // separate ceilings and could spend ten times the cap with every individual
+  // check passing. The column was a per-run ceiling wearing a mission name.
+  const { data, error } = await supabase.rpc("mission_cap_state", { _run_id: runId });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) return;
+  const r = row as {
     mission_spend_cap_usd: number | null;
     mission_token_cap: number | null;
     tokens_used: number | null;
     spend_used_usd: number | null;
     halted_reason: string | null;
     status: string;
+    mission_spend_total_usd: number | null;
+    mission_token_total: number | null;
   };
   if (r.status === "halted" || r.halted_reason) {
     throw new GovernanceHaltError(
@@ -223,19 +227,18 @@ async function checkMissionCaps(
       `Mission halted${r.halted_reason ? `: ${r.halted_reason}` : ""}`,
     );
   }
-  if (r.mission_token_cap != null && Number(r.tokens_used ?? 0) >= Number(r.mission_token_cap)) {
+  const tokensSoFar = Number(r.mission_token_total ?? r.tokens_used ?? 0);
+  if (r.mission_token_cap != null && tokensSoFar >= Number(r.mission_token_cap)) {
     throw new GovernanceHaltError(
       "mission_token_cap",
-      `Mission token cap reached (${r.tokens_used}/${r.mission_token_cap})`,
+      `Mission token cap reached (${tokensSoFar}/${r.mission_token_cap})`,
     );
   }
-  if (
-    r.mission_spend_cap_usd != null &&
-    Number(r.spend_used_usd ?? 0) >= Number(r.mission_spend_cap_usd)
-  ) {
+  const spentSoFar = Number(r.mission_spend_total_usd ?? r.spend_used_usd ?? 0);
+  if (r.mission_spend_cap_usd != null && spentSoFar >= Number(r.mission_spend_cap_usd)) {
     throw new GovernanceHaltError(
       "mission_spend_cap",
-      `Mission spend cap reached ($${Number(r.spend_used_usd).toFixed(4)}/$${Number(r.mission_spend_cap_usd).toFixed(4)})`,
+      `Mission spend cap reached ($${spentSoFar.toFixed(4)}/$${Number(r.mission_spend_cap_usd).toFixed(4)})`,
     );
   }
 }

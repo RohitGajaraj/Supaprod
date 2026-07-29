@@ -16,6 +16,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { track } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { extractRejectedAlternatives } from "@/lib/ai/decision-alternatives";
+import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -416,7 +417,11 @@ export async function enqueueHandoff(
       status: "queued",
       workspace_id: args.workspace_id,
       mission_id: args.mission_id,
-      mission_spend_cap_usd: args.mission_spend_cap_usd ?? null,
+      mission_spend_cap_usd: await resolveMissionSpendCap(
+        supabase,
+        args.workspace_id,
+        args.mission_spend_cap_usd,
+      ),
       mission_token_cap: args.mission_token_cap ?? null,
     })
     .select("id")
