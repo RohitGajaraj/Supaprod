@@ -92,6 +92,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated.studio.index'
+import { Route as AuthenticatedRunsIndexRouteImport } from './routes/_authenticated.runs.index'
 import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated.missions.index'
@@ -104,6 +105,7 @@ import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
 import { Route as AuthenticatedStudioMissionIdRouteImport } from './routes/_authenticated.studio.$missionId'
+import { Route as AuthenticatedRunsMissionIdRouteImport } from './routes/_authenticated.runs.$missionId'
 import { Route as AuthenticatedPrdsIdRouteImport } from './routes/_authenticated.prds.$id'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated.missions.$missionId'
 import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
@@ -603,6 +605,11 @@ const AuthenticatedStudioIndexRoute =
     path: '/studio/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedRunsIndexRoute = AuthenticatedRunsIndexRouteImport.update({
+  id: '/runs/',
+  path: '/runs/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedPrdsIndexRoute = AuthenticatedPrdsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -664,6 +671,12 @@ const AuthenticatedStudioMissionIdRoute =
   AuthenticatedStudioMissionIdRouteImport.update({
     id: '/studio/$missionId',
     path: '/studio/$missionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedRunsMissionIdRoute =
+  AuthenticatedRunsMissionIdRouteImport.update({
+    id: '/runs/$missionId',
+    path: '/runs/$missionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedPrdsIdRoute = AuthenticatedPrdsIdRouteImport.update({
@@ -1205,6 +1218,7 @@ export interface FileRoutesByFullPath {
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
+  '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1217,6 +1231,7 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/plan/': typeof AuthenticatedPlanIndexRoute
   '/prds/': typeof AuthenticatedPrdsIndexRoute
+  '/runs/': typeof AuthenticatedRunsIndexRoute
   '/studio/': typeof AuthenticatedStudioIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1375,6 +1390,7 @@ export interface FileRoutesByTo {
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/prds/$id': typeof AuthenticatedPrdsIdRoute
+  '/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1387,6 +1403,7 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/plan': typeof AuthenticatedPlanIndexRoute
   '/prds': typeof AuthenticatedPrdsIndexRoute
+  '/runs': typeof AuthenticatedRunsIndexRoute
   '/studio': typeof AuthenticatedStudioIndexRoute
   '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1549,6 +1566,7 @@ export interface FileRoutesById {
   '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRoute
   '/_authenticated/prds/$id': typeof AuthenticatedPrdsIdRoute
+  '/_authenticated/runs/$missionId': typeof AuthenticatedRunsMissionIdRoute
   '/_authenticated/studio/$missionId': typeof AuthenticatedStudioMissionIdRoute
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -1561,6 +1579,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
   '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
+  '/_authenticated/runs/': typeof AuthenticatedRunsIndexRoute
   '/_authenticated/studio/': typeof AuthenticatedStudioIndexRoute
   '/_authenticated/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
@@ -1723,6 +1742,7 @@ export interface FileRouteTypes {
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
+    | '/runs/$missionId'
     | '/studio/$missionId'
     | '/traces/$traceId'
     | '/api/public/health'
@@ -1735,6 +1755,7 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/plan/'
     | '/prds/'
+    | '/runs/'
     | '/studio/'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -1893,6 +1914,7 @@ export interface FileRouteTypes {
     | '/meetings/$id'
     | '/missions/$missionId'
     | '/prds/$id'
+    | '/runs/$missionId'
     | '/studio/$missionId'
     | '/traces/$traceId'
     | '/api/public/health'
@@ -1905,6 +1927,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/plan'
     | '/prds'
+    | '/runs'
     | '/studio'
     | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -2066,6 +2089,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meetings/$id'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/prds/$id'
+    | '/_authenticated/runs/$missionId'
     | '/_authenticated/studio/$missionId'
     | '/_authenticated/traces/$traceId'
     | '/api/public/health'
@@ -2078,6 +2102,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/plan/'
     | '/_authenticated/prds/'
+    | '/_authenticated/runs/'
     | '/_authenticated/studio/'
     | '/_authenticated/plan/spec/$id'
     | '/api/public/a2a/tasks'
@@ -2822,6 +2847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudioIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/runs/': {
+      id: '/_authenticated/runs/'
+      path: '/runs'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof AuthenticatedRunsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/prds/': {
       id: '/_authenticated/prds/'
       path: '/'
@@ -2904,6 +2936,13 @@ declare module '@tanstack/react-router' {
       path: '/studio/$missionId'
       fullPath: '/studio/$missionId'
       preLoaderRoute: typeof AuthenticatedStudioMissionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/runs/$missionId': {
+      id: '/_authenticated/runs/$missionId'
+      path: '/runs/$missionId'
+      fullPath: '/runs/$missionId'
+      preLoaderRoute: typeof AuthenticatedRunsMissionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/prds/$id': {
@@ -3562,11 +3601,13 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBuildMissionIdRoute: typeof AuthenticatedBuildMissionIdRoute
   AuthenticatedMProductIdRoute: typeof AuthenticatedMProductIdRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRoute
+  AuthenticatedRunsMissionIdRoute: typeof AuthenticatedRunsMissionIdRoute
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedMIndexRoute: typeof AuthenticatedMIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
+  AuthenticatedRunsIndexRoute: typeof AuthenticatedRunsIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
   AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
@@ -3629,11 +3670,13 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBuildMissionIdRoute: AuthenticatedBuildMissionIdRoute,
   AuthenticatedMProductIdRoute: AuthenticatedMProductIdRoute,
   AuthenticatedMissionsMissionIdRoute: AuthenticatedMissionsMissionIdRoute,
+  AuthenticatedRunsMissionIdRoute: AuthenticatedRunsMissionIdRoute,
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedMIndexRoute: AuthenticatedMIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
+  AuthenticatedRunsIndexRoute: AuthenticatedRunsIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
   AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }

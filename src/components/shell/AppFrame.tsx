@@ -14,19 +14,14 @@
  */
 
 import * as React from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  AGENT_STATIONS,
-  AGENT_STATION_ORDER,
-  agentStation,
-  type AgentStation,
-} from "@/lib/agent-vocabulary";
 import { stageHueForStation } from "./agent-glyphs";
+import { RunStripProvider, STAGE_LABEL, type RunStripSpec } from "./run-strip";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
@@ -47,13 +42,20 @@ import {
  *  place you live. */
 const RAIL = [
   { to: "/today", label: "Today", Icon: IconToday, count: "gates" },
-  { to: "/m", label: "Runs", Icon: IconRuns, count: "runs" },
+  // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
+  // rebuild never ported, so the rail's own row for the engine's spine was
+  // landing on the legacy five-region shell. That is the founder's "the run
+  // section is still rendering in the legacy design", and this line is where it
+  // started. /runs is the same surface the route used to call /build, renamed
+  // because a run is the whole lifecycle and never was the build leg.
+  { to: "/runs", label: "Runs", Icon: IconRuns, count: "runs" },
   { to: "/brain", label: "Brain", Icon: IconBrain, count: null },
   { to: "/crew", label: "Crew", Icon: IconCrew, count: null },
   { to: "/engine-room", label: "Engine room", Icon: IconEngine, count: null },
 ] as const;
 
 const RAIL_KEY = "supaprod:rail-narrow";
+const STRIP_KEY = "supaprod:strip-shut";
 
 function initialsFrom(email: string | null | undefined, name?: string | null): string {
   const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
@@ -78,6 +80,7 @@ function since(iso: string | null): string | null {
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const { activeWorkspace, activeProduct } = useWorkspace();
 
   // The rail's collapsed state is the user's, so it survives a reload.
@@ -92,10 +95,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // The seven stages, revealed from the live line rather than living in the
-  // chrome. Founder question: "is there any other way we can only showcase the
-  // section that is actually being worked on?" This is the decided answer.
-  const [stagesOpen, setStagesOpen] = React.useState(false);
+  // The seven-stage strip. The shell owns the region, a run owns the content:
+  // whatever surface is mounted publishes its stages through run-strip.tsx, and
+  // only a run does. See that file's header for the founder ruling this obeys.
+  const [strip, setStrip] = React.useState<RunStripSpec | null>(null);
+
+  // Open by default, because the ruling is "it needs to be always there" on a
+  // run. Collapsing is the exception, so the exception is what gets remembered.
+  const [stripShut, setStripShut] = React.useState(false);
+  React.useEffect(() => {
+    setStripShut(window.localStorage.getItem(STRIP_KEY) === "1");
+  }, []);
+  const toggleStrip = React.useCallback(() => {
+    setStripShut((v) => {
+      window.localStorage.setItem(STRIP_KEY, v ? "0" : "1");
+      return !v;
+    });
+  }, []);
 
   const [me, setMe] = React.useState<{ email: string | null; name: string | null }>({
     email: null,
@@ -145,26 +161,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   const counts: Record<string, number> = { gates: gateCount, runs: running.length };
 
-  // Which stage each signal belongs to, from real data only. A mission's
-  // current agent names its station; a waiting gate names its own. A stage with
-  // neither is quiet, and says so rather than inventing activity.
-  const stageState = React.useMemo(() => {
-    const working = new Set<AgentStation>();
-    const gated = new Set<AgentStation>();
-    for (const m of running) {
-      const st = agentStation(m.current_agent_id);
-      if (st) working.add(st);
-    }
-    for (const item of queue.data?.items ?? []) {
-      const st = agentStation(item.agentSlug);
-      if (st) gated.add(st);
-    }
-    return { working, gated };
-  }, [running, queue.data]);
-
   const openAsk = React.useCallback(() => {
     window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
   }, []);
+
+  // setStrip is stable, so this identity only changes when a strip is published
+  // or withdrawn, which is exactly when a consumer needs to re-render.
+  const stripCtx = React.useMemo(() => ({ spec: strip, publish: setStrip }), [strip]);
 
   // Voice: never greet, always report. The first line is a fact.
   const liveLead = running.length
@@ -177,160 +180,180 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const scopeLabel = activeWorkspace?.name ?? null;
 
   return (
-    <div
-      className="sp-app"
-      data-rail={narrow ? "narrow" : "wide"}
-      data-stages={stagesOpen ? "open" : "closed"}
-    >
-      <header className="sp-top">
-        <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
-          {/* mono + no glow: the mark is identity, not an event, and colour
+    <RunStripProvider value={stripCtx}>
+      <div
+        className="sp-app"
+        data-rail={narrow ? "narrow" : "wide"}
+        data-strip={strip ? (stripShut ? "shut" : "open") : "none"}
+      >
+        <header className="sp-top">
+          <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
+            {/* mono + no glow: the mark is identity, not an event, and colour
               arrives only when something happens. The glow is also a recorded
               defect on the auth door (session-handoff.md), so it is not
               carried into the chrome. */}
-          <span className="sp-logo">
-            <SupaprodMark size={21} mono glow={false} />
-          </span>
-          <span className="sp-wordmark">Supaprod</span>
-        </Link>
-
-        {scopeLabel ? (
-          <Link to="/settings" className="sp-scope" title="Workspace and product">
-            {scopeLabel}
-            {activeProduct?.name ? (
-              <>
-                <span className="sp-scope-sep">/</span>
-                {activeProduct.name}
-              </>
-            ) : null}
-            <IconChevron className="sp-chev" />
+            <span className="sp-logo">
+              <SupaprodMark size={21} mono glow={false} />
+            </span>
+            <span className="sp-wordmark">Supaprod</span>
           </Link>
-        ) : null}
 
-        <button
-          type="button"
-          className="sp-live"
-          onClick={() => setStagesOpen((v) => !v)}
-          title={stagesOpen ? "Hide the seven stages" : "Show the seven stages"}
-          aria-expanded={stagesOpen}
-        >
-          <span className="sp-live-dot" data-state={liveState} />
-          <span className="sp-live-lead">{liveLead}</span>
-          {lastDone ? (
-            <>
-              <span className="sp-live-sep" data-drop="2" aria-hidden="true">
-                &middot;
-              </span>
-              <span className="sp-live-fact" data-drop="2">
-                last: {lastDone.title}
-              </span>
-              {since(lastDone.completed_at) ? (
+          {scopeLabel ? (
+            <Link to="/settings" className="sp-scope" title="Workspace and product">
+              {scopeLabel}
+              {activeProduct?.name ? (
                 <>
-                  <span className="sp-live-sep" data-drop="1" aria-hidden="true">
-                    &middot;
-                  </span>
-                  <span className="sp-live-fact sp-num" data-drop="1">
-                    {since(lastDone.completed_at)}
-                  </span>
+                  <span className="sp-scope-sep">/</span>
+                  {activeProduct.name}
                 </>
               ) : null}
-            </>
+              <IconChevron className="sp-chev" />
+            </Link>
           ) : null}
-        </button>
 
-        <div className="sp-tools">
-          <button type="button" className="sp-askbtn" onClick={openAsk}>
-            <IconAsk className="sp-askbtn-icon" />
-            Ask
-            <span className="sp-askbtn-key">&#8984;J</span>
-          </button>
-          <Link
-            to="/settings"
-            className="sp-me"
-            title={me.email ?? "Account"}
-            aria-label="Account and settings"
+          {/* On a run the live line is the strip's switch, which is the founder's
+            "if it has to be collapsed, when someone clicks on the top bar".
+            Everywhere else there is no strip to collapse, so it does the one
+            honest thing left: it says work is happening, so it takes you to the
+            work. A control that reports a fact and then does nothing when you
+            press it is worse than a label. */}
+          <button
+            type="button"
+            className="sp-live"
+            onClick={() => {
+              if (strip) toggleStrip();
+              else void navigate({ to: "/runs" });
+            }}
+            title={
+              strip
+                ? stripShut
+                  ? "Show this run's seven stages"
+                  : "Collapse this run's seven stages"
+                : "Go to Runs"
+            }
+            aria-expanded={strip ? !stripShut : undefined}
           >
-            {initialsFrom(me.email, me.name)}
-          </Link>
-        </div>
-      </header>
-
-      <div className="sp-strip" role="group" aria-label="The seven stages">
-        {AGENT_STATION_ORDER.map((station, i) => {
-          const isWorking = stageState.working.has(station);
-          const isGated = stageState.gated.has(station);
-          const state = isGated ? "gate" : isWorking ? "working" : "quiet";
-          return (
-            <div
-              key={station}
-              className="sp-stage"
-              data-state={state}
-              style={{ "--sp-hue": stageHueForStation(station) } as React.CSSProperties}
-            >
-              <div className="sp-stage-n">{String(i + 1).padStart(2, "0")}</div>
-              <div className="sp-stage-name">{AGENT_STATIONS[station].name}</div>
-              <div className="sp-stage-state">
-                {isGated ? "waiting on you" : isWorking ? "working" : "quiet"}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="sp-mid">
-        <aside className="sp-rail">
-          <nav className="sp-nav" aria-label="Main">
-            {RAIL.map(({ to, label, Icon, count }) => {
-              const n = count ? counts[count] : 0;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className="sp-navrow"
-                  activeProps={{ "aria-current": "page" }}
-                  title={narrow ? label : undefined}
-                >
-                  <Icon />
-                  <span className="sp-navlabel">{label}</span>
-                  {count && n > 0 ? (
-                    <span className="sp-navcount" data-hot={count === "gates" ? "true" : "false"}>
-                      {n}
+            <span className="sp-live-dot" data-state={liveState} />
+            <span className="sp-live-lead">{liveLead}</span>
+            {lastDone ? (
+              <>
+                <span className="sp-live-sep" data-drop="2" aria-hidden="true">
+                  &middot;
+                </span>
+                <span className="sp-live-fact" data-drop="2">
+                  last: {lastDone.title}
+                </span>
+                {since(lastDone.completed_at) ? (
+                  <>
+                    <span className="sp-live-sep" data-drop="1" aria-hidden="true">
+                      &middot;
                     </span>
-                  ) : null}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="sp-railfoot">
+                    <span className="sp-live-fact sp-num" data-drop="1">
+                      {since(lastDone.completed_at)}
+                    </span>
+                  </>
+                ) : null}
+              </>
+            ) : null}
+          </button>
+
+          <div className="sp-tools">
+            <button type="button" className="sp-askbtn" onClick={openAsk}>
+              <IconAsk className="sp-askbtn-icon" />
+              Ask
+              <span className="sp-askbtn-key">&#8984;J</span>
+            </button>
             <Link
               to="/settings"
-              className="sp-setbtn"
-              title="Settings"
-              aria-label="Settings"
-              activeProps={{ "aria-current": "page" }}
+              className="sp-me"
+              title={me.email ?? "Account"}
+              aria-label="Account and settings"
             >
-              <IconGear />
+              {initialsFrom(me.email, me.name)}
             </Link>
-            <button
-              type="button"
-              className="sp-collapse"
-              onClick={toggleRail}
-              title={narrow ? "Expand the rail" : "Collapse the rail"}
-              aria-label={narrow ? "Expand the rail" : "Collapse the rail"}
-              aria-pressed={narrow}
-            >
-              <IconPanel />
-            </button>
           </div>
-        </aside>
+        </header>
 
-        {/* The work region is a scroll container and nothing else. A ported
+        {strip && !stripShut ? (
+          <div className="sp-strip" role="tablist" aria-label="The seven stages of this run">
+            {strip.stages.map((stage, i) => {
+              const on = stage.station === strip.active;
+              return (
+                <button
+                  key={stage.station}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  className="sp-stage"
+                  data-state={stage.state}
+                  data-on={on ? "true" : "false"}
+                  onClick={() => strip.onSelect(stage.station)}
+                  style={{ "--sp-hue": stageHueForStation(stage.station) } as React.CSSProperties}
+                >
+                  <span className="sp-stage-n">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
+                  <span className="sp-stage-state">{stage.note}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <div className="sp-mid">
+          <aside className="sp-rail">
+            <nav className="sp-nav" aria-label="Main">
+              {RAIL.map(({ to, label, Icon, count }) => {
+                const n = count ? counts[count] : 0;
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="sp-navrow"
+                    activeProps={{ "aria-current": "page" }}
+                    title={narrow ? label : undefined}
+                  >
+                    <Icon />
+                    <span className="sp-navlabel">{label}</span>
+                    {count && n > 0 ? (
+                      <span className="sp-navcount" data-hot={count === "gates" ? "true" : "false"}>
+                        {n}
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="sp-railfoot">
+              <Link
+                to="/settings"
+                className="sp-setbtn"
+                title="Settings"
+                aria-label="Settings"
+                activeProps={{ "aria-current": "page" }}
+              >
+                <IconGear />
+              </Link>
+              <button
+                type="button"
+                className="sp-collapse"
+                onClick={toggleRail}
+                title={narrow ? "Expand the rail" : "Collapse the rail"}
+                aria-label={narrow ? "Expand the rail" : "Collapse the rail"}
+                aria-pressed={narrow}
+              >
+                <IconPanel />
+              </button>
+            </div>
+          </aside>
+
+          {/* The work region is a scroll container and nothing else. A ported
             surface opts into .sp-inner; an unported one renders raw so its
             own padding is not doubled. See shell.css TRANSITION RULE. */}
-        <main className="sp-work" key={pathname}>
-          {children}
-        </main>
+          <main className="sp-work" key={pathname}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </RunStripProvider>
   );
 }

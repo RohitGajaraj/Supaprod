@@ -264,32 +264,52 @@
 }
 
 /* ---------- the stage strip ----------
- * The decided answer to the founder's question, "do we really need that
- * standard toolbar where we showcase all our seven surfaces? Is there any
- * other way we can only showcase the section that is actually being worked
- * on?" Answer: the chrome carries ONE live line, and the seven stages are
- * revealed from it on demand. So the loop is knowable without being permanent
- * furniture, which is the calm-front law applied to the spine. */
+ * The earlier answer here was "the chrome carries ONE live line and the seven
+ * stages are revealed from it on demand", applied globally. The founder
+ * overruled it on 2026-07-29: the strip is ALWAYS there on a run and NOWHERE
+ * else, and the live line collapses it rather than summoning it.
+ *
+ * The visibility rule now lives in AppFrame, because it is a fact about the
+ * mounted surface (did a run publish a strip?) and not a fact about a class.
+ * CSS that hid the region unconditionally was half of why the strip was
+ * invisible on the surface that most needed it. See run-strip.tsx. */
 .sp-strip {
-  display: none;
+  display: flex;
+  gap: 0;
   background: var(--sp-sheet);
   border-bottom: 1px solid var(--sp-line);
-  padding: 14px 18px;
+  padding: 12px 18px;
   flex: none;
   overflow-x: auto;
 }
-.sp-app[data-stages="open"] .sp-strip {
-  display: flex;
-  gap: 0;
-}
+/* A stage is a tab: the whole cell is the target, so the number, the name and
+ * the note all mean "go here" rather than the name alone being live. */
 .sp-stage {
   flex: 1;
   min-width: 128px;
-  padding: 0 14px 0 0;
+  padding: 4px 14px 4px 0;
   text-align: left;
   background: none;
   border: 0;
+  border-radius: var(--sp-radius-sm);
   font: inherit;
+  cursor: pointer;
+  display: block;
+  transition: background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-stage:hover {
+  background: var(--sp-hover);
+}
+.sp-stage > span {
+  display: block;
+}
+/* The open stage is marked by a rule under it in its own stage hue, not by a
+ * filled pill. Emphasis is the run's state; this is only "you are here". */
+.sp-stage[data-on="true"] {
+  box-shadow: inset 0 -2px 0 0 var(--sp-hue, var(--sp-ink));
+}
+.sp-stage[data-on="true"] .sp-stage-name {
+  color: var(--sp-ink);
 }
 .sp-stage + .sp-stage {
   border-left: 1px solid var(--sp-line-soft);
@@ -312,7 +332,18 @@
   color: var(--sp-mute);
 }
 /* State, never decoration: quiet stages stay grey, the working one takes its
- * own stage hue, and only a stage waiting on you wears ember. */
+ * own stage hue, and only a stage waiting on you wears ember.
+ *
+ * `done` and `quiet` are deliberately different. A finished stage has earned
+ * its silence and reads in body ink; an untouched one has not started and stays
+ * muted. Rendering them alike would make a run look further along than it is,
+ * which is the same class of lie as a fabricated diffstat. */
+.sp-stage[data-state="done"] .sp-stage-name {
+  color: var(--sp-body);
+}
+.sp-stage[data-state="next"] .sp-stage-state {
+  color: var(--sp-body);
+}
 .sp-stage[data-state="working"] .sp-stage-name {
   color: var(--sp-ink);
 }
