@@ -263,6 +263,69 @@
     inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 10%, transparent);
 }
 
+/* ---------- the stage strip ----------
+ * The decided answer to the founder's question, "do we really need that
+ * standard toolbar where we showcase all our seven surfaces? Is there any
+ * other way we can only showcase the section that is actually being worked
+ * on?" Answer: the chrome carries ONE live line, and the seven stages are
+ * revealed from it on demand. So the loop is knowable without being permanent
+ * furniture, which is the calm-front law applied to the spine. */
+.sp-strip {
+  display: none;
+  background: var(--sp-sheet);
+  border-bottom: 1px solid var(--sp-line);
+  padding: 14px 18px;
+  flex: none;
+  overflow-x: auto;
+}
+.sp-app[data-stages="open"] .sp-strip {
+  display: flex;
+  gap: 0;
+}
+.sp-stage {
+  flex: 1;
+  min-width: 128px;
+  padding: 0 14px 0 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  font: inherit;
+}
+.sp-stage + .sp-stage {
+  border-left: 1px solid var(--sp-line-soft);
+  padding-left: 14px;
+}
+.sp-stage-n {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data-sm);
+  color: var(--sp-mute);
+}
+.sp-stage-name {
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  margin: 3px 0;
+  font-weight: var(--sp-weight-medium);
+}
+.sp-stage-state {
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+}
+/* State, never decoration: quiet stages stay grey, the working one takes its
+ * own stage hue, and only a stage waiting on you wears ember. */
+.sp-stage[data-state="working"] .sp-stage-name {
+  color: var(--sp-ink);
+}
+.sp-stage[data-state="working"] .sp-stage-state {
+  color: var(--sp-hue, var(--sp-stage-build));
+}
+.sp-stage[data-state="gate"] .sp-stage-name {
+  color: var(--sp-ink);
+}
+.sp-stage[data-state="gate"] .sp-stage-state {
+  color: var(--sp-gate);
+}
+
 /* ---------- the two lower regions ---------- */
 .sp-mid {
   flex: 1;

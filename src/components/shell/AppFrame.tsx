@@ -20,6 +20,13 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
+import {
+  AGENT_STATIONS,
+  AGENT_STATION_ORDER,
+  agentStation,
+  type AgentStation,
+} from "@/lib/agent-vocabulary";
+import { stageHueForStation } from "./agent-glyphs";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
@@ -85,6 +92,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // The seven stages, revealed from the live line rather than living in the
+  // chrome. Founder question: "is there any other way we can only showcase the
+  // section that is actually being worked on?" This is the decided answer.
+  const [stagesOpen, setStagesOpen] = React.useState(false);
+
   const [me, setMe] = React.useState<{ email: string | null; name: string | null }>({
     email: null,
     name: null,
@@ -133,6 +145,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   const counts: Record<string, number> = { gates: gateCount, runs: running.length };
 
+  // Which stage each signal belongs to, from real data only. A mission's
+  // current agent names its station; a waiting gate names its own. A stage with
+  // neither is quiet, and says so rather than inventing activity.
+  const stageState = React.useMemo(() => {
+    const working = new Set<AgentStation>();
+    const gated = new Set<AgentStation>();
+    for (const m of running) {
+      const st = agentStation(m.current_agent_id);
+      if (st) working.add(st);
+    }
+    for (const item of queue.data?.items ?? []) {
+      const st = agentStation(item.agentSlug);
+      if (st) gated.add(st);
+    }
+    return { working, gated };
+  }, [running, queue.data]);
+
   const openAsk = React.useCallback(() => {
     window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
   }, []);
@@ -148,7 +177,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const scopeLabel = activeWorkspace?.name ?? null;
 
   return (
-    <div className="sp-app" data-rail={narrow ? "narrow" : "wide"}>
+    <div
+      className="sp-app"
+      data-rail={narrow ? "narrow" : "wide"}
+      data-stages={stagesOpen ? "open" : "closed"}
+    >
       <header className="sp-top">
         <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
           {/* mono + no glow: the mark is identity, not an event, and colour
@@ -177,8 +210,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           className="sp-live"
-          onClick={() => window.dispatchEvent(new CustomEvent("supaprod:open-stages"))}
-          title="Open the stage strip"
+          onClick={() => setStagesOpen((v) => !v)}
+          title={stagesOpen ? "Hide the seven stages" : "Show the seven stages"}
+          aria-expanded={stagesOpen}
         >
           <span className="sp-live-dot" data-state={liveState} />
           <span className="sp-live-lead">{liveLead}</span>
@@ -220,6 +254,28 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
       </header>
+
+      <div className="sp-strip" role="group" aria-label="The seven stages">
+        {AGENT_STATION_ORDER.map((station, i) => {
+          const isWorking = stageState.working.has(station);
+          const isGated = stageState.gated.has(station);
+          const state = isGated ? "gate" : isWorking ? "working" : "quiet";
+          return (
+            <div
+              key={station}
+              className="sp-stage"
+              data-state={state}
+              style={{ "--sp-hue": stageHueForStation(station) } as React.CSSProperties}
+            >
+              <div className="sp-stage-n">{String(i + 1).padStart(2, "0")}</div>
+              <div className="sp-stage-name">{AGENT_STATIONS[station].name}</div>
+              <div className="sp-stage-state">
+                {isGated ? "waiting on you" : isWorking ? "working" : "quiet"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <div className="sp-mid">
         <aside className="sp-rail">
