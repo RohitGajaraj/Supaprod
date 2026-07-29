@@ -91,6 +91,7 @@ Every override is written down here with what it bought. Taken so far:
 | No decorative grid | the auth door, the public landing | the drafting field is the brand's own texture, and it is two weights rather than a default overlay. |
 | No pulsing status dot | the running agent mark | the rule's own exception: it animates because the data genuinely is changing. A spinning arc plus a breath, and it stops the moment the run does. |
 | Cream surfaces | the light theme | the founder asked for warm, and warm-tinted neutrals at very low chroma read as paper stock rather than as beige. |
+| No glow on dark | the record recess, one soft lamp | the record contradicting you is the single most differentiated moment in the product, and an edge or a stripe was correctly ruled out. It is light rather than a hue, it is the only lit surface anywhere, and it is scoped to one component. |
 
 **The discipline that keeps this honest:** an override is a decision, so it gets a line in this
 table. An override nobody wrote down is just slop with a story.
