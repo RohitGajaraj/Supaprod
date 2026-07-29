@@ -712,7 +712,7 @@ function SpecEditorPage() {
             )
           )}
 
-          {/* H1-TASKS consumption — ready/blocked/progress + DAG integrity.
+          {/* H1-TASKS consumption: ready/blocked/progress + DAG integrity.
               Renders nothing until there is a generated graph to reason about. */}
           <TaskGraphPanel prdId={id} />
 
@@ -740,7 +740,7 @@ function SpecEditorPage() {
           ) : null}
         </Block>
 
-        {/* DEF-04 — what the spec already says about states, a11y and responsive
+        {/* DEF-04: what the spec already says about states, a11y and responsive
             behaviour, and the generated mockup. Both panels name themselves and
             both go silent when there is nothing to say, so neither gets a Block:
             a rule over an empty region is a rule that says nothing. */}
@@ -785,7 +785,7 @@ function SpecEditorPage() {
                   sub={s.source ?? "signal"}
                   onClick={() =>
                     // Carries the signal id so Discover can focus it (the old
-                    // link dropped it — audit D-14).
+                    // link dropped it, audit D-14).
                     navigate({
                       to: "/discover",
                       search: { tab: "signals", focus: s.id } as never,
