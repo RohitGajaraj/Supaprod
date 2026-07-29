@@ -545,3 +545,71 @@ skeleton rather than retrofitting fluidity into a fixed artboard.
    leak. This is now blocking, not housekeeping.
 3. Converge the eight doctrines into ONE build spec, then Phase 1: one shell, one nav model, one
    front door, one primitive layer.
+
+---
+
+# 2026-07-29 (afternoon) - the design system got decided, and it is a prototype not a mockup
+
+**State: everything committed and pushed. `main` is `8c1200ee`. Tree clean.**
+
+## Read these first, in this order
+
+1. [`docs/conventions/anti-slop.md`](../conventions/anti-slop.md) - **new, and binding.** The
+   founder's eleven hard bans, the ruling that the wider slop catalogue is advisory beneath
+   them, the standing permission to break even the eleven once with a written reason, and the
+   five overrides taken so far.
+2. [`docs/planning/rebuild-2026-07/structure/PROTOTYPE-v2.html`](../planning/rebuild-2026-07/structure/PROTOTYPE-v2.html) -
+   **the decided system.** Four screens, both themes, real interaction.
+   Serve it: `python3 -m http.server 8899` from the repo root, then open the path. It will not
+   render correctly from `file://` because the fonts are relative to `public/fonts/`.
+3. [`docs/planning/rebuild-2026-07/structure/SKETCH.html`](../planning/rebuild-2026-07/structure/SKETCH.html) -
+   the structural reasoning behind it. Superseded on look, still correct on why.
+
+## What is decided, and should not be relitigated
+
+| | Decision |
+|---|---|
+| Shell | four regions: header 56, rail 236/64, work, Ask summoned. Not eight. |
+| Front door | a brief, not an inbox and not a dashboard |
+| Stage toolbar | gone from the chrome. One live line, expands to seven on click |
+| Rail | five rows: Today, Runs, Brain, Crew, Engine room. Settings is an icon at the foot |
+| Type | Mona Sans for reading, IBM Plex Mono for data only, Geist Pixel at the auth door only. All OFL, installed at `public/fonts/` |
+| Agent marks | thin-line glyph, one per agent, saying what it does. No box, no letters |
+| Colour | crew is monochrome everywhere but the Crew page. Colour arrives only when something happens: stage hue while running, ember while waiting on you, red on failure |
+| Record | the one lit surface in the product. A soft lamp, not an edge and not a hue |
+| Themes | dark is the target. Light is committed warm paper, not cream and not an inversion |
+| Adaptation | container queries. The context column stacks below on narrow, it never hides |
+| Voice | never greet, always report. The first line is a fact |
+
+## The next move, agreed with the founder
+
+**Stop prototyping. Lift this into the app as tokens and primitives**, then port surfaces
+against it rather than designing them one at a time. Order: colour roles and type scale into
+`src/styles/ink.css`, then the shell, then the agent mark, the row, the gate, the record
+recess, the diffstat.
+
+## Blocked on one thing
+
+**Database access must go through Lovable, not Supabase directly.** Supabase is provisioned
+and managed by Lovable for this project, so there is no independent access token to use. The
+Supabase MCP in `.mcp.json` returns `Unauthorized` and should be treated as dead. The Lovable
+plugin was uninstalled on 2026-07-29 and needs reinstalling via `/plugin` before its
+`mcp__plugin_lovable_lovable__*` tools return. Known quirk from the last attempt: Lovable
+rewrites the OAuth loopback redirect from `localhost` to `127.0.0.1`, which is server side and
+not fixable locally.
+
+**This does not block the build.** The work is frontend and every server function already
+exists. DB access is for verifying data shapes while wiring, not for shipping.
+
+## Defects found and recorded, not yet fixed
+
+- `AuthScaffold.tsx:118` ships a white glow halo on the mark, live now.
+- `LandingBackdrop.tsx` draws a decorative engineering grid. The founder wants the grid kept
+  at the door, so this is a deliberate override, but it is recorded rather than accidental.
+- `resolveBuildPreview()` in `src/lib/exec/provider.ts:162` returns `live:false`, so no live
+  app preview can honestly be drawn for a multi-file change. The prototype shows the diff and
+  the CI verdict instead, which is what we actually have.
+- `seed_default_agent_tools` dropped its `seed_pm_lifecycle_tools` call in
+  `20260709000000_seed_studio_sync_branch_tool.sql:7`. Every account created since 2026-07-09
+  has Studio tools but no `prd.draft`, `tasks.create`, `workspace.search` or `memory.remember`.
+  Not design work, but it must not be discovered during a demo.
