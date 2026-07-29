@@ -1,0 +1,89 @@
+/**
+ * The run-state vocabulary. ONE copy, read by both views of Runs.
+ *
+ * This moved out of `_authenticated.runs.index.tsx` the moment that surface
+ * grew a second view. The list and the board are two renderings of one truth,
+ * and the failure mode is not that one of them looks wrong: it is that a run
+ * reads "Working" in the list and sits under "Done" on the board, which
+ * destroys trust in both at once. Two copies of a status mapping drift on the
+ * first status the engine adds. One copy cannot.
+ *
+ * Nothing here queries. It is pure mapping over what `listStudioSessions`
+ * already returned, so adding the board added no server function, no query and
+ * no Supabase select.
+ */
+
+import type { StudioSessionListItem } from "@/lib/studio.functions";
+import type { MarkState } from "@/components/shell/primitives";
+import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
+
+/**
+ * Two disjoint status vocabularies feed a run: `agent_runs.status` (queued /
+ * running / waiting_approval / halted / completed / failed / cancelled / done)
+ * and `missions.status` (proposed / queued / running / blocked / halted /
+ * cancelled / completed / completed_with_failures / failed). `blocked` is the
+ * mission table's word for waiting on a human gate, and answering a gate only
+ * updates the approvals table until the next resume tick, so a pending count
+ * outranks every status string. An unrecognised string falls to the neutral
+ * "queued", never to "done": a false Done is the one reading that lies.
+ */
+export type RunState = "gate" | "working" | "queued" | "stopped" | "done";
+
+const STOPPED = new Set(["failed", "halted", "cancelled", "completed_with_failures"]);
+
+export function runState(s: StudioSessionListItem): RunState {
+  const status = s.run_status ?? s.status;
+  if (s.pending_approvals > 0) return "gate";
+  if (status === "waiting_approval" || status === "blocked" || status === "proposed") return "gate";
+  if (status === "running") return "working";
+  if (status === "queued") return "queued";
+  if (STOPPED.has(status)) return "stopped";
+  if (status === "completed" || status === "done") return "done";
+  return "queued";
+}
+
+/** State is never a hue: the mark carries it, and the mark owns the colour. */
+export const MARK_STATE: Record<RunState, MarkState> = {
+  gate: "gate",
+  working: "running",
+  queued: "quiet",
+  stopped: "failed",
+  done: "idle",
+};
+
+/**
+ * WHO IS ON THIS ROW. A 'build' row is selected by `agent_slug='builder'`, so
+ * naming Engineer is a fact rather than a guess. A goal run's holder lives in
+ * `missions.current_agent_id`, a uuid with no client-reachable slug resolver,
+ * so it stays "The crew": unspecific and true beats specific and invented.
+ */
+export function actorSlug(s: StudioSessionListItem): string | null {
+  return s.kind === "build" ? "builder" : null;
+}
+export function actorName(s: StudioSessionListItem): string {
+  return s.kind === "build" ? agentDisplayName("builder") : "The crew";
+}
+export function actorVerb(s: StudioSessionListItem): string {
+  return (s.kind === "build" ? agentRelayVerb("builder") : null) ?? "working";
+}
+
+/** Plain-words relative time. Mono is applied by the caller, not here.
+ *
+ *  It lives beside the state mapping for the same reason the mapping does:
+ *  both views print a time off the same instant, and two roundings of "now"
+ *  that disagree by a minute is a surface arguing with itself. */
+export function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  const ms = Date.now() - t;
+  if (ms < 0) return null;
+  if (ms < 60_000) return "now";
+  const m = Math.floor(ms / 60_000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}

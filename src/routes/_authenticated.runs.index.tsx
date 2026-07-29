@@ -92,6 +92,90 @@
  * feel like three surfaces was three renderings of one list, which is why the
  * two lens tabs are gone rather than the page being split.
  *
+ * ==================================================================
+ * THE SECOND VIEW: THE BOARD. Added 2026-07-29, founder ask, verbatim:
+ * "Somewhere on the navigation plane should we have something like a status or
+ * a dashboard? It should show what is working, what is done ... like a scrum
+ * board or Kanban board ... It is just like the canvas where I can see what is
+ * happening ... what is moving, what is working, what is parked for next
+ * thing."
+ *
+ * The board goes HERE and not on Today, because Today is a brief and not a
+ * dashboard (docs/conventions/home-and-today-ia.md guards that). The list
+ * stays the default; the board is a second view of the same rows, and the
+ * choice lives in the URL so a board link opens as a board.
+ *
+ * The six answers again, for the board specifically. They are here rather than
+ * in the component because these are two views of ONE surface, and answering
+ * the same six questions in two files is how two views drift apart.
+ *
+ * a. WHO IS STANDING HERE. The same product lead, on a different errand. Not
+ *    "I want this one run", but "where is everything, and is anything piling
+ *    up". Monday morning, or after a day away.
+ *
+ * b. THE ONE THING THIS VIEW EXISTS FOR. To see the SHAPE of the work in one
+ *    look: how much is moving, how much is stuck on them, how much is settled.
+ *    A list answers "what happened most recently" and cannot answer that,
+ *    because a list sorted by time hides the distribution.
+ *
+ * c. KEEP / MOVE / KILL, relative to the list view.
+ *    KEEP  the headline and the count line. They are the surface's report and
+ *          they read the same in both views.
+ *    KEEP  the composer. Removing it would make the board a dead end that
+ *          forces a toggle back to hand over the work you just noticed was
+ *          missing. It keeps the 74ch measure the board itself drops.
+ *    KEEP  the receipts. A hand-over made from the board renders its
+ *          consequence in the same place it does on the list.
+ *    KILL  the Gate, on this view only. The Gate promotes the one oldest
+ *          waiting run above a "Waiting on you" column that already holds it
+ *          and every one behind it. That is the same defect as the three
+ *          renderings of one list, at a smaller scale. On the board the ember
+ *          column IS the gate, and it is better because it shows all of them.
+ *    KILL  the context column, on this view only, and this is the honest
+ *          trade. It costs 316px plus a 52px gutter, and with it the board
+ *          gets 756px at a 1440 window, which is under 152px a column. Worse,
+ *          the split is a container query at 1120px, so the board would be
+ *          WIDER at 1100 than at 1440. Its three facts are not lost: they
+ *          belong to the hand-over job, which is the list view, one toggle
+ *          away. Reported as the trade it is.
+ *    KILL  the row-level Manage controls. Archiving is a list job; the board
+ *          hides archived runs so they never inflate a count.
+ *    MOVE  nothing. Both views read the SAME two queries.
+ *
+ * d. ONE CLICK AWAY. A card is a title and one different second line, and the
+ *    second line is different in every column: who it is queued for, how far
+ *    it has got, how many calls are stacked on it, whether the Done claim is
+ *    backed, where it stopped. Clicking opens the run.
+ *
+ * e. DELIGHT AND CONFUSION. The delight is an empty "Waiting on you": the
+ *    column gives its room back to the ones that are working and its ember
+ *    goes out, so the best state in the product is also the quietest thing on
+ *    the screen. The confusion to avoid was a sixth column of roadmap items,
+ *    which is why there is not one (see below).
+ *
+ * f. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Every card carries the agent
+ *    holding it, as a mark whose shape is the agent and whose hue is the loop
+ *    stage. Remove the agents and the board loses its subject: "Working" would
+ *    be a pile of titles with nobody on them. A working card's mark carries
+ *    the stage hue while it runs and stops the moment it does; the waiting
+ *    ones wear ember; exactly one blinks. Nothing overclaims: a goal run's
+ *    holder is a uuid with no client-side resolver, so it reads "The crew"
+ *    rather than inventing a name, and a Done claim with no merged pull
+ *    request says so.
+ *
+ * THE ROADMAP IS NOT A COLUMN, AND THAT IS DELIBERATE. The ask included "what
+ * is in the roadmap". A roadmap item is an `opportunities` row carrying
+ * `roadmap_bucket` / `roadmap_outcome`. It is not a run: nothing was
+ * dispatched, no agent holds it, it has no steps, no cost and no gate. A sixth
+ * column of them would put two different kinds of object in one row of
+ * columns, and every count on the board would then mean "runs, plus some
+ * things that are not runs". The board says once where the roadmap lives
+ * (Plan) and holds runs only. Reasoning in full: components/runs/RunBoard.tsx.
+ *
+ * The layout arithmetic, the wrap point, and why an empty column shrinks are
+ * recorded in that same file, next to the CSS they explain.
+ * ==================================================================
+ *
  * VOICE: never greet, always report. "Mission" is a mechanism word and stays
  * out of every user-facing string; these are runs. Internal identifiers
  * (studio.*, mission_id, agent_slug 'builder') are unchanged, per the standing
@@ -142,7 +226,7 @@ import {
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   Actions,
   AgentMark,
@@ -152,6 +236,7 @@ import {
   Failed,
   Field,
   Gate,
+  Loading,
   Num,
   PageHead,
   Receipt,
@@ -160,30 +245,23 @@ import {
   Surface,
   Textarea,
   Who,
-  type MarkState,
 } from "@/components/shell/primitives";
+// The run-state vocabulary is shared with the board rather than defined here,
+// so the two views cannot disagree about what a run is doing.
+import {
+  actorName,
+  actorSlug,
+  actorVerb,
+  ago,
+  MARK_STATE,
+  runState,
+} from "@/components/runs/run-state";
+import { RunBoard } from "@/components/runs/RunBoard";
 
 /* ------------------------------------------------------------------ *
  * Formatting and mapping. Local on purpose: nothing here reaches into
  * another surface's folder, so a parallel port cannot break this one.
  * ------------------------------------------------------------------ */
-
-/** Plain-words relative time. Mono is applied by the row, not here. */
-function ago(iso: string | null | undefined): string | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return null;
-  const ms = Date.now() - t;
-  if (ms < 0) return null;
-  if (ms < 60_000) return "now";
-  const m = Math.floor(ms / 60_000);
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h`;
-  const d = Math.floor(h / 24);
-  if (d < 7) return `${d}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
 
 function onDate(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -210,56 +288,6 @@ function firstLine(text: string | null | undefined, max = 150): string | null {
     .find((l) => l.length > 0);
   if (!line) return null;
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
-}
-
-/**
- * Two disjoint status vocabularies feed a row: `agent_runs.status` (queued /
- * running / waiting_approval / halted / completed / failed / cancelled / done)
- * and `missions.status` (proposed / queued / running / blocked / halted /
- * cancelled / completed / completed_with_failures / failed). `blocked` is the
- * mission table's word for waiting on a human gate, and answering a gate only
- * updates the approvals table until the next resume tick, so a pending count
- * outranks every status string. An unrecognised string falls to the neutral
- * "queued", never to "done": a false Done is the one reading that lies.
- */
-type RunState = "gate" | "working" | "queued" | "stopped" | "done";
-
-const STOPPED = new Set(["failed", "halted", "cancelled", "completed_with_failures"]);
-
-function runState(s: StudioSessionListItem): RunState {
-  const status = s.run_status ?? s.status;
-  if (s.pending_approvals > 0) return "gate";
-  if (status === "waiting_approval" || status === "blocked" || status === "proposed") return "gate";
-  if (status === "running") return "working";
-  if (status === "queued") return "queued";
-  if (STOPPED.has(status)) return "stopped";
-  if (status === "completed" || status === "done") return "done";
-  return "queued";
-}
-
-/** State is never a hue: the mark carries it, and the mark owns the colour. */
-const MARK_STATE: Record<RunState, MarkState> = {
-  gate: "gate",
-  working: "running",
-  queued: "quiet",
-  stopped: "failed",
-  done: "idle",
-};
-
-/**
- * WHO IS ON THIS ROW. A 'build' row is selected by `agent_slug='builder'`, so
- * naming Engineer is a fact rather than a guess. A goal run's holder lives in
- * `missions.current_agent_id`, a uuid with no client-reachable slug resolver,
- * so it stays "The crew": unspecific and true beats specific and invented.
- */
-function actorSlug(s: StudioSessionListItem): string | null {
-  return s.kind === "build" ? "builder" : null;
-}
-function actorName(s: StudioSessionListItem): string {
-  return s.kind === "build" ? agentDisplayName("builder") : "The crew";
-}
-function actorVerb(s: StudioSessionListItem): string {
-  return (s.kind === "build" ? agentRelayVerb("builder") : null) ?? "working";
 }
 
 /** A row's second line, one separator, one rhythm. Assembling it by hand put a
@@ -301,14 +329,17 @@ type CommitReceipt = {
 export const Route = createFileRoute("/_authenticated/runs/")({
   component: BuildPage,
   head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
-  // `view` is no longer read: the two lens tabs are gone. The key stays in the
-  // schema because /fleet and /delegate still redirect here carrying it, and
-  // dropping it from the enum would break those two routes at type level.
+  // `view` now carries exactly one meaning again: which view of Runs you are
+  // looking at. "board" is the only value read; anything else, including the
+  // three dead lens names, reads as the default list. The dead three stay in
+  // the enum because /fleet and /delegate still construct them at type level,
+  // and because a bookmarked ?view=lane must open something rather than throw.
+  // Absent means list, so the default view keeps a clean URL.
   validateSearch: (search: Record<string, unknown>) =>
     z
       .object({
         mission: z.string().optional(),
-        view: z.enum(["missions", "agent", "lane"]).optional(),
+        view: z.enum(["missions", "agent", "lane", "list", "board"]).optional(),
       })
       .parse(search),
   errorComponent: ({ error, reset }) => (
@@ -688,63 +719,79 @@ function BuildPage() {
 
   const visible = showAll ? rows : rows.slice(0, VISIBLE);
 
+  // WHICH VIEW. The list is the default and the absence of the key means it,
+  // so the plain /runs URL stays clean and the three dead lens names still
+  // land somewhere real. Switching writes the choice into the URL, so a board
+  // link opens as a board.
+  const board = search.view === "board";
+  const setView = (next: "list" | "board") =>
+    navigate({ search: (prev) => ({ ...prev, view: next === "board" ? "board" : undefined }) });
+
   return (
     <Surface
+      // The board is a canvas laid out in columns of its own, so it drops the
+      // 74ch prose measure. The composer keeps it, below.
+      wide={board}
+      // The context column costs 316px plus a 52px gutter, which is the
+      // difference between a five column board and a four column one at a 1440
+      // window. Its three facts belong to the hand-over job, which is the list.
       context={
-        <>
-          {repoStatus.data ? (
-            <>
-              <div className="sp-ctx-head">Where builds land</div>
-              <div className="sp-ctx-body">
-                {repoStatus.data.repoResolvable ? (
-                  (repoStatus.data.repo ?? "A connected repo.")
-                ) : (
-                  <>
-                    No repo is connected, so a build has nowhere to open a pull request.{" "}
-                    <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
-                      Connect one
-                    </Link>
-                    .
-                  </>
-                )}
-              </div>
-            </>
-          ) : null}
+        board ? undefined : (
+          <>
+            {repoStatus.data ? (
+              <>
+                <div className="sp-ctx-head">Where builds land</div>
+                <div className="sp-ctx-body">
+                  {repoStatus.data.repoResolvable ? (
+                    (repoStatus.data.repo ?? "A connected repo.")
+                  ) : (
+                    <>
+                      No repo is connected, so a build has nowhere to open a pull request.{" "}
+                      <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
+                        Connect one
+                      </Link>
+                      .
+                    </>
+                  )}
+                </div>
+              </>
+            ) : null}
 
-          {shipped?.changeset ? (
-            <>
-              <div className="sp-ctx-head">The last one that landed</div>
-              <div className="sp-ctx-body">
-                {agentDisplayName("builder")} wrote it and it is merged into{" "}
-                {shipped.changeset.repo}
-                {shipped.changeset.pr_number ? (
-                  <>
-                    {" · "}
-                    <a
-                      href={shipped.changeset.pr_url ?? undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "var(--sp-ink)" }}
-                    >
-                      #{shipped.changeset.pr_number}
-                    </a>
-                  </>
-                ) : null}
-                {onDate(shipped.updated_at) ? ` · ${onDate(shipped.updated_at)}` : ""}
-              </div>
-            </>
-          ) : null}
+            {shipped?.changeset ? (
+              <>
+                <div className="sp-ctx-head">The last one that landed</div>
+                <div className="sp-ctx-body">
+                  {agentDisplayName("builder")} wrote it and it is merged into{" "}
+                  {shipped.changeset.repo}
+                  {shipped.changeset.pr_number ? (
+                    <>
+                      {" · "}
+                      <a
+                        href={shipped.changeset.pr_url ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "var(--sp-ink)" }}
+                      >
+                        #{shipped.changeset.pr_number}
+                      </a>
+                    </>
+                  ) : null}
+                  {onDate(shipped.updated_at) ? ` · ${onDate(shipped.updated_at)}` : ""}
+                </div>
+              </>
+            ) : null}
 
-          {spend > 0 ? (
-            <>
-              <div className="sp-ctx-head">What these runs cost</div>
-              <div className="sp-ctx-body">
-                <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
-                {rows.length === 1 ? "run" : "runs"}. Nothing caps this yet.
-              </div>
-            </>
-          ) : null}
-        </>
+            {spend > 0 ? (
+              <>
+                <div className="sp-ctx-head">What these runs cost</div>
+                <div className="sp-ctx-body">
+                  <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
+                  {rows.length === 1 ? "run" : "runs"}. Nothing caps this yet.
+                </div>
+              </>
+            ) : null}
+          </>
+        )
       }
     >
       <PageHead
@@ -764,7 +811,58 @@ function BuildPage() {
         }
       />
 
-      {loading ? null : sessions.isError ? (
+      {/* The view switch. Same furniture as the composer's two doors, in the
+          same position on both views, because a toggle that moves when you use
+          it does not read as one control. */}
+      <div className="sp-tabs" role="tablist" aria-label="How to read the runs">
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={!board}
+          onClick={() => setView("list")}
+        >
+          List
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={board}
+          onClick={() => setView("board")}
+        >
+          Board
+        </button>
+      </div>
+
+      {board ? (
+        loading ? (
+          <Loading>Reading the record.</Loading>
+        ) : sessions.isError ? (
+          <Failed onRetry={() => void sessions.refetch()}>
+            The runs did not load, so this board is not the whole picture.
+          </Failed>
+        ) : rows.length === 0 ? (
+          <Empty
+            action={
+              <Button variant="primary" onClick={focusComposer}>
+                Describe the next build
+              </Button>
+            }
+          >
+            Nothing has been built here yet, so there is nothing to lay out. Describe the work below
+            and the crew plans the steps, writes the change, and opens the pull request.
+          </Empty>
+        ) : (
+          <RunBoard
+            rows={rows}
+            progressById={progressById}
+            showAll={showAll}
+            onShowAll={() => setShowAll((v) => !v)}
+            onOpen={openRun}
+          />
+        )
+      ) : loading ? null : sessions.isError ? (
         <Gate question="The runs did not load.">
           <Button variant="primary" onClick={() => void sessions.refetch()}>
             Try again
@@ -813,157 +911,174 @@ function BuildPage() {
         </Gate>
       )}
 
-      <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
-        <Composer startIsPrimary={!call && !sessions.isError} onCommit={commit} />
-      </Block>
-
-      {receipts.length > 0 ? (
-        <Block title="What you set in motion">
-          {receipts.map((r, i) => (
-            <Receipt
-              key={`${r.id}-${i}`}
-              verb={r.verb}
-              consequence={r.consequence}
-              handoff={r.handoff}
-              time={r.at}
-              failed={r.failed}
-            />
-          ))}
+      {/* A textarea is prose and keeps the measure, so the composer holds it
+          back even where the board around it dropped it. */}
+      <div style={board ? { maxWidth: "var(--sp-main-max)" } : undefined}>
+        <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
+          <Composer
+            // One primary per screen. On the list the gate owns it when a run
+            // is waiting; on the board there is no gate, so the hand-over does.
+            startIsPrimary={(board || !call) && !sessions.isError}
+            onCommit={commit}
+          />
         </Block>
-      ) : null}
 
-      <Block
-        title="Runs"
-        sub={
-          managing
-            ? "Archived runs are included. What a run decided stays on the record."
-            : undefined
-        }
-        more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
-        onMore={() => setShowAll((v) => !v)}
-      >
-        {loading ? null : sessions.isError ? (
-          // "Nothing here" and "we could not find out" are different facts and
-          // a person acts differently on each, so they never share a shape.
-          <Failed onRetry={() => void sessions.refetch()}>
-            The runs did not load, so this list is not the whole picture.
-          </Failed>
-        ) : rows.length === 0 ? (
-          <Empty>
-            Nothing has been built here yet. Describe the work above and the crew plans the steps,
-            writes the change, and opens the pull request.
-          </Empty>
-        ) : (
-          visible.map((s) => {
-            const state = runState(s);
-            const files = s.changeset?.file_count ?? 0;
-            const p = progressById.get(s.mission_id);
-            const steps =
-              p && p.total > 0 ? (
-                <>
-                  step <Num>{p.done}</Num> of <Num>{p.total}</Num>
-                </>
-              ) : null;
-            const evidence = completionEvidence({
-              claimsDone: state === "done",
-              kind: s.kind,
-              changesetStatus: s.changeset?.status ?? null,
-              prUrl: s.changeset?.pr_url ?? null,
-            });
-
-            // ONE second line, carrying a DIFFERENT fact from the title: who is
-            // on it, what they are doing, how far through the plan they are.
-            const sub: React.ReactNode[] =
-              state === "working"
-                ? [
-                    <>
-                      <Who>{actorName(s)}</Who> is {actorVerb(s)}
-                    </>,
-                    steps,
-                  ]
-                : state === "gate"
-                  ? [
-                      "Waiting on you",
-                      s.pending_approvals > 0 ? (
-                        <>
-                          <Num>{s.pending_approvals}</Num>{" "}
-                          {s.pending_approvals === 1 ? "call" : "calls"}
-                        </>
-                      ) : null,
-                    ]
-                  : state === "stopped"
-                    ? [steps ? <>Stopped at {steps}</> : "Stopped"]
-                    : state === "queued"
-                      ? [`Queued for ${actorName(s).toLowerCase()}`]
-                      : [
-                          <>
-                            <Who>{actorName(s)}</Who> finished
-                          </>,
-                          files > 0 ? (
-                            <>
-                              <Num>{files}</Num> {files === 1 ? "file" : "files"}
-                            </>
-                          ) : null,
-                          // The one element that calls out a Done claim with
-                          // nothing behind it. Its reason is the tooltip.
-                          evidence ? (
-                            <span
-                              className={
-                                evidence === "verified"
-                                  ? "sp-pass"
-                                  : evidence === "needs-verification"
-                                    ? "sp-warn"
-                                    : undefined
-                              }
-                              title={COMPLETION_EVIDENCE_REASON[evidence]}
-                            >
-                              {COMPLETION_EVIDENCE_LABEL[evidence]}
-                            </span>
-                          ) : null,
-                        ];
-
-            // Managing turns the row from a link into a shelf: it stops being a
-            // button, so its two actions can live inside it without one control
-            // nested in another.
-            if (s.archived) sub.push("Archived");
-            if (managing) {
-              sub.push(
-                <button
-                  type="button"
-                  className="sp-block-more"
-                  disabled={archive.isPending}
-                  onClick={() => archive.mutate({ missionId: s.mission_id, archived: !s.archived })}
-                >
-                  {s.archived ? "Restore" : "Archive"}
-                </button>,
-                <button type="button" className="sp-block-more" onClick={() => setDeleteTarget(s)}>
-                  Delete
-                </button>,
-              );
-            }
-
-            return (
-              <Row
-                key={s.mission_id}
-                tight
-                marks={<AgentMark slug={actorSlug(s)} state={MARK_STATE[state]} name={s.title} />}
-                lead={stripAutoPrefix(s.title)}
-                sub={<Meta parts={sub} />}
-                time={ago(s.updated_at)}
-                onClick={managing ? undefined : () => openRun(s.mission_id)}
+        {receipts.length > 0 ? (
+          <Block title="What you set in motion">
+            {receipts.map((r, i) => (
+              <Receipt
+                key={`${r.id}-${i}`}
+                verb={r.verb}
+                consequence={r.consequence}
+                handoff={r.handoff}
+                time={r.at}
+                failed={r.failed}
               />
-            );
-          })
-        )}
+            ))}
+          </Block>
+        ) : null}
+      </div>
 
-        {loading || sessions.isError || rows.length === 0 ? null : (
-          <Actions>
-            <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
-              {managing ? "Done" : "Manage"}
-            </Button>
-          </Actions>
-        )}
-      </Block>
+      {board ? null : (
+        <Block
+          title="Runs"
+          sub={
+            managing
+              ? "Archived runs are included. What a run decided stays on the record."
+              : undefined
+          }
+          more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
+          onMore={() => setShowAll((v) => !v)}
+        >
+          {loading ? null : sessions.isError ? (
+            // "Nothing here" and "we could not find out" are different facts and
+            // a person acts differently on each, so they never share a shape.
+            <Failed onRetry={() => void sessions.refetch()}>
+              The runs did not load, so this list is not the whole picture.
+            </Failed>
+          ) : rows.length === 0 ? (
+            <Empty>
+              Nothing has been built here yet. Describe the work above and the crew plans the steps,
+              writes the change, and opens the pull request.
+            </Empty>
+          ) : (
+            visible.map((s) => {
+              const state = runState(s);
+              const files = s.changeset?.file_count ?? 0;
+              const p = progressById.get(s.mission_id);
+              const steps =
+                p && p.total > 0 ? (
+                  <>
+                    step <Num>{p.done}</Num> of <Num>{p.total}</Num>
+                  </>
+                ) : null;
+              const evidence = completionEvidence({
+                claimsDone: state === "done",
+                kind: s.kind,
+                changesetStatus: s.changeset?.status ?? null,
+                prUrl: s.changeset?.pr_url ?? null,
+              });
+
+              // ONE second line, carrying a DIFFERENT fact from the title: who is
+              // on it, what they are doing, how far through the plan they are.
+              const sub: React.ReactNode[] =
+                state === "working"
+                  ? [
+                      <>
+                        <Who>{actorName(s)}</Who> is {actorVerb(s)}
+                      </>,
+                      steps,
+                    ]
+                  : state === "gate"
+                    ? [
+                        "Waiting on you",
+                        s.pending_approvals > 0 ? (
+                          <>
+                            <Num>{s.pending_approvals}</Num>{" "}
+                            {s.pending_approvals === 1 ? "call" : "calls"}
+                          </>
+                        ) : null,
+                      ]
+                    : state === "stopped"
+                      ? [steps ? <>Stopped at {steps}</> : "Stopped"]
+                      : state === "queued"
+                        ? [`Queued for ${actorName(s).toLowerCase()}`]
+                        : [
+                            <>
+                              <Who>{actorName(s)}</Who> finished
+                            </>,
+                            files > 0 ? (
+                              <>
+                                <Num>{files}</Num> {files === 1 ? "file" : "files"}
+                              </>
+                            ) : null,
+                            // The one element that calls out a Done claim with
+                            // nothing behind it. Its reason is the tooltip.
+                            evidence ? (
+                              <span
+                                className={
+                                  evidence === "verified"
+                                    ? "sp-pass"
+                                    : evidence === "needs-verification"
+                                      ? "sp-warn"
+                                      : undefined
+                                }
+                                title={COMPLETION_EVIDENCE_REASON[evidence]}
+                              >
+                                {COMPLETION_EVIDENCE_LABEL[evidence]}
+                              </span>
+                            ) : null,
+                          ];
+
+              // Managing turns the row from a link into a shelf: it stops being a
+              // button, so its two actions can live inside it without one control
+              // nested in another.
+              if (s.archived) sub.push("Archived");
+              if (managing) {
+                sub.push(
+                  <button
+                    type="button"
+                    className="sp-block-more"
+                    disabled={archive.isPending}
+                    onClick={() =>
+                      archive.mutate({ missionId: s.mission_id, archived: !s.archived })
+                    }
+                  >
+                    {s.archived ? "Restore" : "Archive"}
+                  </button>,
+                  <button
+                    type="button"
+                    className="sp-block-more"
+                    onClick={() => setDeleteTarget(s)}
+                  >
+                    Delete
+                  </button>,
+                );
+              }
+
+              return (
+                <Row
+                  key={s.mission_id}
+                  tight
+                  marks={<AgentMark slug={actorSlug(s)} state={MARK_STATE[state]} name={s.title} />}
+                  lead={stripAutoPrefix(s.title)}
+                  sub={<Meta parts={sub} />}
+                  time={ago(s.updated_at)}
+                  onClick={managing ? undefined : () => openRun(s.mission_id)}
+                />
+              );
+            })
+          )}
+
+          {loading || sessions.isError || rows.length === 0 ? null : (
+            <Actions>
+              <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+                {managing ? "Done" : "Manage"}
+              </Button>
+            </Actions>
+          )}
+        </Block>
+      )}
 
       <MissionSlideOver missionId={search.mission ?? null} onClose={closeRun} />
 
