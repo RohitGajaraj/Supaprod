@@ -314,7 +314,7 @@ function SpecEditorPage() {
     );
   };
 
-  // O1 (provenance): "why is this spec being built?" — walk the lineage graph up
+  // O1 (provenance): "why is this spec being built?": walk the lineage graph up
   // to the root source signals the spec ultimately rests on.
   const fProvenance = useServerFn(getProvenance);
   const provQ = useQuery({
@@ -348,7 +348,7 @@ function SpecEditorPage() {
     (t: { prd_id: string | null }) => t.prd_id === id,
   );
 
-  // H1 — the Planner: it decomposes the spec into a dependency-ordered task
+  // H1, the Planner: it decomposes the spec into a dependency-ordered task
   // graph, and it says so in its own system prompt, so naming it here is
   // attribution rather than decoration.
   const fGenTasks = useServerFn(generateTaskGraph);
