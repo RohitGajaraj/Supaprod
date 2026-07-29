@@ -1,6 +1,6 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-07-29 21:35 IST. The run spine is rebuilt, five parallel lanes landed, everything is pushed. Three founder calls are open at the bottom._
+> _Last updated: 2026-07-29 22:25 IST. The design sweep is COMPLETE except Mission Control. Every authenticated surface is off the retired system. Five founder calls are open at the bottom._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
 
@@ -115,9 +115,48 @@ Five rules in `primitives.css` are currently inert because of this.
    DESIGN-TEMPO contract. The 20 tests covering files changed this session pass. They
    need updating or deleting; 97 red is how a real regression hides.
 
-## Next, in order
+## The sweep, as measured rather than assumed
 
-1. The six stage panels are still thin (one fact plus a link) while Build has a full
-   body. A lane is deepening them from the record as of this writing.
-2. Whatever the founder decides on Mission Control.
-3. The remaining legacy-CSS components the Settings lane listed as out of its set.
+Every `_authenticated.*` route was surveyed. **All of them are ported except the three
+Mission Control routes** (`m.index`, `m.$productId`, `$workspaceSlug.$productSlug`), and
+that is a founder decision, not a port. The nine `/admin` children landed last, in two
+parallel lanes.
+
+The six stage panels are no longer thin: each reads real evidence for its stage on that
+run, from a named table, with empty states that distinguish "nothing happened" from "no
+link from this run to it".
+
+## Verified in a browser, not just by tsc
+
+Signed in as `harbor@` at 1440 and looked. This caught what grepping had missed: FOUR more
+live doors into the legacy room, including the post-login landing itself. It also caught a
+bug I had written, where the active stage chip used a box-shadow that the app-wide
+focus rule erases, so it deleted its own indicator on the click that set it.
+
+**The lesson worth keeping: a grep over call sites found one door; opening the app found
+five.**
+
+`/admin`'s six ported children could NOT be visually verified: `harbor@` is not an admin
+and claiming admin is a real write on a shared account.
+
+## Open, and waiting on the founder
+
+4. **The demo reset button is dead.** `admin_reset_demo_workspace` raises "Safety gate:
+   not a redcadence.app workspace", but the demo logins moved to `@supaprod.ai` on
+   2026-07-25. It throws for every account it is offered on. The lane correctly refused to
+   loosen the client check, which would have drawn a button the database rejects. The fix
+   is a migration. This matters because `harbor@` is what the demo script rehearses on.
+5. **The routing pin records a decision the engine ignores.** `routing.pin.*` is written by
+   a real server function, and `runtime.server.ts` has zero references to it, so models
+   resolve through `capability.ts` regardless. The control was kept and now says so
+   plainly. Wiring it is a chokepoint edit, which is founder-attended by convention.
+
+## Primitive gaps three separate lanes hit independently
+
+- **`Row` cannot own an expanded detail.** Three lanes each reached for a wrapper div,
+  which silently kills the `.sp-row + .sp-row` divider because an adjacent-sibling
+  selector does not see through a wrapper. Same trap, three times.
+- **`.sp-tabs`/`.sp-tab` have no component.** Six routes hand-write the same
+  `role="tablist"` markup.
+- `Field` has no second line; `Empty` is drifting into a general quiet-note slot; `Row`'s
+  `time` prop is now carrying trailing metrics its name does not describe.
