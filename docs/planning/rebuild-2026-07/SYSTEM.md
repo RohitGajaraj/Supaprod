@@ -53,7 +53,11 @@ One primary per screen. `trailing` separates a destructive action by DISTANCE, n
 
 **The crew** `AgentMark({slug, state, size})` · `MarkStack` · `YouMark` · `PairMark`
 
-`state`: `quiet | idle | running | gate | failed`. Hue resolves from the agent's station
+`state`: `quiet | idle | running | gate | waiting | failed`. **`gate` blinks and is the only
+blink in the system, so exactly one mark on a screen may wear it** — the one thing actually
+asking. `waiting` is the same ember without the animation, for everything queued behind it. A
+list that gave every pending row `gate` blinked a dozen marks at once and spent the whole
+restraint budget. Hue resolves from the agent's station
 automatically. Never pass a colour. The human is a solid filled disc, so you are a different KIND
 of thing from an agent rather than a different colour of the same thing.
 
@@ -63,12 +67,18 @@ of thing from an agent rather than a different colour of the same thing.
 `Record` is the ONE lit surface in the product: use it for what the record LEARNED, never for a
 count. `Receipt` is the Commit, below.
 
-**State** `Empty({action})` · `Failed({onRetry})`
+**State** `Empty({action})` · `Failed({onRetry})` · `Loading`
 
-These are different facts. "Nothing here" and "we could not find out" make a person act
-differently, so a failed read must never wear an empty state's clothes.
+Three different facts, and they must never wear each other's clothes. "Nothing here", "we could
+not find out", and "still reading" make a person act differently. `Loading` reserves the height
+so the layout does not jump, and carries no shimmer: motion confirms, and it has nothing yet to
+confirm.
 
-**Form** `Field` · `Input` · `Select` · `Textarea` · `Line({label, sub})` · `Switch` · `Pre`
+**Form and documents** `Field` · `Input` · `Select` · `Textarea` · `Line({label, sub})` ·
+`Switch` · `Pre` · `Prose`
+
+`Pre` is for code and holds its whitespace. `Prose` is for agent-written documents (a release
+note, a launch draft, a rationale) and keeps the measure.
 
 `Line` is a boundary you set: label left, control right, one per line. A boundary is a sentence
 with a switch at the end of it, not a card.
