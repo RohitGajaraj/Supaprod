@@ -25,9 +25,10 @@
   --mono:Plex,ui-monospace,SFMono-Regular,Menlo,monospace;
   --px:Px,var(--mono);
 
-  /* the seven stage families. hue says which stage, monogram says which agent. */
-  --discover:#4ec9b0; --decide:#e8b44c; --plan:#a9cc55; --design:#d97fc9;
-  --build:#5aa9e6;   --ship:#e884b0;   --learn:#d1c95a;
+  /* the seven stage families. hue says which stage, monogram says which agent.
+     deliberately desaturated: these are worn as tints, never as solid fills. */
+  --discover:#6fa9a0; --decide:#c39a5e; --plan:#8fa464; --design:#ab7fa0;
+  --build:#6d97c2;   --ship:#bd8092;   --learn:#a89f66;
 
   /* outcomes and gates. never on an agent mark. */
   --pass:#4fc47a; --fail:#ef6a5f; --warn:#e8b44c; --gate:#ff6b2c;
@@ -46,14 +47,19 @@
 /* light: a working sheet with real elevation, not an inverted dark theme
    and deliberately not cream */
 [data-theme="light"]{
-  --bg:#eef0f4; --sheet:#ffffff; --lift:#f7f8fa; --sink:#f0f2f6; --float:#ffffff;
-  --ink:#14161a; --body:#4a4e57; --mute:#6b7078; --line:rgba(17,20,26,.11);
-  --line2:rgba(17,20,26,.06); --hover:rgba(17,20,26,.035);
-  --shadow:0 12px 30px -8px rgba(17,20,26,.18),0 2px 6px -2px rgba(17,20,26,.10);
-  --star:rgba(40,50,70,.34); --grid:rgba(17,20,26,.038);
-  --discover:#0f9e85; --decide:#b6801a; --plan:#6f9226; --design:#b0499b;
-  --build:#2276c4;   --ship:#c0507c;   --learn:#8f861f;
-  --pass:#1d8f4e; --fail:#c93a2e; --warn:#b6801a; --gate:#dd5410;
+  /* softened after the founder called it too contrasty. the canvas is a light
+     grey-blue, panels sit one step above it rather than jumping to pure white,
+     and the ink stops short of black. separation comes from elevation, not
+     from a hard value gap. */
+  --bg:#eceef2; --sheet:#f8f9fb; --lift:#f2f4f7; --sink:#e7eaef; --float:#fdfdfe;
+  --ink:#24272e; --body:#565b65; --mute:#7c828c; --line:rgba(30,35,45,.10);
+  --line2:rgba(30,35,45,.055); --hover:rgba(30,35,45,.032);
+  --shadow:0 10px 26px -10px rgba(25,30,40,.16),0 2px 5px -2px rgba(25,30,40,.07);
+  --star:rgba(45,55,75,.26); --grid:rgba(30,35,45,.03);
+  /* the same seven families, taken down for a light ground */
+  --discover:#3f7d75; --decide:#96702f; --plan:#5f7639; --design:#7e5474;
+  --build:#42688f;   --ship:#8d5563;   --learn:#7a7239;
+  --pass:#2b7a4b; --fail:#b23f34; --warn:#96702f; --gate:#c4551d;
 }
 
 html,body{height:100%}
@@ -134,27 +140,30 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
 .app.narrow .crewgrid{width:49px;margin:0 auto}
 
 /* agent mark: hue = stage family, monogram = the agent, shape = state */
-.am{width:22px;height:22px;flex:none;border-radius:var(--radius-mark);
+/* a circle wearing a tint of its stage, not a solid block of colour.
+   the hue is a whisper: 15% ground, 30% edge, full only on the two letters. */
+.am{width:22px;height:22px;flex:none;border-radius:50%;
   display:flex;align-items:center;justify-content:center;line-height:1;
-  font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:-.03em;
-  color:#0b0b0d;position:relative;cursor:pointer;
-  transition:transform .16s var(--ease)}
-[data-theme="light"] .am{color:#fff}
-.am:hover{transform:translateY(-1px)}
-.am.quiet{opacity:.34}
-.am.run{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px currentColor}
-.am.gate::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;
-  background:var(--gate);transform:rotate(45deg);border:1.5px solid var(--sheet)}
-.am.fail{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--fail)}
-.am.d1{background:var(--discover)} .am.d2{background:var(--discover);filter:hue-rotate(-14deg)}
-.am.d3{background:var(--discover);filter:hue-rotate(12deg) saturate(1.1)}
-.am.de1{background:var(--decide)} .am.de2{background:var(--decide);filter:hue-rotate(-16deg)}
-.am.de3{background:var(--decide);filter:brightness(1.12) saturate(.8)}
-.am.p1{background:var(--plan)} .am.p2{background:var(--plan);filter:hue-rotate(14deg)}
-.am.ds{background:var(--design)}
-.am.b1{background:var(--build)} .am.b2{background:var(--build);filter:brightness(1.18) saturate(.85)}
-.am.shp{background:var(--ship)}
-.am.le{background:var(--learn)}
+  font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:-.02em;
+  position:relative;cursor:pointer;transition:transform .16s var(--ease),background .16s var(--ease);
+  color:var(--h);
+  background:color-mix(in oklab,var(--h) 15%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--h) 30%,transparent)}
+.am:hover{background:color-mix(in oklab,var(--h) 26%,transparent)}
+.am.quiet{opacity:.5}
+/* state is shape and treatment, never a second hue */
+.am.run{box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--h) 55%,transparent),
+  0 0 0 1.5px var(--sheet),0 0 0 3px color-mix(in oklab,var(--h) 60%,transparent)}
+.am.gate::after{content:"";position:absolute;top:-2px;right:-2px;width:7px;height:7px;
+  background:var(--gate);transform:rotate(45deg);box-shadow:0 0 0 1.5px var(--sheet)}
+.am.fail{box-shadow:inset 0 0 0 1px var(--fail),0 0 0 1.5px var(--sheet),0 0 0 3px var(--fail)}
+.am.d1,.am.d2,.am.d3{--h:var(--discover)}
+.am.de1,.am.de2,.am.de3{--h:var(--decide)}
+.am.p1,.am.p2{--h:var(--plan)}
+.am.ds{--h:var(--design)}
+.am.b1,.am.b2{--h:var(--build)}
+.am.shp{--h:var(--ship)}
+.am.le{--h:var(--learn)}
 
 .nav{padding:6px 8px;flex:1;overflow-y:auto}
 .nrow{display:flex;align-items:center;gap:11px;height:38px;padding:0 10px;border-radius:9px;
@@ -168,8 +177,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
 .rcount{font-family:var(--mono);font-size:11.5px;color:var(--mute);flex:none}
 .nrow.on .rcount{color:var(--ink)}
 .rcount.hot{color:var(--gate)}
-.railfoot{padding:10px 12px;border-top:1px solid var(--line2);display:flex;align-items:center;
-  justify-content:space-between}
+.railfoot{padding:8px;border-top:1px solid var(--line2);display:flex;align-items:center;
+  justify-content:space-between;gap:6px}
+/* settings is a peer of the rail rows, at the foot, where Linear and Slack put it.
+   it is not a sun icon buried in the top-right cluster. */
+.setrow{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;border-radius:9px;
+  color:var(--mute);cursor:pointer;font:inherit;font-size:14px;background:none;border:0;flex:1;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+.setrow:hover{background:var(--hover);color:var(--ink)}
+.setrow svg{width:17px;height:17px;flex:none;stroke-width:1.5}
+.app.narrow .setrow{justify-content:center;padding:0;flex:none;width:44px}
+.app.narrow .railfoot{flex-direction:column;gap:2px;padding:8px 6px}
 .collapse{width:30px;height:30px;border:0;background:none;color:var(--mute);cursor:pointer;
   border-radius:7px;display:grid;place-items:center}
 .collapse:hover{background:var(--hover);color:var(--ink)}
@@ -278,29 +296,39 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
 .sh.c{top:36%;left:52%;animation:shoot 1.9s var(--ease) 41s infinite}
 @media (prefers-reduced-motion:reduce){.sh{animation:none!important;opacity:0}}
 
-.card{position:relative;z-index:2;width:352px;text-align:center}
+/* one warm bloom behind the card. an ember whisper, not a neon orb:
+   it lifts the card off the field and stops there. */
+.door::before{content:"";position:absolute;left:50%;top:44%;width:760px;height:520px;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:1;
+  background:radial-gradient(closest-side,
+    color-mix(in oklab,var(--gate) 11%,transparent),
+    color-mix(in oklab,var(--gate) 3%,transparent) 55%,
+    transparent 78%)}
+
+.card{position:relative;z-index:2;width:344px;text-align:center}
+/* the real mark, small, one turn every three minutes. a fast glint steals attention. */
+.doormark{width:44px;height:44px;color:var(--ink);opacity:.9;margin:0 auto 22px;display:block;
+  animation:revolve 180s linear infinite}
+@keyframes revolve{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.doormark{animation:none}}
 .greet{font-family:var(--px);font-size:29px;color:var(--ink);line-height:1.15}
-.tagline{font-size:13.5px;color:var(--mute);margin:14px 0 28px;line-height:1.5}
+.tagline{font-size:13.5px;color:var(--mute);margin:14px 0 30px;line-height:1.5}
+.flabrow{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.flabrow .flab{margin-bottom:0}
+.mini{font-size:12.5px;color:var(--mute);text-decoration:none}
+.mini:hover{color:var(--ink)}
 .gbtn{width:100%;height:42px;border-radius:var(--radius-ctl);border:1px solid var(--line);
   background:var(--sheet);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:10px;
   transition:background .15s var(--ease),border-color .15s var(--ease)}
 .gbtn:hover{background:var(--lift);border-color:var(--mute)}
 .gbtn svg{width:17px;height:17px}
+.card .gbtn{margin-bottom:0}
 
-/* the divider line stays. the word "or" goes. and it is interactive. */
-.orline{display:flex;align-items:center;gap:0;margin:20px 0;height:20px}
-.orline .ln{flex:1;height:1px;background:var(--line)}
-.orline .knob{width:26px;height:20px;display:grid;place-items:center;cursor:pointer;flex:none}
-.orline .knob svg{width:13px;height:13px;color:var(--mute);transition:transform .24s var(--ease),
-  color .16s var(--ease)}
-.orline .knob:hover svg{color:var(--ink)}
-.door.open .orline .knob svg{transform:rotate(180deg)}
-
-.emailwrap{max-height:0;overflow:hidden;opacity:0;
-  transition:max-height .3s var(--ease),opacity .22s var(--ease)}
-.door.open .emailwrap{max-height:190px;opacity:1}
-.fieldrow{text-align:left;margin-bottom:10px}
+/* the divider line stays, the word goes. email is the primary path and is
+   never hidden behind a disclosure. */
+.orline{margin:22px 0;height:1px;background:var(--line)}
+.fieldrow{text-align:left;margin-bottom:12px}
 .flab{display:block;font-size:12.5px;color:var(--mute);margin-bottom:6px;font-weight:500}
 .inp{width:100%;height:40px;border-radius:var(--radius-ctl);border:1px solid var(--line);
   background:var(--sink);color:var(--ink);font:inherit;font-size:14px;padding:0 12px;outline:none;
@@ -328,7 +356,7 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
 .acard{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;cursor:pointer;
   transition:background .13s var(--ease)}
 .acard:hover{background:var(--hover)}
-.am.lg{width:30px;height:30px;font-size:12px;border-radius:9px}
+.am.lg{width:32px;height:32px;font-size:11px;border-radius:50%}
 .an{font-size:14px;font-weight:550;color:var(--ink)}
 .as{font-size:12.5px;color:var(--mute);margin-top:1px}
 
@@ -396,9 +424,17 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<symbol id="i-logo" viewBox="0 0 100 100"><path d="M50 8 A42 42 0 1 1 49.9 8" fill="none" stroke="currentColor" stroke-width="0"/>
-  <path d="M50,14 C64,14 76,26 76,40 C76,58 62,68 50,86 C38,68 24,58 24,40 C24,26 36,14 50,14 Z" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linejoin="round"/>
-  <circle cx="50" cy="41" r="9" fill="currentColor"/></symbol>
+<!-- the real SupaprodMark. seven petals, one continuous epitrochoid, one stage each.
+     generated from the same R=7 r=1 d=3 formula as SupaprodMark.tsx. never redrawn. -->
+<symbol id="i-logo" viewBox="0 0 100 100">
+  <path id="markpath" d="M 90.0 50.0 L 89.7 48.2 L 88.8 46.4 L 87.3 45.0 L 85.3 43.8 L 82.9 43.1 L 80.2 42.9 L 77.3 43.2 L 74.2 44.1 L 71.2 45.6 L 68.4 47.6 L 65.8 50.1 L 63.6 53.0 L 61.8 56.3 L 60.5 59.7 L 59.8 63.3 L 59.6 66.9 L 59.9 70.3 L 60.8 73.5 L 62.1 76.3 L 63.8 78.7 L 65.7 80.5 L 67.8 81.8 L 69.9 82.4 L 72.0 82.5 L 73.8 82.0 L 75.3 80.9 L 76.5 79.4 L 77.1 77.5 L 77.2 75.4 L 76.7 73.1 L 75.6 70.8 L 73.9 68.5 L 71.6 66.5 L 68.9 64.8 L 65.8 63.5 L 62.4 62.7 L 58.7 62.4 L 55.1 62.6 L 51.4 63.4 L 48.0 64.7 L 44.8 66.5 L 42.0 68.7 L 39.7 71.2 L 37.9 73.9 L 36.7 76.7 L 36.0 79.4 L 36.0 82.0 L 36.4 84.4 L 37.4 86.3 L 38.7 87.8 L 40.3 88.8 L 42.2 89.1 L 44.0 88.9 L 45.9 88.0 L 47.5 86.6 L 48.9 84.6 L 49.9 82.2 L 50.5 79.4 L 50.5 76.3 L 50.0 73.1 L 48.9 69.8 L 47.3 66.7 L 45.1 63.7 L 42.5 61.1 L 39.5 58.9 L 36.3 57.1 L 32.9 55.9 L 29.4 55.3 L 26.1 55.2 L 22.9 55.6 L 20.1 56.5 L 17.6 57.8 L 15.7 59.5 L 14.3 61.4 L 13.6 63.3 L 13.4 65.3 L 13.9 67.1 L 14.9 68.7 L 16.4 69.9 L 18.3 70.7 L 20.5 70.9 L 23.0 70.6 L 25.5 69.7 L 28.0 68.2 L 30.4 66.2 L 32.5 63.6 L 34.3 60.6 L 35.6 57.3 L 36.4 53.7 L 36.7 50.0 L 36.4 46.3 L 35.6 42.7 L 34.3 39.4 L 32.5 36.4 L 30.4 33.8 L 28.0 31.8 L 25.5 30.3 L 23.0 29.4 L 20.5 29.1 L 18.3 29.3 L 16.4 30.1 L 14.9 31.3 L 13.9 32.9 L 13.4 34.7 L 13.6 36.7 L 14.3 38.6 L 15.7 40.5 L 17.6 42.2 L 20.1 43.5 L 22.9 44.4 L 26.1 44.8 L 29.4 44.7 L 32.9 44.1 L 36.3 42.9 L 39.5 41.1 L 42.5 38.9 L 45.1 36.3 L 47.3 33.3 L 48.9 30.2 L 50.0 26.9 L 50.5 23.7 L 50.5 20.6 L 49.9 17.8 L 48.9 15.4 L 47.5 13.4 L 45.9 12.0 L 44.0 11.1 L 42.2 10.9 L 40.3 11.2 L 38.7 12.2 L 37.4 13.7 L 36.4 15.6 L 36.0 18.0 L 36.0 20.6 L 36.7 23.3 L 37.9 26.1 L 39.7 28.8 L 42.0 31.3 L 44.8 33.5 L 48.0 35.3 L 51.4 36.6 L 55.1 37.4 L 58.7 37.6 L 62.4 37.3 L 65.8 36.5 L 68.9 35.2 L 71.6 33.5 L 73.9 31.5 L 75.6 29.2 L 76.7 26.9 L 77.2 24.6 L 77.1 22.5 L 76.5 20.6 L 75.3 19.1 L 73.8 18.0 L 72.0 17.5 L 69.9 17.6 L 67.8 18.2 L 65.7 19.5 L 63.8 21.3 L 62.1 23.7 L 60.8 26.5 L 59.9 29.7 L 59.6 33.1 L 59.8 36.7 L 60.5 40.3 L 61.8 43.7 L 63.6 47.0 L 65.8 49.9 L 68.4 52.4 L 71.2 54.4 L 74.2 55.9 L 77.3 56.8 L 80.2 57.1 L 82.9 56.9 L 85.3 56.2 L 87.3 55.0 L 88.8 53.6 L 89.7 51.8 L 90.0 50.0 Z"
+    fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round"/>
+  <circle cx="50" cy="50" r="7.5" fill="currentColor"/>
+</symbol>
+<!-- crew are agents, not people. a chip with pins, not two shoulders. -->
+<symbol id="i-crewchip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="7" y="7" width="10" height="10" rx="2.2"/>
+  <path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/></symbol>
 <symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
   <path d="M4 6h16M4 12h11M4 18h7"/></symbol>
 <symbol id="i-runs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -444,31 +480,26 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
     <div class="sh a"></div><div class="sh b"></div><div class="sh c"></div>
 
     <div class="card">
+      <svg class="doormark" aria-hidden="true"><use href="#i-logo"/></svg>
       <div class="greet" id="greet">Still up.</div>
       <div class="tagline">You make the calls.<br>Your crew does the work between them.</div>
 
+      <div class="fieldrow"><label class="flab" for="em">Work email</label>
+        <input class="inp" id="em" type="email" placeholder="you@company.com" autocomplete="email"></div>
+      <div class="fieldrow">
+        <div class="flabrow"><label class="flab" for="pw">Password</label>
+          <a class="mini" href="#">Forgot it?</a></div>
+        <input class="inp" id="pw" type="password" placeholder="your password" autocomplete="current-password"></div>
+      <button class="submit">Sign in</button>
+
+      <div class="orline"><span class="ln"></span></div>
+
       <button class="gbtn"><svg><use href="#i-google"/></svg>Continue with Google</button>
-
-      <div class="orline">
-        <span class="ln"></span>
-        <span class="knob" id="knob" title="Sign in with email"><svg><use href="#i-chev"/></svg></span>
-        <span class="ln"></span>
-      </div>
-
-      <div class="emailwrap">
-        <div class="fieldrow"><label class="flab">Work email</label>
-          <input class="inp" type="email" placeholder="you@company.com"></div>
-        <div class="fieldrow"><label class="flab">Password</label>
-          <input class="inp" type="password" placeholder="your password"></div>
-        <button class="submit">Sign in</button>
-      </div>
 
       <div class="dfoot">No account yet? <a href="#">Create a workspace</a></div>
     </div>
 
-    <div class="status"><span class="pip"></span>All systems normal
-      <span style="color:var(--line)">&middot;</span>
-      <span class="num">last release 4h ago</span></div>
+    <div class="status"><span class="pip"></span>Supaprod is operating normally</div>
   </div>
 </section>
 
@@ -488,7 +519,6 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
       </div>
       <div class="tools">
         <button class="askb">Ask <span class="k">&#8984;J</span></button>
-        <button class="ibtn" id="setb1" title="Settings"><svg><use href="#i-gear"/></svg></button>
         <span class="me">RG</span>
       </div>
     </header>
@@ -509,11 +539,12 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
           <a class="nrow on"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span><span class="rcount hot">1</span></a>
           <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">4</span></a>
           <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
-          <a class="nrow"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow"><svg><use href="#i-crewchip"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
           <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
         </nav>
         <div class="railfoot">
-          <button class="collapse" title="Collapse"><svg><use href="#i-panel"/></svg></button>
+          <button class="setrow" id="setb1"><svg><use href="#i-gear"/></svg><span class="rlabel">Settings</span></button>
+          <button class="collapse" title="Collapse the rail"><svg><use href="#i-panel"/></svg></button>
         </div>
       </aside>
       <main class="work">
@@ -632,7 +663,6 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
       </div>
       <div class="tools">
         <button class="askb" id="askopen">Ask <span class="k">&#8984;J</span></button>
-        <button class="ibtn"><svg><use href="#i-gear"/></svg></button>
         <span class="me">RG</span>
       </div>
     </header>
@@ -664,10 +694,13 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
           <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
           <a class="nrow on"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">1</span></a>
           <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
-          <a class="nrow"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow"><svg><use href="#i-crewchip"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
           <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
         </nav>
-        <div class="railfoot"><button class="collapse"><svg><use href="#i-panel"/></svg></button></div>
+        <div class="railfoot">
+          <button class="setrow"><svg><use href="#i-gear"/></svg><span class="rlabel">Settings</span></button>
+          <button class="collapse" title="Collapse the rail"><svg><use href="#i-panel"/></svg></button>
+        </div>
       </aside>
       <main class="work">
         <div class="inner">
@@ -768,7 +801,7 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
       <div class="live"><span style="width:7px;height:7px;border-radius:50%;background:var(--mute);flex:none"></span>
         <span class="lt">Nothing running</span></div>
       <div class="tools"><button class="askb">Ask <span class="k">&#8984;J</span></button>
-        <button class="ibtn"><svg><use href="#i-gear"/></svg></button><span class="me">RG</span></div>
+        <span class="me">RG</span></div>
     </header>
     <div class="mid">
       <aside class="rail">
@@ -786,10 +819,13 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
           <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
           <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span></a>
           <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
-          <a class="nrow on"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow on"><svg><use href="#i-crewchip"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
           <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
         </nav>
-        <div class="railfoot"><button class="collapse"><svg><use href="#i-panel"/></svg></button></div>
+        <div class="railfoot">
+          <button class="setrow"><svg><use href="#i-gear"/></svg><span class="rlabel">Settings</span></button>
+          <button class="collapse" title="Collapse the rail"><svg><use href="#i-panel"/></svg></button>
+        </div>
       </aside>
       <main class="work">
         <div class="inner">
@@ -906,8 +942,6 @@ $('#themeb').addEventListener('click',()=>{
   r.dataset.theme=next; $('#themeb').textContent = next==='dark'?'Light':'Dark';
 });
 
-/* the door: the divider knob reveals email. the line stays, the word "or" is gone. */
-$('#knob').addEventListener('click',()=>$('#door').classList.toggle('open'));
 
 /* greeting is a fact, chosen from the hour and the day */
 (function(){
