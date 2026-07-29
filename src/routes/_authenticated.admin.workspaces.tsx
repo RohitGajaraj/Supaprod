@@ -83,15 +83,21 @@
  * rather than silence. No handoff arrow anywhere: nothing picks up a workspace
  * deletion, and an arrow to nowhere is worse than no arrow.
  *
- * THE DEMO GATE, reported rather than fixed because the fix is a migration.
- * admin_reset_demo_workspace raises 'Safety gate: not a redcadence.app
- * workspace' unless the owner's email ends '@redcadence.app'. Those logins were
- * RETIRED on 2026-07-25 and replaced by harbor@supaprod.ai
- * (docs/operations/demo-credentials.md), so the reset now applies to no current
- * demo workspace. The client test is kept identical to the server's on purpose:
- * loosening it here would draw a control the database throws on, which is worse
- * than a control that is honestly absent. Fixing it properly means changing the
- * SQL guard, which is outside this lane's file set.
+ * THE DEMO GATE, now fixed in the database (migration
+ * 20260730000500_demo_reset_allowlist.sql). It used to gate on
+ * `_owner_email LIKE '%@redcadence.app'`, and those logins were retired on
+ * 2026-07-25, so the reset matched no live workspace and threw for every
+ * account it was offered on.
+ *
+ * The repair is an ALLOWLIST, `public.demo_account_emails()`, and deliberately
+ * NOT a swap to '%@supaprod.ai'. founder@supaprod.ai and every real staff
+ * account share that domain, so a domain match would have made the founder's
+ * own workspace wipeable by any admin. A safety gate that widens to include
+ * the thing it protects is not a gate.
+ *
+ * This list is kept identical to the SQL function's, so the control appears
+ * exactly where the database will accept it. If the two ever drift, the SQL
+ * wins and the button throws; that is the safe direction.
  *
  * UNCHANGED: every query key, every server function, every confirmation on a
  * destructive action, and the in-band {error} handling on every mutation.
@@ -144,10 +150,19 @@ const SERVER_CAP = 100;
 const AUDIT_CAP = 6;
 
 /** The demo-account domain, matched EXACTLY to the SQL safety gate in
- *  admin_reset_demo_workspace. See THE DEMO GATE in the file header: this is
- *  deliberately not widened to the current demo domain, because the database
- *  would refuse the call. */
-const DEMO_ACCOUNT_DOMAIN = "@redcadence.app";
+ *  admin_reset_demo_workspace. See THE DEMO GATE in the file header: an
+ *  explicit list, never a domain match, and identical to the SQL function
+ *  public.demo_account_emails() so the control only appears where the database
+ *  will accept it. */
+const DEMO_ACCOUNT_EMAILS = [
+  "voyage@supaprod.ai",
+  "compass@supaprod.ai",
+  "meridian@supaprod.ai",
+  "lantern@supaprod.ai",
+  "harbor@supaprod.ai",
+  "explore@supaprod.ai",
+  "ember@supaprod.ai",
+] as const;
 
 const ROLES = ["owner", "admin", "member", "viewer"] as const;
 
@@ -463,7 +478,9 @@ function WorkspaceInFocus({
   const audit = d.audit ?? [];
   const shownAudit = openAudit ? audit : audit.slice(0, AUDIT_CAP);
   const deleted = !!ws?.deleted_at;
-  const isDemo = members.some((m) => m.email?.endsWith(DEMO_ACCOUNT_DOMAIN));
+  const isDemo = members.some(
+    (m) => !!m.email && (DEMO_ACCOUNT_EMAILS as readonly string[]).includes(m.email),
+  );
   const busy =
     setRole.isPending ||
     remove.isPending ||
