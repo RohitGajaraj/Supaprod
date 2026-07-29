@@ -42,21 +42,19 @@ describe("DetailHeader — Refined detail panel header", () => {
     );
 
     expect(screen.getByTestId("chip")).toBeDefined();
-    const metaRow = container.querySelector(".flex.flex-wrap");
-    expect(metaRow).toBeDefined();
+    expect(container.querySelector("header > div")?.textContent).toContain("Status");
   });
 
-  it("should render time on the right side of the meta row", () => {
+  it("should render time in the meta row", () => {
     const { container } = render(
       <DetailHeader title="Title" time={<span data-testid="time">2 hours ago</span>} />,
     );
 
     expect(screen.getByTestId("time")).toBeDefined();
-    const rightAligned = container.querySelector("[style*='margin-left']");
-    expect(rightAligned?.style.marginLeft).toBe("auto");
+    expect(container.querySelector("header > div")?.textContent).toContain("2 hours ago");
   });
 
-  it("should render traceRef on the right side alongside time", () => {
+  it("should render traceRef in the same meta row as time", () => {
     const { container } = render(
       <DetailHeader
         title="Title"
@@ -68,10 +66,13 @@ describe("DetailHeader — Refined detail panel header", () => {
     expect(screen.getByTestId("time")).toBeDefined();
     expect(screen.getByTestId("trace")).toBeDefined();
 
-    // Both should be in the right-aligned section
-    const rightSection = container.querySelector("[style*='margin-left: auto']");
-    expect(rightSection?.textContent).toContain("Time");
-    expect(rightSection?.textContent).toContain("ABC123");
+    // One meta line carries both. The right-aligned rail they used to sit in
+    // was a second alignment axis inside a panel that already had one, and it
+    // broke to two lines on a narrow sheet.
+    const metaRows = container.querySelectorAll("header > div");
+    expect(metaRows.length).toBe(1);
+    expect(metaRows[0]?.textContent).toContain("Time");
+    expect(metaRows[0]?.textContent).toContain("ABC123");
   });
 
   it("should render chips, time, and traceRef all together", () => {
@@ -89,23 +90,10 @@ describe("DetailHeader — Refined detail panel header", () => {
     expect(screen.getByTestId("trace")).toBeDefined();
   });
 
-  it("should apply proper spacing to the header structure", () => {
-    const { container } = render(<DetailHeader title="Title" />);
-
-    const header = container.querySelector("header");
-    const style = header?.getAttribute("style");
-    expect(style).toContain("display: grid");
-    expect(style).toContain("gap: 10px");
-  });
-
-  it("should render h2 with correct font styling", () => {
-    const { container } = render(<DetailHeader title="Bold Title" />);
-
-    const h2 = container.querySelector("h2");
-    expect(h2?.style.fontSize).toBe("18px");
-    expect(h2?.style.fontWeight).toBe("600");
-    expect(h2?.style.margin).toBe("0px");
-  });
+  // The header's own spacing and the h2's size, weight and margin moved out of
+  // the inline style and into the shared title class in the 2026-07-29 port,
+  // so the two tests that read them off the style attribute were asserting
+  // where a declaration lived rather than anything a reader can see.
 
   it("should not render meta section div when no metadata props provided", () => {
     const { container } = render(<DetailHeader title="Only Title" />);
@@ -161,12 +149,14 @@ describe("StatCell — Premium compact stat display", () => {
     expect(screen.getByText("queries")).toBeDefined();
   });
 
-  it("should render both value and label in a grid structure", () => {
+  it("should keep the value and its label inside one cell", () => {
     const { container } = render(<StatCell label="Test" value="X" />);
 
-    const divs = container.querySelectorAll("div");
-    // Should have multiple divs for the cell container and inner divs
-    expect(divs.length).toBeGreaterThanOrEqual(2);
+    // The fact and the name of the fact belong to the same object; a stat whose
+    // label drifted out of its cell reads as two stats.
+    const cell = container.firstElementChild;
+    expect(cell?.textContent).toContain("X");
+    expect(cell?.textContent).toContain("Test");
   });
 
   it("should render with nested grid layout", () => {
@@ -320,19 +310,9 @@ describe("DetailSection — Consistent section anatomy", () => {
     expect(section?.textContent).toContain("Details");
   });
 
-  it("should render vertical bar marker before heading", () => {
-    const { container } = render(
-      <DetailSection heading="Stats">
-        <p>Data</p>
-      </DetailSection>,
-    );
-
-    const marker = container.querySelector("[aria-hidden='true']");
-    expect(marker).toBeDefined();
-    const style = marker?.getAttribute("style");
-    expect(style).toContain("width: 2px");
-    expect(style).toContain("height: 11px");
-  });
+  // The 2px vertical bar before the heading is retired (2026-07-29 port): it
+  // is the side-tab accent in a smaller coat, and the rule above the section
+  // already says a new section starts here.
 
   it("should render children content below the heading", () => {
     render(
@@ -344,18 +324,17 @@ describe("DetailSection — Consistent section anatomy", () => {
     expect(screen.getByTestId("content")).toBeDefined();
   });
 
-  it("should render action control to the right of heading when provided", () => {
-    const { container } = render(
+  it("should render action control on the heading line when provided", () => {
+    render(
       <DetailSection heading="Signals" action={<button data-testid="action-btn">Export</button>}>
         <div>Content</div>
       </DetailSection>,
     );
 
-    expect(screen.getByTestId("action-btn")).toBeDefined();
-
-    // Action should be in justify-between flex container
-    const headingRow = container.querySelector(".flex.items-center");
-    expect(headingRow?.textContent).toContain("Export");
+    const action = screen.getByTestId("action-btn");
+    // Same line as the heading it belongs to, rather than floating above the
+    // content or trailing it.
+    expect(action.parentElement?.textContent).toContain("Signals");
   });
 
   it("should accept and apply custom style prop to section element", () => {
@@ -410,33 +389,11 @@ describe("DetailSection — Consistent section anatomy", () => {
     expect(screen.getByText("Simple")).toBeDefined();
   });
 
-  it("should layout action and heading in a flex row with gap", () => {
-    const { container } = render(
-      <DetailSection heading="Actions" action={<button>Delete</button>}>
-        <p>Content</p>
-      </DetailSection>,
-    );
-
-    const headingRow = container.querySelector(".flex.items-center.justify-between");
-    expect(headingRow).toBeDefined();
-    const style = headingRow?.getAttribute("style");
-    expect(style).toContain("gap: 10px");
-  });
-
-  it("should maintain correct heading padding and top border spacing", () => {
-    const { container } = render(
-      <DetailSection heading="Full">
-        <div>Body</div>
-      </DetailSection>,
-    );
-
-    const section = container.querySelector("section");
-    const style = section?.getAttribute("style");
-    // React converts camelCase to kebab-case in inline styles
-    expect(style).toContain("padding-top: 15px");
-    expect(style).toContain("border-top");
-    expect(style).toContain("--hairline");
-  });
+  // The heading row's gap, the section's padding-top and its --hairline rule
+  // all moved to the shared block class in the 2026-07-29 port, which is the
+  // point of sharing it: a detail section and a surface section can no longer
+  // drift apart. Reading them back off the inline style attribute was
+  // asserting that they had NOT been shared.
 });
 
 describe("toneForScore integration in StatCell", () => {

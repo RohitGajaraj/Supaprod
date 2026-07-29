@@ -45,59 +45,16 @@ describe("statusLabel", () => {
   });
 });
 
+// The bordered mono pill is gone (2026-07-29 port): a pill inside a row is a
+// card inside a card, and mono is for data rather than for labels. The tests
+// that pinned the retired look (the border, the radius, the mono face, and the
+// retired --moss / --madder / --text-faint / --ds-gray-1000 palette tokens)
+// were describing the wrapper, not the promise. The promise is that the pill
+// names the lane, and that is what is asserted here.
 describe("StatusPill", () => {
-  test("renders known status with correct color", () => {
-    const { container } = render(<StatusPill status="now" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--ds-gray-1000)");
-  });
-
-  test("renders backlog status with correct color", () => {
-    const { container } = render(<StatusPill status="backlog" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--text-faint)");
-  });
-
-  test("renders shipped status with correct color (moss)", () => {
-    const { container } = render(<StatusPill status="shipped" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--moss)");
-  });
-
-  test("renders dropped status with correct color (madder)", () => {
-    const { container } = render(<StatusPill status="dropped" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--madder)");
-  });
-
-  test("renders unknown status with fallback color", () => {
-    const { container } = render(<StatusPill status="unknown" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--text-faint)");
-  });
-
   test("renders unknown status with original label", () => {
     render(<StatusPill status="custom-stage" />);
     expect(screen.getByText("custom-stage")).toBeDefined();
-  });
-
-  test("applies mono font styling", () => {
-    const { container } = render(<StatusPill status="now" />);
-    const span = container.querySelector("span");
-    expect(span?.style.fontFamily).toBe("var(--font-mono)");
-  });
-
-  test("applies hairline border", () => {
-    const { container } = render(<StatusPill status="now" />);
-    const span = container.querySelector("span");
-    expect(span?.style.border).toContain("1px");
-    expect(span?.style.border).toContain("solid");
-  });
-
-  test("applies rounded pill style", () => {
-    const { container } = render(<StatusPill status="now" />);
-    const span = container.querySelector("span");
-    expect(span?.style.borderRadius).toBe("var(--ds-radius-full)");
   });
 
   test("applies custom className when provided", () => {
@@ -115,6 +72,9 @@ describe("StatusPill", () => {
   });
 });
 
+// Same port, same reasoning as StatusPill: the pill, the radius, the mono face
+// and the retired --pencil-* / --moss / --text-muted inks are gone. What a
+// reader depends on is the WORD and its hover meaning, both asserted below.
 describe("DesignationTag", () => {
   test("returns null for undefined designation", () => {
     const result = <DesignationTag designation={undefined} />;
@@ -146,46 +106,10 @@ describe("DesignationTag", () => {
     expect(screen.getByText("watch this week")).toBeDefined();
   });
 
-  test("applies correct ink color for 'needs validation'", () => {
-    const { container } = render(<DesignationTag designation="needs validation" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--pencil-blossom)");
-  });
-
-  test("applies correct ink color for 'quick win'", () => {
-    const { container } = render(<DesignationTag designation="quick win" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--moss)");
-  });
-
-  test("applies correct ink color for 'heavy lift'", () => {
-    const { container } = render(<DesignationTag designation="heavy lift" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--pencil-apricot)");
-  });
-
-  test("applies correct ink color for 'watch this week'", () => {
-    const { container } = render(<DesignationTag designation="watch this week" />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--text-muted)");
-  });
-
   test("includes title attribute with meaning", () => {
     const { container } = render(<DesignationTag designation="needs validation" />);
     const span = container.querySelector("span");
     expect(span?.title).toBe(DESIGNATION_MEANING["needs validation"]);
-  });
-
-  test("applies mono font styling", () => {
-    const { container } = render(<DesignationTag designation="quick win" />);
-    const span = container.querySelector("span");
-    expect(span?.style.fontFamily).toBe("var(--font-mono)");
-  });
-
-  test("applies rounded pill style", () => {
-    const { container } = render(<DesignationTag designation="quick win" />);
-    const span = container.querySelector("span");
-    expect(span?.style.borderRadius).toBe("999px");
   });
 
   test("applies custom className when provided", () => {
@@ -197,42 +121,15 @@ describe("DesignationTag", () => {
   });
 });
 
+// The stamp was a Geist Pixel wordmark in a moss-tinted, moss-bordered pill.
+// Pixel is retired outside the auth door and the tinted chip was decoration, so
+// the mark is now the words themselves. The two "moss-tinted" tests here
+// asserted `toBeDefined()` against an empty string, so they passed on any
+// markup at all and were only ever naming a look that no longer exists.
 describe("BestBetStamp", () => {
-  test("renders 'BEST BET' text", () => {
+  test("names itself, so the one chosen bet is readable rather than just coloured", () => {
     render(<BestBetStamp />);
-    expect(screen.getByText("BEST BET")).toBeDefined();
-  });
-
-  test("applies Pixel font styling", () => {
-    const { container } = render(<BestBetStamp />);
-    const span = container.querySelector("span");
-    expect(span?.style.fontFamily).toBe("var(--font-pixel)");
-  });
-
-  test("applies moss-bright text color", () => {
-    const { container } = render(<BestBetStamp />);
-    const span = container.querySelector("span");
-    expect(span?.style.color).toBe("var(--moss-bright)");
-  });
-
-  test("applies moss-tinted background", () => {
-    const { container } = render(<BestBetStamp />);
-    const span = container.querySelector("span");
-    // color-mix renders as a computed value, not the raw string
-    expect(span?.style.backgroundColor).toBeDefined();
-  });
-
-  test("applies moss-tinted border", () => {
-    const { container } = render(<BestBetStamp />);
-    const span = container.querySelector("span");
-    // color-mix renders as a computed value, not the raw string
-    expect(span?.style.border).toBeDefined();
-  });
-
-  test("applies rounded pill style", () => {
-    const { container } = render(<BestBetStamp />);
-    const span = container.querySelector("span");
-    expect(span?.style.borderRadius).toBe("var(--radius-pill)");
+    expect(screen.getByText("Best bet")).toBeDefined();
   });
 
   test("includes title attribute", () => {

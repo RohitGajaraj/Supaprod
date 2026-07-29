@@ -729,6 +729,9 @@ export const SURFACE_REGISTRY = {
   // ---- Brain (memory as a destination, not a settings pane) ----
   brain: { kind: "route", home: "brain", opensFrom: "nav-rail-brain", status: "live" },
   "brain-insights": { kind: "route", home: "brain", opensFrom: "nav-rail-brain", status: "live" },
+  // What the record has TAUGHT (standing house rules + recall outcomes), the
+  // counterpart to brain.functions.ts. Same door, same surface.
+  "brain-standing": { kind: "route", home: "brain", opensFrom: "nav-rail-brain", status: "live" },
   "decision-precedent": {
     kind: "route",
     home: "brain",
@@ -789,6 +792,16 @@ export const SURFACE_REGISTRY = {
     opensFrom: "engine-room-door",
     status: "live",
   },
+
+  // ---- Crew (governing the workforce: one nav-rail destination) ----
+  // Reached from the Crew item in the app frame's nav rail (AppFrame.tsx),
+  // which routes to /crew.
+  crew: { kind: "route", home: "crew", opensFrom: "nav-rail-crew", status: "live" },
+
+  // ---- Runs (the whole lifecycle of one run, not just Build) ----
+  // The seven-stage strip on /runs/$missionId, reached from the Runs item in
+  // the nav rail (AppFrame.tsx).
+  "run-stages": { kind: "route", home: "runs", opensFrom: "nav-rail-runs", status: "live" },
 
   // ---- Mission Control shell and remaining routes ----
   dashboard: {

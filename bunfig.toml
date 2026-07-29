@@ -8,3 +8,22 @@ minimumReleaseAgeExcludes = ["@lovable.dev/vite-tanstack-config", "@lovable.dev/
 [test]
 # Preload test setup (happy-dom globals) before running tests
 preload = ["./test/setup.ts"]
+# The unit suite is src/, and only src/. A bare `bun test` used to walk the
+# whole repo and pick up two sets of files it cannot run:
+#
+#   e2e/*.spec.ts     Playwright specs. They belong to `playwright test`
+#                     (playwright.config.ts, testDir "./e2e"); @playwright/test
+#                     is not even a dependency here, so all ten failed at
+#                     import and counted as ten test failures.
+#   components/, routes/   A 673-file copy of src/ committed to the REPO ROOT
+#                     on 2026-07-25 (4b7b8da4) and frozen there. Nothing
+#                     imports it: the "@/*" alias maps to ./src/*, and
+#                     tsconfig include is src/** only, so it is neither built
+#                     nor type-checked. Its tests were running against a
+#                     pre-rebuild copy of the components, which is worse than
+#                     not running: they can go green while the shipped code is
+#                     broken. Six of them failed at import.
+#
+# Delete that root copy and this line still holds; it says where the unit
+# suite lives, which was never anywhere but src/.
+root = "src"

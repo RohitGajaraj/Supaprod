@@ -18,7 +18,12 @@ const BANNED_FACES: Array<{ name: string; pattern: RegExp }> = [
   { name: "Newsreader", pattern: /Newsreader/ },
   { name: "Schibsted Grotesk", pattern: /Schibsted[\s+]Grotesk/ },
   { name: "JetBrains Mono", pattern: /JetBrains[\s+]Mono/ },
-  { name: "IBM Plex Mono", pattern: /IBM[\s+]Plex[\s+]Mono/ },
+  // IBM Plex Mono is NOT banned. It was retired by Tempo v5, then re-adopted
+  // by the 2026-07-29 rebuild as the one mono face for every number,
+  // duration, count, diff, identifier and timestamp. It is declared,
+  // self-hosted and documented in src/styles/ink.css ("--sp-font-mono"),
+  // with the woff2 files in public/fonts/plex/. Re-banning it would fail the
+  // build on the live design system.
   { name: "Codystar", pattern: /Codystar/ },
   { name: "Caveat", pattern: /Caveat/ },
   { name: "Silkscreen", pattern: /Silkscreen/ },

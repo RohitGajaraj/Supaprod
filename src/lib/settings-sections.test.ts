@@ -137,7 +137,9 @@ describe("settings-sections - derivations", () => {
     expect(sectionLabel("ai")).toBe("Models & keys");
     expect(sectionLabel("staff")).toBe("Roster");
     expect(sectionLabel("workspace")).toBe("Brief & voice");
-    expect(sectionLabel("connections")).toBe("Sources");
+    // Founder ruling 2026-07-29 (commit 9900c049): "Sources is now Connectors,
+    // in the nav label, the head and every line of prose."
+    expect(sectionLabel("connections")).toBe("Connectors");
     // unknown id falls back to itself
     expect(sectionLabel("nope" as SectionId)).toBe("nope");
   });

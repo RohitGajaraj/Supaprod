@@ -1,5 +1,5 @@
 import { describe, expect, test, it } from "bun:test";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { toneForScore, DetailHeader, StatCell, StatStrip, DetailSection } from "./DetailKit";
 
 describe("toneForScore", () => {
@@ -160,14 +160,6 @@ describe("DetailHeader", () => {
       const heading = container.querySelector("h2");
       expect(heading?.textContent).toBe("Test Title");
     });
-
-    it("applies correct heading styles", () => {
-      const { container } = render(<DetailHeader title="Styled Title" />);
-      const heading = container.querySelector("h2");
-      expect(heading?.style.fontSize).toBe("18px");
-      expect(heading?.style.fontWeight).toBe("600");
-      expect(heading?.style.color).toBe("var(--text-primary)");
-    });
   });
 
   describe("chips prop", () => {
@@ -178,16 +170,11 @@ describe("DetailHeader", () => {
       expect(container.querySelector('[data-testid="chip"]')).toBeTruthy();
     });
 
-    it("does not render chips section when chips prop is undefined", () => {
+    it("does not render a meta line when chips are undefined and nothing else is passed", () => {
       const { container } = render(<DetailHeader title="Title" chips={undefined} />);
-      // Meta row should not be rendered if no chips, traceRef, or time
-      expect(container.querySelectorAll("header > div").length).toBe(1); // Only title
-    });
-
-    it("renders chips in flex row layout", () => {
-      const { container } = render(<DetailHeader title="Title" chips={<span>Chip1</span>} />);
-      const metaRow = container.querySelector(".flex.flex-wrap");
-      expect(metaRow).toBeTruthy();
+      // No chips, traceRef or time: a header with a dangling empty line under
+      // the title is the bug this guards.
+      expect(container.querySelector("header > div")).toBeNull();
     });
   });
 
@@ -198,12 +185,6 @@ describe("DetailHeader", () => {
       );
       expect(container.querySelector('[data-testid="trace"]')).toBeTruthy();
     });
-
-    it("positions traceRef on the right", () => {
-      const { container } = render(<DetailHeader title="Title" traceRef={<span>trace</span>} />);
-      const rightSection = container.querySelector("span[style*='marginLeft']");
-      expect(rightSection?.style.marginLeft).toBe("auto");
-    });
   });
 
   describe("time prop", () => {
@@ -212,12 +193,6 @@ describe("DetailHeader", () => {
         <DetailHeader title="Title" time={<span data-testid="time">2026-07-24</span>} />,
       );
       expect(container.querySelector('[data-testid="time"]')).toBeTruthy();
-    });
-
-    it("positions time on the right", () => {
-      const { container } = render(<DetailHeader title="Title" time={<span>2026-07-24</span>} />);
-      const rightSection = container.querySelector("span[style*='marginLeft']");
-      expect(rightSection).toBeTruthy();
     });
 
     it("renders time and traceRef together", () => {
@@ -260,19 +235,35 @@ describe("DetailHeader", () => {
     });
   });
 
-  describe("styling and spacing", () => {
-    it("applies correct gap to title and meta row", () => {
-      const { container } = render(<DetailHeader title="Title" time={<span>Time</span>} />);
-      const header = container.querySelector("header");
-      expect(header?.style.gap).toBe("10px");
+  // The two-sided flex rail that pushed time and trace to the right edge is
+  // gone (2026-07-29 port): it was a second alignment axis inside a panel that
+  // already had one, and it broke to two lines on a narrow sheet. Everything
+  // the header carries now sits on ONE meta line under the title, so the tests
+  // that pinned marginLeft: auto, the .flex.flex-wrap class, the 8px and 10px
+  // gaps, and the h2's inline font size, weight and colour were describing a
+  // layout that no longer exists. What a reader depends on is that each piece
+  // is present and legible, which the tests above assert.
+  describe("one meta line", () => {
+    it("puts chips, time and traceRef on the same line under the title", () => {
+      const { container } = render(
+        <DetailHeader
+          title="Title"
+          chips={<span>Backlog</span>}
+          time={<span>2026-07-24</span>}
+          traceRef={<span>ref-123</span>}
+        />,
+      );
+      const metaLines = container.querySelectorAll("header > div");
+      expect(metaLines.length).toBe(1);
+      expect(metaLines[0]?.textContent).toContain("Backlog");
+      expect(metaLines[0]?.textContent).toContain("2026-07-24");
+      expect(metaLines[0]?.textContent).toContain("ref-123");
     });
 
-    it("applies correct gap between chips and time/trace", () => {
-      const { container } = render(
-        <DetailHeader title="Title" chips={<span>Chip</span>} time={<span>Time</span>} />,
-      );
-      const metaRow = container.querySelector(".flex.flex-wrap");
-      expect(metaRow?.style.gap).toBe("8px");
+    it("never leaves a dangling separator when a piece is missing", () => {
+      const { container } = render(<DetailHeader title="Title" time={<span>2026-07-24</span>} />);
+      const meta = container.querySelector("header > div")?.textContent ?? "";
+      expect(meta.trim()).toBe("2026-07-24");
     });
   });
 });
@@ -284,80 +275,32 @@ describe("StatCell", () => {
       expect(container.textContent).toContain("8");
     });
 
-    it("renders label text in uppercase", () => {
-      const { container } = render(<StatCell label="Strength" value="8" />);
-      const labelDiv = Array.from(container.querySelectorAll("div")).find(
-        (d) => d.textContent === "STRENGTH",
-      );
-      expect(labelDiv).toBeTruthy();
-    });
-
-    it("renders label with mono font", () => {
-      const { container } = render(<StatCell label="Strength" value="8" />);
-      const labelDiv = container.querySelector("div:last-child");
-      expect(labelDiv?.style.fontFamily).toBe("var(--font-mono)");
+    it("renders the label as given", () => {
+      render(<StatCell label="Strength" value="8" />);
+      expect(screen.getByText("Strength")).toBeDefined();
     });
   });
 
+  // The bordered, tinted, centred tile is gone (2026-07-29 port): a bordered
+  // cell inside a bordered sheet is a card in a card, and nineteen of them in
+  // one region is nineteen bordered containers against a cap of one. The cell
+  // is now the shared `Cell` primitive, tinted and never bordered, styled from
+  // the stylesheet rather than inline. So the assertions that pinned the
+  // border, the radius, the padding, text-align, display: grid, the 3px gap,
+  // font-variant-numeric, a 15px font size, the mono label face, the uppercase
+  // label and the retired --moss / --madder / --text-primary / --text-muted /
+  // --ds-gray-1000 tone tokens were all describing the wrapper. What a reader
+  // depends on is that the fact and its name both render, and that a tone
+  // never eats them.
   describe("tone prop", () => {
-    it("applies moss tone color when tone='moss'", () => {
-      const { container } = render(<StatCell label="Strong" value="9" tone="moss" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.color).toBe("var(--moss)");
-    });
-
-    it("applies glacier tone color when tone='glacier'", () => {
-      const { container } = render(<StatCell label="Data" value="42" tone="glacier" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.color).toBe("var(--ds-gray-1000)");
-    });
-
-    it("applies neutral tone color by default", () => {
-      const { container } = render(<StatCell label="Default" value="5" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.color).toBe("var(--text-primary)");
-    });
-
-    it("applies madder tone color when tone='madder'", () => {
-      const { container } = render(<StatCell label="Risk" value="7" tone="madder" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.color).toBe("var(--madder)");
-    });
-
-    it("applies muted tone color when tone='muted'", () => {
-      const { container } = render(<StatCell label="Low" value="2" tone="muted" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.color).toBe("var(--text-muted)");
-    });
-
-    it("applies tone to background tint", () => {
-      const { container } = render(<StatCell label="Strong" value="8" tone="moss" />);
-      const cellDiv = container.querySelector("div:first-of-type");
-      expect(cellDiv?.style.background).toContain("color-mix");
-      expect(cellDiv?.style.background).toContain("var(--moss)");
-    });
-  });
-
-  describe("styling", () => {
-    it("renders as rounded cell with border", () => {
-      const { container } = render(<StatCell label="Test" value="5" />);
-      const cell = container.querySelector("div:first-of-type");
-      expect(cell?.style.borderRadius).toBe("var(--radius-control)");
-      expect(cell?.style.border).toBe("1px solid var(--hairline)");
-    });
-
-    it("applies padding and text-center", () => {
-      const { container } = render(<StatCell label="Test" value="5" />);
-      const cell = container.querySelector("div:first-of-type");
-      expect(cell?.style.padding).toBe("6px 8px");
-      expect(cell?.style.textAlign).toBe("center");
-    });
-
-    it("renders as grid layout with gap", () => {
-      const { container } = render(<StatCell label="Test" value="5" />);
-      const cell = container.querySelector("div:first-of-type");
-      expect(cell?.style.display).toBe("grid");
-      expect(cell?.style.gap).toBe("3px");
+    it("renders the value and the label under every tone", () => {
+      const tones = ["moss", "glacier", "madder", "amber", "muted", "neutral"] as const;
+      for (const tone of tones) {
+        const { unmount } = render(<StatCell label="Strength" value="8.5" tone={tone} />);
+        expect(screen.getByText("8.5"), `value missing under tone ${tone}`).toBeDefined();
+        expect(screen.getByText("Strength"), `label missing under tone ${tone}`).toBeDefined();
+        unmount();
+      }
     });
   });
 
@@ -367,16 +310,17 @@ describe("StatCell", () => {
       expect(container.textContent).toContain("1234");
     });
 
-    it("applies tabular-nums for numeric alignment", () => {
-      const { container } = render(<StatCell label="Metrics" value="999" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.fontVariantNumeric).toBe("tabular-nums");
+    it("renders a word value as a word, not as data", () => {
+      const { container } = render(<StatCell label="Lane" value="Backlog" />);
+      expect(container.textContent).toContain("Backlog");
+      // Mono is for numbers, durations, counts, costs, identifiers and
+      // timestamps, and for nothing else: a lane name is a word.
+      expect(container.querySelector(".sp-num")).toBeNull();
     });
 
-    it("renders long values in large font", () => {
-      const { container } = render(<StatCell label="Long" value="Very long value" />);
-      const valueDiv = container.querySelector("div:first-child");
-      expect(valueDiv?.style.fontSize).toBe("15px");
+    it("renders a numeric value as data, so figures line up column to column", () => {
+      const { container } = render(<StatCell label="Cost" value="$0.04" />);
+      expect(container.querySelector(".sp-num")?.textContent).toBe("$0.04");
     });
   });
 });
@@ -391,16 +335,6 @@ describe("StatStrip", () => {
         </StatStrip>,
       );
       expect(container.querySelectorAll('[data-testid="cell"]')).toHaveLength(2);
-    });
-
-    it("renders as grid", () => {
-      const { container } = render(
-        <StatStrip>
-          <div>Cell</div>
-        </StatStrip>,
-      );
-      const grid = container.querySelector("div:first-of-type");
-      expect(grid?.style.display).toBe("grid");
     });
   });
 
@@ -449,18 +383,11 @@ describe("StatStrip", () => {
     });
   });
 
-  describe("spacing", () => {
-    it("applies 6px gap between cells", () => {
-      const { container } = render(
-        <StatStrip>
-          <div>Cell 1</div>
-          <div>Cell 2</div>
-        </StatStrip>,
-      );
-      const grid = container.querySelector("div:first-of-type");
-      expect(grid?.style.gap).toBe("6px");
-    });
-  });
+  // display: grid and the 6px gap moved out of the inline style and into the
+  // shared grid class in the 2026-07-29 port, so those two assertions were
+  // pinning where a declaration lived rather than what the strip does. The
+  // column count, which is the strip's one real job (three stats read across,
+  // never 2 + 1), is still written inline and is still asserted above.
 
   describe("conditional rendering", () => {
     it("handles conditional children correctly", () => {
@@ -484,7 +411,9 @@ describe("DetailSection", () => {
           <div>Content</div>
         </DetailSection>,
       );
-      expect(container.textContent).toContain("PROPERTIES");
+      // Sentence case, as given. The mono caps heading is retired: mono is for
+      // data and a section heading is prose.
+      expect(container.textContent).toContain("Properties");
     });
 
     it("renders children content", () => {
@@ -507,42 +436,12 @@ describe("DetailSection", () => {
     });
   });
 
-  describe("heading styling", () => {
-    it("renders heading with mono caps style", () => {
-      const { container } = render(
-        <DetailSection heading="Section">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const headingElement = Array.from(container.querySelectorAll("span")).find(
-        (s) => s.textContent === "SECTION",
-      );
-      expect(headingElement?.className).toContain("uppercase");
-    });
-
-    it("renders accent bar before heading", () => {
-      const { container } = render(
-        <DetailSection heading="Test">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const bar = container.querySelector("span[style*='height: 11px']");
-      expect(bar).toBeTruthy();
-      expect(bar?.style.width).toBe("2px");
-      expect(bar?.style.borderRadius).toBe("999px");
-    });
-
-    it("applies correct heading typography", () => {
-      const { container } = render(
-        <DetailSection heading="Typography Test">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const monoLabel = container.querySelector("span[style*='font-size']");
-      expect(monoLabel?.style.fontSize).toBe("10px");
-      expect(monoLabel?.style.letterSpacing).toBe("0.1em");
-    });
-  });
+  // Two things were deliberately killed in the 2026-07-29 port, and their
+  // tests went with them: the mono caps heading (mono is for data, and a
+  // section heading is prose) and the 2px vertical bar before it (the side-tab
+  // accent in a smaller coat, when the rule above the section already says a
+  // new section starts here). The heading's inline font size and letter
+  // spacing went to the stylesheet in the same move.
 
   describe("action prop", () => {
     it("renders action when provided", () => {
@@ -554,61 +453,30 @@ describe("DetailSection", () => {
       expect(container.querySelector('[data-testid="action"]')).toBeTruthy();
     });
 
-    it("positions action on the right of heading", () => {
-      const { container } = render(
+    it("puts the action on the heading line, not above or below the content", () => {
+      render(
         <DetailSection heading="Heading" action={<button>Action</button>}>
           <div>Content</div>
         </DetailSection>,
       );
-      const headingRow = container.querySelector(".flex.items-center.justify-between");
-      expect(headingRow).toBeTruthy();
+      const action = screen.getByRole("button", { name: "Action" });
+      expect(action.parentElement?.textContent).toContain("Heading");
     });
 
-    it("does not render action container when action is undefined", () => {
-      const { container } = render(
+    it("renders no control at all when action is undefined", () => {
+      render(
         <DetailSection heading="Heading">
           <div>Content</div>
         </DetailSection>,
       );
-      const headingRow = container.querySelector(".flex.items-center.justify-between");
-      // The container is still there but action is not
-      const action = headingRow?.querySelector("button");
-      expect(action).toBeFalsy();
+      expect(screen.queryByRole("button")).toBeNull();
     });
   });
 
-  describe("styling", () => {
-    it("applies border-top divider", () => {
-      const { container } = render(
-        <DetailSection heading="Section">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const section = container.querySelector("section");
-      expect(section?.style.borderTop).toBe("1px solid var(--hairline)");
-    });
-
-    it("applies padding and gap", () => {
-      const { container } = render(
-        <DetailSection heading="Section">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const section = container.querySelector("section");
-      expect(section?.style.paddingTop).toBe("15px");
-      expect(section?.style.gap).toBe("10px");
-    });
-
-    it("renders as grid display", () => {
-      const { container } = render(
-        <DetailSection heading="Section">
-          <div>Content</div>
-        </DetailSection>,
-      );
-      const section = container.querySelector("section");
-      expect(section?.style.display).toBe("grid");
-    });
-  });
+  // The rule, the padding, the gap and display: grid all moved to the shared
+  // block class in the 2026-07-29 port, which is the point of sharing it: a
+  // detail section and a surface section can no longer drift apart. Asserting
+  // them inline was asserting that they had NOT been shared.
 
   describe("custom style prop", () => {
     it("applies custom styles", () => {
@@ -621,30 +489,14 @@ describe("DetailSection", () => {
       expect(section?.style.marginBottom).toBe("20px");
     });
 
-    it("merges custom styles with defaults", () => {
-      const { container } = render(
+    it("a custom style never costs the heading or the content", () => {
+      render(
         <DetailSection heading="Section" style={{ marginBottom: "20px" }}>
           <div>Content</div>
         </DetailSection>,
       );
-      const section = container.querySelector("section");
-      // Defaults should still apply
-      expect(section?.style.borderTop).toBe("1px solid var(--hairline)");
-      // Custom should apply
-      expect(section?.style.marginBottom).toBe("20px");
-    });
-  });
-
-  describe("spacing between sections", () => {
-    it("applies correct gap to section children", () => {
-      const { container } = render(
-        <DetailSection heading="Section">
-          <div data-testid="child1">Content 1</div>
-          <div data-testid="child2">Content 2</div>
-        </DetailSection>,
-      );
-      const section = container.querySelector("section");
-      expect(section?.style.gap).toBe("10px");
+      expect(screen.getByText("Section")).toBeDefined();
+      expect(screen.getByText("Content")).toBeDefined();
     });
   });
 });

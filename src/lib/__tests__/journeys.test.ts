@@ -35,7 +35,14 @@ describe("journeys catalog shape", () => {
     for (const j of JOURNEYS) {
       expect(j.label.trim().length).toBeGreaterThan(0);
       for (const text of [j.label, j.startState, j.doneState]) {
-        expect(text, `em/en dash in ${j.id}: ${text}`).not.toMatch(/[ to , ]/);
+        // u2013 is the en dash and u2014 the em dash, written as ESCAPES and
+        // never as the literal characters. A literal pair here got rewritten
+        // in place at some point into the character class /[ to , ]/, which
+        // matches a space, a "t", an "o" and a comma, so the guard fired on
+        // innocent copy ("Take it from signal to shipped") while no longer
+        // catching a single dash. Same escape pattern as
+        // governance-shared.test.ts.
+        expect(text, `em/en dash in ${j.id}: ${text}`).not.toMatch(/[\u2013\u2014]/);
       }
     }
   });

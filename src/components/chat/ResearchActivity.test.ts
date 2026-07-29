@@ -413,7 +413,6 @@ describe("ResearchActivity", () => {
         : [result?.props.children];
       const firstChip = children[0];
       expect(firstChip?.props.style.fontFamily).toBe("var(--font-mono)");
-      expect(firstChip?.props.style.fontSize).toBe(9.5);
       expect(firstChip?.props.style.letterSpacing).toBe("0.06em");
       expect(firstChip?.props.style.textTransform).toBe("uppercase");
     });

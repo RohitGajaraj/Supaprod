@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ReactElement } from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { PencilNote } from "@/components/obsidian";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import {
@@ -17,16 +18,23 @@ const OpportunityRow = ((
   OpportunityRowExport as unknown as { type?: (props: object) => ReactElement }
 ).type ?? OpportunityRowExport) as (props: object) => ReactElement;
 
-/** Depth-first search for a child whose `type` matches, walking `props.children`
- * without a DOM renderer, the codebase's established shallow-element
- * technique (see src/components/obsidian/__tests__/primitives.test.tsx). */
+/** Depth-first search for a descendant whose `type` matches, without a DOM
+ * renderer: the codebase's established shallow-element technique (see
+ * src/components/obsidian/__tests__/primitives.test.tsx).
+ *
+ * It walks EVERY prop, not only `children`. The row is now built on the `Row`
+ * primitive, which takes its content through `marks`, `lead` and `sub` rather
+ * than through children, so a children-only walk reports "not present" for
+ * elements that are plainly on the screen. Used here only for the two retired
+ * components, which have no rendered output to look for; everything a reader
+ * can actually see is asserted against the DOM below. */
 function containsType(node: unknown, type: unknown): boolean {
   if (node == null || typeof node !== "object") return false;
+  if (Array.isArray(node)) return node.some((n) => containsType(n, type));
   const el = node as ReactElement;
   if (el.type === type) return true;
-  const children = (el.props as { children?: unknown })?.children;
-  if (Array.isArray(children)) return children.some((c) => containsType(c, type));
-  return containsType(children, type);
+  const props = (el.props ?? {}) as Record<string, unknown>;
+  return Object.values(props).some((v) => containsType(v, type));
 }
 
 const BASE_PROPS = {
@@ -39,20 +47,33 @@ const BASE_PROPS = {
 };
 
 describe("OpportunityRow designation marker", () => {
-  test("designation 'best bet' renders the inline BestBetStamp, never the retired PencilNote", () => {
-    const el = OpportunityRow({ ...BASE_PROPS, designation: "best bet" });
-    expect(containsType(el, BestBetStamp)).toBe(true);
+  test("designation 'best bet' renders the stamp's words, never the retired PencilNote", () => {
+    const { unmount } = render(<OpportunityRowExport {...BASE_PROPS} designation="best bet" />);
+    // The reader's promise: the one chosen bet says so, in words.
+    expect(screen.getByText("Best bet")).toBeDefined();
+    // The best bet is the stamp, not a quiet tag.
+    expect(screen.queryByText("needs validation")).toBeNull();
+    unmount();
+
     // The Loom-era handwritten wink is retired (founder ruling 2026-07-11).
+    // It has no rendered output of its own to look for, so this one stays an
+    // element-identity guard.
+    const el = OpportunityRow({ ...BASE_PROPS, designation: "best bet" });
     expect(containsType(el, PencilNote)).toBe(false);
-    // The best bet is the stamp, not a quiet tag: no DesignationTag on the card.
     expect(containsType(el, DesignationTag)).toBe(false);
   });
 
   test("a non-best designation renders a quiet tag, never the stamp", () => {
+    const { unmount } = render(
+      <OpportunityRowExport {...BASE_PROPS} designation="needs validation" />,
+    );
+    expect(screen.getByText("needs validation")).toBeDefined();
+    expect(screen.queryByText("Best bet")).toBeNull();
+    unmount();
+
     const el = OpportunityRow({ ...BASE_PROPS, designation: "needs validation" });
-    expect(containsType(el, DesignationTag)).toBe(true);
-    expect(containsType(el, BestBetStamp)).toBe(false);
     expect(containsType(el, PencilNote)).toBe(false);
+    expect(containsType(el, BestBetStamp)).toBe(false);
   });
 
   test("no designation renders neither a stamp nor a tag", () => {
@@ -83,24 +104,28 @@ describe("DesignationTag", () => {
   });
 });
 
-// OBS-10: the write-action overflow menu ported from the retired /product
-// Opportunities tab. Every handler is optional so the row degrades cleanly
-// (e.g. a read-only embed) when none are passed, verify that degradation,
-// not just the fully-wired case.
-describe("OpportunityRow write-action overflow", () => {
-  test("renders no action menu when every handler is omitted", () => {
-    const el = OpportunityRow({ ...BASE_PROPS });
+// OBS-10 put a write-action overflow menu on this row. The 2026-07-29 port
+// moved every one of those writes (draft spec, challenge, lineage, move to,
+// delete, ask) into OpportunityDetailSheet, which the row opens: a list row is
+// one line plus a second line, and six controls per row over twenty rows is
+// twenty subjects with nothing to look at first. So the menu is not "missing",
+// it deliberately does not belong here, and this is the guard against it
+// creeping back.
+describe("OpportunityRow carries no write menu: writes live in the detail sheet", () => {
+  test("no action menu, even with every write handler passed", () => {
+    const el = OpportunityRow({
+      ...BASE_PROPS,
+      onDelete: () => {},
+      onLineage: () => {},
+      onSetStatus: () => {},
+      onDraftSpec: () => {},
+    });
     expect(containsType(el, DropdownMenu)).toBe(false);
   });
 
-  test("renders the action menu when at least one handler is passed", () => {
-    const el = OpportunityRow({ ...BASE_PROPS, onDelete: () => {} });
-    expect(containsType(el, DropdownMenu)).toBe(true);
-  });
-
-  test("still renders the action menu with only onLineage passed", () => {
-    const el = OpportunityRow({ ...BASE_PROPS, onLineage: () => {} });
-    expect(containsType(el, DropdownMenu)).toBe(true);
+  test("and none when the handlers are omitted, so a read-only embed is identical", () => {
+    const el = OpportunityRow({ ...BASE_PROPS });
+    expect(containsType(el, DropdownMenu)).toBe(false);
   });
 });
 
@@ -160,9 +185,10 @@ describe("OpportunityRow challenge action", () => {
   test("includes onChallenge handler in props", () => {
     const mockHandler = () => {};
     const el = OpportunityRow({ ...BASE_PROPS, onChallenge: mockHandler });
-    // Verify the component structure is created
+    // Verify the component structure is created. The root element's tag is not
+    // asserted: it was a bare <div>, it is now the Row primitive, and it will
+    // be whatever the shell says next.
     expect(el).not.toBeNull();
-    expect(el.type).toBe("div");
   });
 
   test("respects challengePending flag", () => {
@@ -189,165 +215,39 @@ describe("OpportunityRow optional handlers", () => {
       onLineage: () => {},
       onDelete: () => {},
     });
-    expect(containsType(el, DropdownMenu)).toBe(true);
+    expect(el).not.toBeNull();
   });
 });
 
+// The row used to hand-roll onKeyDown to answer Enter and Space on a <div>.
+// The Row primitive makes a row that does something a REAL <button>, so the
+// browser answers both keys, the row is tabbable, and it takes the app-wide
+// focus ring without being asked. The promise to a keyboard user is unchanged;
+// what delivers it is not, so these assert the promise.
 describe("OpportunityRow keyboard activation", () => {
-  test("opens card on Enter key when clickable (onOpen present)", () => {
+  test("is a real button when it opens something, so Enter and Space activate it", () => {
+    render(<OpportunityRowExport {...BASE_PROPS} onOpen={() => {}} />);
+    const row = screen.getByRole("button", { name: /Bet/ });
+    expect(row.getAttribute("type")).toBe("button");
+  });
+
+  test("activating it calls onOpen", () => {
     let openCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onOpen: () => {
-        openCalled = true;
-      },
-    });
-
-    const row = el as ReactElement;
-    expect((row.props as { onKeyDown?: unknown })?.onKeyDown).toBeDefined();
-
-    // Simulate Enter key event on the row itself
-    const event = {
-      key: "Enter",
-      target: row,
-      currentTarget: row,
-      preventDefault: () => {},
-    } as unknown as KeyboardEvent;
-
-    ((row.props as any).onKeyDown as Function)?.(event);
+    render(
+      <OpportunityRowExport
+        {...BASE_PROPS}
+        onOpen={() => {
+          openCalled = true;
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Bet/ }));
     expect(openCalled).toBe(true);
   });
 
-  test("opens card on Space key when clickable (onOpen present)", () => {
-    let openCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onOpen: () => {
-        openCalled = true;
-      },
-    });
-
-    const row = el as ReactElement;
-    const event = {
-      key: " ",
-      target: row,
-      currentTarget: row,
-      preventDefault: () => {},
-    } as unknown as KeyboardEvent;
-
-    ((row.props as any).onKeyDown as Function)?.(event);
-    expect(openCalled).toBe(true);
-  });
-
-  test("ignores Enter key when target is not currentTarget (event.target guard)", () => {
-    let openCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onOpen: () => {
-        openCalled = true;
-      },
-    });
-
-    const row = el as ReactElement;
-    const otherElement = {};
-    const event = {
-      key: "Enter",
-      target: otherElement,
-      currentTarget: row,
-      preventDefault: () => {},
-    } as unknown as KeyboardEvent;
-
-    ((row.props as any).onKeyDown as Function)?.(event);
-    expect(openCalled).toBe(false);
-  });
-
-  test("ignores non-Enter/Space keys", () => {
-    let openCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onOpen: () => {
-        openCalled = true;
-      },
-    });
-
-    const row = el as ReactElement;
-    const event = {
-      key: "a",
-      target: row,
-      currentTarget: row,
-      preventDefault: () => {},
-    } as unknown as KeyboardEvent;
-
-    ((row.props as any).onKeyDown as Function)?.(event);
-    expect(openCalled).toBe(false);
-  });
-});
-
-describe("OpportunityRow dropdown menu item handlers", () => {
-  test("invokes onLineage when LineageMenuItem is clicked", () => {
-    let lineageCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onLineage: () => {
-        lineageCalled = true;
-      },
-    });
-
-    expect(containsType(el, DropdownMenu)).toBe(true);
-    // Menu is rendered when at least onLineage is present
-    // The actual onClick invocation happens when the user clicks the menu item
-    // We verify the handler is passed and would be called
-    expect(lineageCalled).toBe(false); // Not called yet (menu not clicked)
-  });
-
-  test("invokes onSetStatus when StatusMenuItem is clicked", () => {
-    let statusCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onSetStatus: () => {
-        statusCalled = true;
-      },
-    });
-
-    // Menu present when at least onSetStatus is provided
-    expect(containsType(el, DropdownMenu)).toBe(true);
-    expect(statusCalled).toBe(false);
-  });
-
-  test("invokes onDelete when DeleteMenuItem is clicked", () => {
-    let deleteCalled = false;
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onDelete: () => {
-        deleteCalled = true;
-      },
-    });
-
-    expect(containsType(el, DropdownMenu)).toBe(true);
-    expect(deleteCalled).toBe(false);
-  });
-
-  test("dropdown menu is disabled when actionsPending is true", () => {
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onDelete: () => {},
-      actionsPending: true,
-    });
-
-    // Verify DropdownMenuTrigger button has disabled attribute
-    // This prevents clicks while async action is in flight
-    expect(containsType(el, DropdownMenu)).toBe(true);
-  });
-
-  test("dropdown menu renders all present handlers as menu items", () => {
-    const el = OpportunityRow({
-      ...BASE_PROPS,
-      onLineage: () => {},
-      onSetStatus: () => {},
-      onDelete: () => {},
-    });
-
-    // When all three handlers are present, menu should render
-    expect(containsType(el, DropdownMenu)).toBe(true);
+  test("is not a button when there is nothing to open, so it is not in the tab order", () => {
+    render(<OpportunityRowExport {...BASE_PROPS} />);
+    expect(screen.getByText("Bet")).toBeDefined();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });
