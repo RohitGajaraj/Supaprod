@@ -30,10 +30,19 @@
 > 3. Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live line.
 > 4. Port surfaces against them. Today first, then a run, then the crew.
 >
-> **Known blocker:** DB access must go through the **Lovable** MCP, never Supabase directly
-> (Supabase is provisioned and managed by Lovable here, so there is no independent token and the
-> `supabase` entry in `.mcp.json` is dead). Reinstall with `/plugin install lovable@lovable`, then
-> restart. It does NOT block the build, which is frontend against server functions that already exist.
+> **Known blocker, and the standing decision on it:** DB access has to go through the **Lovable**
+> MCP, never Supabase directly, because Supabase is provisioned and managed by Lovable here and
+> there is no independent token. The dead `supabase` entry was removed from `.mcp.json` on
+> 2026-07-29 so it stops sending sessions down the wrong path.
+>
+> **Lovable MCP auth is broken by a bug on Lovable's side** and two sessions have been burned on it.
+> Root cause and every closed workaround: `~/.claude/projects/.../memory/lovable-mcp-was-registered-twice.md`.
+> **Founder ruling 2026-07-29: do not spend more time on it.** If it fails, choose `Disable` and
+> carry on.
+>
+> **Nothing here depends on it.** The schema lives in `supabase/migrations/` (394 files) and that is
+> how every table, column and status enum was verified during the design work, with no MCP at all.
+> The build is frontend against server functions that already exist.
 
 
 > [!IMPORTANT]
