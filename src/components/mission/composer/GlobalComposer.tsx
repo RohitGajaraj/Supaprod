@@ -112,7 +112,16 @@ function GlobalComposerHost() {
       const stage = journeyById(id).stages[0] as StageId;
       openRoom(activeProductId, { search: { stage, journey: id } });
     } else {
-      void navigate({ to: "/m" });
+      // /runs, not /m. With no active product /m has nothing to resolve, so it
+      // used to land the user in Mission Control's legacy shell with no product
+      // chosen, which is a dead end wearing a page. /runs is the spine and it
+      // reads fine empty.
+      //
+      // The branch above still opens the room, because a journey is a
+      // product-scoped stage canvas and the run-scoped strip does not replace
+      // it. That is the one live door left into the legacy shell and it is
+      // recorded as such, not quietly left behind.
+      void navigate({ to: "/runs" });
     }
   };
 
