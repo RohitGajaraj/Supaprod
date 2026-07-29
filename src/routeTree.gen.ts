@@ -76,6 +76,7 @@ import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated.design'
 import { Route as AuthenticatedDelegateRouteImport } from './routes/_authenticated.delegate'
 import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated.decide'
+import { Route as AuthenticatedCrewRouteImport } from './routes/_authenticated.crew'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated.cockpit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated.chat'
 import { Route as AuthenticatedChangelogRouteImport } from './routes/_authenticated.changelog'
@@ -517,6 +518,11 @@ const AuthenticatedDelegateRoute = AuthenticatedDelegateRouteImport.update({
 const AuthenticatedDecideRoute = AuthenticatedDecideRouteImport.update({
   id: '/decide',
   path: '/decide',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCrewRoute = AuthenticatedCrewRouteImport.update({
+  id: '/crew',
+  path: '/crew',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
@@ -1135,6 +1141,7 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof AuthenticatedChangelogRoute
   '/chat': typeof AuthenticatedChatRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
+  '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/delegate': typeof AuthenticatedDelegateRoute
   '/design': typeof AuthenticatedDesignRoute
@@ -1305,6 +1312,7 @@ export interface FileRoutesByTo {
   '/changelog': typeof AuthenticatedChangelogRoute
   '/chat': typeof AuthenticatedChatRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
+  '/crew': typeof AuthenticatedCrewRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/delegate': typeof AuthenticatedDelegateRoute
   '/design': typeof AuthenticatedDesignRoute
@@ -1477,6 +1485,7 @@ export interface FileRoutesById {
   '/_authenticated/changelog': typeof AuthenticatedChangelogRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
+  '/_authenticated/crew': typeof AuthenticatedCrewRoute
   '/_authenticated/decide': typeof AuthenticatedDecideRoute
   '/_authenticated/delegate': typeof AuthenticatedDelegateRoute
   '/_authenticated/design': typeof AuthenticatedDesignRoute
@@ -1650,6 +1659,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/chat'
     | '/cockpit'
+    | '/crew'
     | '/decide'
     | '/delegate'
     | '/design'
@@ -1820,6 +1830,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/chat'
     | '/cockpit'
+    | '/crew'
     | '/decide'
     | '/delegate'
     | '/design'
@@ -1991,6 +2002,7 @@ export interface FileRouteTypes {
     | '/_authenticated/changelog'
     | '/_authenticated/chat'
     | '/_authenticated/cockpit'
+    | '/_authenticated/crew'
     | '/_authenticated/decide'
     | '/_authenticated/delegate'
     | '/_authenticated/design'
@@ -2696,6 +2708,13 @@ declare module '@tanstack/react-router' {
       path: '/decide'
       fullPath: '/decide'
       preLoaderRoute: typeof AuthenticatedDecideRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/crew': {
+      id: '/_authenticated/crew'
+      path: '/crew'
+      fullPath: '/crew'
+      preLoaderRoute: typeof AuthenticatedCrewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cockpit': {
@@ -3499,6 +3518,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedChangelogRoute: typeof AuthenticatedChangelogRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
+  AuthenticatedCrewRoute: typeof AuthenticatedCrewRoute
   AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
   AuthenticatedDelegateRoute: typeof AuthenticatedDelegateRoute
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
@@ -3564,6 +3584,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedChangelogRoute: AuthenticatedChangelogRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
+  AuthenticatedCrewRoute: AuthenticatedCrewRoute,
   AuthenticatedDecideRoute: AuthenticatedDecideRoute,
   AuthenticatedDelegateRoute: AuthenticatedDelegateRoute,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,

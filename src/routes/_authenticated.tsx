@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 import { useEffect, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
-import { AppShell } from "@/components/supaprod/AppShell";
+import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
@@ -157,12 +157,17 @@ function AuthedLayout() {
   const isMissionControl = useRouterState({
     select: (s) => s.matches.some((m) => (ROOM_ROUTE_IDS as readonly string[]).includes(m.routeId)),
   });
-  // The reimagined standalone surfaces (Threads, Artifacts) are part of the
-  // Mission Control world, reached from the room's top-bar doors. They carry
-  // their own ink header, so the old Obsidian AppShell (nav rail + banners)
-  // must not wrap them (Love-Gate consumer-grade finding, 2026-07-20). Kept
-  // chromeless like the room until the app-wide reimagined shell adoption gives
-  // them the room top bar.
+  // THE STEP-4 REMOVAL LIST (rebuild 2026-07-29). Every route below still
+  // draws its OWN chrome (MissionShellView or RoomChrome), which is exactly
+  // the disease the rebuild is treating: three shells, and a hardcoded
+  // pathname list here choosing between them. AppFrame is now the one shell
+  // and takes no "which shell" argument, but it cannot wrap these until their
+  // inner chrome comes out, or the app would draw two headers and two rails.
+  //
+  // Step 4 ports these surfaces onto AppFrame's regions and deletes this
+  // condition, this list, MissionShellView.tsx and RoomChrome.tsx together.
+  // Until then the list shrinks, it never grows: adding a route here is
+  // adding a fourth shell.
   const isReimaginedSurface =
     isMissionControl ||
     pathname === "/threads" ||
@@ -194,9 +199,9 @@ function AuthedLayout() {
             {isOnboarding || isReimaginedSurface ? (
               <Outlet />
             ) : (
-              <AppShell>
+              <AppFrame>
                 <Outlet />
-              </AppShell>
+              </AppFrame>
             )}
             {/* Phase 2 (front-end reimagining): the ONE summonable composer.
                   Cmd/Ctrl+J and Cmd/Ctrl+K plus the supaprod:open-ask /

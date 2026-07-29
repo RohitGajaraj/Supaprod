@@ -1,0 +1,525 @@
+/* ===================================================================
+ * THE SHELL. Step 2 of the rebuild.
+ * Lifted from docs/planning/rebuild-2026-07/structure/PROTOTYPE-v2.html
+ * Tokens: src/styles/ink.css (the --sp-* layer). No literal colour here.
+ *
+ * FOUR REGIONS, and not eight (decided, session-handoff.md):
+ *   header 56  ·  rail 236/64  ·  work  ·  Ask summoned
+ * This replaces AppShell.tsx, MissionShellView.tsx and RoomChrome.tsx.
+ *
+ * Class names are all `sp-` prefixed for the same reason the tokens are:
+ * styles.css is 3700 lines of legacy selectors and this layer must not
+ * be reachable by any of them.
+ *
+ * TRANSITION RULE. The work region is a scroll container and nothing
+ * else. A surface that has been ported opts into `.sp-inner` for the
+ * measure, the gutters and the context column; an unported surface
+ * renders raw so its own padding is not doubled. When step 4 finishes,
+ * every surface is inside `.sp-inner` and this note goes.
+ * =================================================================== */
+
+.sp-app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sp-bg);
+  color: var(--sp-ink);
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-text-body);
+  line-height: var(--sp-leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- header. Real presence, sans labels, icons not emoji ---------- */
+.sp-top {
+  height: var(--sp-header-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 18px;
+  background: var(--sp-sheet);
+  border-bottom: 1px solid var(--sp-line);
+}
+
+.sp-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  padding-right: 14px;
+  border-right: 1px solid var(--sp-line);
+  color: var(--sp-ink);
+  text-decoration: none;
+}
+.sp-logo {
+  width: 21px;
+  height: 21px;
+  flex: none;
+  color: var(--sp-ink);
+}
+/* The product is Supaprod. A workspace is one thing inside it. */
+.sp-wordmark {
+  font-size: var(--sp-text-wordmark);
+  font-weight: var(--sp-weight-strong);
+  letter-spacing: var(--sp-track-wordmark);
+  color: var(--sp-ink);
+}
+@media (max-width: 900px) {
+  .sp-wordmark {
+    display: none;
+  }
+}
+
+.sp-scope {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  font-size: var(--sp-text-body);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-ink);
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--sp-radius-chip);
+  background: none;
+  cursor: pointer;
+  flex: none;
+  max-width: 34ch;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sp-scope:hover {
+  background: var(--sp-hover);
+}
+.sp-scope-sep {
+  color: var(--sp-mute);
+  font-weight: var(--sp-weight-regular);
+}
+.sp-chev {
+  width: 13px;
+  height: 13px;
+  color: var(--sp-mute);
+  flex: none;
+}
+
+/* ---------- the live line ----------
+ * One line. It drops facts rather than truncating them, so what remains
+ * is always a whole true statement. */
+.sp-live {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  justify-content: center;
+  font: inherit;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  cursor: pointer;
+  padding: 7px 12px;
+  border: 0;
+  background: none;
+  border-radius: var(--sp-radius-ctl);
+  max-width: 680px;
+  margin: 0 auto;
+}
+.sp-live:hover {
+  background: var(--sp-hover);
+}
+.sp-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sp-mute);
+  flex: none;
+}
+.sp-live-dot[data-state="running"] {
+  background: var(--sp-stage-build);
+}
+.sp-live-dot[data-state="gate"] {
+  background: var(--sp-gate);
+}
+.sp-live-lead {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+  flex: none;
+}
+.sp-live-sep {
+  color: var(--sp-line);
+  flex: none;
+}
+.sp-live-fact {
+  color: var(--sp-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+@media (max-width: 1100px) {
+  .sp-live [data-drop="1"] {
+    display: none;
+  }
+}
+@media (max-width: 860px) {
+  .sp-live [data-drop="2"] {
+    display: none;
+  }
+}
+
+/* ---------- tools ---------- */
+.sp-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.sp-iconbtn {
+  width: var(--sp-ctl-sm);
+  height: var(--sp-ctl-sm);
+  border: 0;
+  background: none;
+  border-radius: var(--sp-radius-ctl);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--sp-mute);
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-iconbtn:hover {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
+}
+.sp-iconbtn svg {
+  width: var(--sp-icon);
+  height: var(--sp-icon);
+}
+.sp-askbtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--sp-ctl-sm);
+  padding: 0 12px;
+  font: inherit;
+  font-size: var(--sp-text-meta);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-ink);
+  background: var(--sp-lift);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-ctl);
+  cursor: pointer;
+  transition: background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-askbtn:hover {
+  background: var(--sp-float);
+}
+.sp-askbtn-icon {
+  width: var(--sp-icon-sm);
+  height: var(--sp-icon-sm);
+  flex: none;
+  color: var(--sp-mute);
+}
+.sp-askbtn-key {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  color: var(--sp-mute);
+}
+/* The brand mark renders its own <span role="img">, so the box is here. */
+.sp-logo {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  flex: none;
+  color: var(--sp-ink);
+}
+/* The human reads as a different KIND of thing from an agent: agents are a
+ * thin open line, you are a solid filled disc. The contrast survives
+ * greyscale and needs no ring shouting at you. */
+.sp-me {
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: var(--sp-text-data-sm);
+  font-weight: var(--sp-weight-heavy);
+  letter-spacing: var(--sp-track-monogram);
+  color: var(--sp-ink);
+  cursor: pointer;
+  border: 0;
+  background: linear-gradient(160deg, var(--sp-float), var(--sp-lift));
+  box-shadow:
+    inset 0 0 0 1px var(--sp-line),
+    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
+  transition: box-shadow var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-me:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--sp-mute),
+    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 10%, transparent);
+}
+
+/* ---------- the two lower regions ---------- */
+.sp-mid {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ---------- rail ---------- */
+.sp-rail {
+  width: var(--sp-rail-w);
+  flex: none;
+  background: var(--sp-sheet);
+  border-right: 1px solid var(--sp-line);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--sp-dur-mid) var(--sp-ease);
+}
+.sp-app[data-rail="narrow"] .sp-rail {
+  width: var(--sp-rail-w-narrow);
+}
+.sp-app[data-rail="narrow"] .sp-navlabel,
+.sp-app[data-rail="narrow"] .sp-navcount {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-rail {
+    transition: none;
+  }
+}
+
+.sp-nav {
+  padding: 14px 8px 6px;
+  flex: 1;
+  overflow-y: auto;
+}
+.sp-navrow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: var(--sp-navrow-h);
+  padding: 0 10px;
+  border-radius: var(--sp-radius-row);
+  color: var(--sp-body);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: var(--sp-text-body);
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-app[data-rail="narrow"] .sp-navrow {
+  justify-content: center;
+  padding: 0;
+}
+.sp-navrow:hover {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
+}
+.sp-navrow[aria-current="page"] {
+  background: var(--sp-lift);
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+}
+.sp-navrow svg {
+  width: var(--sp-icon);
+  height: var(--sp-icon);
+  flex: none;
+  stroke-width: 1.5;
+}
+.sp-navlabel {
+  flex: 1;
+  white-space: nowrap;
+}
+.sp-navcount {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data-sm);
+  color: var(--sp-mute);
+  flex: none;
+}
+.sp-navrow[aria-current="page"] .sp-navcount {
+  color: var(--sp-ink);
+}
+/* Ember marks the human, and nothing else: a count is hot when it is waiting
+ * on you, and it stays hot on the page you are already standing on. Written
+ * with the row in the selector so it ties the aria-current rule above on
+ * specificity and wins on order. Without that it silently lost, which is the
+ * kind of accident this file exists to prevent. */
+.sp-navrow .sp-navcount[data-hot="true"] {
+  color: var(--sp-gate);
+}
+
+/* Settings is a peer of the rail rows, at the foot, where Linear and Slack
+ * put it. An icon and not a labelled row: it is a door you open, not a
+ * place you live. */
+.sp-railfoot {
+  padding: 8px;
+  border-top: 1px solid var(--sp-line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.sp-app[data-rail="narrow"] .sp-railfoot {
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 6px;
+}
+.sp-setbtn {
+  display: grid;
+  place-items: center;
+  width: var(--sp-ctl-sm);
+  height: var(--sp-ctl-sm);
+  border-radius: var(--sp-radius-row);
+  color: var(--sp-mute);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  flex: none;
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-setbtn:hover,
+.sp-setbtn[aria-current="page"] {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
+}
+.sp-setbtn svg {
+  width: var(--sp-icon);
+  height: var(--sp-icon);
+  stroke-width: 1.5;
+}
+.sp-collapse {
+  width: var(--sp-ctl-xs);
+  height: var(--sp-ctl-xs);
+  border: 0;
+  background: none;
+  color: var(--sp-mute);
+  cursor: pointer;
+  border-radius: var(--sp-radius-chip);
+  display: grid;
+  place-items: center;
+}
+.sp-collapse:hover {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
+}
+.sp-collapse svg {
+  width: var(--sp-icon-sm);
+  height: var(--sp-icon-sm);
+}
+
+/* ---------- work ----------
+ * The region asks its OWN width, not the window's. That is the whole
+ * adaptive rule, and it is why a context column appears here and never
+ * inside a narrow drawer that happens to sit on a wide screen. */
+.sp-work {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--sp-bg);
+  container-type: inline-size;
+}
+
+/* Ported surfaces opt in. See the TRANSITION RULE at the top. */
+.sp-inner {
+  max-width: var(--sp-work-max);
+  padding: var(--sp-work-pad-y) var(--sp-work-pad-x) var(--sp-work-pad-bottom);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--sp-ctx-gap);
+  align-items: start;
+}
+.sp-main {
+  min-width: 0;
+  max-width: var(--sp-main-max);
+}
+/* The context column NEVER disappears. On a narrow region it stacks under
+ * the main column instead of hiding, because hiding it loses information
+ * that a 14 inch laptop needs just as much as a 32 inch one. */
+.sp-ctx {
+  min-width: 0;
+  margin-top: 38px;
+  padding-top: 26px;
+  border-top: 1px solid var(--sp-line-soft);
+  position: relative;
+}
+/* 1120px is --sp-ctx-split. A @container condition cannot read a custom
+ * property, so the number is written literally here and recorded there. */
+@container (min-width: 1120px) {
+  .sp-inner:has(.sp-ctx) {
+    grid-template-columns: minmax(0, 1fr) var(--sp-ctx-w);
+  }
+  /* A rule between the two regions, so the side column reads as its own
+   * place rather than as loose text floating beside the work. */
+  .sp-ctx {
+    margin-top: 6px;
+    padding-top: 0;
+    padding-left: 30px;
+    border-top: 0;
+    border-left: 1px solid var(--sp-line-soft);
+  }
+  /* The faintest starfield, scoped to this column only. It ties the room
+   * back to the door without decorating anything a person has to read. */
+  .sp-ctx::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 1px;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+      radial-gradient(1px 1px at 22% 8%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 74% 17%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 41% 31%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 86% 44%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 15% 56%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 62% 69%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 31% 84%, var(--sp-star), transparent),
+      radial-gradient(1px 1px at 79% 92%, var(--sp-star), transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  }
+}
+@media (max-width: 900px) {
+  .sp-inner {
+    padding: 24px 22px 60px;
+  }
+}
+
+/* On a genuinely small screen the rail becomes icons and stops arguing
+ * with the work for room. Below that it goes away entirely; the header
+ * keeps the brand, the live line and Ask. */
+@media (max-width: 900px) {
+  .sp-rail {
+    width: var(--sp-rail-w-narrow);
+  }
+  .sp-navlabel,
+  .sp-navcount {
+    display: none;
+  }
+  .sp-navrow {
+    justify-content: center;
+    padding: 0;
+  }
+  .sp-railfoot {
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 6px;
+  }
+}
+@media (max-width: 640px) {
+  .sp-rail {
+    display: none;
+  }
+  .sp-top {
+    gap: 10px;
+    padding: 0 12px;
+  }
+}
