@@ -52,8 +52,41 @@
 >    now lives in Engine Room, so `/crew` resolves there rather than shipping a placeholder,
 >    which means the rail lights "Engine room" after the jump. The prototype's screen 4 is the
 >    real fix.
-> 3. Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live line.
-> 4. Port surfaces against them. Today first, then a run, then the crew.
+> 3. ~~Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live
+>    line.~~ **DONE 2026-07-29.** `src/components/shell/primitives.tsx` +
+>    `src/styles/primitives.css`. Also Block, Button, PageHead, Surface, Empty, Num, and (after
+>    the first port pass reported the gaps) Field/Input/Select/Textarea, Failed, Pre, Actions.
+>    Agent identity is encoded twice, so it survives greyscale: **shape says which agent**
+>    (13 drawn silhouettes in `agent-glyphs.tsx`, keyed on the catalog display name so the five
+>    slugs that all mean "Watch" resolve without a mapping table), **hue says which of the seven
+>    loop stages**. The per-agent oklch hues and lucide names in `agent-vocabulary.ts` are
+>    deliberately NOT used for drawing; that file stays the source of truth for who an agent is.
+> 4. Port surfaces against them. **IN FLIGHT.** Done and verified live: Today (1543 lines to 345,
+>    stopped being a dashboard), Approvals (one gate plus a list, off the removal list), Crew
+>    (new, closes the homeless rail row), Engine room, Discover, Learn, Design, Ship.
+>
+> > [!WARNING]
+> > **⛔ A PORT IS NOT A RE-SKIN. Founder correction, 2026-07-29, mid-build, binding:**
+> > *"It should not be just a reassembling the thing... It should be well thought through what
+> > needs to go inside, what, why it needs to be there... Make sure that this deserves the place
+> > there. This is why it is required here. This can be moved somewhere else."*
+> >
+> > The prototype decides FOUR screens. The app has about forty more. For those forty, swapping
+> > components for the new primitives and deleting slop is **assembling with better parts**, which
+> > reproduces the exact failure that got all four directions rejected, at a higher polish, which
+> > is worse because it looks finished.
+> >
+> > **Method, binding on every surface the prototype does not draw:**
+> > [`rebuild-2026-07/SURFACE-JUSTIFICATION.md`](./rebuild-2026-07/SURFACE-JUSTIFICATION.md).
+> > Five answers, in writing, in the surface's own file header, before it counts as done: who is
+> > here and what did they come to do; the one thing this surface exists to make possible;
+> > keep/move/kill for every element with a reason ("it was already there" is not one); what is
+> > one click away instead of on the surface; what would delight and what would confuse.
+> >
+> > **Parallelism buys the mechanical half only** (kill the duplicate header, swap slop for
+> > primitives, delete dead decoration). It cannot buy a user lens, which is the verdict's own
+> > method note. So a parallel port pass is **PASS ONE and is never "done"**: the surfaces above
+> > are mechanically clean and still owe their five answers.
 >
 > **Known blocker, and the standing decision on it:** DB access has to go through the **Lovable**
 > MCP, never Supabase directly, because Supabase is provisioned and managed by Lovable here and
