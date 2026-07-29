@@ -36,8 +36,22 @@
 >    prototype's hand-tuned values were lifted as built; (b) `anti-slop.md` says three weights
 >    maximum, but Mona is installed as static 400/500/600/700 so the prototype's 550/650 snap up
 >    (measured in-browser: identical glyph widths to 600/700) and the system is four weights.
-> 2. Build the shell: header 56 / rail 236-64 / work / Ask summoned. It replaces all THREE current
->    shells (`AppShell.tsx`, `MissionShellView.tsx`, `RoomChrome.tsx`).
+> 2. ~~Build the shell: header 56 / rail 236-64 / work / Ask summoned.~~ **DONE 2026-07-29.**
+>    `src/components/shell/AppFrame.tsx` + `src/styles/shell.css`, live on every route that used
+>    `AppShell.tsx`. It takes no "which shell" argument and has no per-route branch. Real data,
+>    not placeholders: live line from running + last completed missions, Today count from the
+>    approvals queue, Runs count from running missions. Rail icons are inline SVG (the old rail
+>    used emoji, ban 5). Verified live at 1440 and 800: header exactly 56, rail 236 collapsing to
+>    64 and persisting, nav row 38, all Mona Sans, light theme warm paper, no horizontal overflow,
+>    one shell mounted with no legacy shell beside it. tsc 0, build 0.
+>    **Two things step 4 must close, both recorded in code rather than hidden:**
+>    (a) `_authenticated.tsx` still carries the pathname list, because the room surfaces draw
+>    their own chrome and would render two headers. It is now commented as the step-4 removal
+>    list that shrinks and never grows; `MissionShellView.tsx` and `RoomChrome.tsx` die with it.
+>    (b) **Crew is a decided rail row with no surface.** `/agents` was mothballed and the roster
+>    now lives in Engine Room, so `/crew` resolves there rather than shipping a placeholder,
+>    which means the rail lights "Engine room" after the jump. The prototype's screen 4 is the
+>    real fix.
 > 3. Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live line.
 > 4. Port surfaces against them. Today first, then a run, then the crew.
 >
