@@ -61,9 +61,23 @@
 >    slugs that all mean "Watch" resolve without a mapping table), **hue says which of the seven
 >    loop stages**. The per-agent oklch hues and lucide names in `agent-vocabulary.ts` are
 >    deliberately NOT used for drawing; that file stays the source of truth for who an agent is.
-> 4. Port surfaces against them. **IN FLIGHT.** Done and verified live: Today (1543 lines to 345,
->    stopped being a dashboard), Approvals (one gate plus a list, off the removal list), Crew
->    (new, closes the homeless rail row), Engine room, Discover, Learn, Design, Ship.
+> 4. Port surfaces against them. **DONE for every surface except Mission Control.** Three waves:
+>    a mechanical pass, then a justification pass over its output, then a closing pass. Every
+>    surface below carries its answers in its own file header.
+>
+>    | | |
+>    |---|---|
+>    | Duplicate headers | **13 `TopBar` mount sites to 0.** `/admin` was the last one. |
+>    | The three-shell list | **Down to one entry.** `/approvals`, `/brain`, `/settings`, `/threads`, `/artifacts` each came off as they stopped drawing their own chrome. Only Mission Control is left, and it is genuinely different: it carries its own five-region composition rather than a duplicate of the app chrome, so porting it is a design question, not a deletion. `MissionShellView.tsx` and `RoomChrome.tsx` die with it. |
+>    | Ported | Today (1543 to 345), Approvals, Crew (new), Engine room, Discover, Decide, Learn, Design, Ship, Plan, Build spine, Build run, Traces, Spec editor, Brain (15 panels to 6 + 2 behind a click), Settings (3433 to 2351), Threads, Artifacts, Admin |
+>    | Gate | tsc 0, build 0, and across every ported file: zero banned colour families, zero `border-left` card accents, zero gradient text, zero greetings, zero success toasts, zero wrapping list rows, no horizontal overflow |
+>
+>    **The best result of the whole sweep was a refusal.** The Build brief nominated `Diffstat`;
+>    the agent read the wiring and declined, because `studio_changesets` carries no diff columns
+>    and *"the demo seed fabricates additions/deletions in jsonb, which is exactly the kind of
+>    number that must not reach a real row"*. It refused `MarkStack` on goal runs for the same
+>    reason, so those rows read "The crew" rather than an invented name. That is R12 obeyed
+>    against a brief that was itself wrong.
 >
 >    **Defects from the handoff session are now fixed:**
 >    - The mockup generator no longer brands customer prototypes as "Supaprod" or renders them
