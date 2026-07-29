@@ -152,6 +152,8 @@ export function Row({
   sub,
   time,
   onClick,
+  tight = false,
+  focused = false,
 }: {
   /** The mark slot is a fixed width, so text starts on the same line whether
    *  the row carries one mark or two. */
@@ -160,10 +162,21 @@ export function Row({
   sub?: React.ReactNode;
   time?: string | null;
   onClick?: () => void;
+  /** A row in a LIST never wraps. Founder ruling: one or two lines, and depth
+   *  is a click away rather than showcased on the surface. Pass tight for any
+   *  row whose full content has a detail view to open. */
+  tight?: boolean;
+  focused?: boolean;
 }) {
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag className="sp-row" onClick={onClick} {...(onClick ? { type: "button" as const } : {})}>
+    <Tag
+      className="sp-row"
+      data-tight={tight}
+      data-focused={focused}
+      onClick={onClick}
+      {...(onClick ? { type: "button" as const } : {})}
+    >
       <span className="sp-row-marks">{marks}</span>
       <span className="sp-row-body">
         <span className="sp-row-lead">{lead}</span>

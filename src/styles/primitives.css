@@ -315,6 +315,17 @@
   color: var(--sp-mute);
   flex: none;
 }
+/* A row in a LIST is one line, and its second line is a different fact, not
+ * more of the first. Founder ruling 2026-07-29: "Why do we need so bigger
+ * things to display? If a user wants to know, he will click deeper and
+ * understand the context, rather than we showcase everything on the cards."
+ * Depth is a click away, so a list row never wraps. */
+.sp-row[data-tight="true"] .sp-row-lead,
+.sp-row[data-tight="true"] .sp-row-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .sp-pass {
   color: var(--sp-pass);
 }

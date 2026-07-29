@@ -1,22 +1,49 @@
 /**
- * Approvals. The single pull point, ported onto the rebuild primitives (step 4).
+ * Approvals. Redesigned, not re-skinned (SURFACE-JUSTIFICATION.md).
  *
- * THE DESIGN CALL MADE HERE. Today shows ONE gate, because a brief asks for one
- * decision. Approvals is the whole queue, and the retired version rendered every
- * item as an identical full card with its own approve and reject buttons: ten
- * primary actions on one screen, which is the opposite of "one primary CTA per
- * screen" and gives you nothing to look at first.
+ * The prototype does not draw this surface, so it owes the five answers.
  *
- * So the queue reads as ONE gate plus a list. The item holding focus renders as
- * the full Gate, the biggest thing on the surface; the rest are attribution
- * rows. j and k walk the list, which moves which item is the gate. That matches
- * how the queue is actually worked, one call at a time in order, and it means
- * the screen always has exactly one thing asking for a decision.
+ * 1. WHO IS HERE, AND WHY. A product lead who has just been told something is
+ *    waiting on them. They came to clear it, not to browse it. They will be
+ *    here for two minutes and they want to leave with the queue shorter.
  *
- * Every behaviour of the retired version is kept: the optimistic decide with
- * rollback, the a/r keys, the workspace-scoped query key shared with the rail
- * badge, the unscoped "N more in other workspaces" read, the per-kind toasts,
- * and the live-activity receipt line on an empty queue.
+ * 2. THE ONE THING IT EXISTS FOR. To settle calls, in order, with enough
+ *    evidence to be confident and no more. Nothing else on this surface earns
+ *    its place unless it serves that.
+ *
+ * 3. KEEP / MOVE / KILL, on what was here before:
+ *    KEEP  the queue itself, the filter row, the project grouping, the j/k/a/r
+ *          keys, the optimistic decide: this is where the decision is made.
+ *    KEEP  the "N more in other workspaces" line. It is the only thing telling
+ *          you the number in front of you is not the whole number.
+ *    KILL  the per-item full card. Twenty cards, each with its own evidence
+ *          block and its own approve and reject pair, is twenty primary
+ *          actions and nothing to look at first. It also forced the exact
+ *          verbosity the founder named: "Why do we need so bigger things to
+ *          display? If a user wants to know, he will click deeper."
+ *    KILL  the standalone page header and RoomChromeShell. The app shell
+ *          already says where you are.
+ *    MOVE  the evidence, the cost and the provenance out of the list and into
+ *          the context column, where they describe the ONE call in focus.
+ *
+ * 4. ONE CLICK AWAY. A list row is one line plus a different second fact (who
+ *    raised it, what kind), never wrapping. Its full evidence appears when it
+ *    becomes the focused call, which is one keypress or one click.
+ *
+ * 5. THE MOMENT. Clearing the last one. The queue is worked in order and the
+ *    surface always has exactly one thing asking, so the end is visible from
+ *    the start rather than being an infinite scroll that never resolves.
+ *
+ * WHAT THE SHAPE IS. One gate plus a list. The item holding focus renders as
+ * the full Gate, the biggest thing on the surface; the rest are one-line rows.
+ * j and k move which item is the gate. That matches how the queue is actually
+ * worked, one call at a time, and keeps one primary action on screen.
+ *
+ * Every behaviour is preserved: optimistic decide with rollback, a/r, the
+ * workspace-scoped query key shared with the rail badge and Today, the
+ * unscoped other-workspaces read, the per-kind toasts, and the live-activity
+ * receipt line on an empty queue.
+ *
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -334,9 +361,13 @@ function ApprovalsSurface() {
           {group.items.map((item) => (
             <Row
               key={item.id}
+              tight
               marks={<AgentMark slug={item.agentSlug} state="quiet" />}
               lead={stripAuto(item.title)}
-              sub={item.evidence[0] ? stripAuto(item.evidence[0]) : item.kind}
+              // The second line is a DIFFERENT fact, not more of the first: who
+              // raised it and what family of call it is. The evidence belongs
+              // to the one call in focus, not to twenty rows.
+              sub={`${agentDisplayName(item.agentSlug)} · ${item.kind.toLowerCase()}`}
               onClick={() => setFocusedId(item.id)}
             />
           ))}

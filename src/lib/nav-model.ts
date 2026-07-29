@@ -182,7 +182,14 @@ export function navKeyHint(item: NavItemDef): string {
     case "/settings":
       return "s";
     case "/admin":
-      return "a";
+      // NO BARE KEY. `a` is Approve on every gate (Today, Approvals), which is
+      // the highest-frequency action in the product and the one the prototype
+      // draws a keycap for. Both bindings are window listeners, so both fired:
+      // verified live on 2026-07-29, pressing `a` on a gate approved the call
+      // AND threw you to the admin console, where you could not see what you
+      // had just done. A rare admin door does not outrank the decision the
+      // whole product exists to collect. Admin stays reachable from Settings.
+      return "";
     default:
       // Loop stages carry a two-digit lifecycle marker ("01".."07"); the
       // shortcut is that number (1..7), so the shown index IS the key.
