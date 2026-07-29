@@ -55,7 +55,6 @@ const RAIL = [
 ] as const;
 
 const RAIL_KEY = "supaprod:rail-narrow";
-const STRIP_KEY = "supaprod:strip-shut";
 
 function initialsFrom(email: string | null | undefined, name?: string | null): string {
   const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
@@ -100,18 +99,16 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // only a run does. See that file's header for the founder ruling this obeys.
   const [strip, setStrip] = React.useState<RunStripSpec | null>(null);
 
-  // Open by default, because the ruling is "it needs to be always there" on a
-  // run. Collapsing is the exception, so the exception is what gets remembered.
-  const [stripShut, setStripShut] = React.useState(false);
-  React.useEffect(() => {
-    setStripShut(window.localStorage.getItem(STRIP_KEY) === "1");
-  }, []);
-  const toggleStrip = React.useCallback(() => {
-    setStripShut((v) => {
-      window.localStorage.setItem(STRIP_KEY, v ? "0" : "1");
-      return !v;
-    });
-  }, []);
+  // THE STRIP DOES NOT COLLAPSE. Founder, 2026-07-29, revising the earlier
+  // "if it has to be collapsed" allowance:
+  //   "First, fix that horizontal pane, always remain. When I click on run,
+  //    that horizontal pane should be there right from 01 to 07. It should not
+  //    collapse."
+  //
+  // So there is no toggle and no remembered state. On a run the seven stages
+  // are furniture, because they are the run's spine and a reader has to know
+  // where in the loop they are looking without asking for it. Off a run there
+  // is no strip at all, which is the same ruling's other half.
 
   const [me, setMe] = React.useState<{ email: string | null; name: string | null }>({
     email: null,
@@ -184,7 +181,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       <div
         className="sp-app"
         data-rail={narrow ? "narrow" : "wide"}
-        data-strip={strip ? (stripShut ? "shut" : "open") : "none"}
+        data-strip={strip ? "on" : "none"}
       >
         <header className="sp-top">
           <Link to="/today" className="sp-brand" aria-label="Supaprod, go to Today">
@@ -211,51 +208,46 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             </Link>
           ) : null}
 
-          {/* On a run the live line is the strip's switch, which is the founder's
-            "if it has to be collapsed, when someone clicks on the top bar".
-            Everywhere else there is no strip to collapse, so it does the one
-            honest thing left: it says work is happening, so it takes you to the
-            work. A control that reports a fact and then does nothing when you
-            press it is worse than a label. */}
-          <button
-            type="button"
-            className="sp-live"
-            onClick={() => {
-              if (strip) toggleStrip();
-              else void navigate({ to: "/runs" });
-            }}
-            title={
-              strip
-                ? stripShut
-                  ? "Show this run's seven stages"
-                  : "Collapse this run's seven stages"
-                : "Go to Runs"
-            }
-            aria-expanded={strip ? !stripShut : undefined}
-          >
-            <span className="sp-live-dot" data-state={liveState} />
-            <span className="sp-live-lead">{liveLead}</span>
-            {lastDone ? (
-              <>
-                <span className="sp-live-sep" data-drop="2" aria-hidden="true">
-                  &middot;
-                </span>
-                <span className="sp-live-fact" data-drop="2">
-                  last: {lastDone.title}
-                </span>
-                {since(lastDone.completed_at) ? (
-                  <>
-                    <span className="sp-live-sep" data-drop="1" aria-hidden="true">
-                      &middot;
-                    </span>
-                    <span className="sp-live-fact sp-num" data-drop="1">
-                      {since(lastDone.completed_at)}
-                    </span>
-                  </>
-                ) : null}
-              </>
-            ) : null}
-          </button>
+          {/* A button only where pressing it does something. On a run the strip
+              is already on screen and permanent, so this is a status line and
+              renders as a div; everywhere else it takes you to the work. A
+              control that reports a fact and then does nothing when you press
+              it is worse than a label. */}
+          {React.createElement(
+            strip ? "div" : "button",
+            strip
+              ? { className: "sp-live", "data-static": "true" }
+              : {
+                  className: "sp-live",
+                  type: "button",
+                  onClick: () => void navigate({ to: "/runs" }),
+                  title: "Go to Runs",
+                },
+            <>
+              <span className="sp-live-dot" data-state={liveState} />
+              <span className="sp-live-lead">{liveLead}</span>
+              {lastDone ? (
+                <>
+                  <span className="sp-live-sep" data-drop="2" aria-hidden="true">
+                    &middot;
+                  </span>
+                  <span className="sp-live-fact" data-drop="2">
+                    last: {lastDone.title}
+                  </span>
+                  {since(lastDone.completed_at) ? (
+                    <>
+                      <span className="sp-live-sep" data-drop="1" aria-hidden="true">
+                        &middot;
+                      </span>
+                      <span className="sp-live-fact sp-num" data-drop="1">
+                        {since(lastDone.completed_at)}
+                      </span>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
+            </>,
+          )}
 
           <div className="sp-tools">
             <button type="button" className="sp-askbtn" onClick={openAsk}>
@@ -274,7 +266,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {strip && !stripShut ? (
+        {/* Permanent whenever a run published one. No collapse, by ruling. */}
+        {strip ? (
           <div className="sp-strip" role="tablist" aria-label="The seven stages of this run">
             {strip.stages.map((stage, i) => {
               const on = stage.station === strip.active;
