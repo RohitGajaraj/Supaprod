@@ -65,6 +65,13 @@
 >    stopped being a dashboard), Approvals (one gate plus a list, off the removal list), Crew
 >    (new, closes the homeless rail row), Engine room, Discover, Learn, Design, Ship.
 >
+>    **Defects from the handoff session are now fixed:**
+>    - The mockup generator no longer brands customer prototypes as "Supaprod" or renders them
+>      in banned indigo; it now uses neutral slate and a product-name placeholder (2026-07-29).
+>    - The realtime RLS scope discrepancy in agent_approvals is documented; the actual policy
+>      is per-user only (not workspace-scoped as the comment claimed), with application-level
+>      workspace membership enforcement as mitigation (2026-07-29).
+>
 > > [!WARNING]
 > > **⛔ A PORT IS NOT A RE-SKIN. Founder correction, 2026-07-29, mid-build, binding:**
 > > *"It should not be just a reassembling the thing... It should be well thought through what
