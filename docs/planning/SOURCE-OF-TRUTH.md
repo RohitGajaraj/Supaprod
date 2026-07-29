@@ -11,6 +11,32 @@
 > This section replaces the old root `active-task.md` (folded in 2026-06-19). It is the single "what is in flight + what to pick next" cursor. Update it in the same unit of work as any change. Past work is in section 6 (progress log); the full dated history is in [`../../plan.md`](../../plan.md) section 4.
 
 > [!IMPORTANT]
+> ## ⭐ IN FLIGHT RIGHT NOW (2026-07-29, 15:40): the front-end rebuild moves from design to build
+>
+> **The design system is DECIDED and founder-approved. Stop prototyping. Start implementing.**
+>
+> | | |
+> |---|---|
+> | The approved system | [`rebuild-2026-07/structure/PROTOTYPE-v2.html`](./rebuild-2026-07/structure/PROTOTYPE-v2.html) — serve it, do not open with `file://` |
+> | The rules it obeys | [`../conventions/anti-slop.md`](../conventions/anti-slop.md) — **binding**, incl. the founder's 11 hard bans |
+> | Everything decided, so it is not relitigated | [`../operations/session-handoff.md`](../operations/session-handoff.md), last section |
+> | The structural reasoning | [`rebuild-2026-07/structure/SKETCH.html`](./rebuild-2026-07/structure/SKETCH.html) |
+>
+> **NEXT UNIT OF WORK, in order:**
+> 1. Lift the colour roles, type scale and density scale from the prototype into `src/styles/ink.css`
+>    as real tokens. Fonts are already installed at `public/fonts/{mona,plex,geist}`.
+> 2. Build the shell: header 56 / rail 236-64 / work / Ask summoned. It replaces all THREE current
+>    shells (`AppShell.tsx`, `MissionShellView.tsx`, `RoomChrome.tsx`).
+> 3. Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live line.
+> 4. Port surfaces against them. Today first, then a run, then the crew.
+>
+> **Known blocker:** DB access must go through the **Lovable** MCP, never Supabase directly
+> (Supabase is provisioned and managed by Lovable here, so there is no independent token and the
+> `supabase` entry in `.mcp.json` is dead). Reinstall with `/plugin install lovable@lovable`, then
+> restart. It does NOT block the build, which is frontend against server functions that already exist.
+
+
+> [!IMPORTANT]
 >
 > ## 🎯 2026-07-14 — THE NEXT PICK IS THE PUBLIC LANDING PAGE v2 (founder-directed; plan ready, awaiting founder §9 decisions, then build)
 >
