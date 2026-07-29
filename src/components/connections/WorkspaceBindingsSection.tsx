@@ -11,7 +11,7 @@ import {
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
-import { ProviderName, UNDER_MARK } from "@/components/connections/provider-marks";
+import { ProviderName, UnderMark } from "@/components/connections/provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import { Block, Button, Empty, Failed, Line, Loading, Num } from "@/components/shell/primitives";
 
@@ -156,7 +156,7 @@ export function WorkspaceBindingsSection() {
                     {`${spec.label} ${rt.label.toLowerCase()}`}
                   </ProviderName>
                 }
-                sub={<span style={UNDER_MARK}>{sub}</span>}
+                sub={<UnderMark>{sub}</UnderMark>}
               >
                 {binding ? (
                   <Button

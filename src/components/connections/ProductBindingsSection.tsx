@@ -29,7 +29,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { CreateRepoModal } from "./CreateRepoModal";
-import { ProviderName, UNDER_MARK } from "./provider-marks";
+import { ProviderName, UnderMark } from "./provider-marks";
 import {
   listConnections,
   listProductBindings,
@@ -188,7 +188,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                   {`${spec.label} ${rt.label.toLowerCase()}`}
                 </ProviderName>
               }
-              sub={<span style={UNDER_MARK}>{sub}</span>}
+              sub={<UnderMark>{sub}</UnderMark>}
             >
               {binding ? (
                 <Button

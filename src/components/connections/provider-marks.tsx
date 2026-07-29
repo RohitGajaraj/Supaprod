@@ -412,12 +412,17 @@ export function ProviderMark({
   );
 }
 
+/** The gap between a mark and the words it introduces, and therefore also the
+ *  indent that puts the second line under those words. One value, two uses, so
+ *  they cannot drift apart. */
+const NAME_GAP = "var(--sp-space-2)";
+
 /**
  * A provider's name with its mark, for a `Line` label.
  *
  * `Line` has no mark slot, and it should not grow one: a Line is a boundary you
  * set, and the mark belongs to the words rather than to the control. Pair it
- * with UNDER_MARK on the same Line's `sub` so the second line starts under the
+ * with UnderMark on the same Line's `sub` so the second line starts under the
  * name and not under the mark.
  */
 export function ProviderName({
@@ -430,16 +435,16 @@ export function ProviderName({
   children: ReactNode;
 }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-space-2)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: NAME_GAP }}>
       <ProviderMark provider={provider} tone={tone} />
       {children}
     </span>
   );
 }
 
-/** The indent that puts a `Line` sub under a ProviderName's words. 22px box
- *  plus the 8px gap the name uses. */
-export const UNDER_MARK: CSSProperties = {
-  display: "block",
-  paddingLeft: "calc(22px + var(--sp-space-2))",
-};
+/** A `Line` sub, indented to start under a ProviderName's words rather than
+ *  under its mark. The 22px box plus the same gap the name uses. */
+export function UnderMark({ children }: { children: ReactNode }) {
+  const style: CSSProperties = { display: "block", paddingLeft: `calc(22px + ${NAME_GAP})` };
+  return <span style={style}>{children}</span>;
+}
