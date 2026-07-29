@@ -320,7 +320,7 @@ function ApprovalsSurface() {
             </div>
             {focused.impact ? (
               <>
-                <div className="sp-ctx-head">What it costs</div>
+                <div className="sp-ctx-head">Before you decide</div>
                 <div className="sp-ctx-body">{focused.impact}</div>
               </>
             ) : null}

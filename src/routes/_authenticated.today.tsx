@@ -244,7 +244,7 @@ function Today() {
             </div>
             {call.impact ? (
               <>
-                <div className="sp-ctx-head">What it costs</div>
+                <div className="sp-ctx-head">Before you decide</div>
                 <div className="sp-ctx-body">{call.impact}</div>
               </>
             ) : null}

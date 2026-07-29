@@ -168,21 +168,17 @@ function AuthedLayout() {
   // condition, this list, MissionShellView.tsx and RoomChrome.tsx together.
   // Until then the list shrinks, it never grows: adding a route here is
   // adding a fourth shell.
+  //
+  // Came off this list on 2026-07-29 as each was ported and stopped drawing its
+  // own chrome: /approvals first, then /brain and /settings, both verified to
+  // have dropped RoomChromeShell and to lay out through sp-inner. Three entries
+  // remain: the room itself, /threads and /artifacts.
   const isReimaginedSurface =
     isMissionControl ||
     pathname === "/threads" ||
     pathname.startsWith("/threads/") ||
     pathname === "/artifacts" ||
-    pathname.startsWith("/artifacts/") ||
-    // Settings, Approvals, and Brain wear the reimagined room shell
-    // (RoomChromeShell) per the mockups, so the old AppShell 10-rail must not
-    // wrap them (founder ruling 2026-07-20: no bounce back to the retired shell).
-    pathname === "/settings" ||
-    pathname.startsWith("/settings/") ||
-    pathname === "/brain" ||
-    pathname.startsWith("/brain/");
-  // /approvals came off this list on 2026-07-29: it is ported and now renders
-  // inside AppFrame like every other surface. The list only ever shrinks.
+    pathname.startsWith("/artifacts/");
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the

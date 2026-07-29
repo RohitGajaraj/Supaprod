@@ -197,8 +197,8 @@ function PlanPage() {
     queryKey: ["agent-fleet", activeWorkspaceId],
     queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
   });
-  // Same key the retired SpecList used, so opening, renaming or deleting a spec
-  // anywhere still invalidates this list.
+  // The same key the retired SpecList held, so every existing writer that
+  // invalidates ["prds"] still refreshes this list.
   const specs = useQuery({ queryKey: ["prds"], queryFn: () => fSpecs() });
 
   const items = React.useMemo(() => roadmap.data?.items ?? [], [roadmap.data]);
