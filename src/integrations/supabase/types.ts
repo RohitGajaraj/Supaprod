@@ -8377,6 +8377,7 @@ export type Database = {
           auto_sense_enabled: boolean
           auto_trigger_enabled: boolean
           created_at: string
+          default_mission_spend_cap_usd: number | null
           deleted_at: string | null
           design_stage_enabled: boolean
           id: string
@@ -8406,6 +8407,7 @@ export type Database = {
           auto_sense_enabled?: boolean
           auto_trigger_enabled?: boolean
           created_at?: string
+          default_mission_spend_cap_usd?: number | null
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
@@ -8435,6 +8437,7 @@ export type Database = {
           auto_sense_enabled?: boolean
           auto_trigger_enabled?: boolean
           created_at?: string
+          default_mission_spend_cap_usd?: number | null
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
@@ -9088,6 +9091,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      demo_account_emails: { Args: never; Returns: string[] }
       demo_remap: { Args: { p_id: string; p_prefix: string }; Returns: string }
       demo_remap_pk: {
         Args: { p_id: string; p_prefix: string }
@@ -9327,6 +9331,19 @@ export type Database = {
         }[]
       }
       memory_expiry_enabled: { Args: never; Returns: boolean }
+      mission_cap_state: {
+        Args: { _run_id: string }
+        Returns: {
+          halted_reason: string
+          mission_spend_cap_usd: number
+          mission_spend_total_usd: number
+          mission_token_cap: number
+          mission_token_total: number
+          spend_used_usd: number
+          status: string
+          tokens_used: number
+        }[]
+      }
       move_product: {
         Args: { _dest_workspace_id: string; _product_id: string }
         Returns: undefined
