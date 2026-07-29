@@ -92,6 +92,35 @@ export function computeHunks(base: string, modified: string): Hunk[] {
 }
 
 /**
+ * The diffstat of one file: lines added, lines removed.
+ *
+ * WHY THIS EXISTS. The run screen stated its change in CHARACTERS, because
+ * `getStudioSession` reduced each file to base_chars/new_chars before sending
+ * it and characters were the only unit left. The comment there was honest about
+ * the substitution ("naming the unit stops it being read as lines"), but "+1,240
+ * characters" is not how anyone reads a change, and the prototype's own run
+ * screen says "+24 -6 across 3 files".
+ *
+ * A character delta is also not a diff. Rewriting a line to the same length is
+ * a real change and nets to zero; swapping two lines nets to zero as well. This
+ * counts what the LCS alignment actually found, so a rename shows as one line
+ * out and one line in, which is what happened.
+ *
+ * It reuses the same `buildSegments` alignment that hunk selection uses, so the
+ * number on the headline can never disagree with the hunks rendered underneath
+ * it. Two implementations of "what changed" is how those two drift apart.
+ */
+export function diffStat(base: string, modified: string): { added: number; removed: number } {
+  let added = 0;
+  let removed = 0;
+  for (const hunk of computeHunks(base, modified)) {
+    added += hunk.modifiedLines.length;
+    removed += hunk.baseLines.length;
+  }
+  return { added, removed };
+}
+
+/**
  * Reconstruct file content keeping every hunk EXCEPT the rejected ones, which
  * revert to their base lines. With no rejections this returns `modified`
  * exactly; with every hunk rejected it returns `base` exactly.

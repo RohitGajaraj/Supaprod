@@ -208,6 +208,8 @@ type ChangeRow = {
   op: string;
   base_chars: number;
   new_chars: number;
+  added_lines: number;
+  removed_lines: number;
   updated_at: string;
 };
 
@@ -349,15 +351,22 @@ const STATE_WORD: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-/** The change, stated before any panel is opened. Characters, because that is
- *  what the changeset stores; naming the unit stops it being read as lines. */
+/** The change, stated before any panel is opened. LINES, which is how a diff is
+ *  read everywhere else a person has ever seen one.
+ *
+ *  This used to sum the character delta per file, and said so honestly, because
+ *  getStudioSession reduced each file to base_chars/new_chars before sending it
+ *  and characters were the only unit left. They were also the wrong unit: a line
+ *  rewritten to the same length nets to zero, and so do two lines swapped. The
+ *  server now runs the same LCS alignment the Changes tab renders its hunks
+ *  from, so this reads real counts and the headline cannot disagree with the
+ *  hunks one click underneath it. */
 function diffOf(changes: ChangeRow[]): { added: number; removed: number; files: number } {
   let added = 0;
   let removed = 0;
   for (const c of changes) {
-    const delta = c.new_chars - c.base_chars;
-    if (delta > 0) added += delta;
-    else removed += -delta;
+    added += c.added_lines;
+    removed += c.removed_lines;
   }
   return { added, removed, files: changes.length };
 }
@@ -1084,7 +1093,7 @@ function BuildRun() {
             sub={
               diff.files > 0 ? (
                 <>
-                  <Diffstat added={diff.added} removed={diff.removed} /> characters across{" "}
+                  <Diffstat added={diff.added} removed={diff.removed} /> lines across{" "}
                   <Num>{diff.files}</Num> {diff.files === 1 ? "file" : "files"}.
                 </>
               ) : undefined

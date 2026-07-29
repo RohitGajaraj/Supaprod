@@ -3,6 +3,7 @@ import {
   applyChangesetHunkSelections,
   applyHunkSelection,
   computeHunks,
+  diffStat,
   evaluateFileSetPolicy,
   matchesTouchList,
 } from "./studio-hunks";
@@ -183,5 +184,51 @@ describe("applyChangesetHunkSelections", () => {
 
   test("empty input yields empty output", () => {
     expect(applyChangesetHunkSelections([])).toEqual([]);
+  });
+});
+
+describe("diffStat", () => {
+  test("identical content is no change at all", () => {
+    expect(diffStat("a\nb\nc", "a\nb\nc")).toEqual({ added: 0, removed: 0 });
+  });
+
+  test("a pure insertion adds and removes nothing", () => {
+    expect(diffStat("a\nb", "a\nnew\nb")).toEqual({ added: 1, removed: 0 });
+  });
+
+  test("a pure deletion removes and adds nothing", () => {
+    expect(diffStat("a\ngone\nb", "a\nb")).toEqual({ added: 0, removed: 1 });
+  });
+
+  test("a new file is all additions, an emptied one all removals", () => {
+    expect(diffStat("", "a\nb\nc")).toEqual({ added: 3, removed: 0 });
+    expect(diffStat("a\nb\nc", "")).toEqual({ added: 0, removed: 3 });
+  });
+
+  // The two cases the character delta this replaced got wrong. Both are real
+  // changes that net to zero characters, so the run screen used to state them
+  // as "+0 -0" while the Changes tab underneath rendered actual hunks.
+  test("a line rewritten to the same length is one out and one in", () => {
+    expect(diffStat("const a = 1;", "const b = 2;")).toEqual({ added: 1, removed: 1 });
+  });
+
+  test("two lines swapped is a real change, not a wash", () => {
+    const stat = diffStat("alpha\nbravo", "bravo\nalpha");
+    expect(stat.added).toBeGreaterThan(0);
+    expect(stat.removed).toBeGreaterThan(0);
+  });
+
+  test("it never disagrees with the hunks it is summed from", () => {
+    const base = "one\ntwo\nthree\nfour";
+    const next = "one\nTWO\nthree\nfour\nfive";
+    const hunks = computeHunks(base, next);
+    const summed = hunks.reduce(
+      (acc, h) => ({
+        added: acc.added + h.modifiedLines.length,
+        removed: acc.removed + h.baseLines.length,
+      }),
+      { added: 0, removed: 0 },
+    );
+    expect(diffStat(base, next)).toEqual(summed);
   });
 });

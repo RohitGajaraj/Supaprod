@@ -25,6 +25,7 @@ import type { LoopStep } from "@/lib/ai/loop.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import {
   applyHunkSelection,
+  diffStat,
   evaluateFileSetPolicy,
   matchesTouchList,
   type FileSetPolicyReport,
@@ -778,6 +779,8 @@ export const getStudioSession = createServerFn({ method: "GET" })
       op: string;
       base_chars: number;
       new_chars: number;
+      added_lines: number;
+      removed_lines: number;
       updated_at: string;
     }> = [];
     if (csRow) {
@@ -795,14 +798,26 @@ export const getStudioSession = createServerFn({ method: "GET" })
           new_content: string | null;
           updated_at: string;
         }>
-      ).map((c) => ({
-        id: c.id,
-        path: c.path,
-        op: c.op,
-        base_chars: c.base_content?.length ?? 0,
-        new_chars: c.new_content?.length ?? 0,
-        updated_at: c.updated_at,
-      }));
+      ).map((c) => {
+        // Lines, not characters. The full base/new content is already read here
+        // to measure it, so the real diffstat costs one pure alignment per file
+        // and nothing extra over the wire. A character delta nets to zero when a
+        // line is rewritten to the same length or two lines are swapped, which
+        // are both real changes; this counts what the alignment actually found.
+        // Same `computeHunks` the Changes tab renders from, so the headline
+        // number cannot disagree with the hunks underneath it.
+        const stat = diffStat(c.base_content ?? "", c.new_content ?? "");
+        return {
+          id: c.id,
+          path: c.path,
+          op: c.op,
+          base_chars: c.base_content?.length ?? 0,
+          new_chars: c.new_content?.length ?? 0,
+          added_lines: stat.added,
+          removed_lines: stat.removed,
+          updated_at: c.updated_at,
+        };
+      });
     }
 
     // F-BUILDER-MULTIFILE: the changeset's declared touch list + cap, evaluated
