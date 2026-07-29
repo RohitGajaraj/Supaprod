@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, UserMinus } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   listWorkspaceMembers,
@@ -9,8 +8,8 @@ import {
   transferWorkspaceOwnership,
   changeWorkspaceMemberRole,
 } from "@/lib/workspaces.functions";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/notify";
+import { Button, Empty, Failed, Line, Loading, Select } from "@/components/shell/primitives";
 
 // Members: the calm-front view of who is in the workspace (WM-F4 + RBAC). Identity (name/email)
 // comes from the membership-gated workspace_members_with_identity RPC, because profiles RLS is
@@ -20,6 +19,17 @@ import { toast } from "@/lib/notify";
 // the owner to admin, so it is not one-click).
 // Engine-Room: workspace_members + the RBAC roles + the transfer/remove/role RPCs -> shown in
 // Settings > Workspace as "Members" -> see who is in the workspace and, as owner, manage them.
+//
+// Ported to the rebuild primitives 2026-07-29. It renders INSIDE the route's
+// `Block title="People"`, so it deliberately draws no Block and no heading of
+// its own: a second rule under the heading it already sits beneath is the
+// nested-container defect, not a section. Each member is a Line, because a
+// member's role IS a boundary and a boundary reads as a sentence with its
+// control at the end. Dropped on the way: the monogram discs (decoration in
+// front of the message, hard ban 8), the three-bar pulse skeleton (Loading
+// states the fact instead), and the role pill (the Select is the role).
+// FIXED, beyond styling: the error state said "Try again" with nothing to
+// click. It now has the retry it was describing.
 
 type Member = {
   userId: string;
@@ -41,37 +51,10 @@ function memberName(m: Member): string {
   return m.displayName?.trim() || m.email?.trim() || "Member";
 }
 
-function monogram(m: Member): string {
-  const name = memberName(m);
-  return name === "Member" ? "?" : name[0]!.toUpperCase();
-}
-
 function joinedOn(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
-
-function RoleChip({ role }: { role: string }) {
-  const isOwner = role === "owner";
-  return (
-    <span
-      className="mono-label"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "1px 7px",
-        borderRadius: 999,
-        color: isOwner ? "var(--ink)" : "var(--ink-muted)",
-        background: isOwner ? "var(--surface-1)" : "transparent",
-        border: "1px solid var(--hairline)",
-      }}
-    >
-      {isOwner && <Crown size={16} strokeWidth={1.5} aria-hidden />}
-      {ROLE_LABEL[role] ?? role}
-    </span>
-  );
 }
 
 export function MembersCard() {
@@ -129,252 +112,116 @@ export function MembersCard() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  return (
-    <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: "var(--geist-space-3x)",
-        }}
-      >
-        <div className="mono-label">Members</div>
-        {!membersQ.isLoading && members.length > 0 && (
-          <span style={{ color: "var(--ink-faint)" }}>
-            {members.length} {members.length === 1 ? "person" : "people"}
-          </span>
-        )}
-      </div>
-      <p
-        className="text-label-12"
-        style={{ color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}
-      >
-        Who can work in this workspace.{" "}
-        {isOwner
+  // The boundary currently in force, stated before anything offers to change it.
+  const policy = membersQ.isSuccess
+    ? `${members.length} ${members.length === 1 ? "person" : "people"} can work here. ${
+        isOwner
           ? "As the owner, you can change roles, remove people, or hand over ownership."
-          : "Only the workspace owner can change who is here."}
-      </p>
+          : "Only the workspace owner can change who is here."
+      }`
+    : null;
 
-      <div style={{ marginTop: 16 }}>
-        {membersQ.isLoading ? (
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }} aria-hidden>
-            {[0, 1, 2].map((i) => (
-              <li
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--geist-space-3x)",
-                  padding: "10px 0",
-                  borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
-                }}
-              >
-                <div
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 999,
-                    background: "var(--surface-1)",
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      width: "42%",
-                      height: 11,
-                      borderRadius: 4,
-                      background: "var(--surface-1)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "26%",
-                      height: 9,
-                      borderRadius: 4,
-                      background: "var(--surface-1)",
-                      marginTop: 7,
-                    }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : membersQ.isError ? (
-          <div className="text-label-13" style={{ color: "var(--rose)", marginTop: 4 }}>
-            Could not load members. Try again.
-          </div>
-        ) : members.length === 0 ? (
-          <p className="text-label-13" style={{ color: "var(--ink-faint)" }}>
-            No members yet.
-          </p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {members.map((m, i) => {
-              const name = memberName(m);
-              const isRowOwner = m.userId === ownerId || m.role === "owner";
-              // All member management is owner-only (RLS). The owner cannot manage
-              // their own row (the demotion trigger guards it) or the owner row.
-              const manageable = isOwner && !isRowOwner && !m.isSelf;
-              const showRemove = manageable;
-              const showTransfer = manageable;
-              const subtitle =
-                m.displayName && m.email
-                  ? `${m.email} · joined ${joinedOn(m.createdAt)}`
-                  : `joined ${joinedOn(m.createdAt)}`;
-              const confirming = confirmTransfer === m.userId;
+  return (
+    <>
+      {policy ? <div className="sp-block-sub">{policy}</div> : null}
 
-              return (
-                <li
-                  key={m.userId}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "var(--geist-space-3x)",
-                    padding: "11px 0",
-                    borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
-                  }}
-                >
-                  <div
-                    aria-hidden
-                    className="text-label-13"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      flexShrink: 0,
-                      borderRadius: 999,
-                      background: "var(--surface-1)",
-                      border: "1px solid var(--hairline)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 600,
-                      color: "var(--ink-muted)",
-                    }}
+      {membersQ.isLoading ? (
+        <Loading>Reading who is in this workspace.</Loading>
+      ) : membersQ.isError ? (
+        <Failed onRetry={() => void membersQ.refetch()}>
+          The member list did not load. {(membersQ.error as Error)?.message ?? "The read failed."}
+        </Failed>
+      ) : members.length === 0 ? (
+        <Empty>Nobody is in this workspace yet. Invite someone below.</Empty>
+      ) : (
+        members.map((m) => {
+          const name = memberName(m);
+          const isRowOwner = m.userId === ownerId || m.role === "owner";
+          // All member management is owner-only (RLS). The owner cannot manage
+          // their own row (the demotion trigger guards it) or the owner row.
+          const manageable = isOwner && !isRowOwner && !m.isSelf;
+          const joined = joinedOn(m.createdAt);
+          // The second line carries what the first one does not: where to reach
+          // them and how long they have been here. Never a restatement.
+          const sub = [
+            m.displayName && m.email ? m.email : null,
+            joined ? `joined ${joined}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          const confirming = confirmTransfer === m.userId;
+
+          return (
+            <Line key={m.userId} label={m.isSelf ? `${name} (you)` : name} sub={sub || undefined}>
+              {confirming ? (
+                <>
+                  <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                    Make {name} the owner? You become an admin.
+                  </span>
+                  <Button
+                    variant="primary"
+                    disabled={transfer.isPending}
+                    onClick={() => transfer.mutate(m.userId)}
                   >
-                    {monogram(m)}
-                  </div>
-
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
+                    {transfer.isPending ? "Transferring" : "Confirm"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={transfer.isPending}
+                    onClick={() => setConfirmTransfer(null)}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {manageable ? (
+                    <Select
+                      value={m.role}
+                      disabled={changeRole.isPending}
+                      onChange={(e) =>
+                        changeRole.mutate({
+                          userId: m.userId,
+                          role: e.target.value as "admin" | "member" | "viewer",
+                        })
+                      }
+                      aria-label={`Role for ${name}`}
+                      style={{ width: 130 }}
                     >
-                      <span
-                        className="text-label-13"
-                        style={{
-                          color: "var(--ink)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: 220,
-                        }}
-                      >
-                        {name}
-                      </span>
-                      {m.isSelf && (
-                        <span
-                          className="mono-label"
-                          style={{
-                            padding: "1px 6px",
-                            borderRadius: 999,
-                            color: "var(--ink-subtle)",
-                            border: "1px solid var(--hairline)",
-                          }}
-                        >
-                          You
-                        </span>
-                      )}
-                      {manageable ? (
-                        <select
-                          className="mono-label"
-                          value={m.role}
-                          disabled={changeRole.isPending}
-                          onChange={(e) =>
-                            changeRole.mutate({
-                              userId: m.userId,
-                              role: e.target.value as "admin" | "member" | "viewer",
-                            })
-                          }
-                          aria-label={`Role for ${name}`}
-                          style={{
-                            padding: "1px 6px",
-                            borderRadius: 999,
-                            color: "var(--ink-muted)",
-                            background: "var(--surface-1)",
-                            border: "1px solid var(--hairline)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="member">Member</option>
-                          <option value="viewer">Viewer</option>
-                        </select>
-                      ) : (
-                        <RoleChip role={m.role} />
-                      )}
-                    </div>
-                    <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
-                      {subtitle}
-                    </div>
-                  </div>
-
-                  {confirming ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexShrink: 0 }}>
-                      <span style={{ color: "var(--ink-subtle)", maxWidth: 180 }}>
-                        Make {name} the owner? You become an admin.
-                      </span>
+                      <option value="admin">Admin</option>
+                      <option value="member">Member</option>
+                      <option value="viewer">Viewer</option>
+                    </Select>
+                  ) : (
+                    <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                      {ROLE_LABEL[m.role] ?? m.role}
+                    </span>
+                  )}
+                  {manageable ? (
+                    <>
                       <Button
-                        size="sm"
-                        disabled={transfer.isPending}
-                        onClick={() => transfer.mutate(m.userId)}
+                        variant="ghost"
+                        onClick={() => setConfirmTransfer(m.userId)}
+                        aria-label={`Make ${name} the owner`}
                       >
-                        {transfer.isPending ? "Transferring" : "Confirm"}
+                        Make owner
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        disabled={transfer.isPending}
-                        onClick={() => setConfirmTransfer(null)}
+                        disabled={remove.isPending}
+                        onClick={() => remove.mutate(m.userId)}
+                        aria-label={`Remove ${name}`}
                       >
-                        Cancel
+                        Remove
                       </Button>
-                    </div>
-                  ) : (
-                    (showTransfer || showRemove) && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                        {showTransfer && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setConfirmTransfer(m.userId)}
-                            aria-label={`Make ${name} the owner`}
-                          >
-                            <Crown size={16} />
-                            Make owner
-                          </Button>
-                        )}
-                        {showRemove && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={remove.isPending}
-                            onClick={() => remove.mutate(m.userId)}
-                            style={{ color: "var(--rose)" }}
-                            aria-label={`Remove ${name}`}
-                          >
-                            <UserMinus size={16} />
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                    )
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
+                    </>
+                  ) : null}
+                </>
+              )}
+            </Line>
+          );
+        })
+      )}
+    </>
   );
 }

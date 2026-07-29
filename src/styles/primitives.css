@@ -12,6 +12,24 @@
  *   opacity means quiet, ember means it needs you, red means it failed.
  *   That is what keeps thirteen agent hues from competing with the four
  *   status colours. Crew is monochrome everywhere but the Crew page.
+ *
+ * FOCUS, and why there is no :focus-visible rule in this file.
+ *   Verified 2026-07-29, and recorded so the next person does not write a
+ *   rule that silently does nothing. styles.css carries an UNLAYERED
+ *   `[data-obsidian] :focus-visible { outline: ...; box-shadow: none }`,
+ *   and the app shell mounts inside that scope. It ties every
+ *   `.sp-thing:focus-visible` here on specificity (0,2,0) and sits later
+ *   in the cascade, because the @imports at the top of styles.css are
+ *   hoisted above it. So a focus ring written here is inert, AND any
+ *   box-shadow it would draw on a focused element is erased.
+ *   The consequences, both deliberate:
+ *     · Every interactive primitive in this system is a real <button> or a
+ *       real <input>, so it takes that app-wide ring without asking. That
+ *       is the accessibility requirement met; the ring is just not ours yet.
+ *     · Anything that must survive focus is drawn as an overlay rather than
+ *       as a box-shadow. See .sp-cell[data-selected].
+ *   When the legacy stylesheet is purged, the ring moves here and this note
+ *   goes with it.
  * =================================================================== */
 
 /* ---------- agent mark ----------
@@ -1032,6 +1050,201 @@
   font-size: var(--sp-text-label);
   color: var(--sp-mute);
   margin-top: 1px;
+}
+
+/* ---------- the grid of cells ----------
+ * A list is read DOWN, a catalog is scanned ACROSS. Added 2026-07-29 after
+ * three lanes each built this from raw tokens in the same week: the only grid
+ * in the system was .sp-agrid / .sp-acard below, whose names say AGENT, so a
+ * source catalog or a price ladder could not borrow them without the class
+ * lying about what is in it. The roster keeps its pair; this is the neutral one.
+ *
+ * The column measure is a custom property rather than a hard value in the
+ * shorthand, so a grid whose contents genuinely need a different measure sets
+ * --sp-cell-min instead of redeclaring the whole grid and drifting from it. */
+.sp-grid {
+  --sp-cell-min: 196px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--sp-cell-min), 1fr));
+  gap: var(--sp-space-2);
+}
+
+/* TINTED, NEVER BORDERED. Nineteen bordered cells in one region is nineteen
+ * bordered containers and the cap is one (ban 5), so the ground changes instead
+ * of the edge.
+ *
+ * THE TINT IS A CUSTOM PROPERTY, and that is the whole point of it. A lane
+ * reported the real defect: an inline background silently outranks a class
+ * hover, so their cells faked hover with onMouseEnter state and lost the focus
+ * state with it. Here the hover is COMPUTED from --sp-cell-bg, so the tint and
+ * its hover can never disagree, and mixing INK into the ground moves it the
+ * right way in both themes: lighter on dark, darker on light, one rule. */
+.sp-cell {
+  --sp-cell-bg: var(--sp-lift);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-3);
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-cell-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    box-shadow var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-cell[data-tone="recessed"] {
+  --sp-cell-bg: var(--sp-sink);
+}
+/* Only a button lights up, and only while it can still be pressed. A hover
+ * state on something that does nothing is a lie about what will happen. */
+button.sp-cell {
+  cursor: pointer;
+}
+button.sp-cell:hover:not(:disabled),
+button.sp-cell:focus-visible:not(:disabled) {
+  background: color-mix(in oklab, var(--sp-cell-bg) 92%, var(--sp-ink));
+}
+/* A ring, never a fill: ember marks the human and a bundle you picked is not
+ * one.
+ *
+ * Drawn as a pseudo-element rather than an inset box-shadow, which is the
+ * obvious way and is quietly broken here. The legacy app-wide focus rule
+ * (styles.css, the [data-obsidian] :focus-visible block) is UNLAYERED and sets
+ * `box-shadow: none`, and it ties this rule on specificity while sitting later
+ * in the file, so the selection ring would vanish the moment you arrowed onto
+ * the cell that has it. An overlay is immune to that and costs nothing. */
+.sp-cell[data-selected="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--sp-ink);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.sp-cell[data-disabled="true"] {
+  opacity: 0.45;
+}
+button.sp-cell:disabled {
+  cursor: not-allowed;
+}
+/* Both lines are their own line, and neither wraps. Founder ruling: one or two
+ * lines, and depth is a click away rather than showcased on the cell. */
+.sp-cell-body {
+  flex: 1;
+  min-width: 0;
+}
+.sp-cell-lead,
+.sp-cell-sub {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-cell-lead {
+  font-size: var(--sp-text-body);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-ink);
+}
+.sp-cell-sub {
+  margin-top: 1px;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+}
+
+/* ---------- a value you can read and cannot set ----------
+ * The right-hand side of a Line that has no control, because the boundary is
+ * real and is set somewhere else: a pinned tool, a plan only the owner may
+ * change, a model chosen for you. Four surfaces had already hand-rolled this
+ * exact muted span. An empty slot cannot tell you which of those it is.
+ *
+ * Quiet by default. A tone appears only where the value IS an outcome, which is
+ * the one case where the colour is carrying the fact rather than dressing it. */
+.sp-value {
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+}
+.sp-value[data-tone="pass"] {
+  color: var(--sp-pass);
+}
+.sp-value[data-tone="warn"] {
+  color: var(--sp-warn);
+}
+.sp-value[data-tone="fail"] {
+  color: var(--sp-fail);
+}
+
+/* ---------- checkbox ----------
+ * A value you tick, as part of something you will submit. The switch above is
+ * the other instrument and the difference is WHEN IT TAKES EFFECT: a switch
+ * goes live the moment you touch it, which earns it green; a checkbox waits for
+ * something else to act on it, so it stays monochrome and reads on shape alone
+ * in greyscale.
+ *
+ * Drawn on the real <input>, never on a div wearing a role, so Space works, the
+ * form sees it, and the app-wide focus ring lands on the box a person is
+ * looking at. */
+.sp-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  flex: none;
+  margin: 0;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-xs);
+  background: var(--sp-lift);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    border-color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-check:hover:not(:disabled) {
+  border-color: var(--sp-mute);
+}
+.sp-check:checked {
+  background: var(--sp-ink);
+  border-color: var(--sp-ink);
+}
+/* The tick is two borders turned on their corner. No icon file for a shape
+ * this small: at 17px an imported glyph is heavier than the mark it draws. */
+.sp-check:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--sp-bg);
+  border-width: 0 1.6px 1.6px 0;
+  transform: rotate(43deg);
+}
+.sp-check:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-check {
+    transition: none;
+  }
+}
+
+/* ---------- a short set of named options ----------
+ * Deliberately NOT a look of its own. The options are .sp-btn, exactly as the
+ * three lanes that hand-rolled this drew them, so adopting the primitive
+ * changes the roles and the keyboard and not one pixel. All this rule owns is
+ * the gap the lanes were each writing inline. The ARIA that makes it correct,
+ * and the arrow keys for the single-select case, live in primitives.tsx. */
+.sp-choices {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-1);
+  flex-wrap: wrap;
 }
 
 /* ---------- empty state ----------

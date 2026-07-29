@@ -9,6 +9,26 @@
  *
  * Anatomy: PROTOTYPE-v2.html. Styles: src/styles/primitives.css.
  * Tokens: src/styles/ink.css. Nothing here carries a literal colour or size.
+ *
+ * DELIBERATELY ABSENT: a pane, a slide-over, a drawer.
+ *
+ * `--sp-pane-ask-w`, `--sp-pane-settings-w`, `--sp-pane-inset` and
+ * `--sp-radius-pane` are declared in ink.css and nothing implements them, which
+ * reads like an oversight and is not one. Three reasons, and they compound:
+ *
+ *   1. The standard's own fix for modal abuse (anti-slop.md ban 11) is "a panel
+ *      or a page. A modal only for a single irreversible confirmation." A
+ *      slide-over is the thing that ban exists to stop, one step softer.
+ *   2. A lane that wanted one built its detail view IN PLACE instead, and that
+ *      is the better surface. Shipping the pane would invite the reverse trade.
+ *   3. A pane is not a stylesheet. It is a focus trap, a scroll lock, Escape,
+ *      focus returned to whatever opened it, and the page behind it made inert.
+ *      Half of that is an accessibility regression wearing a primitive's name.
+ *
+ * If one is ever built it has exactly one job: the Ask composer, summoned over
+ * any surface, because a question about what is on screen must not take the
+ * screen away. It must never hold settings, a form of more than one field, a
+ * detail view, or anything that has an address of its own.
  */
 
 import * as React from "react";
@@ -230,6 +250,116 @@ export function Row({
 /** The actor's name inside a row lead. */
 export function Who({ children }: { children: React.ReactNode }) {
   return <span className="sp-row-who">{children}</span>;
+}
+
+/* ------------------------------------------------------------------ *
+ * Grid and cell: the shape for things that are SCANNED
+ * ------------------------------------------------------------------ */
+
+/** A list is read down. A catalog is scanned across.
+ *
+ *  Reported by three lanes at once, each of which built this from raw tokens
+ *  because the only grid in the system was the crew roster's `.sp-agrid` /
+ *  `.sp-acard`, whose names say AGENT and which therefore cannot be borrowed for
+ *  a source catalog or a price ladder without the class lying about its content.
+ *  The roster keeps its own pair, because on that one surface the hue is
+ *  information; this is the neutral shape for everywhere else.
+ *
+ *  The arithmetic that makes it a grid rather than a column: nineteen providers
+ *  down a column is nineteen rows of scrolling, and the same nineteen at three
+ *  or four across is five. */
+export function Grid({ children }: { children: React.ReactNode }) {
+  return <div className="sp-grid">{children}</div>;
+}
+
+/** One cell of a Grid.
+ *
+ *  TINTED, NEVER BORDERED. Nineteen bordered cells in one region is nineteen
+ *  bordered containers, and the standard caps a region at one (anti-slop.md
+ *  ban 5). It reads as a cell because the ground under it changes, and the WHOLE
+ *  cell is the affordance rather than carrying a button, which is what keeps it
+ *  two lines tall.
+ *
+ *  It is a REAL `<button>` when it does something, so it is tabbable, it answers
+ *  Space and Enter, and it takes the app-wide focus ring without being asked.
+ *  That is the second reported gap: `.sp-acard` was written for a `<div>`, so
+ *  every lane that needed a clickable card wrote the same eight-property reset
+ *  inline. The reset lives in the stylesheet now.
+ *
+ *  The tint is a CUSTOM PROPERTY rather than a background, which is the whole
+ *  reason `tone` works. A lane reported the real constraint: an inline
+ *  background silently outranks a class hover, so their cells had to fake hover
+ *  with onMouseEnter state. Here the hover is COMPUTED from `--sp-cell-bg`, so
+ *  changing the tint changes the hover with it and neither one can win over the
+ *  other. */
+export function Cell({
+  mark,
+  lead,
+  sub,
+  onClick,
+  selected,
+  disabled = false,
+  tone = "raised",
+  title,
+}: {
+  /** An AgentMark or nothing. A cell for a thing nobody acts as carries none. */
+  mark?: React.ReactNode;
+  lead: React.ReactNode;
+  /** The different fact, never a restatement of the lead (hard ban 10). */
+  sub?: React.ReactNode;
+  /** Absent when nothing happens on click. An affordance is a promise, so a
+   *  cell that does nothing is a div and never lights up under the cursor. */
+  onClick?: () => void;
+  /** Present only on a cell that is one of a set you PICK from. It makes the
+   *  cell a toggle to a screen reader, so leave it undefined on a cell that
+   *  opens or connects something. */
+  selected?: boolean;
+  disabled?: boolean;
+  /** `recessed` for a cell sitting on already-raised ground. Two tones, both
+   *  existing surface tokens, because a cell is furniture and furniture does
+   *  not need a palette. */
+  tone?: "raised" | "recessed";
+  title?: string;
+}) {
+  const body = (
+    <>
+      {mark}
+      <span className="sp-cell-body">
+        <span className="sp-cell-lead">{lead}</span>
+        {sub ? <span className="sp-cell-sub">{sub}</span> : null}
+      </span>
+    </>
+  );
+
+  if (!onClick) {
+    return (
+      <div
+        className="sp-cell"
+        data-tone={tone}
+        data-disabled={disabled}
+        title={title}
+        aria-disabled={disabled || undefined}
+      >
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className="sp-cell"
+      data-tone={tone}
+      data-disabled={disabled}
+      data-selected={selected ?? false}
+      aria-pressed={selected}
+      disabled={disabled}
+      title={title}
+      onClick={onClick}
+    >
+      {body}
+    </button>
+  );
 }
 
 /* ------------------------------------------------------------------ *
@@ -537,20 +667,71 @@ export function Pre({ children }: { children: React.ReactNode }) {
 export function Line({
   label,
   sub,
+  htmlFor,
   children,
 }: {
   label: React.ReactNode;
   sub?: React.ReactNode;
+  /** The id of the control on the right, when there is exactly one and it is a
+   *  real form control.
+   *
+   *  Reported as a defect: Line rendered its label in a `<span>`, so a Line
+   *  wrapping an Input or a Select had no `<label for>` at all and every lane
+   *  patched it with `aria-label`, which duplicates the text a sighted person
+   *  is already reading and leaves the label unclickable. Passing an id
+   *  promotes the span to a real `<label>`.
+   *
+   *  ADDITIVE ON PURPOSE. Omitting it renders exactly the markup Line rendered
+   *  before, span for span and class for class, so the dozens of Lines whose
+   *  right side is a Button, a Value or nothing at all are untouched: a
+   *  `<label for>` pointing at a button would make the label a second way to
+   *  fire it, which is wrong for a control that acts rather than holds a value. */
+  htmlFor?: string;
   children?: React.ReactNode;
 }) {
+  const labelBody = (
+    <>
+      {label}
+      {sub ? <span className="sp-line-sub">{sub}</span> : null}
+    </>
+  );
   return (
     <div className="sp-line">
-      <span className="sp-line-label">
-        {label}
-        {sub ? <span className="sp-line-sub">{sub}</span> : null}
-      </span>
+      {htmlFor ? (
+        <label className="sp-line-label" htmlFor={htmlFor}>
+          {labelBody}
+        </label>
+      ) : (
+        <span className="sp-line-label">{labelBody}</span>
+      )}
       {children ? <span className="sp-line-control">{children}</span> : null}
     </div>
+  );
+}
+
+/** A fact on the right of a Line, with no control attached.
+ *
+ *  Reported as lower priority and kept, because the surfaces already carry four
+ *  hand-rolled copies of it: the two model rows, the subscription status word
+ *  and the key-test result each build the same muted span from raw tokens. A
+ *  pinned tool, a plan that only the owner can change, a model chosen for you:
+ *  all of them are a boundary you can READ and cannot set from here, and an
+ *  empty right-hand slot says nothing about which.
+ *
+ *  `tone` is for a value that is itself an outcome, which is the one case where
+ *  colour is carrying information rather than decorating a fact. Numbers inside
+ *  it still go in Num; this sets the voice, not the face. */
+export function Value({
+  children,
+  tone = "quiet",
+}: {
+  children: React.ReactNode;
+  tone?: "quiet" | "pass" | "warn" | "fail";
+}) {
+  return (
+    <span className="sp-value" data-tone={tone}>
+      {children}
+    </span>
   );
 }
 
@@ -578,6 +759,158 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
     />
+  );
+}
+
+/** One value you tick, as part of something you will submit.
+ *
+ *  NOT the same instrument as Switch, and the difference is when it takes
+ *  effect. A Switch is a boundary that goes live the moment you touch it, which
+ *  is why it wears green when it is on. A Checkbox is a value that sits there
+ *  until something else acts on it: a task marked done, a row picked for a bulk
+ *  action, a term accepted before a destructive confirm. So it stays monochrome,
+ *  and it survives the greyscale test on shape alone.
+ *
+ *  A real `<input type="checkbox">` under the drawn box, never a div wearing a
+ *  role: it is keyboard-native, it takes Space for free, it participates in a
+ *  form, and it reports its own state without being told to.
+ *
+ *  `label` is the fallback name. Pass `id` and point a Line or a Field at it
+ *  with `htmlFor` wherever there is visible label text, so a screen reader reads
+ *  the same words a sighted person does rather than a second copy that can
+ *  drift from them. */
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  id,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  /** Required: a bare checkbox is unreadable to a screen reader. Used only when
+   *  no `id` binds it to visible label text. */
+  label: string;
+  id?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <input
+      type="checkbox"
+      className="sp-check"
+      id={id}
+      checked={checked}
+      disabled={disabled}
+      aria-label={id ? undefined : label}
+      onChange={(e) => onChange(e.target.checked)}
+    />
+  );
+}
+
+type ChoiceOption<T extends string> = {
+  id: T;
+  label: React.ReactNode;
+  /** What the label cannot say in one word. */
+  title?: string;
+  disabled?: boolean;
+};
+
+/** A short set of named options, picked from in place.
+ *
+ *  THE RULING on the reported gap. Three lanes each hand-rolled a row of
+ *  buttons carrying `aria-pressed` and asked whether it should have been a
+ *  Checkbox or a multi-select Switch. It should not: the button group was the
+ *  right shape and what it lacked was a name and its keyboard.
+ *
+ *  A Switch is wrong because a switch means THIS BOUNDARY IS LIVE NOW, and
+ *  three switches in a row cannot say which channel each one is: the words are
+ *  the control here. A Checkbox is wrong because these options are read across
+ *  as one decision ("where does an approval reach me"), not ticked down a list,
+ *  and a checkbox column would double the height of every row on the surface.
+ *
+ *  What was genuinely broken is the ARIA, and it differs by mode, which is why
+ *  the mode is now declared rather than assumed:
+ *
+ *  · `any` is a real multi-select. Each option is an independent toggle, so
+ *    `aria-pressed` is correct and every option is its own tab stop. This is the
+ *    notification channel picker, unchanged in behaviour.
+ *  · `one` is mutually exclusive, and `aria-pressed` was quietly wrong for it:
+ *    it announces three toggle buttons and never says that picking one unpicks
+ *    the others, and it spends three tab stops on one decision. It is a radio
+ *    group, so it is one tab stop and the arrow keys move within it.
+ *
+ *  Deliberately styled from `.sp-btn` rather than given a look of its own, so
+ *  adopting it changes the semantics and the keyboard and not one pixel. */
+export function Choices<T extends string>(
+  props: {
+    /** Names the whole decision for a screen reader, not the options. */
+    label: string;
+    options: ChoiceOption<T>[];
+    onPick: (id: T) => void;
+  } & ({ mode?: "one"; value: T } | { mode: "any"; value: readonly T[] }),
+) {
+  const { label, options, onPick } = props;
+  const multi = props.mode === "any";
+  const isOn = (id: T) => (props.mode === "any" ? props.value.includes(id) : props.value === id);
+
+  const btns = React.useRef<Partial<Record<T, HTMLButtonElement | null>>>({});
+
+  // The roving tab stop. Falls back to the first enabled option when nothing is
+  // picked yet, because a radio group with no tabbable member is a decision the
+  // keyboard cannot reach at all.
+  const reachable = options.filter((o) => !o.disabled);
+  const stop = (reachable.find((o) => isOn(o.id)) ?? reachable[0])?.id;
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, from: T) {
+    if (multi) return;
+    const pool = options.filter((o) => !o.disabled);
+    if (pool.length === 0) return;
+    let next: ChoiceOption<T> | undefined;
+    if (e.key === "Home") next = pool[0];
+    else if (e.key === "End") next = pool[pool.length - 1];
+    else if (
+      e.key === "ArrowRight" ||
+      e.key === "ArrowDown" ||
+      e.key === "ArrowLeft" ||
+      e.key === "ArrowUp"
+    ) {
+      const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+      const here = pool.findIndex((o) => o.id === from);
+      next = pool[(here + step + pool.length) % pool.length];
+    }
+    if (!next) return;
+    e.preventDefault();
+    onPick(next.id);
+    btns.current[next.id]?.focus();
+  }
+
+  return (
+    <span className="sp-choices" role={multi ? "group" : "radiogroup"} aria-label={label}>
+      {options.map((o) => {
+        const on = isOn(o.id);
+        const state: React.ButtonHTMLAttributes<HTMLButtonElement> = multi
+          ? { "aria-pressed": on }
+          : { role: "radio", "aria-checked": on, tabIndex: o.id === stop ? 0 : -1 };
+        return (
+          <button
+            key={o.id}
+            type="button"
+            ref={(el) => {
+              btns.current[o.id] = el;
+            }}
+            className="sp-btn"
+            data-variant={on ? "default" : "ghost"}
+            disabled={o.disabled}
+            title={o.title}
+            onClick={() => onPick(o.id)}
+            onKeyDown={(e) => onKeyDown(e, o.id)}
+            {...state}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </span>
   );
 }
 

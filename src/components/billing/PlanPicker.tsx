@@ -1,19 +1,37 @@
 /**
- * PlanTable: in-product Settings > Billing plan picker.
+ * PlanTable: the in-product Settings > Plan comparison.
  * Personal | Teams tab toggle. 2-column grid per tab.
  * Personal: Free + Pro. Teams: Business + Enterprise.
  * Driven by entitlements + billing-tier; no DB catalog dependency.
  *
- * OBS-13 - re-skinned to Obsidian v3 (chrome-only): tokens, Newsreader card
- * titles, JetBrains-mono prices/metadata, a neutral hairline as the
- * recommended/current signal (Tempo v5 §2 narrows glacier to literal status
- * chips and hyperlinks only; ember stays reserved for a genuinely-required
- * action, and this comparison table never has one), zero lucide, zero
- * pictorial connector logos (mono text chips instead). Data/logic unchanged.
+ * Ported to the rebuild primitives 2026-07-29. It renders inside the route's
+ * `Block title="What else you could be on"`, so it draws no heading of its own.
+ *
+ * A price ladder is the one shape on this surface that is genuinely SCANNED
+ * ACROSS rather than read down, so it stays a grid of cards. They are built the
+ * way the route's own credit-bundle grid is built: a raised fill, no border, and
+ * an inset ring for the one that is yours. That keeps the whole region at one
+ * bordered layer.
+ *
+ * Removed with the old system, each for a stated reason:
+ *   the 2px bar across the top of the recommended card. A coloured strip on one
+ *     edge of a card is the single most recognisable tell of generated UI (hard
+ *     ban 4); the word "Popular" already says it.
+ *   the mono letter tiles (F / P / B / E) beside each plan name. An icon
+ *     container in front of the message it introduces is hard ban 8, and a
+ *     letter in a box says nothing the plan name does not.
+ *   the moss-tinted savings pill and the pink "Manage subscription" link.
+ *     Colour carries outcomes and gates; a discount is neither, so it is stated
+ *     in words at the same weight as everything else.
+ *   the `TIER_ICON` and `PlanPicker` exports. Both were dead: nothing in src/
+ *     imported either.
+ *
+ * Nothing here wears ember. This table never contains a genuinely-required
+ * action, and ember marks the human.
  */
 import { useState } from "react";
-import { MonoLabel, Button, rgba } from "@/components/obsidian";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
+import { Button, Num } from "@/components/shell/primitives";
 import { toast } from "@/lib/notify";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { priceForCredits, lookupKeyFor } from "@/lib/billing-tier";
@@ -25,105 +43,34 @@ import {
 } from "@/lib/entitlements";
 import { useConfirm } from "@/hooks/use-confirm";
 
-// Connector scope chips - plain mono text, no brand logos (iconography law:
-// no icon set, no pictorial elements beyond the butterfly mark).
+type AudienceTab = "personal" | "teams";
+
+/** Which connectors a plan's connector bullet is actually talking about. Plain
+ *  text, no brand logos: a row of vendor marks is decoration, and the bullet it
+ *  hangs under already carries the claim. */
 const CONNECTOR_LABELS = ["GitHub", "Linear", "Notion", "Jira", "Google Docs"] as const;
 
-function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
+const META: React.CSSProperties = {
+  fontSize: "var(--sp-text-label)",
+  color: "var(--sp-mute)",
+  lineHeight: "var(--sp-leading-tight)",
+};
+
+const BODY: React.CSSProperties = {
+  fontSize: "var(--sp-text-meta)",
+  color: "var(--sp-body)",
+  lineHeight: "var(--sp-leading-body)",
+};
+
+function ConnectorList({ showWrite = false }: { showWrite?: boolean }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "var(--space-1)",
-        marginTop: "var(--space-1)",
-        marginBottom: 3,
-        marginLeft: 12,
-        flexWrap: "wrap",
-      }}
-    >
-      {CONNECTOR_LABELS.map((label) => (
-        <span
-          key={label}
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            background: "var(--raised)",
-            borderRadius: "var(--radius-control)",
-            padding: "2px 6px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {label}
-        </span>
-      ))}
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-faint)",
-        }}
-      >
-        + more
-      </span>
-      <MonoLabel tone="muted" style={showWrite ? { color: "var(--text-primary)" } : undefined}>
-        {showWrite ? "read + write" : "read"}
-      </MonoLabel>
+    <div style={{ ...META, marginTop: 3 }}>
+      {CONNECTOR_LABELS.join(", ")} and more · {showWrite ? "read and write" : "read only"}
     </div>
   );
 }
 
-// Tier monogram — a mono letter on a raised tile, replacing the retired
-// lucide icon set (iconography law: no icon set, only mono glyphs/unicode).
-const TIER_LETTER: Record<PlanTier, string> = {
-  free: "F",
-  pro: "P",
-  max: "M",
-  team: "B",
-  enterprise: "E",
-};
-
-function makeTierGlyph(tier: PlanTier): React.ComponentType<{ size?: number }> {
-  function TierGlyph({ size = 20 }: { size?: number }) {
-    return (
-      <span
-        aria-hidden="true"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: size,
-          height: size,
-          borderRadius: "var(--radius-control)",
-          background: "var(--raised)",
-          color: "var(--text-subtle)",
-          fontFamily: "var(--font-mono)",
-          fontWeight: 600,
-          flexShrink: 0,
-        }}
-      >
-        {TIER_LETTER[tier]}
-      </span>
-    );
-  }
-  return TierGlyph;
-}
-
-export const TIER_ICON: Record<PlanTier, React.ComponentType<{ size?: number }>> = {
-  free: makeTierGlyph("free"),
-  pro: makeTierGlyph("pro"),
-  max: makeTierGlyph("max"),
-  team: makeTierGlyph("team"),
-  enterprise: makeTierGlyph("enterprise"),
-};
-
-/** Backwards-compat alias so existing imports keep working. */
-export const PlanPicker = PlanTable;
-
-type AudienceTab = "personal" | "teams";
-
-/** The single next tier up — the one that gets the "Recommended" badge. */
+/** The single next tier up. The one that gets the "Popular" label. */
 function nextTierFor(tier: PlanTier): PlanTier | null {
   switch (tier) {
     case "free":
@@ -139,33 +86,37 @@ function nextTierFor(tier: PlanTier): PlanTier | null {
   }
 }
 
-const PILL_TOGGLE_TRACK: React.CSSProperties = {
-  display: "inline-flex",
-  borderRadius: "var(--radius-pill)",
-  padding: 3,
-  background: "var(--raised)",
-};
-
-function pillButtonStyle(active: boolean): React.CSSProperties {
-  return {
-    padding: "6px 16px",
-    borderRadius: "var(--radius-pill)",
-    border: "none",
-    cursor: "pointer",
-    fontFamily: "var(--font-sans)",
-    fontWeight: active ? 600 : 500,
-    // Inactive background/color live in the hover classes so hover can win
-    // (inline styles beat utilities).
-    background: active ? "var(--hover)" : undefined,
-    color: active ? "var(--text-primary)" : undefined,
-    transitionProperty: "background-color, color",
-    transitionDuration: "var(--dur-control)",
-    transitionTimingFunction: "var(--ease)",
-  };
+/** The system's filter tabs, doing what the pill toggles used to do. */
+function Toggle<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  labelOf,
+}: {
+  label: string;
+  options: readonly T[];
+  value: T;
+  onChange: (v: T) => void;
+  labelOf: (v: T) => React.ReactNode;
+}) {
+  return (
+    <div className="sp-tabs" role="tablist" aria-label={label} style={{ marginTop: 0 }}>
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={value === o}
+          onClick={() => onChange(o)}
+        >
+          {labelOf(o)}
+        </button>
+      ))}
+    </div>
+  );
 }
-
-const FOCUS_RING_CLASS =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 export function PlanTable({
   currentTier,
@@ -177,86 +128,44 @@ export function PlanTable({
   const defaultTab: AudienceTab =
     currentTier === "team" || currentTier === "enterprise" ? "teams" : "personal";
   const [tab, setTab] = useState<AudienceTab>(defaultTab);
-  // Global billing toggle — one switch updates all plan prices at once.
+  // One switch updates every price on the table at once.
   const [annual, setAnnual] = useState(false);
 
-  // The tier that earns the "Recommended" badge — always the single next step up.
   const recommended = nextTierFor(currentTier);
 
   return (
-    <div style={{ display: "grid", gap: "var(--space-5, 20px)" }}>
-      {/* Row: Personal | Teams tab on left, Monthly | Annual toggle on right */}
+    <>
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: "var(--space-2)",
+          gap: "var(--sp-space-3)",
         }}
       >
-        {/* Audience tab */}
-        <div style={PILL_TOGGLE_TRACK}>
-          {(["personal", "teams"] as const).map((t) => {
-            const active = t === tab;
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                aria-pressed={active}
-                className={`${FOCUS_RING_CLASS}${active ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
-                style={pillButtonStyle(active)}
-              >
-                {t === "personal" ? "Personal" : "Teams"}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Global billing toggle */}
-        <div style={PILL_TOGGLE_TRACK}>
-          {(["monthly", "annual"] as const).map((mode) => {
-            const active = mode === (annual ? "annual" : "monthly");
-            return (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setAnnual(mode === "annual")}
-                aria-pressed={active}
-                className={`${FOCUS_RING_CLASS}${active ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
-                style={{
-                  ...pillButtonStyle(active),
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-1)",
-                }}
-              >
-                {mode === "monthly" ? "Monthly" : "Annual"}
-                {mode === "annual" && (
-                  <MonoLabel
-                    tone="moss"
-                    style={{
-                      background: "color-mix(in oklab, var(--moss) 14%, transparent)",
-                      borderRadius: "var(--radius-pill)",
-                      padding: "1px 6px",
-                    }}
-                  >
-                    -17%
-                  </MonoLabel>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <Toggle
+          label="Who the plan is for"
+          options={["personal", "teams"] as const}
+          value={tab}
+          onChange={setTab}
+          labelOf={(t) => (t === "personal" ? "Personal" : "Teams")}
+        />
+        <Toggle
+          label="How often you are billed"
+          options={["monthly", "annual"] as const}
+          value={annual ? "annual" : "monthly"}
+          onChange={(m) => setAnnual(m === "annual")}
+          labelOf={(m) => (m === "monthly" ? "Monthly" : "Annual, two months free")}
+        />
       </div>
 
-      {/* 2-column grid per tab — recommended badge tracks the user's actual next step */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
-          gap: "var(--space-4)",
+          gap: "var(--sp-space-3)",
+          marginTop: "var(--sp-space-4)",
         }}
       >
         {tab === "personal" ? (
@@ -289,10 +198,13 @@ export function PlanTable({
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
+/** A raised fill, no border, and an inset ring for the card that is either
+ *  yours or your next step. Same construction as the credit-bundle grid on the
+ *  Credits surface, so the two price ladders in this product read as one. */
 function CardShell({
   isCurrent,
   popular,
@@ -305,129 +217,79 @@ function CardShell({
   return (
     <div
       style={{
-        background: "var(--card)",
-        // Depth is tint, never a shadow: both the recommended card and the
-        // current card get the same stronger neutral hairline, the
-        // "Popular"/"Current plan" copy carries the distinction, not color
-        // (Tempo v5 §2 reserves glacier for literal status chips and links).
-        // Never ember. Nothing on this comparison table is a
-        // genuinely-required action.
-        border:
-          popular || isCurrent ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "var(--space-5, 22px) var(--space-4) var(--space-4)",
         display: "flex",
         flexDirection: "column",
-        gap: "var(--space-3)",
-        position: "relative",
-        // v4 §2: cards catch the ambient light from above.
-        boxShadow: "var(--top-light)",
+        gap: "var(--sp-space-3)",
+        padding: "var(--sp-space-5) var(--sp-space-4) var(--sp-space-4)",
+        borderRadius: "var(--sp-radius-card)",
+        background: "var(--sp-lift)",
+        boxShadow: popular || isCurrent ? "inset 0 0 0 1px var(--sp-ink)" : undefined,
       }}
     >
-      {popular ? (
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: "var(--text-primary)",
-            borderTopLeftRadius: "inherit",
-            borderTopRightRadius: "inherit",
-          }}
-        />
-      ) : null}
       {children}
     </div>
   );
 }
 
 function CardHeader({
-  tier,
   name,
   tagline,
   forWhom,
   isCurrent,
   popular,
 }: {
-  tier: PlanTier;
   name: string;
   tagline: string;
   forWhom: string;
   isCurrent: boolean;
   popular?: boolean;
 }) {
-  const Icon = TIER_ICON[tier];
   return (
     <div>
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "baseline",
           justifyContent: "space-between",
-          gap: "var(--space-2)",
+          gap: "var(--sp-space-2)",
         }}
       >
-        <Icon size={28} />
+        <span
+          style={{
+            fontSize: "var(--sp-text-body)",
+            fontWeight: "var(--sp-weight-strong)",
+            color: "var(--sp-ink)",
+          }}
+        >
+          {name}
+        </span>
         {isCurrent ? (
-          <MonoLabel
-            style={{
-              color: "var(--text-primary)",
-              background: "var(--raised)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-pill)",
-              padding: "3px 9px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Current plan
-          </MonoLabel>
+          <span style={{ ...META, whiteSpace: "nowrap" }}>Your plan</span>
         ) : popular ? (
-          <MonoLabel
-            style={{
-              color: "var(--text-primary)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-pill)",
-              padding: "2px 8px",
-            }}
-          >
-            Popular
-          </MonoLabel>
+          <span style={{ ...META, whiteSpace: "nowrap" }}>Popular</span>
         ) : null}
       </div>
-      <div
+      <p style={{ ...META, margin: "3px 0 0" }}>{forWhom}</p>
+      <p style={{ ...BODY, margin: "var(--sp-space-1) 0 0" }}>{tagline}</p>
+    </div>
+  );
+}
+
+/** The price, in mono because it is a number, with what it buys under it. */
+function Price({ amount, unit }: { amount: React.ReactNode; unit?: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+      <span
         style={{
-          fontFamily: "var(--font-sans)",
-          fontWeight: 460,
-          lineHeight: 1.3,
-          color: "var(--text-primary)",
-          marginTop: "var(--space-2)",
+          fontSize: "var(--sp-text-gate)",
+          fontWeight: "var(--sp-weight-strong)",
+          color: "var(--sp-ink)",
+          lineHeight: 1,
         }}
       >
-        {name}
-      </div>
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-subtle)",
-          margin: "3px 0 0",
-          lineHeight: "var(--leading-body)",
-        }}
-      >
-        {forWhom}
-      </p>
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-body)",
-          margin: "var(--space-1) 0 0",
-          lineHeight: "var(--leading-body)",
-        }}
-      >
-        {tagline}
-      </p>
+        {amount}
+      </span>
+      {unit ? <span style={META}>{unit}</span> : null}
     </div>
   );
 }
@@ -439,106 +301,48 @@ function ExpandableBullets({ items }: { items: string[] }) {
   const hiddenCount = items.length - PREVIEW;
   return (
     <div>
-      <ul
-        style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--space-2)" }}
-      >
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
         {visible.map((h) => {
           const isReadConnector = h.startsWith("Read connectors");
           const isWriteConnector = h.startsWith("Write-back connectors");
           return (
-            <li
-              key={h}
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "var(--text-body)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 0,
-              }}
-            >
-              <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-faint)",
-                    lineHeight: "var(--leading-body)",
-                  }}
-                >
-                  &middot;
-                </span>
-                <span>{h}</span>
-              </div>
-              {(isReadConnector || isWriteConnector) && (
-                <ConnectorChipsMini showWrite={isWriteConnector} />
-              )}
+            <li key={h} style={BODY}>
+              {h}
+              {isReadConnector || isWriteConnector ? (
+                <ConnectorList showWrite={isWriteConnector} />
+              ) : null}
             </li>
           );
         })}
       </ul>
-      {hiddenCount > 0 && (
+      {hiddenCount > 0 ? (
         <button
           type="button"
+          className="sp-block-more"
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
-          className={`${FOCUS_RING_CLASS} hover:underline`}
-          style={{
-            background: "none",
-            border: "none",
-            padding: "var(--space-2) 0 0",
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-muted)",
-            cursor: "pointer",
-          }}
+          style={{ marginTop: "var(--sp-space-2)" }}
         >
           {expanded ? "Show less" : `Show ${hiddenCount} more`}
         </button>
-      )}
+      ) : null}
     </div>
   );
+}
+
+/** A hairline between the commercial half of a card and the feature half. */
+function Divider() {
+  return <div style={{ height: 1, background: "var(--sp-line-soft)" }} />;
 }
 
 function FreeCard({ isCurrent }: { isCurrent: boolean }) {
   const p = planPresentation("free");
   return (
     <CardShell isCurrent={isCurrent} popular={false}>
-      <CardHeader
-        tier="free"
-        name={p.name}
-        tagline={p.tagline}
-        forWhom={p.forWhom}
-        isCurrent={isCurrent}
-      />
-      <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-1)" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            lineHeight: 1,
-            color: "var(--text-primary)",
-          }}
-        >
-          $0
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-subtle)",
-          }}
-        >
-          /month
-        </span>
-      </div>
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-subtle)",
-          margin: 0,
-        }}
-      >
-        No credit card needed
-      </p>
+      <CardHeader name={p.name} tagline={p.tagline} forWhom={p.forWhom} isCurrent={isCurrent} />
+      <Price amount={<Num>$0</Num>} unit="/month" />
+      <p style={{ ...META, margin: 0 }}>No credit card needed</p>
       <Button
-        variant="secondary"
         disabled
         title={
           isCurrent
@@ -549,7 +353,7 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
       >
         {isCurrent ? "You are on Free" : "Start on Free"}
       </Button>
-      <div style={{ height: 1, background: "var(--hairline)" }} />
+      <Divider />
       <ExpandableBullets items={p.highlights} />
     </CardShell>
   );
@@ -569,118 +373,50 @@ function EnterpriseCard({
   return (
     <CardShell isCurrent={isCurrent} popular={popular}>
       <CardHeader
-        tier="enterprise"
         name={p.name}
         tagline={p.tagline}
         forWhom={p.forWhom}
         isCurrent={isCurrent}
         popular={popular}
       />
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            lineHeight: 1.2,
-            color: "var(--text-primary)",
-          }}
-        >
-          Custom
-        </span>
-        {isComingFromBusiness ? (
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-body)",
-            }}
-          >
-            Custom platform fee + $20/seat + usage at API rates
-          </span>
-        ) : (
-          <>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "var(--text-body)",
-              }}
-            >
-              Platform fee + $20/seat
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "var(--text-subtle)",
-              }}
-            >
-              Usage at API rates &middot; scales with model and task
-            </span>
-          </>
-        )}
-      </div>
+      <Price amount="Custom" />
+      {isComingFromBusiness ? (
+        <p style={{ ...BODY, margin: 0 }}>
+          Custom platform fee + <Num>$20</Num>/seat + usage at API rates
+        </p>
+      ) : (
+        <>
+          <p style={{ ...BODY, margin: 0 }}>
+            Platform fee + <Num>$20</Num>/seat
+          </p>
+          <p style={{ ...META, margin: 0 }}>Usage at API rates, scales with model and task</p>
+        </>
+      )}
       {isCurrent ? (
         <>
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-subtle)",
-              margin: 0,
-              textAlign: "center",
-            }}
-          >
+          <p style={{ ...META, margin: 0 }}>
             Reach your account manager to adjust seats or API rates.
           </p>
-          <a
-            href="mailto:sales@supaprod.ai?subject=Enterprise plan management"
-            className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 500,
-              color: "var(--text-primary)",
-              background: "var(--hover)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-control)",
-              padding: "8px 16px",
-              textAlign: "center",
-              display: "block",
-              textDecoration: "none",
+          <Button
+            onClick={() => {
+              window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise plan management";
             }}
+            style={{ width: "100%", justifyContent: "center" }}
           >
             Contact account manager
-          </a>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <a
-              href="mailto:sales@supaprod.ai?subject=Enterprise plan management"
-              className={FOCUS_RING_CLASS}
-              style={{
-                fontFamily: "var(--font-sans)",
-                color: "var(--blossom)",
-                textDecoration: "underline",
-              }}
-            >
-              Manage subscription
-            </a>
-          </div>
+          </Button>
         </>
       ) : (
-        <a
-          href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
-          className={`${FOCUS_RING_CLASS} hover:[background-color:var(--surface-2)]`}
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 500,
-            color: "var(--text-primary)",
-            background: "var(--hover)",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 16px",
-            textAlign: "center",
-            display: "block",
-            textDecoration: "none",
+        <Button
+          onClick={() => {
+            window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise enquiry";
           }}
+          style={{ width: "100%", justifyContent: "center" }}
         >
           Talk to our team
-        </a>
+        </Button>
       )}
-      <div style={{ height: 1, background: "var(--hairline)" }} />
+      <Divider />
       <ExpandableBullets items={p.highlights} />
     </CardShell>
   );
@@ -709,7 +445,7 @@ function PaidTierCard({
   const billing: "monthly" | "yearly" = annual ? "yearly" : "monthly";
   const price = priceForCredits(tier, credits, billing);
   const monthlyPrice = priceForCredits(tier, credits, "monthly");
-  // Exact savings: annual = 10 months → 2 months free per year.
+  // Exact savings: annual = 10 months, so 2 months free per year.
   const yearlySavings = annual && monthlyPrice ? monthlyPrice * 2 : null;
   const lookupKey = lookupKeyFor(tier, credits, billing);
 
@@ -768,10 +504,11 @@ function PaidTierCard({
     return null;
   })();
 
+  const selectId = `plan-credits-${tier}`;
+
   return (
     <CardShell isCurrent={isCurrent} popular={popular && !isCurrent}>
       <CardHeader
-        tier={tier}
         name={p.name}
         tagline={p.tagline}
         forWhom={p.forWhom}
@@ -779,95 +516,43 @@ function PaidTierCard({
         popular={popular && !isCurrent}
       />
 
-      {/* Price — billing label — dollar savings (when annual) */}
       <div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-1)" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              lineHeight: 1,
-              color: "var(--text-primary)",
-            }}
-          >
-            ${price ?? "--"}
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-subtle)",
-            }}
-          >
-            /mo
-          </span>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            marginTop: "var(--space-1)",
-            flexWrap: "wrap",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: "var(--text-subtle)",
-            }}
-          >
-            {billing === "yearly" ? "billed annually" : "billed monthly"}
-          </span>
-          {yearlySavings && (
-            <MonoLabel
-              tone="moss"
-              style={{
-                background: "color-mix(in oklab, var(--moss) 14%, transparent)",
-                borderRadius: "var(--radius-pill)",
-                padding: "2px 7px",
-              }}
-            >
-              Save ${yearlySavings}/yr
-            </MonoLabel>
-          )}
+        <Price amount={<Num>${price ?? "--"}</Num>} unit="/mo" />
+        <div style={{ ...META, marginTop: 4 }}>
+          {billing === "yearly" ? "billed annually" : "billed monthly"}
+          {yearlySavings ? (
+            <>
+              {" · saves "}
+              <Num>${yearlySavings}</Num>
+              {" a year"}
+            </>
+          ) : null}
         </div>
       </div>
 
-      {/* Credit dropdown — per card so users can compare different tiers across plans */}
-      <label style={{ display: "grid", gap: "var(--space-1)" }}>
-        <MonoLabel>Credits / month</MonoLabel>
+      {/* Credits are chosen per card, so two plans can be compared at two
+          different volumes at the same time. */}
+      <label className="sp-field" htmlFor={selectId} style={{ marginTop: 0 }}>
+        <span className="sp-field-label">Credits a month</span>
         <select
+          id={selectId}
+          className="sp-select"
           value={credits}
           onChange={(e) => setCredits(Number(e.target.value) as CreditTier)}
-          className={FOCUS_RING_CLASS}
-          style={{
-            padding: "7px 10px",
-            borderRadius: "var(--radius-control)",
-            border: "1px solid var(--hairline-strong)",
-            background: "var(--raised)",
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-primary)",
-            cursor: "pointer",
-          }}
         >
           {CREDIT_DROPDOWN_TIERS.map((c) => (
             <option key={c} value={c}>
-              {c.toLocaleString()} credits / month
+              {c.toLocaleString()} credits a month
             </option>
           ))}
         </select>
       </label>
 
-      {/* CTA — immediately after price + credit selection, before features.
-          Never ember: nothing in this comparison table is a genuinely-
-          required action right now, so every card reads at the same
-          secondary weight; the copy (Upgrade / Move / Current plan)
-          carries the meaning, not the color.
-          Honesty law (v4 §9b): while payments are dormant there is no
-          upgrade button at all — the table stays a real comparison, and one
-          quiet line says when checkout opens. */}
+      {/* Honesty law: while payments are dormant there is NO upgrade button at
+          all. The table stays a real comparison, and one quiet line says when
+          checkout opens. A disabled buy is still a dead promise. */}
       {paymentsConfigured() || isCurrent ? (
         <Button
-          variant="secondary"
           disabled={!canSelect || !lookupKey || isCurrent}
           title={
             isCurrent
@@ -884,35 +569,14 @@ function PaidTierCard({
           {ctaLabel}
         </Button>
       ) : (
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-subtle)",
-            margin: 0,
-            textAlign: "center",
-            lineHeight: "var(--leading-body)",
-          }}
-        >
+        <p style={{ ...META, margin: 0 }}>
           Checkout opens when payments go live. Prices shown are final.
         </p>
       )}
 
-      {statusMessage && (
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            color: "var(--text-subtle)",
-            margin: 0,
-            textAlign: "center",
-            lineHeight: "var(--leading-body)",
-          }}
-        >
-          {statusMessage}
-        </p>
-      )}
+      {statusMessage ? <p style={{ ...META, margin: 0 }}>{statusMessage}</p> : null}
 
-      {/* Feature list below CTA */}
-      <div style={{ height: 1, background: "var(--hairline)" }} />
+      <Divider />
       <ExpandableBullets items={p.highlights} />
 
       {lookupKey ? (

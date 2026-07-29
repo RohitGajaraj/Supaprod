@@ -1,16 +1,42 @@
-// OBS-10 - the /product page is being retired; this ports its PortfolioBoard
-// (switch/archive/restore/export/delete) into Settings > Workspace as its own
-// section, restyled to this file's sibling-tab pattern (bento + MonoLabel
-// header, matching StaffTab/NotificationsTab/MembersCard). Same server
-// functions, same lifecycle logic, same confirm copy - only the shell moved.
+// OBS-10 - the /product page was retired; this holds its PortfolioBoard
+// (switch/archive/restore/export/delete) inside Settings > Products. Same
+// server functions, same lifecycle logic, same confirm copy.
+//
+// Ported to the rebuild primitives 2026-07-29. The route already draws the
+// PageHead, so this owns only the two groups under it. A product is a Row
+// because a Row is exactly what it is: something you click to switch to, with
+// controls of its own at the trailing edge.
+//
+// Dropped on the way, each for a stated reason rather than taste:
+//   the two `material-medium` cards, which put bordered boxes inside a surface
+//     whose own sections are borderless (hard ban 5, one bordered container per
+//     region);
+//   the 24px bordered icon tiles for export/archive/delete (hard ban 8, and the
+//     repo's plain-words button law) - they are ghost buttons that say what they
+//     do;
+//   the 4px progress bar, which drew the same fact the "3/8 tasks" beside it
+//     already stated (hard ban 10);
+//   the animate-pulse skeleton, which performed instead of confirming; Loading
+//     reserves the height and says what is happening;
+//   the product's north star from the row. A list row never wraps (founder
+//     ruling), the counts are what a portfolio is scanned for, and the north
+//     star is one click away on the product itself.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Target, Download, Archive, ArchiveRestore, Trash2 } from "lucide-react";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  Row,
+} from "@/components/shell/primitives";
 import {
   getPortfolio,
   setProjectArchived,
@@ -36,41 +62,6 @@ function fileSlug(name: string) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "product"
-  );
-}
-
-function ActionButton({
-  label,
-  onClick,
-  danger,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  danger?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      onClick={onClick}
-      className="lift"
-      style={{
-        display: "grid",
-        placeItems: "center",
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        border: "1px solid var(--hairline)",
-        background: "var(--surface-1)",
-        color: danger ? "var(--rose)" : "var(--ink-subtle)",
-        cursor: "pointer",
-      }}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -182,53 +173,14 @@ export function ProductsTab() {
   }
 
   if (portfolio.isLoading) {
-    // Skeleton matches the loaded layout: one bento card with product rows.
-    return (
-      <div
-        className="material-medium"
-        style={{ padding: "var(--card-pad, 20px)" }}
-        aria-hidden="true"
-      >
-        <div
-          className="animate-pulse"
-          style={{ height: 12, width: 140, borderRadius: 4, background: "var(--surface-2)" }}
-        />
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-2x)", marginTop: 14 }}>
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{
-                height: 74,
-                borderRadius: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--surface-1)",
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
+    return <Loading>Reading the portfolio.</Loading>;
   }
 
   if (portfolio.error) {
     return (
-      <div className="material-medium" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load products
-        </div>
-        <p className="text-copy-13" style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-          {(portfolio.error as Error)?.message}
-        </p>
-        <Button
-          variant="ghost"
-          size="sm"
-          style={{ marginTop: 14 }}
-          onClick={() => portfolio.refetch()}
-        >
-          Retry
-        </Button>
-      </div>
+      <Failed onRetry={() => void portfolio.refetch()}>
+        The portfolio did not load. {(portfolio.error as Error)?.message ?? "The read failed."}
+      </Failed>
     );
   }
 
@@ -237,219 +189,96 @@ export function ProductsTab() {
   const archived = all.filter((p) => p.archived);
 
   if (all.length === 0) {
-    // Empty = an instruction + one action (DESIGN-LOOM §9).
     return (
-      <div className="material-medium" style={{ padding: 24 }}>
-        <MonoLabel icon={Target}>Products</MonoLabel>
-        <p
-          className="text-copy-14"
-          style={{
-            color: "var(--ink-subtle)",
-            margin: "10px 0 14px",
-            maxWidth: 480,
-          }}
-        >
-          A product is where signals, opportunities, and specs live. New workspaces start with one
-          named after the workspace; add one here to begin.
-        </p>
-        <Button size="sm" onClick={addProduct}>
-          New product
-        </Button>
-      </div>
+      <Empty
+        action={
+          <Button variant="primary" onClick={addProduct}>
+            New product
+          </Button>
+        }
+      >
+        A product is where signals, opportunities, and specs live. New workspaces start with one
+        named after the workspace; add one here to begin.
+      </Empty>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 12,
-          }}
-        >
-          <MonoLabel icon={Target}>
-            Portfolio · {active.length} product{active.length === 1 ? "" : "s"}
-          </MonoLabel>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {active.length > 1 && (
-              <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-                click to switch
-              </span>
-            )}
-            <Button variant="ghost" size="sm" onClick={addProduct}>
-              New product
-            </Button>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {active.map((p) => {
-            const isActive = p.id === activeProductId;
-            return (
-              <div key={p.id} style={{ position: "relative" }}>
-                <button
-                  onClick={() => setActiveProductId(p.id)}
-                  className="lift"
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "10px 96px 10px 12px",
-                    borderRadius: 8,
-                    // A neutral hairline + fill marks the current selection
-                    // (Tempo v5 §2 narrows glacier to literal status chips
-                    // and links); ember stays reserved for needs-a-human
-                    // (v4 §3).
-                    border: `1px solid ${isActive ? "var(--hairline-strong)" : "var(--hairline)"}`,
-                    background: isActive ? "var(--hover)" : "transparent",
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0 }}>
-                    {isActive && (
-                      <span
-                        aria-hidden
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 99,
-                          background: "var(--text-primary)",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                    <span
-                      className="text-label-14"
-                      style={{
-                        color: "var(--ink)",
-                        fontWeight: isActive ? 600 : 500,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {p.name}
-                    </span>
-                    {isActive && (
-                      <span
-                        className="mono-label"
-                        style={{ color: "var(--text-primary)", flexShrink: 0 }}
-                      >
-                        active
-                      </span>
-                    )}
-                  </span>
-                  {p.north_star && (
-                    <p
-                      className="text-label-12"
-                      style={{
-                        color: "var(--ink-subtle)",
-                        margin: "3px 0 7px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {p.north_star}
-                    </p>
-                  )}
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 99,
-                      background: "var(--surface-2)",
-                      overflow: "hidden",
-                      margin: p.north_star ? "0 0 8px" : "7px 0 8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${p.progress}%`,
-                        borderRadius: 99,
-                        background: p.progress > 75 ? "var(--moss, #7FBF8E)" : "var(--ink-subtle)",
-                        transition: "width var(--dur-slow)",
-                      }}
-                    />
-                  </div>
-                  <div
-                    className="mono-label tabular-nums"
-                    style={{ display: "flex", gap: 14, color: "var(--ink-faint)" }}
-                  >
-                    <span>
-                      {p.task_done}/{p.task_total} tasks
-                    </span>
-                    <span>{p.signals} signals</span>
-                    <span>{p.opportunities} opportunities</span>
-                    <span>{p.specs} specs</span>
-                  </div>
-                </button>
-                <div style={{ position: "absolute", top: 9, right: 10, display: "flex", gap: 4 }}>
-                  <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                  <ActionButton label={`Archive ${p.name}`} onClick={() => archive(p)}>
-                    <Archive size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                  <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {archived.length > 0 && (
-        <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
-          <MonoLabel icon={Archive}>
-            Archived · {archived.length} product{archived.length === 1 ? "" : "s"}
-          </MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
-            {archived.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: "1px solid var(--hairline)",
-                  background: "var(--surface-1)",
-                }}
-              >
-                <span
-                  className="text-label-13"
-                  style={{
-                    color: "var(--ink-muted)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    minWidth: 0,
-                  }}
-                >
+    <>
+      <Block
+        title={`Portfolio · ${active.length} product${active.length === 1 ? "" : "s"}`}
+        sub={
+          active.length > 1 ? "Click a product to make it the one the crew works on." : undefined
+        }
+      >
+        {active.map((p) => {
+          const isActive = p.id === activeProductId;
+          return (
+            <Row
+              key={p.id}
+              tight
+              // Selection is a ring, never a fill: ember marks the human and a
+              // chosen product is not one. The word "Active" carries the same
+              // fact, so it survives greyscale.
+              focused={isActive}
+              onClick={() => setActiveProductId(p.id)}
+              lead={
+                <>
                   {p.name}
-                </span>
-                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                  <ActionButton label={`Restore ${p.name}`} onClick={() => restore(p)}>
-                    <ArchiveRestore size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                  <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                    <Download size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                  <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                    <Trash2 size={16} strokeWidth={1.5} />
-                  </ActionButton>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+                  {isActive ? <span style={{ color: "var(--sp-mute)" }}> · Active</span> : null}
+                </>
+              }
+              sub={
+                <>
+                  <Num>
+                    {p.task_done}/{p.task_total}
+                  </Num>{" "}
+                  tasks · <Num>{p.signals}</Num> signals · <Num>{p.opportunities}</Num>{" "}
+                  opportunities · <Num>{p.specs}</Num> specs
+                </>
+              }
+              action={
+                <>
+                  <Button variant="ghost" onClick={() => runExport(p)}>
+                    Export
+                  </Button>
+                  <Button variant="ghost" onClick={() => archive(p)}>
+                    Archive
+                  </Button>
+                  <Button variant="ghost" onClick={() => remove(p)}>
+                    Delete
+                  </Button>
+                </>
+              }
+            />
+          );
+        })}
+
+        <Actions>
+          <Button onClick={addProduct}>New product</Button>
+        </Actions>
+      </Block>
+
+      {archived.length > 0 ? (
+        <Block
+          title={`Archived · ${archived.length} product${archived.length === 1 ? "" : "s"}`}
+          sub="Nothing here is worked on. Restore one to bring it back into the portfolio."
+        >
+          {archived.map((p) => (
+            <Line key={p.id} label={p.name}>
+              <Button variant="ghost" onClick={() => restore(p)}>
+                Restore
+              </Button>
+              <Button variant="ghost" onClick={() => runExport(p)}>
+                Export
+              </Button>
+              <Button variant="ghost" onClick={() => remove(p)}>
+                Delete
+              </Button>
+            </Line>
+          ))}
+        </Block>
+      ) : null}
+    </>
   );
 }

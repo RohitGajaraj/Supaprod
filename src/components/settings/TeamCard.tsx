@@ -1,17 +1,36 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, X } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { inviteMember, listInvitations, revokeInvitation } from "@/lib/workspaces.functions";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/notify";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Pre,
+  Select,
+} from "@/components/shell/primitives";
 
 // Invite teammates: the calm-front view of WM-F5 (workspace invitations). Manager-only RLS
 // gates the backend; this surfaces the invite form, the join link (outbound email is a
 // founder-gated no-op, so the inviter copies the link), and the pending invitations.
 // Engine-Room: the workspace_invitations table + accept RPC -> shown in Settings > Workspace
 // as "Invite teammates" -> the user invites by email, shares a link, and sees who is pending.
+//
+// Ported to the rebuild primitives 2026-07-29. It sits under the route's
+// `Block title="People"` beside MembersCard, and takes the one Block of its own
+// because inviting is a different act from managing who is already here. The
+// fresh join link is a Pre rather than a tinted recess: it is a string a person
+// copies, and Pre already holds its own whitespace and scrolls inside itself.
+// FIXED, beyond styling: the invitations read had no failure state at all, so a
+// failed read rendered "No invitations yet." That is a lie about the workspace.
 
 type Invitation = {
   id: string;
@@ -67,151 +86,100 @@ export function TeamCard() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const fullLink = lastLink ? `${window.location.origin}${lastLink}` : null;
+
   function copyLink() {
-    if (!lastLink) return;
-    const url = `${window.location.origin}${lastLink}`;
-    void navigator.clipboard?.writeText(url);
+    if (!fullLink) return;
+    void navigator.clipboard?.writeText(fullLink);
     toast.success("Link copied");
   }
 
   const canInvite = !!activeWorkspaceId && email.trim().length > 0 && !invite.isPending;
 
   return (
-    <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
-      <div className="mono-label">Invite teammates</div>
-      <p
-        className="text-label-12"
-        style={{ color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}
+    <Block
+      title="Invite teammates"
+      sub="They join with the role you pick. Outbound email is off for now, so share the join link the invite gives you."
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--sp-space-2)",
+          flexWrap: "wrap",
+          alignItems: "flex-end",
+        }}
       >
-        Invite people to this workspace by email. They join with the role you pick. Outbound email
-        is off for now, so share the join link the invite gives you.
-      </p>
-
-      <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 14, flexWrap: "wrap" }}>
-        <input
-          className="input"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="teammate@company.com"
-          aria-label="Invitee email"
-          style={{ flex: "1 1 220px", minWidth: 0 }}
-        />
-        <select
-          className="input"
-          value={role}
-          onChange={(e) => setRole(e.target.value as "admin" | "member" | "viewer")}
-          aria-label="Role"
-          style={{ flex: "0 0 auto" }}
-        >
-          {ROLES.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          disabled={!canInvite}
-          onClick={() => invite.mutate()}
-        >
-          {invite.isPending ? "Inviting" : "Send invite"}
-        </button>
-      </div>
-
-      {lastLink && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--geist-space-2x)",
-            marginTop: 10,
-            padding: "8px 10px",
-            background: "var(--surface-sunken, var(--paper))",
-            border: "1px solid var(--hairline)",
-            borderRadius: 8,
-          }}
-        >
-          <code
-            className="text-label-12-mono"
-            style={{
-              color: "var(--ink-muted)",
-              flex: 1,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
+        <Field label="Email">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="teammate@company.com"
+            aria-label="Invitee email"
+            style={{ minWidth: 240 }}
+          />
+        </Field>
+        <Field label="Role">
+          <Select
+            value={role}
+            onChange={(e) => setRole(e.target.value as "admin" | "member" | "viewer")}
+            aria-label="Role"
+            style={{ width: 140 }}
           >
-            {lastLink}
-          </code>
-          <Button variant="ghost" size="sm" onClick={copyLink} style={{ flexShrink: 0 }}>
-            <Copy size={16} />
-            Copy link
-          </Button>
-        </div>
-      )}
-
-      <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--hairline)" }}>
-        <div className="mono-label" style={{ }}>
-          Invitations
-        </div>
-        {invitations.isLoading ? (
-          <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
-            Loading
-          </p>
-        ) : pending.length === 0 ? (
-          <p className="text-copy-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
-            No invitations yet.
-          </p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0" }}>
-            {pending.map((inv, i) => (
-              <li
-                key={inv.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "var(--geist-space-3x)",
-                  padding: "10px 0",
-                  borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    className="text-label-13"
-                    style={{
-                      color: "var(--ink)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {inv.email}
-                  </div>
-                  <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
-                    {inv.role} · {inv.status}
-                  </div>
-                </div>
-                {inv.status === "pending" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={revoke.isPending}
-                    onClick={() => revoke.mutate(inv.id)}
-                    style={{ flexShrink: 0 }}
-                    aria-label={`Revoke invitation for ${inv.email}`}
-                  >
-                    <X size={16} />
-                    Revoke
-                  </Button>
-                )}
-              </li>
+            {ROLES.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
             ))}
-          </ul>
-        )}
+          </Select>
+        </Field>
+        <Actions>
+          <Button variant="primary" disabled={!canInvite} onClick={() => invite.mutate()}>
+            {invite.isPending ? "Inviting" : "Send invite"}
+          </Button>
+        </Actions>
       </div>
-    </div>
+
+      {fullLink ? (
+        // The receipt of the invite you just made: the actual link, not a
+        // confirmation that one exists. Nothing else on this surface can be
+        // acted on by pasting it somewhere, so it gets the room to be selected.
+        <>
+          <Pre>{fullLink}</Pre>
+          <Actions>
+            <Button onClick={copyLink}>Copy link</Button>
+            <Button variant="ghost" onClick={() => setLastLink(null)}>
+              Done
+            </Button>
+          </Actions>
+        </>
+      ) : null}
+
+      {invitations.isLoading ? (
+        <Loading>Reading the pending invitations.</Loading>
+      ) : invitations.isError ? (
+        <Failed onRetry={() => void invitations.refetch()}>
+          The pending invitations did not load.{" "}
+          {(invitations.error as Error)?.message ?? "The read failed."}
+        </Failed>
+      ) : pending.length === 0 ? (
+        <Empty>Nobody is waiting on an invite.</Empty>
+      ) : (
+        pending.map((inv) => (
+          <Line key={inv.id} label={inv.email} sub={`${inv.role} · ${inv.status}`}>
+            {inv.status === "pending" ? (
+              <Button
+                variant="ghost"
+                disabled={revoke.isPending}
+                onClick={() => revoke.mutate(inv.id)}
+                aria-label={`Revoke invitation for ${inv.email}`}
+              >
+                Revoke
+              </Button>
+            ) : null}
+          </Line>
+        ))
+      )}
+    </Block>
   );
 }

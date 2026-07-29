@@ -1,8 +1,38 @@
+/**
+ * WM-M14 + WM-M19: the owner-only spend-cap surface.
+ *
+ * Two scopes:
+ *   Product  cap how many credits a product draws per window (WM-M14).
+ *   Member   cap how many credits a team member can use per window (WM-M19).
+ *
+ * Renders nothing for non-owners (RLS also rejects their writes). Inert while
+ * dormant.
+ *
+ * Ported to the rebuild primitives 2026-07-29. It was the last thing on the
+ * Credits surface still drawing its own `bento` card, its own field styles and
+ * its own list rows, which put a bordered box between two borderless Blocks.
+ * A cap is a BOUNDARY, so it reads as a Line: the thing being capped on the
+ * left, the ceiling and the way out on the right. Governance canon: policy is
+ * set in advance and does not block, so it is a sentence with a number at the
+ * end of it, never a panel demanding attention.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getCreditCaps, setCreditCap, removeCreditCap } from "@/lib/payments.functions";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Line,
+  Num,
+  Select,
+  Input,
+} from "@/components/shell/primitives";
 
 const WINDOWS = [
   { id: "cycle", label: "per cycle" },
@@ -11,23 +41,16 @@ const WINDOWS = [
 ] as const;
 type WindowKind = (typeof WINDOWS)[number]["id"];
 
-const fieldStyle: React.CSSProperties = {
-  padding: "7px 10px",
-  borderRadius: 8,
-  border: "1px solid var(--hairline, rgba(0,0,0,0.14))",
-  background: "var(--canvas, #fbf7ef)",
-  color: "var(--ink, #1d1a14)",
+/** The add-a-cap row: three controls and the action, on one line where there is
+ *  room and wrapping where there is not. Field is display:block, so each control
+ *  gets its own flex item rather than stretching to the full width. */
+const FORM_ROW: React.CSSProperties = {
+  display: "flex",
+  gap: "var(--sp-space-2)",
+  flexWrap: "wrap",
+  alignItems: "flex-end",
 };
 
-/**
- * WM-M14 + WM-M19: owner-only spend-cap surface.
- *
- * Two scopes:
- *   Product — cap how many credits a product draws per window (original WM-M14).
- *   Member  — cap how many credits a team member can use per window (WM-M19 enterprise surface).
- *
- * Renders nothing for non-owners (RLS also rejects their writes). Inert while dormant.
- */
 export function CreditCapsCard() {
   const qc = useQueryClient();
   const fGet = useServerFn(getCreditCaps);
@@ -75,29 +98,23 @@ export function CreditCapsCard() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to remove cap"),
   });
 
-  // A failed read must not silently vanish the owner's spend-cap surface
-  // (error never wears the empty state's clothes, checklist point 7).
+  // A failed read must not silently vanish the owner's spend-cap surface, and a
+  // failure must not wear an empty state's clothes: "no caps" and "we could not
+  // find out" are different facts and the owner acts differently on each.
   if (caps.isError) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
-        <div className="mono-label" style={{ color: "var(--madder, #E06557)" }}>
-          Couldn't load spending caps
-        </div>
-        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
-          {caps.error instanceof Error ? caps.error.message : "Unknown error"}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 10 }}
-          onClick={() => caps.refetch()}
-        >
-          Retry
-        </button>
-      </div>
+      <Block title="Spending caps">
+        <Failed onRetry={() => void caps.refetch()}>
+          Your spending caps did not load.{" "}
+          {caps.error instanceof Error ? caps.error.message : "The read failed."}
+        </Failed>
+      </Block>
     );
   }
 
+  // Owner-only, and unknown until the read lands. Drawing a Loading line here
+  // would flash a section that non-owners never get, so this stays silent until
+  // it knows it has something to say.
   const data = caps.data;
   if (!data || !data.isOwner) return null;
 
@@ -137,223 +154,174 @@ export function CreditCapsCard() {
   }
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad, 18px)", display: "grid", gap: 20 }}>
-      {/* ---- Per-product caps ---- */}
-      <div>
-        <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)" }}>
-          Per-product spending caps
-        </div>
-        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
-          Cap how many credits a product can spend per window. Takes effect once metering is on.
-        </p>
-
-        {productCaps.length > 0 && (
-          <ul
-            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 6 }}
-          >
-            {productCaps.map((c) => (
-              <li
-                key={c.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  background: "var(--canvas, #fbf7ef)",
-                  border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-                }}
-              >
-                <span style={{ flex: 1, color: "var(--ink, #1d1a14)" }}>{c.targetName}</span>
-                <span style={{ color: "var(--ink-subtle, #6b6457)" }}>
-                  {c.capCredits.toLocaleString()} credits {winLabel(c.windowKind)}
-                  {c.enabled ? "" : " · off"}
-                </span>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => rmMut.mutate(c.id)}
-                  disabled={rmMut.isPending}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div
-          style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
-        >
-          <select
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-            style={{ ...fieldStyle, minWidth: 160 }}
-            aria-label="Product to cap"
-          >
-            <option value="">Select a product…</option>
-            {data.products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            min={0}
-            placeholder="credits"
-            value={productAmount}
-            onChange={(e) => setProductAmount(e.target.value)}
-            style={{ ...fieldStyle, width: 110 }}
-            aria-label="Cap amount in credits"
-          />
-          <select
-            value={productWindow}
-            onChange={(e) => setProductWindow(e.target.value as WindowKind)}
-            style={fieldStyle}
-            aria-label="Cap window"
-          >
-            {WINDOWS.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={addProductCap}
-            disabled={setMut.isPending}
-          >
-            Add cap
-          </button>
-        </div>
-
-        {data.products.length === 0 && (
-          <p style={{ color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
-            Add a product first to set a per-product cap.
-          </p>
-        )}
-      </div>
-
-      {/* ---- Per-member caps (WM-M19: enterprise admin allocation) ---- */}
-      <div
-        style={{
-          paddingTop: 16,
-          borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-        }}
+    <>
+      <Block
+        title="Per-product spending caps"
+        sub="Cap how many credits a product can spend per window. Takes effect once metering is on."
       >
-        <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)" }}>
-          Per-member credit allocation
-        </div>
-        <p style={{ color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
-          Set how many credits each team member can use per window. Business and Enterprise.
-        </p>
-
-        {memberCaps.length > 0 && (
-          <ul
-            style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 6 }}
-          >
-            {memberCaps.map((c) => (
-              <li
-                key={c.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  background: "var(--canvas, #fbf7ef)",
-                  border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-                }}
-              >
-                <span style={{ flex: 1, color: "var(--ink, #1d1a14)" }}>
-                  {/* Attempt to resolve userId to a label from the members list */}
-                  {data.members.find((m) => m.userId === c.targetId)?.label ??
-                    c.targetId?.slice(0, 8) ??
-                    "Unknown member"}
-                </span>
-                <span style={{ color: "var(--ink-subtle, #6b6457)" }}>
-                  {c.capCredits.toLocaleString()} credits {winLabel(c.windowKind)}
-                  {c.enabled ? "" : " · off"}
-                </span>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => rmMut.mutate(c.id)}
-                  disabled={rmMut.isPending}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
+        {productCaps.length === 0 ? (
+          <Empty>Nothing is capped. Every product draws from the shared pool.</Empty>
+        ) : (
+          productCaps.map((c) => (
+            <Line key={c.id} label={c.targetName} sub={c.enabled ? undefined : "Off"}>
+              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
+              </span>
+              <Button variant="ghost" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+                Remove
+              </Button>
+            </Line>
+          ))
         )}
 
-        <div
-          style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap", alignItems: "center", marginTop: 12 }}
-        >
-          {data.members.length > 0 ? (
-            <select
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              style={{ ...fieldStyle, minWidth: 200 }}
-              aria-label="Member to cap"
+        {data.products.length === 0 ? (
+          <Empty>Add a product first to set a per-product cap.</Empty>
+        ) : (
+          <div style={FORM_ROW}>
+            <Field label="Product">
+              <Select
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                aria-label="Product to cap"
+                style={{ minWidth: 180 }}
+              >
+                <option value="">Select a product</option>
+                {data.products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Ceiling">
+              <Input
+                type="number"
+                min={0}
+                placeholder="credits"
+                value={productAmount}
+                onChange={(e) => setProductAmount(e.target.value)}
+                aria-label="Cap amount in credits"
+                style={{ width: 120 }}
+              />
+            </Field>
+            <Field label="Window">
+              <Select
+                value={productWindow}
+                onChange={(e) => setProductWindow(e.target.value as WindowKind)}
+                aria-label="Cap window"
+                style={{ width: 140 }}
+              >
+                {WINDOWS.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Actions>
+              <Button onClick={addProductCap} disabled={setMut.isPending}>
+                Add cap
+              </Button>
+            </Actions>
+          </div>
+        )}
+      </Block>
+
+      <Block
+        title="Per-member credit allocation"
+        sub="Set how many credits each team member can use per window. Business and Enterprise."
+      >
+        {memberCaps.length === 0 ? (
+          <Empty>No member is capped. Everyone draws from the shared pool.</Empty>
+        ) : (
+          memberCaps.map((c) => (
+            <Line
+              key={c.id}
+              label={
+                // The list is the only place a userId can be resolved to a
+                // person, and an unresolved id is stated as one rather than
+                // dressed up as a name.
+                data.members.find((m) => m.userId === c.targetId)?.label ??
+                c.targetId?.slice(0, 8) ??
+                "Unknown member"
+              }
+              sub={c.enabled ? undefined : "Off"}
             >
-              <option value="">Select a member…</option>
-              {data.members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.label}
+              <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                <Num>{c.capCredits.toLocaleString()}</Num> credits {winLabel(c.windowKind)}
+              </span>
+              <Button variant="ghost" onClick={() => rmMut.mutate(c.id)} disabled={rmMut.isPending}>
+                Remove
+              </Button>
+            </Line>
+          ))
+        )}
+
+        <div style={FORM_ROW}>
+          <Field label="Member">
+            {data.members.length > 0 ? (
+              <Select
+                value={memberId}
+                onChange={(e) => setMemberId(e.target.value)}
+                aria-label="Member to cap"
+                style={{ minWidth: 220 }}
+              >
+                <option value="">Select a member</option>
+                {data.members.map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.label}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              // No roster to pick from yet, so the id is typed. The label says
+              // which id, because guessing is what produces a cap on nobody.
+              <Input
+                type="text"
+                placeholder="Member user ID"
+                value={memberId}
+                onChange={(e) => setMemberId(e.target.value)}
+                aria-label="Member user ID"
+                style={{ minWidth: 220 }}
+              />
+            )}
+          </Field>
+          <Field label="Ceiling">
+            <Input
+              type="number"
+              min={0}
+              placeholder="credits"
+              value={memberAmount}
+              onChange={(e) => setMemberAmount(e.target.value)}
+              aria-label="Member cap amount in credits"
+              style={{ width: 120 }}
+            />
+          </Field>
+          <Field label="Window">
+            <Select
+              value={memberWindow}
+              onChange={(e) => setMemberWindow(e.target.value as WindowKind)}
+              aria-label="Member cap window"
+              style={{ width: 140 }}
+            >
+              {WINDOWS.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.label}
                 </option>
               ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              placeholder="Member user ID"
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              style={{ ...fieldStyle, minWidth: 200 }}
-              aria-label="Member user ID"
-            />
-          )}
-          <input
-            type="number"
-            min={0}
-            placeholder="credits"
-            value={memberAmount}
-            onChange={(e) => setMemberAmount(e.target.value)}
-            style={{ ...fieldStyle, width: 110 }}
-            aria-label="Member cap amount in credits"
-          />
-          <select
-            value={memberWindow}
-            onChange={(e) => setMemberWindow(e.target.value as WindowKind)}
-            style={fieldStyle}
-            aria-label="Member cap window"
-          >
-            {WINDOWS.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={addMemberCap}
-            disabled={setMut.isPending}
-          >
-            Set limit
-          </button>
+            </Select>
+          </Field>
+          <Actions>
+            <Button onClick={addMemberCap} disabled={setMut.isPending}>
+              Set limit
+            </Button>
+          </Actions>
         </div>
 
-        {data.members.length === 0 && (
-          <p style={{ color: "var(--ink-faint, #8a8377)", margin: "8px 0 0" }}>
-            Invite team members to set per-member credit limits.
-          </p>
-        )}
-      </div>
-    </div>
+        {data.members.length === 0 ? (
+          <Empty>Invite team members to set per-member credit limits.</Empty>
+        ) : null}
+      </Block>
+    </>
   );
 }
