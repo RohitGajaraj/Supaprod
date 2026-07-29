@@ -1,33 +1,105 @@
 /**
- * Build. The spine, ported onto the rebuild primitives (step 4), same idiom as
- * Today and Ship.
+ * Build. Redesigned from the person's session, not re-skinned
+ * (docs/planning/rebuild-2026-07/SURFACE-JUSTIFICATION.md). The first pass on
+ * this file was mechanical: it swapped components and kept the shape. The six
+ * answers below are the design, and the code obeys them.
  *
- * WHAT THE RETIRED VERSION WAS: a page-level TopBar with its own breadcrumb (a
- * second header, on top of the shell's), a two-tone PageHeader with an accent
- * word and a "usp" line, an ambient glow field, a presence chip, an inline
- * relay, three self-drawing "glance" cards, a card composer, a card list of
- * card rows each carrying its own badge, chip, marker and overflow menu, a
- * hand-drawn skeleton, a constellation motif and two pill rails. Nine skins on
- * one screen.
+ * a. WHO IS STANDING HERE. A product lead who wants a change made and does not
+ *    want to make it. They came to hand work to the crew, and to unstick the
+ *    one run that stopped and is holding the rest up.
  *
- * WHAT IT IS NOW: one surface that reads top to bottom and says four things:
- *   what is running  ·  what needs you  ·  what to build next  ·  what shipped
+ * b. THE ONE THING THIS SURFACE EXISTS FOR. To put work into the crew's hands
+ *    and to see, without opening anything, how far they have got with it.
+ *    Everything else here is either serving that or was cut.
  *
- * The one human decision here is a run that has stopped and is waiting on a
- * person, so that is the gate and it is the biggest thing on the screen. The
- * composer is the action, not the gate: it only takes the primary button when
- * nothing is waiting.
+ * c. KEEP / MOVE / KILL, element by element. "It was already there" is not a
+ *    reason to keep.
+ *    KEEP  the gate for the run that stopped. It is the one human decision on
+ *          this surface, so it is the biggest thing on it.
+ *    KEEP  the composer, both doors. This is where work is handed over; it is
+ *          the reason a person walks in.
+ *    KEEP  the run list, and the completion-evidence flag on it. That flag is
+ *          the one element that calls out a Done claim with nothing behind it.
+ *    KEEP  where builds land (the repo) and what these runs cost, in context.
+ *          The first is the precondition for every dispatch; the second is the
+ *          only place spend is totalled, and there is no spend cap in the
+ *          engine yet, so the number is the only ceiling a person has.
+ *    KILL  the "last thing that shipped" block, and with it the Record recess.
+ *          Record is the record SPEAKING, the one lit surface in the product;
+ *          a shipped-status recap is not that, and the merged run was already
+ *          on the list one row up wearing its Verified flag. What was worth
+ *          keeping is the outbound proof link, which moved into context: it is
+ *          a supporting fact about this surface, not a decision made on it.
+ *    KILL  the "By agent" lens (FleetView). It is the crew's record, and the
+ *          crew's record has a surface: /crew. Two homes for one truth.
+ *    KILL  the "By lane" board (DelegateBoard). Five columns of cards drawn
+ *          from the same runs already listed a few pixels above it. Its ONE
+ *          fact the list did not carry, how many steps of the plan are done,
+ *          MOVED onto the run row, which is where the work is.
+ *    KILL  the per-run cost on the row. Nothing on this surface is decided by
+ *          it, and the total sits in context.
+ *    KILL  the "Behind this one" context block. The headline already counts
+ *          what needs you; saying it twice is the redundant-writing ban.
+ *    KILL  the run title field on the goal door. The crew names its own work
+ *          and the whole product already strips that auto prefix.
+ *    KILL  the spec dropdown menu, for a plain labelled select. A menu that
+ *          hides its own loading, error and empty states inside itself was
+ *          sixty lines saying what one control says.
+ *    KILL  "Show archived" as a second toggle, and the three success toasts.
+ *          One Manage mode reveals archived runs and their two actions; the
+ *          consequence of archiving is the row moving, which the list renders.
+ *    KILL  the local FIELD / HINT / STACK / ACTIONS / INLINE_ACTION style
+ *          objects. The primitives cover all five now.
+ *    MOVE  the by-agent record to /crew (already live, nothing to build).
+ *    MOVE  step progress onto the row (done here).
+ *
+ * d. ONE CLICK AWAY. A row is its title plus one different second line: who is
+ *    on it, what they are doing, how far through the plan. The diff, the trace,
+ *    the steps and the gates are one click into the run.
+ *
+ * e. DELIGHT AND CONFUSION. The delight is watching a plan you did not write
+ *    fill in: you type a sentence, and within seconds a row appears saying
+ *    Chief of Staff has it, then step 2 of 7, then 5 of 7. The confusion this
+ *    surface used to cause was three renderings of one list behind two tabs;
+ *    that is gone.
+ *
+ * f. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Remove the agents and this
+ *    surface loses its subject, not its decoration.
+ *    - ATTRIBUTION. A dispatched run carries Engineer's mark and Engineer's
+ *      name, which is not a guess: listStudioSessions selects that mission by
+ *      agent_slug='builder'. The shipped record says Engineer wrote it, in the
+ *      sentence, so the attribution survives being copied out of the app.
+ *    - WORK IN MOTION, WHILE IT HAPPENS. A running row reads "Engineer is
+ *      writing the change, step 4 of 8", off mission_steps through the pure
+ *      missionProgress(). The mark carries the running state; state is never a
+ *      hue and the mark owns the colour.
+ *    - JUDGMENT LEAVES A TRACE. Starting a build used to fire "Build started."
+ *      and throw you onto another page. A toast confirms that your click
+ *      registered; the Commit renders what it caused. It now writes a receipt
+ *      that names the agent who picked the work up, with a real arrow: the spec
+ *      door creates a 'builder' run (studio.functions dispatch) and the goal
+ *      door creates the mission with starting_agent_id = orchestrator. Both are
+ *      read off the code paths, not assumed. A failed start still writes a
+ *      receipt and goes honest in the same beat.
+ *    - NOTHING OVERCLAIMS. Two gaps are left visibly empty rather than filled
+ *      with something flattering, and both are reported: there is no
+ *      lines-added/removed anywhere in the changeset tables, so no Diffstat is
+ *      drawn; and a goal run's holder is a uuid with no client-side resolver,
+ *      so it reads "The crew" rather than inventing a name.
+ *
+ * ONE SURFACE, NOT THREE. Handing over work, unsticking a run, and reading how
+ * far it got are one two-minute session, not three destinations. What made this
+ * feel like three surfaces was three renderings of one list, which is why the
+ * two lens tabs are gone rather than the page being split.
  *
  * VOICE: never greet, always report. "Mission" is a mechanism word and stays
- * out of every user-facing string on this surface; these are runs. Internal
- * identifiers (studio.*, mission_id, agent_slug 'builder') are unchanged, per
- * the standing rename convention.
+ * out of every user-facing string; these are runs. Internal identifiers
+ * (studio.*, mission_id, agent_slug 'builder') are unchanged, per the standing
+ * rename convention.
  *
- * Every server function, mutation and query key is preserved: listStudioSessions
- * ["studio-sessions", showArchived] on its 5s poll, dispatchStudioSession,
- * startOrchestratedMission, listPrds ["prds"], canDispatchToRepo
- * ["repo-dispatch-check"], setStudioSessionArchived, deleteStudioSession, the
- * repo pre-check gate, the ?mission= slide-over and the ?view= lenses.
+ * Preserved: listStudioSessions on its 5s poll, dispatchStudioSession,
+ * startOrchestratedMission, listPrds, canDispatchToRepo, setStudioSessionArchived,
+ * deleteStudioSession, the repo pre-check gate, and the ?mission= slide-over.
  */
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -37,12 +109,6 @@ import * as React from "react";
 import { z } from "zod";
 
 import { toast } from "@/lib/notify";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +130,8 @@ import {
 } from "@/lib/studio.functions";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
+import { listMissions } from "@/lib/missions.functions";
+import { missionProgress } from "@/lib/delegate-desk";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import {
@@ -73,20 +141,24 @@ import {
 } from "@/lib/build/verification";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
-import { FleetView } from "@/components/obsidian/FleetView";
-import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { agentDisplayName, agentRelayVerb } from "@/lib/agent-vocabulary";
 import {
+  Actions,
   AgentMark,
   Block,
   Button,
   Empty,
+  Failed,
+  Field,
   Gate,
   Num,
   PageHead,
-  Record as RecordRecess,
+  Receipt,
   Row,
+  Select,
   Surface,
+  Textarea,
   Who,
   type MarkState,
 } from "@/components/shell/primitives";
@@ -126,6 +198,10 @@ function usd(n: number | null | undefined): string | null {
   return v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(2)}`;
 }
 
+function clockTime(): string {
+  return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+
 /** The first real sentence of a goal, for the gate's evidence line. */
 function firstLine(text: string | null | undefined, max = 150): string | null {
   const line = (text ?? "")
@@ -161,14 +237,6 @@ function runState(s: StudioSessionListItem): RunState {
   return "queued";
 }
 
-const STATE_WORD: Record<RunState, string> = {
-  gate: "Waiting on you",
-  working: "Building",
-  queued: "Queued",
-  stopped: "Stopped",
-  done: "Done",
-};
-
 /** State is never a hue: the mark carries it, and the mark owns the colour. */
 const MARK_STATE: Record<RunState, MarkState> = {
   gate: "gate",
@@ -178,65 +246,64 @@ const MARK_STATE: Record<RunState, MarkState> = {
   done: "idle",
 };
 
-/** Rows dispatched through Build carry a real builder run, so the mark is the
- *  Engineer's. A goal run has no single author, so it stays the plain mark
- *  rather than borrowing another agent's identity. */
-function markSlug(s: StudioSessionListItem): string | null {
+/**
+ * WHO IS ON THIS ROW. A 'build' row is selected by `agent_slug='builder'`, so
+ * naming Engineer is a fact rather than a guess. A goal run's holder lives in
+ * `missions.current_agent_id`, a uuid with no client-reachable slug resolver,
+ * so it stays "The crew": unspecific and true beats specific and invented.
+ */
+function actorSlug(s: StudioSessionListItem): string | null {
   return s.kind === "build" ? "builder" : null;
 }
+function actorName(s: StudioSessionListItem): string {
+  return s.kind === "build" ? agentDisplayName("builder") : "The crew";
+}
+function actorVerb(s: StudioSessionListItem): string {
+  return (s.kind === "build" ? agentRelayVerb("builder") : null) ?? "working";
+}
 
-/** No field primitive exists yet, so the composer's fields are styled from the
- *  same tokens rather than a new shared class (a new class would collide with
- *  every other surface being ported in parallel). */
-const FIELD: React.CSSProperties = {
-  width: "100%",
-  background: "var(--sp-sink)",
-  border: "1px solid var(--sp-line)",
-  borderRadius: "var(--sp-radius-ctl)",
-  padding: "10px 12px",
-  color: "var(--sp-ink)",
-  font: "inherit",
-  fontSize: "var(--sp-text-body)",
-  outline: "none",
-};
-
-const HINT: React.CSSProperties = {
-  fontSize: "var(--sp-text-meta)",
-  color: "var(--sp-mute)",
-  lineHeight: "var(--sp-leading-body)",
-};
-
-/** A text action small enough to sit on a row's second line, where a full
- *  control would tower over it. */
-const INLINE_ACTION: React.CSSProperties = {
-  font: "inherit",
-  background: "none",
-  border: 0,
-  padding: 0,
-  color: "var(--sp-ink)",
-  textDecoration: "underline",
-  cursor: "pointer",
-};
-
-const STACK: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--sp-space-2)",
-};
-
-const ACTIONS: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "var(--sp-space-2)",
-  flexWrap: "wrap",
-};
+/** A row's second line, one separator, one rhythm. Assembling it by hand put a
+ *  double space and a stray middot into the first draft of every branch, which
+ *  is what a list of facts joined by string concatenation always does. */
+function Meta({ parts }: { parts: React.ReactNode[] }) {
+  const kept = parts.filter(Boolean);
+  return (
+    <>
+      {kept.map((part, i) => (
+        <React.Fragment key={i}>
+          {i > 0 ? " · " : null}
+          {part}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
 
 /** Anti-scroll: the list opens short and expands on demand. */
 const VISIBLE = 8;
 
+/** The empty gate's "describe the next build" sends the caret here. Addressed by
+ *  id rather than a ref because the Textarea primitive's prop type is
+ *  TextareaHTMLAttributes, which does not carry `ref` (reported as a gap). */
+const PROMPT_ID = "build-prompt";
+
+/** What a click here left behind. Session-local: the durable record is the run
+ *  itself, and a second copy of it would be a second source of one truth. */
+type CommitReceipt = {
+  id: string;
+  verb: string;
+  consequence: string;
+  handoff: { slug: string } | null;
+  at: string;
+  failed?: boolean;
+};
+
 export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
   head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
+  // `view` is no longer read: the two lens tabs are gone. The key stays in the
+  // schema because /fleet and /delegate still redirect here carrying it, and
+  // dropping it from the enum would break those two routes at type level.
   validateSearch: (search: Record<string, unknown>) =>
     z
       .object({
@@ -264,14 +331,15 @@ export const Route = createFileRoute("/_authenticated/build/")({
  * ------------------------------------------------------------------ */
 
 function Composer({
-  textareaRef,
   startIsPrimary,
+  onCommit,
 }: {
-  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   /** One primary per screen. When a run is waiting, the gate owns it. */
   startIsPrimary: boolean;
+  /** THE COMMIT. The start does not vanish into a toast and does not throw the
+   *  person onto another page: it hands back what it caused, and who took it. */
+  onCommit: (r: Omit<CommitReceipt, "at">) => void;
 }) {
-  const navigate = useNavigate();
   const fDispatch = useServerFn(dispatchStudioSession);
   const fCanDispatch = useServerFn(canDispatchToRepo);
   const fStartMission = useServerFn(startOrchestratedMission);
@@ -283,14 +351,12 @@ function Composer({
   const [mode, setMode] = React.useState<"ship" | "goal">("goal");
   const [prompt, setPrompt] = React.useState("");
   const [prdId, setPrdId] = React.useState<string | null>(null);
-  const [goalTitle, setGoalTitle] = React.useState("");
   const model = DEFAULT_MODEL;
 
   const prds = useQuery({ queryKey: ["prds"], queryFn: () => fPrds() });
   const approvedPrds = (
     (prds.data?.prds ?? []) as { id: string; title: string; status: string }[]
   ).filter((p) => p.status === "approved");
-  const selectedPrd = approvedPrds.find((p) => p.id === prdId) ?? null;
 
   // The dispatch repo gate. Set when a dispatch cannot resolve a repo; the
   // dialog offers /sync or (with a spec picked) a starter repo plus auto retry.
@@ -298,21 +364,29 @@ function Composer({
 
   const dispatch = useMutation({
     mutationFn: () =>
-      fDispatch({
-        data: {
-          prompt: prompt.trim() || undefined,
-          prdId: prdId ?? undefined,
-          model,
-        },
-      }),
+      fDispatch({ data: { prompt: prompt.trim() || undefined, prdId: prdId ?? undefined, model } }),
     onSuccess: (r) => {
-      toast.success("Build started.");
-      navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
+      // The arrow is real: this dispatch creates a run on agent_slug 'builder'.
+      onCommit({
+        id: r.missionId,
+        verb: "You handed it over",
+        consequence: "Engineer writes the change and opens a pull request. Nothing merges.",
+        handoff: { slug: "builder" },
+      });
+      setPrompt("");
     },
     onError: (e: Error) => {
-      // The raw not-connected refusal becomes the gate with the real paths.
+      // The raw not-connected refusal becomes the gate with the real paths; it
+      // is a precondition, not a failed write, so it gets no receipt.
       if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });
-      else toast.error(e.message);
+      else
+        onCommit({
+          id: `err-${Date.now()}`,
+          verb: "Nothing started",
+          consequence: e.message,
+          handoff: null,
+          failed: true,
+        });
     },
   });
 
@@ -333,20 +407,31 @@ function Composer({
   };
 
   const startRun = useMutation({
-    mutationFn: () =>
-      fStartMission({ data: { goal: prompt.trim(), title: goalTitle.trim() || undefined } }),
+    mutationFn: () => fStartMission({ data: { goal: prompt.trim() } }),
     onSuccess: (r) => {
       const queued = r.approvals_queued ?? 0;
-      toast.success(
-        queued === 0
-          ? "Running."
-          : queued === 1
-            ? "Running. One call waits for you."
-            : `Running. ${queued} calls wait for you.`,
-      );
-      navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
+      // The arrow is real: createMission sets starting_agent_id to orchestrator.
+      onCommit({
+        id: r.mission_id,
+        verb: "You handed it over",
+        consequence:
+          queued === 0
+            ? "Chief of Staff plans the steps and brings back anything that needs you."
+            : queued === 1
+              ? "Chief of Staff planned the steps. One call already waits for you."
+              : `Chief of Staff planned the steps. ${queued} calls already wait for you.`,
+        handoff: { slug: "orchestrator" },
+      });
+      setPrompt("");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      onCommit({
+        id: `err-${Date.now()}`,
+        verb: "Nothing started",
+        consequence: e.message,
+        handoff: null,
+        failed: true,
+      }),
   });
 
   const isPending = mode === "ship" ? checking || dispatch.isPending : startRun.isPending;
@@ -379,47 +464,61 @@ function Composer({
         </button>
       </div>
 
-      <p style={{ ...HINT, margin: "var(--sp-space-3) 0" }}>
-        {mode === "goal"
-          ? "Plain language in. The crew plans the steps and runs them."
-          : "An approved spec becomes a pull request on your repo."}
-      </p>
-
-      <div style={STACK}>
-        {mode === "goal" ? (
-          <input
-            value={goalTitle}
-            onChange={(e) => setGoalTitle(e.target.value)}
-            placeholder="Title (optional)"
-            aria-label="Title (optional)"
-            maxLength={200}
-            style={FIELD}
-          />
-        ) : null}
-        <textarea
-          ref={textareaRef}
-          aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
-              e.preventDefault();
-              run();
-            }
-          }}
-          rows={3}
-          placeholder={
-            mode === "ship"
-              ? "Describe what to ship. It plans against the connected repo."
-              : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
+      <Textarea
+        id={PROMPT_ID}
+        aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
+            e.preventDefault();
+            run();
           }
-          style={{ ...FIELD, resize: "vertical", lineHeight: "var(--sp-leading-body)" }}
-        />
-      </div>
+        }}
+        rows={3}
+        placeholder={
+          mode === "ship"
+            ? "Describe what to ship. Engineer plans it against the connected repo."
+            : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
+        }
+      />
 
-      <div style={{ ...ACTIONS, marginTop: "var(--sp-space-3)" }}>
+      {mode === "ship" ? (
+        <>
+          <Field label="Spec">
+            <Select
+              value={prdId ?? ""}
+              onChange={(e) => setPrdId(e.target.value || null)}
+              disabled={approvedPrds.length === 0}
+            >
+              <option value="">No spec</option>
+              {approvedPrds.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {/* Loading, error and empty each speak for themselves rather than one
+              of them wearing another's clothes. */}
+          {prds.isError ? (
+            <Failed onRetry={() => void prds.refetch()}>The approved specs did not load.</Failed>
+          ) : !prds.isLoading && approvedPrds.length === 0 ? (
+            <Empty>
+              No spec is approved yet, so describe the work instead.{" "}
+              <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                Approve one in Plan
+              </Link>
+              .
+            </Empty>
+          ) : null}
+        </>
+      ) : null}
+
+      <Actions>
         <Button
           variant={startIsPrimary ? "primary" : "default"}
+          shortcut="⌘⏎"
           disabled={!canStart}
           onClick={run}
           // A disabled control pairs with an explanation: a dim button on its
@@ -432,72 +531,9 @@ function Composer({
                 : "Describe the goal in a few words"
           }
         >
-          {isPending ? "Starting" : "Start the build"}
+          {isPending ? "Starting" : "Hand it over"}
         </Button>
-        {mode === "ship" ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Pick an approved spec"
-                style={{
-                  ...INLINE_ACTION,
-                  fontSize: "var(--sp-text-meta)",
-                  color: "var(--sp-mute)",
-                  maxWidth: 260,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {selectedPrd ? selectedPrd.title : "No spec picked"}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              style={{ maxHeight: 288, width: 288, overflowY: "auto" }}
-            >
-              <DropdownMenuItem onClick={() => setPrdId(null)}>No spec</DropdownMenuItem>
-              {approvedPrds.map((p) => (
-                <DropdownMenuItem key={p.id} onClick={() => setPrdId(p.id)}>
-                  <span
-                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                  >
-                    {p.title}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-              {/* Loading, error and empty each speak for themselves rather than
-                  one of them wearing another's clothes. */}
-              {prds.isLoading ? (
-                <div style={{ ...HINT, padding: "6px 8px" }}>Reading approved specs</div>
-              ) : prds.isError ? (
-                <div style={{ ...HINT, padding: "6px 8px" }}>
-                  <span className="sp-fail">The specs did not load.</span>{" "}
-                  <button
-                    type="button"
-                    onClick={() => void prds.refetch()}
-                    style={{ ...INLINE_ACTION, fontSize: "var(--sp-text-meta)" }}
-                  >
-                    Try again
-                  </button>
-                </div>
-              ) : approvedPrds.length === 0 ? (
-                <div style={{ ...HINT, padding: "6px 8px" }}>
-                  No spec is approved yet.{" "}
-                  <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
-                    Approve one in Plan
-                  </Link>
-                </div>
-              ) : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-      </div>
-
-      <p style={{ ...HINT, marginTop: "var(--sp-space-3)" }}>
-        Command and Enter starts it. Anything risky comes back to you first.
-      </p>
+      </Actions>
 
       <RepoGateDialog
         open={repoGate !== null}
@@ -518,6 +554,7 @@ function Composer({
 
 function BuildPage() {
   const fList = useServerFn(listStudioSessions);
+  const fMissions = useServerFn(listMissions);
   const fArchive = useServerFn(setStudioSessionArchived);
   const fDelete = useServerFn(deleteStudioSession);
   const fCanDispatch = useServerFn(canDispatchToRepo);
@@ -525,47 +562,25 @@ function BuildPage() {
   const navigate = useNavigate({ from: "/build/" });
   const search = Route.useSearch();
 
-  const [showArchived, setShowArchived] = React.useState(false);
+  // One mode, not two toggles. Managing reveals archived runs AND the two
+  // actions on them, because they are the same job.
   const [managing, setManaging] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<StudioSessionListItem | null>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [receipts, setReceipts] = React.useState<CommitReceipt[]>([]);
 
   const sessions = useQuery({
-    queryKey: ["studio-sessions", showArchived],
-    queryFn: () => fList({ data: { includeArchived: showArchived } }),
+    queryKey: ["studio-sessions", managing],
+    queryFn: () => fList({ data: { includeArchived: managing } }),
     refetchInterval: 5000,
   });
 
-  // The connection state is visible before Start, so "not connected" is never
-  // discovered as a dispatch failure. Same cache key the composer's gate uses.
+  // The connection state is visible before the hand-over, so "not connected" is
+  // never discovered as a dispatch failure. Same cache key the composer's gate uses.
   const repoStatus = useQuery({
     queryKey: ["repo-dispatch-check"],
     queryFn: () => fCanDispatch({ data: {} }),
     staleTime: 60_000,
-  });
-
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["studio-sessions"] });
-  const archive = useMutation({
-    mutationFn: (v: { missionId: string; archived: boolean }) => fArchive({ data: v }),
-    onSuccess: (_d, v) => {
-      toast.success(
-        v.archived
-          ? "Archived. What it decided stays on the record."
-          : "Restored. What it decided stays on the record.",
-      );
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const del = useMutation({
-    mutationFn: (missionId: string) => fDelete({ data: { missionId } }),
-    onSuccess: () => {
-      toast.success("Deleted. What it decided stays on the record.");
-      setDeleteTarget(null);
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const rows = React.useMemo(() => sessions.data?.sessions ?? [], [sessions.data]);
@@ -580,32 +595,75 @@ function BuildPage() {
   );
   const call = waiting[0] ?? null;
   const running = React.useMemo(() => rows.filter((s) => runState(s) === "working").length, [rows]);
+  const live = React.useMemo(
+    () => rows.filter((s) => ["working", "queued"].includes(runState(s))).length,
+    [rows],
+  );
   const merged = React.useMemo(
     () => rows.filter((s) => s.changeset?.status === "merged").length,
     [rows],
   );
   const spend = React.useMemo(() => rows.reduce((sum, s) => sum + (s.cost_usd ?? 0), 0), [rows]);
-  /** The one receipt on this surface: a claim a person can open and check. */
-  const receipt = React.useMemo(
+  /** The one claim on this surface a sceptic can click out of the product and
+   *  check for themselves. It is a supporting fact, not a decision made here,
+   *  so it sits in context rather than taking a block of its own. */
+  const shipped = React.useMemo(
     () => rows.find((s) => s.changeset?.status === "merged" && s.changeset?.pr_url) ?? null,
     [rows],
   );
 
-  // The lenses and their tabs appear only once the workspace has finished a
-  // run. Until then the surface is the gate and the composer, nothing else.
-  const hasFinished = rows.some((s) => s.status === "completed" || s.status === "done");
+  // HOW FAR THROUGH THE PLAN. The one fact the retired lane board carried that
+  // the list did not, taken off the board and put on the row. missionProgress
+  // is the same pure, unit-verified function the board used, so the done-status
+  // vocabulary is not re-invented here. It only polls while something is live.
+  const plan = useQuery({
+    queryKey: ["build", "plan-progress"],
+    queryFn: () => fMissions({ data: {} }),
+    enabled: rows.length > 0,
+    refetchInterval: live > 0 ? 5000 : false,
+  });
+  const progressById = React.useMemo(() => {
+    const map = new Map<string, { done: number; total: number }>();
+    for (const m of plan.data?.missions ?? []) map.set(m.id, missionProgress(m.steps));
+    return map;
+  }, [plan.data]);
 
-  // Functional form, so opening a run from the lane lens does not discard the
-  // view param (a plain object replaces the whole search state).
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["studio-sessions"] });
+  // No success toast on either: archiving moves the row and deleting removes
+  // it, and the list rendering that IS the consequence. A failure has nowhere
+  // on a row to render, so it still speaks.
+  const archive = useMutation({
+    mutationFn: (v: { missionId: string; archived: boolean }) => fArchive({ data: v }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const del = useMutation({
+    mutationFn: (missionId: string) => fDelete({ data: { missionId } }),
+    onSuccess: () => {
+      setDeleteTarget(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Functional form, so opening a run does not discard the rest of the search.
   const openRun = (missionId: string) =>
     navigate({ search: (prev) => ({ ...prev, mission: missionId }) });
   const closeRun = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
-  const viewMode = hasFinished ? (search.view ?? "missions") : "missions";
 
   const focusComposer = () => {
-    textareaRef.current?.focus();
+    const el = document.getElementById(PROMPT_ID);
+    if (!el) return;
+    el.focus();
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    textareaRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  };
+
+  const commit = (r: Omit<CommitReceipt, "at">) => {
+    setReceipts((prev) => [{ ...r, at: clockTime() }, ...prev]);
+    // The row is the other half of the consequence, so do not make the person
+    // wait up to five seconds for the poll to prove the click did something.
+    if (!r.failed) void invalidate();
   };
 
   // The headline is a fact assembled from real counts. It never claims a
@@ -653,12 +711,26 @@ function BuildPage() {
             </>
           ) : null}
 
-          {waiting.length > 1 ? (
+          {shipped?.changeset ? (
             <>
-              <div className="sp-ctx-head">Behind this one</div>
+              <div className="sp-ctx-head">The last one that landed</div>
               <div className="sp-ctx-body">
-                <Num>{waiting.length - 1}</Num> more waiting. They keep their order until this one
-                is settled.
+                {agentDisplayName("builder")} wrote it and it is merged into{" "}
+                {shipped.changeset.repo}
+                {shipped.changeset.pr_number ? (
+                  <>
+                    {" · "}
+                    <a
+                      href={shipped.changeset.pr_url ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--sp-ink)" }}
+                    >
+                      #{shipped.changeset.pr_number}
+                    </a>
+                  </>
+                ) : null}
+                {onDate(shipped.updated_at) ? ` · ${onDate(shipped.updated_at)}` : ""}
               </div>
             </>
           ) : null}
@@ -668,7 +740,7 @@ function BuildPage() {
               <div className="sp-ctx-head">What these runs cost</div>
               <div className="sp-ctx-body">
                 <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
-                {rows.length === 1 ? "run" : "runs"}.
+                {rows.length === 1 ? "run" : "runs"}. Nothing caps this yet.
               </div>
             </>
           ) : null}
@@ -727,9 +799,11 @@ function BuildPage() {
           <Button variant="primary" onClick={() => openRun(call.mission_id)}>
             Open the run
           </Button>
-          <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
-            See everything waiting
-          </Button>
+          {waiting.length > 1 ? (
+            <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
+              Settle all {waiting.length}
+            </Button>
+          ) : null}
         </Gate>
       ) : (
         <Gate question="Nothing is waiting on you.">
@@ -739,201 +813,157 @@ function BuildPage() {
         </Gate>
       )}
 
-      <Block title="Start a build">
-        <Composer textareaRef={textareaRef} startIsPrimary={!call && !sessions.isError} />
+      <Block title="Hand work over" sub="Anything risky comes back to you before it happens.">
+        <Composer startIsPrimary={!call && !sessions.isError} onCommit={commit} />
       </Block>
 
-      {hasFinished ? (
-        <div className="sp-tabs" role="tablist" aria-label="How to read the work">
-          {(
-            [
-              { id: "missions", label: "Runs" },
-              { id: "agent", label: "By agent" },
-              { id: "lane", label: "By lane" },
-            ] as const
-          ).map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              className="sp-tab"
-              aria-selected={viewMode === id}
-              onClick={() =>
-                navigate({
-                  search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
-                })
-              }
-            >
-              {label}
-            </button>
+      {receipts.length > 0 ? (
+        <Block title="What you set in motion">
+          {receipts.map((r, i) => (
+            <Receipt
+              key={`${r.id}-${i}`}
+              verb={r.verb}
+              consequence={r.consequence}
+              handoff={r.handoff}
+              time={r.at}
+              failed={r.failed}
+            />
           ))}
-        </div>
+        </Block>
       ) : null}
 
-      {viewMode === "missions" ? (
-        <Block
-          title={hasFinished ? undefined : "Runs"}
-          more={
-            rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length} runs`) : undefined
-          }
-          onMore={() => setShowAll((v) => !v)}
-        >
-          {loading ? null : sessions.isError ? (
-            <Empty>The runs did not load, so this list is not the whole picture.</Empty>
-          ) : rows.length === 0 ? (
-            <Empty>
-              {showArchived
-                ? "Nothing here, archived or not. Describe the work above and the crew takes it from there."
-                : "Nothing has been built here yet. Describe the work above and the crew plans the steps, writes the change, and opens the pull request."}
-            </Empty>
-          ) : (
-            visible.map((s) => {
-              const state = runState(s);
-              const evidence = completionEvidence({
-                claimsDone: state === "done",
-                kind: s.kind,
-                changesetStatus: s.changeset?.status ?? null,
-                prUrl: s.changeset?.pr_url ?? null,
-              });
-              const files = s.changeset?.file_count ?? 0;
-              const cost = usd(s.cost_usd);
-              const mark = (
-                <AgentMark slug={markSlug(s)} state={MARK_STATE[state]} name={s.title} />
-              );
-              const detail = (
+      <Block
+        title="Runs"
+        sub={
+          managing
+            ? "Archived runs are included. What a run decided stays on the record."
+            : undefined
+        }
+        more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
+        onMore={() => setShowAll((v) => !v)}
+      >
+        {loading ? null : sessions.isError ? (
+          // "Nothing here" and "we could not find out" are different facts and
+          // a person acts differently on each, so they never share a shape.
+          <Failed onRetry={() => void sessions.refetch()}>
+            The runs did not load, so this list is not the whole picture.
+          </Failed>
+        ) : rows.length === 0 ? (
+          <Empty>
+            Nothing has been built here yet. Describe the work above and the crew plans the steps,
+            writes the change, and opens the pull request.
+          </Empty>
+        ) : (
+          visible.map((s) => {
+            const state = runState(s);
+            const files = s.changeset?.file_count ?? 0;
+            const p = progressById.get(s.mission_id);
+            const steps =
+              p && p.total > 0 ? (
                 <>
-                  {STATE_WORD[state]}
-                  {files > 0 ? (
-                    <>
-                      {" · "}
-                      <Num>{files}</Num> {files === 1 ? "file" : "files"}
-                    </>
-                  ) : null}
-                  {cost ? (
-                    <>
-                      {" · "}
-                      <Num>{cost}</Num>
-                    </>
-                  ) : null}
-                  {evidence ? (
-                    <>
-                      {" · "}
-                      <span
-                        className={
-                          evidence === "verified"
-                            ? "sp-pass"
-                            : evidence === "needs-verification"
-                              ? "sp-warn"
-                              : undefined
-                        }
-                        title={COMPLETION_EVIDENCE_REASON[evidence]}
-                      >
-                        {COMPLETION_EVIDENCE_LABEL[evidence]}
-                      </span>
-                    </>
-                  ) : null}
-                  {s.archived ? " · Archived" : null}
+                  step <Num>{p.done}</Num> of <Num>{p.total}</Num>
                 </>
+              ) : null;
+            const evidence = completionEvidence({
+              claimsDone: state === "done",
+              kind: s.kind,
+              changesetStatus: s.changeset?.status ?? null,
+              prUrl: s.changeset?.pr_url ?? null,
+            });
+
+            // ONE second line, carrying a DIFFERENT fact from the title: who is
+            // on it, what they are doing, how far through the plan they are.
+            const sub: React.ReactNode[] =
+              state === "working"
+                ? [
+                    <>
+                      <Who>{actorName(s)}</Who> is {actorVerb(s)}
+                    </>,
+                    steps,
+                  ]
+                : state === "gate"
+                  ? [
+                      "Waiting on you",
+                      s.pending_approvals > 0 ? (
+                        <>
+                          <Num>{s.pending_approvals}</Num>{" "}
+                          {s.pending_approvals === 1 ? "call" : "calls"}
+                        </>
+                      ) : null,
+                    ]
+                  : state === "stopped"
+                    ? [steps ? <>Stopped at {steps}</> : "Stopped"]
+                    : state === "queued"
+                      ? [`Queued for ${actorName(s).toLowerCase()}`]
+                      : [
+                          <>
+                            <Who>{actorName(s)}</Who> finished
+                          </>,
+                          files > 0 ? (
+                            <>
+                              <Num>{files}</Num> {files === 1 ? "file" : "files"}
+                            </>
+                          ) : null,
+                          // The one element that calls out a Done claim with
+                          // nothing behind it. Its reason is the tooltip.
+                          evidence ? (
+                            <span
+                              className={
+                                evidence === "verified"
+                                  ? "sp-pass"
+                                  : evidence === "needs-verification"
+                                    ? "sp-warn"
+                                    : undefined
+                              }
+                              title={COMPLETION_EVIDENCE_REASON[evidence]}
+                            >
+                              {COMPLETION_EVIDENCE_LABEL[evidence]}
+                            </span>
+                          ) : null,
+                        ];
+
+            // Managing turns the row from a link into a shelf: it stops being a
+            // button, so its two actions can live inside it without one control
+            // nested in another.
+            if (s.archived) sub.push("Archived");
+            if (managing) {
+              sub.push(
+                <button
+                  type="button"
+                  className="sp-block-more"
+                  disabled={archive.isPending}
+                  onClick={() => archive.mutate({ missionId: s.mission_id, archived: !s.archived })}
+                >
+                  {s.archived ? "Restore" : "Archive"}
+                </button>,
+                <button type="button" className="sp-block-more" onClick={() => setDeleteTarget(s)}>
+                  Delete
+                </button>,
               );
-
-              // Managing turns the row from a link into a shelf: it stops
-              // being a button, so its two real actions can live inside it
-              // without one control nested in another.
-              return (
-                <Row
-                  key={s.mission_id}
-                  marks={mark}
-                  lead={<Who>{stripAutoPrefix(s.title)}</Who>}
-                  sub={
-                    managing ? (
-                      <>
-                        {detail}
-                        {" · "}
-                        <button
-                          type="button"
-                          style={INLINE_ACTION}
-                          disabled={archive.isPending}
-                          onClick={() =>
-                            archive.mutate({ missionId: s.mission_id, archived: !s.archived })
-                          }
-                        >
-                          {s.archived ? "Restore" : "Archive"}
-                        </button>
-                        {" · "}
-                        <button
-                          type="button"
-                          style={INLINE_ACTION}
-                          onClick={() => setDeleteTarget(s)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      detail
-                    )
-                  }
-                  time={ago(s.updated_at)}
-                  onClick={managing ? undefined : () => openRun(s.mission_id)}
-                />
-              );
-            })
-          )}
-
-          {loading || sessions.isError ? null : (
-            <div style={{ ...ACTIONS, marginTop: "var(--sp-space-3)" }}>
-              <Button variant="ghost" onClick={() => setShowArchived((v) => !v)}>
-                {showArchived ? "Hide archived" : "Show archived"}
-              </Button>
-              {rows.length > 0 ? (
-                <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
-                  {managing ? "Done managing" : "Manage the list"}
-                </Button>
-              ) : null}
-            </div>
-          )}
-        </Block>
-      ) : null}
-
-      {viewMode === "agent" ? (
-        <Block>
-          <FleetView />
-        </Block>
-      ) : null}
-
-      {viewMode === "lane" ? (
-        <Block>
-          <DelegateBoard onOpenMission={openRun} />
-        </Block>
-      ) : null}
-
-      {receipt?.changeset ? (
-        <Block title="The last thing that shipped">
-          <RecordRecess
-            evidence={
-              <>
-                {receipt.changeset.repo}
-                {receipt.changeset.pr_number ? (
-                  <>
-                    {" · "}
-                    <a
-                      href={receipt.changeset.pr_url ?? undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "inherit" }}
-                    >
-                      #{receipt.changeset.pr_number}
-                    </a>
-                  </>
-                ) : null}
-                {onDate(receipt.updated_at) ? ` · ${onDate(receipt.updated_at)}` : ""}
-              </>
             }
-          >
-            {stripAutoPrefix(receipt.title)} is merged. A pull request anyone can open backs the
-            claim, so the record does not rest on a status word.
-          </RecordRecess>
-        </Block>
-      ) : null}
+
+            return (
+              <Row
+                key={s.mission_id}
+                tight
+                marks={<AgentMark slug={actorSlug(s)} state={MARK_STATE[state]} name={s.title} />}
+                lead={stripAutoPrefix(s.title)}
+                sub={<Meta parts={sub} />}
+                time={ago(s.updated_at)}
+                onClick={managing ? undefined : () => openRun(s.mission_id)}
+              />
+            );
+          })
+        )}
+
+        {loading || sessions.isError || rows.length === 0 ? null : (
+          <Actions>
+            <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+              {managing ? "Done" : "Manage"}
+            </Button>
+          </Actions>
+        )}
+      </Block>
 
       <MissionSlideOver missionId={search.mission ?? null} onClose={closeRun} />
 

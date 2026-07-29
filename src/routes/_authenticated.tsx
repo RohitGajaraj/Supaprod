@@ -157,28 +157,24 @@ function AuthedLayout() {
   const isMissionControl = useRouterState({
     select: (s) => s.matches.some((m) => (ROOM_ROUTE_IDS as readonly string[]).includes(m.routeId)),
   });
-  // THE STEP-4 REMOVAL LIST (rebuild 2026-07-29). Every route below still
-  // draws its OWN chrome (MissionShellView or RoomChrome), which is exactly
-  // the disease the rebuild is treating: three shells, and a hardcoded
-  // pathname list here choosing between them. AppFrame is now the one shell
-  // and takes no "which shell" argument, but it cannot wrap these until their
-  // inner chrome comes out, or the app would draw two headers and two rails.
+  // THE STEP-4 REMOVAL LIST (rebuild 2026-07-29), now down to ONE entry.
   //
-  // Step 4 ports these surfaces onto AppFrame's regions and deletes this
-  // condition, this list, MissionShellView.tsx and RoomChrome.tsx together.
-  // Until then the list shrinks, it never grows: adding a route here is
-  // adding a fourth shell.
+  // It existed because the app had three shells and this hardcoded pathname
+  // list choosing between them, which was the disease the rebuild set out to
+  // treat. AppFrame is the one shell and takes no "which shell" argument, but
+  // it could not wrap a route that still drew its own chrome without rendering
+  // two headers and two rails.
   //
-  // Came off this list on 2026-07-29 as each was ported and stopped drawing its
-  // own chrome: /approvals first, then /brain and /settings, both verified to
-  // have dropped RoomChromeShell and to lay out through sp-inner. Three entries
-  // remain: the room itself, /threads and /artifacts.
-  const isReimaginedSurface =
-    isMissionControl ||
-    pathname === "/threads" ||
-    pathname.startsWith("/threads/") ||
-    pathname === "/artifacts" ||
-    pathname.startsWith("/artifacts/");
+  // Emptied over 2026-07-29 as each surface was ported and verified to have
+  // dropped RoomChromeShell: /approvals, then /brain and /settings, then
+  // /threads and /artifacts. Only Mission Control is left, and it is the one
+  // genuinely different case: it carries its own five-region composition
+  // (TopBar, Spine, Thread, Canvas, Composer) rather than a duplicate of the
+  // app chrome, so porting it is a design question and not a deletion.
+  //
+  // When this goes, so do MissionShellView.tsx and RoomChrome.tsx. The list
+  // only ever shrinks: adding a route here is adding a second shell back.
+  const isReimaginedSurface = isMissionControl;
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the

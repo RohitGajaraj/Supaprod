@@ -778,26 +778,33 @@ export function TraceDetail({ id }: { id: string }) {
                     <Who>{actor}</Who> called <Num>{s.model}</Num>
                   </>
                 }
+                // ONE REGISTER PER LINE. Cost mode replaces the preview with
+                // the numbers rather than prefixing it: five facts in a
+                // truncating row means the last two are never read, and you
+                // opened cost mode because you came for the numbers. A bad
+                // outcome is never optional and shows in either mode.
                 sub={
-                  <>
-                    {showCost ? (
-                      <>
-                        <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
-                        <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · +<Num>{fmtMs(offset)}</Num>{" "}
-                        ·{" "}
-                      </>
-                    ) : null}
-                    {hits.length > 0 ? (
-                      <>
-                        <span className="sp-warn">
-                          <Num>{hits.length}</Num>{" "}
-                          {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
-                        </span>
-                        {" · "}
-                      </>
-                    ) : null}
-                    {outcome}
-                  </>
+                  showCost ? (
+                    <>
+                      <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
+                      <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · started +
+                      <Num>{fmtMs(offset)}</Num>
+                      {s.status !== "ok" ? <> · {outcome}</> : null}
+                    </>
+                  ) : (
+                    <>
+                      {hits.length > 0 ? (
+                        <>
+                          <span className="sp-warn">
+                            <Num>{hits.length}</Num>{" "}
+                            {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
+                          </span>
+                          {" · "}
+                        </>
+                      ) : null}
+                      {outcome}
+                    </>
+                  )
                 }
                 time={fmtMs(latency)}
                 onClick={() => setSelected({ kind: "event", id: s.id })}
@@ -821,21 +828,17 @@ export function TraceDetail({ id }: { id: string }) {
                 </>
               }
               sub={
-                <>
-                  {showCost ? (
-                    <>
-                      +<Num>{fmtMs(offset)}</Num>
-                      {" · "}
-                    </>
-                  ) : null}
-                  {!t.ok && t.error ? (
-                    <span className="sp-fail">{clip(t.error)}</span>
-                  ) : (t.result ?? t.args) != null ? (
-                    clip(JSON.stringify(t.result ?? t.args))
-                  ) : (
-                    "No result recorded"
-                  )}
-                </>
+                showCost && t.ok ? (
+                  <>
+                    started +<Num>{fmtMs(offset)}</Num>
+                  </>
+                ) : !t.ok && t.error ? (
+                  <span className="sp-fail">{clip(t.error)}</span>
+                ) : (t.result ?? t.args) != null ? (
+                  clip(JSON.stringify(t.result ?? t.args))
+                ) : (
+                  "No result recorded"
+                )
               }
               time={fmtMs(latency)}
               onClick={() => setSelected({ kind: "tool", id: t.id })}

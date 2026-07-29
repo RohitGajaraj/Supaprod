@@ -1,35 +1,117 @@
 /**
- * Build, one run in detail. Ported onto the rebuild primitives (step 4),
- * same idiom as Today and Ship.
+ * Build, one run in detail. REDESIGNED, not re-skinned (SURFACE-JUSTIFICATION.md).
  *
- * WHAT THE RETIRED VERSION WAS: a page-level TopBar drawing a second header
- * under the shell's, a bespoke JourneyStrip card, a click-to-rename h1 with a
- * hand-drawn "maker's mark" thread, a mono meta rail carrying six unrelated
- * facts, a two-column grid of cards, an approval card, a disclosure card
- * wrapping a timeline of cards, and a composer card. Cards inside cards, and
- * every one of them a different skin.
+ * The prototype DOES draw this screen (PROTOTYPE-v2.html #s-run), so where it
+ * decided something this file follows it: the headline plus one contract line,
+ * "What happened, in order" as an attribution ledger that OPENS WITH YOUR OWN
+ * ASK, the change stated as a diffstat before any panel, and a context column
+ * that answers this run / what happens next rather than listing statistics.
  *
- * WHAT IT IS NOW: one surface that reads top to bottom and says five things:
- *   what this run is  ·  what needs you  ·  what it did  ·  what you told it
- *   ·  what it produced
+ * ------------------------------------------------------------------ *
+ * a. WHO IS STANDING HERE. A product lead who asked for a change and came back
+ *    to find out whether the crew actually made it, and whether anything now
+ *    needs their call. One person, one run, two minutes.
  *
- * Second pass: the four controls this surface used to hand-roll from raw
- * tokens (the rename field, the note field, the brief, the button rows) now go
- * through Input, Textarea, Pre and Actions, which did not exist when it was
- * first ported. A read that FAILED wears Failed rather than Empty's clothes.
+ * b. THE ONE THING THIS SURFACE EXISTS FOR. To make the one call this run
+ *    cannot make for itself, on the evidence of what the crew actually did.
+ *    Everything else is supporting that or is gone.
  *
- * The run is a sequence of acts by a named agent, so the attribution Row is
- * the whole spine here: one row per run carrying the mark and the time, its
- * steps as tight rows beneath it, and your own notes carrying YouMark. The
- * mark's running state is the only live thing on the screen, and it stops the
- * moment the run does.
+ * c. KEEP / MOVE / KILL, on every element that was here:
+ *    KEEP  the Gate. It is the one call, and it is the reason the page exists.
+ *    KEEP  "Also waiting on you". A second pending call must not hide behind
+ *          the first.
+ *    KEEP  the ledger of runs and steps: this is the evidence, and it is the
+ *          only place it is assembled.
+ *    KEEP  the steer note. It is how you correct the crew WITHOUT stopping it,
+ *          which is the governance canon expressed as a control, and it has no
+ *          other home.
+ *    KEEP  the stage lines (code / pull request / checks / production). Run
+ *          scoped, plain words, and the shell's seven-stage strip does not say
+ *          any of it.
+ *    KEEP  Changes, Preview and Receipts, behind one tab row. A tab row is an
+ *          ANTI-scroll device here: three views of one artifact in one screen
+ *          height. Stacking them as blocks would have made the page longer,
+ *          which is the pain point the founder named twice.
+ *    KILL  the click-to-rename h1. An unlabelled affordance that swallows the
+ *          page's own title, for a housekeeping job nobody came here to do.
+ *          It MOVES to /build, the run list, where you organise runs. Reported
+ *          as a gap: it is not wired there yet.
+ *    KILL  the "named for you" suffix, the model id on each run row, and the
+ *          "N steps · model · cost" meta rail. Four unrelated facts under a
+ *          headline is a stat dump, not a sentence.
+ *    KILL  the fallback Gate ("Nothing needs you while it runs") and its two
+ *          navigation buttons. A Gate with no question is a status banner
+ *          wearing the biggest component on the surface; the state now sits in
+ *          the headline's second line where one line does the job, and the rail
+ *          already goes to Brain and to the other runs.
+ *    KILL  the Cost tab. Every number in it is already on the surface twice:
+ *          the total in the context column, the per run figure on each run row.
+ *    KILL  the "What it was asked for" block and its toggle. The brief MOVES
+ *          into the context column, verbatim, where the detail for the one item
+ *          in focus belongs, and the ledger's first row carries the gist.
+ *    KILL  the "Copy the full id" button. The URL is the full id; the short ref
+ *          stays, selectable, for pasting into a message.
+ *    KILL  every toast on this surface. See THE COMMIT below.
+ *    KILL  the model's thought steps from the default ledger. What the crew DID
+ *          and what it SAID may not share a treatment (agent doctrine §7); a
+ *          narration row rendered identically to a tool receipt is how a
+ *          sceptic decides none of it is real. They return, quoted, behind the
+ *          one "Everything it did and said" control.
+ *    MOVE  the Pull request tab (EngineRoomDisclosure: check runs, inspection,
+ *          merge disclosure) to /engine-room. It is named for the room it
+ *          belongs to. What a PM needs from it is the verdict, and the verdict
+ *          is already one plain word in "Where it stands".
  *
- * BEHAVIOUR IS UNCHANGED. Same query keys (["studio-session", missionId],
+ * d. ONE CLICK AWAY, not on the surface: the diff itself (Changes tab), the
+ *    built output (Preview), the provenance chain (Receipts), the check runs
+ *    (Engine Room), the thinking behind each act (one control on the ledger),
+ *    the pull request (the block's own action).
+ *
+ * e. DELIGHT / CONFUSION. The moment is the ledger opening with YOUR line -
+ *    "You asked for it, 09:02" - and then the crew's work landing under it in
+ *    order, with the live row's mark still lit. You watch your sentence become
+ *    a diff. What would confuse: a step list where the machine's musing looks
+ *    exactly like a commit, and a surface that goes silent between polls. Both
+ *    are answered: quotes separate the registers, and the run row carries the
+ *    silence age from last_checkpoint_at, which is the single highest-trust
+ *    detail available here.
+ *
+ * f. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Remove the agents and this
+ *    surface is empty, not merely plainer.
+ *    - Attribution on EVERY row. The ledger's step rows used to carry no mark
+ *      at all, so the majority of this page's rows were work with nobody
+ *      attached to it. Each act now carries Engineer's mark; your ask and your
+ *      notes carry yours.
+ *    - Work in motion, while it happens: exactly one running mark on the page
+ *      (the live run and its latest act), the live phrase in the headline and
+ *      in the context column, and the silence age. It stops the moment the run
+ *      does. The word "thinking" never appears - that is the word that turns a
+ *      worker into a chatbot.
+ *    - Judgment leaves a trace: THE COMMIT, below.
+ *    - Nothing overclaims: consequence and reversibility copy is read verbatim
+ *      from tool-consequences.ts, which is static per tool and not model
+ *      output. "Nothing merges itself" is a statement of HIGH_RISK_FORCE_REVIEW,
+ *      which really does contain studio.pr.merge. Where a fact is not in the
+ *      data it is not drawn.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10 and §9). Approving here used
+ * to fire toast.success("Approved. It ran.") and the call vanished; sending a
+ * note fired another toast. A toast confirms that your click REGISTERED; a
+ * receipt renders what your click CAUSED. Both actions now write a receipt:
+ *   - the consequence is the tool's own static effect line, per tool, never a
+ *     generic confirmation;
+ *   - the handoff arrow to Engineer is drawn ONLY when decideApproval returns
+ *     executed:true, which means the tool genuinely ran, or when a note lands
+ *     while a run is alive to read it. Otherwise no arrow and the line says
+ *     what changed instead. Never an arrow to nowhere;
+ *   - a failed write still writes a receipt and goes honest immediately. Never
+ *     a success shape over a failed write.
+ *
+ * BEHAVIOUR OTHERWISE UNCHANGED. Same query keys (["studio-session", missionId],
  * ["changeset-deployments", id]), same 4s live polling contract, same steer
- * mutation with the same command-Enter, same rename mutation, same approval
- * decision call, same five tab panels behind the same `?tab=` search param,
- * same orchestrator-kind branch. User-facing name is Build; internal
- * identifiers intentionally stay studio.* (CLAUDE.md rename-disclaimer).
+ * mutation with the same command-Enter, same approval decision call, same
+ * orchestrator-kind branch. User-facing name is Build; internal identifiers
+ * intentionally stay studio.* (CLAUDE.md rename-disclaimer).
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -37,10 +119,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
-import { agentDisplayName, stepLabel } from "@/lib/agent-vocabulary";
-import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { agentDisplayName, agentRelayVerb, stepLabel } from "@/lib/agent-vocabulary";
+import { REVERSIBILITY_LABEL, toolConsequence } from "@/lib/tool-consequences";
+import { stripAutoPrefix } from "@/components/plan/format";
 import {
   getStudioSession,
   steerStudioSession,
@@ -52,13 +134,9 @@ import {
   type StudioRunDetail,
 } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
-import { renameMission } from "@/lib/missions.functions";
 import { listDeployments } from "@/lib/deployments.functions";
-import type { Inspection } from "@/lib/ai/studio-inspection";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
-import { EngineRoomDisclosure } from "@/components/studio/EngineRoomDisclosure";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
-import { CostPanel } from "@/components/studio/CostPanel";
 import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 import { fmtCost, summarizeArgs } from "@/components/studio/studio-format";
@@ -68,13 +146,13 @@ import {
   AgentMark,
   Block,
   Button,
+  Diffstat,
   Empty,
   Failed,
   Gate,
-  Input,
   Num,
   PageHead,
-  Pre,
+  Receipt,
   Row,
   Surface,
   Textarea,
@@ -87,17 +165,25 @@ import {
  *  catalog, so a rename there lands here with no change. */
 const BUILDER = "builder";
 
-type Tab = "changes" | "pr" | "preview" | "cost" | "receipts";
-const TABS: Tab[] = ["changes", "pr", "preview", "cost", "receipts"];
+/** The three views this run's output is worth looking at. */
+type Tab = "changes" | "preview" | "receipts";
 const TAB_DISPLAY: [Tab, string][] = [
   ["changes", "Changes"],
-  ["pr", "Pull request"],
   ["preview", "Preview"],
-  ["cost", "Cost"],
   ["receipts", "Receipts"],
 ];
 
-/** How many activity rows open before the block offers the rest. */
+/** Old deep links, and the /studio/$missionId redirect stub, still carry
+ *  ?tab=pr and ?tab=cost. Pull request moved to Engine Room and Cost was
+ *  removed, so those values are still ACCEPTED and read as the nearest
+ *  surviving view. A link that used to work does not get to break. */
+type SearchTab = Tab | "pr" | "cost";
+const SEARCH_TABS: SearchTab[] = ["changes", "preview", "receipts", "pr", "cost"];
+function readTab(t: SearchTab | undefined): Tab {
+  return t === "preview" || t === "receipts" ? t : "changes";
+}
+
+/** How many ledger rows open before the block offers the rest. */
 const VISIBLE = 12;
 
 type MissionRow = {
@@ -134,6 +220,18 @@ type StepLike = {
   args?: unknown;
 };
 
+/** What a click caused, held for the rest of the session. Session local on
+ *  purpose: the durable record is the run itself, and a second copy of it here
+ *  would be a second source of the same truth. */
+type Mark = {
+  key: string;
+  verb: string;
+  consequence: React.ReactNode;
+  at: string;
+  handoff: boolean;
+  failed?: boolean;
+};
+
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose: nothing here reaches into another
  * surface's folder, so a parallel port cannot break this one.
@@ -154,6 +252,10 @@ function ago(iso: string | null | undefined): string | null {
   const d = Math.floor(h / 24);
   if (d < 7) return `${d}d`;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function clock(): string {
+  return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
 /** "today 14:22" or "6 Jul 14:22". */
@@ -196,11 +298,18 @@ function markFor(status: string): MarkState {
   return "quiet";
 }
 
+/** What the crew is doing, in plain words. NEVER "thinking": that is the word
+ *  that turns a worker into a chatbot, and stepLabel returns it for a thought
+ *  step, so a thought falls back to the agent's own relay verb instead. */
+function actionOf(step: StepLike | undefined): string {
+  if (step && step.kind === "tool_call") return stepLabel(step);
+  return agentRelayVerb(BUILDER) ?? "working";
+}
+
 /** What the run is doing, in the agent's own voice. Present tense while it is
  *  alive, past tense once it is not. */
 function runPhrase(run: StudioRunDetail): string {
-  const last = run.steps[run.steps.length - 1] as StepLike | undefined;
-  if (run.status === "running") return `is ${stepLabel(last)}`;
+  if (run.status === "running") return `is ${actionOf(run.steps[run.steps.length - 1])}`;
   if (run.status === "queued") return "is waiting to start";
   if (run.status === "waiting_approval") return "is waiting on you";
   if (run.status === "completed") return "finished";
@@ -214,7 +323,7 @@ function runPhrase(run: StudioRunDetail): string {
 function currentAction(runs: StudioRunDetail[], missionLive: boolean): string | null {
   const liveRun = [...runs].reverse().find((r) => r.status === "running" || r.status === "queued");
   if (!liveRun) return missionLive ? "lining up the next run" : null;
-  return stepLabel(liveRun.steps[liveRun.steps.length - 1] as StepLike | undefined);
+  return actionOf(liveRun.steps[liveRun.steps.length - 1]);
 }
 
 /** Why a note will not be read, or null while the run can still take one. All
@@ -235,6 +344,19 @@ const STATE_WORD: Record<string, string> = {
   halted: "Stopped",
   cancelled: "Cancelled",
 };
+
+/** The change, stated before any panel is opened. Characters, because that is
+ *  what the changeset stores; naming the unit stops it being read as lines. */
+function diffOf(changes: ChangeRow[]): { added: number; removed: number; files: number } {
+  let added = 0;
+  let removed = 0;
+  for (const c of changes) {
+    const delta = c.new_chars - c.base_chars;
+    if (delta > 0) added += delta;
+    else removed += -delta;
+  }
+  return { added, removed, files: changes.length };
+}
 
 /** The four real stages, each derived from a field that exists. A stage with
  *  no datum says so rather than inventing a state for it. */
@@ -285,6 +407,29 @@ function stageLines(
   ];
 }
 
+/** One line of the context column: an optional mark, a name, and a second line
+ *  that carries DIFFERENT information. Local, because the same six lines of
+ *  markup were being retyped for every context row on this surface. */
+function CtxRow({
+  mark,
+  name,
+  sub,
+}: {
+  mark?: React.ReactNode;
+  name: React.ReactNode;
+  sub: React.ReactNode;
+}) {
+  return (
+    <div className="sp-ctx-row">
+      {mark}
+      <span>
+        <span className="sp-ctx-name">{name}</span>
+        <span className="sp-ctx-sub">{sub}</span>
+      </span>
+    </div>
+  );
+}
+
 /** The one sentence the human is asked to judge. Plain words, never the tool
  *  name: that is provenance and it belongs in the evidence below. */
 function gateQuestion(tool: string): string {
@@ -299,24 +444,33 @@ function approveVerb(tool: string): string {
   return "Approve";
 }
 
+/** What it does and whether it can be undone, read VERBATIM from the static
+ *  per-tool table. Never a paraphrase: this is a safety property, and the
+ *  claim may not outrun the wiring. The agent's own reasoning sits beneath,
+ *  in quotes, because a claim is not a receipt. */
 function gateLines(a: StudioApproval): React.ReactNode[] {
-  const lines: React.ReactNode[] = [];
-  if (a.tool_name === "delegate.openhands") {
+  const c = toolConsequence(a.tool_name);
+  const lines: React.ReactNode[] = [
+    <span key="effect">{c.effect}</span>,
+    <span key="undo">
+      {REVERSIBILITY_LABEL[c.reversible]}. {c.undo}
+    </span>,
+  ];
+  if (a.rationale) {
     lines.push(
-      <span key="what">
-        It clones the repo, writes the change, and hands the result back. It cannot be called back
-        once it is sent.
+      <span key="why">
+        {agentDisplayName(BUILDER)} says: &ldquo;{clip(a.rationale, 200)}&rdquo;
       </span>,
     );
   }
   const args = summarizeArgs((a.args ?? {}) as Record<string, unknown>);
-  if (args && args !== "(no args)") lines.push(<span key="args">{clip(args, 160)}</span>);
-  if (a.rationale) lines.push(<span key="why">{a.rationale}</span>);
-  lines.push(
-    <span key="tool">
-      Runs <Num>{a.tool_name}</Num>
-    </span>,
-  );
+  if (args && args !== "(no args)") {
+    lines.push(
+      <span key="args">
+        <Num>{clip(args, 140)}</Num>
+      </span>,
+    );
+  }
   return lines;
 }
 
@@ -326,14 +480,13 @@ function gateLines(a: StudioApproval): React.ReactNode[] {
 
 function BuildRun() {
   const { missionId } = Route.useParams();
-  const tab = Route.useSearch().tab ?? "changes";
+  const tab = readTab(Route.useSearch().tab);
   const navigate = useNavigate({ from: "/build/$missionId" });
   const qc = useQueryClient();
 
   const fGet = useServerFn(getStudioSession);
   const fSteer = useServerFn(steerStudioSession);
   const fDecide = useServerFn(decideApproval);
-  const fRename = useServerFn(renameMission);
   const fDeployments = useServerFn(listDeployments);
 
   const session = useQuery({
@@ -364,7 +517,6 @@ function BuildRun() {
   const constraints = (data?.constraints ?? null) as StudioConstraints;
   const approvals = (data?.approvals ?? []) as StudioApproval[];
   const ci = (data?.ci ?? null) as StudioCi;
-  const inspection = (data?.inspection ?? null) as Inspection | null;
   const steers = (data?.steers ?? []) as Steer[];
   const totalCost = data?.total_cost_usd ?? 0;
   const spec = (data?.spec ?? null) as { id: string; title: string } | null;
@@ -386,9 +538,6 @@ function BuildRun() {
     mission?.status === "running" ||
     runs.some((r) => ["queued", "running", "waiting_approval"].includes(r.status));
   const liveAction = isLive ? currentAction(runs, mission?.status === "running") : null;
-  const mergeGatePending = approvals.some(
-    (a) => a.status === "pending" && a.tool_name === "studio.pr.merge",
-  );
 
   /* ---- the human ---- */
   const [me, setMe] = React.useState<{ email: string | null; name: string | null }>({
@@ -410,26 +559,50 @@ function BuildRun() {
   }, []);
   const initials = initialsFrom(me.email, me.name);
 
+  /* ---- THE COMMIT: what your calls caused, this session ---- */
+  const [receipts, setReceipts] = React.useState<Mark[]>([]);
+  const addReceipt = React.useCallback((m: Mark) => setReceipts((r) => [m, ...r]), []);
+
   /* ---- the call waiting on a human ---- */
   const pending = approvals.filter((a) => a.status === "pending");
   const [picked, setPicked] = React.useState<string | null>(null);
   const call = pending.find((a) => a.id === picked) ?? pending[0] ?? null;
 
   const decide = useMutation({
-    mutationFn: (v: { id: string; decision: "approve" | "reject" }) =>
+    mutationFn: (v: { id: string; tool: string; decision: "approve" | "reject" }) =>
       fDecide({ data: { approvalId: v.id, decision: v.decision } }),
+    // No toast. The receipt IS the confirmation, and it says what the click
+    // CAUSED rather than that it registered. The arrow is drawn only when the
+    // tool genuinely ran; otherwise the line says what changed instead.
     onSuccess: (r, v) => {
-      toast.success(
-        v.decision === "approve"
-          ? r.executed
-            ? "Approved. It ran."
-            : "Approved."
-          : "Declined. Nothing ran.",
-      );
+      const c = toolConsequence(v.tool);
+      addReceipt({
+        key: `${v.id}-${Date.now()}`,
+        verb: v.decision === "approve" ? "You approved" : "You declined",
+        consequence:
+          v.decision === "approve"
+            ? r.executed
+              ? c.effect
+              : "Nothing ran. The run had already moved on."
+            : "Nothing ran, and the run carries on without it.",
+        at: clock(),
+        handoff: v.decision === "approve" && r.executed === true,
+      });
       setPicked(null);
       void invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    // A failed write still writes a receipt, and it goes honest immediately.
+    // Never a success shape over a failed write: that is the one thing that
+    // makes the successful ones trustworthy.
+    onError: (e: Error, v) =>
+      addReceipt({
+        key: `${v.id}-${Date.now()}`,
+        verb: "Nothing was recorded",
+        consequence: clip(e.message, 200),
+        at: clock(),
+        handoff: false,
+        failed: true,
+      }),
   });
 
   /* ---- the note ---- */
@@ -439,41 +612,55 @@ function BuildRun() {
     mutationFn: () => fSteer({ data: { missionId, message: note.trim() } }),
     onSuccess: () => {
       setNote("");
-      toast.success("Sent. It reads this at the next step.");
+      addReceipt({
+        key: `steer-${Date.now()}`,
+        verb: "You sent a note",
+        consequence: isLive
+          ? `${agentDisplayName(BUILDER)} reads it at its next step.`
+          : "It waits for the next run to read it.",
+        at: clock(),
+        handoff: isLive,
+      });
       void invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      addReceipt({
+        key: `steer-${Date.now()}`,
+        verb: "The note was not sent",
+        consequence: clip(e.message, 200),
+        at: clock(),
+        handoff: false,
+        failed: true,
+      }),
   });
   const canSend = closedReason == null && note.trim().length > 0 && !steer.isPending;
 
-  /* ---- the title, renamed in place ---- */
-  const [renaming, setRenaming] = React.useState(false);
-  const [draft, setDraft] = React.useState("");
-  const rename = useMutation({
-    mutationFn: (title: string) => fRename({ data: { missionId, title } }),
-    onSuccess: () => void invalidate(),
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const startRename = () => {
-    if (!mission) return;
-    setDraft(stripAutoPrefix(mission.title));
-    setRenaming(true);
-  };
-  const commitRename = () => {
-    const next = draft.trim().slice(0, 200);
-    setRenaming(false);
-    if (next && mission && next !== stripAutoPrefix(mission.title)) rename.mutate(next);
-  };
-
-  const [showBrief, setShowBrief] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
 
   const busy = decide.isPending;
 
-  /* ---- what it did ---- */
-  const events = React.useMemo(() => {
+  /* ---- what happened, in order ----
+   * Every row carries a mark: yours on your ask and your notes, Engineer's on
+   * its acts. A row with no mark is a surface pretending the work did itself.
+   * Thoughts are what it SAID, so they are quoted and hidden by default. */
+  const hasThoughts = runs.some((r) => r.steps.some((s) => (s as StepLike).kind === "thought"));
+
+  const ledger = React.useMemo(() => {
     const out: React.ReactNode[] = [];
+    if (mission) {
+      out.push(
+        <Row
+          key="asked"
+          tight
+          marks={<YouMark initials={initials} mine />}
+          lead="You asked for it"
+          sub={clip(mission.goal, 150)}
+          time={ago(mission.created_at)}
+        />,
+      );
+    }
     for (const run of runs) {
+      const alive = run.status === "running" || run.status === "queued";
       out.push(
         <Row
           key={run.run_id}
@@ -486,7 +673,9 @@ function BuildRun() {
           sub={
             <>
               <Num>{run.steps.length}</Num> {run.steps.length === 1 ? "step" : "steps"}
-              {run.model ? <> · {run.model}</> : null}
+              {alive && ago(run.last_checkpoint_at) ? (
+                <> · no step for {ago(run.last_checkpoint_at)}</>
+              ) : null}
               {run.cost_usd > 0 ? (
                 <>
                   {" · "}
@@ -498,12 +687,19 @@ function BuildRun() {
           time={ago(run.last_checkpoint_at ?? run.created_at)}
         />,
       );
+      const last = run.steps.length - 1;
       run.steps.forEach((raw, i) => {
         const s: StepLike = raw;
+        const isThought = s.kind === "thought";
+        if (isThought && !showAll) return;
         let lead: React.ReactNode;
         let sub: React.ReactNode = null;
-        if (s.kind === "thought") {
-          lead = clip(s.text ?? "");
+        if (isThought) {
+          const text = clip(s.text ?? "", 160);
+          if (!text) return;
+          // SAID, never DID. Quotation marks are the whole differentiator, and
+          // they survive grayscale, a screen reader and a copy-paste.
+          lead = <>&ldquo;{text}&rdquo;</>;
         } else if (s.kind === "final") {
           lead = clip(s.message ?? "");
         } else {
@@ -519,6 +715,14 @@ function BuildRun() {
           <Row
             key={`${run.run_id}-${i}`}
             tight
+            marks={
+              <AgentMark
+                slug={BUILDER}
+                state={
+                  failedStep ? "failed" : alive && i === last && !isThought ? "running" : "quiet"
+                }
+              />
+            }
             lead={
               failedStep ? (
                 <span className="sp-fail">{lead}</span>
@@ -534,82 +738,94 @@ function BuildRun() {
       });
     }
     return out;
-  }, [runs]);
+  }, [runs, mission, initials, showAll]);
 
-  /* ---- the headline ---- */
+  /* ---- the headline: the state, and whose run this is ---- */
   const title = mission ? stripAutoPrefix(mission.title) : null;
   const stateWord = mission ? (STATE_WORD[mission.status] ?? cap(mission.status)) : null;
-
   const started = startedAt(mission?.created_at);
   const sub = mission ? (
     <>
       {isLive && liveAction ? `${agentDisplayName(BUILDER)} is ${liveAction}` : stateWord}
-      {started ? <> · started {started}</> : null}
-      {totalCost > 0 ? (
-        <>
-          {" · "}
-          <Num>{fmtCost(totalCost)}</Num>
-        </>
-      ) : null}
-      {isAutoTitle(mission.title) ? " · named for you" : null}
+      {started ? <> · you asked for this {started}</> : null}
     </>
   ) : undefined;
 
-  /* ---- the context column ---- */
+  /* ---- the context column: this run, and what happens next ---- */
+  const diff = diffOf(changes);
+  const stepTotal = runs.reduce((n, r) => n + r.steps.length, 0);
+  const mergeStillYours =
+    !isOrchestrator &&
+    !!changeset &&
+    changeset.status !== "merged" &&
+    changeset.status !== "abandoned";
+
   const context = mission ? (
     <>
       <div className="sp-ctx-head">Who is on it</div>
-      <div className="sp-ctx-row">
-        <AgentMark
-          slug={BUILDER}
-          state={isLive ? "running" : mission.status === "failed" ? "failed" : "quiet"}
-        />
-        <span>
-          <span className="sp-ctx-name">{agentDisplayName(BUILDER)}</span>
-          <span className="sp-ctx-sub">{liveAction ?? stateWord}</span>
-        </span>
-      </div>
+      <CtxRow
+        mark={
+          <AgentMark
+            slug={BUILDER}
+            state={isLive ? "running" : mission.status === "failed" ? "failed" : "quiet"}
+          />
+        }
+        name={agentDisplayName(BUILDER)}
+        sub={liveAction ?? stateWord}
+      />
+
+      {runs.length > 0 ? (
+        <>
+          <div className="sp-ctx-head">This run</div>
+          <div className="sp-ctx-body">
+            Started {started}. <Num>{runs.length}</Num> {runs.length === 1 ? "run" : "runs"},{" "}
+            <Num>{stepTotal}</Num> {stepTotal === 1 ? "step" : "steps"}. It has used{" "}
+            <Num>{fmtCost(totalCost)}</Num>.
+          </div>
+        </>
+      ) : null}
 
       {!isOrchestrator ? (
         <>
           <div className="sp-ctx-head">Where it stands</div>
           {stageLines(runs, changeset, ci, productionDeployed).map((s) => (
-            <div className="sp-ctx-row" key={s.name}>
-              <span>
-                <span className="sp-ctx-name">{s.name}</span>
-                <span className="sp-ctx-sub">{s.state}</span>
-              </span>
-            </div>
+            <CtxRow key={s.name} name={s.name} sub={s.state} />
           ))}
         </>
       ) : null}
 
-      {runs.length > 0 ? (
+      {/* Only rows that real data backs. No row here is a prediction, and no
+          handoff is drawn to something that is not going to act. */}
+      {call || isLive || mergeStillYours ? (
         <>
-          <div className="sp-ctx-head">What it cost</div>
-          <div className="sp-ctx-body">
-            <Num>{fmtCost(totalCost)}</Num> across <Num>{runs.length}</Num>{" "}
-            {runs.length === 1 ? "run" : "runs"} and{" "}
-            <Num>{runs.reduce((n, r) => n + r.tokens, 0).toLocaleString()}</Num> tokens.
-          </div>
+          <div className="sp-ctx-head">What happens next</div>
+          {call ? (
+            <CtxRow
+              mark={<YouMark initials={initials} mine />}
+              name="You decide, now"
+              sub="the call at the top of this page"
+            />
+          ) : isLive ? (
+            <CtxRow
+              mark={<AgentMark slug={BUILDER} state="running" />}
+              name={`${agentDisplayName(BUILDER)} carries on`}
+              sub="it does not need you for this part"
+            />
+          ) : null}
+          {mergeStillYours ? (
+            <CtxRow
+              mark={<YouMark initials={initials} />}
+              name="Then you merge it"
+              sub="nothing merges itself"
+            />
+          ) : null}
         </>
       ) : null}
 
-      <div className="sp-ctx-head">Finding it again</div>
-      <div className="sp-ctx-body">
-        <Num>{traceRef(mission.id)}</Num>
-      </div>
-      <Actions>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            void navigator.clipboard?.writeText(mission.id);
-            toast.success("Copied.");
-          }}
-        >
-          Copy the full id
-        </Button>
-        {spec ? (
+      <div className="sp-ctx-head">What you asked for</div>
+      <div className="sp-ctx-body">{mission.goal}</div>
+      {spec ? (
+        <Actions>
           <Button
             variant="ghost"
             title={spec.title}
@@ -617,8 +833,13 @@ function BuildRun() {
           >
             Open the spec
           </Button>
-        ) : null}
-      </Actions>
+        </Actions>
+      ) : null}
+
+      <div className="sp-ctx-head">Finding it again</div>
+      <div className="sp-ctx-body">
+        <Num>{traceRef(mission.id)}</Num>
+      </div>
     </>
   ) : null;
 
@@ -644,108 +865,43 @@ function BuildRun() {
 
   return (
     <Surface context={context}>
-      <PageHead
-        title={
-          renaming ? (
-            <Input
-              autoFocus
-              aria-label="Name this run"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitRename}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commitRename();
-                }
-                if (e.key === "Escape") {
-                  e.preventDefault();
-                  setRenaming(false);
-                }
-              }}
-            />
-          ) : (
-            <span
-              role="button"
-              tabIndex={0}
-              title="Click to rename"
-              onClick={startRename}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  startRename();
-                }
-              }}
-              style={{ cursor: "text" }}
-            >
-              {title}
-            </span>
-          )
-        }
-        sub={sub}
-      />
+      <PageHead title={title} sub={sub} />
 
       {call ? (
         <Gate question={gateQuestion(call.tool_name)} lines={gateLines(call)}>
           <Button
             variant="primary"
             disabled={busy}
-            onClick={() => decide.mutate({ id: call.id, decision: "approve" })}
+            onClick={() =>
+              decide.mutate({ id: call.id, tool: call.tool_name, decision: "approve" })
+            }
           >
             {approveVerb(call.tool_name)}
           </Button>
           <Button
             disabled={busy}
-            onClick={() => decide.mutate({ id: call.id, decision: "reject" })}
+            onClick={() => decide.mutate({ id: call.id, tool: call.tool_name, decision: "reject" })}
           >
             Decline
           </Button>
         </Gate>
-      ) : (
-        <Gate
-          question={
-            isLive
-              ? "Nothing needs you while it runs."
-              : mission.status === "failed"
-                ? "This run stopped on an error."
-                : mission.status === "completed"
-                  ? "This run finished on its own."
-                  : `This run is ${(STATE_WORD[mission.status] ?? mission.status).toLowerCase()}.`
-          }
-          lines={
-            isLive && liveAction
-              ? [
-                  <span key="doing">
-                    {agentDisplayName(BUILDER)} is {liveAction}. It carries on without you.
-                  </span>,
-                ]
-              : undefined
-          }
-        >
-          {changeset?.pr_url ? (
-            <Button
-              variant="primary"
-              onClick={() =>
-                window.open(changeset.pr_url as string, "_blank", "noopener,noreferrer")
-              }
-            >
-              Open the pull request
-            </Button>
-          ) : null}
-          {mission.status === "completed" ? (
-            <Button
-              variant="ghost"
-              onClick={() => navigate({ to: "/brain", search: { tab: "docs" } })}
-            >
-              See what it wrote down
-            </Button>
-          ) : (
-            <Button variant="ghost" onClick={() => navigate({ to: "/build" })}>
-              Look at the other runs
-            </Button>
-          )}
-        </Gate>
-      )}
+      ) : null}
+
+      {receipts.length > 0 ? (
+        <Block title="What you did just now">
+          {receipts.map((r) => (
+            <Receipt
+              key={r.key}
+              initials={initials}
+              verb={r.verb}
+              consequence={r.consequence}
+              handoff={r.handoff ? { slug: BUILDER } : null}
+              time={r.at}
+              failed={r.failed}
+            />
+          ))}
+        </Block>
+      ) : null}
 
       {pending.length > 1 ? (
         <Block title="Also waiting on you">
@@ -757,7 +913,7 @@ function BuildRun() {
                 tight
                 marks={<AgentMark slug={BUILDER} state="gate" />}
                 lead={gateQuestion(a.tool_name)}
-                sub={<Num>{a.tool_name}</Num>}
+                sub={toolConsequence(a.tool_name).effect}
                 time={ago(a.created_at)}
                 onClick={() => setPicked(a.id)}
               />
@@ -766,31 +922,31 @@ function BuildRun() {
       ) : null}
 
       {isOrchestrator ? (
-        <Block title="What it did">
+        <Block title="What happened, in order">
           <MissionOrchestratorDetail missionId={missionId} />
         </Block>
       ) : (
         <>
           <Block
-            title="What it did"
+            title="What happened, in order"
             more={
-              events.length > VISIBLE
+              ledger.length > VISIBLE || hasThoughts
                 ? showAll
-                  ? "Show fewer"
-                  : `All ${events.length} steps`
+                  ? "Just what it did"
+                  : "Everything it did and said"
                 : undefined
             }
             onMore={() => setShowAll((v) => !v)}
           >
-            {events.length === 0 ? (
+            {ledger.length === 0 ? (
               <Empty>
                 Nothing has run yet. {agentDisplayName(BUILDER)} picks this up on its own and the
                 steps land here as they happen.
               </Empty>
             ) : showAll ? (
-              events
+              ledger
             ) : (
-              events.slice(0, VISIBLE)
+              ledger.slice(0, VISIBLE)
             )}
           </Block>
 
@@ -834,7 +990,19 @@ function BuildRun() {
             ))}
           </Block>
 
-          <Block>
+          <Block
+            title="What it produced"
+            sub={
+              diff.files > 0 ? (
+                <>
+                  <Diffstat added={diff.added} removed={diff.removed} /> characters across{" "}
+                  <Num>{diff.files}</Num> {diff.files === 1 ? "file" : "files"}.
+                </>
+              ) : undefined
+            }
+            more={changeset?.pr_url ? "Open the pull request" : undefined}
+            onMore={() => window.open(changeset?.pr_url as string, "_blank", "noopener,noreferrer")}
+          >
             <div className="sp-tabs" role="tablist" aria-label="What this run produced">
               {TAB_DISPLAY.map(([id, label]) => (
                 <button
@@ -859,34 +1027,14 @@ function BuildRun() {
                   constraints={constraints}
                 />
               ) : null}
-              {tab === "pr" ? (
-                <EngineRoomDisclosure
-                  missionId={missionId}
-                  changeset={changeset}
-                  ci={ci}
-                  inspection={inspection}
-                  mergeGatePending={mergeGatePending}
-                  onRefreshed={invalidate}
-                />
-              ) : null}
               {tab === "preview" ? (
                 <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
               ) : null}
-              {tab === "cost" ? <CostPanel runs={runs} total={totalCost} /> : null}
               {tab === "receipts" ? <ReceiptsPanel missionId={missionId} /> : null}
             </div>
           </Block>
         </>
       )}
-
-      <Block
-        title="What it was asked for"
-        sub="The brief this run was given, word for word."
-        more={showBrief ? "Hide it" : "Read it"}
-        onMore={() => setShowBrief((v) => !v)}
-      >
-        {showBrief ? <Pre>{mission.goal}</Pre> : null}
-      </Block>
     </Surface>
   );
 }
@@ -894,9 +1042,9 @@ function BuildRun() {
 export const Route = createFileRoute("/_authenticated/build/$missionId")({
   // Optional, so a dispatch surface can navigate without search; the component
   // reads a missing tab as Changes.
-  validateSearch: (search: Record<string, unknown>): { tab?: Tab } => {
+  validateSearch: (search: Record<string, unknown>): { tab?: SearchTab } => {
     const t = search.tab;
-    return { tab: (TABS as string[]).includes(t as string) ? (t as Tab) : undefined };
+    return { tab: (SEARCH_TABS as string[]).includes(t as string) ? (t as SearchTab) : undefined };
   },
   component: BuildRun,
   head: () => ({ meta: [{ title: "Build · Supaprod" }] }),
