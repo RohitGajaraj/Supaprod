@@ -2,37 +2,60 @@
  * TRUST-LEDGER MERGE (IA spine 2026-07-11): the Trust Ledger surface, lifted
  * out of the retired /trust-ledger route into the Record room's front tab.
  * Receipts, the tamper seal, and the mission chain are the one Record answer;
- * public-share controls stay here on the receipts tab (ShareControl reuses
+ * public-share controls live on the receipt's detail sheet (ShareControl reuses
  * /d/$slug). The route now only 301-redirects; this panel is the content.
+ *
+ * PORTED to the rebuild primitives (2026-07-29). What changed inside, and why:
+ *
+ *  - THE CARD IS GONE. A receipt was a bordered card carrying an icon tile, two
+ *    pills, a rationale paragraph, a source label, an evidence count, a share
+ *    button and a trace ref. Twenty of those inside a room that is already a
+ *    bordered region is a card in a card, and it is the exact verbosity the
+ *    founder named. A receipt is now a Row: one line, one second line carrying
+ *    DIFFERENT facts, and the rest one click away in the detail sheet that
+ *    already renders every one of them, share control included.
+ *
+ *  - THE SUBJECT LEADS. The list sits at the top. The tamper check and the
+ *    mission chain are machinery, so they sit under it, each in its own Block
+ *    rather than each in its own card.
+ *
+ *  - ATTRIBUTION IS THE POINT of this surface, so every row carries a mark and
+ *    says who: the agent that made the call, you and the agent together when
+ *    you settled it, and the honest word "unattributed" when the record does
+ *    not say. A row is never silent about its author and never invents one.
+ *
+ *  - COLOUR HAS JOBS. Monochrome by default. Ember only on a receipt still
+ *    waiting on a human (the mark's gate state). Red on a rejected or failed
+ *    outcome, green on a decision an outcome has proven. Nothing else.
+ *
+ * Every server function, query key and exported signature is untouched.
  */
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  ScrollText,
-  Gavel,
-  Zap,
-  User,
-  Bot,
-  History,
-  Link2,
-  Search,
-  Copy,
-  Check,
-  ShieldCheck,
-  AlertTriangle,
-} from "lucide-react";
 import { toast } from "@/lib/notify";
-import { TabRow, EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
+import { supabase } from "@/integrations/supabase/client";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Num,
+  PairMark,
+  Record as RecordVerdict,
+  Row,
+  Select,
+  YouMark,
+  type MarkState,
+} from "@/components/shell/primitives";
 import {
   listTrustReceipts,
   getLedgerSeal,
@@ -40,231 +63,140 @@ import {
   type TrustReceipt,
 } from "@/lib/trust-ledger.functions";
 import { shortHead } from "@/lib/trust-verify";
-import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/supaprod/AutoChip";
+import { stripAutoPrefix } from "@/components/plan/format";
 import { relTimeCaps } from "@/components/discover/format";
-import {
-  receiptStatusTone,
-  receiptStatusLabel,
-  RECEIPT_TONE_VAR,
-  receiptTraceRef,
-  ledgerSummary,
-} from "@/components/trust/format";
-import { ReceiptDetailSheet, ShareControl } from "@/components/trust/ReceiptDetailSheet";
+import { receiptStatusLabel, ledgerSummary } from "@/components/trust/format";
+import { ReceiptDetailSheet } from "@/components/trust/ReceiptDetailSheet";
 import { getMissionChain, listChainMissions } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
 
 type Kind = "all" | "decision" | "action";
 type Outcome = "all" | "standing" | "superseded" | "proven";
 
-function OutcomePill({
-  outcome,
-  supersededBy,
+const KIND_TABS: { id: Kind; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "decision", label: "Decisions" },
+  { id: "action", label: "Actions" },
+];
+
+/** The shared relative stamp, said the way a person says it. relTimeCaps
+ *  shouts ("3H AGO") because the retired system set every timestamp in mono
+ *  caps; the row's time slot is already mono, so the shout is spare ink. */
+function since(iso: string | null | undefined): string {
+  return iso ? relTimeCaps(iso).toLowerCase() : "";
+}
+
+/** Your initials, derived the same way the app header derives them, so the
+ *  disc on a receipt you settled is the same disc you see in the corner. */
+function initialsFrom(email: string | null, name: string | null): string {
+  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
+  const parts = source.split(/[\s._-]+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function useInitials(): string {
+  const [initials, setInitials] = useState("?");
+  useEffect(() => {
+    let alive = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!alive) return;
+      setInitials(
+        initialsFrom(
+          data.user?.email ?? null,
+          (data.user?.user_metadata?.full_name as string | undefined) ?? null,
+        ),
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return initials;
+}
+
+/** State is never a hue (primitives.css): quiet for a call a later one
+ *  replaced, ember for one still waiting on a human, red for one that was
+ *  refused or that failed. Everything else stays monochrome.
+ *
+ *  "waiting", not "gate". Both are ember, but "gate" BLINKS and it is the only
+ *  blink in the system, so exactly one mark on a screen may wear it: the one
+ *  thing actually asking. This is a LIST, and a workspace with a dozen open
+ *  decisions blinked a dozen marks at once, which spends the whole restraint
+ *  budget and stops the blink meaning "look here". */
+function markState(r: TrustReceipt): MarkState {
+  if (r.outcome === "superseded") return "quiet";
+  if (r.status === "rejected" || r.status === "failed") return "failed";
+  if (r.status === "pending") return "waiting";
+  return "idle";
+}
+
+/** WHO, in one phrase. The record either names an author or it does not, and
+ *  "unattributed" is the honest word for the second case. */
+function attribution(r: TrustReceipt): string {
+  if (r.humanDecided) {
+    return r.actor ? `${agentDisplayName(r.actor)}, settled by you` : "You settled it";
+  }
+  return r.actor ? agentDisplayName(r.actor) : "unattributed";
+}
+
+function ReceiptRow({
+  r,
+  initials,
+  onOpen,
 }: {
-  outcome: TrustReceipt["outcome"];
-  supersededBy: string | null;
+  r: TrustReceipt;
+  initials: string;
+  onOpen: () => void;
 }) {
-  const superseded = outcome === "superseded";
-  const label = superseded ? "Superseded" : outcome === "proven" ? "Proven" : "Standing";
-  return (
-    <span
-      title={superseded && supersededBy ? `Superseded by ${supersededBy.slice(0, 8)}` : undefined}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        fontFamily: "var(--font-mono)",
-        textTransform: "uppercase",
-        letterSpacing: "0.04em",
-        padding: "2px 8px",
-        borderRadius: 999,
-        color: superseded ? "var(--text-subtle)" : "var(--moss)",
-        background: superseded
-          ? "var(--raised)"
-          : "color-mix(in srgb, var(--moss) 12%, transparent)",
-        border: `1px solid ${superseded ? "var(--hairline)" : "color-mix(in srgb, var(--moss) 30%, transparent)"}`,
-      }}
-    >
-      {superseded ? <History size={14} strokeWidth={1.5} /> : null}
-      {label}
-    </span>
-  );
-}
-
-/** A quiet mono-caps status pill, colored by the receipt's semantic role tone.
- * Obsidian correctness: rejected/failed reads madder (alert), never the soft
- * data pink that `--rose` resolves to under the dark theme. */
-function StatusPill({ status }: { status: string }) {
-  const tone = RECEIPT_TONE_VAR[receiptStatusTone(status)];
-  return (
-    <span
-      className="tabular-nums"
-      style={{
-        fontFamily: "var(--font-mono)",
-        color: tone,
-        textTransform: "uppercase",
-        letterSpacing: "0.06em",
-        border: "1px solid var(--hairline)",
-        borderRadius: 999,
-        padding: "2px 8px",
-      }}
-    >
-      {receiptStatusLabel(status)}
-    </span>
-  );
-}
-
-function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
-  const KindIcon = r.kind === "decision" ? Gavel : Zap;
-  const superseded = r.outcome === "superseded";
-  const pendingGate = r.status === "pending" && !superseded;
-  // Honest verdict line (LOOM §9b): the status pill carries the verdict, so
-  // the actor label stays neutral.
-  const decidedBy = r.humanDecided
-    ? { Icon: User, label: "decided by you" }
-    : { Icon: Bot, label: r.actor ? `${r.actor}` : "agent" };
+  const state = markState(r);
+  const failed = r.status === "rejected" || r.status === "failed";
+  // You are a different KIND of mark from an agent, not a different colour of
+  // the same one. Both marks appear when the crew proposed it and you settled.
+  const marks = r.humanDecided ? (
+    r.actor ? (
+      <PairMark slug={r.actor} initials={initials} state={state} />
+    ) : (
+      <YouMark initials={initials} mine />
+    )
+  ) : r.actor ? (
+    <AgentMark slug={r.actor} state={state} />
+  ) : null;
 
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={`Open receipt: ${stripAutoPrefix(r.title)}`}
+    <Row
+      tight
+      marks={marks}
+      lead={stripAutoPrefix(r.title)}
+      // The second line is a different fact, never more of the first: who, what
+      // family of record, where it landed. The rationale, the evidence and the
+      // provenance belong to the one receipt you open, not to fifty rows.
+      sub={
+        <>
+          {attribution(r)} {"·"} {r.kind} {"·"}{" "}
+          <span className={failed ? "sp-fail" : undefined}>{receiptStatusLabel(r.status)}</span>
+          {r.outcome === "superseded" ? ` · superseded` : null}
+          {r.outcome === "proven" ? (
+            <>
+              {" · "}
+              <span className="sp-pass">proven by an outcome</span>
+            </>
+          ) : null}
+        </>
+      }
+      time={since(r.occurredAt) || null}
       onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      // Hover in CSS (conditional class), not JS mouse handlers, so the
-      // state can never stick after a keyboard interaction (checklist 1).
-      className={`loom-press${pendingGate ? "" : " hover:[background-color:var(--raised)]"}`}
-      data-superseded={superseded ? "true" : undefined}
-      style={{
-        padding: "16px 18px",
-        borderRadius: "var(--radius-card)",
-        cursor: "pointer",
-        opacity: superseded ? 0.72 : 1,
-        border: `1px solid ${pendingGate ? "var(--ember-line)" : "var(--hairline)"}`,
-        background: pendingGate ? "var(--ember-tint)" : "var(--card)",
-        transitionProperty: "background-color, border-color",
-        transitionDuration: "var(--dur-control)",
-        transitionTimingFunction: "var(--ease)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        <span
-          aria-hidden
-          style={{
-            display: "inline-flex",
-            width: 30,
-            height: 30,
-            flexShrink: 0,
-            borderRadius: 9,
-            background: "var(--raised)",
-            color: "var(--text-subtle)",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <KindIcon size={16} strokeWidth={1.5} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-              {stripAutoPrefix(r.title)}
-            </span>
-            {isAutoTitle(r.title) ? <AutoChip /> : null}
-            <OutcomePill outcome={r.outcome} supersededBy={r.supersededBy} />
-          </div>
-          {r.rationale ? (
-            <p
-              style={{
-                color: "var(--text-body)",
-                lineHeight: 1.5,
-                marginTop: 5,
-              }}
-            >
-              {r.rationale}
-            </p>
-          ) : (
-            <p
-              style={{
-                color: "var(--text-faint)",
-                marginTop: 5,
-                fontStyle: "italic",
-              }}
-            >
-              No rationale recorded.
-            </p>
-          )}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--geist-space-3x)",
-              flexWrap: "wrap",
-              marginTop: 10,
-            }}
-          >
-            <MonoLabel icon={decidedBy.Icon} style={{ }}>
-              {decidedBy.label}
-            </MonoLabel>
-            <StatusPill status={r.status} />
-            {r.source.label ? (
-              <MonoLabel icon={Link2} style={{ color: "var(--text-faint)" }}>
-                {r.source.kind ? `${r.source.kind}: ` : ""}
-                {r.source.label}
-              </MonoLabel>
-            ) : null}
-            {r.evidenceCount > 0 ? (
-              <span
-                className="tabular-nums"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-faint)",
-                }}
-                title="Provenance edges linked to this record"
-              >
-                {r.evidenceCount} evidence
-              </span>
-            ) : null}
-            {/* TRUST-SHARE: only decisions are publicly shareable (reuse /d/$slug). */}
-            {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
-            <span className="flex items-center" style={{ marginLeft: "auto", gap: 10 }}>
-              <span
-                className="tabular-nums"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                {relTimeCaps(r.occurredAt)}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  color: "var(--text-faint)",
-                }}
-              >
-                {receiptTraceRef(r)}
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </article>
+    />
   );
 }
 
 /**
- * TRUST-VERIFY (#26): the integrity check. Shows a SHA-256 FINGERPRINT (a plain
- * checksum, NOT a blockchain) of the whole decision-and-outcome record, what a user
- * SAVES now and re-checks later to confirm the ledger has not changed. "Verify" checks
- * the current record against a fingerprint saved earlier. Available to every user.
- * Calm chrome: one quiet bar, the check revealed on demand.
+ * TRUST-VERIFY (#26): the integrity check. A SHA-256 FINGERPRINT (a plain
+ * checksum, NOT a blockchain) of the whole decision-and-outcome record, which a
+ * user SAVES now and re-checks later to confirm the ledger has not changed.
+ * The check itself is the record speaking, so its answer renders as the record
+ * recess rather than as a coloured sentence with an icon glued to it.
  */
 function SealPanel() {
   const fSeal = useServerFn(getLedgerSeal);
@@ -278,184 +210,103 @@ function SealPanel() {
   const [copied, setCopied] = useState(false);
 
   const seal = sealQ.data;
-  // A failed seal read may not vanish silently (an error never wears an empty
-  // state's clothes): name it and offer the one retry.
+
+  // A failed read may never wear an empty state's clothes: name it, offer the
+  // one retry.
   if (sealQ.isError) {
     return (
-      <section
-        style={{
-          padding: "12px 16px",
-          marginBottom: 18,
-          background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
-      >
-        <span style={{ color: "var(--madder-bright)" }}>
-          The tamper check did not load.
-        </span>
-        <button
-          type="button"
-          onClick={() => void sealQ.refetch()}
-          className="hover:underline active:opacity-80"
-          style={chipStyle}
-        >
-          Retry
-        </button>
-      </section>
+      <Block title="Tamper check">
+        <Failed onRetry={() => void sealQ.refetch()}>The tamper check did not load.</Failed>
+      </Block>
     );
   }
-  // Hide when there is nothing to fingerprint: an empty ledger hashes to a fixed
-  // genesis constant (identical across workspaces), so showing it would offer a
-  // meaningless "match", guard on count === 0.
+  // Hide when there is nothing to fingerprint: an empty ledger hashes to a
+  // fixed genesis constant (identical across workspaces), so showing it would
+  // offer a meaningless "match". Guard on count === 0.
   if (!seal || seal.available === false || !seal.head || seal.count === 0) return null;
 
   const v = verify.data;
+  const diff = v && !v.ok && v.changed ? sealDiffLine(v.changed) : "";
+  const sealedAt = since(seal.sealedAt);
+  const ready = paste.trim().length >= 8;
 
   return (
-    <section
-      style={{
-        padding: "12px 16px",
-        marginBottom: 18,
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-      }}
+    <Block
+      title="Tamper check"
+      sub="Save this fingerprint now. Re-check it later and it tells you whether anything on the record was quietly changed."
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <ShieldCheck size={16} strokeWidth={1.5} color="var(--moss)" />
-        <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-          Tamper check
-        </span>
-        <span
-          className="tabular-nums"
-          title={seal.head}
-          style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}
-        >
-          {shortHead(seal.head)}
-        </span>
-        <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-faint)" }}>
-          {seal.count} record{seal.count === 1 ? "" : "s"} · as of {relTimeCaps(seal.sealedAt)}
-        </span>
-        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(seal.head);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              } catch {
-                /* clipboard blocked, the full head is in the title attribute */
-              }
-            }}
-            className="hover:[background-color:var(--raised)] active:opacity-80"
-            style={chipStyle}
-            title="Copy the full fingerprint to save it"
-          >
-            {copied ? <Check size={16} strokeWidth={1.5} /> : <Copy size={16} strokeWidth={1.5} />}
-            {copied ? "Copied" : "Copy fingerprint"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            className="hover:[background-color:var(--raised)] active:opacity-80"
-            style={chipStyle}
-            aria-expanded={open}
-          >
-            {open ? "Close" : "Verify"}
-          </button>
-        </span>
-      </div>
-
-      <p
-        style={{ color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}
+      <Line
+        label={
+          <>
+            Fingerprint <Num>{shortHead(seal.head)}</Num>
+          </>
+        }
+        sub={
+          <>
+            <Num>{seal.count}</Num> record{seal.count === 1 ? "" : "s"}
+            {sealedAt ? (
+              <>
+                , sealed <Num>{sealedAt}</Num>
+              </>
+            ) : null}
+          </>
+        }
       >
-        A fingerprint of the whole record. Save it now, and re-check it later to confirm nothing was
-        quietly changed.
-      </p>
+        <Button
+          variant="ghost"
+          title={seal.head}
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(seal.head);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            } catch {
+              /* clipboard blocked, the full head is in the title attribute */
+            }
+          }}
+        >
+          {copied ? "Copied" : "Copy"}
+        </Button>
+        <Button variant="ghost" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          {open ? "Close" : "Verify"}
+        </Button>
+      </Line>
 
       {open ? (
-        <div
-          style={{ marginTop: 11, display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
-        >
-          <input
-            value={paste}
-            onChange={(e) => setPaste(e.target.value)}
-            placeholder="Paste a fingerprint you saved earlier"
-            aria-label="Fingerprint to check"
-            spellCheck={false}
-            style={{
-              flex: 1,
-              minWidth: 220,
-              fontFamily: "var(--font-mono)",
-              padding: "7px 10px",
-              border: "1px solid var(--hairline)",
-              borderRadius: 8,
-              background: "var(--surface-recessed)",
-              color: "var(--text-primary)",
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => paste.trim() && verify.mutate(paste)}
-            disabled={verify.isPending || paste.trim().length < 8}
-            title={
-              paste.trim().length < 8
-                ? "Paste a saved fingerprint first (at least 8 characters)"
-                : undefined
-            }
-            className="hover:enabled:[background-color:var(--raised)] active:enabled:opacity-80"
-            style={{
-              ...chipStyle,
-              opacity: verify.isPending || paste.trim().length < 8 ? 0.55 : 1,
-              cursor: verify.isPending || paste.trim().length < 8 ? "not-allowed" : "pointer",
-            }}
-          >
-            {verify.isPending ? "Checking" : "Check"}
-          </button>
+        <>
+          <Field label="A fingerprint you saved earlier">
+            <Input
+              value={paste}
+              onChange={(e) => setPaste(e.target.value)}
+              placeholder="Paste it here"
+              spellCheck={false}
+            />
+          </Field>
+          <Actions>
+            <Button
+              disabled={verify.isPending || !ready}
+              title={ready ? undefined : "Paste a saved fingerprint first, at least 8 characters"}
+              onClick={() => ready && verify.mutate(paste)}
+            >
+              {verify.isPending ? "Checking" : "Check it"}
+            </Button>
+          </Actions>
           {v ? (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                color: v.ok ? "var(--moss)" : "var(--madder)",
-              }}
-            >
+            <RecordVerdict evidence={diff ? <Num>{diff}</Num> : undefined}>
               {v.ok ? (
-                <Check size={16} strokeWidth={2.2} />
+                "Unchanged. The record still matches the fingerprint you saved."
               ) : (
-                <AlertTriangle size={16} strokeWidth={1.5} />
+                <span className="sp-fail">
+                  Changed. {v.reason ?? "the record no longer matches that fingerprint"}.
+                </span>
               )}
-              {v.ok
-                ? "Unchanged. Your ledger matches this fingerprint."
-                : `Changed: ${v.reason ?? "the ledger no longer matches this fingerprint"}.`}
-            </span>
+            </RecordVerdict>
           ) : verify.isError ? (
-            <span style={{ color: "var(--madder)" }}>
-              Could not verify. Try again.
-            </span>
+            <Failed onRetry={() => ready && verify.mutate(paste)}>The check did not run.</Failed>
           ) : null}
-          {v && !v.ok && v.changed ? (
-            <span
-              className="tabular-nums"
-              style={{
-                width: "100%",
-                fontFamily: "var(--font-mono)",
-                color: "var(--text-subtle)",
-              }}
-            >
-              {sealDiffLine(v.changed)}
-            </span>
-          ) : null}
-        </div>
+        </>
       ) : null}
-    </section>
+    </Block>
   );
 }
 
@@ -474,40 +325,6 @@ function sealDiffLine(changed: { added: string[]; removed: string[]; mutated: st
   ]
     .filter(Boolean)
     .join(" · ");
-}
-
-const chipStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 5,
-  fontFamily: "var(--font-mono)",
-  color: "var(--text-subtle)",
-  background: "transparent",
-  border: "1px solid var(--hairline)",
-  borderRadius: 99,
-  padding: "3px 9px",
-  cursor: "pointer",
-};
-
-/** A plain-language line, from REAL counts only, so a non-expert understands
- * what the ledger holds without knowing the schema. */
-function LedgerSummary({
-  counts,
-}: {
-  counts: { all: number; standing: number; superseded: number; proven?: number };
-}) {
-  if (counts.all === 0) return null;
-  return (
-    <p
-      style={{
-        color: "var(--text-body)",
-        margin: "0 0 18px",
-        lineHeight: 1.5,
-      }}
-    >
-      {ledgerSummary(counts)}
-    </p>
-  );
 }
 
 /**
@@ -538,79 +355,34 @@ function MissionChainPanel() {
   if (!missionsQ.isPending && !missionsQ.isError && missions.length === 0) return null;
 
   return (
-    <section aria-label="Mission chain" style={{ marginBottom: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <MonoLabel style={{ }}>Mission chain</MonoLabel>
-        <span style={{ color: "var(--text-faint)" }}>
-          the loop, walked end to end
-        </span>
-        <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
-        {missions.length > 0 ? (
-          <Select value={active ?? ""} onValueChange={(v) => setSelected(v)}>
-            <SelectTrigger
-              aria-label="Choose a mission"
-              style={{ maxWidth: 260, height: 32 }}
-            >
-              <SelectValue placeholder="Choose a mission" />
-            </SelectTrigger>
-            <SelectContent>
-              {missions.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {stripAutoPrefix(m.title)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-      </div>
+    <Block title="Mission chain" sub="A missing link is shown, never hidden.">
+      {missions.length > 0 ? (
+        <Select
+          aria-label="Choose a mission"
+          value={active ?? ""}
+          onChange={(e) => setSelected(e.target.value)}
+          style={{ maxWidth: 340, marginBottom: "var(--sp-space-3)" }}
+        >
+          {missions.map((m) => (
+            <option key={m.id} value={m.id}>
+              {stripAutoPrefix(m.title)}
+            </option>
+          ))}
+        </Select>
+      ) : null}
+
       {missionsQ.isError ? (
-        <div style={{ color: "var(--madder-bright)", padding: "10px 0" }}>
-          Could not load missions for the chain. {(missionsQ.error as Error)?.message}{" "}
-          <button
-            type="button"
-            onClick={() => void missionsQ.refetch()}
-            className="cursor-pointer hover:underline active:opacity-80"
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              color: "var(--text-primary)",
-            }}
-          >
-            Retry
-          </button>
-        </div>
+        <Failed onRetry={() => void missionsQ.refetch()}>
+          The missions did not load. {(missionsQ.error as Error)?.message}
+        </Failed>
       ) : chainQ.isError ? (
-        <div style={{ color: "var(--madder-bright)", padding: "10px 0" }}>
-          Could not walk this mission's chain. {(chainQ.error as Error)?.message}{" "}
-          <button
-            type="button"
-            onClick={() => void chainQ.refetch()}
-            className="cursor-pointer hover:underline active:opacity-80"
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              color: "var(--text-primary)",
-            }}
-          >
-            Retry
-          </button>
-        </div>
+        <Failed onRetry={() => void chainQ.refetch()}>
+          This mission&apos;s chain did not load. {(chainQ.error as Error)?.message}
+        </Failed>
       ) : chainQ.data ? (
         <MissionChain chain={chainQ.data} />
-      ) : chainQ.isPending ? (
-        <div
-          aria-hidden="true"
-          style={{
-            height: 240,
-            borderRadius: "var(--radius-card)",
-            background: "var(--surface-card-deep)",
-            boxShadow: "var(--top-light)",
-          }}
-        />
       ) : null}
-    </section>
+    </Block>
   );
 }
 
@@ -621,6 +393,7 @@ export function ReceiptsPanel() {
   const [q, setQ] = useState("");
   const [openReceipt, setOpenReceipt] = useState<TrustReceipt | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const initials = useInitials();
 
   const fList = useServerFn(listTrustReceipts);
   // Debounce search input so keystrokes don't fire a request per character.
@@ -632,15 +405,9 @@ export function ReceiptsPanel() {
 
   const receipts = query.data?.receipts ?? [];
   const counts = query.data?.counts ?? { all: 0, standing: 0, superseded: 0, proven: 0 };
-
-  const kindTabs = useMemo(
-    () => [
-      { id: "all", label: "All" },
-      { id: "decision", label: "Decisions" },
-      { id: "action", label: "Actions" },
-    ],
-    [],
-  );
+  // "Nothing here" and "nothing matches what you asked for" are different facts
+  // and a person acts differently on each.
+  const narrowed = kind !== "all" || outcome !== "all" || debouncedQ.trim().length > 0;
 
   const open = (r: TrustReceipt) => {
     setOpenReceipt(r);
@@ -649,130 +416,99 @@ export function ReceiptsPanel() {
 
   return (
     <>
-      {!query.isPending && !query.isError ? <LedgerSummary counts={counts} /> : null}
+      {/* What the record holds, in plain words, from real counts only. */}
+      {!query.isPending && !query.isError && counts.all > 0 ? (
+        <p className="sp-subtitle">{ledgerSummary(counts)}</p>
+      ) : null}
 
-      <SealPanel />
-
-      <MissionChainPanel />
-
-      <TabRow tabs={kindTabs} active={kind} onSet={(id) => setKind(id as Kind)} />
+      <div className="sp-tabs" role="tablist" aria-label="Filter by what was recorded">
+        {KIND_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={kind === t.id}
+            onClick={() => setKind(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          gap: 10,
+          gap: "var(--sp-space-3)",
+          marginTop: "var(--sp-space-3)",
           flexWrap: "wrap",
-          marginBottom: 18,
         }}
       >
-        <div
-          role="group"
+        <Select
           aria-label="Filter by outcome"
-          style={{
-            display: "inline-flex",
-            gap: 2,
-            padding: 2,
-            background: "var(--surface-raised)",
-            border: "1px solid var(--hairline)",
-            borderRadius: 8,
-          }}
+          value={outcome}
+          onChange={(e) => setOutcome(e.target.value as Outcome)}
+          style={{ flex: "none", width: 210 }}
         >
-          {(["all", "standing", "proven", "superseded"] as Outcome[]).map((o) => (
-            <button
-              key={o}
-              type="button"
-              onClick={() => setOutcome(o)}
-              aria-pressed={outcome === o}
-              className="tabular-nums loom-press hover:[color:var(--text-primary)]"
-              style={{
-                padding: "4px 11px",
-                borderRadius: 6,
-                textTransform: "capitalize",
-                color: outcome === o ? "var(--text-primary)" : "var(--text-subtle)",
-                background: outcome === o ? "var(--card)" : "transparent",
-                fontWeight: outcome === o ? 600 : 400,
-                boxShadow: outcome === o ? "var(--top-light)" : "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              {o}
-              {o === "standing" && counts.standing ? ` · ${counts.standing}` : ""}
-              {o === "proven" && counts.proven ? ` · ${counts.proven}` : ""}
-              {o === "superseded" && counts.superseded ? ` · ${counts.superseded}` : ""}
-            </button>
-          ))}
-        </div>
-        <label
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            flex: 1,
-            minWidth: 200,
-            padding: "6px 11px",
-            border: "1px solid var(--hairline)",
-            borderRadius: 8,
-          }}
-        >
-          <Search size={14} strokeWidth={1.5} color="var(--text-faint)" aria-hidden />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search what, why, or who"
-            aria-label="Search receipts"
-            // No outline:none here: the focus ring is never removed (Tempo
-            // law); the global [data-obsidian] :focus-visible rule draws it.
-            style={{
-              border: "none",
-              background: "transparent",
-              width: "100%",
-              color: "var(--text-primary)",
-            }}
-          />
-        </label>
+          <option value="all">Every outcome</option>
+          <option value="standing">Standing{counts.standing ? ` · ${counts.standing}` : ""}</option>
+          <option value="proven">Proven{counts.proven ? ` · ${counts.proven}` : ""}</option>
+          <option value="superseded">
+            Superseded{counts.superseded ? ` · ${counts.superseded}` : ""}
+          </option>
+        </Select>
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search what, why, or who"
+          aria-label="Search receipts"
+          style={{ flex: 1, minWidth: 200, width: "auto" }}
+        />
       </div>
 
-      {query.isPending ? (
-        <div style={{ color: "var(--text-subtle)", padding: "32px 0" }}>
-          Loading receipts
-        </div>
-      ) : query.isError ? (
-        <div style={{ color: "var(--madder)", padding: "32px 0" }}>
-          Could not load the receipts. {(query.error as Error)?.message}{" "}
-          <button
-            type="button"
-            onClick={() => void query.refetch()}
-            className="cursor-pointer hover:underline active:opacity-80"
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              color: "var(--text-primary)",
-            }}
-          >
-            Retry
-          </button>
-        </div>
+      {query.isPending ? null : query.isError ? (
+        <Failed onRetry={() => void query.refetch()}>
+          The receipts did not load. {(query.error as Error)?.message}
+        </Failed>
       ) : receipts.length === 0 ? (
-        <EmptyState
-          icon={ScrollText}
-          title="No receipts yet"
-          body="Decisions and approved autonomous actions appear here as receipts the moment they happen, with their evidence and whether they still stand."
-          cta="Open your decisions"
-          onCta={() => {
-            // The approvals record lives one sub-tab over in this same room.
-            navigate({ to: "/engine-room", search: { room: "record", view: "approvals" } });
-          }}
-        />
+        narrowed ? (
+          <Empty>Nothing on the record matches that.</Empty>
+        ) : (
+          <Empty
+            action={
+              <Button
+                onClick={() => {
+                  // The approvals record lives one sub-tab over in this room.
+                  navigate({
+                    to: "/engine-room",
+                    search: { room: "record", view: "approvals" },
+                  });
+                }}
+              >
+                Open your decisions
+              </Button>
+            }
+          >
+            Nothing on the record yet. A decision, or an autonomous action you let through, writes a
+            receipt the moment it happens.
+          </Empty>
+        )
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ marginTop: "var(--sp-space-4)" }}>
           {receipts.map((r) => (
-            <ReceiptCard key={`${r.kind}-${r.id}`} r={r} onOpen={() => open(r)} />
+            <ReceiptRow
+              key={`${r.kind}-${r.id}`}
+              r={r}
+              initials={initials}
+              onOpen={() => open(r)}
+            />
           ))}
         </div>
       )}
+
+      <SealPanel />
+
+      <MissionChainPanel />
 
       <ReceiptDetailSheet
         open={sheetOpen}

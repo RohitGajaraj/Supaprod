@@ -1,8 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type CSSProperties } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
-import { MonoLabel } from "@/components/obsidian";
 import {
   getRoadmap,
   updateRoadmapItem,
@@ -16,26 +15,43 @@ import { stripAutoPrefix } from "./format";
 import { BetCard } from "./BetCard";
 import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
+import { Actions, Button, Empty, Failed, Num } from "@/components/shell/primitives";
 
-const COLUMNS: { key: RoadmapBucket; label: string; color: string }[] = [
-  { key: "now", label: "NOW", color: "var(--ember)" },
-  { key: "next", label: "NEXT", color: "var(--text-primary)" },
-  { key: "later", label: "LATER", color: "var(--text-muted)" },
+/** The three columns, in plain words. NOW used to be printed in ember: ember
+ *  marks the human and the one thing waiting on you, never a column heading, so
+ *  the board is monochrome and the count carries the weight. */
+const COLUMNS: { key: RoadmapBucket; label: string }[] = [
+  { key: "now", label: "Now" },
+  { key: "next", label: "Next" },
+  { key: "later", label: "Later" },
 ];
 
 // Anti-scroll (founder ruling 2026-07-06): each column shows its top few and
 // expands independently, same idiom as SignalFeed/AutoClustered.
 const VISIBLE_ITEMS = 5;
 
+/** The board scrolls INSIDE ITS OWN BOX rather than making the page scroll
+ *  sideways: horizontal scrolling on the page was named twice as a pain point.
+ *  The track is intrinsically responsive (auto-fit, not a breakpoint), so it
+ *  answers to the width of the region it is dropped into rather than to the
+ *  width of the window, and it only ever scrolls when three columns genuinely
+ *  cannot fit. */
+const BOARD_SCROLLER: CSSProperties = { overflowX: "auto" };
+const BOARD_TRACK: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+  gap: "var(--sp-space-4)",
+};
+
 /**
- * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Backlog items
- * (`bucket: null`) are out of this surface's scope (§13) and stay invisible
- * here.
+ * The outcome-declared Now/Next/Later board. Backlog items (`bucket: null`) are
+ * out of this surface's scope and stay invisible here.
  *
- * OBS-10 (final closure): write parity with the now-retired parchment
- * `RoadmapBoard` (deleted). Editing the outcome of an ALREADY-committed bet
- * goes through the same governed `commitRoadmapItem` path the retired
- * board's inline editor used (bucket stays put, outcome+measure get
+ * It draws no heading and no card of its own: the section holding it is already
+ * titled and is the one bordered container in the region.
+ *
+ * Editing the outcome of an ALREADY-committed bet goes through the same
+ * governed `commitRoadmapItem` path (bucket stays put, outcome+measure get
  * re-declared), and a multi-select bulk re-prioritize bar calls
  * `bulkUpdateRoadmapItems`.
  */
@@ -99,9 +115,9 @@ export function RoadmapColumns() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // OBS-10: re-declare outcome+measure for a bet already sitting in a bucket,
-  // the same governed write as `commit` above, but the bucket is the bet's
-  // current one (not forced to "now"), so it never re-homes a bet for an edit.
+  // Re-declare outcome+measure for a bet already sitting in a bucket, the same
+  // governed write as `commit` above, but the bucket is the bet's current one
+  // (not forced to "now"), so it never re-homes a bet for an edit.
   const editOutcome = useMutation({
     mutationFn: (v: { id: string; bucket: RoadmapBucket; outcome: string; measure: string }) =>
       fCommit({ data: { id: v.id, bucket: v.bucket, outcome: v.outcome, measure: v.measure } }),
@@ -112,9 +128,9 @@ export function RoadmapColumns() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // OBS-10: bulk re-prioritize the selected set into one bucket, lenient like
-  // the drag move (place-first; per-item outcome+measure governance still
-  // applies and the gap surface flags what moved without one).
+  // Bulk re-prioritize the selected set into one bucket, lenient like the drag
+  // move (place-first; per-item outcome+measure governance still applies and the
+  // gap surface flags what moved without one).
   const bulkMove = useMutation({
     mutationFn: (v: { ids: string[]; bucket: RoadmapBucket }) =>
       fBulk({ data: { ids: v.ids, bucket: v.bucket } }),
@@ -167,220 +183,148 @@ export function RoadmapColumns() {
 
   if (roadmap.isLoading) {
     return (
-      <div
-        role="status"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "var(--geist-space-4x)",
-        }}
-      >
-        <span className="sr-only">Loading the roadmap…</span>
-        {COLUMNS.map((c) => (
-          <div key={c.key} aria-hidden="true">
-            <div
-              style={{
-                height: 10,
-                width: 72,
-                marginBottom: 10,
-                borderRadius: 4,
-                backgroundImage: "var(--shimmer-gradient)",
-                backgroundSize: "280% 100%",
-                animation: "cadShimmer 5s linear infinite",
-                opacity: 0.35,
-              }}
-            />
-            <div
-              style={{
-                borderRadius: "var(--radius-card)",
-                border: "1px solid var(--hairline)",
-                boxShadow: "var(--top-light)",
-                minHeight: 132,
-              }}
-            />
-          </div>
-        ))}
+      <div role="status" style={BOARD_SCROLLER}>
+        <span className="sr-only">Reading the roadmap.</span>
+        <div style={BOARD_TRACK} aria-hidden="true">
+          {COLUMNS.map((c) => (
+            <div key={c.key} style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  height: 10,
+                  width: 72,
+                  marginBottom: "var(--sp-space-3)",
+                  borderRadius: "var(--sp-radius-xs)",
+                  background: "var(--sp-lift)",
+                  opacity: 0.6,
+                }}
+              />
+              <div
+                style={{
+                  minHeight: 132,
+                  borderRadius: "var(--sp-radius-card)",
+                  background: "var(--sp-sink)",
+                  opacity: 0.5,
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
+  // A read that failed is not an empty state. "Nothing is committed" and "we
+  // could not find out" are different facts and a person acts differently on each.
   if (roadmap.isError) {
     return (
-      <div
-        style={{
-          padding: "var(--geist-gap)",
-          background: "var(--surface-card-deep)",
-          borderRadius: "var(--radius-panel)",
-        }}
-      >
-        <div style={{ fontFamily: "var(--font-mono)", color: "var(--madder)" }}>
-          COULDN'T LOAD PLAN
-        </div>
-        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
-          {(roadmap.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          onClick={() => roadmap.refetch()}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginTop: 14,
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-body)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Retry · reloads the surface
-        </button>
-      </div>
+      <Failed onRetry={() => void roadmap.refetch()}>
+        {(roadmap.error as Error)?.message ?? "The roadmap did not load."}
+      </Failed>
     );
   }
 
   if (items.length === 0) {
-    return (
-      <p
-        style={{
-          color: "var(--text-subtle)",
-          margin: 0,
-          padding: "8px 0",
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.02em",
-        }}
-      >
-        No bets on the roadmap yet. Commit a ranked opportunity from Discover.
-      </p>
-    );
+    return <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>;
   }
 
   return (
     <>
-      {/* OBS-10: bulk re-prioritize bar, appears only once a set is selected (calm front). */}
+      {/* The bulk bar appears only once a set is selected (calm front), and it is
+          a line of actions rather than a panel: a card here would be a card
+          inside the section's card. */}
       {selectedIds.size > 0 && (
-        <div
-          className="material-base"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 14px",
-            marginBottom: 12,
-          }}
+        <Actions
+          trailing={
+            <Button variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </Button>
+          }
         >
-          <MonoLabel tone="muted">{selectedIds.size} selected</MonoLabel>
-          <span style={{ display: "flex", gap: "var(--geist-space-2x)", marginLeft: "auto", alignItems: "center" }}>
-            <MonoLabel tone="faint">move to</MonoLabel>
-            {COLUMNS.map((col) => (
-              <button
-                key={col.key}
-                type="button"
-                disabled={bulkMove.isPending}
-                onClick={() => bulkMove.mutate({ ids: [...selectedIds], bucket: col.key })}
-                className="loom-press"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.11em",
-                  textTransform: "uppercase",
-                  color: col.color,
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-control)",
-                  padding: "3px 10px",
-                  background: "transparent",
-                  cursor: bulkMove.isPending ? "default" : "pointer",
-                  opacity: bulkMove.isPending ? 0.5 : 1,
-                }}
-              >
-                {col.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setSelectedIds(new Set())}
-              className="loom-press"
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.11em",
-                textTransform: "uppercase",
-                color: "var(--text-faint)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              clear
-            </button>
+          <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+            <Num>{selectedIds.size}</Num> selected, move to
           </span>
-        </div>
+          {COLUMNS.map((col) => (
+            <Button
+              key={col.key}
+              disabled={bulkMove.isPending}
+              onClick={() => bulkMove.mutate({ ids: [...selectedIds], bucket: col.key })}
+            >
+              {col.label}
+            </Button>
+          ))}
+        </Actions>
       )}
-      {/* Columns wrap below ~780px content width so 768 stays readable
-          (three crushed 200px columns fail the responsive pass).
-          Responsive: 1 column mobile (<640px), 2 tablet (640-1024), 3 desktop (≥1024). */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {COLUMNS.map((col) => {
-          const colItems = itemsByBucket.get(col.key) ?? [];
-          const expanded = expandedCols.has(col.key);
-          const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
-          return (
-            <div key={col.key}>
-              <div
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  fontWeight: 400,
-                  color: col.color,
-                  marginBottom: 10,
-                  display: "block",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                {col.label} · {colItems.length}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {shownItems.map((item) => (
-                  <BetCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    measure={item.measure}
-                    outcome={item.outcome}
-                    column={col.key}
-                    iceScore={item.ice_score}
-                    hasOutcome={isCommitmentGoverned(item)}
-                    updatedAt={item.updated_at}
-                    selected={selectedIds.has(item.id)}
-                    onToggleSelect={(on) => toggleSelect(item.id, on)}
-                    onMoveTo={(bucket) => handleMove(item, bucket)}
-                    onEditOutcome={(values) =>
-                      editOutcome.mutate({ id: item.id, bucket: col.key, ...values })
-                    }
-                    editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
-                    canRewind={item.hasSnapshot}
-                    onRewind={() => rewind.mutate({ opportunity_id: item.id })}
-                    rewindPending={rewind.isPending && rewind.variables?.opportunity_id === item.id}
-                  />
-                ))}
-                {colItems.length > VISIBLE_ITEMS ? (
-                  <button
-                    type="button"
-                    onClick={() => toggleExpanded(col.key)}
-                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      <div style={BOARD_SCROLLER}>
+        <div style={BOARD_TRACK}>
+          {COLUMNS.map((col) => {
+            const colItems = itemsByBucket.get(col.key) ?? [];
+            const expanded = expandedCols.has(col.key);
+            const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
+            return (
+              <div key={col.key} style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: "var(--sp-space-2)",
+                    marginBottom: "var(--sp-space-3)",
+                    paddingBottom: "var(--sp-space-2)",
+                    borderBottom: "1px solid var(--sp-line-soft)",
+                  }}
+                >
+                  <span
                     style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 500,
-                      color: "var(--text-muted)",
-                      background: "transparent",
-                      border: "1px solid var(--hairline-strong)",
-                      borderRadius: "var(--radius-control)",
-                      padding: "8px 14px",
+                      fontSize: "var(--sp-text-label)",
+                      fontWeight: "var(--sp-weight-strong)",
+                      color: "var(--sp-ink)",
                     }}
                   >
-                    {expanded ? "Show fewer" : `Show ${colItems.length - VISIBLE_ITEMS} more`}
-                  </button>
-                ) : null}
+                    {col.label}
+                  </span>
+                  <Num>{colItems.length}</Num>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "var(--sp-space-3)",
+                  }}
+                >
+                  {shownItems.map((item) => (
+                    <BetCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      measure={item.measure}
+                      outcome={item.outcome}
+                      column={col.key}
+                      iceScore={item.ice_score}
+                      hasOutcome={isCommitmentGoverned(item)}
+                      updatedAt={item.updated_at}
+                      selected={selectedIds.has(item.id)}
+                      onToggleSelect={(on) => toggleSelect(item.id, on)}
+                      onMoveTo={(bucket) => handleMove(item, bucket)}
+                      onEditOutcome={(values) =>
+                        editOutcome.mutate({ id: item.id, bucket: col.key, ...values })
+                      }
+                      editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
+                      canRewind={item.hasSnapshot}
+                      onRewind={() => rewind.mutate({ opportunity_id: item.id })}
+                      rewindPending={
+                        rewind.isPending && rewind.variables?.opportunity_id === item.id
+                      }
+                    />
+                  ))}
+                  {colItems.length > VISIBLE_ITEMS ? (
+                    <Button variant="ghost" onClick={() => toggleExpanded(col.key)}>
+                      {expanded ? "Show fewer" : `Show ${colItems.length - VISIBLE_ITEMS} more`}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
       {ceremonyBet && (
         <CommitCeremony

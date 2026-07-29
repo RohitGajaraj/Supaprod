@@ -1,41 +1,64 @@
-// CompoundingPanel — Brain -> Learnings tab landing (MOAT-VIS).
-//
-// "Make the compounding visible": the outcome loop (recordOutcome) re-scores an
-// opportunity's ICE from a real-world verdict and records WHY in a `learnings`
-// row. This panel surfaces that as the felt moat artifact: a one-line summary of
-// how many decisions memory has re-scored from real outcomes (net ICE movement),
-// then the cause-carrying feed (verdict + opportunity + ICE delta + what
-// happened), each row drilling to ?learning= for the full detail.
-//
-// Reads getCompounding (today.functions.ts) which shares the pure summarizer in
-// moat-vis.ts, so this feed and Today's "what changed" line never drift.
-//
-// QA round 2 (count-vs-list): the Brain strip counts EVERY recorded outcome,
-// but this panel used to render only the re-scores - "bar says 17, panel
-// shows 2". It now lists the full outcome feed (listLearnings, the same read
-// LearningDetail drills into), marking the rows where memory re-ranked a
-// priority, and labels both numbers so each means one thing.
-//
-// OBS-08: ported to Obsidian — the Obsidian VerdictChip carries the tone, and
-// the "what it moved" line renders in neutral mono (README law: the
-// moved-line states what changed, in the machine's own voice), Tempo v5
-// (2026-07-11) narrowed glacier to literal status/link use only, so this
-// data readout is neutral text now, not a chromatic tint.
+/**
+ * The compounding feed: what shipped, how it landed, and where memory re-ranked
+ * a priority because of it. Brain > Learnings.
+ *
+ * Ported to the --sp-* system. The surface puts this panel in a Block and
+ * deliberately suppresses its own record recess on the learnings tab, so this
+ * file owns the INTERIOR only, and the record speaks here.
+ *
+ *   KILLED the bordered Card wrapper. The surface already puts this in a Block;
+ *     a bordered box inside a region is a card in a card.
+ *   KILLED the uppercase mono count line and the MonoLabel error head. Both were
+ *     a second heading grammar inside a section the surface already titled.
+ *   KILLED the VerdictChip and the AuditTag. A chip is a coloured box saying a
+ *     word; the word is enough, and green and red already carry the outcome. The
+ *     audit ref is a third element on a list row and lives in LearningDetail,
+ *     which is the click.
+ *   KILLED the two-line clamped summary on every row. A rationale ellipsised at
+ *     two lines is not a rationale, it is the shape of one. The whole memo is
+ *     one click away, and the LATEST one is quoted in full by the record above.
+ *   PROMOTED describeCompounding into the Record recess: memory re-scoring your
+ *     calls from real outcomes is the single most differentiated claim in the
+ *     product, and it gets the one lit surface rather than a paragraph.
+ *
+ * ATTRIBUTION. learnings.recorded_by_agent_slug is the author (the Historian, in
+ * practice). A row with no slug reads "unattributed" rather than borrowing a
+ * name the record does not hold.
+ *
+ * UNCHANGED: getCompounding / listLearnings, the ["compounding"] and
+ * ["learnings"] keys, the ?tab=learnings&learning= drill target, and the
+ * exported VERDICT_TONE / whenOf / deltaOf that LearningDetail and the tests
+ * import from here.
+ */
 import { useServerFn } from "@tanstack/react-start";
-import { PanelSkeleton } from "./PanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
-import { AuditTag } from "@/components/supaprod/AuditTag";
-import { MonoLabel } from "@/components/obsidian/primitives";
-import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import type { VerdictTone } from "@/components/obsidian/verdict";
+import {
+  AgentMark,
+  Empty,
+  Failed,
+  Num,
+  Record as RecordRecess,
+  Row,
+} from "@/components/shell/primitives";
 
 export const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone> = {
   validated: "VALIDATED",
   missed: "MISSED",
   mixed: "REVISE",
+};
+
+/** The outcome in plain words. Green and red carry outcomes and they own these
+ *  two; a mixed result is not one, so it stays monochrome. */
+const OUTCOME: Record<"validated" | "missed" | "mixed", { word: string; tone: string }> = {
+  validated: { word: "It worked", tone: "sp-pass" },
+  missed: { word: "It missed", tone: "sp-fail" },
+  mixed: { word: "Mixed", tone: "" },
 };
 
 /** Same "when" rhythm as LearningDetail: time today, "Yesterday", else "Jun 9". */
@@ -47,21 +70,6 @@ export function whenOf(iso: string): string {
   if (diffDays === 0) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   if (diffDays === 1) return "Yesterday";
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
-}
-
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "16px 18px",
-      }}
-    >
-      {children}
-    </div>
-  );
 }
 
 /** ICE delta of one learning, or null when it did not move a ranking.
@@ -77,7 +85,13 @@ export function deltaOf(l: {
   return d === 0 ? null : d;
 }
 
+/** Who wrote this down. The column is nullable, so an unsigned row says so. */
+function recordedBy(slug: string | null): string {
+  return slug ? `${agentDisplayName(slug)} recorded it` : "unattributed";
+}
+
 export function CompoundingPanel() {
+  const navigate = useNavigate();
   const fetchCompounding = useServerFn(getCompounding);
   const fetchLearnings = useServerFn(listLearnings);
   const q = useQuery({ queryKey: ["compounding"], queryFn: () => fetchCompounding() });
@@ -88,154 +102,88 @@ export function CompoundingPanel() {
   const learnings = lq.data?.learnings ?? [];
   const rescoreCount = learnings.filter((l) => deltaOf(l) != null).length;
 
-  if (q.isLoading || lq.isLoading) {
-    return <PanelSkeleton />;
-  }
+  if (q.isLoading || lq.isLoading) return null;
 
+  // A load failure must read as a failure, not as "the loop produced nothing".
   if (q.isError || lq.isError) {
-    // A load failure must read as a failure, not as "the loop produced
-    // nothing" (mirrors DecisionsPanel's error contract).
     return (
-      <Card>
-        <MonoLabel>Learnings · failed to load</MonoLabel>
-        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
-          {((q.error ?? lq.error) as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            void q.refetch();
-            void lq.refetch();
-          }}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginTop: 12,
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-          }}
-        >
-          Retry · reloads learnings
-        </button>
-      </Card>
+      <Failed
+        onRetry={() => {
+          void q.refetch();
+          void lq.refetch();
+        }}
+      >
+        {((q.error ?? lq.error) as Error)?.message ?? "The learnings did not load."}
+      </Failed>
     );
   }
 
   if (!learnings.length) {
     return (
-      <Card>
-        <p style={{ color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
-          No outcomes recorded yet. When you record what a shipped bet actually did, the memo lands
-          here and memory re-ranks the priority it touched.
-        </p>
-      </Card>
+      <Empty>
+        No outcomes recorded yet. When you record what a shipped bet actually did, the memo lands
+        here and memory re-ranks the priority it touched.
+      </Empty>
     );
   }
 
   return (
-    <Card>
-      {headline && (
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 450,
-            color: "var(--text-primary)",
-            margin: "0 0 4px",
-            lineHeight: 1.4,
-          }}
+    <div>
+      {/* The record speaking. One number per meaning: the claim counts what
+          memory re-scored, the evidence counts what is listed below, so the two
+          can never read as a contradiction. */}
+      {headline ? (
+        <RecordRecess
+          evidence={
+            <>
+              <Num>{learnings.length}</Num>
+              {learnings.length === 50 ? " most recent outcomes · " : " recorded outcomes · "}
+              <Num>{rescoreCount}</Num> re-ranked a priority
+            </>
+          }
         >
           {headline}
-        </p>
-      )}
-      {/* One number per meaning: the strip above counts every recorded
-          outcome; this line says how many of the listed ones moved a
-          ranking, so the two can never read as a contradiction. */}
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: "var(--text-subtle)",
-          marginBottom: 14,
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-        }}
-      >
-        {learnings.length === 50
-          ? "latest 50 outcomes"
-          : `${learnings.length} recorded outcome${learnings.length === 1 ? "" : "s"}`}{" "}
-        · {rescoreCount} re-ranked a priority
-      </p>
+        </RecordRecess>
+      ) : null}
 
-      <div className="flex flex-col">
-        {learnings.map((l, i) => {
+      <div style={{ marginTop: "var(--sp-space-4)" }}>
+        {learnings.map((l) => {
           const delta = deltaOf(l);
+          const outcome = OUTCOME[l.verdict];
           return (
-            <Link
+            <Row
               key={l.id}
-              to="/brain"
-              search={{ tab: "learnings", learning: l.id }}
-              className="block outline-none transition-colors hover:[background:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                padding: "12px 0",
-                borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
-              }}
-            >
-              <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
-                <VerdictChip tone={VERDICT_TONE[l.verdict]} />
-                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                  {l.opportunity_title ?? "an outcome memo"}
-                </span>
-                {delta != null && (
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-subtle)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    {l.opportunity_title ? "RE-RANKED " : ""}
-                    {delta >= 0 ? "+" : ""}
-                    {delta.toFixed(1)} ICE
-                  </span>
-                )}
-                <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
-                  {/* dim 17: the quiet trace ref, then the time a touch more present. */}
-                  <AuditTag kind="learning" id={l.id} />
-                  <span
-                    style={{
-                      color: "var(--text-subtle)",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    {whenOf(l.created_at)}
-                  </span>
-                </span>
-              </div>
-              {l.summary && (
-                <p
-                  style={{
-                    color: "var(--text-subtle)",
-                    marginTop: 6,
-                    lineHeight: 1.45,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {l.summary}
-                </p>
-              )}
-            </Link>
+              tight
+              marks={<AgentMark slug={l.recorded_by_agent_slug} state="quiet" />}
+              lead={l.opportunity_title ?? "An outcome memo"}
+              // A different fact from the lead, never more of it: how it landed,
+              // who wrote it down, and whether it moved a ranking. The memo
+              // itself is one click away.
+              sub={
+                <>
+                  <span className={outcome.tone || undefined}>{outcome.word}</span>
+                  {" · "}
+                  {recordedBy(l.recorded_by_agent_slug)}
+                  {delta != null ? (
+                    <>
+                      {" · re-ranked "}
+                      <Num>
+                        {delta >= 0 ? "+" : ""}
+                        {delta.toFixed(1)}
+                      </Num>{" "}
+                      ICE
+                    </>
+                  ) : null}
+                </>
+              }
+              time={whenOf(l.created_at)}
+              onClick={() =>
+                navigate({ to: "/brain", search: { tab: "learnings", learning: l.id } })
+              }
+            />
           );
         })}
       </div>
-    </Card>
+    </div>
   );
 }

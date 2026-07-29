@@ -1,20 +1,40 @@
-import { memo, type CSSProperties } from "react";
-import { Button, VerdictChip } from "@/components/obsidian";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { AskInContext } from "@/components/obsidian/AskInContext";
-import { AuditTag } from "@/components/supaprod/AuditTag";
-import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
-import { tierFromProbability } from "@/lib/confidence";
-import { relTimeCaps, traceRef, type VerdictWord } from "./format";
+/**
+ * One ranked bet, as a list row.
+ *
+ * Ported off the retired system (2026-07-29). What changed, and why:
+ *
+ * KILL the card. A bordered, shadowed, hover-lifting card per bet put a
+ *      bordered container inside a region that is already one, and twenty of
+ *      them read as twenty subjects with nothing to look at first. The row is
+ *      now the `Row` primitive: a divided line, no border, no shadow, no lift.
+ * KILL the ICE anchor and the rank badge. A score is the ranking's own input;
+ *      it belongs to the one bet in focus, where the sheet carries it. The
+ *      rank survives as one token on the second line.
+ * KILL the trace chip, the precedent paragraph, the verdict chip, the
+ *      confidence chip, the two buttons, the overflow menu and the per-row
+ *      Ask. A list row is one line plus a second line carrying DIFFERENT
+ *      information; everything else is depth, and depth is one click away in
+ *      the detail sheet, which already carries every one of those writes
+ *      (draft spec, challenge, lineage, move to, delete, ask).
+ * KEEP every prop, every handler name and every exported symbol. Other files
+ *      construct this row and import these helpers; the contract is theirs.
+ *
+ * ATTRIBUTION. The row says who spoke. A bet carrying a Critic verdict wears
+ * the Critic's mark and its second line says what the Critic concluded; a bet
+ * nobody has reviewed says so, rather than going silent or borrowing a name it
+ * was never given. The mark turns while a write on this bet is in flight, so
+ * "busy" is a fact about the crew rather than a greyed-out button.
+ */
+
+import { memo } from "react";
+import { AgentMark, Num, Row } from "@/components/shell/primitives";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";
+
+/** The agent that red-teams a bet, named from the one catalog so this file
+ * never hard-codes a display name the catalog can rename. */
+const CHALLENGER = "critic";
 
 export const OPPORTUNITY_STATUSES = [
   "backlog",
@@ -26,18 +46,18 @@ export const OPPORTUNITY_STATUSES = [
 ] as const;
 export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
 
-/** The six lane statuses, each mapped to a semantic token tone and a
- * sentence-case label. Tokened tones only (ember stays reserved for the one
- * Capture CTA): glacier for the active lanes, moss for shipped, madder for
- * dropped, quiet text tones for the parked ends. Shared by the row and the
- * detail sheet so a status reads the same wherever it appears. */
+/** The six lane statuses, each mapped to a token tone and a sentence-case
+ * label. Colour has jobs: the interface is monochrome, so four of the six are
+ * neutral ink or a quiet mute, and only the two that carry an OUTCOME reach
+ * for a colour - shipped is a pass, dropped is a fail. Shared by the row and
+ * the detail sheet so a status reads the same wherever it appears. */
 export const STATUS_META: Record<OpportunityStatus, { color: string; label: string }> = {
-  backlog: { color: "var(--text-faint)", label: "Backlog" },
-  now: { color: "var(--ds-gray-1000)", label: "Now" },
-  next: { color: "var(--ds-gray-1000)", label: "Next" },
-  later: { color: "var(--text-muted)", label: "Later" },
-  shipped: { color: "var(--moss)", label: "Shipped" },
-  dropped: { color: "var(--madder)", label: "Dropped" },
+  backlog: { color: "var(--sp-mute)", label: "Backlog" },
+  now: { color: "var(--sp-ink)", label: "Now" },
+  next: { color: "var(--sp-ink)", label: "Next" },
+  later: { color: "var(--sp-mute)", label: "Later" },
+  shipped: { color: "var(--sp-pass)", label: "Shipped" },
+  dropped: { color: "var(--sp-fail)", label: "Dropped" },
 };
 
 /** A sentence-case label for a lane status, safe for an unknown value. */
@@ -45,26 +65,23 @@ export function statusLabel(status: string): string {
   return STATUS_META[status as OpportunityStatus]?.label ?? status;
 }
 
-/** A small tokened pill naming the current lane status, so the stage is
- * visible without opening the Move-to menu. Rounded, hairline, mono 10px,
- * sentence-case. */
+/** The current lane, as a word. It was a bordered mono pill; a pill inside a
+ * row is a card inside a card, and mono is for data rather than for labels.
+ * Now it is the label itself, in its own tone. */
 export function StatusPill({ status, className }: { status: string; className?: string }) {
   const meta = STATUS_META[status as OpportunityStatus] ?? {
-    color: "var(--text-faint)",
+    color: "var(--sp-mute)",
     label: status,
   };
   return (
     <span
       className={className}
       style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.02em",
+        fontSize: "var(--sp-text-label)",
+        fontWeight: "var(--sp-weight-medium)",
         color: meta.color,
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--ds-radius-full)",
-        padding: "2px 8px",
+        whiteSpace: "nowrap",
         flexShrink: 0,
-        lineHeight: 1.4,
       }}
     >
       {meta.label}
@@ -72,20 +89,20 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-/** The ink color for each non-best designation. The best bet is the one
- * Pixel-face BestBetStamp in the chip row, so it is not here; the others read
- * as quiet tags in their own ink: needs validation in blossom, quick win in
- * moss, heavy lift in apricot, watch this week in a quiet muted tone.
- * Semantic tokens only; ember stays reserved for the single Capture CTA. */
+/** The tone for each non-best designation. Two of the four carry a real
+ * outcome reading and take an outcome colour: a bet with thin evidence is a
+ * warning, a quick win is a pass. The other two are observations, so they stay
+ * monochrome. The best bet is not here: it is the single marked thing on the
+ * queue and it wears the one ember. */
 export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
-  "needs validation": "var(--pencil-blossom)",
-  "quick win": "var(--moss)",
-  "heavy lift": "var(--pencil-apricot)",
-  "watch this week": "var(--text-muted)",
+  "needs validation": "var(--sp-warn)",
+  "quick win": "var(--sp-pass)",
+  "heavy lift": "var(--sp-mute)",
+  "watch this week": "var(--sp-mute)",
 };
 
 /** The one-line meaning behind each non-best designation, so hovering the tag
- * (and the detail sheet) tells a human or an agent what to do about the bet. */
+ * tells a human or an agent what to do about the bet. */
 export const DESIGNATION_MEANING: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
   "needs validation": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
   "quick win": "Low effort for real impact. A fast, safe ship.",
@@ -93,10 +110,9 @@ export const DESIGNATION_MEANING: Record<Exclude<NonNullable<Designation>, "best
   "watch this week": "Gaining signals, not yet the top bet. Keep it in view.",
 };
 
-/** A quiet system designation tag for a non-best bet: small mono text on a
- * rounded hairline chip, colored by its ink, low emphasis so it informs
- * without shouting. The best bet is the single BestBetStamp, never a tag;
- * and `null` / "best bet" render nothing here. */
+/** A quiet system designation for a non-best bet: the word itself, in its own
+ * tone. The pill and its hairline are gone for the same reason the status
+ * pill's are. `null` and "best bet" render nothing here. */
 export function DesignationTag({
   designation,
   className,
@@ -110,13 +126,10 @@ export function DesignationTag({
       className={className}
       title={DESIGNATION_MEANING[designation]}
       style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.02em",
+        fontSize: "var(--sp-text-label)",
+        fontWeight: "var(--sp-weight-medium)",
         color: DESIGNATION_INK[designation],
-        border: "1px solid var(--hairline)",
-        borderRadius: "999px",
-        padding: "2px 8px",
-        lineHeight: 1.4,
+        whiteSpace: "nowrap",
         flexShrink: 0,
       }}
     >
@@ -125,449 +138,166 @@ export function DesignationTag({
   );
 }
 
-/** The best-bet designation stamp (founder screenshot ruling 2026-07-11): a
- * clean inline chip in the card's chip row, replacing the retired Loom-era
- * handwritten PencilNote wink. Geist Pixel face (the one Pixel brand moment
- * on the queue: ranking.ts guarantees exactly one best bet), moss family per
- * the VerdictChip anatomy (12% tinted fill, 45% border, bright text), never
- * rotated, never overlapping the card boundary. */
+/** The one chosen thing. ranking.ts guarantees exactly one best bet in the
+ * queue, so this is the single ember in a monochrome list: the bet actually
+ * waiting on your judgment. Geist Pixel is retired outside the door and a
+ * tinted moss chip was decoration, so the mark is now the words in the one
+ * colour reserved for what needs you. */
 export function BestBetStamp({ className }: { className?: string }) {
   return (
     <span
       className={className}
       title="The single strongest bet in the queue right now"
       style={{
-        fontFamily: "var(--font-pixel)",
-        letterSpacing: "0.08em",
-        lineHeight: 1.4,
-        color: "var(--moss-bright)",
-        backgroundColor: "color-mix(in oklab, var(--moss) 12%, transparent)",
-        border: "1px solid color-mix(in oklab, var(--moss) 45%, transparent)",
-        borderRadius: "var(--radius-pill)",
-        padding: "2px 10px",
-        flexShrink: 0,
+        fontSize: "var(--sp-text-label)",
+        fontWeight: "var(--sp-weight-strong)",
+        color: "var(--sp-gate)",
         whiteSpace: "nowrap",
+        flexShrink: 0,
       }}
     >
-      BEST BET
+      Best bet
     </span>
   );
 }
 
-/** A quiet mono trace chip, `OPP·XXXXXX`, so every bet carries a stable,
- * human-quotable reference. Now a live AuditTag: clicking it opens the bet's
- * verifiable lineage (audit-ID system, 2026-07-13). */
-function TraceChip({ id }: { id: string }) {
-  return <AuditTag kind="opportunity" id={id} />;
-}
-
-/** The rank spotlight: a small solid badge that reads the queue position in
- * plain language, so a layman gets the priority even though ICE is expert-only.
- * Rank 1 is a filled neutral pill (the high-contrast invert fill, dark canvas
- * text for contrast, bold); ranks 2 to 3 are a lighter neutral tint pill;
- * deeper ranks are a quiet outline pill. Semantic tokens only; ember stays
- * reserved for the single Capture CTA, so it is never used here, and rank is
- * not a status, so it never reaches for glacier either (Tempo v5 glacier
- * narrowing, 2026-07-11). */
-function RankBadge({ rank }: { rank: number }) {
-  const isTop = rank === 1;
-  const isHigh = rank >= 2 && rank <= 3;
-  const tone: CSSProperties = isTop
-    ? {
-        background: "var(--text-primary)",
-        color: "var(--canvas)",
-        border: "1px solid transparent",
-        fontWeight: 700,
-      }
-    : isHigh
-      ? {
-          background: "color-mix(in srgb, var(--text-primary) 12%, transparent)",
-          color: "var(--text-primary)",
-          border: "1px solid color-mix(in srgb, var(--text-primary) 22%, transparent)",
-          fontWeight: 600,
-        }
-      : {
-          background: "transparent",
-          color: "var(--text-muted)",
-          border: "1px solid var(--hairline)",
-          fontWeight: 500,
-        };
-  return (
-    <span
-      title={`Priority rank ${rank} of the queue`}
-      aria-label={`Priority rank ${rank} of the queue`}
-      style={{
-        marginTop: "6px",
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.04em",
-        borderRadius: "999px",
-        padding: "1px 7px",
-        lineHeight: 1.4,
-        fontVariantNumeric: "tabular-nums",
-        ...tone,
-      }}
-    >
-      #{rank}
-    </span>
-  );
+/** Plain-words relative time. Mono is applied by the row's time slot. */
+function ago(iso?: string | null): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
 }
 
 export interface OpportunityRowProps {
+  /** The ICE score. Read by the detail sheet, which is where a score belongs;
+   * the row shows the rank the score produced, not the score. */
   ice: number;
   title: string;
+  /** The caller's joined provenance line. The row's own second line is
+   * assembled from the typed props instead, so it can never run on. */
   sub: string;
   verdict: VerdictWord;
-  /** The system-derived bet designation (from ranking.ts). Drives the single
-   * marker on the card: "best bet" renders the inline BestBetStamp in the
-   * chip row; the other designations render a quiet tag; null renders
-   * nothing. */
+  /** The system-derived bet designation (from ranking.ts). "best bet" renders
+   * the one ember mark on the queue; the others render a quiet word; null
+   * renders nothing. */
   designation?: Designation;
+  /** Opens the Critic on this bet. Rendered by the detail sheet. */
   onChallenge: () => void;
   challengePending: boolean;
-  /** OBS-10: write actions ported from the retired /product Opportunities
-   * tab. Omit any handler to hide it entirely rather than disabling it. */
+  /** OBS-10 write actions. Every one of them is rendered by the detail sheet,
+   * which this row opens: a list row does not carry six controls. */
   onDraftSpec?: () => void;
-  /** The spec draft is in flight for this row: the Draft spec button shows
-   * its spinner. */
+  /** The spec draft is in flight for this row. */
   draftPending?: boolean;
   onLineage?: () => void;
   onDelete?: () => void;
   onSetStatus?: (status: OpportunityStatus) => void;
+  /** A write on this bet is in flight: its mark turns until it settles. */
   actionsPending?: boolean;
-  /** Click-to-open: a single click (or Enter/Space) on the card body opens the
-   * detail sheet. Every action control stops propagation so it never also
-   * fires this. */
+  /** Click-to-open: the row is a button when this is passed, so Enter and
+   * Space work without a hand-rolled key handler. */
   onOpen?: () => void;
-  /** The current lane status, shown as a pill on the card. */
+  /** The current lane status, the tail of the second line. */
   status?: string;
-  /** The real opportunity id, source of the trace ref chip. */
+  /** The real opportunity id. The trace chip it used to draw lives in the
+   * detail sheet, where the full lineage is one click deeper. */
   id?: string;
-  /** Last-change timestamp, shown as a quiet "updated ..." caption. */
+  /** Last-change timestamp, shown as the row's time. */
   updatedAt?: string;
-  /** The 1-based deterministic queue position (from ranking.ts), shown as a
-   * quiet mono ordering index next to the ICE anchor, distinct from the
-   * colored ICE numeral. */
+  /** The 1-based deterministic queue position (from ranking.ts). */
   rank?: number;
-  /** PC-16: Supaprod's own citation of the account's recorded precedent for
-   * this bet ("your last N similar bets underperformed..."), one honest
-   * sentence or absent - never a placeholder while it loads. */
+  /** PC-16: Supaprod's citation of the account's recorded precedent for this
+   * bet. It is the record speaking, so it renders in the detail sheet's own
+   * recess rather than as a second paragraph on a list row. */
   precedentNote?: string | null;
-  /** RPT-08: the Critic's own disclosed confidence (0-1) in this bet's
-   * verdict, when the bet has been reviewed. Absent (not zero) while
-   * PENDING, so the chip never fabricates a number the Critic never gave. */
+  /** RPT-08: the Critic's disclosed confidence (0-1), folded into the second
+   * line's sentence rather than carried by a separate chip. Absent (not zero)
+   * while PENDING, so the row never fabricates a number. */
   criticConfidence?: number | null;
 }
 
 /**
- * One ICE-ranked opportunity. Reuses the canonical `VerdictChip` (its 4
- * scored hues match this row's literal spec values exactly; PENDING keeps
- * VerdictChip's own neutral rather than forking a second PENDING style), and
- * the best bet carries the inline `BestBetStamp` in the chip row (the
- * PencilNote wink is retired, founder ruling 2026-07-11), per the "one
- * object, one anatomy" law.
- * The card body is a single-click affordance that opens the detail sheet.
- * "Draft spec" is promoted to the one clear primary action; the `⋯` overflow
- * (lineage / move-to / delete) holds the secondary actions, matching
- * `BuildMissionRow`'s and `SignalCard`'s established pattern. The anatomy is
- * the standard for every object card: a tier-colored strength anchor, the
- * title as the primary read, quiet spaced meta, colored status and verdict
- * chips for state, a faint trace-and-time tail, and one primary action.
- * Memoized to prevent re-renders when parent re-renders but props unchanged
- * (OpportunityQueue.tsx renders one of these per opportunity in the ranked
- * queue).
+ * One ICE-ranked opportunity. The whole row is one `Row`: the mark says who
+ * reviewed it, the lead is the title, the second line carries what the title
+ * does not (the designation, the queue position, what the Critic concluded and
+ * at what confidence, the lane), and the time is when it last moved. Nothing
+ * wraps; clicking it opens the full record.
+ *
+ * Memoized: OpportunityQueue renders one per opportunity in the ranked queue.
  */
 export const OpportunityRow = memo(function OpportunityRow({
-  ice,
   title,
-  sub,
   verdict,
   designation,
-  onChallenge,
-  challengePending,
-  onDraftSpec,
-  draftPending = false,
-  onLineage,
-  onDelete,
-  onSetStatus,
   actionsPending = false,
   onOpen,
   status,
-  id,
   updatedAt,
   rank,
-  precedentNote,
   criticConfidence,
 }: OpportunityRowProps) {
-  const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
-  const clickable = Boolean(onOpen);
-  const hasMeta = Boolean(id || updatedAt);
-  // The score tier is the one meaningful color on the anchor: strong bets read
-  // moss, mid a full-contrast neutral, weak a quiet muted tone. It is the
-  // at-a-glance priority cue, so the numeral and its bar share the same tone.
-  // A mid score is not a status, so it stays gray (Tempo v5 glacier
-  // narrowing, 2026-07-11).
-  const tier = ice >= 7 ? "var(--moss)" : ice >= 4 ? "var(--text-primary)" : "var(--text-muted)";
-  // The caller joins provenance with a middle dot; split it back so each fact
-  // reads as its own spaced item rather than a cramped run-on.
-  const subParts = sub.split(" · ").filter(Boolean);
+  const reviewed = verdict !== "PENDING";
+  const challengerName = agentDisplayName(CHALLENGER);
   return (
-    <div
-      className={`relative flex items-center transition-[background-color,box-shadow,transform] [background-color:var(--card)] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
-        clickable
-          ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          : ""
-      }`}
-      style={{
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "16px 18px",
-        gap: "16px",
-        transitionDuration: "var(--dur-control)",
-        transitionTimingFunction: "var(--ease)",
-      }}
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      aria-label={clickable ? `Open ${title}` : undefined}
-      onClick={clickable ? () => onOpen?.() : undefined}
-      onKeyDown={
-        clickable
-          ? (event) => {
-              if (event.target !== event.currentTarget) return;
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen?.();
-              }
-            }
-          : undefined
-      }
-    >
-      <div className="flex flex-none flex-col items-center" style={{ width: "54px" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-pixel)",
-            fontWeight: 400,
-            color: tier,
-            lineHeight: 1,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {ice.toFixed(1)}
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.14em",
-            color: "var(--text-faint)",
-            marginTop: "3px",
-          }}
-        >
-          ICE
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            width: "22px",
-            height: "3px",
-            borderRadius: "999px",
-            backgroundColor: tier,
-            marginTop: "4px",
-          }}
+    <Row
+      tight
+      marks={
+        <AgentMark
+          slug={reviewed ? CHALLENGER : null}
+          state={actionsPending ? "running" : reviewed ? "idle" : "quiet"}
+          title={reviewed ? undefined : "Unattributed: nobody has reviewed this bet"}
         />
-        {rank != null ? <RankBadge rank={rank} /> : null}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div
-          style={{
-            fontWeight: 600,
-            color: "var(--text-primary)",
-            lineHeight: 1.35,
-          }}
-        >
-          {title}
-        </div>
-        {subParts.length > 0 ? (
-          <div
-            className="flex flex-wrap items-center"
-            style={{
-              marginTop: "4px",
-              lineHeight: 1.5,
-              color: "var(--text-subtle)",
-            }}
-          >
-            {subParts.map((part, idx) => (
-              <span key={idx} className="inline-flex items-center">
-                {idx > 0 ? (
-                  <span aria-hidden="true" style={{ margin: "0 9px", color: "var(--text-faint)" }}>
-                    ·
-                  </span>
-                ) : null}
-                {part}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        {precedentNote ? (
-          // PC-16: Supaprod cites the account's own record on the bet itself,
-          // at decision time - not gated behind opening the detail sheet.
-          <p
-            style={{
-              marginTop: "6px",
-              marginBottom: 0,
-              lineHeight: 1.5,
-              color: "var(--text-subtle)",
-              fontStyle: "italic",
-            }}
-          >
-            Supaprod recalls: {precedentNote}
-          </p>
-        ) : null}
-        {hasMeta ? (
-          <div className="flex flex-wrap items-center" style={{ marginTop: "6px" }}>
-            {id ? <TraceChip id={id} /> : null}
-            {id && updatedAt ? (
-              <span
-                aria-hidden="true"
-                style={{ margin: "0 8px", color: "var(--text-faint)" }}
-              >
-                ·
-              </span>
-            ) : null}
-            {updatedAt ? (
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.04em",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                updated {relTimeCaps(updatedAt)}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="flex flex-none flex-col items-end" style={{ gap: "8px" }}>
-        <div className="flex items-center" style={{ gap: "6px" }}>
-          {designation === "best bet" ? <BestBetStamp /> : null}
+      }
+      lead={title}
+      sub={
+        <>
+          {designation === "best bet" ? (
+            <>
+              <BestBetStamp />
+              {" · "}
+            </>
+          ) : null}
           {designation && designation !== "best bet" ? (
-            <DesignationTag designation={designation} />
+            <>
+              <DesignationTag designation={designation} />
+              {" · "}
+            </>
           ) : null}
-          {status ? <StatusPill status={status} /> : null}
-          <VerdictChip tone={verdict} />
-          {criticConfidence != null ? (
-            <ConfidenceDisclosureChip
-              confidence={criticConfidence}
-              tier={tierFromProbability(criticConfidence)}
-            />
+          {rank != null ? (
+            <>
+              <Num>#{rank}</Num>
+              {" · "}
+            </>
           ) : null}
-        </div>
-        <div className="flex items-center" style={{ gap: "6px" }}>
-          {onDraftSpec ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(event) => {
-                event.stopPropagation();
-                onDraftSpec();
-              }}
-              loading={draftPending}
-              disabled={actionsPending}
-              title="Draft the cited spec from this bet"
-              className="hidden md:flex"
-            >
-              Draft spec
-            </Button>
+          {reviewed ? (
+            <>
+              {challengerName} says {verdict.toLowerCase()}
+              {criticConfidence != null ? (
+                <>
+                  {" at "}
+                  <Num>{Math.round(criticConfidence * 100)}%</Num>
+                </>
+              ) : null}
+            </>
+          ) : (
+            "not reviewed yet"
+          )}
+          {status ? (
+            <>
+              {" · "}
+              <StatusPill status={status} />
+            </>
           ) : null}
-          <Button
-            variant="tertiary"
-            size="sm"
-            onClick={(event) => {
-              event.stopPropagation();
-              onChallenge();
-            }}
-            loading={challengePending}
-            disabled={actionsPending}
-            title="The Critic red-teams this bet · receipts attached"
-            className="hidden md:flex"
-          >
-            Challenge
-          </Button>
-          {hasMenuActions ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Opportunity actions"
-                  disabled={actionsPending}
-                  onClick={(event) => event.stopPropagation()}
-                  title={actionsPending ? "Working on this bet…" : undefined}
-                  className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    flexShrink: 0,
-                    fontFamily: "var(--font-mono)",
-                    background: "none",
-                    border: "none",
-                    cursor: actionsPending ? "default" : "pointer",
-                    opacity: actionsPending ? 0.5 : 1,
-                    padding: "2px 6px",
-                  }}
-                >
-                  ⋯
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {onLineage ? (
-                  <DropdownMenuItem
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onLineage();
-                    }}
-                  >
-                    Where this came from
-                  </DropdownMenuItem>
-                ) : null}
-                {onSetStatus ? (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger onClick={(event) => event.stopPropagation()}>
-                      Move to…
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      {OPPORTUNITY_STATUSES.map((s) => (
-                        <DropdownMenuItem
-                          key={s}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onSetStatus(s);
-                          }}
-                        >
-                          {STATUS_META[s].label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                ) : null}
-                {onDelete ? (
-                  <DropdownMenuItem
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onDelete();
-                    }}
-                    className="text-[var(--madder)]"
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-          {/* PC-29 layer 6: the one contextual delegation verb for a bet. */}
-          {id ? (
-            <AskInContext stationOrKind="opportunity" targetId={id} targetTitle={title} />
-          ) : null}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      time={ago(updatedAt)}
+      onClick={onOpen}
+    />
   );
 });

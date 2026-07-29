@@ -98,6 +98,11 @@
 .sp-mark[data-state="gate"] svg {
   animation: sp-attention var(--sp-dur-attention) var(--sp-ease-breath) infinite;
 }
+/* Waiting on you, but not the one asking. Ember carries the fact; the blink is
+ * reserved for the single thing in focus. */
+.sp-mark[data-state="waiting"] {
+  color: var(--sp-gate);
+}
 .sp-mark[data-state="failed"] {
   color: var(--sp-fail);
 }

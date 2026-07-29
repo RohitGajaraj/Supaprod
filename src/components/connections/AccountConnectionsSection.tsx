@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ import {
   startGatewayConnect,
   startGithubAppConnect,
   startNativeOAuthConnect,
+  requestConnector,
   verifyConnection,
   verifyEnvCredential,
   disconnectConnection,
@@ -33,46 +34,74 @@ import {
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
-import { DrillHeader, MonoLabel, StepDot } from "@/components/supaprod/Primitives";
-import { ProviderLogo } from "./ProviderLogo";
-import { RequestConnectorCard } from "./RequestConnectorCard";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Input,
+  Line,
+  Num,
+  PageHead,
+  Row,
+} from "@/components/shell/primitives";
 
-// F-CONN Phase 2: Settings, "Connections", the single home for account-level
-// sources, reworked into a Lovable-style TWO-PANE layout (2026-07-06). A left
-// rail carries live search, the Connected/All status counts, and the catalog
-// categories (each with its count); the right pane is ONE unified card grid of
-// every user-facing provider, filtered by that rail. Each card resolves to one
-// of four states via statusFor(): connected (green pill, clickable into the
-// ConnectorDetail drill), env-active (muted-green "Active" pill, also clickable),
-// OAuth-configured (a real Connect button), or coming soon (disabled, setup
-// hint on hover). Every card carries the real brand logo (ProviderLogo, inline
-// simple-icons marks in official brand color). GitHub uses the App install
-// redirect; native OAuth providers (the vast majority) redirect to their own
-// consent screen in a new tab, same mechanics (window.open + poll). Canny is
-// the last one still on the (effectively dead) Lovable gateway popup,
-// pending its own OAuth support. Delighted was removed from the catalog
-// entirely (2026-07-09) - Qualtrics sunset the product 2026-07-01 and it
-// never had third-party OAuth to migrate to. The Google/Microsoft suite
-// (Calendar + Gmail/Outlook Mail) is multi-account, so it connects through
-// its own layer (startSuiteConnect / listMySuiteConnections /
-// disconnectSuiteConnection, user_calendar_connections) rather than the
-// single-connection-per-provider `connections` table, but uses the exact
-// same native-OAuth-redirect UX. Per-connection management (verify /
-// disconnect / bindings) lives in the ConnectorDetail drill; workspace-level
-// resource bindings live on /sync, linked from the rail. Anchorable via
-// /settings?section=connections.
-//
-// Screen 6 (loop-detail drill-downs) adds ConnectorDetail - the per-provider
-// drill ported from design-reference/supaprod/loop-detail.jsx (ConnectorDetail,
-// lines 243-292) onto real data, exported from this file and rendered by the
-// settings route when ?connector= is set. The connect/verify mutations are
-// shared between the list and the detail via the local useConnectorActions
-// hook so both surfaces drive the exact same OAuth flows. Four states: setup
-// required (no OAuth app AND no env token - genuinely "coming soon"), active
-// via an admin-managed env credential (envConfigured, no personal OAuth to
-// offer), configured-but-not-connected (real Connect flow), and connected.
+/**
+ * Sources. The account-level connect surface, inside Settings.
+ *
+ * PORTED 2026-07-29 onto the rebuild primitives. What the port decided, and
+ * why, because the shape changed and the reasons must survive it:
+ *
+ * A SOURCE IS A BOUNDARY YOU SET, so it renders as a Line: what it is on the
+ * left, the one control that changes it on the right, divided from its
+ * neighbour by a rule. It is not a card. The old surface drew a two-pane
+ * console (a 210px filter rail plus a grid of bordered per-provider cards)
+ * inside a region that was already a Block, which is a card inside a region,
+ * and forty of them at once. Governance canon: policy is set in advance and
+ * does not block, so a boundary reads as a sentence with a control at the end
+ * of it, never as a panel demanding attention.
+ *
+ * KILLED, and what each cost:
+ *   - The panel masthead ("Connect what you already use" plus its sub). The
+ *     route already titles this surface with PageHead; a second heading inside
+ *     it doubles the heading grammar.
+ *   - The bordered card per provider, and the card shell around the error and
+ *     the request box. One bordered container per region, maximum.
+ *   - The left rail. Search survives as one input; Connected/All survive as two
+ *     text tabs; the ten categories stop being ten filters and become quiet
+ *     group labels down the list, which keeps the information and removes the
+ *     facet wall.
+ *   - The green Connected/Active pills. The row says "Connected as <account>",
+ *     which is the same fact plus the one that was missing (WHICH account), and
+ *     the interface stays monochrome. Colour is kept for the exception: a
+ *     connection that stopped authorising reads red, because that is an outcome
+ *     the reader has to act on.
+ *   - The 34px provider logo tile. Ban 8, and the rebuild has no source-mark
+ *     primitive to replace it with.
+ *   - The vendor-neutrality paragraph. Three sentences of positioning in a
+ *     settings rail is not what anyone came here for.
+ *   - The skeleton card block and the disabled "Connect" button on a provider
+ *     nobody can connect. A disabled primary is an affordance that lies.
+ *
+ * Every server function, query key, mutation and exported prop is untouched.
+ *
+ * WHAT IS STILL TRUE. Four states per provider, resolved by statusFor():
+ * connected (a real account row or suite account), env-active (an admin-managed
+ * workspace token Supaprod already reads through, so there is nothing for THIS
+ * user to connect), OAuth-configured (a real Connect flow), and not yet
+ * available. GitHub uses the App install redirect; native OAuth providers open
+ * their own consent screen in a new tab; Canny is the last one on the
+ * (effectively dead) Lovable gateway popup. The Google/Microsoft suite is
+ * multi-account so it connects through user_calendar_connections rather than
+ * the single-connection-per-provider connections table, with the same UX.
+ * Per-connection management lives in the ConnectorDetail drill below;
+ * workspace-level resource bindings live on /sync. Anchorable via
+ * /settings?section=connections.
+ */
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 
@@ -115,8 +144,8 @@ function providerConfigured(
 /** True when the provider's admin-managed env-fallback token is set: Supaprod
  *  is already reading through it even with no per-user OAuth connection, so
  *  the UI must show it as active rather than "coming soon" (founder ruling
- *  2026-07-06). Shared by the list badge (statusFor) and ConnectorDetail's
- *  third state so both surfaces agree on what "active" means. */
+ *  2026-07-06). Shared by the list line and ConnectorDetail's third state so
+ *  both surfaces agree on what "active" means. */
 function providerEnvActive(
   spec: ProviderSpec,
   availability: ProviderAvailability | undefined,
@@ -124,9 +153,15 @@ function providerEnvActive(
   return !!availability?.[spec.id]?.envConfigured;
 }
 
+/** "3D AGO" is the retired system's caps grammar. Lower case reads as a fact
+ *  rather than a label, and the number sits in Num like every other number. */
+function ago(iso: string): string {
+  return relTimeCaps(iso).toLowerCase();
+}
+
 /**
- * The connect/verify flows, shared between the "Connected accounts" list and
- * the ConnectorDetail drill-down (one implementation, two surfaces). GitHub is
+ * The connect/verify flows, shared between the sources list and the
+ * ConnectorDetail drill-down (one implementation, two surfaces). GitHub is
  * a full-page App-install redirect; gateway providers and calendars use the
  * connector-gateway popup (web_message) and persist only the connection id.
  */
@@ -223,159 +258,25 @@ function useConnectorActions(qc: QueryClient) {
   return { mGithub, mGateway, mNative, mSuite, mVerify, busy };
 }
 
-// Per-provider status the grid renders and the rail counts.
+// Per-provider status the list renders and the tabs count.
 type CardStatus = "connected" | "active" | "connect" | "soon";
 
-/** A left-rail filter row: label + right-aligned count; active fills the raised
- *  surface and reads its count in the ember index tone. */
-function RailRow({
-  label,
-  count,
-  active,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}) {
+/** The category label that heads a run of sources. A label, not a heading: the
+ *  surface is already titled, and a second heading grammar inside it is the
+ *  defect the port was called to remove. */
+function GroupLabel({ children, count }: { children: string; count: number }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
+    <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "var(--geist-space-2x)",
-        width: "100%",
-        textAlign: "left",
-        padding: "6px 10px",
-        borderRadius: "var(--radius-control)",
-        // No inline background when inactive so the hover utility can win.
-        background: active ? "var(--surface-raised)" : undefined,
-        border: "none",
-        cursor: "pointer",
+        marginTop: "var(--sp-space-8)",
+        marginBottom: "var(--sp-space-2)",
+        fontSize: "var(--sp-text-label)",
+        fontWeight: "var(--sp-weight-medium)",
+        color: "var(--sp-mute)",
       }}
     >
-      <span
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: active ? "var(--text-primary)" : "var(--text-body)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        className="tabular-nums"
-        style={{
-          fontFamily: "var(--font-mono)",
-          color: active ? "var(--ember)" : "var(--text-faint)",
-          flexShrink: 0,
-        }}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
-
-/** The green outcome pill (Connected / Active). "moss" is the brighter chip
- *  tone; "muted" is the quieter env-active read. */
-function StatusPill({
-  tone,
-  title,
-  children,
-}: {
-  tone: "moss" | "muted";
-  title?: string;
-  children: string;
-}) {
-  const color = tone === "moss" ? "var(--moss-bright)" : "var(--moss)";
-  const bg =
-    tone === "moss"
-      ? "color-mix(in oklab, var(--moss) 16%, transparent)"
-      : "color-mix(in oklab, var(--moss) 9%, transparent)";
-  return (
-    <span
-      title={title}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        color,
-        background: bg,
-        borderRadius: 99,
-        padding: "4px 10px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{ width: 5, height: 5, borderRadius: 99, background: color }}
-      />
-      {children}
-    </span>
-  );
-}
-
-/** The right-edge status affordance for one card: a Connected/Active pill, a
- *  Connect button (real OAuth flow), or a quiet disabled "coming soon". */
-function ConnectStatus({
-  status,
-  spec,
-  busy,
-  onConnect,
-}: {
-  status: CardStatus;
-  spec: ProviderSpec;
-  busy: boolean;
-  onConnect: () => void;
-}) {
-  if (status === "connected") return <StatusPill tone="moss">Connected</StatusPill>;
-  if (status === "active") {
-    return (
-      <StatusPill tone="muted" title="Reading through a workspace token">
-        Active
-      </StatusPill>
-    );
-  }
-  if (status === "connect") {
-    return (
-      <button
-        type="button"
-        className="btn btn-secondary btn-sm loom-press"
-        disabled={busy}
-        onClick={(ev) => {
-          ev.stopPropagation();
-          onConnect();
-        }}
-      >
-        Connect
-      </button>
-    );
-  }
-  return (
-    <span
-      title={setupHintFor(spec)}
-      style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        color: "var(--text-faint)",
-        whiteSpace: "nowrap",
-      }}
-    >
-      Coming soon
-    </span>
+      {children} <Num>{count}</Num>
+    </div>
   );
 }
 
@@ -386,6 +287,7 @@ export function AccountConnectionsSection({
   onOpenDetail: (provider: ProviderId) => void;
 }) {
   const qc = useQueryClient();
+  const { activeWorkspaceId } = useWorkspace();
 
   // RPT-02 - the trust card interstitial: set to a spec to show it, null to
   // hide. The real connect only fires from the dialog's Continue button.
@@ -415,6 +317,7 @@ export function AccountConnectionsSection({
 
   const fList = useServerFn(listConnections);
   const fSuiteList = useServerFn(listMySuiteConnections);
+  const fRequest = useServerFn(requestConnector);
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
   const suite = useQuery({
@@ -442,6 +345,19 @@ export function AccountConnectionsSection({
 
   // Connect flows shared with ConnectorDetail (one implementation).
   const { mGithub, mGateway, mNative, mSuite, busy } = useConnectorActions(qc);
+
+  // "Tell us what to build next", rebuilt on the primitives so the last piece
+  // of retired chrome leaves this panel. Same server function, same table.
+  const [wanted, setWanted] = useState("");
+  const request = useMutation({
+    mutationFn: (connector: string) =>
+      fRequest({ data: { connector, workspaceId: activeWorkspaceId ?? undefined } }),
+    onSuccess: () => {
+      setWanted("");
+      toast.success("Noted. It goes on the list.");
+    },
+    onError: (e: Error) => toast.error(e.message || "That did not send. Try again."),
+  });
 
   const byProvider = new Map<ProviderId, AccountConnection[]>();
   for (const c of list.data?.connections ?? []) {
@@ -471,9 +387,9 @@ export function AccountConnectionsSection({
     return (byProvider.get(spec.id)?.length ?? 0) > 0;
   };
 
-  // Four states, resolved once per provider (same logic drives the card badge
-  // and the rail's Connected count): a live connection, an env-active workspace
-  // token, an OAuth app that is configured (real Connect), or coming soon.
+  // Four states, resolved once per provider (same logic drives the line and the
+  // Connected tab count): a live connection, an env-active workspace token, an
+  // OAuth app that is configured (real Connect), or not available yet.
   const statusFor = (spec: ProviderSpec): CardStatus => {
     if (isConnected(spec)) return "connected";
     if (providerEnvActive(spec, availability)) return "active";
@@ -488,8 +404,8 @@ export function AccountConnectionsSection({
   // The single, honest "last synced / verified" recency for a connected
   // provider: the most-recent timestamp across its account rows (calendars
   // carry last_sync_at; everything else carries last_verified_at). Null when
-  // there is no real timestamp yet, so the card falls back to its flow label
-  // rather than inventing a time.
+  // there is no real timestamp yet, so the line falls back to saying only what
+  // it knows rather than inventing a time.
   const lastActivityFor = (spec: ProviderSpec): { iso: string; verb: string } | null => {
     const suiteSpec = SUITE_PROVIDERS[spec.id];
     if (suiteSpec) {
@@ -498,11 +414,31 @@ export function AccountConnectionsSection({
           .filter((c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product)
           .map((c) => c.last_sync_at),
       );
-      return iso ? { iso, verb: "SYNCED" } : null;
+      return iso ? { iso, verb: "synced" } : null;
     }
     const iso = latestIso((byProvider.get(spec.id) ?? []).map((c) => c.last_verified_at));
-    return iso ? { iso, verb: "VERIFIED" } : null;
+    return iso ? { iso, verb: "verified" } : null;
   };
+
+  // WHO the source is connected as, which is the fact the old green pill left
+  // out. One account: name it. Several: count them. None readable: say
+  // "Connected" and stop, rather than inventing an identity.
+  const accountsFor = (spec: ProviderSpec): { count: number; label: string | null } => {
+    const suiteSpec = SUITE_PROVIDERS[spec.id];
+    if (suiteSpec) {
+      const rows = suiteAccounts.filter(
+        (c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product,
+      );
+      return { count: rows.length, label: rows[0]?.account_email ?? rows[0]?.display_name ?? null };
+    }
+    const rows = byProvider.get(spec.id) ?? [];
+    return { count: rows.length, label: rows[0]?.account_label ?? rows[0]?.account_email ?? null };
+  };
+
+  /** A connection that stopped authorising. The one place colour is spent on
+   *  this list, because it is an outcome the reader has to act on. */
+  const brokenFor = (spec: ProviderSpec): boolean =>
+    (byProvider.get(spec.id) ?? []).some((c) => c.status === "error");
 
   // The connect flow for a not-yet-connected provider (GitHub App redirect,
   // suite OAuth redirect, native OAuth redirect, or the legacy gateway popup).
@@ -515,7 +451,7 @@ export function AccountConnectionsSection({
   };
 
   // The one canonical catalog, flattened, each entry carrying its category so
-  // the unified grid can be filtered without per-category section headers.
+  // the list can be searched flat and still grouped on the way out.
   const allEntries = useMemo(() => {
     const out: { entry: CatalogEntry; category: ConnectorCategory; categoryLabel: string }[] = [];
     for (const g of buildConnectorCatalog()) {
@@ -523,23 +459,14 @@ export function AccountConnectionsSection({
     }
     return out;
   }, []);
-  const categories = useMemo(
-    () =>
-      buildConnectorCatalog().map((g) => ({
-        id: g.id,
-        label: g.label,
-        count: g.entries.length,
-      })),
-    [],
-  );
 
-  // Left-rail filters: live search + status (all | connected) + one category.
+  // Live search plus one status tab. The ten category filters became group
+  // labels: the same information, without a wall of facets in a settings pane.
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "connected">("all");
-  const [categoryFilter, setCategoryFilter] = useState<ConnectorCategory | null>(null);
-  const resetAll = () => {
+  const clearFilters = () => {
     setStatusFilter("all");
-    setCategoryFilter(null);
+    setQuery("");
   };
 
   const connectedCount = visibleProviders.filter(isConnectedish).length;
@@ -549,7 +476,6 @@ export function AccountConnectionsSection({
   const filtered = allEntries.filter((a) => {
     const spec = CONNECTOR_REGISTRY[a.entry.id];
     if (statusFilter === "connected" && !isConnectedish(spec)) return false;
-    if (categoryFilter && a.category !== categoryFilter) return false;
     if (!q) return true;
     return (
       a.entry.label.toLowerCase().includes(q) ||
@@ -558,290 +484,197 @@ export function AccountConnectionsSection({
     );
   });
 
+  // Catalog order is category order, so consecutive runs are the groups.
+  const groups: { id: ConnectorCategory; label: string; entries: CatalogEntry[] }[] = [];
+  for (const a of filtered) {
+    const last = groups[groups.length - 1];
+    if (last && last.id === a.category) last.entries.push(a.entry);
+    else groups.push({ id: a.category, label: a.categoryLabel, entries: [a.entry] });
+  }
+
+  const sourceLine = (e: CatalogEntry) => {
+    const spec = CONNECTOR_REGISTRY[e.id];
+    const status = statusFor(spec);
+
+    let sub: ReactNode = e.description;
+    let control: ReactNode = null;
+
+    if (status === "connected") {
+      const { count, label } = accountsFor(spec);
+      const activity = lastActivityFor(spec);
+      sub = brokenFor(spec) ? (
+        <span className="sp-fail">It stopped authorising. Reconnect it.</span>
+      ) : (
+        <>
+          {count > 1 ? (
+            <>
+              Connected on <Num>{count}</Num> accounts
+            </>
+          ) : label ? (
+            <>Connected as {label}</>
+          ) : (
+            <>Connected</>
+          )}
+          {activity ? (
+            <>
+              {" · "}
+              {activity.verb} <Num>{ago(activity.iso)}</Num>
+            </>
+          ) : null}
+        </>
+      );
+      control = (
+        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
+          Manage
+        </Button>
+      );
+    } else if (status === "active") {
+      sub = "Reading through a workspace credential. Nothing for you to connect.";
+      control = (
+        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
+          Manage
+        </Button>
+      );
+    } else if (status === "connect") {
+      control = (
+        <Button disabled={busy} onClick={() => setTrustFor(spec)}>
+          Connect
+        </Button>
+      );
+    } else {
+      control = (
+        <span
+          title={setupHintFor(spec)}
+          style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)" }}
+        >
+          Not available yet
+        </span>
+      );
+    }
+
+    return (
+      <Line
+        key={e.id}
+        label={e.label}
+        // One line, and it is a different fact from the name: what this source
+        // brings in, or what it is currently letting through.
+        sub={
+          <span
+            style={{
+              display: "block",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {sub}
+          </span>
+        }
+      >
+        {control}
+      </Line>
+    );
+  };
+
   return (
-    <div
-      id="connections"
-      // flexWrap: the rail stacks above the grid instead of forcing a
-      // horizontal scroll at 768-wide panes (checklist point 10).
-      style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}
-    >
-      {/* LEFT RAIL: search, status counts, categories, request box + sync link. */}
-      <aside
+    <div id="connections">
+      <div
         style={{
-          width: 210,
-          flexShrink: 0,
-          position: "sticky",
-          top: 16,
-          alignSelf: "flex-start",
           display: "flex",
-          flexDirection: "column",
-          gap: 18,
+          alignItems: "center",
+          gap: "var(--sp-space-3)",
+          flexWrap: "wrap",
         }}
       >
-        <input
-          className="input"
+        <Input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(ev) => setQuery(ev.target.value)}
           placeholder="Search sources"
           aria-label="Search sources"
-          style={{ width: "100%", padding: "8px 12px", borderRadius: 8 }}
+          style={{ width: 220 }}
         />
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <RailRow
-            label="Connected"
-            count={connectedCount}
-            active={statusFilter === "connected"}
-            onClick={() => setStatusFilter("connected")}
-          />
-          <RailRow
-            label="All"
-            count={allCount}
-            active={statusFilter === "all" && categoryFilter === null}
-            onClick={resetAll}
-          />
-        </div>
-
-        <div>
-          <MonoLabel style={{ marginBottom: 8, display: "block" }}>Categories</MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {categories.map((c) => (
-              <RailRow
-                key={c.id}
-                label={c.label}
-                count={c.count}
-                active={categoryFilter === c.id}
-                onClick={() => setCategoryFilter((prev) => (prev === c.id ? null : c.id))}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div
-          style={{
-            borderTop: "1px solid var(--hairline)",
-            paddingTop: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-          }}
+        <span
+          className="sp-tabs"
+          role="tablist"
+          aria-label="Filter sources"
+          style={{ marginTop: 0 }}
         >
-          <RequestConnectorCard compact />
-          <Link
-            to="/sync"
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{ color: "var(--text-subtle)" }}
+          <button
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={statusFilter === "all"}
+            onClick={() => setStatusFilter("all")}
           >
-            Workspace sync and bindings →
-          </Link>
-          {/* RPT-42: agent-vendor neutrality, declared on the connect surface. The
-              deprecation-insurance promise, stated where sources are wired: the seam is
-              real (native build floor + Claude Agent SDK / OpenHands + BYO Devin/Codex/
-              Cursor via the BuildDriver, MCP + Skills compliant), so a model or vendor
-              swap never resets the outcome ledger. */}
-          <div
-            style={{
-              lineHeight: 1.5,
-              color: "var(--text-subtle)",
-              borderTop: "1px solid var(--hairline)",
-              paddingTop: 12,
-            }}
+            All<span className="sp-tab-count">{allCount}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={statusFilter === "connected"}
+            onClick={() => setStatusFilter("connected")}
           >
-            <MonoLabel style={{ display: "block", marginBottom: 6 }}>Vendor neutral</MonoLabel>
-            Your agents will change. Your decision history should not. Supaprod drives whichever
-            builders you connect and keeps the outcome ledger yours, so swapping a model or a vendor
-            never resets what the workspace has learned.
-          </div>
-        </div>
-      </aside>
-
-      {/* RIGHT PANE: compact hero + one unified, filtered card grid.
-          flex-basis 320 so it wraps under the rail instead of crushing. */}
-      <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-        <header style={{ marginBottom: 16 }}>
-          <h3
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 460,
-              lineHeight: 1.2,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            Connect what you already use
-          </h3>
-          <p
-            style={{
-              color: "var(--text-subtle)",
-              margin: "6px 0 0",
-              maxWidth: 480,
-            }}
-          >
-            Bring your tools in as sources; Supaprod reads them into the loop.
-          </p>
-        </header>
-
-        {list.isLoading ? (
-          // Skeleton cards shaped like the grid, never a dead text frame
-          // (checklist point 5).
-          <div
-            aria-hidden="true"
-            style={{
-              display: "grid",
-              gap: 10,
-              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
-            }}
-          >
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse"
-                style={{
-                  height: 76,
-                  borderRadius: "var(--radius-card, 12px)",
-                  background: "var(--raised)",
-                }}
-              />
-            ))}
-          </div>
-        ) : list.isError ? (
-          // A failed read must not paint every provider "coming soon"
-          // (error never wears another state's clothes).
-          <div className="bento" style={{ padding: 20 }}>
-            <div className="mono-label" style={{ color: "var(--rose)" }}>
-              Couldn't load your connections
-            </div>
-            <p style={{ color: "var(--text-subtle)", margin: "8px 0 0" }}>
-              {(list.error as Error)?.message ?? "Unknown error"}
-            </p>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              style={{ marginTop: 12 }}
-              onClick={() => list.refetch()}
-            >
-              Retry
-            </button>
-          </div>
-        ) : filtered.length === 0 ? (
-          <p style={{ color: "var(--text-subtle)", padding: "12px 0" }}>
-            No sources match your filter.{" "}
-            <button
-              type="button"
-              onClick={resetAll}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:no-underline"
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                color: "var(--text-primary)",
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
-            >
-              Clear
-            </button>
-          </p>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gap: 10,
-              // min(320px, 100%) so a pane narrower than 320 clamps the card
-              // instead of overflowing horizontally.
-              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
-            }}
-          >
-            {filtered.map(({ entry: e }) => {
-              const spec = CONNECTOR_REGISTRY[e.id];
-              const status = statusFor(spec);
-              const clickable = status === "connected" || status === "active";
-              const activity = clickable ? lastActivityFor(spec) : null;
-              const open = () => onOpenDetail(e.id);
-              return (
-                <div
-                  key={e.id}
-                  role={clickable ? "button" : undefined}
-                  tabIndex={clickable ? 0 : undefined}
-                  aria-label={clickable ? `Open ${e.label} details` : undefined}
-                  onClick={clickable ? open : undefined}
-                  onKeyDown={
-                    clickable
-                      ? (ev) => {
-                          if (ev.key === "Enter" || ev.key === " ") {
-                            ev.preventDefault();
-                            open();
-                          }
-                        }
-                      : undefined
-                  }
-                  // Focus ring never removed: an inline outline:none would beat
-                  // the global :focus-visible rule, so the reset lives in the
-                  // class where focus-visible can override it.
-                  className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] border [border-color:var(--hairline)]${clickable ? " loom-press hover:[border-color:var(--hairline-strong)]" : ""}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "var(--geist-space-3x)",
-                    padding: 14,
-                    borderRadius: "var(--radius-card, 12px)",
-                    background: "var(--card)",
-                    cursor: clickable ? "pointer" : "default",
-                    opacity: status === "soon" ? 0.62 : 1,
-                  }}
-                >
-                  <ProviderLogo provider={e.id} size={34} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontWeight: 500,
-                        color: "var(--text-primary)",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {e.label}
-                    </div>
-                    <p
-                      style={{
-                        color: "var(--text-subtle)",
-                        margin: "3px 0 0",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {e.description}
-                    </p>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        marginTop: 5,
-                        fontFamily: "var(--font-mono)",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: activity ? "var(--text-subtle)" : "var(--text-faint)",
-                      }}
-                      className={activity ? "tabular-nums" : undefined}
-                    >
-                      {activity ? `${activity.verb} ${relTimeCaps(activity.iso)}` : e.flowLabel}
-                    </span>
-                  </div>
-                  <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
-                    <ConnectStatus
-                      status={status}
-                      spec={spec}
-                      busy={busy}
-                      onConnect={() => setTrustFor(spec)}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+            Connected<span className="sp-tab-count">{connectedCount}</span>
+          </button>
+        </span>
       </div>
+
+      {list.isLoading ? (
+        <Empty>Reading your sources.</Empty>
+      ) : list.isError ? (
+        // A failed read must never wear an empty state's clothes: painting every
+        // provider "not available yet" would be a lie about the catalog.
+        <Failed onRetry={() => void list.refetch()}>
+          Your sources did not load. {(list.error as Error)?.message ?? "The read failed."}
+        </Failed>
+      ) : groups.length === 0 ? (
+        <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
+          {q ? `Nothing matches ${query.trim()}.` : "Nothing connected yet."}
+        </Empty>
+      ) : (
+        groups.map((g) => (
+          <div key={g.id}>
+            <GroupLabel count={g.entries.length}>{g.label}</GroupLabel>
+            {g.entries.map(sourceLine)}
+          </div>
+        ))
+      )}
+
+      {/* The two things that are not a source: where sources bind, and the one
+          you wish we carried. One form so the two lines divide from each other
+          the way every other pair of Lines on this surface does. */}
+      <form
+        style={{ marginTop: "var(--sp-space-8)" }}
+        onSubmit={(ev) => {
+          ev.preventDefault();
+          const trimmed = wanted.trim();
+          if (trimmed && !request.isPending) request.mutate(trimmed);
+        }}
+      >
+        <Line
+          label="Workspace bindings"
+          sub="Which repo, project or page each source reads in this workspace."
+        >
+          <Link to="/sync" className="sp-btn">
+            Open sync
+          </Link>
+        </Line>
+        <Line label="Request a source">
+          <Input
+            value={wanted}
+            onChange={(ev) => setWanted(ev.target.value)}
+            placeholder="Amplitude"
+            maxLength={120}
+            aria-label="Source you want"
+            style={{ width: 180 }}
+          />
+          <Button type="submit" disabled={!wanted.trim() || request.isPending}>
+            Request
+          </Button>
+        </Line>
+      </form>
+
       <ConnectTrustDialog
         provider={trustFor?.id ?? null}
         label={trustFor?.label ?? ""}
@@ -857,31 +690,25 @@ export function AccountConnectionsSection({
   );
 }
 
-/* ---- ConnectorDetail - the screen-6 drill-down, ported from
-   design-reference/supaprod/loop-detail.jsx ConnectorDetail (lines 243-292)
-   onto real data. Rendered by the settings route when ?connector= is set; it
-   replaces the whole Connections tab body. Three states: setup required
-   (env missing), configured-but-not-connected (real Connect flow), and
-   connected (stat row + workspace bindings + per-account table); the first
-   renders as "coming soon" (RF-08) rather than an implied Connect promise.
-   Reads the
-   SAME query keys as the list (["connections"], ["workspace-bindings"],
-   ["calendar-connections"]) so the cache is shared. Reference elements with
-   no production data source are omitted per the no-filler law - see the
-   screen-6 build-log entry. ---- */
+/* ---- ConnectorDetail: the per-provider drill, reached with ?connector= and
+   rendered in place of the whole Sources pane, so it owns a PageHead of its
+   own rather than the retired DrillHeader.
+
+   Ported with the same two cuts as the list. The three "stat" cards collapsed
+   into the subtitle, because "since Jun 3 · 2 accounts · verified Jul 27" is
+   one sentence of facts, not three panels. The bindings card and the account
+   table became Blocks of Rows: a table header, a grid template and a per-row
+   border are three ways of drawing what a rule already draws.
+
+   Four states, unchanged: setup required (no OAuth app and no env token),
+   active via an admin-managed env credential (nothing for this user to
+   connect), configured-but-not-connected, and connected. Reads the SAME query
+   keys as the list (["connections"], ["workspace-bindings"],
+   ["calendar-connections"]) so the cache is shared. ---- */
 
 function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
-
-const detailRowStyle = (i: number, len: number): CSSProperties => ({
-  display: "grid",
-  gridTemplateColumns: "1fr 110px 90px",
-  gap: "var(--geist-space-3x)",
-  padding: "11px 18px",
-  borderBottom: i < len - 1 ? "1px solid var(--hairline)" : "none",
-  alignItems: "center",
-});
 
 export function ConnectorDetail({
   provider,
@@ -959,73 +786,54 @@ export function ConnectorDetail({
 
   // RPT-02 - this drill-down is independently reachable via ?connector=
   // (deep link / bookmark / stale tab) for a provider that isn't connected
-  // yet, so it needs its own trust-dialog gate too, not just the grid's.
+  // yet, so it needs its own trust-dialog gate too, not just the list's.
   // Declared BEFORE the early returns below (Rules of Hooks: the hook count
   // must not change when the loading render gives way to the loaded one).
   const [showTrust, setShowTrust] = useState(false);
+
+  const back = (
+    <div style={{ marginBottom: "var(--sp-space-3)" }}>
+      <Button variant="ghost" onClick={onBack}>
+        All sources
+      </Button>
+    </div>
+  );
 
   // The route validates ?connector= against the registry; this guards a
   // hand-edited URL that slips a non-user-facing provider through.
   if (!spec || spec.userFacing === false) {
     return (
-      <div className="bento fade-up" style={{ padding: "var(--card-pad)" }}>
-        <div className="mono-label" style={{ marginBottom: 10 }}>
-          No such connector
-        </div>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onBack}>
-          Back · all connections
-        </button>
-      </div>
+      <Empty action={<Button onClick={onBack}>All sources</Button>}>No source by that name.</Empty>
     );
   }
 
   if (list.isLoading || bindingsQ.isLoading || (isSuite && suite.isLoading)) {
     return (
-      <div
-        style={{
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
-        }}
-      >
-        Loading {spec.label}…
-      </div>
+      <>
+        {back}
+        <Empty>Reading {spec.label}.</Empty>
+      </>
     );
   }
 
-  // A failed read must not fall through to "not connected" (checklist point 7:
-  // an error never wears another state's clothes).
+  // A failed read must not fall through to "not connected": an error never
+  // wears another state's clothes.
   if (list.isError || bindingsQ.isError || (isSuite && suite.isError)) {
     const err = (list.error ?? bindingsQ.error ?? suite.error) as Error | null;
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={onBack}
-          backLabel="All connections"
-          kicker="Connector"
-          title={spec.label}
-        />
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load {spec.label}
-          </div>
-          <p style={{ color: "var(--ink-subtle)", margin: "8px 0 0" }}>
-            {err?.message ?? "Unknown error"}
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={() => {
-              void list.refetch();
-              void bindingsQ.refetch();
-              if (isSuite) void suite.refetch();
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
+      <>
+        {back}
+        <PageHead title={spec.label} />
+        <Failed
+          onRetry={() => {
+            void list.refetch();
+            void bindingsQ.refetch();
+            if (isSuite) void suite.refetch();
+          }}
+        >
+          {spec.label} did not load. {err?.message ?? "The read failed."}
+        </Failed>
+      </>
     );
   }
 
@@ -1045,116 +853,71 @@ export function ConnectorDetail({
     else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
   };
+
   /* -- Active via an admin-managed env credential (envConfigured), no
      per-user OAuth registered (gatewayConfigured false): Supaprod is already
      reading through the workspace token, so there is nothing for THIS user
      to Connect. Showing "coming soon" with a disabled button here would be
-     misleading - the list card already badges this provider "Active"
+     misleading - the list already says this provider is active
      (founder ruling 2026-07-06). -- */
   if (envActive && !configured && conns.length === 0 && calAccounts.length === 0) {
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={onBack}
-          backLabel="All connections"
-          kicker="Connector · active via admin credential"
-          title={spec.label}
-        />
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <StatusPill tone="muted" title="Reading through a workspace-level server credential">
-              Active
-            </StatusPill>
-            <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
-              {spec.description} Already connected through an admin-managed server credential -
-              there is nothing for you to connect personally.
-            </span>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => mVerifyEnv.mutate()}
-              disabled={mVerifyEnv.isPending}
-            >
-              {mVerifyEnv.isPending ? "Testing…" : "Test connection"}
-            </button>
-          </div>
-          {envCheck ? (
-            <div
-              style={{
-                marginTop: 12,
-                paddingTop: 12,
-                borderTop: "1px solid var(--hairline)",
-                color: envCheck.ok ? "var(--moss-bright)" : "var(--madder)",
-              }}
-            >
-              {envCheck.ok
-                ? `Verified just now - the credential still authenticates.`
-                : `Verification failed - ${envCheck.detail ?? "unknown error"}. "Active" only means the secret is set; this one needs the admin to rotate it in Lovable Secrets.`}
-            </div>
-          ) : (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
-              <span style={{ color: "var(--ink-faint)" }}>
-                "Active" only confirms the credential is set, not that it still works - press Test
-                connection to check right now.
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      <>
+        {back}
+        <PageHead title={spec.label} sub={spec.description} />
+        <Line
+          label="Active through a workspace credential"
+          // Active means the secret is set. Whether it still authenticates is a
+          // different fact, and it is the one the button answers.
+          sub={
+            envCheck ? (
+              envCheck.ok ? (
+                "It still authenticates."
+              ) : (
+                <>
+                  <span className="sp-fail">It did not authenticate.</span>{" "}
+                  {envCheck.detail ?? "No reason given."} An admin has to rotate the secret.
+                </>
+              )
+            ) : (
+              "Set by an admin, so there is nothing here for you to connect."
+            )
+          }
+        >
+          <Button disabled={mVerifyEnv.isPending} onClick={() => mVerifyEnv.mutate()}>
+            {mVerifyEnv.isPending ? "Testing" : "Test it"}
+          </Button>
+        </Line>
+      </>
     );
   }
 
-  /* -- Not configured: the admin hasn't registered the OAuth app yet. -- */
+  /* -- Not configured: the admin hasn't registered the OAuth app yet. No
+     disabled Connect button, because an affordance is a promise. -- */
   if (!configured && conns.length === 0 && calAccounts.length === 0) {
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={onBack}
-          backLabel="All connections"
-          kicker="Connector · coming soon"
-          title={spec.label}
-        />
-        <div
-          className="bento"
-          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
-        >
-          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
-            {spec.description} {hint}
-          </span>
-          <button type="button" className="btn btn-primary btn-sm" disabled title={hint}>
-            Connect
-          </button>
-        </div>
-      </div>
+      <>
+        {back}
+        <PageHead title={spec.label} sub={spec.description} />
+        <Empty>Not available yet. {hint}</Empty>
+      </>
     );
   }
 
   /* -- Configured, no connection yet: the real OAuth connect flow. -- */
   if (isSuite ? calAccounts.length === 0 : conns.length === 0) {
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={onBack}
-          backLabel="All connections"
-          kicker="Connector · not connected"
+      <>
+        {back}
+        <PageHead
           title={spec.label}
+          sub={`${spec.description} Connect it once and what it syncs starts feeding the company brain.`}
         />
-        <div
-          className="bento"
-          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
-        >
-          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
-            {spec.description} Connect it once and what it syncs starts feeding the company brain.
-          </span>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            disabled={busy}
-            onClick={() => setShowTrust(true)}
-          >
+        <Actions>
+          <Button variant="primary" disabled={busy} onClick={() => setShowTrust(true)}>
             Connect {spec.label}
-          </button>
-        </div>
+          </Button>
+        </Actions>
         <ConnectTrustDialog
           provider={provider}
           label={spec.label}
@@ -1166,11 +929,12 @@ export function ConnectorDetail({
           }}
           busy={busy}
         />
-      </div>
+      </>
     );
   }
 
-  /* -- Connected: stat row, workspace bindings, per-account table. -- */
+  /* -- Connected: the facts in one line, the actions, what it feeds, who it is
+     connected as. -- */
   const primary = conns[0]; // listConnections orders by created_at ascending
   const earliest = isSuite ? calAccounts[0]?.created_at : primary?.created_at;
   const since = earliest
@@ -1180,258 +944,172 @@ export function ConnectorDetail({
         year: "numeric",
       })
     : null;
-  const statusText = isSuite ? "connected" : primary.status;
   const lastSync = calAccounts.reduce<string | null>(
     (acc, c) => (c.last_sync_at && (!acc || c.last_sync_at > acc) ? c.last_sync_at : acc),
     null,
   );
-
-  const stats: [string, string, string | undefined][] = isSuite
-    ? [
-        ["Last sync", lastSync ? shortDate(lastSync) : "never", undefined],
-        ["Accounts", String(calAccounts.length), undefined],
-        ["Status", "connected", "var(--emerald)"],
-      ]
-    : [
-        [
-          "Last verified",
-          primary.last_verified_at ? shortDate(primary.last_verified_at) : "never",
-          undefined,
-        ],
-        ["Accounts", String(conns.length), undefined],
-        [
-          "Status",
-          primary.status,
-          primary.status === "connected"
-            ? "var(--emerald)"
-            : primary.status === "error"
-              ? "var(--rose)"
-              : undefined,
-        ],
-      ];
+  const accountCount = isSuite ? calAccounts.length : conns.length;
+  const lastIso = isSuite ? lastSync : primary?.last_verified_at;
+  const broken = !isSuite && primary?.status !== "connected";
 
   const provBindings = (bindingsQ.data?.bindings ?? []).filter((b) => b.provider === provider);
 
   return (
-    <div className="fade-up">
-      <DrillHeader
-        onBack={onBack}
-        backLabel="All connections"
-        kicker={`Connector${since ? ` · since ${since}` : ""} · ${statusText}`}
+    <>
+      {back}
+      <PageHead
         title={spec.label}
-        right={
-          isSuite ? (
-            <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={busy}
-                onClick={() => setShowTrust(true)}
-              >
-                Connect another account
-              </button>
-              {calAccounts.length > 0 ? (
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  disabled={busy || manageBusy}
-                  onClick={async () => {
-                    const ok = await confirm({
-                      title: `Disconnect this ${suiteSpec?.product === "mail" ? "mailbox" : "calendar"}?`,
-                      body:
-                        suiteSpec?.product === "mail"
-                          ? "Stored signals stay but no further messages will be pulled in."
-                          : "Stored events stay but no further sync will happen.",
-                      confirmLabel: "Disconnect",
-                      destructive: true,
-                    });
-                    if (ok) mSuiteDisconnect.mutate(calAccounts[0]!.id);
-                  }}
-                >
-                  Disconnect
-                </button>
-              ) : null}
-            </div>
-          ) : (
-            <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={busy}
-                onClick={() => mVerify.mutate(primary.id)}
-              >
-                Verify
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={busy || manageBusy}
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: "Disconnect this account?",
-                    body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
-                    confirmLabel: "Disconnect",
-                    destructive: true,
-                  });
-                  if (ok) mDisconnect.mutate(primary.id);
-                }}
-              >
-                Disconnect
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={busy || manageBusy}
-                style={{ color: "var(--rose)" }}
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: "Remove this connection?",
-                    body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
-                    confirmLabel: "Remove",
-                    destructive: true,
-                  });
-                  if (ok) mDelete.mutate(primary.id);
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          )
+        // The three stat cards, said as one sentence. Numbers in mono.
+        sub={
+          <>
+            {since ? (
+              <>
+                Since <Num>{since}</Num>
+                {" · "}
+              </>
+            ) : null}
+            <Num>{accountCount}</Num> {accountCount === 1 ? "account" : "accounts"}
+            {lastIso ? (
+              <>
+                {" · "}
+                {isSuite ? "synced" : "verified"} <Num>{shortDate(lastIso)}</Num>
+              </>
+            ) : null}
+            {broken ? (
+              <>
+                {" · "}
+                <span className="sp-fail">{primary.status}</span>
+              </>
+            ) : null}
+          </>
         }
       />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: "var(--geist-space-3x)",
-          marginBottom: 12,
-        }}
-      >
-        {stats.map(([l, v, color]) => (
-          <div key={l} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <MonoLabel style={{ marginBottom: 6 }}>{l}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ color }}>
-              {v}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* auto-fit so the bindings card and the account table stack instead of
-          crushing at 768-wide panes (checklist point 10). */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
-          gap: "var(--geist-space-3x)",
-        }}
-      >
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 10 }}>What it feeds · workspace bindings</MonoLabel>
-          {provBindings.length === 0 ? (
-            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
-              No workspace bindings yet. Bind repos, projects, or pages under workspace sync and
-              bindings.
-            </p>
-          ) : (
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: 7,
+      {isSuite ? (
+        <Actions
+          trailing={
+            calAccounts.length > 0 ? (
+              <Button
+                variant="ghost"
+                disabled={busy || manageBusy}
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: `Disconnect this ${suiteSpec?.product === "mail" ? "mailbox" : "calendar"}?`,
+                    body:
+                      suiteSpec?.product === "mail"
+                        ? "Stored signals stay but no further messages will be pulled in."
+                        : "Stored events stay but no further sync will happen.",
+                    confirmLabel: "Disconnect",
+                    destructive: true,
+                  });
+                  if (ok) mSuiteDisconnect.mutate(calAccounts[0]!.id);
+                }}
+              >
+                Disconnect
+              </Button>
+            ) : null
+          }
+        >
+          <Button disabled={busy} onClick={() => setShowTrust(true)}>
+            Connect another account
+          </Button>
+        </Actions>
+      ) : (
+        // Remove destroys the connection and every binding on it, so it sits
+        // apart by DISTANCE rather than by colour: red carries outcomes here,
+        // not intent.
+        <Actions
+          trailing={
+            <Button
+              variant="ghost"
+              disabled={busy || manageBusy}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: "Remove this connection?",
+                  body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
+                  confirmLabel: "Remove",
+                  destructive: true,
+                });
+                if (ok) mDelete.mutate(primary.id);
               }}
             >
-              {provBindings.map((b) => (
-                <li
-                  key={b.id}
-                  style={{ color: "var(--ink-muted)", display: "flex", gap: 8 }}
-                >
-                  <StepDot status={b.connection_status === "connected" ? "completed" : "failed"} />
-                  <span>
-                    {b.resource_label ?? b.resource_id} · {b.resource_kind}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-          <div
-            className="mono-label"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 110px 90px",
-              gap: "var(--geist-space-3x)",
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
+              Remove
+            </Button>
+          }
+        >
+          <Button disabled={busy} onClick={() => mVerify.mutate(primary.id)}>
+            Verify
+          </Button>
+          <Button
+            disabled={busy || manageBusy}
+            onClick={async () => {
+              const ok = await confirm({
+                title: "Disconnect this account?",
+                body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
+                confirmLabel: "Disconnect",
+                destructive: true,
+              });
+              if (ok) mDisconnect.mutate(primary.id);
             }}
           >
-            <span>Account</span>
-            <span>Status</span>
-            <span>{isSuite ? "Synced" : "Verified"}</span>
-          </div>
-          {isSuite
-            ? calAccounts.map((c, i) => (
-                <div key={c.id} style={detailRowStyle(i, calAccounts.length)}>
-                  <span
-                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                  >
-                    {c.account_email ?? c.display_name ?? "Connected"}
-                  </span>
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      color: "var(--ink-muted)",
-                    }}
-                  >
-                    <StepDot status="completed" />
-                    connected
-                  </span>
-                  <span className="mono-label tabular-nums">
-                    {c.last_sync_at ? shortDate(c.last_sync_at) : "-"}
-                  </span>
-                </div>
-              ))
-            : conns.map((c, i) => (
-                <div key={c.id} style={detailRowStyle(i, conns.length)}>
-                  <span
-                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                  >
-                    {c.account_label ?? c.account_email ?? "Connected"}
-                  </span>
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      color: "var(--ink-muted)",
-                    }}
-                  >
-                    <StepDot
-                      status={
-                        c.status === "connected"
-                          ? "completed"
-                          : c.status === "error"
-                            ? "failed"
-                            : "planned"
-                      }
-                    />
-                    {c.status}
-                  </span>
-                  <span className="mono-label tabular-nums">
-                    {c.last_verified_at ? shortDate(c.last_verified_at) : "-"}
-                  </span>
-                </div>
-              ))}
-        </div>
-      </div>
+            Disconnect
+          </Button>
+        </Actions>
+      )}
+
+      <Block title="What it feeds">
+        {provBindings.length === 0 ? (
+          <Empty>Nothing bound yet. Bind repos, projects or pages under workspace sync.</Empty>
+        ) : (
+          provBindings.map((b) => (
+            <Row
+              key={b.id}
+              tight
+              lead={b.resource_label ?? b.resource_id}
+              sub={
+                <>
+                  {b.resource_kind}
+                  {b.connection_status === "connected" ? null : (
+                    <>
+                      {" · "}
+                      <span className="sp-fail">not reading</span>
+                    </>
+                  )}
+                </>
+              }
+            />
+          ))
+        )}
+      </Block>
+
+      <Block title="Accounts">
+        {isSuite
+          ? calAccounts.map((c) => (
+              <Row
+                key={c.id}
+                tight
+                lead={c.account_email ?? c.display_name ?? "Connected"}
+                time={c.last_sync_at ? shortDate(c.last_sync_at) : null}
+              />
+            ))
+          : conns.map((c) => (
+              <Row
+                key={c.id}
+                tight
+                lead={c.account_label ?? c.account_email ?? "Connected"}
+                // Only the exception earns a second line. A row that says
+                // "connected" under a heading that already says so is the
+                // redundancy ban with extra steps.
+                sub={
+                  c.status === "connected" ? null : (
+                    <span className={c.status === "error" ? "sp-fail" : "sp-warn"}>{c.status}</span>
+                  )
+                }
+                time={c.last_verified_at ? shortDate(c.last_verified_at) : null}
+              />
+            ))}
+      </Block>
+
       <ConnectTrustDialog
         provider={provider}
         label={spec.label}
@@ -1443,6 +1121,6 @@ export function ConnectorDetail({
         }}
         busy={busy}
       />
-    </div>
+    </>
   );
 }

@@ -1,47 +1,54 @@
-// The /memory body: a real-count summary strip over a list of MemoryCards.
-// Every number is a head count from agent_memory - no estimates, no filler. The
-// empty state is honest about there being nothing learned yet rather than
-// implying the loop has done work it has not.
+/**
+ * What the crew recalls: the live contents of agent_memory. Every number here
+ * is a head count, never an estimate.
+ *
+ * Ported to the --sp-* system. The surface (routes/_authenticated.brain.tsx)
+ * already titles this region with a Block, so this file owns the INTERIOR only.
+ *
+ *   KILLED the "What the loop recalls" band and its MonoLabel. The surface head
+ *     directly above it already says that, in the same words, one line up.
+ *   KILLED the MemoryCard per row. A card per memory inside a Block is a card
+ *     in a region, and the card carried five stacked lines (two chips, the
+ *     content, a source line, and an italic blurb explaining what "reflection"
+ *     means) for a list you scan. A memory is now one row: what was learned,
+ *     with who learned it and whether the loop has reached for it since.
+ *   KILLED the Sparkles icon on the empty state. It was violet, it was larger
+ *     than the sentence it introduced, and it decorated a fact.
+ *   KILLED the wall. The list shows the most recent few and expands on demand,
+ *     the same anti-scroll cap DecisionsPanel carries beside it.
+ *
+ * ATTRIBUTION. Every row carries a mark and names its source. An outcome row is
+ * distilled by the loop across a run (rememberOutcome writes agent_slug = null
+ * by design), so it reads "the loop" rather than an invented agent name.
+ *
+ * UNCHANGED: getAgentMemory, the ["agent-memory"] key, and the exported
+ * MemoryList signature.
+ */
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
 import { getAgentMemory } from "@/lib/memory.functions";
-import { kindLabel, relativeTime } from "@/lib/memory-view";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { MemoryCard } from "./MemoryCard";
+import { agentLabel, kindLabel, relativeTime } from "@/lib/memory-view";
+import { AgentMark, Actions, Button, Empty, Failed, Num, Row } from "@/components/shell/primitives";
 
 function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
+// Anti-scroll (founder ruling 2026-07-06): Brain never becomes a long wall.
+// The server already caps the window; this is the UI-side half of that cap.
+const VISIBLE_MEMORIES = 8;
+
 export function MemoryList() {
   const f = useServerFn(getAgentMemory);
   const q = useQuery({ queryKey: ["agent-memory"], queryFn: () => f({ data: {} }) });
+  const [showAll, setShowAll] = useState(false);
   const now = Date.now();
 
-  if (q.isLoading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", padding: "18px 2px" }}>
-        <span className="spinner" />
-        <span className="mono-label" style={{ }}>
-          loading…
-        </span>
-      </div>
-    );
-  }
+  if (q.isLoading) return null;
 
   if (q.isError) {
-    return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 8 }}>memory · failed to load</MonoLabel>
-        <p style={{ color: "var(--ink-muted)", marginBottom: 12 }}>
-          {(q.error as Error).message}
-        </p>
-        <button className="btn btn-ghost btn-sm" onClick={() => void q.refetch()}>
-          Retry · reloads memory
-        </button>
-      </div>
-    );
+    return <Failed onRetry={() => void q.refetch()}>{(q.error as Error).message}</Failed>;
   }
 
   const rows = q.data?.rows ?? [];
@@ -50,70 +57,79 @@ export function MemoryList() {
 
   if (rows.length === 0) {
     return (
-      <div className="bento p-10 text-center">
-        <Sparkles className="h-6 w-6 mx-auto text-violet-300/70" />
-        <h3 className="font-display text-base mt-3">Nothing learned yet</h3>
-        <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">
-          Memory fills in as the loop works. Record an outcome on a shipped spec, or let an agent
-          reflect on a run, and the takeaway is stored here so the loop can recall it next time.
-        </p>
-      </div>
+      <Empty>
+        Nothing learned yet. Record an outcome on a shipped spec, or let an agent reflect on a run,
+        and the takeaway lands here for the next run to recall.
+      </Empty>
     );
   }
 
+  const shown = showAll ? rows : rows.slice(0, VISIBLE_MEMORIES);
+
   return (
-    <div className="space-y-3">
-      {/* Real-count summary - the moat in one line. */}
-      <div
-        className="band-stone"
+    <div>
+      {/* The counts, said once, as one line. The surface head above already
+          named the section, so this carries only what it does not: how much is
+          in there, of what, from how many sources, and how fresh it is. */}
+      <p
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--geist-space-4x)",
-          padding: "12px 18px",
-          flexWrap: "wrap",
+          fontSize: "var(--sp-text-meta)",
+          color: "var(--sp-mute)",
+          marginBottom: "var(--sp-space-3)",
         }}
       >
-        <MonoLabel icon={Sparkles} style={{ color: "var(--ink)" }}>
-          What the loop recalls
-        </MonoLabel>
-        <span className="mono-label" style={{ }}>
-          <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
-            {totalAll}
-          </strong>{" "}
-          stored
-        </span>
-        {/* Caveat sits next to the total so the breakdown below reads as window-scoped,
-            not all-time, once an account passes the row cap. */}
+        <Num>{totalAll}</Num> stored
         {totalAll > rows.length ? (
-          <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-            showing the {rows.length} most recent
-          </span>
+          <>
+            {" · showing the "}
+            <Num>{rows.length}</Num> most recent
+          </>
         ) : null}
         {summary?.byKind.map((k) => (
-          <span key={k.kind} className="mono-label" style={{ }}>
-            <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
-              {k.count}
-            </strong>{" "}
-            {kindLabel(k.kind).toLowerCase()}
+          <span key={k.kind}>
+            {" · "}
+            <Num>{k.count}</Num> {kindLabel(k.kind).toLowerCase()}
             {k.count === 1 ? "" : "s"}
           </span>
         ))}
-        {summary && summary.agents.length > 0 ? (
-          <span className="mono-label" style={{ }}>
-            {plural(summary.agents.length, "source agent")}
-          </span>
-        ) : null}
-        {summary?.lastLearnedAt ? (
-          <span className="mono-label" style={{ }}>
-            last learned {relativeTime(summary.lastLearnedAt, now)}
-          </span>
-        ) : null}
-      </div>
+        {summary && summary.agents.length > 0
+          ? ` · ${plural(summary.agents.length, "source")}`
+          : null}
+        {summary?.lastLearnedAt
+          ? ` · last learned ${relativeTime(summary.lastLearnedAt, now)}`
+          : null}
+      </p>
 
-      {rows.map((r) => (
-        <MemoryCard key={r.id} row={r} now={now} />
+      {shown.map((r) => (
+        <Row
+          key={r.id}
+          tight
+          marks={<AgentMark slug={r.agentSlug} name="the loop" state="quiet" />}
+          lead={r.content}
+          // A different fact from the lead, never more of it: what kind of
+          // memory this is, who it came from, and whether the loop has actually
+          // reached for it since. A never-recalled row says so plainly rather
+          // than implying it was used.
+          sub={`${kindLabel(r.kind)} · from ${agentLabel(r.agentSlug)} · ${
+            r.lastUsedAt ? `recalled ${relativeTime(r.lastUsedAt, now)}` : "not recalled yet"
+          }`}
+          time={relativeTime(r.createdAt, now)}
+        />
       ))}
+
+      {rows.length > VISIBLE_MEMORIES ? (
+        <Actions>
+          <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? (
+              "Show fewer"
+            ) : (
+              <>
+                Show <Num>{rows.length - VISIBLE_MEMORIES}</Num> more
+              </>
+            )}
+          </Button>
+        </Actions>
+      ) : null}
     </div>
   );
 }

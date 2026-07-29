@@ -1,19 +1,54 @@
-// Decisions — Brain tab 5. One list: Decision / Made by / When / Why. Row
-// click drills to ?decision= on /knowledge, rendered by DecisionDetail. The
-// shared vocabulary (ageOf / SOURCE_LABEL / hasSource) lives in
-// decisions-shared.ts; SourceLink is exported from here — single source, no
-// drift. Status is a rendered judgment -> VerdictChip (approved KEPT/moss ·
-// rejected KILL/madder · pending PENDING/neutral, per the Obsidian verdict
-// law: a chip appears only on a real outcome, never as decoration).
-//
-// OBS-08: ported to Obsidian presentation; every mutation/filter/dialog
-// behavior below is unchanged from the pre-port panel.
-import { useState } from "react";
-import { PanelSkeleton } from "./PanelSkeleton";
+/**
+ * Decisions. The ledger of calls, and the main list on Brain.
+ *
+ * Ported to the --sp-* system. The surface (routes/_authenticated.brain.tsx)
+ * already titles the section with a Block and already answers "who is here and
+ * why", so this file owns the INTERIOR only: what a row says, and what it
+ * refuses to say.
+ *
+ * WHAT WENT, and why. The founder ruling this pass answers: "Why do we need so
+ * bigger things to display? If a user wants to know, he will click deeper and
+ * understand the context, rather than we showcase everything on the cards."
+ *
+ *   KILLED the four-column grid and its mono column header. A header row over
+ *     eight rows is a second heading grammar inside a section the surface
+ *     already titled, and the columns forced every value to a fixed width it
+ *     did not want.
+ *   KILLED the bordered card around the list. The surface puts this panel in a
+ *     Block; a bordered box inside a region is a card in a card.
+ *   KILLED the "Why" column. It was already truncated to one ellipsised line
+ *     at 200px, which is not a rationale, it is the shape of one. The whole
+ *     rationale is one click away in DecisionDetail.
+ *   KILLED the per-row audit tag and the auto chip. Both were a THIRD line on
+ *     a list row, and both live in DecisionDetail, which is the click.
+ *   KILLED the per-row "Decide on Today" link (an interactive span nested in
+ *     the row's own button, to dodge invalid DOM nesting). N links to one
+ *     destination collapse into one line under the list.
+ *   KILLED the two bordered filter pill groups. Two selects and a search field
+ *     say the same thing with no chrome, and their default option is the
+ *     label, so nothing is said twice.
+ *
+ * COLOUR. Green for a call that was kept, red for one that was dropped: those
+ * are outcomes, and outcomes own those two. Pending stays MONOCHROME on
+ * purpose. Ember marks the one thing waiting on you, and on Brain nothing is:
+ * the one-home law puts deciding on Today, so the ember budget belongs there
+ * and this surface is the record of it.
+ *
+ * ATTRIBUTION. Every row carries a mark and a name. An agent slug resolves
+ * through the catalog; a null slug is the human (createDecision writes the
+ * stage actor as "human" when no agent slug is given), so it reads as You and
+ * wears the solid disc rather than a glyph.
+ *
+ * UNCHANGED: listDecisions / createDecision, the ["decisions", listInput] key,
+ * the debounce, the ?decision= drill, VISIBLE_DECISIONS, and the SourceLink +
+ * OBS_STATUS_TONE exports that DecisionDetail imports from here.
+ */
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "@/lib/notify";
+import { supabase } from "@/integrations/supabase/client";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
   listDecisions,
@@ -29,19 +64,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MonoLabel, Button } from "@/components/obsidian/primitives";
-import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
+import type { VerdictTone } from "@/components/obsidian/verdict";
+import {
+  Actions,
+  AgentMark,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Num,
+  Row,
+  Select,
+  Textarea,
+  YouMark,
+} from "@/components/shell/primitives";
 import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
-import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/supaprod/AutoChip";
-import { AuditTag } from "@/components/supaprod/AuditTag";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
 
-// Obsidian-specific tone map (decisions-shared.ts's STATUS_TONE stays the
-// parchment mapping — DecisionDetail.tsx and other consumers still read it
-// until OBS-10 folds them).
+// Obsidian-specific tone map. DecisionDetail.tsx still renders a VerdictChip
+// from it, so the export stays exactly as it was even though this panel no
+// longer draws a chip.
 export const OBS_STATUS_TONE: Record<DecisionRow["status"], VerdictTone> = {
   approved: "KEPT",
   rejected: "KILL",
@@ -94,47 +140,34 @@ export function SourceLink({
   return null;
 }
 
-function FilterGroup<T extends string>({
-  options,
-  value,
-  onChange,
-  labelOf,
-}: {
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-  labelOf: (v: T) => string;
-}) {
-  return (
-    <div
-      className="flex"
-      style={{ gap: 2, border: "1px solid var(--hairline)", borderRadius: 8, padding: 2 }}
-    >
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          onClick={() => onChange(o)}
-          aria-pressed={value === o}
-          className="outline-none uppercase transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            padding: "3px 10px",
-            borderRadius: 6,
-            background: value === o ? "var(--raised)" : "transparent",
-            color: value === o ? "var(--text-primary)" : "var(--text-subtle)",
-            border: "none",
-          }}
-        >
-          {labelOf(o)}
-        </button>
-      ))}
-    </div>
-  );
+/** The outcome, in plain words. Green and red carry outcomes; a call nobody
+ *  has settled yet is not an outcome, so it stays monochrome. */
+const OUTCOME: Record<DecisionRow["status"], { word: string; tone: string }> = {
+  approved: { word: "Kept", tone: "sp-pass" },
+  rejected: { word: "Dropped", tone: "sp-fail" },
+  pending: { word: "Not settled", tone: "" },
+};
+
+/** Who acted, and what they actually did. A null slug is the human, and a
+ *  pending row has nobody who decided it yet, so it must never read as though
+ *  someone did. */
+function whoLine(d: DecisionRow): string {
+  const who = displayWho(d.decided_by_agent_slug);
+  if (d.status === "pending") {
+    return d.decided_by_agent_slug ? `${who} raised it` : `${who} logged it`;
+  }
+  return `${who} settled it`;
 }
 
-// Anti-scroll (founder ruling 2026-07-06 / PC-32): the table shows the top few
+function initialsFrom(email: string | null, name: string | null): string {
+  const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
+  const parts = source.split(/[\s._-]+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the list shows the top few
 // rows and expands on demand, so Brain never becomes a long wall. The server
 // already caps at 100 (listDecisions); this is the UI-side half of that cap.
 const VISIBLE_DECISIONS = 8;
@@ -150,6 +183,26 @@ export function DecisionsPanel() {
   const qc = useQueryClient();
   const fList = useServerFn(listDecisions);
   const fCreate = useServerFn(createDecision);
+
+  // You are an actor in this ledger, so you get a mark like every other actor.
+  // Read once on mount, the same way the shell and the two other ported
+  // surfaces read it.
+  const [initials, setInitials] = useState("?");
+  useEffect(() => {
+    let alive = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!alive) return;
+      setInitials(
+        initialsFrom(
+          data.user?.email ?? null,
+          (data.user?.user_metadata?.full_name as string | undefined) ?? null,
+        ),
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Debounce search input so keystrokes don't fire a request per character.
   const debouncedQ = useDebouncedValue(q, 275);
@@ -168,233 +221,145 @@ export function DecisionsPanel() {
     mutationFn: (data: { title: string; rationale?: string }) => fCreate({ data }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["decisions"] });
-      toast.success("Decision logged · Supaprod reads it");
+      toast.success("Logged to the record.");
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const rows = decisions.data?.decisions ?? [];
-  const GRID = "1fr 150px 90px 200px";
+  const shown = showAll ? rows : rows.slice(0, VISIBLE_DECISIONS);
+  const waiting = rows.filter((d) => d.status === "pending").length;
+  const filtered = source !== "all" || status !== "all" || debouncedQ.trim().length > 0;
+  // Nothing on the record at all is a different fact from nothing matching a
+  // filter, and it wants a different screen: no filter row over an empty
+  // ledger, and the one door that starts it.
+  const virgin = !decisions.isLoading && !decisions.isError && rows.length === 0 && !filtered;
+
+  const clearFilters = () => {
+    setSource("all");
+    setStatus("all");
+    setQ("");
+  };
 
   return (
     <div>
-      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 12 }}>
-        <FilterGroup
-          options={["all", "meeting", "mission", "prd", "manual"] as const}
-          value={source}
-          onChange={setSource}
-          labelOf={(s) => (s === "all" ? "All" : SOURCE_LABEL[s])}
-        />
-        <FilterGroup
-          options={["all", "pending", "approved", "rejected"] as const}
-          value={status}
-          onChange={setStatus}
-          labelOf={(s) => s}
-        />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Search decision titles"
-          placeholder="Search titles"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            flex: 1,
-            minWidth: 160,
-            maxWidth: 240,
-            background: "var(--card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: 8,
-            padding: "7px 10px",
-            color: "var(--text-primary)",
-          }}
-        />
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          Log decision
-        </Button>
-      </div>
-
-      {decisions.isLoading ? (
-        <PanelSkeleton />
-      ) : decisions.isError ? (
+      {virgin ? null : (
         <div
           style={{
-            background: "var(--card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            padding: "16px 18px",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: "var(--sp-space-2)",
+            marginBottom: "var(--sp-space-3)",
           }}
         >
-          <MonoLabel style={{ marginBottom: 8 }}>Decisions · failed to load</MonoLabel>
-          <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
-            {(decisions.error as Error).message}
-          </p>
-          <Button variant="secondary" onClick={() => void decisions.refetch()}>
-            Retry
-          </Button>
-        </div>
-      ) : rows.length === 0 ? (
-        <div
-          style={{
-            background: "var(--card)",
-            border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
-            borderRadius: "var(--radius-card)",
-            padding: "28px 26px",
-          }}
-        >
-          <p style={{ color: "var(--text-body)", margin: "0 0 12px" }}>
-            Decisions land here automatically when missions complete, specs are approved, or meeting
-            transcripts are extracted. Or log one manually.
-          </p>
-          <Button variant="secondary" onClick={() => setOpen(true)}>
-            Log decision
-          </Button>
-        </div>
-      ) : (
-        <div
-          style={{
-            background: "var(--card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: GRID,
-              gap: "var(--geist-space-3x)",
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
-              fontFamily: "var(--font-mono)",
-              color: "var(--text-faint)",
-              textTransform: "uppercase",
-            }}
-          >
-            <span>Decision</span>
-            <span>Made by</span>
-            <span>When</span>
-            <span>Why</span>
-          </div>
-          {(showAll ? rows : rows.slice(0, VISIBLE_DECISIONS)).map((d, i, shown) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() =>
-                navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
-              }
-              className="w-full text-left outline-none transition-colors hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                display: "grid",
-                gridTemplateColumns: GRID,
-                gap: "var(--geist-space-3x)",
-                padding: "13px 18px",
-                alignItems: "baseline",
-                borderBottom: i < shown.length - 1 ? "1px solid var(--hairline)" : "none",
-                background: "transparent",
-                border: "none",
-              }}
+          <span style={{ flex: "none", width: 152 }}>
+            <Select
+              value={source}
+              onChange={(e) => setSource(e.target.value as SourceFilter)}
+              aria-label="Filter by where the call came from"
             >
-              <span style={{ minWidth: 0 }}>
-                <span className="flex items-center" style={{ gap: "var(--geist-space-2x)", minWidth: 0 }}>
-                  <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
-                  <span
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text-primary)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {stripAutoPrefix(d.title)}
-                  </span>
-                  {isAutoTitle(d.title) ? <AutoChip /> : null}
-                </span>
-                {/* dim 17: the quiet, copyable-in-detail trace ref on the row. */}
-                <span style={{ display: "block", marginTop: 5 }}>
-                  <AuditTag kind="decision" id={d.id} />
-                </span>
-                {d.status === "pending" ? (
-                  // LOOM QA R2 (one-home law, §9b): approvals have ONE
-                  // actionable home — Today's queue. This row stays the
-                  // record; deciding happens there.
-                  <span className="flex" style={{ gap: 6, marginTop: 7 }}>
-                    {/* span, not button: the row itself is a <button>, and a
-                        nested button is invalid HTML (hydration warning). */}
-                    <span
-                      role="link"
-                      tabIndex={0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate({ to: "/today" });
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.stopPropagation();
-                          navigate({ to: "/today" });
-                        }
-                      }}
-                      className="hover:underline"
-                      style={{ color: "var(--link)", cursor: "pointer" }}
-                    >
-                      Decide on Today &rarr;
-                    </span>
-                  </span>
-                ) : null}
-              </span>
-              <span
-                style={{
-                  color: "var(--text-muted)",
-                }}
-              >
-                {displayWho(d.decided_by_agent_slug)}
-              </span>
-              <span
-                className="tabular-nums"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                {ageOf(d.created_at)}
-              </span>
-              <span
-                style={{
-                  color: "var(--text-subtle)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {d.rationale ??
-                  (d.source_label
-                    ? `${SOURCE_LABEL[(d.source_kind ?? "manual") as DecisionSource]} · ${d.source_label}`
-                    : "")}
-              </span>
-            </button>
-          ))}
+              <option value="all">Any source</option>
+              {(["meeting", "mission", "prd", "manual"] as const).map((s) => (
+                <option key={s} value={s}>
+                  {SOURCE_LABEL[s]}
+                </option>
+              ))}
+            </Select>
+          </span>
+          <span style={{ flex: "none", width: 152 }}>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as StatusFilter)}
+              aria-label="Filter by outcome"
+            >
+              <option value="all">Any outcome</option>
+              <option value="pending">Not settled</option>
+              <option value="approved">Kept</option>
+              <option value="rejected">Dropped</option>
+            </Select>
+          </span>
+          <span style={{ flex: "1 1 170px", minWidth: 150, maxWidth: 280 }}>
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search decisions by title"
+              placeholder="Search titles"
+            />
+          </span>
+          <span style={{ marginLeft: "auto" }}>
+            <Button onClick={() => setOpen(true)}>Log decision</Button>
+          </span>
         </div>
       )}
 
-      {rows.length > VISIBLE_DECISIONS ? (
-        <button
-          type="button"
-          onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 500,
-            color: "var(--text-muted)",
-            background: "transparent",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 14px",
-            marginTop: 10,
-          }}
-        >
-          {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_DECISIONS} more`}
-        </button>
+      {decisions.isLoading ? null : decisions.isError ? (
+        <Failed onRetry={() => void decisions.refetch()}>
+          {(decisions.error as Error).message}
+        </Failed>
+      ) : rows.length === 0 ? (
+        filtered ? (
+          <Empty action={<Button onClick={clearFilters}>Clear the filter</Button>}>
+            No call on the record matches that.
+          </Empty>
+        ) : (
+          <Empty action={<Button onClick={() => setOpen(true)}>Log decision</Button>}>
+            Calls land here on their own when a mission completes, a spec is approved, or a meeting
+            transcript is read. Log one yourself when the call was made somewhere else.
+          </Empty>
+        )
+      ) : (
+        shown.map((d) => (
+          <Row
+            key={d.id}
+            tight
+            marks={
+              d.decided_by_agent_slug ? (
+                <AgentMark slug={d.decided_by_agent_slug} state="quiet" />
+              ) : (
+                <YouMark initials={initials} />
+              )
+            }
+            lead={stripAutoPrefix(d.title)}
+            // The second line is a DIFFERENT fact, never more of the first:
+            // where the call stands, and who put it there.
+            sub={
+              <>
+                <span className={OUTCOME[d.status].tone || undefined}>
+                  {OUTCOME[d.status].word}
+                </span>
+                {" · "}
+                {whoLine(d)}
+              </>
+            }
+            time={ageOf(d.created_at)}
+            onClick={() => navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })}
+          />
+        ))
+      )}
+
+      {rows.length > VISIBLE_DECISIONS || waiting > 0 ? (
+        <Actions>
+          {rows.length > VISIBLE_DECISIONS ? (
+            <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+              {showAll ? (
+                "Show fewer"
+              ) : (
+                <>
+                  Show <Num>{rows.length - VISIBLE_DECISIONS}</Num> more
+                </>
+              )}
+            </Button>
+          ) : null}
+          {/* One-home law: a call is settled on Today, never twice. The list
+              stays the record and sends you to the one place that decides. */}
+          {waiting > 0 ? (
+            <Button variant="ghost" onClick={() => navigate({ to: "/today" })}>
+              Settle <Num>{waiting}</Num> on Today
+            </Button>
+          ) : null}
+        </Actions>
       ) : null}
 
       <LogDecisionDialog
@@ -433,69 +398,38 @@ function LogDecisionDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display" style={{ fontWeight: 460 }}>
-            Log decision
-          </DialogTitle>
-          <DialogDescription style={{ color: "var(--text-subtle)" }}>
-            Capture a choice that should outlive this week. Supaprod reads these.
+          <DialogTitle>Log a decision</DialogTitle>
+          {/* Different information from the title, not a restatement of it. */}
+          <DialogDescription style={{ color: "var(--sp-mute)" }}>
+            A call made outside the loop. The crew reads it before it acts again.
           </DialogDescription>
         </DialogHeader>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div>
-            <MonoLabel style={{ marginBottom: 4 }}>
-              title
-            </MonoLabel>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="What was decided?"
-              maxLength={280}
-              autoFocus
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                width: "100%",
-                background: "var(--card)",
-                border: "1px solid var(--hairline)",
-                borderRadius: 8,
-                padding: "7px 10px",
-                color: "var(--text-primary)",
-              }}
-            />
-          </div>
-          <div>
-            <MonoLabel style={{ marginBottom: 4 }}>
-              rationale · optional
-            </MonoLabel>
-            <textarea
-              value={rationale}
-              onChange={(e) => setRationale(e.target.value)}
-              placeholder="Why this, and not the alternative."
-              rows={4}
-              maxLength={2000}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                width: "100%",
-                resize: "vertical",
-                minHeight: 84,
-                background: "var(--card)",
-                border: "1px solid var(--hairline)",
-                borderRadius: 8,
-                padding: "7px 10px",
-                color: "var(--text-primary)",
-              }}
-            />
-          </div>
-        </div>
+        <Field label="What was decided">
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={280}
+            autoFocus
+          />
+        </Field>
+        <Field label="Why this, and not the alternative">
+          <Textarea
+            value={rationale}
+            onChange={(e) => setRationale(e.target.value)}
+            rows={4}
+            maxLength={2000}
+          />
+        </Field>
         <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancel
           </Button>
           <Button
-            variant="secondary"
+            variant="primary"
             disabled={!title.trim() || submitting}
             onClick={() => onSubmit(title.trim(), rationale.trim())}
           >
-            {submitting ? "Logging…" : "Log decision"}
+            {submitting ? "Logging" : "Log decision"}
           </Button>
         </DialogFooter>
       </DialogContent>

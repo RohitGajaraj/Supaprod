@@ -1,11 +1,45 @@
-import { GitBranch } from "lucide-react";
-import { AuditTag } from "@/components/supaprod/AuditTag";
+/**
+ * One ranked bet in full. This is the depth behind a queue row, so everything
+ * the row stopped drawing lives here and nothing here is a second copy of the
+ * row.
+ *
+ * Ported off the retired system (2026-07-29). What changed, and why:
+ *
+ * KILL the DetailKit shell. DetailHeader drew its own chip rail and trace tail,
+ *      DetailSection drew a heading register of its own, and the priority band
+ *      was a bordered card sitting inside a bordered sheet. Sections are now
+ *      `Block`, which is a rule rather than a box: one bordered container per
+ *      region, and the sheet is the region.
+ * KILL the four-cell ICE strip. Four tinted stat tiles for four small integers
+ *      is decoration doing a sentence's job; the scores are one quiet line.
+ * KILL the verdict chip, the confidence chip and the "Move to" chip in the
+ *      header. What the Critic concluded is a sentence with a name in front of
+ *      it, at the confidence the Critic actually disclosed. The status menu is
+ *      an action, so it sits with the actions.
+ * KILL the designation's stock explanation. It said what to do, and the
+ *      ranking's own `nextAction` says what to do about THIS bet. Two of those
+ *      is the same sentence twice (hard ban 10); the specific one wins.
+ * KEEP every server function, query key, mutation and prop. The brief link
+ *      still writes through setOpportunityBriefLink and still invalidates
+ *      ["opportunities"] and ["brief-alignment"]; the judgment read still uses
+ *      ["opportunity-judgment", id].
+ *
+ * THE MOMENT. The precedent is the record speaking, so it renders in the
+ * record recess, the one lit surface in the product, rather than as another
+ * paragraph. It arrives at the only instant it can change an outcome: while
+ * you are looking at the bet and deciding what to do with it.
+ *
+ * ATTRIBUTION. Every claim in here says who made it. The teardown wears the
+ * Critic's mark, the recorded decision wears the mark of the agent that made
+ * it, and a bet nobody has reviewed says so instead of going quiet.
+ */
+
+import type { ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
-import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
-import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
 import {
   DropdownMenu,
@@ -23,25 +57,48 @@ import {
 import { toast } from "@/lib/notify";
 import { iceNum } from "@/lib/moat-vis";
 import type { CriticReview } from "@/lib/discovery.functions";
-import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
-import { tierFromProbability } from "@/lib/confidence";
-import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
-import { relTimeCaps, traceRef, type VerdictWord } from "./format";
+import { AuditTag } from "@/components/supaprod/AuditTag";
+import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
+import { AskInContext } from "@/components/obsidian/AskInContext";
 import { StageTimeline } from "@/components/shared/StageTimeline";
+import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Line,
+  Num,
+  PageHead,
+  Record as RecordRecess,
+  Row,
+  Who,
+} from "@/components/shell/primitives";
+import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";
 import {
   BestBetStamp,
-  DESIGNATION_MEANING,
   DesignationTag,
   OPPORTUNITY_STATUSES,
   STATUS_META,
   StatusPill,
-  statusLabel,
   type OpportunityStatus,
 } from "./OpportunityRow";
+
+/** The agent that red-teams a bet, named from the one catalog. */
+const CHALLENGER = "critic";
+
+/** A recorded outcome is an outcome, so it is one of the three colours that
+ * carry one. Nothing else in this sheet reaches for a hue. */
+const OUTCOME_TONE: Record<"validated" | "missed" | "mixed", string> = {
+  validated: "var(--sp-pass)",
+  missed: "var(--sp-fail)",
+  mixed: "var(--sp-warn)",
+};
 
 /** The real opportunity columns the sheet reads. Never fabricated: every
  * field maps to an `opportunities` row column. */
@@ -68,56 +125,109 @@ export interface OpportunityDetailRecord {
   decided_by_agent_slug?: string | null;
 }
 
-/** A label/value block: a quiet mono caps label over a readable body value. */
-function Field({ label, value }: { label: string; value: string }) {
+/* ------------------------------------------------------------------ *
+ * Local shapes. Neither is a primitive: one is read-only prose and the
+ * other is a label over a paragraph, and the `Field` primitive labels a
+ * CONTROL. Reported as a gap rather than invented as a shared shape.
+ * ------------------------------------------------------------------ */
+
+/** Supporting prose inside a block. */
+function P({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: "grid", gap: "5px" }}>
-      <MonoLabel
-        className="text-label-12-mono"
-        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-      >
-        {label}
-      </MonoLabel>
-      <p
-        className="text-copy-14"
+    <p
+      style={{
+        margin: 0,
+        fontSize: "var(--sp-text-meta)",
+        lineHeight: "var(--sp-leading-body)",
+        color: "var(--sp-body)",
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+/** One stated fact: a label, and under it the thing itself. ONE label, and the
+ * value is never a restatement of it. */
+function Stated({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div style={{ marginTop: "var(--sp-space-3)" }}>
+      <span
         style={{
-          lineHeight: 1.6,
-          color: "var(--text-body)",
-          margin: 0,
+          display: "block",
+          fontSize: "var(--sp-text-label)",
+          fontWeight: "var(--sp-weight-medium)",
+          color: "var(--sp-mute)",
+          marginBottom: "var(--sp-space-1)",
         }}
       >
-        {value}
-      </p>
+        {label}
+      </span>
+      <P>{children}</P>
     </div>
   );
 }
 
-/** An absolute date plus a quiet relative caption, so the reader sees both
- * exactly when and how long ago. */
-function TimeLine({ iso }: { iso: string }) {
+/** The quiet evidence line under a claim. Numbers inside it wear mono via
+ * `Num`; the words around them do not. */
+function Meta({ children }: { children: ReactNode }) {
   return (
-    <span
-      className="flex items-baseline text-copy-13"
-      style={{ gap: "8px", color: "var(--text-body)" }}
+    <div
+      style={{
+        marginTop: "var(--sp-space-2)",
+        fontSize: "var(--sp-text-label)",
+        lineHeight: "var(--sp-leading-tight)",
+        color: "var(--sp-mute)",
+      }}
     >
-      <span>{new Date(iso).toLocaleString()}</span>
-      <span
-        className="text-label-12-mono"
-        style={{
-          letterSpacing: "0.06em",
-          color: "var(--text-faint)",
-        }}
-      >
-        {relTimeCaps(iso)}
-      </span>
-    </span>
+      {children}
+    </div>
   );
 }
 
+/** What the reviewer did, as a verb rather than a chip. */
+function verdictVerb(verdict: VerdictWord): string {
+  return verdict === "PENDING" ? "has not reviewed it yet" : `says ${verdict.toLowerCase()}`;
+}
+
+/** The disclosed confidence, folded into the sentence it qualifies. Absent
+ * (not zero) until the Critic has actually given one. */
+function confidenceTail(confidence: number | null | undefined): ReactNode {
+  if (confidence == null) return null;
+  return (
+    <>
+      {" at "}
+      <Num>{Math.round(confidence * 100)}%</Num>
+      {" confidence"}
+    </>
+  );
+}
+
+/** An absolute day, for the activity ledger. The relative age is already in
+ * the header, so this carries the other half of the fact. */
+function day(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "unknown" : d.toLocaleDateString();
+}
+
+/** Plain-words relative time. */
+function ago(iso?: string | null): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
 /** SW-7 step-3 oracle: the best bet shows its precedent ("last time we
- * reasoned this way, here is what happened", the same Ambient Precedent
- * recall the decision card uses) and the live queue it was ranked against.
- * Honest empty states - the blocks never fabricate and never hide. */
+ * reasoned this way, here is what happened", the same Ambient Precedent recall
+ * the decision card uses) and the live queue it was ranked against. Honest
+ * states throughout: a failed read is a failure and says so, an empty result
+ * is empty and says who fills it, and neither wears the other's clothes. */
 function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string }) {
   const fJudgment = useServerFn(getOpportunityJudgment);
   const q = useQuery({
@@ -127,97 +237,75 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
 
   const precedents = q.data?.precedents ?? [];
   const peers = q.data?.consideredAgainst ?? [];
-  const emptyLine: React.CSSProperties = {
-    color: "var(--text-subtle)",
-    fontStyle: "italic",
-    margin: 0,
-  };
 
-  // An error never wears the empty state's clothes (a failed judgment read
-  // used to render "No recorded outcome matches this bet yet"): cause + retry.
+  // A read that FAILED is not an empty state. It used to render "No recorded
+  // outcome matches this bet yet", which is a different fact entirely.
   if (q.isError) {
     return (
-      <DetailSection heading="Precedent">
-        <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
-          <p className="text-label-12" style={{ color: "var(--madder)", margin: 0 }}>
-            Could not read this bet's judgment. {(q.error as Error).message}
-          </p>
-          <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
-            Retry
-          </Button>
-        </div>
-      </DetailSection>
+      <Block title="Precedent">
+        <Failed onRetry={() => void q.refetch()}>
+          Could not read this bet's judgment. {(q.error as Error).message}
+        </Failed>
+      </Block>
     );
   }
 
   return (
     <>
-      <DetailSection heading="Precedent">
+      <Block
+        title="Precedent"
+        sub={
+          precedents.length > 0
+            ? "The last time we reasoned this way, here is what happened."
+            : undefined
+        }
+      >
         {q.isPending ? (
-          <p style={emptyLine} className="text-label-12">
-            Recalling past outcomes…
-          </p>
+          <P>Recalling past outcomes.</P>
         ) : precedents.length > 0 ? (
-          <div style={{ display: "grid", gap: "8px" }}>
-            <p className="text-label-12" style={{ color: "var(--text-subtle)", margin: 0 }}>
-              Last time we reasoned this way, here is what happened.
-            </p>
-            {precedents.map((p) => (
-              <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
-                <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
-                  {p.verdict.toUpperCase()}
+          precedents.map((p) => (
+            <RecordRecess
+              key={p.memoryId}
+              evidence={
+                <>
+                  <span style={{ color: OUTCOME_TONE[p.verdict] }}>{p.verdict}</span>
                   {p.title ? ` · ${p.title}` : ""}
-                </span>
-                <span
-                  className="text-label-12"
-                  style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}
-                >
-                  {p.summary}
-                </span>
-              </div>
-            ))}
-          </div>
+                </>
+              }
+            >
+              {p.summary}
+            </RecordRecess>
+          ))
         ) : (
-          <p style={emptyLine} className="text-label-12">
-            No recorded outcome matches this bet yet. As outcomes land, Memory recalls them here.
-          </p>
+          <Empty>
+            No recorded outcome matches this bet yet. Ship one and the record recalls it here the
+            next time a bet looks like this.
+          </Empty>
         )}
-      </DetailSection>
+      </Block>
 
-      <DetailSection heading="Considered against">
+      <Block title="Considered against">
         {q.isPending ? (
-          <p style={emptyLine} className="text-label-12">
-            Reading the queue…
-          </p>
+          <P>Reading the queue.</P>
         ) : peers.length > 0 ? (
-          <div style={{ display: "grid", gap: "6px" }}>
-            {peers.map((a) => (
-              <div
-                key={a.id}
-                className="flex items-baseline text-copy-13"
-                style={{ gap: "8px", color: "var(--text-body)" }}
-              >
-                <span style={{ flex: 1, minWidth: 0 }}>{a.title}</span>
-                {a.ice != null ? (
-                  <span
-                    className="text-label-12-mono"
-                    style={{
-                      letterSpacing: "0.06em",
-                      color: "var(--text-subtle)",
-                    }}
-                  >
-                    {a.ice.toFixed(1)} ICE
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
+          peers.map((a) => (
+            <Line key={a.id} label={a.title}>
+              {a.ice != null ? (
+                <>
+                  <Num>{a.ice.toFixed(1)}</Num>
+                  {" ICE"}
+                </>
+              ) : (
+                <span style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)" }}>
+                  unscored
+                </span>
+              )}
+            </Line>
+          ))
         ) : (
-          <p style={emptyLine} className="text-label-12">
-            Nothing else is live in the queue right now.
-          </p>
+          <Empty>Nothing else is live in the queue right now.</Empty>
         )}
-      </DetailSection>
+      </Block>
     </>
   );
 }
@@ -226,10 +314,13 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
  * RPT-47: tie this opportunity to a strategic top bet, the human action that
  * lets a watched assumption feed the ranking. A standing bet lifts the
  * opportunity in the queue; if that bet's assumption is later challenged, the
- * opportunity sinks. Never inferred: the operator chooses. Hidden until at least
- * one top bet exists to tie to, so it never offers an empty choice.
+ * opportunity sinks. Never inferred: the operator chooses. Hidden until at
+ * least one top bet exists to tie to, so it never offers an empty choice.
+ *
+ * It is a boundary you set, so it is a sentence with a control at the end of
+ * it rather than a panel: the `Line` shape, one per line, divided.
  */
-function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecord }) {
+function BriefLinkLine({ opportunity }: { opportunity: OpportunityDetailRecord }) {
   const qc = useQueryClient();
   const fList = useServerFn(listBriefItems);
   const fSetLink = useServerFn(setOpportunityBriefLink);
@@ -252,28 +343,27 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
   if (topBets.length === 0) return null;
 
   return (
-    <div style={{ display: "grid", gap: "7px" }}>
-      <MonoLabel
-        className="text-label-12-mono"
-        style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-      >
-        Strategic bet
-      </MonoLabel>
+    <Line
+      label="Strategic bet"
+      sub="A challenged assumption on the bet you tie it to sinks this one in the ranking."
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={setLink.isPending}
-            className="text-copy-13"
-            style={{
-              alignSelf: "flex-start",
-            }}
-          >
-            {linkedBet ? linkedBet.title : "Not tied to a bet"}
+          <Button disabled={setLink.isPending}>
+            <span
+              style={{
+                display: "block",
+                maxWidth: "16ch",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {linkedBet ? linkedBet.title : "Not tied to a bet"}
+            </span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setLink.mutate(null)}>
             Not tied to a bet
           </DropdownMenuItem>
@@ -284,14 +374,7 @@ function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecor
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <p
-        className="text-label-12"
-        style={{ color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}
-      >
-        Tie this to a top bet so its watched assumptions steer where it ranks. A challenged
-        assumption sinks it.
-      </p>
-    </div>
+    </Line>
   );
 }
 
@@ -311,29 +394,25 @@ export interface OpportunityDetailSheetProps {
   rank?: number;
   rationale?: string;
   nextAction?: string;
-  /** The system-derived bet designation (from ranking.ts), shown in the
-   * priority band with its one-line meaning so a human or an agent reads what
-   * the bet is and what to do. Absent renders nothing. */
+  /** The system-derived bet designation (from ranking.ts), shown on the
+   * ranking's evidence line so a human or an agent reads what the bet is.
+   * Absent renders nothing. */
   designation?: Designation;
-  /** Any mutation in flight for this bet: disables both action buttons so a
-   * second click can never double-fire. */
+  /** Any mutation in flight for this bet: disables every action so a second
+   * click can never double-fire. */
   busy?: boolean;
-  /** The Critic challenge is in flight: the Challenge button shows its
-   * spinner. */
+  /** The Critic challenge is in flight. */
   challengePending?: boolean;
-  /** The spec draft is in flight: the Draft spec button shows its spinner. */
+  /** The spec draft is in flight. */
   draftPending?: boolean;
 }
 
 /**
- * One ranked bet in full, on the shared DetailKit anatomy so it reads as one
- * language with the signal record and every other object detail. It leads with
- * what the operator needs first, the priority (rank, the single best bet, the
- * recommended next action, and the rationale), then the ICE strip, then the
- * supporting sections (where it came from, the bet itself, the Critic's take,
- * and the activity), and closes with the same actions as the row so the
- * operator can decide in place. Honest empty states: no fabricated lineage or
- * Critic take. All existing wiring and handlers are preserved.
+ * The full record for one ranked bet, on the primitives, in the order an
+ * operator reads it: what it is and where it stands, why it ranks where it
+ * does, where it came from, the bet itself, what the Critic found, what the
+ * record remembers, what it was ranked against, its history, and only then
+ * what you can do about it.
  */
 export function OpportunityDetailSheet({
   open,
@@ -354,293 +433,171 @@ export function OpportunityDetailSheet({
   draftPending = false,
 }: OpportunityDetailSheetProps) {
   const { activeWorkspaceId } = useWorkspace();
-  const isBestBet = rank === 1;
-  // The one-line meaning shown in the band for a non-best designation, so the
-  // reader knows what the bet is and what to do about it. Best bet is already
-  // communicated by the band's tint + rank + rationale, so it carries none.
-  const designationMeaning =
-    designation && designation !== "best bet" ? DESIGNATION_MEANING[designation] : null;
+  const challengerName = agentDisplayName(CHALLENGER);
   // PostgREST can serialize the `numeric` ice_score column as a string, not a
-  // number (the generated Supabase type lies) - iceNum coerces it the same
-  // way moat-vis.ts and decision-judgment.functions.ts already do for the
-  // same column, so .toFixed never throws here.
+  // number (the generated Supabase type lies) - iceNum coerces it the same way
+  // moat-vis.ts and decision-judgment.functions.ts already do for the same
+  // column, so .toFixed never throws here.
   const iceScore = opportunity ? iceNum(opportunity.ice_score) : null;
+  const criticConfidence = opportunity?.critic_review?.confidence ?? null;
+  const updatedAgo = opportunity ? ago(opportunity.updated_at) : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-        {/* Accessible name and description for the dialog; the visible header
-            below is the rich DetailHeader, so this stays screen-reader only. */}
+        {/* Accessible name and description for the dialog. The visible head
+            below carries the same title, so this stays screen-reader only. */}
         <SheetHeader className="sr-only">
           <SheetTitle>{opportunity?.title ?? "Opportunity"}</SheetTitle>
           <SheetDescription>
-            One ranked bet in full: where it came from, its ICE, and the Critic's take.
+            One ranked bet in full: where it came from, why it ranks where it does, and what the
+            Critic found.
           </SheetDescription>
         </SheetHeader>
 
         {opportunity ? (
-          <div style={{ display: "grid", gap: "16px", marginTop: "2px" }}>
-            <DetailHeader
-              title={opportunity.title}
-              chips={
-                <>
-                  <StatusPill status={opportunity.status} />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        style={{
-                          fontWeight: 500,
-                        }}
-                      >
-                        Move to
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {OPPORTUNITY_STATUSES.map((s) => (
-                        <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
-                          {STATUS_META[s].label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <VerdictChip tone={verdict} />
-                </>
-              }
-              time={
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  UPDATED {relTimeCaps(opportunity.updated_at)}
-                </span>
-              }
-              traceRef={<AuditTag kind="opportunity" id={opportunity.id} copyable />}
-            />
-
-            <BriefLinkSection opportunity={opportunity} />
-
-            {/* Priority band: the agent-and-human priority cue, high in the
-                view. The queue position, the single best bet, the recommended
-                next action, and the rationale. Stays neutral; the "Best bet"
-                chip below is the band's one accent (Tempo v5 glacier
-                narrowing, 2026-07-11: a second chromatic tint on the
-                surrounding band would compete with it). Rendered only when
-                threaded in; absent members render nothing. */}
-            {rank != null || rationale || nextAction || designation ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "9px",
-                  background: "var(--surface-raised)",
-                  border: isBestBet
-                    ? "1px solid var(--hairline-strong)"
-                    : "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-card)",
-                  padding: "13px 15px",
-                }}
-              >
-                {rank != null || designation ? (
-                  <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
-                    {rank != null ? (
-                      <span
-                        className="text-label-13-mono"
-                        style={{
-                          letterSpacing: "0.04em",
-                          color: "var(--text-muted)",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        Priority #{rank}
-                      </span>
+          <div style={{ paddingBottom: "var(--sp-space-4)" }}>
+            {/* The close control floats at the top right of the sheet, so the
+                title keeps clear of it rather than running underneath. */}
+            <div style={{ paddingRight: "28px" }}>
+              <PageHead
+                title={opportunity.title}
+                sub={
+                  <>
+                    <StatusPill status={opportunity.status} />
+                    {" · "}
+                    {challengerName} {verdictVerb(verdict)}
+                    {confidenceTail(criticConfidence)}
+                    {updatedAgo ? (
+                      <>
+                        {" · moved "}
+                        <Num>{updatedAgo}</Num>
+                        {" ago"}
+                      </>
                     ) : null}
-                    {isBestBet ? (
-                      // Same stamp anatomy as the queue card (founder ruling
-                      // 2026-07-11): Pixel face, moss family, never lime.
-                      <BestBetStamp />
-                    ) : (
-                      <DesignationTag designation={designation} />
-                    )}
-                  </div>
-                ) : null}
-                {designationMeaning ? (
-                  <p
-                    className="text-copy-13"
-                    style={{
-                      lineHeight: 1.6,
-                      color: "var(--text-body)",
-                      margin: 0,
-                    }}
-                  >
-                    {designationMeaning}
-                  </p>
-                ) : null}
-                {nextAction ? (
-                  <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
-                    <MonoLabel
-                      className="text-label-12-mono"
-                      style={{
-                        letterSpacing: "0.1em",
-                        color: "var(--text-subtle)",
-                      }}
-                    >
-                      Recommended next
-                    </MonoLabel>
-                    <span
-                      className="text-copy-13"
-                      style={{
-                        fontWeight: 550,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {nextAction}
-                    </span>
-                  </div>
-                ) : null}
-                {rationale ? (
-                  <p
-                    className="text-copy-13"
-                    style={{
-                      lineHeight: 1.6,
-                      color: "var(--text-subtle)",
-                      margin: 0,
-                    }}
-                  >
-                    {rationale}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+                  </>
+                }
+              />
+            </div>
+            <div style={{ marginTop: "var(--sp-space-3)" }}>
+              <AuditTag kind="opportunity" id={opportunity.id} copyable />
+            </div>
 
-            {/* The ICE strip: each cell tinted by its own tier. */}
-            <StatStrip columns={4}>
-              <StatCell
-                label="Impact"
-                value={String(opportunity.impact)}
-                tone={toneForScore(opportunity.impact)}
-              />
-              <StatCell
-                label="Confidence"
-                value={String(opportunity.confidence)}
-                tone={toneForScore(opportunity.confidence)}
-              />
-              <StatCell
-                label="Ease"
-                value={String(opportunity.ease)}
-                tone={toneForScore(opportunity.ease)}
-              />
-              <StatCell
-                label="ICE"
-                value={iceScore != null ? iceScore.toFixed(1) : "-"}
-                tone={toneForScore(iceScore ?? 0)}
-              />
-            </StatStrip>
+            {/* Why it ranks here. The ranking's own reason, then the one
+                recommended move, then the numbers that produced the order. */}
+            <Block title="Why it ranks here">
+              {rationale ? <P>{rationale}</P> : null}
+              {nextAction ? <Stated label="Recommended next">{nextAction}</Stated> : null}
+              <Meta>
+                {rank != null ? (
+                  <>
+                    <Num>#{rank}</Num>
+                    {" · "}
+                  </>
+                ) : null}
+                {designation === "best bet" ? (
+                  <>
+                    <BestBetStamp />
+                    {" · "}
+                  </>
+                ) : null}
+                {designation && designation !== "best bet" ? (
+                  <>
+                    <DesignationTag designation={designation} />
+                    {" · "}
+                  </>
+                ) : null}
+                {"Impact "}
+                <Num>{opportunity.impact}</Num>
+                {" · Confidence "}
+                <Num>{opportunity.confidence}</Num>
+                {" · Ease "}
+                <Num>{opportunity.ease}</Num>
+                {iceScore != null ? (
+                  <>
+                    {" · ICE "}
+                    <Num>{iceScore.toFixed(1)}</Num>
+                  </>
+                ) : null}
+              </Meta>
+              <BriefLinkLine opportunity={opportunity} />
+            </Block>
 
-            {/* Provenance: honest, from theme_id only. View lineage sits on the
-                heading when there is a theme to trace back to. */}
-            <DetailSection
-              heading="Where it came from"
-              action={
-                opportunity.theme_id ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onViewLineage}
-                    className="text-label-12"
-                  >
-                    <GitBranch className="h-3.5 w-3.5" />
-                    View lineage
-                  </Button>
-                ) : null
-              }
+            {/* Provenance: honest, from theme_id only. The lineage door sits on
+                the heading, and only when there is a theme to trace back to. */}
+            <Block
+              title="Where it came from"
+              more={opportunity.theme_id ? "View lineage" : undefined}
+              onMore={onViewLineage}
             >
-              <span className="text-copy-13" style={{ color: "var(--text-body)" }}>
-                {opportunity.theme_id ? "Promoted from a Discover theme." : "Promoted directly."}
-              </span>
-            </DetailSection>
+              <P>
+                {opportunity.theme_id
+                  ? "Promoted from a Discover theme, with its signals attached."
+                  : "Promoted directly. No theme backs it."}
+              </P>
+            </Block>
 
             {/* The bet itself: real fields, blanks skipped. */}
             {opportunity.problem ||
             opportunity.hypothesis ||
             opportunity.target_user ||
             opportunity.decided_by_agent_slug ? (
-              <DetailSection heading="The bet">
-                <div style={{ display: "grid", gap: "14px" }}>
-                  {opportunity.problem ? (
-                    <Field label="Problem" value={opportunity.problem} />
-                  ) : null}
-                  {opportunity.hypothesis ? (
-                    <Field label="Hypothesis" value={opportunity.hypothesis} />
-                  ) : null}
-                  {opportunity.target_user ? (
-                    <Field label="Target user" value={opportunity.target_user} />
-                  ) : null}
-                  {/* PC-29 layer 3 (2026-07-17): the never-shown
-                      decided_by_agent_slug field, finally rendered here too -
-                      the queue row already surfaces it in its subtitle
-                      (OpportunityQueue.tsx), this keeps the detail sheet from
-                      silently dropping the same attribution. */}
-                  {opportunity.decided_by_agent_slug ? (
-                    <Field
-                      label="Decided by"
-                      value={agentDisplayName(opportunity.decided_by_agent_slug)}
-                    />
-                  ) : null}
-                </div>
-              </DetailSection>
+              <Block title="The bet">
+                {opportunity.problem ? (
+                  <Stated label="Problem">{opportunity.problem}</Stated>
+                ) : null}
+                {opportunity.hypothesis ? (
+                  <Stated label="Hypothesis">{opportunity.hypothesis}</Stated>
+                ) : null}
+                {opportunity.target_user ? (
+                  <Stated label="Target user">{opportunity.target_user}</Stated>
+                ) : null}
+                {/* PC-29 layer 3 (2026-07-17): decided_by_agent_slug, rendered
+                    as attribution rather than as another labelled string, so
+                    the agent that made the call carries its own mark. */}
+                {opportunity.decided_by_agent_slug ? (
+                  <Row
+                    marks={<AgentMark slug={opportunity.decided_by_agent_slug} state="idle" />}
+                    lead={
+                      <>
+                        <Who>{agentDisplayName(opportunity.decided_by_agent_slug)}</Who> recorded
+                        the decision behind this bet
+                      </>
+                    }
+                  />
+                ) : null}
+              </Block>
             ) : null}
 
-            {/* Critic: verdict + summary if present, honest empty otherwise. */}
-            <DetailSection heading="Critic">
-              <div style={{ display: "grid", gap: "9px" }}>
-                <div className="flex items-center" style={{ gap: 6 }}>
-                  <VerdictChip tone={verdict} />
-                  {/* RPT-08: disclosed confidence right on the bet's verdict,
-                      not buried - reuses the Critic's own already-computed
-                      confidence, absent (not zero) until it has reviewed. */}
-                  {opportunity.critic_review?.confidence != null ? (
-                    <ConfidenceDisclosureChip
-                      confidence={opportunity.critic_review.confidence}
-                      tier={tierFromProbability(opportunity.critic_review.confidence)}
-                    />
-                  ) : null}
-                </div>
-                {opportunity.critic_review?.summary ? (
+            {/* The teardown. One row that says who concluded what, and under it
+                what they actually found. Never a chip: a verdict with no author
+                is an assertion nobody signed. */}
+            <Block title="The teardown">
+              <Row
+                marks={
+                  <AgentMark
+                    slug={CHALLENGER}
+                    state={opportunity.critic_review ? "idle" : "quiet"}
+                  />
+                }
+                lead={
                   <>
-                    <p
-                      className="text-copy-13"
-                      style={{
-                        lineHeight: 1.6,
-                        color: "var(--text-body)",
-                        margin: 0,
-                      }}
-                    >
-                      {opportunity.critic_review.summary}
-                    </p>
-                    <PulsePrompt surface="teardown" targetId={opportunity.id} />
+                    <Who>{challengerName}</Who> {verdictVerb(verdict)}
+                    {confidenceTail(criticConfidence)}
                   </>
-                ) : (
-                  <p
-                    className="text-label-12"
-                    style={{
-                      color: "var(--text-subtle)",
-                      fontStyle: "italic",
-                      margin: 0,
-                    }}
-                  >
-                    Not yet reviewed by the Critic. Challenge it below to get an evidence-backed
-                    teardown.
-                  </p>
-                )}
-              </div>
-            </DetailSection>
+                }
+                sub={
+                  opportunity.critic_review?.summary ??
+                  "Challenge it and the teardown lands on the record, with its receipts attached."
+                }
+              />
+              {opportunity.critic_review?.summary ? (
+                <PulsePrompt surface="teardown" targetId={opportunity.id} />
+              ) : null}
+            </Block>
 
-            {/* SW-7 step 3: the bet's judgment - precedent recall + the queue
-                it was ranked against. Self-fetched, honest empty states. */}
+            {/* SW-7 step 3: the bet's judgment. Precedent recall in the record
+                recess, then the queue it was ranked against. */}
             <OpportunityJudgmentBlocks opportunityId={opportunity.id} />
 
             {/* Stage history: real per-transition rows; renders nothing until
@@ -649,8 +606,7 @@ export function OpportunityDetailSheet({
 
             {/* Post-ship product analytics for this bet (adoption vs. the
                 outcome it declared). Self-fetches; renders nothing until real
-                analytics exist. Rehomed here from orphan status + restyled to
-                Tempo (2026-07-13). */}
+                analytics exist. */}
             {activeWorkspaceId ? (
               <ProductAnalyticsPanel
                 opportunityId={opportunity.id}
@@ -658,64 +614,54 @@ export function OpportunityDetailSheet({
               />
             ) : null}
 
-            {/* Activity: when it was promoted and last changed. */}
-            <DetailSection heading="Activity">
-              <div style={{ display: "grid", gap: "10px" }}>
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
-                    Promoted
-                  </span>
-                  <TimeLine iso={opportunity.created_at} />
-                </div>
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
-                    Last updated
-                  </span>
-                  <TimeLine iso={opportunity.updated_at} />
-                </div>
-              </div>
-            </DetailSection>
+            <Block title="Activity">
+              <Line label="Promoted">
+                <Num>{day(opportunity.created_at)}</Num>
+              </Line>
+              <Line label="Last changed">
+                <Num>{day(opportunity.updated_at)}</Num>
+              </Line>
+            </Block>
 
-            {/* Actions, mirroring the row. */}
-            <div
-              className="flex flex-wrap items-center"
-              style={{
-                gap: "10px",
-                paddingTop: "15px",
-                borderTop: "1px solid var(--hairline)",
-              }}
-            >
-              <Button
-                variant="accent"
-                size="sm"
-                onClick={onDraftSpec}
-                loading={draftPending}
-                disabled={busy}
+            {/* One primary, and only one. Delete is separated by distance
+                rather than by colour: red carries an outcome here, not an
+                intent, and ember marks the human. */}
+            <Block>
+              <Actions
+                trailing={
+                  <Button variant="ghost" onClick={onDelete} disabled={busy}>
+                    Delete
+                  </Button>
+                }
               >
-                Draft spec
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onChallenge}
-                loading={challengePending}
-                disabled={busy}
-              >
-                Challenge with the Critic
-              </Button>
-              <Button
-                variant="tertiary"
-                size="sm"
-                onClick={onDelete}
-                disabled={busy}
-                title={busy ? "Working on this bet…" : undefined}
-                style={{ marginLeft: "auto", color: "var(--madder)" }}
-              >
-                Delete
-              </Button>
-            </div>
-
-            <span className="sr-only">Current stage: {statusLabel(opportunity.status)}</span>
+                <Button variant="primary" onClick={onDraftSpec} disabled={busy || draftPending}>
+                  {draftPending ? "Drafting the spec" : "Draft spec"}
+                </Button>
+                <Button onClick={onChallenge} disabled={busy || challengePending}>
+                  {challengePending ? "Challenging it" : "Challenge it"}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button disabled={busy}>Move to</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {OPPORTUNITY_STATUSES.map((s) => (
+                      <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
+                        {STATUS_META[s].label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {/* PC-29 layer 6: the one contextual delegation verb for a bet.
+                    It moved off the list row and into the depth, where every
+                    other write on this bet already lives. */}
+                <AskInContext
+                  stationOrKind="opportunity"
+                  targetId={opportunity.id}
+                  targetTitle={opportunity.title}
+                />
+              </Actions>
+            </Block>
           </div>
         ) : null}
       </SheetContent>

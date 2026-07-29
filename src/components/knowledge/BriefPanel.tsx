@@ -1,15 +1,39 @@
-// Brief (Brain tab, PC-33). The workspace's standing strategic calls, read
-// and edited in place through the same versioned, supersedable brief_items
-// machinery Today's StrategicBriefCard already writes through (see
-// src/lib/briefs.functions.ts). Vision, ICP, and positioning are singleton
-// kinds: an edit supersedes the current standing row instead of duplicating
-// it. Top bets is a small portfolio, additive by default; an edit supersedes
-// only the bet it replaces.
+/**
+ * The brief: the workspace's standing strategic calls, read and edited in place
+ * through the versioned, supersedable brief_items machinery Today's
+ * StrategicBriefCard already writes through (src/lib/briefs.functions.ts).
+ * Vision, ICP and positioning are singleton kinds: an edit supersedes the
+ * standing row rather than duplicating it. Top bets is a small portfolio,
+ * additive by default; an edit supersedes only the bet it replaces.
+ *
+ * Ported to the --sp-* system. The surface already titles this region with a
+ * Block, so this file owns the INTERIOR only.
+ *
+ *   KILLED the four bordered cards. The surface puts this panel in a Block; four
+ *     bordered boxes in there are cards inside a region. Each call is now a
+ *     section with a rule where the register changes, which is what a Block is.
+ *   KILLED the hand-rolled "MonoLabel left, link button right" head, four times
+ *     over. Block already has that exact slot, so the four sections stop being
+ *     four private opinions about how a section head looks.
+ *   KILLED the "Vision title" / "Vision body" field labels. The section head
+ *     already says which call you are writing and the placeholder says what to
+ *     put in it; a third label saying it again is the redundant-writing ban.
+ *   KILLED the intro paragraph's restatement. The line that survives carries
+ *     only what the four heads do not: that this is versioned, and that the
+ *     table does not record an author.
+ *
+ * ATTRIBUTION. brief_items has no author column. Rather than invent one or leave
+ * it silent, the panel says so once, at the top, and every item carries the
+ * provenance the record does hold: its version and when it last changed.
+ *
+ * UNCHANGED: listBriefItems / upsertBriefItem / retireBriefItem, the
+ * ["brief-items"] key shared with BriefFormationFlow and Today, the singleton
+ * vs portfolio supersession rules, and the exported BriefPanel signature.
+ */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
-import { PanelSkeleton } from "./PanelSkeleton";
 import {
   listBriefItems,
   upsertBriefItem,
@@ -17,7 +41,15 @@ import {
   type BriefItem,
   type BriefItemKind,
 } from "@/lib/briefs.functions";
-import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import {
+  Actions,
+  Block,
+  Button,
+  Failed,
+  Input,
+  Num,
+  Textarea,
+} from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
 
 const SINGLETON_KINDS: readonly BriefItemKind[] = ["vision", "icp", "positioning"];
@@ -45,12 +77,54 @@ const KIND_BODY_PLACEHOLDER: Record<BriefItemKind, string> = {
 
 type EditTarget = { kind: BriefItemKind; itemId: string | null } | null;
 
-const CARD_STYLE = {
-  background: "var(--card)",
-  border: "1px solid var(--hairline)",
-  borderRadius: "var(--radius-card)",
-  padding: "18px 20px",
-};
+function day(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(+d) ? "" : d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+/** The one line of prose in a written call: what it says, then the body. */
+function Standing({ item }: { item: BriefItem }) {
+  return (
+    <>
+      <p
+        style={{
+          fontSize: "var(--sp-text-body)",
+          fontWeight: "var(--sp-weight-strong)",
+          color: "var(--sp-ink)",
+        }}
+      >
+        {item.title}
+      </p>
+      <p
+        style={{
+          fontSize: "var(--sp-text-prose)",
+          color: "var(--sp-body)",
+          lineHeight: "var(--sp-leading-body)",
+          marginTop: "var(--sp-space-1)",
+        }}
+      >
+        {item.body}
+      </p>
+      {/* The provenance the record actually holds. Never an author it does not. */}
+      <p
+        style={{
+          fontSize: "var(--sp-text-label)",
+          color: "var(--sp-mute)",
+          marginTop: "var(--sp-space-2)",
+        }}
+      >
+        <Num>v{item.version}</Num>
+        {day(item.updated_at) ? ` · last changed ${day(item.updated_at)}` : null}
+      </p>
+    </>
+  );
+}
+
+function NotWritten() {
+  return (
+    <p style={{ fontSize: "var(--sp-text-prose)", color: "var(--sp-mute)" }}>Not written yet.</p>
+  );
+}
 
 export function BriefPanel() {
   const qc = useQueryClient();
@@ -127,269 +201,137 @@ export function BriefPanel() {
     });
   }
 
-  if (items.isLoading) return <PanelSkeleton rows={[110, 110, 110, 160]} />;
+  if (items.isLoading) return null;
 
   if (items.isError) {
-    return (
-      <div style={CARD_STYLE}>
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brief · failed to load</MonoLabel>
-        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
-          {(items.error as Error).message}
-        </p>
-        <Button variant="secondary" onClick={() => void items.refetch()}>
-          Retry
-        </Button>
-      </div>
-    );
+    return <Failed onRetry={() => void items.refetch()}>{(items.error as Error).message}</Failed>;
   }
 
   const bets = byKind.get("top_bet") ?? [];
+  const isAddingBet = editing?.kind === "top_bet" && editing.itemId === null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div>
       {showFlow ? <BriefFormationFlow onClose={() => setShowFlow(false)} /> : null}
 
-      <div className="flex items-center justify-between">
-        <p style={{ color: "var(--text-muted)", margin: 0, maxWidth: 420 }}>
-          The standing calls that steer the machine. Edit any in place, or walk them in order.
-        </p>
-        <Button variant="secondary" size="sm" onClick={() => setShowFlow(true)}>
-          Form the brief
-        </Button>
-      </div>
+      {/* Different information from the four heads below, not a restatement:
+          every call is versioned, and the table keeps no author. */}
+      <p style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", maxWidth: "62ch" }}>
+        The crew reads these before it acts. Each call keeps its version history; who wrote it is
+        not on the record.
+      </p>
+      <Actions>
+        <Button onClick={() => setShowFlow(true)}>Walk them in order</Button>
+      </Actions>
 
       {SINGLETON_KINDS.map((kind) => {
         const current = byKind.get(kind)?.[0];
+        const isEditing = editing?.kind === kind;
         return (
-          <SingletonSection
+          <Block
             key={kind}
-            kind={kind}
-            current={current}
-            editing={editing?.kind === kind}
-            draftTitle={draftTitle}
-            draftBody={draftBody}
-            onTitleChange={setDraftTitle}
-            onBodyChange={setDraftBody}
-            onStartEdit={() => startEdit(kind, current)}
-            onCancel={cancelEdit}
-            onSubmit={() => submit(kind)}
-            submitting={save.isPending}
-          />
+            title={KIND_LABEL[kind]}
+            more={isEditing ? undefined : current ? "Edit" : "Write"}
+            onMore={() => startEdit(kind, current)}
+          >
+            {isEditing ? (
+              <BriefForm
+                kind={kind}
+                titleValue={draftTitle}
+                bodyValue={draftBody}
+                onTitleChange={setDraftTitle}
+                onBodyChange={setDraftBody}
+                onCancel={cancelEdit}
+                onSubmit={() => submit(kind)}
+                submitting={save.isPending}
+                submitLabel={current ? `Save as v${current.version + 1}` : "Save"}
+              />
+            ) : current ? (
+              <Standing item={current} />
+            ) : (
+              <NotWritten />
+            )}
+          </Block>
         );
       })}
 
-      <TopBetsSection
-        bets={bets}
-        editing={editing}
-        draftTitle={draftTitle}
-        draftBody={draftBody}
-        onTitleChange={setDraftTitle}
-        onBodyChange={setDraftBody}
-        onStartAdd={() => startEdit("top_bet")}
-        onStartEditBet={(bet) => startEdit("top_bet", bet)}
-        onCancel={cancelEdit}
-        onSubmit={() => submit("top_bet")}
-        onRetire={(id) => retire.mutate(id)}
-        submitting={save.isPending}
-        retiring={retire.isPending}
-      />
-    </div>
-  );
-}
+      <Block
+        title={KIND_LABEL.top_bet}
+        more={isAddingBet ? undefined : "Add a bet"}
+        onMore={() => startEdit("top_bet")}
+      >
+        {bets.length === 0 && !isAddingBet ? <NotWritten /> : null}
 
-function SingletonSection({
-  kind,
-  current,
-  editing,
-  draftTitle,
-  draftBody,
-  onTitleChange,
-  onBodyChange,
-  onStartEdit,
-  onCancel,
-  onSubmit,
-  submitting,
-}: {
-  kind: BriefItemKind;
-  current: BriefItem | undefined;
-  editing: boolean;
-  draftTitle: string;
-  draftBody: string;
-  onTitleChange: (v: string) => void;
-  onBodyChange: (v: string) => void;
-  onStartEdit: () => void;
-  onCancel: () => void;
-  onSubmit: () => void;
-  submitting: boolean;
-}) {
-  return (
-    <div style={CARD_STYLE}>
-      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-        <MonoLabel>{KIND_LABEL[kind]}</MonoLabel>
-        {!editing ? (
-          <Button variant="link" size="sm" onClick={onStartEdit}>
-            {current ? "Edit" : "Write"}
-          </Button>
-        ) : null}
-      </div>
-
-      {editing ? (
-        <BriefForm
-          kind={kind}
-          titleValue={draftTitle}
-          bodyValue={draftBody}
-          onTitleChange={onTitleChange}
-          onBodyChange={onBodyChange}
-          onCancel={onCancel}
-          onSubmit={onSubmit}
-          submitting={submitting}
-          submitLabel={current ? `Save · v${current.version + 1}` : "Save"}
-        />
-      ) : current ? (
-        <div>
-          <p
-            style={{
-              fontWeight: 500,
-              color: "var(--text-primary)",
-              margin: "0 0 4px",
-            }}
-          >
-            {current.title}
-          </p>
-          <p
-            style={{
-              color: "var(--text-body)",
-              lineHeight: 1.5,
-              margin: "0 0 10px",
-            }}
-          >
-            {current.body}
-          </p>
-          <MonoLabel>v{current.version}</MonoLabel>
-        </div>
-      ) : (
-        <p style={{ color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
-      )}
-    </div>
-  );
-}
-
-function TopBetsSection({
-  bets,
-  editing,
-  draftTitle,
-  draftBody,
-  onTitleChange,
-  onBodyChange,
-  onStartAdd,
-  onStartEditBet,
-  onCancel,
-  onSubmit,
-  onRetire,
-  submitting,
-  retiring,
-}: {
-  bets: BriefItem[];
-  editing: EditTarget;
-  draftTitle: string;
-  draftBody: string;
-  onTitleChange: (v: string) => void;
-  onBodyChange: (v: string) => void;
-  onStartAdd: () => void;
-  onStartEditBet: (bet: BriefItem) => void;
-  onCancel: () => void;
-  onSubmit: () => void;
-  onRetire: (id: string) => void;
-  submitting: boolean;
-  retiring: boolean;
-}) {
-  const isAdding = editing?.kind === "top_bet" && editing.itemId === null;
-
-  return (
-    <div style={CARD_STYLE}>
-      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-        <MonoLabel>{KIND_LABEL.top_bet}</MonoLabel>
-        {!isAdding ? (
-          <Button variant="link" size="sm" onClick={onStartAdd}>
-            Add a bet
-          </Button>
-        ) : null}
-      </div>
-
-      {bets.length === 0 && !isAdding ? (
-        <p style={{ color: "var(--text-muted)", margin: 0 }}>Not written yet.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {bets.map((bet) => {
-            const isEditingBet = editing?.kind === "top_bet" && editing.itemId === bet.id;
-            return isEditingBet ? (
-              <BriefForm
-                key={bet.id}
-                kind="top_bet"
-                titleValue={draftTitle}
-                bodyValue={draftBody}
-                onTitleChange={onTitleChange}
-                onBodyChange={onBodyChange}
-                onCancel={onCancel}
-                onSubmit={onSubmit}
-                submitting={submitting}
-                submitLabel={`Save · v${bet.version + 1}`}
-              />
-            ) : (
-              <div key={bet.id} className="flex items-start justify-between" style={{ gap: 12 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text-primary)",
-                      margin: "0 0 3px",
-                    }}
+        {bets.map((bet, i) => {
+          const isEditingBet = editing?.kind === "top_bet" && editing.itemId === bet.id;
+          return (
+            <div
+              key={bet.id}
+              style={
+                i === 0
+                  ? undefined
+                  : {
+                      marginTop: "var(--sp-space-3)",
+                      paddingTop: "var(--sp-space-3)",
+                      borderTop: "1px solid var(--sp-line-soft)",
+                    }
+              }
+            >
+              {isEditingBet ? (
+                <BriefForm
+                  kind="top_bet"
+                  titleValue={draftTitle}
+                  bodyValue={draftBody}
+                  onTitleChange={setDraftTitle}
+                  onBodyChange={setDraftBody}
+                  onCancel={cancelEdit}
+                  onSubmit={() => submit("top_bet")}
+                  submitting={save.isPending}
+                  submitLabel={`Save as v${bet.version + 1}`}
+                />
+              ) : (
+                <>
+                  <Standing item={bet} />
+                  {/* Retiring a bet is the kill, so it sits apart by DISTANCE
+                      rather than by colour: the interface is monochrome and red
+                      carries outcomes, not intent. */}
+                  <Actions
+                    trailing={
+                      <Button
+                        variant="ghost"
+                        disabled={retire.isPending}
+                        onClick={() => retire.mutate(bet.id)}
+                      >
+                        Retire
+                      </Button>
+                    }
                   >
-                    {bet.title}
-                  </p>
-                  <p
-                    style={{
-                      color: "var(--text-body)",
-                      lineHeight: 1.5,
-                      margin: "0 0 8px",
-                    }}
-                  >
-                    {bet.body}
-                  </p>
-                  <MonoLabel>v{bet.version}</MonoLabel>
-                </div>
-                <div className="flex items-center" style={{ gap: 4, flexShrink: 0 }}>
-                  <Button variant="link" size="sm" onClick={() => onStartEditBet(bet)}>
-                    Edit
-                  </Button>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    disabled={retiring}
-                    onClick={() => onRetire(bet.id)}
-                  >
-                    Retire
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+                    <Button variant="ghost" onClick={() => startEdit("top_bet", bet)}>
+                      Edit
+                    </Button>
+                  </Actions>
+                </>
+              )}
+            </div>
+          );
+        })}
 
-          {isAdding ? (
+        {isAddingBet ? (
+          <div style={bets.length === 0 ? undefined : { marginTop: "var(--sp-space-3)" }}>
             <BriefForm
               kind="top_bet"
               titleValue={draftTitle}
               bodyValue={draftBody}
-              onTitleChange={onTitleChange}
-              onBodyChange={onBodyChange}
-              onCancel={onCancel}
-              onSubmit={onSubmit}
-              submitting={submitting}
+              onTitleChange={setDraftTitle}
+              onBodyChange={setDraftBody}
+              onCancel={cancelEdit}
+              onSubmit={() => submit("top_bet")}
+              submitting={save.isPending}
               submitLabel="Add bet"
             />
-          ) : null}
-        </div>
-      )}
+          </div>
+        ) : null}
+      </Block>
     </div>
   );
 }
@@ -416,38 +358,36 @@ function BriefForm({
   submitLabel: string;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <input
-        className="input"
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-2)" }}>
+      {/* No visible labels: the section head says which call this is and the
+          placeholder says what belongs in the box. Saying it a third time is
+          the redundant-writing ban. */}
+      <Input
         autoFocus
         value={titleValue}
         onChange={(e) => onTitleChange(e.target.value)}
-        aria-label={`${KIND_LABEL[kind]} title`}
+        aria-label={`${KIND_LABEL[kind]} in a line`}
         placeholder={KIND_TITLE_PLACEHOLDER[kind]}
       />
-      <textarea
-        className="input"
+      <Textarea
         value={bodyValue}
         onChange={(e) => onBodyChange(e.target.value)}
         rows={kind === "top_bet" ? 2 : 3}
-        aria-label={`${KIND_LABEL[kind]} body`}
+        aria-label={`${KIND_LABEL[kind]} in full`}
         placeholder={KIND_BODY_PLACEHOLDER[kind]}
-        style={{ resize: "vertical" }}
       />
-      <div className="flex items-center" style={{ gap: 8 }}>
+      <Actions>
         <Button
-          variant="secondary"
-          size="sm"
+          variant="primary"
           onClick={onSubmit}
-          loading={submitting}
-          disabled={!titleValue.trim() || !bodyValue.trim()}
+          disabled={submitting || !titleValue.trim() || !bodyValue.trim()}
         >
-          {submitLabel}
+          {submitting ? "Saving" : submitLabel}
         </Button>
-        <Button variant="link" size="sm" onClick={onCancel} disabled={submitting}>
+        <Button variant="ghost" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
-      </div>
+      </Actions>
     </div>
   );
 }

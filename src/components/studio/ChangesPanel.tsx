@@ -1,4 +1,35 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+/**
+ * Changes. The interior port (2026-07-29), not a re-skin.
+ *
+ * WHERE IT SITS. The Build run surface already opened a Block titled "What it
+ * produced" and already drew the aggregate Diffstat above the tab row, so this
+ * panel owns no masthead of its own and never restates that total. Every
+ * section below is a `Block`, which is a rule and a title rather than a card:
+ * the seven bordered LOOM_CARDs this file used to draw were seven cards inside
+ * one region, which is the cardocalypse ban and the reason the surface read as
+ * assembled.
+ *
+ * WHAT CARRIES MEANING NOW.
+ *  - Attribution. Every file, every revision and every hunk in here was written
+ *    by the Build agent during this run, and each row says so with the same
+ *    mark the surface above uses. The rollback rows do NOT: `studio_rollbacks`
+ *    records no actor, so those rows say "unattributed" rather than wearing a
+ *    mark that would be a guess.
+ *  - Diffstat only where the numbers are genuinely lines. `computeHunks`
+ *    returns real base/modified LINE arrays, so hunks get the primitive. The
+ *    `studio_changes` rows carry CHARACTER counts, so those say "chars" in
+ *    words instead of borrowing a shape that reads as lines.
+ *  - Colour. Monochrome throughout. Warn marks the one policy breach (files
+ *    outside the declared touch list), green and red live inside the diffstat,
+ *    and nothing else is coloured. The changeset ladder chip is gone: its state
+ *    is now a sentence, which survives greyscale and needs no legend.
+ *
+ * Monaco keeps its own diff colours, the standing code-diff exemption.
+ *
+ * Every server function, mutation, query key and prop is unchanged.
+ */
+
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -24,17 +55,35 @@ import {
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { useTheme } from "@/hooks/use-theme";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { ChangesetChip, LOOM_CARD } from "./studio-ui";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Diffstat,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Num,
+  Row,
+  Textarea,
+  Who,
+} from "@/components/shell/primitives";
 import { fmtCompact } from "./studio-format";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
-import { EmptyState } from "@/components/supaprod/EmptyState";
 
-// Monaco stays out of the main bundle — it only loads when a file is opened.
+// Monaco stays out of the main bundle: it only loads when a file is opened.
 const DiffEditor = lazy(() =>
   import("@monaco-editor/react").then((m) => ({ default: m.DiffEditor })),
 );
+
+/** Everything in this panel was written by the run's Build agent. Same slug the
+ *  surface above uses, so the mark means the same thing in both places. */
+const BUILDER = "builder";
 
 type ChangeRow = {
   id: string;
@@ -70,6 +119,16 @@ const LANG_BY_EXT: Record<string, string> = {
   toml: "ini",
 };
 
+/** The ladder said in words. A coloured pill carried this before, which failed
+ *  the greyscale test and needed a legend nobody was given. */
+const STATUS_SENTENCE: Record<string, string> = {
+  staged: "Staged, not committed",
+  committed: "Committed to the branch",
+  pr_open: "Pull request open",
+  merged: "Merged",
+  abandoned: "Abandoned",
+};
+
 function languageFor(path: string): string | undefined {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
   return LANG_BY_EXT[ext];
@@ -81,32 +140,56 @@ function isMarkdownFile(path: string): boolean {
   return ext === "md" || ext === "mdx";
 }
 
-/* Shared interaction affordances (state audit 2026-07-12): the token-traced
-   focus ring (never removed, ember via --focus-ring) plus a hover that can
-   actually resolve — base/hover backgrounds live in the class because an
-   inline `background` always beats a stylesheet hover. */
-const PRESS =
-  "loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
-const PRESS_HOVER = `${PRESS} hover:enabled:[background:var(--surface-hover)]`;
+function shortDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
-const spinnerBox = (
+/** A quiet text control inside a row's second line. `sp-block-more` is the
+ *  system's own weight for this (Failed uses it for its retry), so a control
+ *  that belongs to one row never wears a 38px button. */
+const QUIET = "sp-block-more";
+
+/** Prose the crew wrote: release notes, a launch draft, a rollback note. A
+ *  recess, never a card, so it is the one container in its region. */
+const RECESS: CSSProperties = {
+  background: "var(--sp-sink)",
+  borderRadius: "var(--sp-radius-panel)",
+  padding: "var(--sp-space-4) 18px",
+  marginTop: "var(--sp-space-2)",
+  fontSize: "var(--sp-text-prose)",
+  lineHeight: "var(--sp-leading-body)",
+  color: "var(--sp-body)",
+  whiteSpace: "pre-wrap",
+  overflowWrap: "anywhere",
+  maxHeight: 260,
+  overflowY: "auto",
+};
+
+const DIFF_H = 420;
+
+const loadingBox = (
   <div
     style={{
-      height: 420,
+      height: DIFF_H,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      fontSize: "var(--sp-text-prose)",
+      color: "var(--sp-mute)",
     }}
   >
-    <span className="spinner" />
+    Reading the diff.
   </div>
 );
 
 /**
- * Changes tab — the changeset's file list (op word + char deltas; the word
- * carries the meaning, no colored chips) and a lazy-loaded Monaco diff
- * (base vs staged) when a file is selected. Monaco keeps its own diff
- * colors — code-diff convention, exempt from the role law.
+ * Changes tab: what the run wrote. The file list, the commit history, the
+ * declared scope, the ship links, and the per-hunk curation that lets you keep
+ * part of a file. Depth is one click: a file opens its diff, a diff opens its
+ * hunks.
  */
 export function ChangesPanel({
   changeset,
@@ -123,10 +206,11 @@ export function ChangesPanel({
 }) {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [docView, setDocView] = useState<"diff" | "preview">("diff");
-  // Both themes resolve (Tempo law): Monaco follows the app theme instead of
-  // hard-coding vs-dark into the light theme.
+  // Both themes resolve: Monaco follows the app theme instead of hard-coding
+  // vs-dark into the light theme.
   const { resolvedTheme } = useTheme();
   const monacoTheme = resolvedTheme === "light" ? "light" : "vs-dark";
+  const builderName = agentDisplayName(BUILDER);
   const fDiff = useServerFn(getChangesetDiff);
   const diff = useQuery({
     queryKey: ["studio-diff", changeset?.id],
@@ -140,7 +224,7 @@ export function ChangesPanel({
     return map;
   }, [diff.data]);
 
-  // I1b: the changeset's commit history (newest first), shown as a compact strip.
+  // I1b: the changeset's commit history (newest first).
   const fRevs = useServerFn(getChangesetRevisions);
   const revs = useQuery({
     queryKey: ["studio-revisions", changeset?.id],
@@ -397,9 +481,7 @@ export function ChangesPanel({
   };
 
   if (!changeset) {
-    return (
-      <EmptyState headline="No changes staged yet" body="The session stages edits as it works." />
-    );
+    return <Empty>Nothing is staged. {builderName} writes each file in here as it works.</Empty>;
   }
 
   const selected = selectedPath ? diffByPath.get(selectedPath) : null;
@@ -408,235 +490,139 @@ export function ChangesPanel({
     ? computeHunks(selected.base_content ?? "", selected.new_content ?? "")
     : [];
 
+  const scopeDeclared = !!fileSetPolicy && (fileSetPolicy.hasTouchList || fileSetPolicy.hasCap);
+  const scopeBreach =
+    scopeDeclared && !fileSetPolicy!.clean
+      ? [
+          fileSetPolicy!.outOfPolicy.length
+            ? `${fileSetPolicy!.outOfPolicy.length} outside the touch list`
+            : "",
+          !fileSetPolicy!.withinCap
+            ? `${fileSetPolicy!.overBy} over the cap of ${fileSetPolicy!.maxFiles}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : null;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Changeset header — chip carries state + file count; repo/branch are real. */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <ChangesetChip status={changeset.status} fileCount={changes.length} />
-        <span
-          className="truncate"
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-body)",
-            minWidth: 0,
-          }}
-        >
-          {changeset.repo}
-        </span>
-        {changeset.branch ? (
-          <span
-            className="truncate"
-            style={{
-              fontFamily: "var(--font-mono)",
-              color: "var(--text-subtle)",
-              minWidth: 0,
-            }}
-          >
-            {changeset.branch}
-          </span>
+    <>
+      {/* Identity. Repo, where it sits on the ladder, and the two ways to end it. */}
+      <Line
+        label={<Num>{changeset.repo}</Num>}
+        sub={
+          <>
+            {STATUS_SENTENCE[changeset.status] ?? changeset.status}
+            {changeset.branch ? (
+              <>
+                {" on "}
+                <Num>{changeset.branch}</Num>
+              </>
+            ) : null}
+          </>
+        }
+      >
+        {changeset.status === "merged" ? (
+          <Button variant="ghost" disabled={rollbackMut.isPending} onClick={triggerRollback}>
+            {rollbackMut.isPending ? "Rolling back" : "Roll back"}
+          </Button>
         ) : null}
-        {/* K2: Roll back button (merged changesets only) */}
-        {changeset.status === "merged" && (
-          <button
-            type="button"
-            onClick={triggerRollback}
-            disabled={rollbackMut.isPending}
-            className={PRESS_HOVER}
-            style={{
-              marginLeft: "auto",
-              padding: "4px 10px",
-              borderRadius: 6,
-              border: "1px solid var(--hairline)",
-              color: "var(--text-body)",
-              cursor: rollbackMut.isPending ? "default" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {rollbackMut.isPending ? "Rolling back..." : "Roll back"}
-          </button>
-        )}
-        {/* K2: Kill button (pre-merge changesets only) */}
-        {changeset.status && ["staged", "committed", "pr_open"].includes(changeset.status) && (
-          <button
-            type="button"
-            onClick={triggerAbandon}
-            disabled={abandonMut.isPending}
-            className={PRESS_HOVER}
-            style={{
-              padding: "4px 10px",
-              borderRadius: 6,
-              border: "1px solid var(--hairline)",
-              color: "var(--text-body)",
-              cursor: abandonMut.isPending ? "default" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {abandonMut.isPending ? "Killing..." : "Kill"}
-          </button>
-        )}
-      </div>
+        {["staged", "committed", "pr_open"].includes(changeset.status) ? (
+          <Button variant="ghost" disabled={abandonMut.isPending} onClick={triggerAbandon}>
+            {abandonMut.isPending ? "Killing" : "Kill this change"}
+          </Button>
+        ) : null}
+      </Line>
 
-      {/* SEAM-2 SHIP: preview URL, the one promote gate, and the production URL. */}
-      {changeset.status === "merged" && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "var(--geist-space-3x)",
-            padding: "10px 18px",
-            ...LOOM_CARD,
-          }}
-        >
-          <span className="mono-label" style={{ whiteSpace: "nowrap" }}>
-            Ship
-          </span>
-          {previewDep ? (
-            <a
-              href={previewDep.deploy_url!}
-              target="_blank"
-              rel="noreferrer"
-              className="truncate"
-              style={{
-                fontFamily: "var(--font-mono)",
-                color: "var(--text-body)",
-                minWidth: 0,
-              }}
-            >
-              preview: {previewDep.deploy_url}
-            </a>
-          ) : (
-            <span style={{ color: "var(--text-subtle)" }}>
-              Preview deploys automatically after merge on Supaprod-managed repos, within about two
-              minutes.
-            </span>
-          )}
-          {productionDep ? (
-            <a
-              href={productionDep.deploy_url!}
-              target="_blank"
-              rel="noreferrer"
-              className="truncate"
-              style={{
-                marginLeft: "auto",
-                fontFamily: "var(--font-mono)",
-                color: "var(--text-body)",
-                minWidth: 0,
-              }}
-            >
-              production: {productionDep.deploy_url}
-            </a>
-          ) : previewDep ? (
-            <button
-              type="button"
-              onClick={() => promoteMut.mutate()}
-              disabled={promoteMut.isPending}
-              className={PRESS_HOVER}
-              style={{
-                marginLeft: "auto",
-                padding: "4px 10px",
-                borderRadius: 6,
-                border: "1px solid var(--hairline)",
-                color: "var(--text-body)",
-                cursor: promoteMut.isPending ? "default" : "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {promoteMut.isPending ? "Promoting..." : "Promote to production"}
-            </button>
-          ) : null}
-        </div>
-      )}
-
-      {/* K1 release notes: the ship artifact for this changeset (factual, AI-drafted). */}
-      {changeset.release_notes || changes.length > 0 || revisions.length > 0 ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: changeset.release_notes ? "1px solid var(--hairline)" : "none",
-            }}
+      {/* SEAM-2 SHIP: the preview, the one human promote, and the live URL. */}
+      {changeset.status === "merged" ? (
+        <Block title="Where it is live">
+          <Line
+            label="Preview"
+            sub={
+              previewDep ? (
+                <a
+                  className={QUIET}
+                  style={{ textDecoration: "none" }}
+                  href={previewDep.deploy_url!}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Num>{previewDep.deploy_url}</Num>
+                </a>
+              ) : (
+                "It deploys on its own after a merge, in about two minutes."
+              )
+            }
+          />
+          <Line
+            label="Production"
+            sub={
+              productionDep ? (
+                <a
+                  className={QUIET}
+                  style={{ textDecoration: "none" }}
+                  href={productionDep.deploy_url!}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Num>{productionDep.deploy_url}</Num>
+                </a>
+              ) : previewDep ? (
+                "Nobody has moved it yet. This is the one call that reaches customers."
+              ) : (
+                "Nothing to promote until the preview is up."
+              )
+            }
           >
-            <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-              Release notes
-            </span>
-            <button
-              type="button"
-              onClick={() => genNotesMut.mutate()}
-              disabled={genNotesMut.isPending}
-              className={`mono-label ${PRESS_HOVER}`}
-              style={{
-                border: "1px solid var(--hairline)",
-                borderRadius: 6,
-                padding: "3px 10px",
-                color: "var(--text-body)",
-                cursor: genNotesMut.isPending ? "default" : "pointer",
-              }}
-            >
-              {genNotesMut.isPending
-                ? "Generating…"
-                : changeset.release_notes
-                  ? "Regenerate"
-                  : "Generate"}
-            </button>
-          </div>
-          {changeset.release_notes ? (
-            <div
-              style={{
-                padding: "12px 18px",
-                lineHeight: 1.6,
-                color: "var(--text-primary)",
-                whiteSpace: "pre-wrap",
-                overflowWrap: "anywhere",
-                maxHeight: 260,
-                overflowY: "auto",
-              }}
-            >
-              {changeset.release_notes}
-            </div>
-          ) : null}
-        </div>
+            {!productionDep && previewDep ? (
+              <Button
+                variant="primary"
+                disabled={promoteMut.isPending}
+                onClick={() => promoteMut.mutate()}
+              >
+                {promoteMut.isPending ? "Promoting" : "Promote to production"}
+              </Button>
+            ) : null}
+          </Line>
+        </Block>
       ) : null}
 
-      {/* LCH-01 launch kit: human-approved launch artifacts drafted from the ship (no send). */}
+      {/* K1 release notes: the ship artifact for this changeset. */}
+      {changeset.release_notes || changes.length > 0 || revisions.length > 0 ? (
+        <Block
+          title="Release notes"
+          more={
+            genNotesMut.isPending
+              ? "Writing"
+              : changeset.release_notes
+                ? "Write them again"
+                : "Write them"
+          }
+          onMore={() => {
+            if (!genNotesMut.isPending) genNotesMut.mutate();
+          }}
+        >
+          {changeset.release_notes ? (
+            <div style={RECESS}>{changeset.release_notes}</div>
+          ) : (
+            <Empty>{builderName} has not drafted notes for this changeset yet.</Empty>
+          )}
+        </Block>
+      ) : null}
+
+      {/* LCH-01 launch kit: drafted from the ship, never sent. */}
       {changeset.release_notes || revisions.length > 0 ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: launchKit ? "1px solid var(--hairline)" : "none",
-            }}
-          >
-            <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-              Launch kit
-            </span>
-            <button
-              type="button"
-              onClick={() => genKitMut.mutate()}
-              disabled={genKitMut.isPending}
-              className={`mono-label ${PRESS_HOVER}`}
-              style={{
-                border: "1px solid var(--hairline)",
-                borderRadius: 6,
-                padding: "3px 10px",
-                color: "var(--text-body)",
-                cursor: genKitMut.isPending ? "default" : "pointer",
-              }}
-            >
-              {genKitMut.isPending ? "Drafting…" : launchKit ? "Redraft" : "Draft launch kit"}
-            </button>
-          </div>
-          {launchKit ? (
-            <div
-              style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 12 }}
-            >
-              {(
+        <Block
+          title="Launch kit"
+          sub="Drafts only. Nothing is sent, so copy what you want to use."
+          more={genKitMut.isPending ? "Drafting" : launchKit ? "Draft it again" : "Draft it"}
+          onMore={() => {
+            if (!genKitMut.isPending) genKitMut.mutate();
+          }}
+        >
+          {launchKit
+            ? (
                 [
                   ["Changelog", "changelog"],
                   ["Blog", "blog"],
@@ -647,661 +633,356 @@ export function ChangesPanel({
               ).map(([label, key]) =>
                 launchKit[key] ? (
                   <div key={key}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 4 }}>
-                      <span className="mono-label" style={{ flex: 1, color: "var(--text-body)" }}>
-                        {label}
-                      </span>
+                    <Line label={label}>
                       <button
                         type="button"
+                        className={QUIET}
                         onClick={() =>
                           navigator.clipboard
                             ?.writeText(launchKit[key])
                             .then(() => toast.success(`${label} copied`))
                             .catch(() => toast.error("Could not copy"))
                         }
-                        className={`mono-label ${PRESS_HOVER}`}
-                        style={{
-                          border: "1px solid var(--hairline)",
-                          borderRadius: 6,
-                          padding: "2px 8px",
-                          color: "var(--text-body)",
-                          cursor: "pointer",
-                        }}
                       >
-                        copy
+                        Copy
                       </button>
-                    </div>
-                    <div
-                      style={{
-                        lineHeight: 1.6,
-                        color: "var(--text-primary)",
-                        whiteSpace: "pre-wrap",
-                        overflowWrap: "anywhere",
-                        maxHeight: 260,
-                        overflowY: "auto",
-                      }}
-                    >
-                      {launchKit[key]}
-                    </div>
+                    </Line>
+                    <div style={RECESS}>{launchKit[key]}</div>
                   </div>
                 ) : null,
-              )}
-              <span
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                Drafts only. Nothing is sent, so copy what you want to use.
-              </span>
-            </div>
-          ) : null}
-        </div>
+              )
+            : null}
+        </Block>
       ) : null}
 
-      {/* K2: Rollback history card (if any rollbacks exist for this product) */}
+      {/* K2: rollback history for this product. The record names no actor, so
+          neither does the row. */}
       {rollbacks.length > 0 ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
-            }}
-          >
-            <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-              Rollback history ({rollbacks.length})
-            </span>
-          </div>
-          {rollbacks.map((rb, i) => (
-            <div
-              key={rb.id}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                padding: "10px 18px",
-                borderBottom: i < rollbacks.length - 1 ? "1px solid var(--hairline)" : "none",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                <span style={{ color: "var(--text-body)" }}>
-                  {rb.status === "reverted" ? "done" : "open"}
-                </span>
-                <span
-                  style={{
-                    flex: 1,
-                    color: "var(--text-primary)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {rb.reason}
-                </span>
-                {rb.revert_pr_number && (
-                  <a
-                    href={`https://github.com/${changeset.repo}/pull/${rb.revert_pr_number}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: "var(--link)",
-                      textDecoration: "none",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    PR #{rb.revert_pr_number}
-                  </a>
-                )}
-              </div>
-              {rb.note ? (
-                <p
-                  style={{
-                    color: "var(--text-body)",
-                    fontStyle: "italic",
-                    margin: 0,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {rb.note}
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => noteMut.mutate(rb.id)}
-                  disabled={noteMut.isPending}
-                  className={`${PRESS} hover:enabled:underline`}
-                  style={{
-                    color: "var(--text-body)",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: noteMut.isPending ? "default" : "pointer",
-                  }}
-                >
-                  {noteMut.isPending && noteMut.variables === rb.id
-                    ? "Generating note..."
-                    : "Generate note"}
-                </button>
-              )}
+        <Block title="Rollbacks">
+          {rollbacks.map((rb) => (
+            <div key={rb.id}>
+              <Row
+                tight
+                lead={rb.reason}
+                sub={
+                  <>
+                    {rb.status === "reverted" ? "Reverted" : "Revert open"}
+                    {/* studio_rollbacks records no actor. Saying so is honest;
+                        putting a mark here would be a guess. */}
+                    {" · unattributed"}
+                    {rb.revert_pr_number ? (
+                      <>
+                        {" · "}
+                        <a
+                          className={QUIET}
+                          style={{ textDecoration: "none" }}
+                          href={`https://github.com/${changeset.repo}/pull/${rb.revert_pr_number}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          PR <Num>{rb.revert_pr_number}</Num>
+                        </a>
+                      </>
+                    ) : null}
+                    {!rb.note ? (
+                      <>
+                        {" · "}
+                        <button
+                          type="button"
+                          className={QUIET}
+                          disabled={noteMut.isPending}
+                          onClick={() => noteMut.mutate(rb.id)}
+                        >
+                          {noteMut.isPending && noteMut.variables === rb.id
+                            ? "Writing the note"
+                            : "Write the note"}
+                        </button>
+                      </>
+                    ) : null}
+                  </>
+                }
+                time={shortDate(rb.created_at)}
+              />
+              {rb.note ? <div style={RECESS}>{rb.note}</div> : null}
             </div>
           ))}
-        </div>
+        </Block>
       ) : null}
 
       {/* I1b revision history: one row per studio.commit, newest first. */}
       {revisions.length > 0 ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
-            }}
-          >
-            <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-              Revisions ({revisions.length})
-            </span>
-            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
-              commit history
-            </span>
-          </div>
+        <Block title="Revisions">
           {revisions.map((r, i) => (
-            <div
+            <Row
               key={r.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 18px",
-                borderBottom: i < revisions.length - 1 ? "1px solid var(--hairline)" : "none",
-              }}
-            >
-              <span className="mono-label" style={{ width: 36, color: "var(--text-body)" }}>
-                r{r.revision_no}
-              </span>
-              <span
-                className="truncate"
-                style={{ flex: 1, minWidth: 0, color: "var(--text-primary)" }}
-              >
-                {r.message || "(no message)"}
-              </span>
-              <span
-                className="tabular-nums"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                {r.files.length} file{r.files.length === 1 ? "" : "s"}
-              </span>
-              {r.commit_url ? (
-                <a
-                  href={r.commit_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mono-label"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-body)",
-                  }}
-                >
-                  {r.commit_sha.slice(0, 7)}
-                </a>
-              ) : (
-                <span
-                  className="mono-label"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  {r.commit_sha.slice(0, 7)}
-                </span>
-              )}
-              {canRevert && i > 0 ? (
-                <button
-                  type="button"
-                  className={`mono-label ${PRESS_HOVER}`}
-                  disabled={revertMut.isPending}
-                  onClick={async () => {
-                    if (!changeset) return;
-                    const ok = await confirm({
-                      title: `Revert to revision ${r.revision_no}?`,
-                      body: `Creates a new commit on ${changeset.branch ?? "the branch"} that restores every file to revision ${r.revision_no} (${r.commit_sha.slice(0, 7)}). It moves history forward, so the revert is itself revertible.`,
-                      confirmLabel: "Revert",
-                    });
-                    if (!ok) return;
-                    revertMut.mutate({ changesetId: changeset.id, revisionId: r.id });
-                  }}
-                  style={{
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 6,
-                    padding: "2px 8px",
-                    color: "var(--text-body)",
-                    cursor: revertMut.isPending ? "default" : "pointer",
-                  }}
-                >
-                  Revert
-                </button>
-              ) : null}
-            </div>
+              tight
+              marks={<AgentMark slug={BUILDER} state="quiet" />}
+              lead={r.message || "No message"}
+              sub={
+                <>
+                  <Who>{builderName}</Who> committed <Num>{r.files.length}</Num>{" "}
+                  {r.files.length === 1 ? "file" : "files"}
+                  {" · "}
+                  {r.commit_url ? (
+                    <a
+                      className={QUIET}
+                      style={{ textDecoration: "none" }}
+                      href={r.commit_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Num>{r.commit_sha.slice(0, 7)}</Num>
+                    </a>
+                  ) : (
+                    <Num>{r.commit_sha.slice(0, 7)}</Num>
+                  )}
+                  {canRevert && i > 0 ? (
+                    <>
+                      {" · "}
+                      <button
+                        type="button"
+                        className={QUIET}
+                        disabled={revertMut.isPending}
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: `Revert to revision ${r.revision_no}?`,
+                            body: `Creates a new commit on ${changeset.branch ?? "the branch"} that restores every file to revision ${r.revision_no} (${r.commit_sha.slice(0, 7)}). It moves history forward, so the revert is itself revertible.`,
+                            confirmLabel: "Revert",
+                          });
+                          if (!ok) return;
+                          revertMut.mutate({ changesetId: changeset.id, revisionId: r.id });
+                        }}
+                      >
+                        Go back to here
+                      </button>
+                    </>
+                  ) : null}
+                </>
+              }
+              time={shortDate(r.created_at)}
+            />
           ))}
-        </div>
+        </Block>
       ) : null}
 
-      {/* F-BUILDER-MULTIFILE: scope policy. Pre-declared touch list + max-files
-          cap, with the live in/out-of-scope + over-cap read against the staged
-          files, and a one-click "stay in scope" before the gated commit. */}
+      {/* F-BUILDER-MULTIFILE: the declared touch list and cap, read live against
+          the staged files, with one click to get back inside it. */}
       {missionId ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: editScope ? "1px solid var(--hairline)" : "none",
-            }}
-          >
-            <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-              Scope
-            </span>
-            {fileSetPolicy && (fileSetPolicy.hasTouchList || fileSetPolicy.hasCap) ? (
-              <span
-                style={{
-                  color: fileSetPolicy.clean ? "var(--text-body)" : "var(--marigold)",
-                }}
-              >
-                {fileSetPolicy.clean
-                  ? `${fileSetPolicy.fileCount} file${fileSetPolicy.fileCount === 1 ? "" : "s"}, all in scope`
-                  : [
-                      fileSetPolicy.outOfPolicy.length
-                        ? `${fileSetPolicy.outOfPolicy.length} outside scope`
-                        : "",
-                      !fileSetPolicy.withinCap
-                        ? `${fileSetPolicy.overBy} over the cap of ${fileSetPolicy.maxFiles}`
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-              </span>
+        <Block
+          title="Scope"
+          sub={
+            scopeDeclared ? (
+              scopeBreach ? (
+                <span style={{ color: "var(--sp-warn)" }}>{scopeBreach}</span>
+              ) : (
+                <>
+                  <Num>{fileSetPolicy!.fileCount}</Num>{" "}
+                  {fileSetPolicy!.fileCount === 1 ? "file" : "files"}, all inside the touch list.
+                </>
+              )
             ) : (
-              <span style={{ color: "var(--text-subtle)" }}>No scope set</span>
-            )}
-            {canCurate && fileSetPolicy?.hasTouchList && fileSetPolicy.outOfPolicy.length > 0 ? (
-              <button
-                type="button"
-                onClick={() => enforceMut.mutate()}
-                disabled={enforceMut.isPending}
-                className={`mono-label ${PRESS_HOVER}`}
-                style={{
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 6,
-                  padding: "3px 10px",
-                  color: "var(--text-body)",
-                  cursor: enforceMut.isPending ? "default" : "pointer",
-                }}
-              >
-                {enforceMut.isPending ? "Applying…" : "Apply scope"}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => (editScope ? setEditScope(false) : openScopeEditor())}
-              className={`mono-label ${PRESS_HOVER}`}
-              aria-expanded={editScope}
-              style={{
-                border: "1px solid var(--hairline)",
-                borderRadius: 6,
-                padding: "3px 10px",
-                color: "var(--text-body)",
-                cursor: "pointer",
-              }}
-            >
-              {editScope ? "Close" : "Edit"}
-            </button>
-          </div>
+              `No touch list and no cap, so ${builderName} may write anywhere in the repo.`
+            )
+          }
+          more={editScope ? "Close" : "Edit"}
+          onMore={() => (editScope ? setEditScope(false) : openScopeEditor())}
+        >
+          {canCurate && fileSetPolicy?.hasTouchList && fileSetPolicy.outOfPolicy.length > 0 ? (
+            <Actions>
+              <Button disabled={enforceMut.isPending} onClick={() => enforceMut.mutate()}>
+                {enforceMut.isPending ? "Dropping them" : "Drop the files outside it"}
+              </Button>
+            </Actions>
+          ) : null}
           {editScope ? (
-            <div
-              style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
-            >
-              <label
-                style={{ fontFamily: "var(--font-sans)", color: "var(--text-body)" }}
-              >
-                Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
-              </label>
-              <textarea
-                value={pathsDraft}
-                onChange={(e) => setPathsDraft(e.target.value)}
-                placeholder={"src/lib/\nsrc/components/studio/**"}
-                rows={4}
-                spellCheck={false}
-                aria-label="Touch list, one path per line"
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{
-                  width: "100%",
-                  resize: "vertical",
-                  fontFamily: "var(--font-mono)",
-                  lineHeight: 1.6,
-                  color: "var(--text-primary)",
-                  background: "var(--surface-raised)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
-                  padding: "8px 10px",
-                }}
-              />
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <label className="mono-label" style={{ color: "var(--text-body)" }}>
-                  Max files
-                </label>
-                <input
+            <>
+              <Field label="Touch list, one path per line">
+                <Textarea
+                  value={pathsDraft}
+                  onChange={(e) => setPathsDraft(e.target.value)}
+                  placeholder={"src/lib/\nsrc/components/studio/**"}
+                  rows={4}
+                  spellCheck={false}
+                />
+              </Field>
+              <Field label="Most files it may touch">
+                <Input
                   type="number"
                   min={1}
                   value={capDraft}
                   onChange={(e) => setCapDraft(e.target.value)}
-                  placeholder="none"
-                  aria-label="Max files"
-                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    width: 90,
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-primary)",
-                    background: "var(--surface-raised)",
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 6,
-                    padding: "5px 8px",
-                  }}
+                  placeholder="no cap"
+                  style={{ maxWidth: 140 }}
                 />
-                <button
-                  type="button"
-                  onClick={saveScope}
-                  disabled={setScopeMut.isPending}
-                  className={`mono-label ${PRESS_HOVER}`}
-                  style={{
-                    marginLeft: "auto",
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 6,
-                    padding: "4px 12px",
-                    color: "var(--text-primary)",
-                    cursor: setScopeMut.isPending ? "default" : "pointer",
-                  }}
-                >
-                  {setScopeMut.isPending ? "Saving…" : "Save scope"}
-                </button>
-              </div>
-            </div>
+              </Field>
+              <Actions>
+                <Button disabled={setScopeMut.isPending} onClick={saveScope}>
+                  {setScopeMut.isPending ? "Saving" : "Save the scope"}
+                </Button>
+              </Actions>
+            </>
           ) : null}
-        </div>
+        </Block>
       ) : null}
 
-      {/* File list — table-bento: padding 0, mono-label header, hairline rows. */}
-      <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 18px",
-            borderBottom: "1px solid var(--hairline)",
-          }}
-        >
-          <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-            File
-          </span>
-          <span className="mono-label" style={{ width: 52, textAlign: "right" }}>
-            Op
-          </span>
-          <span className="mono-label" style={{ width: 52, textAlign: "right" }}>
-            + chars
-          </span>
-          <span className="mono-label" style={{ width: 52, textAlign: "right" }}>
-            − chars
-          </span>
-        </div>
-        {changes.map((c, i) => {
+      {/* The files themselves. Character counts, said as characters: these rows
+          carry no line counts, so they never borrow a diffstat's shape. */}
+      <Block title="Files">
+        {changes.map((c) => {
           const active = c.path === selectedPath;
           return (
-            <button
+            <Row
               key={c.id}
-              type="button"
+              tight
+              focused={active}
+              marks={<AgentMark slug={BUILDER} state="quiet" />}
+              lead={<Num>{c.path}</Num>}
+              sub={
+                <>
+                  <Who>{builderName}</Who> {c.op} · <Num>+{fmtCompact(c.new_chars)}</Num>{" "}
+                  <Num>&minus;{fmtCompact(c.base_chars)}</Num> chars
+                  {outOfPolicy.has(c.path) ? (
+                    <span style={{ color: "var(--sp-warn)" }}> · outside the touch list</span>
+                  ) : null}
+                </>
+              }
               onClick={() => setSelectedPath(active ? null : c.path)}
-              aria-expanded={active}
-              className={PRESS_HOVER}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                width: "100%",
-                textAlign: "left",
-                padding: "11px 18px",
-                borderBottom: i < changes.length - 1 ? "1px solid var(--hairline)" : "none",
-                // Inline background only when selected so the hover class resolves.
-                background: active ? "var(--surface-raised)" : undefined,
-              }}
-            >
-              <span
-                className="truncate"
-                title={c.path}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {c.path}
-              </span>
-              {outOfPolicy.has(c.path) ? (
-                <span
-                  className="mono-label"
-                  title="Not in the declared touch list"
-                  style={{
-                    flexShrink: 0,
-                    color: "var(--marigold)",
-                    border: "1px solid var(--marigold)",
-                    borderRadius: 5,
-                    padding: "1px 6px",
-                  }}
-                >
-                  out of scope
-                </span>
-              ) : null}
-              <span
-                className="mono-label"
-                style={{ width: 52, textAlign: "right", color: "var(--text-body)" }}
-              >
-                {c.op}
-              </span>
-              <span
-                className="tabular-nums"
-                style={{
-                  width: 52,
-                  textAlign: "right",
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--moss)",
-                }}
-              >
-                +{fmtCompact(c.new_chars)}
-              </span>
-              <span
-                className="tabular-nums"
-                style={{
-                  width: 52,
-                  textAlign: "right",
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--madder)",
-                }}
-              >
-                −{fmtCompact(c.base_chars)}
-              </span>
-            </button>
+            />
           );
         })}
         {changes.length === 0 ? (
-          <EmptyState headline="The changeset is empty" body="No files have been modified." />
+          <Empty>{builderName} has not written a file into this changeset yet.</Empty>
         ) : null}
-      </div>
+      </Block>
 
       {selectedPath ? (
-        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
+        <Block>
+          <Line label={<Num>{selectedPath}</Num>} sub="Base against staged">
+            {canCurate ? (
+              <button
+                type="button"
+                className={QUIET}
+                disabled={rejectFileMut.isPending}
+                onClick={() => rejectFileMut.mutate(selectedPath)}
+              >
+                {rejectFileMut.isPending ? "Dropping it" : "Drop this file"}
+              </button>
+            ) : null}
+          </Line>
+
+          {isMarkdownFile(selectedPath) ? (
+            <div className="sp-tabs" role="tablist" aria-label="How to read this file">
+              {(["diff", "preview"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  className="sp-tab"
+                  aria-selected={docView === mode}
+                  onClick={() => setDocView(mode)}
+                >
+                  {mode === "diff" ? "Diff" : "Read it"}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
+              marginTop: "var(--sp-space-3)",
+              background: "var(--sp-sink)",
+              borderRadius: "var(--sp-radius-panel)",
+              overflow: "hidden",
             }}
           >
-            <span
-              className="truncate"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                fontFamily: "var(--font-mono)",
-                color: "var(--text-primary)",
-              }}
-            >
-              {selectedPath}
-            </span>
-            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
-              base vs staged
-            </span>
-            {isMarkdownFile(selectedPath) ? (
-              <div
-                style={{ display: "flex", border: "1px solid var(--hairline)", borderRadius: 6 }}
-              >
-                {(["diff", "preview"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setDocView(mode)}
-                    aria-pressed={docView === mode}
-                    className={`mono-label ${PRESS_HOVER}`}
-                    style={{
-                      border: "none",
-                      borderRadius: 5,
-                      padding: "3px 10px",
-                      background: docView === mode ? "var(--surface-raised)" : undefined,
-                      color: docView === mode ? "var(--text-primary)" : "var(--text-subtle)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {mode === "diff" ? "Diff" : "Preview"}
-                  </button>
-                ))}
+            {diff.isError ? (
+              // A failed read is not an empty state. It names its cause and
+              // offers the retry, because "nothing here" and "we could not find
+              // out" are different facts.
+              <div style={{ padding: "var(--sp-space-4) 18px" }}>
+                <Failed onRetry={() => void diff.refetch()}>
+                  The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
+                </Failed>
               </div>
-            ) : null}
-            {canCurate && selectedPath ? (
-              <button
-                type="button"
-                onClick={() => rejectFileMut.mutate(selectedPath!)}
-                disabled={rejectFileMut.isPending}
-                className={`mono-label ${PRESS_HOVER}`}
+            ) : diff.isLoading || !selected ? (
+              loadingBox
+            ) : isMarkdownFile(selectedPath) && docView === "preview" ? (
+              <div
                 style={{
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 6,
-                  padding: "3px 8px",
-                  color: "var(--text-body)",
-                  cursor: rejectFileMut.isPending ? "default" : "pointer",
+                  height: DIFF_H,
+                  overflowY: "auto",
+                  padding: "var(--sp-space-4) var(--sp-space-5)",
                 }}
               >
-                {rejectFileMut.isPending ? "Dropping…" : "Reject file"}
-              </button>
-            ) : null}
+                <ChatMarkdown content={selected.new_content ?? ""} />
+              </div>
+            ) : (
+              <Suspense fallback={loadingBox}>
+                <DiffEditor
+                  height={`${DIFF_H}px`}
+                  theme={monacoTheme}
+                  language={languageFor(selectedPath)}
+                  original={selected.base_content ?? ""}
+                  modified={selected.new_content ?? ""}
+                  options={{
+                    readOnly: true,
+                    renderSideBySide: false,
+                    minimap: { enabled: false },
+                    // Monaco's canvas renderer needs a numeric px value, not a CSS custom property.
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                  }}
+                />
+              </Suspense>
+            )}
           </div>
-          {diff.isError ? (
-            // A failed diff fetch previously sat in the spinner forever (the
-            // !selected branch). An error names its cause and offers retry.
-            <div style={{ padding: 24 }}>
-              <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the diff</MonoLabel>
-              <p style={{ marginTop: 6, color: "var(--text-subtle)" }}>
-                {(diff.error as Error)?.message?.slice(0, 160)}
-              </p>
-              <button
-                type="button"
-                onClick={() => diff.refetch()}
-                className="btn btn-ghost btn-sm loom-press"
-                style={{ marginTop: 12 }}
-              >
-                Retry · reloads the diff
-              </button>
-            </div>
-          ) : diff.isLoading || !selected ? (
-            spinnerBox
-          ) : isMarkdownFile(selectedPath) && docView === "preview" ? (
-            <div style={{ height: 420, overflowY: "auto", padding: "16px 20px" }}>
-              <ChatMarkdown content={selected.new_content ?? ""} />
-            </div>
-          ) : (
-            <Suspense fallback={spinnerBox}>
-              <DiffEditor
-                height="420px"
-                theme={monacoTheme}
-                language={languageFor(selectedPath)}
-                original={selected.base_content ?? ""}
-                modified={selected.new_content ?? ""}
-                options={{
-                  readOnly: true,
-                  renderSideBySide: false,
-                  minimap: { enabled: false },
-                  // Monaco's canvas renderer needs a numeric px value, not a CSS custom property.
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                }}
-              />
-            </Suspense>
-          )}
+
+          {/* Per-hunk curation. These numbers ARE lines (computeHunks returns
+              base and modified line arrays), so the diffstat is honest here. */}
           {canCurate && selected && hunks.length > 0 ? (
-            <div
-              style={{
-                borderTop: "1px solid var(--hairline)",
-                padding: "12px 18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--geist-space-2x)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
-                  {hunks.length} hunk{hunks.length === 1 ? "" : "s"} · tap to reject (reverts to
-                  base)
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    applyMut.mutate({
-                      path: selectedPath!,
-                      rejectedHunkIds: [...rejected],
-                      expectedUpdatedAt: selected?.updated_at,
-                    })
-                  }
+            <>
+              <Line
+                label={
+                  <>
+                    <Num>{hunks.length}</Num> {hunks.length === 1 ? "hunk" : "hunks"}
+                  </>
+                }
+                sub="Tap one to reject it. Rejecting puts those lines back to base."
+              >
+                <Button
                   disabled={applyMut.isPending || rejected.size === 0}
                   title={rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined}
-                  className={`mono-label ${PRESS}`}
-                  style={{
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 6,
-                    padding: "3px 10px",
-                    background: rejected.size === 0 ? "transparent" : "var(--surface-raised)",
-                    color: rejected.size === 0 ? "var(--text-subtle)" : "var(--text-primary)",
-                    cursor: applyMut.isPending || rejected.size === 0 ? "default" : "pointer",
-                  }}
+                  onClick={() =>
+                    applyMut.mutate({
+                      path: selectedPath,
+                      rejectedHunkIds: [...rejected],
+                      expectedUpdatedAt: selected.updated_at,
+                    })
+                  }
                 >
-                  {applyMut.isPending ? "Applying…" : `Apply (${rejected.size} rejected)`}
-                </button>
-              </div>
+                  {applyMut.isPending
+                    ? "Reverting them"
+                    : rejected.size === 0
+                      ? "Revert the rejected"
+                      : `Revert ${rejected.size}`}
+                </Button>
+              </Line>
               {hunks.map((h) => {
                 const isRejected = rejected.has(h.id);
                 const preview = (h.modifiedLines[0] ?? h.baseLines[0] ?? "").trim().slice(0, 80);
                 return (
-                  <button
+                  <Row
                     key={h.id}
-                    type="button"
+                    tight
+                    focused={isRejected}
+                    marks={<AgentMark slug={BUILDER} state="quiet" />}
+                    lead={<Num>{preview || "(blank line)"}</Num>}
+                    sub={
+                      <>
+                        <Diffstat added={h.modifiedLines.length} removed={h.baseLines.length} />{" "}
+                        {isRejected ? "Rejected, goes back to base" : `Hunk ${h.id + 1}`}
+                      </>
+                    }
                     onClick={() =>
                       setRejected((prev) => {
                         const next = new Set(prev);
@@ -1310,58 +991,13 @@ export function ChangesPanel({
                         return next;
                       })
                     }
-                    aria-pressed={isRejected}
-                    className={PRESS_HOVER}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      textAlign: "left",
-                      width: "100%",
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      border: "1px solid var(--hairline)",
-                      background: isRejected ? "var(--surface-raised)" : undefined,
-                      opacity: isRejected ? 0.6 : 1,
-                      transition: "opacity var(--dur-fast, 140ms)",
-                    }}
-                  >
-                    <span
-                      className="mono-label"
-                      style={{
-                        width: 64,
-                        color: isRejected ? "var(--text-subtle)" : "var(--text-body)",
-                      }}
-                    >
-                      {isRejected ? "rejected" : `hunk ${h.id + 1}`}
-                    </span>
-                    <span
-                      className="tabular-nums"
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--text-subtle)",
-                      }}
-                    >
-                      +{h.modifiedLines.length} / −{h.baseLines.length}
-                    </span>
-                    <span
-                      className="truncate"
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--text-body)",
-                      }}
-                    >
-                      {preview || "(blank line)"}
-                    </span>
-                  </button>
+                  />
                 );
               })}
-            </div>
+            </>
           ) : null}
-        </div>
+        </Block>
       ) : null}
-    </div>
+    </>
   );
 }

@@ -20,8 +20,15 @@ import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
  * ------------------------------------------------------------------ */
 
 /** State is never a hue. A ring means running, low opacity means quiet, ember
- *  means it needs you, red means it failed. */
-export type MarkState = "quiet" | "idle" | "running" | "gate" | "failed";
+ *  means it needs you, red means it failed.
+ *
+ *  "gate" BLINKS and is the only blink in the system, so exactly one mark on a
+ *  screen may wear it: the one thing actually asking. "waiting" is the same
+ *  ember without the animation, for the items queued behind it. Reported from
+ *  the receipts room, where every pending row took the gate state and a
+ *  workspace with many open decisions blinked a dozen marks at once, which
+ *  spends the whole restraint budget and stops the blink meaning "look here". */
+export type MarkState = "quiet" | "idle" | "running" | "gate" | "waiting" | "failed";
 
 export function AgentMark({
   slug,
