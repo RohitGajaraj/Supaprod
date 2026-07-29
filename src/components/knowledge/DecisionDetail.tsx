@@ -1,45 +1,96 @@
-// DecisionDetail - Brain -> Decisions drill-down, rebuilt on the shared
-// DetailKit anatomy (DESIGN-LOOM dim 17 / design-anatomy §3) so a decision
-// reads identically to every other object detail: DetailHeader -> a neutral
-// summary band (the call + rationale first) -> a compact StatStrip -> the
-// consistent DetailSections -> an actions footer. Drill state rides ?decision=
-// on /brain; the detail replaces only the tab body. Shares the ["decisions",
-// ...] query cache, and SourceLink + OBS_STATUS_TONE from DecisionsPanel (one
-// source, no drift).
-//
-// Trace ref: DEC (dim 17 registry, newly registered in DESIGN-LOOM dim 17 +
-// design-anatomy §4). Timestamps via relTimeCaps (present tone), the full id
-// copyable. Provenance links back up the loop: the source (mission / spec /
-// meeting) opens in place, and "Trace in the graph" recentres the knowledge
-// graph on this decision, where its supersession history (what it revised, and
-// whether a later outcome revised it) is read. The verdict picker keeps the
-// production updateDecision mutation. Real columns only: an absent rationale
-// reads honestly, never a fabricated field.
+/**
+ * One decision, opened. Brain > Decisions > ?decision=.
+ *
+ * REBUILT on the shell primitives, 2026-07-29. The founder's complaint was
+ * exactly this file: "If something I click that opens up, let's say PRD it
+ * opens up, approval pin it opens up or something of similar sort, that also
+ * needs to be of same theme." The route was ported; this, the thing the route
+ * opens, was not, so clicking a row put the legacy design back on screen.
+ *
+ * WHAT WENT, and why:
+ *   KILLED the DetailKit anatomy (DetailHeader, DetailSection, StatStrip,
+ *     StatCell). It is the retired system's detail grammar and it does not
+ *     resolve against this shell. Block is the ported equivalent, and it
+ *     already draws a rule wherever the content changes register.
+ *   KILLED the material-medium card wrapping the whole detail, and the tinted
+ *     "summary band" card inside it. Two bordered containers in one region is
+ *     one more than the standard allows (anti-slop ban 5), and the band was a
+ *     card in a card in a card.
+ *   KILLED the summary band entirely for a second reason: it printed the
+ *     rationale, and then the "Why" section printed the same rationale again
+ *     eleven lines later. The same paragraph twice on one screen is hard ban 10
+ *     in its purest form. The rationale is said once, under Why.
+ *   KILLED VerdictChip, StatusPill, MonoLabel, AuditTag and AutoChip. A chip is
+ *     a coloured box saying a word; the word is enough, and green and red
+ *     already carry the outcome through sp-pass / sp-fail. The trace id lives
+ *     in the head as plain mono via Num.
+ *   KILLED the hand-rolled StateCard error and not-found boxes. A failed read
+ *     is Failed with a retry, and it must never wear an empty state's clothes.
+ *   KILLED the VERDICT PICKER'S three-chip row. Three chips at 50% opacity with
+ *     aria-pressed is a radio group wearing a costume; Choices is the primitive,
+ *     it is one tab stop, and the arrow keys move within it.
+ *   KILLED every toast on a consequential write. Settling a call rewrites what
+ *     every agent reads before it touches the same surface again, and sharing
+ *     one puts it on the public internet. Both leave a Receipt carrying the real
+ *     consequence (agents/FINAL-agent-presence.md R10). The clipboard copy keeps
+ *     a toast: copying is not a write, it changes nothing, and there is nothing
+ *     for a receipt to record.
+ *
+ * UNCHANGED: listDecisions / updateDecision / getDecisionJudgment / getLineage
+ * / getDecisionShareState / setDecisionShared, every query key including the
+ * shared ["decisions", ...] cache, the ?decision= drill contract, the
+ * ShareDecisionButton export, and the ContradictionAuditSection mount.
+ *
+ * STILL LEGACY, and named rather than hidden: StageTimeline lives in
+ * components/shared and RewindButton in components/decisions, neither of which
+ * this lane owns. They are mounted as they were and will re-skin with their own
+ * files.
+ */
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, Link2 } from "lucide-react";
-import { AuditTag } from "@/components/supaprod/AuditTag";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
 import { getLineage } from "@/lib/lineage.functions";
-import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
-import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
-import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/supaprod/AutoChip";
-import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
-import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
-import { PanelSkeleton } from "./PanelSkeleton";
+import {
+  Actions,
+  Block,
+  Button,
+  Choices,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  Prose,
+  Receipt,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
+import { SourceLink } from "./DecisionsPanel";
+import { ageOf, displayWho, hasSource, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { ContradictionAuditSection } from "./ContradictionAuditSection";
 import { RewindButton } from "@/components/decisions/RewindButton";
+
+type Status = "approved" | "rejected" | "pending";
+
+/** What a write left behind. Session local: the durable record is the ledger. */
+type Settled = { id: string; verb: string; consequence: string; failed?: boolean; at: string };
+
+function nowStamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
 
 function copyDecisionLink(slug: string) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/d/${slug}`;
   if (typeof navigator !== "undefined" && navigator.clipboard) {
+    // Copying is not a write. Nothing changed, so there is nothing for a
+    // receipt to record and a toast is the honest instrument.
     navigator.clipboard.writeText(url).then(
       () => toast.success("Public link copied"),
       () => toast.message(url),
@@ -49,67 +100,22 @@ function copyDecisionLink(slug: string) {
   }
 }
 
-/** A quiet mono-caps pill, so a decision's stage/source reads without a menu. */
-function StatusPill({ label, tone = "var(--text-subtle)" }: { label: string; tone?: string }) {
-  return (
-    <span
-      style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-        color: tone,
-        border: "1px solid var(--hairline)",
-        borderRadius: "999px",
-        padding: "2px 8px",
-        lineHeight: 1.4,
-      }}
-    >
-      {label}
-    </span>
-  );
-}
-
-/** An absolute timestamp plus a quiet relative caption (the exemplar TimeLine). */
-function TimeLine({ iso }: { iso: string }) {
-  return (
-    <span
-      className="flex items-baseline"
-      style={{ gap: "8px", color: "var(--text-body)" }}
-    >
-      <span>{new Date(iso).toLocaleString()}</span>
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.06em",
-          color: "var(--text-faint)",
-        }}
-      >
-        {relTimeCaps(iso)}
-      </span>
-    </span>
-  );
-}
-
-function StateCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="material-medium"
-      style={{
-        background: "var(--card)",
-        padding: "16px 18px",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** Share / Unshare a decision + copy its public /d/<slug> link. Pre-migration
- *  tolerant: before the share columns land it shows a quiet "after sync" hint.
- *  Exported (RPT-01) so the Brain "recall card" search results can offer the
- *  same real share action on a matched decision without duplicating this
- *  logic - one component, every decision surface. */
-export function ShareDecisionButton({ id }: { id: string }) {
+/** Share or unshare a decision, and copy its public /d/<slug> link.
+ *
+ *  Pre-migration tolerant: before the share columns land it says so in words
+ *  rather than offering a control that would fail.
+ *
+ *  Exported (RPT-01) so Brain's recall card can offer the same real share
+ *  action on a matched decision without duplicating this logic. */
+export function ShareDecisionButton({
+  id,
+  onCommit,
+}: {
+  id: string;
+  /** Where the consequence goes. A caller that has no receipt surface passes
+   *  nothing, and the write still happens; it just leaves no local trace. */
+  onCommit?: (verb: string, consequence: string, failed?: boolean) => void;
+}) {
   const qc = useQueryClient();
   const fState = useServerFn(getDecisionShareState);
   const fSet = useServerFn(setDecisionShared);
@@ -120,76 +126,67 @@ export function ShareDecisionButton({ id }: { id: string }) {
   });
   const toggle = useMutation({
     mutationFn: (isPublic: boolean) => fSet({ data: { id, isPublic } }),
-    onSuccess: (res) => {
+    onSuccess: (res, isPublic) => {
       qc.setQueryData(["decision-share", id], res);
       if (res.is_public && res.share_slug) copyDecisionLink(res.share_slug);
+      onCommit?.(
+        isPublic ? "You published this call" : "You made this call private",
+        isPublic
+          ? "Anyone with the link can read it and its rationale. The link is on your clipboard."
+          : "The public link is dead. Anyone holding it now gets nothing.",
+      );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, isPublic) =>
+      onCommit?.(
+        isPublic ? "You tried to publish this call" : "You tried to make this call private",
+        e.message || "The write failed. Nothing changed.",
+        true,
+      ),
   });
 
   const s = state.data;
   if (!s) return null;
   if (!s.available) {
-    return (
-      <MonoLabel
-        style={{ color: "var(--text-subtle)" }}
-        title="Sharing lights up after the next sync applies the share columns."
-      >
-        Share · after sync
-      </MonoLabel>
-    );
+    return <Value>Sharing lights up after the next sync applies the share columns.</Value>;
   }
   if (!s.is_public) {
     return (
       <Button
-        variant="secondary"
-        size="sm"
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(true)}
         title="Make this decision public and copy a shareable link"
       >
-        Share receipt
+        {toggle.isPending ? "Publishing" : "Publish the receipt"}
       </Button>
     );
   }
   return (
-    <span className="flex items-center" style={{ gap: "8px" }}>
+    <>
       <Button
-        variant="secondary"
-        size="sm"
         onClick={() => s.share_slug && copyDecisionLink(s.share_slug)}
         title="Copy the public link"
-        aria-label="Copy the public link"
       >
-        <Link2 size={14} strokeWidth={1.7} />
+        Copy the link
       </Button>
-      <Button
-        variant="tertiary"
-        size="sm"
-        disabled={toggle.isPending}
-        onClick={() => toggle.mutate(false)}
-        title="Make private again"
-      >
-        Unshare
+      <Button variant="ghost" disabled={toggle.isPending} onClick={() => toggle.mutate(false)}>
+        {toggle.isPending ? "Working" : "Make it private"}
       </Button>
-    </span>
+    </>
   );
 }
 
-const STATUS_META: Record<"approved" | "rejected" | "pending", { word: string; lead: string }> = {
-  approved: {
-    word: "Kept",
-    lead: "Kept. Agents read this before any mission that touches the same surface.",
-  },
-  rejected: {
-    word: "Rejected",
-    lead: "Rejected. The path not taken, on the record.",
-  },
-  pending: {
-    word: "Pending",
-    lead: "Awaiting your call. Decide it on Today, or set the verdict below.",
-  },
+/** What the status MEANS, in the crew's terms. One fact, said once. */
+const STATUS_LEAD: Record<Status, string> = {
+  approved: "Every agent reads this before it touches the same surface again.",
+  rejected: "The path not taken, on the record so nobody re-proposes it blind.",
+  pending: "Nobody has settled this yet. It is decided on Today.",
 };
+
+const VERDICT_OPTIONS: { id: Status; label: string; title: string }[] = [
+  { id: "approved", label: "Keep it", title: "Agents read this before acting on the same surface" },
+  { id: "rejected", label: "Drop it", title: "On the record as the path not taken" },
+  { id: "pending", label: "Not settled", title: "Send it back to nobody having decided" },
+];
 
 export function DecisionDetail({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -218,53 +215,65 @@ export function DecisionDetail({ id }: { id: string }) {
     queryFn: () => fLineage({ data: { kind: "decision", id } }),
   });
 
+  const [settled, setSettled] = useState<Settled[]>([]);
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed, at: nowStamp() },
+      ...prev,
+    ]);
+
   const update = useMutation({
-    mutationFn: (data: { id: string; status: "approved" | "rejected" | "pending" }) =>
-      fUpdate({ data }),
-    onSuccess: () => {
+    mutationFn: (vars: { status: Status; title: string }) =>
+      fUpdate({ data: { id, status: vars.status } }),
+    onSuccess: (_res, vars) => {
       // Prefix invalidation covers ["decisions", "all"] and every panel filter key.
       qc.invalidateQueries({ queryKey: ["decisions"] });
+      commit(
+        vars.status === "approved"
+          ? "You kept this call"
+          : vars.status === "rejected"
+            ? "You dropped this call"
+            : "You sent this call back",
+        vars.status === "approved"
+          ? `"${vars.title}" now binds. Every agent reads it before it touches the same surface.`
+          : vars.status === "rejected"
+            ? `"${vars.title}" is on the record as the path not taken.`
+            : `"${vars.title}" is unsettled again. It goes back to Today to be decided.`,
+      );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, vars) =>
+      commit(
+        "You tried to settle this call",
+        `"${vars.title}" is unchanged. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "decisions" } });
 
-  if (decisions.isLoading) return <PanelSkeleton />;
+  if (decisions.isLoading) return <Loading>Reading the call.</Loading>;
 
   if (decisions.isError) {
     return (
-      <StateCard>
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>
-          Decision · failed to load
-        </MonoLabel>
-        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
-          {(decisions.error as Error)?.message ?? "Unknown error"}
-        </p>
-        <Button variant="secondary" size="sm" onClick={() => void decisions.refetch()}>
-          Retry
-        </Button>
-      </StateCard>
+      <Failed onRetry={() => void decisions.refetch()}>
+        The ledger did not load, so this is not a claim that the call is gone.{" "}
+        {(decisions.error as Error)?.message ?? ""}
+      </Failed>
     );
   }
 
   const d = decisions.data?.decisions.find((x) => x.id === id);
   if (!d) {
     return (
-      <StateCard>
-        <MonoLabel style={{ marginBottom: 10, display: "block" }}>
-          Decision not found · it may have been removed
-        </MonoLabel>
-        <Button variant="secondary" size="sm" onClick={onBack}>
-          Back · all decisions
-        </Button>
-      </StateCard>
+      <Empty action={<Button onClick={onBack}>Back to all decisions</Button>}>
+        That call is not on the record. It may have been removed since the link was made.
+      </Empty>
     );
   }
 
   const sourceKind = (d.source_kind ?? "manual") as DecisionSource;
   const sourceNoun = d.mission_id ? "mission" : d.prd_id ? "spec" : d.meeting_id ? "meeting" : null;
-  const meta = STATUS_META[d.status];
+  const outcome = OUTCOME_WORD[d.status];
   const decidedBy = displayWho(d.decided_by_agent_slug);
 
   // The judgment loop, from real rows; each block renders only when it has data.
@@ -274,340 +283,189 @@ export function DecisionDetail({ id }: { id: string }) {
   const citedByCount = judgment.data?.citedByCount ?? 0;
   const evidenceIn = lineage.data?.ancestors ?? [];
   const evidenceOut = lineage.data?.descendants ?? [];
+  const title = stripAutoPrefix(d.title);
 
   return (
-    <div className="fade-up" style={{ maxWidth: 760 }}>
-      <div style={{ marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={onBack}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-          }}
-        >
-          {"<-"} All decisions
-        </button>
-      </div>
+    <div>
+      <Actions>
+        <Button variant="ghost" onClick={onBack}>
+          All decisions
+        </Button>
+      </Actions>
 
-      <div
-        className="material-medium"
-        style={{
-          display: "grid",
-          gap: "16px",
-          background: "var(--card)",
-          padding: "18px 20px",
-        }}
+      <Block
+        title={title}
+        // Three DIFFERENT facts, never more of the title: where it stands, who
+        // put it there, and where it came from.
+        sub={
+          <>
+            <span className={outcome.tone || undefined}>{outcome.word}</span>
+            {" · "}
+            {decidedBy} {d.status === "pending" ? "logged it" : "settled it"}
+            {" · from "}
+            {SOURCE_LABEL[sourceKind]}
+            {d.source_label ? ` (${d.source_label})` : ""}
+            {" · "}
+            {ageOf(d.created_at)}
+            {isAutoTitle(d.title) ? " · titled by the crew" : ""}
+          </>
+        }
       >
-        <DetailHeader
-          title={stripAutoPrefix(d.title)}
-          chips={
-            <>
-              <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
-              <StatusPill label={`From ${SOURCE_LABEL[sourceKind]}`} />
-              {isAutoTitle(d.title) ? <AutoChip /> : null}
-            </>
-          }
-          time={
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
-                color: "var(--text-subtle)",
-              }}
-            >
-              DECIDED {relTimeCaps(d.created_at)}
-            </span>
-          }
-          traceRef={<AuditTag kind="decision" id={d.id} copyable />}
-        />
-
-        {/* Summary band: the call + rationale, led first (calm neutral tint,
-            Tempo v5 glacier narrowing, 2026-07-11: this is a card accent, not
-            a status control, so it stays gray). */}
-        <div
-          style={{
-            display: "grid",
-            gap: "8px",
-            background: "color-mix(in srgb, var(--text-subtle) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--text-subtle) 22%, transparent)",
-            borderRadius: "var(--radius-card)",
-            padding: "13px 15px",
-          }}
-        >
-          <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
-            <MonoLabel
-              style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-            >
-              The call
-            </MonoLabel>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontWeight: 550,
-                color: "var(--text-primary)",
-                lineHeight: 1.5,
-              }}
-            >
-              {meta.lead}
-            </span>
-          </div>
-          {d.rationale ? (
-            <p
-              style={{
-                lineHeight: 1.6,
-                color: "var(--text-subtle)",
-                margin: 0,
-              }}
-            >
-              {d.rationale}
-            </p>
-          ) : null}
-        </div>
-
-        {/* Glanceable summary: how it was made. */}
-        <StatStrip columns={3}>
-          <StatCell label="Source" value={SOURCE_LABEL[sourceKind]} tone="neutral" />
-          <StatCell label="Decided by" value={decidedBy} tone="neutral" />
-          <StatCell label="Age" value={relTimeCaps(d.created_at)} tone="neutral" />
-        </StatStrip>
-
-        {/* Precedent-recall receipt: how often later agent recalls cited this call. */}
+        <p className="sp-loading">{STATUS_LEAD[d.status]}</p>
         {citedByCount > 0 ? (
-          <p style={{ color: "var(--text-subtle)", margin: 0 }}>
-            Cited as precedent {citedByCount} {citedByCount === 1 ? "time" : "times"} by later
-            decision contexts.
+          <p className="sp-loading">
+            Cited as precedent <Num>{citedByCount}</Num> {citedByCount === 1 ? "time" : "times"} by
+            later decision contexts.
           </p>
         ) : null}
+      </Block>
 
-        {/* Why. */}
-        <DetailSection heading="Why">
-          {d.rationale ? (
-            <p style={{ lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
-              {d.rationale}
-            </p>
+      <Block title="Why">
+        {d.rationale ? (
+          <Prose>
+            <p>{d.rationale}</p>
+          </Prose>
+        ) : (
+          <Empty>
+            Nobody wrote down why. Decisions are working memory, not minutes, so an unexplained call
+            is a real state rather than a missing field.
+          </Empty>
+        )}
+      </Block>
+
+      {/* The paths not taken, rendered only when the row actually recorded any
+          (decisions.alternatives_considered). */}
+      {alternatives.length > 0 ? (
+        <Block title="What else was on the table">
+          {alternatives.map((a, i) => (
+            <Row key={i} lead={a.title} sub={`Rejected: ${a.reason_rejected}`} />
+          ))}
+        </Block>
+      ) : null}
+
+      <Block
+        title="Where it came from"
+        more="Trace it in the graph"
+        onMore={() =>
+          navigate({
+            to: "/brain",
+            search: { tab: "graph", focusKind: "decision", focusId: d.id },
+          })
+        }
+      >
+        <Line label={SOURCE_LABEL[sourceKind]} sub={d.source_label ?? undefined}>
+          {hasSource(d) && sourceNoun ? (
+            <SourceLink d={d} className="sp-block-more">
+              Open the {sourceNoun}
+            </SourceLink>
           ) : (
-            <p
-              style={{
-                color: "var(--text-subtle)",
-                fontStyle: "italic",
-                margin: 0,
-              }}
-            >
-              No rationale captured. Decisions are working memory, not minutes.
-            </p>
+            <Value>Nothing to open. The call was logged by hand.</Value>
           )}
-        </DetailSection>
+        </Line>
+      </Block>
 
-        {/* Alternatives considered: the paths not taken, rendered only when the
-            row actually recorded any (decisions.alternatives_considered). */}
-        {alternatives.length > 0 ? (
-          <DetailSection heading="Alternatives considered">
-            <div style={{ display: "grid", gap: "8px" }}>
-              {alternatives.map((a, i) => (
-                <div key={i} style={{ display: "grid", gap: "2px" }}>
-                  <span style={{ color: "var(--text-body)" }}>{a.title}</span>
-                  <span style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>
-                    Rejected: {a.reason_rejected}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </DetailSection>
-        ) : null}
+      {/* The real lineage edges in and out of this decision. */}
+      {evidenceIn.length > 0 || evidenceOut.length > 0 ? (
+        <Block title="What it rests on, and what rests on it">
+          {evidenceIn.map((e) => (
+            <Row
+              key={e.id}
+              tight
+              lead={`From the ${e.parent_kind.replace(/_/g, " ")}${e.peer_title ? ` "${e.peer_title}"` : ""}`}
+              sub={e.relation}
+            />
+          ))}
+          {evidenceOut.map((e) => (
+            <Row
+              key={e.id}
+              tight
+              lead={`Fed the ${e.child_kind.replace(/_/g, " ")}${e.peer_title ? ` "${e.peer_title}"` : ""}`}
+              sub={e.relation}
+            />
+          ))}
+        </Block>
+      ) : null}
 
-        {/* Where it came from: the source opens in place; the graph link walks
-            the provenance and the supersession history. */}
-        <DetailSection
-          heading="Where it came from"
-          action={
-            hasSource(d) && sourceNoun ? (
-              <SourceLink
-                d={d}
-                className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                style={{
-                  gap: "6px",
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--link)",
-                }}
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                Open {sourceNoun}
-              </SourceLink>
-            ) : null
-          }
+      {/* The red-team review persisted on the linked spec. */}
+      {critic ? (
+        <Block title="What the Critic said about the linked spec">
+          <Line
+            label={critic.verdict}
+            sub={critic.reviewed_at ? ageOf(critic.reviewed_at) : undefined}
+          >
+            <Value>
+              <Num>{Math.round(critic.confidence * 100)}%</Num> confident
+            </Value>
+          </Line>
+          {critic.summary ? (
+            <Prose>
+              <p>{critic.summary}</p>
+            </Prose>
+          ) : null}
+        </Block>
+      ) : null}
+
+      {/* RPT-25: the contradiction auditor. Drift pointed inward. */}
+      <ContradictionAuditSection decisionId={d.id} />
+
+      {/* Outcome-weighted learnings via the Ambient Precedent recall; serving
+          one also writes its citation receipt server-side. */}
+      {precedents.length > 0 ? (
+        <Block
+          title="Last time we reasoned this way"
+          sub="What actually happened, weighted by how the outcome landed."
         >
-          <div style={{ display: "grid", gap: "10px" }}>
-            <span style={{ color: "var(--text-body)" }}>
-              {SOURCE_LABEL[sourceKind]}
-              {d.source_label ? ` · ${d.source_label}` : ""}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                navigate({
-                  to: "/brain",
-                  search: { tab: "graph", focusKind: "decision", focusId: d.id },
-                })
-              }
-              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                color: "var(--text-subtle)",
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                textAlign: "left",
-                cursor: "pointer",
-              }}
-            >
-              Trace it in the graph {"->"}
-            </button>
-          </div>
-        </DetailSection>
+          {precedents.map((p) => (
+            <Row key={p.memoryId} lead={p.title || p.verdict} sub={p.summary} />
+          ))}
+        </Block>
+      ) : null}
 
-        {/* Evidence: the real lineage edges in and out of this decision. */}
-        {evidenceIn.length > 0 || evidenceOut.length > 0 ? (
-          <DetailSection heading="Evidence">
-            <div style={{ display: "grid", gap: "6px" }}>
-              {evidenceIn.map((e) => (
-                <span key={e.id} style={{ color: "var(--text-body)" }}>
-                  From {e.parent_kind.replace(/_/g, " ")}
-                  {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
-                </span>
-              ))}
-              {evidenceOut.map((e) => (
-                <span key={e.id} style={{ color: "var(--text-body)" }}>
-                  Fed {e.child_kind.replace(/_/g, " ")}
-                  {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
-                </span>
-              ))}
-            </div>
-          </DetailSection>
-        ) : null}
+      <Block
+        title="The call"
+        sub="Yours, and it is the one the crew reads. Settling it here settles it everywhere."
+      >
+        <Choices
+          label="What happens to this call"
+          value={d.status as Status}
+          options={VERDICT_OPTIONS.map((o) => ({ ...o, disabled: update.isPending }))}
+          onPick={(status) => update.mutate({ status, title })}
+        />
+      </Block>
 
-        {/* Critic verdict: the red-team review persisted on the linked spec. */}
-        {critic ? (
-          <DetailSection heading="Critic verdict · on the linked spec">
-            <div style={{ display: "grid", gap: "4px" }}>
-              <span style={{ color: "var(--text-body)" }}>
-                {critic.verdict.toUpperCase()} · confidence {Math.round(critic.confidence * 100)}%
-                {critic.reviewed_at ? ` · ${relTimeCaps(critic.reviewed_at)}` : ""}
-              </span>
-              {critic.summary ? (
-                <p
-                  style={{
-                    color: "var(--text-subtle)",
-                    lineHeight: 1.55,
-                    margin: 0,
-                  }}
-                >
-                  {critic.summary}
-                </p>
-              ) : null}
-            </div>
-          </DetailSection>
-        ) : null}
+      {settled.map((s) => (
+        <Receipt
+          key={s.id}
+          verb={s.verb}
+          consequence={s.consequence}
+          time={s.at}
+          failed={s.failed}
+        />
+      ))}
 
-        {/* RPT-25: the contradiction auditor. Drift pointed inward: re-reads the
-            workspace's prior decisions on demand and flags the ones that
-            disagree with this call, then lets the operator propose a real
-            supersession edge. Mounted after the Critic/Evidence sections. */}
-        <ContradictionAuditSection decisionId={d.id} />
+      {/* Real per-transition rows; renders nothing until the first lands. */}
+      <StageTimeline entityType="decision" entityId={d.id} />
 
-        {/* Precedent: last time we reasoned this way, here is what happened.
-            Outcome-weighted learnings via the Ambient Precedent recall; serving
-            one also writes its citation receipt server-side. */}
-        {precedents.length > 0 ? (
-          <DetailSection heading="Precedent">
-            <div style={{ display: "grid", gap: "8px" }}>
-              <p style={{ color: "var(--text-subtle)", margin: 0 }}>
-                Last time we reasoned this way, here is what happened.
-              </p>
-              {precedents.map((p) => (
-                <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
-                  <span style={{ color: "var(--text-body)" }}>
-                    {p.verdict.toUpperCase()}
-                    {p.title ? ` · ${p.title}` : ""}
-                  </span>
-                  <span style={{ color: "var(--text-subtle)", lineHeight: 1.5 }}>
-                    {p.summary}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </DetailSection>
-        ) : null}
-
-        {/* The call: the human's verdict, wired to updateDecision. */}
-        <DetailSection heading="Verdict · the human's call">
-          <div style={{ display: "grid", gap: "10px" }}>
-            <div className="flex flex-wrap items-center" style={{ gap: "6px" }}>
-              {(["approved", "rejected", "pending"] as const).map((s) => {
-                const selected = d.status === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    disabled={update.isPending}
-                    onClick={() => update.mutate({ id: d.id, status: s })}
-                    aria-pressed={selected}
-                    className={`outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${
-                      selected ? "" : " hover:opacity-80"
-                    }`}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      padding: 0,
-                      cursor: update.isPending ? "default" : "pointer",
-                      opacity: selected ? 1 : 0.5,
-                    }}
-                  >
-                    <VerdictChip tone={OBS_STATUS_TONE[s]} />
-                  </button>
-                );
-              })}
-            </div>
-            <p
-              style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}
-            >
-              Agents read this before any mission that touches the same surface.
-            </p>
-          </div>
-        </DetailSection>
-
-        {/* Stage history: real per-transition rows; renders nothing until the
-            first transition lands. */}
-        <StageTimeline entityType="decision" entityId={d.id} />
-
-        {/* Activity. */}
-        <DetailSection heading="Activity">
-          <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ color: "var(--text-subtle)" }}>Decided</span>
-            <TimeLine iso={d.created_at} />
-          </div>
-        </DetailSection>
-
-        {/* Actions. */}
-        <div
-          className="flex flex-wrap items-center"
-          style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
-        >
-          <ShareDecisionButton id={d.id} />
-          {/* PC-10: one-key rewind of an agent- or human-revised decision. Self-hides
-              when there is no prior snapshot, so it only appears once a revision exists. */}
+      <Block title="Elsewhere">
+        <Line label="Trace id" sub="The id this call answers to across the record">
+          <Value>
+            <Num>{d.id}</Num>
+          </Value>
+        </Line>
+        <Line label="Decided" sub={new Date(d.created_at).toLocaleString()}>
+          <Value>{ageOf(d.created_at)}</Value>
+        </Line>
+        <Actions>
+          <ShareDecisionButton id={d.id} onCommit={commit} />
+          {/* PC-10: one-key rewind of a revised decision. Self-hides when there
+              is no prior snapshot, so it appears only once a revision exists. */}
           <RewindButton
             decisionId={d.id}
             hasSnapshot={!!d.snapshot_before}
             onReverted={() => qc.invalidateQueries({ queryKey: ["decisions"] })}
           />
-        </div>
-      </div>
+        </Actions>
+      </Block>
     </div>
   );
 }

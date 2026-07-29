@@ -1,20 +1,39 @@
-// Prompts tab — ported 1:1 from design-reference/supaprod/loop.jsx
-// (GovernScreen, tab "Prompts"): a bento table (Surface 1fr / Version 70px /
-// Note 1fr / Status 90px / actions 150px) with the surface at 500 weight, the
-// version mono ink, the note at 12px text-subtle, the status mono 8.5
-// (testing → glacier, live → moss, both literal status labels, sanctioned
-// per the Tempo v5 glacier narrowing), and Diff + Roll back ghost buttons.
-// Both actions are REAL here: Diff opens production's existing Prompt Studio
-// drill-down (version compare, line diff, draft editing, publish, A/B
-// assignment, usage) restyled quiet-Ember; Roll back calls the
-// rollbackPromptVersion mutation (previous published version becomes active).
-// Status derives from the active version's real state — draft-active reads
-// "testing", published-active reads "live"; nothing is invented.
+/**
+ * PROMPTS. Ported onto the shell primitives, 2026-07-29.
+ *
+ * What it was: a five column CSS grid pretending to be a table, `EmptyState`,
+ * `MonoLabel`, `bento` panels, pill buttons that drew their own selected state
+ * out of `--text-primary` on `--canvas`, two 420px `<pre>` panes side by side,
+ * and a usage panel with hand-rolled 4px bars.
+ *
+ * WHAT WENT, AND WHAT IT COST:
+ *   GONE  the "Diff" button on every list row. It did exactly what clicking
+ *         the row already did. Two affordances for one act is the row telling
+ *         you it does not know what it is.
+ *   GONE  the two full-text panes. The line diff below them already contained
+ *         both versions in full, unchanged lines included, so the panes were
+ *         the same text a second time at half the width. The draft editor
+ *         stays, because you cannot edit inside a diff.
+ *   GONE  the usage bars. Four bars in one neutral tint, redrawing four
+ *         percentages printed beside them. They fail the greyscale test by
+ *         construction: remove the colour and nothing was lost, which means
+ *         nothing was carried.
+ *   GONE  the version pills. A template can carry twenty versions; twenty
+ *         pills is a wrap, a scroll and twenty tab stops for one decision.
+ *         A `Select` is one tab stop and holds any number of them.
+ *   KEPT  every server call: fork, save, publish, set active, roll back, and
+ *         the A/B assignment.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Six writes on this surface
+ * fired a success toast and erased themselves: rolled back, forked, saved,
+ * published, set active, assignment saved. A toast confirms your click
+ * registered. Each one now leaves a `Receipt` naming what runs differently
+ * because of it, which is what the click CAUSED. Publishing a prompt changes
+ * what every user of that surface is answered by, and that deserves a mark.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, useEffect } from "react";
-import { toast } from "@/lib/notify";
-import { FileCode } from "lucide-react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import {
   listPromptTemplates,
   getPromptTemplate,
@@ -26,9 +45,25 @@ import {
   getPromptAnalytics,
   rollbackPromptVersion,
 } from "@/lib/prompts.functions";
-import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
-
-const GRID = "1fr 70px 1fr 90px 150px";
+import {
+  Actions,
+  Block,
+  Button,
+  Checkbox,
+  Diffstat,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  PageHead,
+  Pre,
+  Receipt,
+  Row,
+  Select,
+  Textarea,
+  Value,
+} from "@/components/shell/primitives";
 
 type TemplateRow = {
   id: string;
@@ -55,6 +90,23 @@ type Version = {
   updated_at: string;
 };
 
+/** One thing a write caused, held long enough to render its receipt. */
+type Done = { verb: string; consequence: ReactNode; at: string };
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+/** Plain words relative time, so a receipt reads without a formatter import. */
+function ago(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
 export function PromptsPanel() {
   const qc = useQueryClient();
   const fList = useServerFn(listPromptTemplates);
@@ -62,53 +114,40 @@ export function PromptsPanel() {
   const templates = useQuery({ queryKey: ["prompt-templates"], queryFn: () => fList() });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [done, setDone] = useState<Done[]>([]);
 
   const rollback = useMutation({
     mutationFn: (v: { id: string; name: string }) => fRollback({ data: { template_id: v.id } }),
     onSuccess: (r, v) => {
-      toast.success(`${v.name} rolled back to v${r.version}. It's live now.`);
-      qc.invalidateQueries({ queryKey: ["prompt-templates"] });
-      qc.invalidateQueries({ queryKey: ["prompt-template", v.id] });
+      setDone((d) => [
+        ...d,
+        {
+          verb: "You rolled it back",
+          consequence: (
+            <>
+              {v.name} answers from <Num>v{r.version}</Num> again, starting with the next call.
+            </>
+          ),
+          at: now(),
+        },
+      ]);
+      void qc.invalidateQueries({ queryKey: ["prompt-templates"] });
+      void qc.invalidateQueries({ queryKey: ["prompt-template", v.id] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const rows = (templates.data as TemplateRow[] | undefined) ?? [];
 
-  if (templates.error) {
+  if (templates.isError) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--madder)" }}>
-          Couldn't load prompts
-        </div>
-        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
-          {(templates.error as Error).message}
-        </p>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => templates.refetch()}
-        >
-          Retry · reloads prompts
-        </button>
-      </div>
+      <Failed onRetry={() => void templates.refetch()}>
+        The prompts did not load, so nothing below would be what the surfaces are actually running.
+      </Failed>
     );
   }
 
   if (templates.isLoading) {
-    return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the prompts
-      </p>
-    );
+    return <Loading>Reading what each surface is running.</Loading>;
   }
 
   if (selectedId) {
@@ -123,112 +162,79 @@ export function PromptsPanel() {
 
   if (rows.length === 0) {
     return (
-      <EmptyState
-        icon={FileCode}
-        title="No prompt templates yet"
-        body="Every AI surface runs on a versioned system prompt. Templates land here when a surface first calls the runtime."
-        cta="Refresh · checks again"
-        onCta={() => templates.refetch()}
-      />
+      <Empty
+        action={
+          <Button variant="ghost" onClick={() => void templates.refetch()}>
+            Look again
+          </Button>
+        }
+      >
+        No prompt has been registered yet. Every AI surface runs on a versioned system prompt, and
+        one lands here the first time that surface calls the runtime.
+      </Empty>
     );
   }
 
   return (
-    <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-      <div
-        className="mono-label"
-        style={{
-          display: "grid",
-          gridTemplateColumns: GRID,
-          gap: "var(--geist-space-3x)",
-          padding: "10px 18px",
-          borderBottom: "1px solid var(--hairline)",
-        }}
-      >
-        <span>Surface</span>
-        <span>Version</span>
-        <span>Note</span>
-        <span>Status</span>
-        <span></span>
-      </div>
-      {rows.map((p, i) => {
-        const status = !p.active_version
-          ? null
-          : p.active_version.status === "draft"
-            ? "testing"
-            : "live";
+    <Block
+      title="What each surface is running"
+      sub="One published version answers every call. Roll one back and the next call uses the version before it."
+    >
+      {rows.map((p) => {
+        const v = p.active_version;
         const rolling = rollback.isPending && rollback.variables?.id === p.id;
+        const canRoll = !!v && v.version > 1;
         return (
-          <div
+          <Row
             key={p.id}
-            style={{
-              display: "grid",
-              gridTemplateColumns: GRID,
-              gap: "var(--geist-space-3x)",
-              padding: "12px 18px",
-              alignItems: "center",
-              borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
-            }}
-          >
-            <button
-              type="button"
-              className="cursor-pointer hover:underline active:opacity-80"
-              style={{ fontWeight: 500, textAlign: "left" }}
-              onClick={() => setSelectedId(p.id)}
-            >
-              {p.name}
-            </button>
-            <span className="mono-label tabular-nums" style={{ color: "var(--text-primary)" }}>
-              {p.active_version ? `v${p.active_version.version}` : "-"}
-            </span>
-            <span style={{ color: "var(--text-subtle)" }}>
-              {p.description ?? `${p.surface} · ${p.key}`}
-            </span>
-            <span
-              className="mono-label"
-              style={{
-                color:
-                  status === "testing"
-                    ? "var(--glacier)"
-                    : status === "live"
-                      ? "var(--moss)"
-                      : "var(--text-faint)",
-              }}
-            >
-              {status ?? "unset"}
-            </span>
-            <span style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ }}
-                onClick={() => setSelectedId(p.id)}
-              >
-                Diff
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ }}
-                disabled={rolling || !p.active_version || p.active_version.version <= 1}
-                title={
-                  !p.active_version || p.active_version.version <= 1
-                    ? "Nothing earlier to roll back to"
-                    : undefined
-                }
+            tight
+            lead={p.name}
+            onClick={() => setSelectedId(p.id)}
+            sub={
+              !v ? (
+                <>
+                  Nothing published.{" "}
+                  <Num>
+                    {p.surface}/{p.key}
+                  </Num>{" "}
+                  runs on its built-in text.
+                </>
+              ) : (
+                <>
+                  <Value tone={v.status === "draft" ? "warn" : "pass"}>
+                    {v.status === "draft" ? "a draft is live" : "live"}
+                  </Value>{" "}
+                  on <Num>v{v.version}</Num>, {p.description ?? `${p.surface}/${p.key}`}
+                </>
+              )
+            }
+            action={
+              <Button
+                variant="ghost"
+                disabled={rolling || !canRoll}
+                title={canRoll ? undefined : "There is nothing earlier to go back to"}
                 onClick={() => rollback.mutate({ id: p.id, name: p.name })}
               >
-                {rolling ? "Rolling back…" : "Roll back"}
-              </button>
-            </span>
-          </div>
+                {rolling ? "Rolling back" : "Roll back"}
+              </Button>
+            }
+          />
         );
       })}
-    </div>
+
+      {rollback.isError ? <Failed>{(rollback.error as Error).message}</Failed> : null}
+
+      {done.map((d, i) => (
+        <Receipt key={`${d.at}-${i}`} verb={d.verb} consequence={d.consequence} time={ago(d.at)} />
+      ))}
+    </Block>
   );
 }
 
-/* Prompt Studio drill-down — production's existing detail (version compare,
-   line diff, draft editing, publish, A/B assignment, usage), restyled
-   quiet-Ember. The drill-down contract: the list row opens this screen. */
+/* ------------------------------------------------------------------ *
+ * One prompt
+ * ------------------------------------------------------------------ */
+
 function TemplateDetail({
   templateId,
   onBack,
@@ -244,8 +250,11 @@ function TemplateDetail({
   const fUpdate = useServerFn(updatePromptVersion);
   const fPublish = useServerFn(publishPromptVersion);
   const fSetActive = useServerFn(setActiveVersion);
-  const fAssign = useServerFn(setAssignment);
   const fAnalytics = useServerFn(getPromptAnalytics);
+
+  const [done, setDone] = useState<Done[]>([]);
+  const mark = (verb: string, consequence: ReactNode) =>
+    setDone((d) => [...d, { verb, consequence, at: now() }]);
 
   const detail = useQuery({
     queryKey: ["prompt-template", templateId],
@@ -287,379 +296,301 @@ function TemplateDetail({
   const editable = right?.status === "draft";
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["prompt-template", templateId] });
-    qc.invalidateQueries({ queryKey: ["prompt-analytics", templateId] });
+    void qc.invalidateQueries({ queryKey: ["prompt-template", templateId] });
+    void qc.invalidateQueries({ queryKey: ["prompt-analytics", templateId] });
     onMutated();
   };
 
   const mFork = useMutation({
     mutationFn: () => fFork({ data: { template_id: templateId, base_version_id: right?.id } }),
     onSuccess: (v) => {
-      toast.success(`Forked v${v.version}. Drafts don't run until published.`);
+      mark(
+        "You forked it",
+        <>
+          <Num>v{v.version}</Num> is a draft. Nothing is answered by it until you publish it.
+        </>,
+      );
       setRightId(v.id);
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
   const mSave = useMutation({
     mutationFn: () => fUpdate({ data: { version_id: right!.id, system_prompt: draftText } }),
     onSuccess: () => {
-      toast.success("Draft saved. Still not live.");
+      mark(
+        "You saved the draft",
+        <>
+          <Num>v{right?.version}</Num> holds your text. It is still not answering anyone.
+        </>,
+      );
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
   const mPublish = useMutation({
     mutationFn: () => fPublish({ data: { version_id: right!.id, template_id: templateId } }),
     onSuccess: () => {
-      toast.success("Published. This version now serves the surface.");
+      mark(
+        "You published it",
+        <>
+          Every call to{" "}
+          <Num>
+            {template?.surface}/{template?.key}
+          </Num>{" "}
+          is answered by <Num>v{right?.version}</Num> from now on.
+        </>,
+      );
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
   const mSetActive = useMutation({
     mutationFn: (id: string) => fSetActive({ data: { template_id: templateId, version_id: id } }),
-    onSuccess: () => {
-      toast.success("Active version updated. Traffic routes to it now.");
+    onSuccess: (_r, id) => {
+      const v = versions.find((x) => x.id === id);
+      mark(
+        "You switched the live version",
+        <>
+          Traffic routes to <Num>v{v?.version}</Num> now.
+        </>,
+      );
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
+  const backButton = (
+    <Button variant="ghost" onClick={onBack}>
+      All prompts
+    </Button>
+  );
+
   if (detail.isLoading) {
-    return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the template
-      </p>
-    );
+    return <Loading>Reading this prompt and its versions.</Loading>;
   }
-  // An error may never wear the not-found state's clothes (checklist 7).
+  // A read that failed may never wear the not-found state's clothes.
   if (detail.isError) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <p style={{ color: "var(--madder)" }}>
-          This template did not load. {(detail.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 12 }}
-          onClick={() => void detail.refetch()}
-        >
-          Retry
-        </button>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 12, marginLeft: 8 }}
-          onClick={onBack}
-        >
-          ← Back to prompts
-        </button>
-      </div>
+      <>
+        <PageHead title="This prompt did not load." />
+        <Failed onRetry={() => void detail.refetch()}>
+          {(detail.error as Error)?.message}. Nothing below would be what the surface is running.
+        </Failed>
+        <Block>{backButton}</Block>
+      </>
     );
   }
   if (!template) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <p style={{ color: "var(--text-subtle)" }}>Template not found.</p>
-        <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={onBack}>
-          ← Back to prompts
-        </button>
-      </div>
+      <>
+        <PageHead title="No prompt by that name." />
+        <Empty action={backButton}>
+          Nothing in this workspace answers to that id. It may have been removed.
+        </Empty>
+      </>
     );
   }
 
   const activeVersion = versions.find((v) => v.id === template.active_version_id);
+  const diffBase = left?.system_prompt ?? "";
+  const diffHead = (editable ? draftText : right?.system_prompt) ?? "";
+  const dirty = editable && right != null && draftText !== right.system_prompt;
 
   return (
-    <div className="fade-up">
-      <div style={{ marginBottom: 16 }}>
-        <button
-          type="button"
-          className="mono-label cursor-pointer hover:underline active:opacity-80"
-          style={{ color: "var(--text-subtle)", marginBottom: 10 }}
-          onClick={onBack}
-        >
-          ← All prompts
-        </button>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "var(--geist-space-3x)",
-            flexWrap: "wrap",
-          }}
-        >
-          <div>
-            <MonoLabel>
-              Prompt · {template.surface} · {template.key}
-              {activeVersion ? ` · active v${activeVersion.version}` : ""}
-            </MonoLabel>
-            <div className="font-display" style={{ marginTop: 2 }}>
-              {template.name}
-            </div>
-          </div>
-          <button
-            className="btn btn-ghost btn-sm"
-            disabled={mFork.isPending}
-            onClick={() => mFork.mutate()}
-          >
-            {mFork.isPending ? "Forking…" : "Fork new draft · copies this version"}
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 12 }}>
-        <VersionColumn
-          label="Compare · left"
-          versions={versions}
-          selectedId={leftId}
-          onSelect={setLeftId}
-          activeId={template.active_version_id}
-          onSetActive={(id) => mSetActive.mutate(id)}
-        />
-        <VersionColumn
-          label="Edit / publish · right"
-          versions={versions}
-          selectedId={rightId}
-          onSelect={setRightId}
-          activeId={template.active_version_id}
-          onSetActive={(id) => mSetActive.mutate(id)}
-        />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 12 }}>
-        <pre
-          className="bento"
-          style={{
-            padding: "var(--card-pad)",
-            fontFamily: "var(--font-mono)",
-            whiteSpace: "pre-wrap",
-            maxHeight: 420,
-            overflow: "auto",
-            color: "var(--text-body)",
-            lineHeight: 1.55,
-            margin: 0,
-          }}
-        >
-          {left?.system_prompt || "(empty)"}
-        </pre>
-        {editable ? (
-          <textarea
-            className="input"
-            value={draftText}
-            onChange={(e) => setDraftText(e.target.value)}
-            aria-label="Draft system prompt"
-            style={{
-              fontFamily: "var(--font-mono)",
-              minHeight: 420,
-              resize: "vertical",
-              lineHeight: 1.55,
-            }}
-          />
-        ) : (
-          <pre
-            className="bento"
-            style={{
-              padding: "var(--card-pad)",
-              fontFamily: "var(--font-mono)",
-              whiteSpace: "pre-wrap",
-              maxHeight: 420,
-              overflow: "auto",
-              color: "var(--text-primary)",
-              lineHeight: 1.55,
-              margin: 0,
-            }}
-          >
-            {right?.system_prompt || "(empty)"}
-          </pre>
-        )}
-      </div>
-
-      <DiffPanel
-        left={left?.system_prompt ?? ""}
-        right={(editable ? draftText : right?.system_prompt) ?? ""}
-      />
-
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", margin: "12px 0" }}>
-        {editable ? (
-          <>
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={mSave.isPending}
-              onClick={() => mSave.mutate()}
-            >
-              {mSave.isPending ? "Saving…" : "Save draft · not yet live"}
-            </button>
-            <button
-              className="btn btn-primary btn-sm"
-              disabled={mPublish.isPending}
-              onClick={() => mPublish.mutate()}
-            >
-              {mPublish.isPending ? "Publishing…" : "Publish · becomes active"}
-            </button>
-          </>
-        ) : right ? (
-          <span style={{ color: "var(--text-subtle)" }}>
-            Published versions are immutable; fork a new draft to edit.
-          </span>
-        ) : null}
-      </div>
-
-      <AssignmentPanel
-        assignment={assignment}
-        versions={versions}
-        onSave={(p) =>
-          fAssign({ data: { template_id: templateId, ...p } })
-            .then(() => {
-              invalidate();
-              toast.success("Assignment saved. The split applies to new calls.");
-            })
-            .catch((e: Error) => toast.error(e.message))
+    <>
+      <PageHead
+        title={template.name}
+        sub={
+          activeVersion ? (
+            <>
+              <Num>
+                {template.surface}/{template.key}
+              </Num>{" "}
+              is answered by <Num>v{activeVersion.version}</Num>.
+            </>
+          ) : (
+            <>
+              <Num>
+                {template.surface}/{template.key}
+              </Num>{" "}
+              has no published version, so it runs on its built-in text.
+            </>
+          )
         }
       />
 
-      <PromptUsagePanel
+      <Block
+        title="Which two you are comparing"
+        sub="The left is the one you are measuring against. The right is the one you can change."
+      >
+        <Line label="Measured against" htmlFor="prompt-left">
+          <Select id="prompt-left" value={leftId ?? ""} onChange={(e) => setLeftId(e.target.value)}>
+            {versions.map((v) => (
+              <option key={v.id} value={v.id}>
+                v{v.version}, {v.status}
+                {v.id === template.active_version_id ? ", live" : ""}
+              </option>
+            ))}
+          </Select>
+        </Line>
+
+        <Line
+          label="The one you are working on"
+          sub={
+            editable
+              ? "A draft, so you can edit it below."
+              : "Published, so it cannot be changed. Fork it to edit."
+          }
+          htmlFor="prompt-right"
+        >
+          <Select
+            id="prompt-right"
+            value={rightId ?? ""}
+            onChange={(e) => setRightId(e.target.value)}
+          >
+            {versions.map((v) => (
+              <option key={v.id} value={v.id}>
+                v{v.version}, {v.status}
+                {v.id === template.active_version_id ? ", live" : ""}
+              </option>
+            ))}
+          </Select>
+        </Line>
+
+        {(mFork.error ?? mSetActive.error) ? (
+          <Failed>{((mFork.error ?? mSetActive.error) as Error).message}</Failed>
+        ) : null}
+
+        <Actions>
+          <Button disabled={mFork.isPending} onClick={() => mFork.mutate()}>
+            {mFork.isPending ? "Forking it" : "Fork a draft from the right"}
+          </Button>
+          {rightId && rightId !== template.active_version_id ? (
+            <Button
+              disabled={mSetActive.isPending}
+              onClick={() => mSetActive.mutate(rightId)}
+              title="Routes every new call to this version"
+            >
+              {mSetActive.isPending ? "Switching" : "Make the right one live"}
+            </Button>
+          ) : null}
+        </Actions>
+      </Block>
+
+      {editable ? (
+        <Block
+          title="The draft"
+          sub={
+            dirty ? "Changed, and not saved yet." : "Saved. It is not live until you publish it."
+          }
+        >
+          <Textarea
+            value={draftText}
+            onChange={(e) => setDraftText(e.target.value)}
+            aria-label="The draft system prompt"
+            rows={18}
+          />
+
+          {(mSave.error ?? mPublish.error) ? (
+            <Failed>{((mSave.error ?? mPublish.error) as Error).message}</Failed>
+          ) : null}
+
+          <Actions>
+            <Button
+              variant="primary"
+              disabled={mPublish.isPending || dirty}
+              title={dirty ? "Save what you changed first" : "Every new call uses this"}
+              onClick={() => mPublish.mutate()}
+            >
+              {mPublish.isPending ? "Publishing it" : "Publish it"}
+            </Button>
+            <Button disabled={mSave.isPending || !dirty} onClick={() => mSave.mutate()}>
+              {mSave.isPending ? "Saving it" : "Save it"}
+            </Button>
+          </Actions>
+        </Block>
+      ) : null}
+
+      <DiffBlock base={diffBase} head={diffHead} />
+
+      <AssignmentBlock
+        templateId={templateId}
+        assignment={assignment}
+        versions={versions}
+        onSaved={(pct, aV, bV) => {
+          mark(
+            "You set the split",
+            bV ? (
+              <>
+                <Num>{pct}%</Num> of new calls go to <Num>v{aV}</Num>, the rest to <Num>v{bV}</Num>.
+              </>
+            ) : (
+              <>
+                Every new call goes to <Num>v{aV}</Num>.
+              </>
+            ),
+          );
+          invalidate();
+        }}
+      />
+
+      <UsageBlock
         versions={versions}
         runs={(analytics.data?.runs as { version_id: string; variant: string }[] | undefined) ?? []}
+        failed={analytics.isError}
+        onRetry={() => void analytics.refetch()}
       />
-    </div>
+
+      {done.length > 0 ? (
+        <Block title="What you changed">
+          {done.map((d, i) => (
+            <Receipt
+              key={`${d.at}-${i}`}
+              verb={d.verb}
+              consequence={d.consequence}
+              time={ago(d.at)}
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      <Block>{backButton}</Block>
+    </>
   );
 }
 
-function VersionColumn({
-  label,
-  versions,
-  selectedId,
-  onSelect,
-  activeId,
-  onSetActive,
-}: {
-  label: string;
-  versions: Version[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  activeId: string | null;
-  onSetActive: (id: string) => void;
-}) {
-  return (
-    <div className="bento" style={{ padding: "12px 14px" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 8,
-        }}
-      >
-        <MonoLabel style={{ }}>{label}</MonoLabel>
-        {selectedId && selectedId !== activeId ? (
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ }}
-            onClick={() => onSetActive(selectedId)}
-          >
-            Set active · routes traffic
-          </button>
-        ) : null}
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 120, overflow: "auto" }}>
-        {versions.map((v) => {
-          const selected = selectedId === v.id;
-          return (
-            <button
-              key={v.id}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onSelect(v.id)}
-              className={`mono-label${selected ? "" : " hover:[background-color:var(--raised)]"} active:opacity-80`}
-              style={{
-                padding: "4px 10px",
-                borderRadius: 99,
-                color: selected ? "var(--canvas)" : "var(--text-subtle)",
-                background: selected ? "var(--text-primary)" : "transparent",
-                border: `1px solid ${selected ? "transparent" : "var(--hairline)"}`,
-                transition: "background var(--dur-fast), color var(--dur-fast)",
-              }}
-            >
-              v{v.version}
-              <span
-                style={{
-                  marginLeft: 5,
-                  color: selected
-                    ? "var(--canvas)"
-                    : v.status === "draft"
-                      ? "var(--glacier)"
-                      : v.status === "published"
-                        ? "var(--moss)"
-                        : "var(--text-faint)",
-                }}
-              >
-                {v.status}
-              </span>
-              {activeId === v.id ? <span style={{ marginLeft: 5 }}>●</span> : null}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ *
+ * The diff
+ * ------------------------------------------------------------------ */
 
-/** Minimal line-level diff: moss = added, madder = removed, dim = unchanged. */
-function DiffPanel({ left, right }: { left: string; right: string }) {
-  const diff = useMemo(() => computeLineDiff(left, right), [left, right]);
+/** Line level diff. It carries the whole of both versions, unchanged lines
+ *  included, which is why the two full-text panes it used to sit under are
+ *  gone: they were the same text a second time. */
+function DiffBlock({ base, head }: { base: string; head: string }) {
+  const diff = useMemo(() => computeLineDiff(base, head), [base, head]);
+  const added = diff.filter((d) => d.t === "add").length;
+  const removed = diff.filter((d) => d.t === "del").length;
+  const same = added === 0 && removed === 0;
+
   return (
-    <div className="bento" style={{ padding: "12px 14px" }}>
-      <MonoLabel style={{ marginBottom: 8 }}>Diff · left vs right</MonoLabel>
-      <pre
-        style={{
-          fontFamily: "var(--font-mono)",
-          whiteSpace: "pre-wrap",
-          maxHeight: 260,
-          overflow: "auto",
-          margin: 0,
-          lineHeight: 1.55,
-        }}
-      >
-        {diff.length === 0 ? (
-          <div style={{ color: "var(--text-subtle)" }}>No differences.</div>
-        ) : (
-          diff.map((d, i) => (
-            <div
+    <Block
+      title="What is different"
+      sub={same ? undefined : <Diffstat added={added} removed={removed} />}
+    >
+      {same ? (
+        <Empty>The two are identical, line for line.</Empty>
+      ) : (
+        <Pre>
+          {diff.map((d, i) => (
+            <span
               key={i}
-              style={
-                d.t === "add"
-                  ? {
-                      background: "color-mix(in oklab, var(--moss) 10%, transparent)",
-                      color: "var(--moss)",
-                    }
-                  : d.t === "del"
-                    ? {
-                        background: "color-mix(in oklab, var(--madder) 10%, transparent)",
-                        color: "var(--madder)",
-                      }
-                    : { color: "var(--text-faint)" }
-              }
+              style={{ display: "block" }}
+              className={d.t === "add" ? "sp-pass" : d.t === "del" ? "sp-fail" : undefined}
             >
-              <span style={{ opacity: 0.6, marginRight: 8 }}>
-                {d.t === "add" ? "+" : d.t === "del" ? "-" : " "}
-              </span>
+              {d.t === "add" ? "+ " : d.t === "del" ? "- " : "  "}
               {d.line || " "}
-            </div>
-          ))
-        )}
-      </pre>
-    </div>
+            </span>
+          ))}
+        </Pre>
+      )}
+    </Block>
   );
 }
 
@@ -699,11 +630,17 @@ function computeLineDiff(a: string, b: string): { t: "eq" | "add" | "del"; line:
   return out;
 }
 
-function AssignmentPanel({
+/* ------------------------------------------------------------------ *
+ * The split
+ * ------------------------------------------------------------------ */
+
+function AssignmentBlock({
+  templateId,
   assignment,
   versions,
-  onSave,
+  onSaved,
 }: {
+  templateId: string;
   assignment: {
     variant_a_version_id: string | null;
     variant_b_version_id: string | null;
@@ -711,13 +648,9 @@ function AssignmentPanel({
     enabled: boolean;
   } | null;
   versions: Version[];
-  onSave: (p: {
-    variant_a_version_id?: string | null;
-    variant_b_version_id?: string | null;
-    split_pct?: number;
-    enabled?: boolean;
-  }) => void;
+  onSaved: (pct: number, aVersion: number | undefined, bVersion: number | undefined) => void;
 }) {
+  const fAssign = useServerFn(setAssignment);
   const [aId, setAId] = useState<string>(assignment?.variant_a_version_id ?? "");
   const [bId, setBId] = useState<string>(assignment?.variant_b_version_id ?? "");
   const [split, setSplit] = useState<number>(assignment?.split_pct ?? 100);
@@ -734,93 +667,109 @@ function AssignmentPanel({
     assignment?.enabled,
   ]);
 
+  const save = useMutation({
+    mutationFn: () =>
+      fAssign({
+        data: {
+          template_id: templateId,
+          variant_a_version_id: aId || null,
+          variant_b_version_id: bId || null,
+          split_pct: split,
+          enabled,
+        },
+      }),
+    onSuccess: () =>
+      onSaved(
+        split,
+        versions.find((v) => v.id === aId)?.version,
+        versions.find((v) => v.id === bId)?.version,
+      ),
+  });
+
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)", marginBottom: 12 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 10,
-        }}
+    <Block
+      title="Running two of them against each other"
+      sub="A split applies to new calls only. Calls already in flight keep the version they started on."
+    >
+      {/* A Checkbox, not a Switch: this sits there until you press save, and a
+          Switch means the boundary went live the moment you touched it. */}
+      <Line label="Split the traffic" htmlFor="assignment-on">
+        <Checkbox
+          id="assignment-on"
+          checked={enabled}
+          onChange={setEnabled}
+          label="Split the traffic between two versions"
+        />
+      </Line>
+
+      <Line label="The one most calls get" htmlFor="assignment-a">
+        <Select id="assignment-a" value={aId} onChange={(e) => setAId(e.target.value)}>
+          <option value="">none</option>
+          {versions.map((v) => (
+            <option key={v.id} value={v.id}>
+              v{v.version}, {v.status}
+            </option>
+          ))}
+        </Select>
+      </Line>
+
+      <Line label="The one you are testing" htmlFor="assignment-b">
+        <Select id="assignment-b" value={bId} onChange={(e) => setBId(e.target.value)}>
+          <option value="">none</option>
+          {versions.map((v) => (
+            <option key={v.id} value={v.id}>
+              v{v.version}, {v.status}
+            </option>
+          ))}
+        </Select>
+      </Line>
+
+      <Line
+        label="How much goes to the first one"
+        sub={bId ? undefined : "Pick a second version and this starts to matter."}
+        htmlFor="assignment-split"
       >
-        <MonoLabel>A/B assignment</MonoLabel>
-        <button
-          role="switch"
-          aria-checked={enabled}
-          className="mono-label"
-          style={{ color: enabled ? "var(--moss)" : "var(--text-faint)" }}
-          onClick={() => setEnabled((v) => !v)}
-        >
-          {enabled ? "on" : "off"}
-        </button>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Variant A
-          </div>
-          <select className="input" value={aId} onChange={(e) => setAId(e.target.value)}>
-            <option value="">none</option>
-            {versions.map((v) => (
-              <option key={v.id} value={v.id}>
-                v{v.version} ({v.status})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Variant B · optional
-          </div>
-          <select className="input" value={bId} onChange={(e) => setBId(e.target.value)}>
-            <option value="">none</option>
-            {versions.map((v) => (
-              <option key={v.id} value={v.id}>
-                v{v.version} ({v.status})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={{ gridColumn: "span 2" }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Traffic to A · {split}%
-          </div>
+        <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
           <input
+            id="assignment-split"
             type="range"
             min={0}
             max={100}
             value={split}
             onChange={(e) => setSplit(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "var(--text-primary)" }}
+            style={{ width: 160, accentColor: "var(--sp-ink)" }}
           />
-        </label>
-      </div>
-      <div style={{ marginTop: 10 }}>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() =>
-            onSave({
-              variant_a_version_id: aId || null,
-              variant_b_version_id: bId || null,
-              split_pct: split,
-              enabled,
-            })
-          }
-        >
-          Save assignment · splits new calls
-        </button>
-      </div>
-    </div>
+          <Value>
+            <Num>{split}%</Num>
+          </Value>
+        </span>
+      </Line>
+
+      {save.isError ? <Failed>{(save.error as Error).message}</Failed> : null}
+
+      <Actions>
+        <Button disabled={save.isPending} onClick={() => save.mutate()}>
+          {save.isPending ? "Saving it" : "Save the split"}
+        </Button>
+      </Actions>
+    </Block>
   );
 }
 
-function PromptUsagePanel({
+/* ------------------------------------------------------------------ *
+ * Who answered what
+ * ------------------------------------------------------------------ */
+
+function UsageBlock({
   versions,
   runs,
+  failed,
+  onRetry,
 }: {
   versions: Version[];
   runs: { version_id: string; variant: string }[];
+  failed: boolean;
+  onRetry: () => void;
 }) {
   const totals = useMemo(() => {
     const map = new Map<string, number>();
@@ -828,58 +777,46 @@ function PromptUsagePanel({
     return map;
   }, [runs]);
   const total = runs.length;
+
+  if (failed) {
+    return (
+      <Block title="Who answered what">
+        <Failed onRetry={onRetry}>
+          The call history did not load, so no share can be worked out from it.
+        </Failed>
+      </Block>
+    );
+  }
+
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <MonoLabel style={{ marginBottom: 10 }}>Usage · last 30 days · {total} runs</MonoLabel>
+    <Block title="Who answered what" sub="The last 30 days.">
       {total === 0 ? (
-        <p style={{ color: "var(--text-subtle)" }}>No runs recorded yet.</p>
+        <Empty>
+          Nothing has called this prompt in the last 30 days, so there is no share to work out.
+        </Empty>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {versions.map((v) => {
-            const n = totals.get(v.id) ?? 0;
-            const pct = total ? Math.round((n / total) * 100) : 0;
-            return (
-              <div key={v.id}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span
-                    className="mono-label tabular-nums"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    v{v.version} · {v.status}
-                  </span>
-                  <span className="mono-label tabular-nums" style={{ color: "var(--text-subtle)" }}>
-                    {n} · {pct}%
-                  </span>
-                </div>
-                <div
-                  style={{
-                    height: 4,
-                    borderRadius: 99,
-                    background: "var(--raised)",
-                    overflow: "hidden",
-                    marginTop: 4,
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${pct}%`,
-                      background: "var(--text-subtle)",
-                      opacity: 0.85,
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        versions.map((v) => {
+          const n = totals.get(v.id) ?? 0;
+          // A percentage over an empty sample is a fabricated number; total is
+          // guaranteed non-zero here by the branch above.
+          const pct = Math.round((n / total) * 100);
+          return (
+            <Line
+              key={v.id}
+              label={
+                <>
+                  <Num>v{v.version}</Num>, {v.status}
+                </>
+              }
+              sub={n === 0 ? "Nothing reached it." : undefined}
+            >
+              <Value>
+                <Num>{n}</Num> calls, <Num>{pct}%</Num>
+              </Value>
+            </Line>
+          );
+        })
       )}
-    </div>
+    </Block>
   );
 }

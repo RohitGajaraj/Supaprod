@@ -2,7 +2,19 @@
  * Governance panel shared utilities and pure functions.
  * These are extracted from ApprovalsPanel to enable unit testing and reuse
  * across multiple governance surfaces.
+ *
+ * PORTED 2026-07-29. The tone maps used to hand back raw CSS variables from the
+ * retired palette (`var(--moss)`, `var(--madder)`, `var(--marigold)`), which is
+ * how a panel ends up drawing its own colour instead of asking a primitive for
+ * one. They now hand back the `Value` tone vocabulary from
+ * `src/components/shell/primitives.tsx`, so the stylesheet owns every mix and a
+ * governance surface owns none.
  */
+
+/** The `Value` primitive's tone vocabulary. A governance fact is quiet unless
+ *  it is itself an outcome, which is the one case where colour carries
+ *  information rather than decorating one. */
+export type GovTone = "quiet" | "pass" | "warn" | "fail";
 
 /**
  * Formats milliseconds as a relative expiry string: "expires in 2h" or "expired 3h ago".
@@ -53,37 +65,45 @@ export function fmtMedian(ms: number): string {
  * - failed: approval executed but the tool hit an error
  * - cancelled/expired: approval was invalidated before decision
  */
-export const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · agent resumed", color: "var(--moss)" },
-  executed: { text: "approved · agent resumed", color: "var(--moss)" },
-  rejected: { text: "rejected · nothing ran", color: "var(--text-muted)" },
-  failed: { text: "failed · the tool errored", color: "var(--madder)" },
-  cancelled: { text: "cancelled · nothing ran", color: "var(--text-faint)" },
-  expired: { text: "expired · nothing ran", color: "var(--text-faint)" },
+export const RESOLVED_LINE: Record<string, { text: string; tone: GovTone } | undefined> = {
+  approved: { text: "approved, the agent resumed", tone: "pass" },
+  executed: { text: "approved, the agent resumed", tone: "pass" },
+  rejected: { text: "rejected, nothing ran", tone: "quiet" },
+  failed: { text: "failed, the tool errored", tone: "fail" },
+  cancelled: { text: "cancelled, nothing ran", tone: "quiet" },
+  expired: { text: "expired, nothing ran", tone: "quiet" },
 };
 
 /**
- * Risk level to semantic tone mapping.
- * Used to color-code risk chips in approval cards.
+ * Risk level to the `Value` tone vocabulary.
  *
  * Mapping:
- * - low: moss (safe outcome)
- * - medium: marigold (caution, never ember which is reserved for primary CTA)
- * - high: madder (alert/danger)
+ * - low: pass (safe, and undoable from inside the product)
+ * - medium: warn (it reaches outside, and it can be walked back)
+ * - high: fail (hard to walk back)
  *
- * Unknown risk levels default to marigold (conservative caution).
+ * Unknown risk levels default to warn, which is the conservative read.
  */
-export const RISK_TONE: Record<string, string> = {
-  low: "var(--moss)",
-  medium: "var(--marigold)",
-  high: "var(--madder)",
+export const RISK_TONE: Record<string, GovTone> = {
+  low: "pass",
+  medium: "warn",
+  high: "fail",
 };
 
 /**
- * Gets the semantic tone for a risk level, with safe default.
+ * Gets the tone for a risk level, with safe default.
  * @param risk - Risk level string ("low", "medium", "high", or unknown)
- * @returns CSS color variable string
+ * @returns a `Value` tone
  */
-export function toneForRisk(risk: string): string {
-  return RISK_TONE[risk] ?? "var(--marigold)";
+export function toneForRisk(risk: string): GovTone {
+  return RISK_TONE[risk] ?? "warn";
 }
+
+/** What the risk level would actually touch, in plain words. Second-line
+ *  information, never a restatement of the word the chip beside it shows.
+ *  Same vocabulary as the Crew surface, so a risk reads the same in both. */
+export const RISK_NOTE: Record<string, string> = {
+  low: "Stays in this workspace, and you can undo it.",
+  medium: "Reaches outside, and it can be walked back.",
+  high: "Hard to walk back.",
+};

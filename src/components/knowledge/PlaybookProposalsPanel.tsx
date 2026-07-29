@@ -1,16 +1,42 @@
-// PlaybookProposalsPanel - the HUMAN half of the compounding pass (SW-3 /
-// mission 3.8b). The outcome-tick sweep (learning-compound.server.ts) writes a
-// playbook_proposals row when >= 3 same-shaped learnings repeat; until a human
-// adopts or dismisses it, that proposal is invisible work. This panel renders
-// the open proposals at the top of Brain -> Learnings (directly above the
-// outcome feed they compound from) and wires decidePlaybookProposal.
-//
-// Design contract: a proposal awaiting a decision is a needs-a-human moment,
-// so the card carries the ember treatment (ember-line border + ember-tint
-// fill) - the same grammar as the Trust Ledger's pending-gate receipts. The
-// panel disappears entirely when nothing is proposed (Brain never re-clutters
-// with an empty section), but a LOAD FAILURE renders as a failure, never as
-// "no proposals" (CompoundingPanel's error contract).
+/**
+ * The HUMAN half of the compounding pass (SW-3 / mission 3.8b). The outcome
+ * tick sweep (learning-compound.server.ts) writes a playbook_proposals row when
+ * three or more same-shaped learnings repeat. Until a human adopts or dismisses
+ * it, that is invisible work, so this panel renders the open proposals directly
+ * above the outcome feed they compound from and wires decidePlaybookProposal.
+ *
+ * The panel disappears entirely when nothing is proposed (Brain never
+ * re-clutters with an empty section), but a LOAD FAILURE renders as a failure,
+ * never as "no proposals".
+ *
+ * Ported to the shell primitives, 2026-07-29. What went, and why:
+ *   KILLED the ember-tinted, ember-bordered proposal card. Ember marks the ONE
+ *     thing asking, and this panel can hold six proposals at once; six ember
+ *     cards in a column is exactly how the colour stops meaning "look here".
+ *     ONE proposal is a Gate, which is where ember belongs; several are rows.
+ *   KILLED MonoLabel and the mono trace ref, mono timestamp, mono source count
+ *     and mono section heading. Mono is for data; a heading is not.
+ *   KILLED the hand-built section heading with its own hairline RULE stretching
+ *     to the right edge. Block already draws the rule.
+ *   KILLED the hand-built "failed to load" card and its bespoke retry button.
+ *   KILLED both success TOASTS. Adopting a playbook puts a standing rule into
+ *     every agent's prompt, and dismissing one is permanent because the sweep
+ *     never re-proposes a dismissed group key. Neither is a four-second fact
+ *     (agents/FINAL-agent-presence.md R10), so each leaves a Receipt.
+ *
+ * KEPT AS A MODAL, deliberately: the confirm before a permanent dismiss. It is
+ * one irreversible question with a yes and a no, which is precisely the case
+ * anti-slop ban 11 leaves open.
+ *
+ * UNCHANGED: listPlaybookProposals / decidePlaybookProposal, the
+ * ["playbook-proposals"] and ["needs-you"] invalidations that keep this panel
+ * and the Today queue in sync, the verbatim proposal body with the sweep's own
+ * line breaks, and VISIBLE_PROPOSALS.
+ *
+ * STILL LEGACY, and named rather than hidden: ConfidenceChip lives in
+ * components/supaprod, which this lane does not own. Its fact is stated in
+ * words on the evidence line instead, so the chip is no longer mounted.
+ */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,11 +45,19 @@ import {
   decidePlaybookProposal,
   type PlaybookProposal,
 } from "@/lib/playbooks.functions";
-import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
-import { traceRef } from "@/components/discover/format";
-import { MonoLabel, Button } from "@/components/obsidian/primitives";
-import { ConfidenceChip } from "@/components/supaprod/ConfidenceChip";
+import {
+  Actions,
+  Block,
+  Button,
+  Failed,
+  Gate,
+  Loading,
+  Num,
+  Prose,
+  Receipt,
+  Row,
+} from "@/components/shell/primitives";
 
 /** Same "when" rhythm as the outcome feed below this panel. */
 function whenOf(iso: string): string {
@@ -36,98 +70,12 @@ function whenOf(iso: string): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function ProposalCard({
-  p,
-  busy,
-  onDecide,
-}: {
-  p: PlaybookProposal;
-  busy: boolean;
-  onDecide: (decision: "confirm" | "dismiss") => void;
-}) {
-  return (
-    <article
-      aria-label={`Proposed playbook: ${p.title}`}
-      style={{
-        padding: "16px 18px",
-        borderRadius: "var(--radius-card)",
-        border: "1px solid var(--ember-line)",
-        background: "var(--ember-tint)",
-      }}
-    >
-      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 6 }}>
-        <MonoLabel style={{ }}>Proposed playbook</MonoLabel>
-        <ConfidenceChip tier={p.confidence} />
-        <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.06em",
-              color: "var(--text-faint)",
-            }}
-          >
-            PBP·{traceRef(p.id)}
-          </span>
-          <span
-            style={{ color: "var(--text-subtle)", fontFamily: "var(--font-mono)" }}
-          >
-            {whenOf(p.created_at)}
-          </span>
-        </span>
-      </div>
-
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontWeight: 450,
-          color: "var(--text-primary)",
-          margin: "0 0 8px",
-          lineHeight: 1.4,
-        }}
-      >
-        {p.title}
-      </p>
-
-      {/* The body quotes the learnings verbatim (never invented) - keep the
-          sweep's own line breaks. */}
-      <p
-        style={{
-          color: "var(--text-body)",
-          lineHeight: 1.55,
-          whiteSpace: "pre-wrap",
-          margin: "0 0 12px",
-        }}
-      >
-        {p.body}
-      </p>
-
-      <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
-        <Button
-          variant="secondary"
-          size="sm"
-          loading={busy}
-          disabled={busy}
-          onClick={() => onDecide("confirm")}
-        >
-          Adopt playbook
-        </Button>
-        <Button variant="tertiary" size="sm" disabled={busy} onClick={() => onDecide("dismiss")}>
-          Dismiss
-        </Button>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
-            letterSpacing: "0.06em",
-            marginLeft: "auto",
-          }}
-        >
-          {p.source_learning_ids.length} source learning
-          {p.source_learning_ids.length === 1 ? "" : "s"}
-        </span>
-      </div>
-    </article>
-  );
+/** The evidence line: how many outcomes said the same thing, how sure the
+ *  sweep is, and when it noticed. Three different facts, never a restatement
+ *  of the proposal's own title. */
+function evidenceOf(p: PlaybookProposal): string {
+  const n = p.source_learning_ids.length;
+  return `${n} outcome${n === 1 ? "" : "s"} said the same thing · ${p.confidence} confidence · noticed ${whenOf(p.created_at)}`;
 }
 
 // Anti-scroll (founder ruling 2026-07-06 / PC-32): the panel shows the top few
@@ -140,121 +88,171 @@ export function PlaybookProposalsPanel() {
   const qc = useQueryClient();
   const confirmDialog = useConfirm();
   const [showAll, setShowAll] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [settled, setSettled] = useState<
+    { id: string; verb: string; consequence: string; failed?: boolean }[]
+  >([]);
+
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed },
+      ...prev,
+    ]);
 
   const q = useQuery({ queryKey: ["playbook-proposals"], queryFn: () => fList() });
 
   const decide = useMutation({
-    mutationFn: (v: { proposalId: string; decision: "confirm" | "dismiss" }) =>
-      fDecide({ data: v }),
+    mutationFn: (v: { proposalId: string; decision: "confirm" | "dismiss"; title: string }) =>
+      fDecide({ data: { proposalId: v.proposalId, decision: v.decision } }),
     onSuccess: (_r, v) => {
-      toast.success(
+      commit(
+        v.decision === "confirm" ? "You adopted a playbook" : "You dismissed a proposal",
         v.decision === "confirm"
-          ? "Playbook adopted. It stays on the record with its source learnings."
-          : "Proposal dismissed for good.",
+          ? `"${v.title}" goes into every agent's prompt before it acts, and it keeps the outcomes it came from.`
+          : `"${v.title}" will not be proposed again. The outcomes behind it stay on the record.`,
       );
-      // The proposal is also a Call in the Today queue - keep both in sync.
+      // The proposal is also a Call in the Today queue: keep both in sync.
       for (const key of ["playbook-proposals", "needs-you"])
         qc.invalidateQueries({ queryKey: [key] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, v) =>
+      commit(
+        v.decision === "confirm"
+          ? "You tried to adopt a playbook"
+          : "You tried to dismiss a proposal",
+        `"${v.title}" is unchanged. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   // Dismiss is permanent (the sweep never re-proposes a dismissed group key),
   // so it is confirm-gated per the destructive-actions convention.
-  const requestDecide = (proposalId: string, decision: "confirm" | "dismiss") => {
+  const requestDecide = (p: PlaybookProposal, decision: "confirm" | "dismiss") => {
     if (decision === "dismiss") {
       void confirmDialog({
         title: "Dismiss this proposed playbook?",
-        body: "This dismisses the proposal for good. The same lesson will not be proposed again.",
+        body: "This dismisses it for good. The same lesson will not be proposed again.",
         confirmLabel: "Dismiss for good",
         destructive: true,
       }).then((ok) => {
-        if (ok) decide.mutate({ proposalId, decision });
+        if (ok) decide.mutate({ proposalId: p.id, decision, title: p.title });
       });
       return;
     }
-    decide.mutate({ proposalId, decision });
+    decide.mutate({ proposalId: p.id, decision, title: p.title });
   };
 
-  const open = (q.data?.proposals ?? []).filter((p) => p.status === "proposed");
+  const receipts = settled.map((s) => (
+    <Receipt key={s.id} verb={s.verb} consequence={s.consequence} failed={s.failed} />
+  ));
 
   if (q.isError) {
     // A load failure must read as a failure, not as "nothing proposed".
     return (
-      <div
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          padding: "16px 18px",
-        }}
-      >
-        <MonoLabel>Playbook proposals · failed to load</MonoLabel>
-        <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
-          {(q.error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          type="button"
-          onClick={() => void q.refetch()}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginTop: 12,
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-          }}
-        >
-          Retry · reloads proposals
-        </button>
-      </div>
+      <Failed onRetry={() => void q.refetch()}>
+        The proposals did not load, so this is not a claim that the record has nothing to teach the
+        crew. {(q.error as Error)?.message ?? ""}
+      </Failed>
+    );
+  }
+  if (q.isLoading) return <Loading>Reading what the record wants to make standing.</Loading>;
+
+  const open = (q.data?.proposals ?? []).filter((p) => p.status === "proposed");
+
+  // Nothing proposed is not an empty state worth drawing: Brain never
+  // re-clutters with a section holding nothing. The receipts stay, because you
+  // may have just decided the last one.
+  if (open.length === 0) return receipts.length ? <>{receipts}</> : null;
+
+  const shown = showAll ? open : open.slice(0, VISIBLE_PROPOSALS);
+  const busy = decide.isPending;
+  const expandedProposal = expanded ? (open.find((x) => x.id === expanded) ?? null) : null;
+
+  // ONE proposal is the gate: it is the single thing asking, so it gets the
+  // biggest element on the surface and the one blink in the system.
+  if (open.length === 1) {
+    const p = open[0];
+    return (
+      <>
+        <Gate question={p.title} lines={[evidenceOf(p), p.body]}>
+          <Button variant="primary" disabled={busy} onClick={() => requestDecide(p, "confirm")}>
+            {busy ? "Adopting" : "Make it standing"}
+          </Button>
+          <Button variant="ghost" disabled={busy} onClick={() => requestDecide(p, "dismiss")}>
+            Not a rule
+          </Button>
+        </Gate>
+        {receipts}
+      </>
     );
   }
 
-  // Nothing proposed (or still loading): stay out of the way - the outcome
-  // feed below is the landing content, and proposals only earn space when a
-  // decision is actually waiting.
-  if (q.isPending || open.length === 0) return null;
-
   return (
-    <section aria-label="Proposed playbooks" style={{ marginBottom: 24 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-        <MonoLabel style={{ }}>Proposed playbooks</MonoLabel>
-        <span style={{ color: "var(--text-faint)" }}>
-          the same lesson repeated until it became a method - adopt it or dismiss it
-        </span>
-        <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {(showAll ? open : open.slice(0, VISIBLE_PROPOSALS)).map((p) => (
-          <ProposalCard
-            key={p.id}
-            p={p}
-            busy={decide.isPending && decide.variables?.proposalId === p.id}
-            onDecide={(decision) => requestDecide(p.id, decision)}
-          />
-        ))}
-        {open.length > VISIBLE_PROPOSALS ? (
-          <button
-            type="button"
-            onClick={() => setShowAll((v) => !v)}
-            className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 500,
-              color: "var(--text-muted)",
-              background: "transparent",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-control)",
-              padding: "8px 14px",
-            }}
+    <Block
+      title="The record wants to make these standing"
+      // Different information from the title, not a restatement: WHY there is
+      // a proposal at all, and what adopting one actually does.
+      sub="Each repeated across three or more outcomes. Adopting one puts it into every agent's prompt before it acts."
+    >
+      {shown.map((p) => (
+        <Row
+          key={p.id}
+          lead={p.title}
+          sub={evidenceOf(p)}
+          focused={expanded === p.id}
+          onClick={() => setExpanded(expanded === p.id ? null : p.id)}
+          action={
+            <Button variant="ghost" disabled={busy} onClick={() => requestDecide(p, "confirm")}>
+              Make it standing
+            </Button>
+          }
+        />
+      ))}
+
+      {/* The proposal's own words, quoted verbatim from the sweep, under the
+          list rather than inside a row: a row in a list never wraps. */}
+      {expandedProposal ? (
+        <>
+          <Prose>
+            <p style={{ whiteSpace: "pre-wrap" }}>{expandedProposal.body}</p>
+          </Prose>
+          <Actions
+            trailing={
+              <Button
+                variant="ghost"
+                disabled={busy}
+                onClick={() => requestDecide(expandedProposal, "dismiss")}
+              >
+                Not a rule
+              </Button>
+            }
           >
-            {showAll ? "Show fewer" : `Show ${open.length - VISIBLE_PROPOSALS} more`}
-          </button>
-        ) : null}
-      </div>
-    </section>
+            <Button
+              variant="primary"
+              disabled={busy}
+              onClick={() => requestDecide(expandedProposal, "confirm")}
+            >
+              {busy ? "Adopting" : "Make it standing"}
+            </Button>
+          </Actions>
+        </>
+      ) : null}
+
+      {open.length > VISIBLE_PROPOSALS ? (
+        <Actions>
+          <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? (
+              "Show fewer"
+            ) : (
+              <>
+                Show <Num>{open.length - VISIBLE_PROPOSALS}</Num> more
+              </>
+            )}
+          </Button>
+        </Actions>
+      ) : null}
+
+      {receipts}
+    </Block>
   );
 }

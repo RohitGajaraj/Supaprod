@@ -1,26 +1,41 @@
-// AGENT-EXP: the live relay. Shows agents IN MOTION, grouped by station, each as
-// one calm ephemeral row (mark + name + latest line + status), with the handoff
-// arrow. The gate step reads in ember ("needs your sign-off").
-//
-// Engine-Room: agent_messages handoff chain + agent_runs hop statuses
-//   -> the raw tool-calls/thoughts stay in the mission's "Full execution trace"
-//   -> surfaced here as a named-face relay grouped by loop station.
-//
-//   full = bound to one mission (mission / build detail).
-//   mini = one live "what is running now" line for Today.
-//   station = one live line SCOPED TO A SINGLE STATION (PC-29 layer 4),
-//     shown only while that station has an active run. Wired onto
-//     Discover/Decide/Define/Build's calm front; expands via the same
-//     /build/$missionId link the mini line already uses.
+/**
+ * The relay: agents IN MOTION, grouped by station, each as one row that says who
+ * is working, what they last did, and who picks it up next.
+ *
+ * PORTED 2026-07-29 onto shell/primitives. What changed and why:
+ *   · The `full` variant was a bordered `<section>` with its own background,
+ *     radius and padding, mounted INSIDE mission detail's own card. That is a
+ *     card in a card, and the standard caps a region at one bordered container.
+ *     It is a `Block` now, which draws a rule where the register changes.
+ *   · `StepDot` is gone. Status was a coloured dot beside a name while the mark
+ *     beside it said nothing; the mark carries the state now, which is where the
+ *     system already puts it. State is never a hue: a ring means running, ember
+ *     means it needs you, red means it failed.
+ *   · Exactly ONE mark on a surface may blink. A relay with three gates used to
+ *     draw three ember dots, which spends the whole restraint budget and stops
+ *     the blink meaning "look here". The first thing asking wears `gate`;
+ *     everything queued behind it wears `waiting`.
+ *   · The gate line was ember TEXT. Ember marks the human, not a sentence, so
+ *     the words say it instead and the mark carries the colour.
+ *
+ * The reads are unchanged: `getMission` shares the mission route's cache key,
+ * and both live lines share one `["swarm","hud",workspaceId]` query, so mounting
+ * them together still costs one round trip.
+ */
 
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight } from "lucide-react";
 import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
-import { AgentMark } from "@/components/agents/AgentMark";
+import {
+  AgentMark,
+  Block,
+  MarkStack,
+  Row,
+  Who,
+  type MarkState,
+} from "@/components/shell/primitives";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import {
   miniRelay,
@@ -30,12 +45,14 @@ import {
   type RelayStatus,
 } from "@/lib/relay";
 
-function dotFor(s: RelayStatus): "running" | "completed" | "planned" | "failed" | "gate" {
+/** A run's status as the mark speaks it. `gate` is handed out ONCE per surface
+ *  by the caller; everything else asking takes `waiting`. */
+function markFor(s: RelayStatus): MarkState {
   if (s === "running") return "running";
-  if (s === "done") return "completed";
   if (s === "failed") return "failed";
-  if (s === "gate") return "gate";
-  return "planned";
+  if (s === "gate") return "waiting";
+  if (s === "done") return "idle";
+  return "quiet";
 }
 
 export function AgentRelay(props: {
@@ -69,85 +86,41 @@ function FullRelay({ missionId }: { missionId: string }) {
   if (steps.length === 0) return null;
   const groups = relayByStation(steps);
 
+  // The one thing actually asking. Everything behind it is queued, not urgent.
+  const blinkRunId = steps.find((s) => s.status === "gate")?.runId ?? null;
+
   return (
-    <section
-      style={{
-        border: "1px solid var(--hairline)",
-        borderRadius: 12,
-        background: "var(--surface-1)",
-        padding: "16px 18px",
-        marginBottom: 20,
-      }}
-    >
-      <MonoLabel>The relay</MonoLabel>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", marginTop: 12 }}>
-        {groups.map((g) => (
-          <div key={g.station}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "var(--text-faint)",
-                marginBottom: 8,
-              }}
-            >
-              {g.name}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {g.steps.map((s) => (
-                <div key={s.runId} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <AgentMark slug={s.slug} size={26} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}
-                    >
-                      <span
-                        className={s.status === "running" ? "agent-live" : undefined}
-                        style={{
-                          fontWeight: 540,
-                          color: s.status === "running" ? undefined : "var(--text-primary)",
-                        }}
-                      >
-                        {s.name}
-                      </span>
-                      <StepDot status={dotFor(s.status)} />
-                      {s.handoffToName ? (
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            color: "var(--text-faint)",
-                          }}
-                        >
-                          <ArrowRight size={16} strokeWidth={1.5} />
-                          {s.handoffToName}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div
-                      style={{
-                        color: s.isGate ? "var(--ember)" : "var(--text-subtle)",
-                        marginTop: 2,
-                        lineHeight: 1.45,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {s.latestLine}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+    <Block title="The relay" sub="Who is working, and who picks it up next.">
+      {groups.map((g) => (
+        <div key={g.station}>
+          <div className="sp-block-sub" style={{ margin: "var(--sp-space-4) 0 0" }}>
+            {g.name}
           </div>
-        ))}
-      </div>
-    </section>
+          {g.steps.map((s) => (
+            <Row
+              key={s.runId}
+              marks={
+                <AgentMark
+                  slug={s.slug}
+                  name={s.name}
+                  state={s.runId === blinkRunId ? "gate" : markFor(s.status)}
+                />
+              }
+              lead={
+                <>
+                  <Who>{s.name}</Who>
+                  {s.handoffToName ? <> hands it to {s.handoffToName}</> : null}
+                </>
+              }
+              // The gate says so in words. Ember marks the human, and it is
+              // already doing that on the mark to the left.
+              sub={s.isGate ? `Waiting on you. ${s.latestLine}` : s.latestLine}
+              tight
+            />
+          ))}
+        </div>
+      ))}
+    </Block>
   );
 }
 
@@ -162,31 +135,22 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
   const r = miniRelay(q.data);
 
   if (!r.active) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--geist-space-2x)",
-          color: "var(--text-subtle)",
-        }}
-      >
-        <span className="dot dot-planned" />
-        All quiet. Nothing needs you right now.
-      </div>
-    );
+    return <div style={{ color: "var(--sp-mute)" }}>All quiet. Nothing needs you right now.</div>;
   }
 
   const body = (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-        {r.agentSlugs.slice(0, 4).map((slug) => (
-          <AgentMark key={slug} slug={slug} size={22} />
-        ))}
-      </span>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--sp-space-3)",
+        minWidth: 0,
+      }}
+    >
+      <MarkStack agents={r.agentSlugs.slice(0, 4).map((slug) => ({ slug }))} state="running" />
       <span
         style={{
-          color: "var(--text-primary)",
+          color: "var(--sp-ink)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -203,8 +167,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       <Link
         to="/build/$missionId"
         params={{ missionId: r.missionId }}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{ textDecoration: "none", display: "block", borderRadius: "var(--radius-control)" }}
+        style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >
         {body}
       </Link>
@@ -214,12 +177,10 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
 }
 
 /**
- * A single station's compact inline relay line (PC-29 layer 4): "{agent} ·
- * {relay verb}...", shown only while that station has an active run - null
- * (renders nothing) otherwise, so a quiet station never grows a placeholder.
- * Shares the swarm HUD query with MiniRelayLine (same key), so mounting this
- * alongside it costs no extra network round trip. Click expands to the run's
- * mission, the same navigation the mini line already uses.
+ * A single station's compact inline line, shown only while that station has an
+ * active run. It renders nothing otherwise, so a quiet station never grows a
+ * placeholder. Shares the swarm HUD query with the mini line (same key), so
+ * mounting both costs no extra round trip.
  */
 function StationRelayLine({
   station,
@@ -238,11 +199,20 @@ function StationRelayLine({
   const run = stationActiveRun(q.data, station);
   if (!run) return null;
 
-  // Owns its own bottom margin (present only while a run is live) so a
-  // quiet station never reserves layout space for an empty wrapper.
+  // Owns its own bottom margin (present only while a run is live) so a quiet
+  // station never reserves layout space for an empty wrapper. One line, one
+  // mark: this is the only thing running at this station, so it may blink.
   const body = (
-    <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", minWidth: 0, marginBottom: 16 }}>
-      <AgentMark slug={run.slug} size={16} />
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--sp-space-2)",
+        minWidth: 0,
+        marginBottom: "var(--sp-space-5)",
+      }}
+    >
+      <AgentMark slug={run.slug} name={run.name} state={run.isGate ? "gate" : "running"} />
       <span
         style={{
           overflow: "hidden",
@@ -251,15 +221,12 @@ function StationRelayLine({
           minWidth: 0,
         }}
       >
-        <span className={run.isGate ? undefined : "agent-live"} style={{ fontWeight: 540 }}>
-          {run.name}
-        </span>
-        <span style={{ color: run.isGate ? "var(--ember)" : "var(--text-subtle)" }}>
+        <span className="sp-row-who">{run.name}</span>
+        <span style={{ color: "var(--sp-mute)" }}>
           {" "}
-          · {run.isGate ? "needs your sign-off" : `${run.verb}...`}
+          {run.isGate ? "is waiting on you" : `${run.verb}...`}
         </span>
       </span>
-      <StepDot status={run.isGate ? "gate" : "running"} />
     </div>
   );
 
@@ -268,8 +235,7 @@ function StationRelayLine({
       <Link
         to="/build/$missionId"
         params={{ missionId: run.missionId }}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{ textDecoration: "none", display: "block", borderRadius: "var(--radius-control)" }}
+        style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >
         {body}
       </Link>

@@ -1,29 +1,66 @@
-// Drift tab — ported 1:1 from design-reference/supaprod/loop.jsx (GovernScreen,
-// tab "Drift"): a bento table (AI surface 1fr / Δ baseline 80px / Status 90px /
-// Note 1fr / chevron 20px), surface at 500 weight, the delta mono tabular
-// (marigold on watch), the status as an Obsidian VerdictChip (watch → WATCH
-// marigold, stable → VALIDATED moss, since a drift status is a rendered judgment,
-// never a StatusBadge), the note at 12px text-subtle. Screen 7: rows navigate to the ?surface= drill
-// (DriftSurfaceDetail) — the former inline expansion, with the per-incident
-// resolve/reopen actions, lives there now; both share the ["drift_overview"]
-// cache. Production functionality kept, restyled quiet-Ember: getDriftOverview
-// / runDriftNow / updateDriftBaseline, the metric trend sparklines, and the
-// baseline config. The Incident/Snapshot row types are exported for the
-// detail; the metric formatters are re-declared there verbatim (react-refresh
-// lint keeps value exports out of component files) — change them in lockstep
-// so list and drill render every number identically.
+/**
+ * DRIFT, the list. Ported off the retired system (2026-07-29).
+ *
+ * It renders inside the Quality room, which already draws the Surface, the
+ * page title, the tab strip and the Block around this body. So this file draws
+ * no Surface and no second title: it is content, not a page.
+ *
+ * KEEP / KILL, and why:
+ *
+ *  KILL the bento table. Five CSS grid columns, a header strip in mono caps and
+ *       a chevron on every line is a hand-rolled table wearing a card. A
+ *       surface is a Row now: the name leads, the second line carries ONE
+ *       different fact (what moved and by how much, or how long it has been
+ *       quiet), the time slot says when it was last sampled, and the whole row
+ *       opens the drill. The chevron goes with it: a Row with an onClick
+ *       already reads as openable, so a chevron per line is decoration.
+ *  KILL the VerdictChip. A drift status is a WORD. A pill inside a row is a
+ *       card inside a card, and the word survives greyscale on its own.
+ *  KILL the mono caps labels. Mono is for DATA, so every delta, threshold,
+ *       count, day figure and cost is in Num, and nothing else is.
+ *  KILL the four trend cards. They plotted request weighted averages POOLED
+ *       ACROSS EVERY SURFACE, on the one screen whose whole job is to say WHICH
+ *       surface moved. The shape answered no question the list above it had not
+ *       already answered by name, and four bordered cards inside a bordered
+ *       region is the card stack the standard bans. The four facts survive as
+ *       four lines: the latest value, with the peak and the low across the
+ *       sampled window. The per surface SHAPE, which genuinely does carry
+ *       information a sentence cannot, is drawn in the drill, where a person is
+ *       actually asking whether a metric spiked or slid.
+ *  KEEP every server function, the ["drift_overview"] key this shares with the
+ *       drill, and the Incident / Snapshot exports.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Running a check and moving a
+ * threshold both change what the detector does next, and both used to end in a
+ * toast that erased itself in four seconds. Each leaves a Receipt carrying the
+ * real consequence the server returned, and a failed write leaves a failed
+ * Receipt rather than silence.
+ *
+ * The metric vocabulary and formatters are re-declared in DriftSurfaceDetail
+ * verbatim (react-refresh lint keeps value exports out of component files).
+ * Change them in lockstep, or the list and the drill disagree on a number.
+ */
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, useEffect } from "react";
-import { ChevronRight, Waves } from "lucide-react";
-import { toast } from "@/lib/notify";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
-import { VerdictChip } from "@/components/obsidian";
-import { GraphSlider } from "@/components/obsidian";
-
-const GRID = "1fr 80px 90px 1fr 20px";
+import {
+  Actions,
+  Block,
+  Button,
+  Checkbox,
+  Empty,
+  Failed,
+  Input,
+  Line,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
+import { relTime } from "@/components/product/format";
 
 const DEFAULT_CFG = {
   window_days: 7,
@@ -48,12 +85,21 @@ function fmtMetric(metric: string, v: number) {
   if (metric === "avg_cost_usd") return `$${v.toFixed(4)}`;
   if (metric === "avg_latency_ms") return `${Math.round(v)}ms`;
   if (metric === "error_rate") return `${v.toFixed(1)}%`;
-  if (metric === "avg_eval_score") return Math.round(v).toString(); // 0–100 scale (KI-14)
+  if (metric === "avg_eval_score") return Math.round(v).toString(); // 0 to 100 scale (KI-14)
   return v.toFixed(1);
 }
 
 function fmtDelta(pct: number) {
   return `${pct > 0 ? "+" : ""}${pct.toFixed(1)}%`;
+}
+
+/** A snapshot bucket is a DATE, so it is read at local midnight before it is
+ *  turned into a relative stamp. Parsing the bare date string would read it as
+ *  UTC and put today's roll-up a timezone off. */
+function sampledAgo(bucketDate: string | null): string | null {
+  if (!bucketDate) return null;
+  const d = new Date(`${bucketDate}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : relTime(d.toISOString());
 }
 
 export type Incident = {
@@ -80,6 +126,41 @@ export type Snapshot = {
   request_count: number | string;
 };
 
+/** What a write left behind, held for this visit. The durable record is the
+ *  drift_incidents table itself; a second copy of it here would be a second
+ *  source of one truth. */
+type Settled = { id: string; verb: string; consequence: ReactNode; failed?: boolean; at: string };
+
+function nowStamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/** The seven numbers that decide what counts as drift, as label and key. Each
+ *  label carries its own unit, so no line needs a second one saying it again. */
+type ThresholdKey = Exclude<keyof typeof DEFAULT_CFG, "enabled">;
+
+const THRESHOLDS: [string, ThresholdKey, string][] = [
+  ["Recent window in days", "window_days", "What every check treats as now."],
+  ["Baseline window in days", "baseline_days", "What it compares that against."],
+  [
+    "Latency threshold in percent",
+    "latency_pct_threshold",
+    "How far average latency may move from its baseline before it opens an incident.",
+  ],
+  [
+    "Tokens threshold in percent",
+    "tokens_pct_threshold",
+    "How far average tokens per call may move.",
+  ],
+  ["Cost threshold in percent", "cost_pct_threshold", "How far average cost per call may move."],
+  ["Eval score drop in percent", "score_pct_threshold", "How far an average score may fall."],
+  [
+    "Error rate threshold in percent",
+    "error_rate_pct_threshold",
+    "How far the error rate may rise.",
+  ],
+];
+
 export function DriftPanel() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -98,25 +179,50 @@ export function DriftPanel() {
     if (data?.baseline) setCfg({ ...DEFAULT_CFG, ...data.baseline });
   }, [data?.baseline]);
 
+  const [settled, setSettled] = useState<Settled[]>([]);
+  const commit = (verb: string, consequence: ReactNode, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed, at: nowStamp() },
+      ...prev,
+    ]);
+
   const runMut = useMutation({
     mutationFn: () => runNow(),
     onSuccess: (r) => {
-      toast.success(
-        `Rolled up ${r.snapshots} snapshots. Opened ${r.opened}, resolved ${r.resolved}.`,
+      commit(
+        "You ran the drift check",
+        <>
+          <Num>{r.snapshots}</Num> daily {r.snapshots === 1 ? "snapshot" : "snapshots"} rolled up.
+          It opened <Num>{r.opened}</Num> and resolved <Num>{r.resolved}</Num>. The list above is
+          re-read from those numbers.
+        </>,
       );
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to run the drift check", `${e.message} Nothing was rolled up.`, true),
   });
 
   const saveMut = useMutation({
     mutationFn: () => saveCfg({ data: cfg }),
     onSuccess: () => {
-      toast.success("Baseline updated. The next check uses it.");
+      commit(
+        "You moved the baseline",
+        cfg.enabled ? (
+          <>
+            The next check compares the last <Num>{cfg.window_days}</Num> days against a{" "}
+            <Num>{cfg.baseline_days}</Num> day baseline. Incidents already open keep the numbers
+            they were opened on.
+          </>
+        ) : (
+          "Detection is off, so checks keep rolling up snapshots and nothing gets flagged until you turn it back on."
+        ),
+      );
       setCfgOpen(false);
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to move the baseline", `${e.message} The old one still stands.`, true),
   });
 
   const snapshots = useMemo(() => (data?.snapshots ?? []) as Snapshot[], [data?.snapshots]);
@@ -129,9 +235,27 @@ export function DriftPanel() {
     [data?.recentIncidents],
   );
 
-  // One row per AI surface — watch when an open incident exists, else stable.
-  // Δ baseline comes from the worst open incident; stable surfaces carry no
-  // delta number (the detector found none — never invent one).
+  // How much of the record each surface actually has. Both facts are read off
+  // real snapshot rows; a surface with none of them says nothing rather than
+  // borrowing another surface's window.
+  const sampling = useMemo(() => {
+    const map = new Map<string, { days: Set<string>; last: string | null }>();
+    for (const s of snapshots) {
+      let e = map.get(s.surface);
+      if (!e) {
+        e = { days: new Set<string>(), last: null };
+        map.set(s.surface, e);
+      }
+      e.days.add(s.bucket_date);
+      if (!e.last || s.bucket_date > e.last) e.last = s.bucket_date;
+    }
+    return map;
+  }, [snapshots]);
+
+  // One row per AI surface, on watch when an open incident exists, else stable.
+  // The delta comes from the worst open incident; a stable surface carries no
+  // delta at all, because the detector found none and inventing one would be a
+  // fabricated number.
   const rows = useMemo(() => {
     const surfaces = new Set<string>();
     for (const s of snapshots) surfaces.add(s.surface);
@@ -143,19 +267,27 @@ export function DriftPanel() {
           .filter((i) => i.surface === surface)
           .sort((a, b) => Math.abs(Number(b.delta_pct)) - Math.abs(Number(a.delta_pct)));
         const worst = open[0];
+        const seen = sampling.get(surface);
         return {
           surface,
           watch: open.length > 0,
-          delta: worst ? fmtDelta(Number(worst.delta_pct)) : "-",
-          note: worst
-            ? `${METRIC_LABELS[worst.metric] ?? worst.metric} ${fmtMetric(worst.metric, Number(worst.baseline_value))} → ${fmtMetric(worst.metric, Number(worst.current_value))}${open.length > 1 ? ` · +${open.length - 1} more` : ""}`
-            : "within baseline band",
-          openCount: open.length,
+          delta: worst ? fmtDelta(Number(worst.delta_pct)) : null,
+          moved: worst
+            ? `${METRIC_LABELS[worst.metric] ?? worst.metric} ${fmtMetric(worst.metric, Number(worst.baseline_value))} to ${fmtMetric(worst.metric, Number(worst.current_value))}`
+            : null,
+          alsoOpen: Math.max(0, open.length - 1),
+          days: seen?.days.size ?? 0,
+          last: seen?.last ?? null,
         };
       })
       .sort((a, b) => Number(b.watch) - Number(a.watch) || a.surface.localeCompare(b.surface));
-  }, [snapshots, openIncidents, recentIncidents]);
+  }, [snapshots, openIncidents, recentIncidents, sampling]);
 
+  const watching = rows.filter((r) => r.watch).length;
+
+  // Request weighted daily averages across every surface. It is the whole
+  // engine's movement rather than any one surface's, which is why it reads as
+  // four facts at the foot of the list and not as four charts above it.
   const trendByDay = useMemo(() => {
     const map = new Map<
       string,
@@ -186,277 +318,225 @@ export function DriftPanel() {
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [snapshots]);
 
+  // A failed read is not an empty list. "Nothing has drifted" and "we could not
+  // find out whether anything drifted" are different facts, and a person acts
+  // differently on each.
   if (error) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--madder)" }}>
-          Couldn't load drift
-        </div>
-        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
-          {(error as Error).message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => refetch()}
-        >
-          Retry · reloads drift
-        </button>
-      </div>
+      <Failed onRetry={() => void refetch()}>
+        The drift record did not load, so this is not a claim that nothing moved.{" "}
+        {(error as Error).message}
+      </Failed>
     );
   }
 
-  if (isLoading) {
-    return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the record
-      </p>
-    );
-  }
+  if (isLoading) return <Loading>Reading the drift record.</Loading>;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginBottom: 12 }}>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          aria-expanded={cfgOpen}
-          onClick={() => setCfgOpen((v) => !v)}
-        >
-          Baseline · thresholds and windows
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          disabled={runMut.isPending}
-          onClick={() => runMut.mutate()}
-        >
-          {runMut.isPending ? (
-            <>
-              <span className="spinner" style={{ width: 11, height: 11 }} />
-              Checking…
-            </>
+    <>
+      {rows.length > 0 ? (
+        <p className="sp-subtitle">
+          <Num>{rows.length}</Num> AI {rows.length === 1 ? "surface" : "surfaces"} sampled.{" "}
+          {watching === 0 ? (
+            "None has moved past its threshold."
           ) : (
-            "Run drift check · rolls up today"
+            <>
+              <Num>{watching}</Num> {watching === 1 ? "is" : "are"} on watch.
+            </>
           )}
-        </button>
-      </div>
-
-      {cfgOpen ? (
-        <div className="bento fade-up" style={{ padding: "14px 16px", marginBottom: 12 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <MonoLabel>Drift baseline</MonoLabel>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={cfg.enabled}
-              className="mono-label transition-opacity hover:opacity-70"
-              style={{ color: cfg.enabled ? "var(--moss)" : "var(--text-faint)" }}
-              onClick={() => setCfg({ ...cfg, enabled: !cfg.enabled })}
-            >
-              detection {cfg.enabled ? "on" : "off"}
-            </button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {(
-              [
-                ["Recent window (days)", "window_days"],
-                ["Baseline window (days)", "baseline_days"],
-                ["Latency % threshold", "latency_pct_threshold"],
-                ["Tokens % threshold", "tokens_pct_threshold"],
-                ["Cost % threshold", "cost_pct_threshold"],
-                ["Eval score % drop", "score_pct_threshold"],
-                ["Error rate % threshold", "error_rate_pct_threshold"],
-              ] as [string, keyof typeof DEFAULT_CFG][]
-            ).map(([label, key]) => (
-              <label key={key} style={{ }}>
-                <div className="mono-label" style={{ marginBottom: 4 }}>
-                  {label}
-                </div>
-                <input
-                  className="input"
-                  type="number"
-                  value={Number(cfg[key])}
-                  onChange={(e) => setCfg({ ...cfg, [key]: Number(e.target.value) })}
-                />
-              </label>
-            ))}
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setCfgOpen(false)}
-            >
-              Dismiss
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={saveMut.isPending}
-              onClick={() => saveMut.mutate()}
-            >
-              {saveMut.isPending ? "Saving…" : "Save baseline · applies on the next check"}
-            </button>
-          </div>
-        </div>
+        </p>
       ) : null}
 
       {rows.length === 0 ? (
-        <EmptyState
-          icon={Waves}
-          title="No drift data yet"
-          body="Once AI calls accumulate, Supaprod rolls daily snapshots and flags any surface that moves against its baseline."
-          cta="Run drift check · rolls up today"
-          onCta={() => runMut.mutate()}
-        />
+        <Empty
+          action={
+            <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+              {runMut.isPending ? "Checking" : "Run the drift check"}
+            </Button>
+          }
+        >
+          Nothing has been sampled yet. Once AI calls accumulate, Supaprod rolls a snapshot a day
+          and flags any surface that moves against its own baseline.
+        </Empty>
       ) : (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-          <div
-            className="mono-label"
-            style={{
-              display: "grid",
-              gridTemplateColumns: GRID,
-              gap: "var(--geist-space-3x)",
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
-            }}
-          >
-            <span>AI surface</span>
-            <span>Δ baseline</span>
-            <span>Status</span>
-            <span>Note</span>
-            <span></span>
-          </div>
-          {rows.map((d, i) => (
-            <button
-              key={d.surface}
-              type="button"
-              onClick={() =>
-                navigate({
-                  to: "/engine-room",
-                  search: { room: "quality", view: "drift", surface: d.surface },
-                })
-              }
-              className="lift"
-              style={{
-                display: "grid",
-                gridTemplateColumns: GRID,
-                gap: "var(--geist-space-3x)",
-                padding: "12px 18px",
-                alignItems: "baseline",
-                borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
-                width: "100%",
-                textAlign: "left",
-              }}
-            >
-              <span style={{ fontWeight: 500 }}>{d.surface}</span>
-              <span
-                className="mono-label tabular-nums"
-                style={{ color: d.watch ? "var(--marigold)" : "var(--text-primary)" }}
-              >
-                {d.delta}
-              </span>
-              <span>
-                <VerdictChip tone={d.watch ? "WATCH" : "VALIDATED"}>
-                  {d.watch ? "watch" : "stable"}
-                </VerdictChip>
-              </span>
-              <span style={{ color: "var(--text-subtle)" }}>{d.note}</span>
-              <span style={{ color: "var(--text-faint)", alignSelf: "center", display: "flex" }}>
-                <ChevronRight size={16} />
-              </span>
-            </button>
-          ))}
-        </div>
+        rows.map((d) => (
+          <Row
+            key={d.surface}
+            tight
+            lead={d.surface}
+            // ONE different fact, never more of the name: what moved and by how
+            // much on a watched surface, how long it has been quiet on a stable
+            // one.
+            sub={
+              d.watch ? (
+                <>
+                  <span className="sp-warn">On watch</span>
+                  {" · "}
+                  <Num>{d.delta}</Num>
+                  {" · "}
+                  {d.moved}
+                  {d.alsoOpen > 0 ? (
+                    <>
+                      {" · "}
+                      <Num>{d.alsoOpen}</Num> more open
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  Stable
+                  {d.days > 0 ? (
+                    <>
+                      {" · "}
+                      <Num>{d.days}</Num> {d.days === 1 ? "day" : "days"} sampled
+                    </>
+                  ) : null}
+                </>
+              )
+            }
+            time={sampledAgo(d.last)}
+            onClick={() =>
+              navigate({
+                to: "/engine-room",
+                search: { room: "quality", view: "drift", surface: d.surface },
+              })
+            }
+          />
+        ))
       )}
 
-      {trendByDay.length > 1 ? (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel style={{ marginBottom: 10 }}>Metric trend · last 30 days</MonoLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <TrendBento
-              label="Avg latency"
-              series={trendByDay.map((d) => d.latency)}
-              last={`${Math.round(trendByDay[trendByDay.length - 1].latency)}ms`}
+      {/* The run control is drawn once. On day one it lives in the empty state,
+          which is where the next action belongs; after that it lives here. The
+          baseline is reachable in both, because a boundary set before any data
+          arrives is exactly what policy in advance means. */}
+      <Actions>
+        {rows.length > 0 ? (
+          <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+            {runMut.isPending ? "Checking" : "Run the drift check"}
+          </Button>
+        ) : null}
+        <Button variant="ghost" aria-expanded={cfgOpen} onClick={() => setCfgOpen((v) => !v)}>
+          {cfgOpen ? "Close" : "Set the baseline"}
+        </Button>
+      </Actions>
+
+      {cfgOpen ? (
+        <Block
+          title="Baseline"
+          sub="Policy, set in advance. Every check runs against these numbers without stopping to ask."
+        >
+          <Line
+            label="Detection"
+            sub={
+              cfg.enabled
+                ? "On. Every check measures each surface against its own baseline and opens an incident when one breaks."
+                : "Off. Checks still roll up snapshots, and nothing gets flagged until you turn this back on."
+            }
+            htmlFor="drift-enabled"
+          >
+            <Checkbox
+              id="drift-enabled"
+              label="Detection"
+              checked={cfg.enabled}
+              onChange={(next) => setCfg({ ...cfg, enabled: next })}
             />
-            <TrendBento
-              label="Avg tokens / call"
-              series={trendByDay.map((d) => d.tokens)}
-              last={trendByDay[trendByDay.length - 1].tokens.toFixed(0)}
-            />
-            <TrendBento
-              label="Avg cost"
-              series={trendByDay.map((d) => d.cost)}
-              last={`$${trendByDay[trendByDay.length - 1].cost.toFixed(4)}`}
-            />
-            <TrendBento
-              label="Error rate"
-              series={trendByDay.map((d) => d.errorRate)}
-              last={`${trendByDay[trendByDay.length - 1].errorRate.toFixed(1)}%`}
-              color="var(--madder)"
-            />
-          </div>
-        </div>
+          </Line>
+
+          {THRESHOLDS.map(([label, key, why]) => (
+            <Line key={key} label={label} sub={why} htmlFor={`drift-${key}`}>
+              <Input
+                id={`drift-${key}`}
+                type="number"
+                value={Number(cfg[key])}
+                onChange={(e) => setCfg({ ...cfg, [key]: Number(e.target.value) })}
+                style={{ width: 96 }}
+              />
+            </Line>
+          ))}
+
+          <Actions>
+            <Button variant="primary" disabled={saveMut.isPending} onClick={() => saveMut.mutate()}>
+              {saveMut.isPending ? "Saving" : "Save the baseline"}
+            </Button>
+          </Actions>
+        </Block>
       ) : null}
-    </div>
+
+      {settled.length > 0 ? (
+        <Block title="What you changed">
+          {settled.map((s) => (
+            <Receipt
+              key={s.id}
+              verb={s.verb}
+              consequence={s.consequence}
+              failed={s.failed}
+              time={s.at}
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      {trendByDay.length > 1 ? (
+        <Block
+          title="Across every surface"
+          sub="Request weighted daily averages from the last 30 days of snapshots. This is the whole engine's movement, not any one surface's."
+        >
+          <PooledLine
+            label="Average latency"
+            metric="avg_latency_ms"
+            series={trendByDay.map((d) => d.latency)}
+          />
+          <PooledLine
+            label="Average tokens per call"
+            metric="avg_total_tokens"
+            series={trendByDay.map((d) => d.tokens)}
+          />
+          <PooledLine
+            label="Average cost per call"
+            metric="avg_cost_usd"
+            series={trendByDay.map((d) => d.cost)}
+          />
+          <PooledLine
+            label="Error rate"
+            metric="error_rate"
+            series={trendByDay.map((d) => d.errorRate)}
+          />
+        </Block>
+      ) : null}
+    </>
   );
 }
 
-/* Trend card: the line renders as the interactive GraphSlider (modern and
-   exact, data palette; the machine draws exact per the 2026-07-07 ruling).
-   Layout from govern-detail.jsx (trend card). */
-function TrendBento({
+/** One pooled metric: the latest reading on the right, and the range it moved
+ *  through on the second line. It replaces a chart because a chart of averages
+ *  taken across every surface at once cannot say which surface moved, and that
+ *  is the only question this screen is here to answer. */
+function PooledLine({
   label,
+  metric,
   series,
-  last,
-  color,
 }: {
   label: string;
+  metric: string;
   series: number[];
-  last: string;
-  color?: string;
 }) {
+  const latest = series[series.length - 1];
+  const peak = Math.max(...series);
+  const low = Math.min(...series);
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 8,
-        }}
-      >
-        <MonoLabel>{label}</MonoLabel>
-        <span className="font-display tabular-nums" style={{ }}>
-          {last}
-        </span>
-      </div>
-      <GraphSlider
-        data={series}
-        w={300}
-        h={120}
-        color={color ?? "var(--teal)"}
-        formatValue={(v) => (Number.isInteger(v) ? String(v) : v.toFixed(2))}
-        ariaLabel={label}
-      />
-    </div>
+    <Line
+      label={label}
+      sub={
+        <>
+          Peak <Num>{fmtMetric(metric, peak)}</Num>, low <Num>{fmtMetric(metric, low)}</Num> across{" "}
+          <Num>{series.length}</Num> sampled days
+        </>
+      }
+    >
+      <Value>
+        <Num>{fmtMetric(metric, latest)}</Num>
+      </Value>
+    </Line>
   );
 }
 

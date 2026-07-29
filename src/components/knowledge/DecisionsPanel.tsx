@@ -39,15 +39,31 @@
  * stage actor as "human" when no agent slug is given), so it reads as You and
  * wears the solid disc rather than a glyph.
  *
+ * SECOND PASS, 2026-07-29. The founder opened a ported page, clicked something,
+ * and the legacy design came back. Two defects here, both of them that shape:
+ *
+ *   KILLED the "Log a decision" DIALOG. A two-field composer over a list is a
+ *     panel, not a single irreversible confirmation, so anti-slop ban 11 rules
+ *     it out and primitives.tsx names the pane as deliberately absent. The
+ *     composer is IN PLACE now, above the ledger it is about to write to, which
+ *     is what admin/people and crew both do.
+ *   KILLED the "Logged to the record." success toast. Writing a call into the
+ *     ledger every agent reads before it acts is not a four-second fact
+ *     (agents/FINAL-agent-presence.md R10). It leaves a Receipt carrying the
+ *     real consequence, and a failed write leaves a failed receipt.
+ *   KILLED the OBS_STATUS_TONE export and its VerdictTone import. The chip it
+ *     fed is retired; the outcome is a WORD now, carried by sp-pass / sp-fail,
+ *     and it lives once in decisions-shared.ts as OUTCOME_WORD so the list and
+ *     the drill cannot drift.
+ *
  * UNCHANGED: listDecisions / createDecision, the ["decisions", listInput] key,
- * the debounce, the ?decision= drill, VISIBLE_DECISIONS, and the SourceLink +
- * OBS_STATUS_TONE exports that DecisionDetail imports from here.
+ * the debounce, the ?decision= drill, VISIBLE_DECISIONS, and the SourceLink
+ * export that DecisionDetail imports from here.
  */
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
@@ -57,42 +73,26 @@ import {
   type DecisionSource,
 } from "@/lib/decisions.functions";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { VerdictTone } from "@/components/obsidian/verdict";
-import {
   Actions,
   AgentMark,
+  Block,
   Button,
   Empty,
   Failed,
   Field,
   Input,
   Num,
+  Receipt,
   Row,
   Select,
   Textarea,
   YouMark,
 } from "@/components/shell/primitives";
-import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
+import { ageOf, displayWho, OUTCOME_WORD, SOURCE_LABEL } from "./decisions-shared";
 import { stripAutoPrefix } from "@/components/plan/format";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
-
-// Obsidian-specific tone map. DecisionDetail.tsx still renders a VerdictChip
-// from it, so the export stays exactly as it was even though this panel no
-// longer draws a chip.
-export const OBS_STATUS_TONE: Record<DecisionRow["status"], VerdictTone> = {
-  approved: "KEPT",
-  rejected: "KILL",
-  pending: "PENDING",
-};
 
 export function SourceLink({
   d,
@@ -139,14 +139,6 @@ export function SourceLink({
   // names the meeting. Re-point here once Today exposes a meeting deep link.
   return null;
 }
-
-/** The outcome, in plain words. Green and red carry outcomes; a call nobody
- *  has settled yet is not an outcome, so it stays monochrome. */
-const OUTCOME: Record<DecisionRow["status"], { word: string; tone: string }> = {
-  approved: { word: "Kept", tone: "sp-pass" },
-  rejected: { word: "Dropped", tone: "sp-fail" },
-  pending: { word: "Not settled", tone: "" },
-};
 
 /** Who acted, and what they actually did. A null slug is the human, and a
  *  pending row has nobody who decided it yet, so it must never read as though
@@ -217,14 +209,42 @@ export function DecisionsPanel() {
     queryFn: () => fList({ data: listInput }),
   });
 
+  // THE COMMIT. Session local on purpose: the durable record is the ledger
+  // itself, one row below, and a second copy of it here would be a second
+  // source of one truth.
+  const [settled, setSettled] = useState<
+    { id: string; verb: string; consequence: string; failed?: boolean; at: string }[]
+  >([]);
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      {
+        id: `${Date.now()}-${prev.length}`,
+        verb,
+        consequence,
+        failed,
+        at: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+      },
+      ...prev,
+    ]);
+
   const create = useMutation({
-    mutationFn: (data: { title: string; rationale?: string }) => fCreate({ data }),
-    onSuccess: () => {
+    mutationFn: (vars: { title: string; rationale?: string }) => fCreate({ data: vars }),
+    onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["decisions"] });
-      toast.success("Logged to the record.");
+      // What it CAUSED, not that the click registered: a logged call is read by
+      // every agent before it touches the same surface again.
+      commit(
+        "You logged a call",
+        `"${vars.title}" is on the record. The crew reads it before it acts on the same surface again.`,
+      );
       setOpen(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, vars) =>
+      commit(
+        "You tried to log a call",
+        `"${vars.title}" was not written. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   const rows = decisions.data?.decisions ?? [];
@@ -289,10 +309,39 @@ export function DecisionsPanel() {
             />
           </span>
           <span style={{ marginLeft: "auto" }}>
-            <Button onClick={() => setOpen(true)}>Log decision</Button>
+            <Button
+              aria-expanded={open}
+              aria-controls="decisions-composer"
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? "Close" : "Log decision"}
+            </Button>
           </span>
         </div>
       )}
+
+      {/* IN PLACE, never a dialog. It opens above the ledger it is about to
+          write to, so the calls already on the record stay readable while you
+          write the next one. */}
+      {open ? (
+        <LogDecision
+          id="decisions-composer"
+          onCancel={() => setOpen(false)}
+          onSubmit={(t, r) => create.mutate({ title: t, rationale: r || undefined })}
+          submitting={create.isPending}
+        />
+      ) : null}
+
+      {settled.map((s) => (
+        <Receipt
+          key={s.id}
+          initials={initials}
+          verb={s.verb}
+          consequence={s.consequence}
+          time={s.at}
+          failed={s.failed}
+        />
+      ))}
 
       {decisions.isLoading ? null : decisions.isError ? (
         <Failed onRetry={() => void decisions.refetch()}>
@@ -326,8 +375,8 @@ export function DecisionsPanel() {
             // where the call stands, and who put it there.
             sub={
               <>
-                <span className={OUTCOME[d.status].tone || undefined}>
-                  {OUTCOME[d.status].word}
+                <span className={OUTCOME_WORD[d.status].tone || undefined}>
+                  {OUTCOME_WORD[d.status].word}
                 </span>
                 {" · "}
                 {whoLine(d)}
@@ -361,69 +410,57 @@ export function DecisionsPanel() {
           ) : null}
         </Actions>
       ) : null}
-
-      <LogDecisionDialog
-        open={open}
-        onOpenChange={setOpen}
-        onSubmit={(t, r) => create.mutate({ title: t, rationale: r || undefined })}
-        submitting={create.isPending}
-      />
     </div>
   );
 }
 
-function LogDecisionDialog({
-  open,
-  onOpenChange,
+/** The composer, in place. Two fields, because a call is a sentence and a
+ *  reason, and the reason is the half every later agent actually reads. */
+function LogDecision({
+  id,
+  onCancel,
   onSubmit,
   submitting,
 }: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
+  id: string;
+  onCancel: () => void;
   onSubmit: (title: string, rationale: string) => void;
   submitting: boolean;
 }) {
   const [title, setTitle] = useState("");
   const [rationale, setRationale] = useState("");
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        onOpenChange(o);
-        if (!o) {
-          setTitle("");
-          setRationale("");
-        }
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Log a decision</DialogTitle>
-          {/* Different information from the title, not a restatement of it. */}
-          <DialogDescription style={{ color: "var(--sp-mute)" }}>
-            A call made outside the loop. The crew reads it before it acts again.
-          </DialogDescription>
-        </DialogHeader>
-        <Field label="What was decided">
+    <div id={id}>
+      <Block
+        title="Log a decision"
+        // Different information from the title, not a restatement of it.
+        sub="A call made outside the loop. The crew reads it before it acts again."
+      >
+        <Field label="What was decided" htmlFor="decision-title">
           <Input
+            id="decision-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={280}
             autoFocus
           />
         </Field>
-        <Field label="Why this, and not the alternative">
+        <Field label="Why this, and not the alternative" htmlFor="decision-rationale">
           <Textarea
+            id="decision-rationale"
             value={rationale}
             onChange={(e) => setRationale(e.target.value)}
             rows={4}
             maxLength={2000}
           />
         </Field>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
-          </Button>
+        <Actions
+          trailing={
+            <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+              Cancel
+            </Button>
+          }
+        >
           <Button
             variant="primary"
             disabled={!title.trim() || submitting}
@@ -431,8 +468,8 @@ function LogDecisionDialog({
           >
             {submitting ? "Logging" : "Log decision"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </Actions>
+      </Block>
+    </div>
   );
 }

@@ -1,40 +1,80 @@
-// Drift surface drill-down — screen 7 of the Ember Editorial migration, ported
-// from design-reference/supaprod/govern-detail.jsx (DriftDetail). Rides
-// ?surface= on /govern?tab=drift (tab body only) and shares the panel's
-// ["drift_overview"] query cache so resolve/reopen/re-sample invalidations
-// propagate to the table and the govern tab badge. Honesty deltas vs the
-// reference: the kicker is built from the user's real drift_baselines windows
-// (never the reference's fictional "14d rolling vs 90d"); the headline pair +
-// Δ come from the worst OPEN incident's stored baseline_value/current_value/
-// delta_pct (a stable surface has no stored pair — it reads "within baseline
-// band"); the chart plots the surface's real per-day metric series with the
-// incident's stored baseline as the dashed gate line (never a client-side
-// Δ-vs-recomputed-baseline series — snapshots are capped to 30d while
-// baseline_days can be 180, so browser baseline math can silently lie);
-// "Probable cause"/"Action" prose bentos are omitted (drift_incidents.detail
-// is always {}) — the honest action surface is the absorbed incident list
-// with resolve/reopen (the panel's former inline expansion, kept per-model
-// since incidents are keyed (surface, model, prompt_version, metric)); and
-// "Recent samples" rows are column facts only (bucket_date, calls, errors).
-import { useMemo } from "react";
+/**
+ * DRIFT, one surface. Ported off the retired system (2026-07-29).
+ *
+ * It rides ?surface= inside the Quality room, which already draws the Surface,
+ * the page title and the tab strip, so this file draws no second h1. The drill
+ * subject is a Block title and the way back is the Block's own "All surfaces",
+ * which is exactly how the room itself returns from a room to the four rooms
+ * and how /admin/people returns from one person to the directory. A PageHead
+ * here would put a 25px title inside a page that already has one, and a second
+ * h1 in the document outline.
+ *
+ * KEEP / KILL, and why:
+ *
+ *  KILL the DrillHeader, the mono caps labels and the VerdictChip, for the
+ *       reasons the list file states: mono is for DATA, and a status is a word.
+ *  KILL the three bento grid. A card carrying the headline pair, a second card
+ *       carrying a chart and two more carrying lists, all inside a region that
+ *       is already one bordered container, is the card stack the standard bans.
+ *       The facts are Lines and Rows inside plain Blocks now.
+ *  KEEP the chart, alone in the pair, and this is the one judgment call in the
+ *       port. On the list it was decoration: four pooled averages that could
+ *       not say which surface moved. Here it is the opposite. A person standing
+ *       on one surface with one open incident is deciding whether to resolve
+ *       it, and that turns entirely on a shape a sentence cannot carry: a spike
+ *       that has already come back is not a slide that is still going. So it
+ *       survives as a minimal polyline drawn only from --sp-* tokens, with the
+ *       stored baseline as a dashed gate line and the peak and the low labelled
+ *       in Num. The interactive scrubber does NOT survive: the numbers a scrub
+ *       would reveal are printed beside it, so the interaction bought nothing.
+ *  KEEP every honesty rule the retired version had won. The window kicker is
+ *       built from the user's real drift_baselines row. The headline pair and
+ *       the delta come from the worst OPEN incident's stored values. The chart
+ *       plots the surface's real per day series against the incident's STORED
+ *       baseline, never a browser recomputed one: snapshots are capped at 30
+ *       days while baseline_days can be 180, so client side baseline maths can
+ *       silently lie. Probable cause and Action prose stay omitted, because
+ *       drift_incidents.detail is always {}.
+ *  KEEP every server function, every prop and the ["drift_overview"] key this
+ *       shares with the list, so a resolve here still invalidates the list.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Resolving an incident,
+ * reopening one and re-running the check are all consequential, and all three
+ * used to end in a toast or in nothing at all. Each leaves a Receipt carrying
+ * what it actually caused, and a failed write leaves a failed Receipt rather
+ * than a message that erases itself.
+ *
+ * The metric vocabulary and formatters below are verbatim from DriftPanel
+ * (module private there; react-refresh lint keeps value exports out of
+ * component files). Change them in lockstep or the list and the drill disagree
+ * on a number.
+ */
+import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/notify";
 import {
   getDriftOverview,
   runDriftNow,
   resolveDriftIncident,
   reopenDriftIncident,
 } from "@/lib/drift.functions";
-import { DrillHeader, MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
-import { GraphSlider } from "@/components/obsidian";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";
 
-/* Metric vocabulary + formatters — verbatim from DriftPanel (module-private
-   there; react-refresh lint keeps value exports out of component files).
-   Change them in lockstep or the list and the drill disagree on a number. */
 const DEFAULT_WINDOWS = { window_days: 7, baseline_days: 14 };
 
 const METRIC_LABELS: Record<string, string> = {
@@ -49,7 +89,7 @@ function fmtMetric(metric: string, v: number) {
   if (metric === "avg_cost_usd") return `$${v.toFixed(4)}`;
   if (metric === "avg_latency_ms") return `${Math.round(v)}ms`;
   if (metric === "error_rate") return `${v.toFixed(1)}%`;
-  if (metric === "avg_eval_score") return Math.round(v).toString(); // 0–100 scale (KI-14)
+  if (metric === "avg_eval_score") return Math.round(v).toString(); // 0 to 100 scale (KI-14)
   return v.toFixed(1);
 }
 
@@ -68,9 +108,9 @@ type DayRow = {
   score: number | null;
 };
 
-/* Request-weighted daily series for one metric (the panel's trendByDay rule,
-   scoped to a surface). Eval score is nullable — days without scores are
-   dropped (the detector skips them too), never zero-filled. */
+/* Request weighted daily series for one metric (the list's trendByDay rule,
+   scoped to a surface). Eval score is nullable, and days without a score are
+   dropped rather than zero filled, because the detector skips them too. */
 function seriesFor(days: DayRow[], metric: string): number[] {
   if (metric === "avg_eval_score")
     return days.filter((d) => d.score != null).map((d) => d.score as number);
@@ -89,6 +129,86 @@ function fmtDay(isoDate: string): string {
   });
 }
 
+/** A full timestamp as a calendar day. relTime is right in a row's time slot,
+ *  where "3h" is read as shorthand, and wrong inside a sentence, where it falls
+ *  back to a date after a week and "since Jul 12 ago" stops being English. */
+function fmtWhen(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/** What a write left behind, held for this visit. The durable record is the
+ *  incident row itself. */
+type Settled = { id: string; verb: string; consequence: ReactNode; failed?: boolean; at: string };
+
+function nowStamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * The shape, and nothing else. No axes, no grid, no scrubber, no tooltip: the
+ * numbers those would reveal are printed above it in Num, so the drawing is
+ * left with the one job words cannot do, which is telling a spike from a slide.
+ * Every colour is a --sp-* token, and the stroke does not scale with the box,
+ * so a wide region does not thicken the line.
+ */
+function Trend({
+  series,
+  baseline,
+  watch,
+  label,
+}: {
+  series: number[];
+  baseline?: number;
+  watch: boolean;
+  label: string;
+}) {
+  const W = 300;
+  const H = 64;
+  const PAD = 3;
+  const values = baseline != null ? [...series, baseline] : series;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const x = (i: number) => (series.length === 1 ? W / 2 : (i / (series.length - 1)) * W);
+  const y = (v: number) => H - PAD - ((v - min) / span) * (H - PAD * 2);
+  const points = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={label}
+      style={{ width: "100%", height: H, display: "block", marginTop: "var(--sp-space-2)" }}
+    >
+      {baseline != null ? (
+        <line
+          x1={0}
+          x2={W}
+          y1={y(baseline)}
+          y2={y(baseline)}
+          stroke="var(--sp-mute)"
+          strokeWidth={1}
+          strokeDasharray="4 4"
+          opacity={0.55}
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : null}
+      <polyline
+        points={points}
+        fill="none"
+        stroke={watch ? "var(--sp-warn)" : "var(--sp-mute)"}
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 export function DriftSurfaceDetail({ id }: { id: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -102,30 +222,28 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     queryFn: () => fetchOverview(),
   });
 
+  const [settled, setSettled] = useState<Settled[]>([]);
+  const commit = (verb: string, consequence: ReactNode, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed, at: nowStamp() },
+      ...prev,
+    ]);
+
   const runMut = useMutation({
     mutationFn: () => runNow(),
     onSuccess: (r) => {
-      toast.success(
-        `Rolled up ${r.snapshots} snapshots. Opened ${r.opened}, resolved ${r.resolved}.`,
+      commit(
+        "You ran the drift check",
+        <>
+          <Num>{r.snapshots}</Num> daily {r.snapshots === 1 ? "snapshot" : "snapshots"} rolled up
+          across every surface. It opened <Num>{r.opened}</Num> and resolved <Num>{r.resolved}</Num>
+          . This page is re-read from those numbers.
+        </>,
       );
       qc.invalidateQueries({ queryKey: ["drift_overview"] });
     },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const decideMut = useMutation({
-    mutationFn: async ({
-      incidentId,
-      action,
-    }: {
-      incidentId: string;
-      action: "resolve" | "reopen";
-    }) => {
-      if (action === "resolve") return resolveFn({ data: { id: incidentId } });
-      return reopenFn({ data: { id: incidentId } });
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["drift_overview"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to run the drift check", `${e.message} Nothing was rolled up.`, true),
   });
 
   const snaps = useMemo(
@@ -141,7 +259,49 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     [data?.recentIncidents, id],
   );
 
-  // Same headline rule as the panel row: worst open incident by |Δ|.
+  const incidents = useMemo(
+    () => [...openIncidents, ...recentIncidents],
+    [openIncidents, recentIncidents],
+  );
+
+  const decideMut = useMutation({
+    mutationFn: async ({
+      incidentId,
+      action,
+    }: {
+      incidentId: string;
+      action: "resolve" | "reopen";
+    }) => {
+      if (action === "resolve") return resolveFn({ data: { id: incidentId } });
+      return reopenFn({ data: { id: incidentId } });
+    },
+    onSuccess: (_r, { incidentId, action }) => {
+      // The consequence is per incident, so it names the metric and the model
+      // the incident is actually keyed to rather than confirming a click.
+      const inc = incidents.find((i) => i.id === incidentId);
+      const what = inc ? `${METRIC_LABELS[inc.metric] ?? inc.metric} on ${inc.model}` : "It";
+      if (action === "resolve") {
+        commit(
+          "You resolved it",
+          `${what} goes back to stable. The next sample re-tests it and opens a new incident if it moves again.`,
+        );
+      } else {
+        commit(
+          "You reopened it",
+          `${what} is back on watch, and this surface counts as drifting until a sample clears it.`,
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["drift_overview"] });
+    },
+    onError: (e: Error, { action }) =>
+      commit(
+        action === "resolve" ? "You tried to resolve it" : "You tried to reopen it",
+        `${e.message} The incident is unchanged.`,
+        true,
+      ),
+  });
+
+  // Same headline rule as the list row: worst open incident by absolute delta.
   const worst = useMemo(
     () =>
       [...openIncidents].sort(
@@ -150,8 +310,8 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     [openIncidents],
   );
 
-  // Per-day rollup across this surface's models — request-weighted, exactly
-  // like the panel's trendByDay, plus a nullable eval-score channel.
+  // Per day rollup across this surface's models, request weighted exactly like
+  // the list's, plus a nullable eval score channel.
   const days = useMemo(() => {
     const map = new Map<
       string,
@@ -206,33 +366,31 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
       }));
   }, [snaps]);
 
-  // Reference sparkline slot, honest rendering: on watch, the incident
-  // metric's daily series with the STORED baseline as the dashed gate; on
-  // stable, calls/day (the one metric-neutral real series). Labels carry the
-  // real sampled-day count, never the reference's hardcoded "last 7 samples".
-  const chart: { series: number[]; baseline?: number; color: string; label: string } =
+  // On watch, the incident metric's own daily series against its STORED
+  // baseline. On stable, calls per day, the one metric neutral real series.
+  // The labels carry the real sampled day count, never a hardcoded window.
+  const chart: { series: number[]; baseline?: number; metric: string; label: string } =
     useMemo(() => {
       if (worst) {
         const series = seriesFor(days, worst.metric);
         return {
           series,
           baseline: Number(worst.baseline_value),
-          color: "var(--marigold)",
-          label: `${METRIC_LABELS[worst.metric] ?? worst.metric} vs baseline · last ${series.length} days`,
+          metric: worst.metric,
+          label: `${METRIC_LABELS[worst.metric] ?? worst.metric} against its baseline, across ${series.length} sampled days`,
         };
       }
       const series = days.map((d) => d.reqs);
       return {
         series,
-        color: "var(--emerald)",
-        label: `Calls / day · last ${series.length} days`,
+        metric: "calls",
+        label: `Calls per day, across ${series.length} sampled days`,
       };
     }, [worst, days]);
 
   const recentDays = useMemo(() => days.slice(-7).reverse(), [days]);
 
   const watch = openIncidents.length > 0;
-  const incidents = [...openIncidents, ...recentIncidents];
 
   const cfgSrc = (data?.baseline ?? {}) as Partial<typeof DEFAULT_WINDOWS>;
   const windowDays = Number(cfgSrc.window_days ?? DEFAULT_WINDOWS.window_days);
@@ -240,232 +398,216 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
 
   const back = () => navigate({ to: "/engine-room", search: { room: "quality", view: "drift" } });
 
+  const windows = (
+    <>
+      Comparing the last <Num>{windowDays}</Num> days against a <Num>{baselineDays}</Num> day
+      baseline.
+    </>
+  );
+
+  // A failed read may never wear an empty state's clothes, and the way back
+  // stays reachable in every state.
   if (error) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load drift
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
+      <Block title={id} more="All surfaces" onMore={back}>
+        <Failed onRetry={() => void refetch()}>
+          This surface did not load, so nothing here is a claim about whether it drifted.{" "}
           {(error as Error).message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => refetch()}
-        >
-          Retry · reloads drift
-        </button>
-      </div>
+        </Failed>
+      </Block>
     );
   }
 
   if (isLoading) {
     return (
-      <div
-        className="mono-label"
-        style={{ color: "var(--ink-faint)", padding: "32px 0", textAlign: "center" }}
-      >
-        Loading drift surface…
-      </div>
+      <Block title={id} more="All surfaces" onMore={back}>
+        <Loading>Reading this surface.</Loading>
+      </Block>
     );
   }
 
   if (snaps.length === 0 && incidents.length === 0) {
     return (
-      <div className="fade-up">
-        <DrillHeader onBack={back} backLabel="All surfaces" kicker="Drift surface" title={id} />
-        <div
-          className="bento"
-          style={{
-            padding: "var(--card-pad)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-          }}
-        >
-          <span style={{ flex: 1, color: "var(--ink-subtle)" }}>
-            No drift data for this surface. Nothing sampled in the last 30 days.
-          </span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
-            Back · all surfaces
-          </button>
-        </div>
-      </div>
+      <Block title={id} more="All surfaces" onMore={back}>
+        <Empty action={<Button onClick={back}>Back to all surfaces</Button>}>
+          Nothing has been sampled on this surface in the last 30 days, so there is nothing to
+          compare it against.
+        </Empty>
+      </Block>
     );
   }
 
+  const peak = chart.series.length ? Math.max(...chart.series) : null;
+  const low = chart.series.length ? Math.min(...chart.series) : null;
+  const chartFmt = (v: number) =>
+    chart.metric === "calls" ? String(Math.round(v)) : fmtMetric(chart.metric, v);
+
   return (
-    <div className="fade-up">
-      <DrillHeader
-        onBack={back}
-        backLabel="All surfaces"
-        kicker={`${windowDays}d window vs ${baselineDays}d baseline`}
-        title={id}
-        right={
-          watch ? (
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              disabled={runMut.isPending}
-              onClick={() => runMut.mutate()}
-            >
-              {runMut.isPending ? "Re-sampling…" : "Re-sample now · rolls up all surfaces"}
-            </button>
-          ) : undefined
+    <>
+      <Block title={id} sub={windows} more="All surfaces" onMore={back}>
+        {worst ? (
+          <Line
+            label={METRIC_LABELS[worst.metric] ?? worst.metric}
+            // The verdict, not the numbers. The baseline and current pair lives
+            // on the incident row below, where the control that settles it is,
+            // so the same figures are never printed twice on one screen.
+            sub={
+              <>
+                Past its threshold since <Num>{fmtWhen(worst.detected_at)}</Num>.
+                {openIncidents.length > 1 ? (
+                  <>
+                    {" "}
+                    <Num>{openIncidents.length - 1}</Num> other{" "}
+                    {openIncidents.length === 2 ? "metric is" : "metrics are"} open on this surface
+                    too.
+                  </>
+                ) : null}
+              </>
+            }
+          >
+            <Value tone="warn">
+              <Num>{fmtDelta(Number(worst.delta_pct))}</Num>
+            </Value>
+          </Line>
+        ) : (
+          <Line
+            label="Drift"
+            sub="Nothing on this surface has moved past its threshold, on any metric or any model."
+          >
+            <Value tone="pass">stable</Value>
+          </Line>
+        )}
+
+        <Actions>
+          <Button disabled={runMut.isPending} onClick={() => runMut.mutate()}>
+            {runMut.isPending ? "Checking" : "Run the drift check"}
+          </Button>
+        </Actions>
+      </Block>
+
+      <Block
+        title="How it moved"
+        sub={
+          chart.series.length >= 2 && peak != null && low != null ? (
+            <>
+              {chart.label}. Peak <Num>{chartFmt(peak)}</Num>, low <Num>{chartFmt(low)}</Num>
+              {chart.baseline != null ? (
+                <>
+                  , baseline <Num>{fmtMetric(chart.metric, chart.baseline)}</Num>
+                </>
+              ) : null}
+              .
+            </>
+          ) : chart.series.length === 1 ? (
+            "One sampled day so far. A shape needs a second one."
+          ) : (
+            "No sampled day carries this metric yet, so there is no shape to draw."
+          )
         }
-      />
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: "var(--geist-space-3x)",
-          marginBottom: 14,
-        }}
       >
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 6 }}>Baseline → current</MonoLabel>
-          {worst ? (
-            <>
-              <div className="font-display tabular-nums" style={{ }}>
-                {fmtMetric(worst.metric, Number(worst.baseline_value))} →{" "}
-                <span style={{ color: "var(--marigold)" }}>
-                  {fmtMetric(worst.metric, Number(worst.current_value))}
-                </span>
-              </div>
-              <div style={{ color: "var(--ink-faint)", marginTop: 2 }}>
-                {METRIC_LABELS[worst.metric] ?? worst.metric} ·{" "}
-                <span className="tabular-nums" style={{ color: "var(--marigold)" }}>
-                  {fmtDelta(Number(worst.delta_pct))}
-                </span>
-                {openIncidents.length > 1 ? ` · +${openIncidents.length - 1} more open` : null}
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ marginTop: 2 }}>
-                <VerdictChip tone="moss">stable</VerdictChip>
-              </div>
-              <div style={{ color: "var(--ink-faint)", marginTop: 6 }}>
-                within baseline band, no open incidents
-              </div>
-            </>
-          )}
-        </div>
-        <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>{chart.label}</MonoLabel>
-          {chart.series.length >= 2 ? (
-            <GraphSlider
-              data={chart.series}
-              baseline={chart.baseline}
-              baselineLabel="baseline"
-              w={300}
-              h={120}
-              color={chart.color ?? "var(--teal)"}
-              formatValue={(v) => (Number.isInteger(v) ? String(v) : v.toFixed(2))}
-              ariaLabel={chart.label}
-            />
-          ) : (
-            <div style={{ color: "var(--ink-faint)" }}>
-              First sampled day. The trend draws from day two.
-            </div>
-          )}
-        </div>
-      </div>
+        {chart.series.length >= 2 ? (
+          <Trend
+            series={chart.series}
+            baseline={chart.baseline}
+            watch={watch}
+            label={chart.label}
+          />
+        ) : null}
+      </Block>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 10 }}>Incidents · open and recent</MonoLabel>
-          {incidents.length === 0 ? (
-            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
-              No incidents on this surface. The detector compares the last {windowDays}d against a{" "}
-              {baselineDays}d baseline.
-            </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {incidents.map((inc) => {
-                const isOpen = inc.status === "open";
-                return (
-                  <div
-                    key={inc.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
+      <Block
+        title="Incidents"
+        sub="Open and recently resolved. Each one is keyed to a single model and a single metric, so one surface can carry several."
+      >
+        {incidents.length === 0 ? (
+          <Empty>
+            No incident has ever opened on this surface. The detector compares the last{" "}
+            <Num>{windowDays}</Num> days against a <Num>{baselineDays}</Num> day baseline every time
+            it runs.
+          </Empty>
+        ) : (
+          incidents.map((inc) => {
+            const isOpen = inc.status === "open";
+            const critical = isOpen && inc.severity === "critical";
+            const busy = decideMut.isPending && decideMut.variables?.incidentId === inc.id;
+            return (
+              <Row
+                key={inc.id}
+                tight
+                lead={
+                  <>
+                    {METRIC_LABELS[inc.metric] ?? inc.metric}{" "}
+                    <Num>{fmtMetric(inc.metric, Number(inc.baseline_value))}</Num> to{" "}
+                    <Num>{fmtMetric(inc.metric, Number(inc.current_value))}</Num>
+                  </>
+                }
+                sub={
+                  <>
+                    <span className={isOpen ? (critical ? "sp-fail" : "sp-warn") : "sp-pass"}>
+                      {critical ? "critical" : isOpen ? "on watch" : "resolved"}
+                    </span>
+                    {" · "}
+                    <Num>{fmtDelta(Number(inc.delta_pct))}</Num>
+                    {" · "}
+                    {inc.model}
+                  </>
+                }
+                time={relTime(inc.detected_at)}
+                action={
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() =>
+                      decideMut.mutate({
+                        incidentId: inc.id,
+                        action: isOpen ? "resolve" : "reopen",
+                      })
+                    }
                   >
-                    <VerdictChip
-                      tone={isOpen ? (inc.severity === "critical" ? "madder" : "ember") : "moss"}
-                    >
-                      {isOpen ? (inc.severity === "critical" ? "critical" : "watch") : "resolved"}
-                    </VerdictChip>
-                    <span style={{ color: "var(--ink-muted)" }}>
-                      {METRIC_LABELS[inc.metric] ?? inc.metric}{" "}
-                      {fmtMetric(inc.metric, Number(inc.baseline_value))} →{" "}
-                      {fmtMetric(inc.metric, Number(inc.current_value))}
-                    </span>
-                    <span className="mono-label tabular-nums">
-                      {fmtDelta(Number(inc.delta_pct))}
-                    </span>
-                    <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                      {inc.model} · {relTime(inc.detected_at)}
-                    </span>
-                    <span style={{ flex: 1 }}></span>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      style={{ }}
-                      disabled={decideMut.isPending && decideMut.variables?.incidentId === inc.id}
-                      onClick={() =>
-                        decideMut.mutate({
-                          incidentId: inc.id,
-                          action: isOpen ? "resolve" : "reopen",
-                        })
-                      }
-                    >
-                      {isOpen ? "Resolve · clears the watch" : "Reopen · back on watch"}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>Recent samples</MonoLabel>
-          {recentDays.length === 0 ? (
-            <p style={{ color: "var(--ink-faint)", margin: 0 }}>
-              No snapshot days yet. Run a drift check to roll up today.
-            </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {recentDays.map((d, i) => (
-                <div
-                  key={d.date}
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    padding: "7px 0",
-                    borderBottom: i < recentDays.length - 1 ? "1px solid var(--hairline)" : "none",
-                  }}
-                >
-                  <span className="mono-label" style={{ flexShrink: 0 }}>
-                    {fmtDay(d.date)}
-                  </span>
-                  <span style={{ color: "var(--ink-muted)" }}>
-                    {d.reqs} {d.reqs === 1 ? "call" : "calls"} · {d.errs}{" "}
-                    {d.errs === 1 ? "error" : "errors"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                    {busy ? "Saving" : isOpen ? "Resolve" : "Reopen"}
+                  </Button>
+                }
+              />
+            );
+          })
+        )}
+      </Block>
+
+      {settled.length > 0 ? (
+        <Block title="What you changed">
+          {settled.map((s) => (
+            <Receipt
+              key={s.id}
+              verb={s.verb}
+              consequence={s.consequence}
+              failed={s.failed}
+              time={s.at}
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      <Block title="Recent samples" sub="The last seven days that were rolled up, newest first.">
+        {recentDays.length === 0 ? (
+          <Empty>
+            No day has been rolled up yet. Run the drift check above and it rolls up today.
+          </Empty>
+        ) : (
+          recentDays.map((d) => (
+            <Row
+              key={d.date}
+              tight
+              lead={
+                <>
+                  <Num>{d.reqs}</Num> {d.reqs === 1 ? "call" : "calls"}, <Num>{d.errs}</Num>{" "}
+                  {d.errs === 1 ? "error" : "errors"}
+                </>
+              }
+              time={fmtDay(d.date)}
+            />
+          ))
+        )}
+      </Block>
+    </>
   );
 }

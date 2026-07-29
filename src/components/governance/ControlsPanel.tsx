@@ -34,6 +34,25 @@
  * untouched: setWorkspacePause with its audit reason and system-pause lock,
  * the reactor subscription CRUD, the tool-mode write, the usage table and the
  * confirm-mode dispatch queue all behave exactly as before.
+ *
+ * SECOND PASS, 2026-07-29. Two things the first port left behind:
+ *
+ * KILL  the six success toasts. Every write on this surface is consequential:
+ *       pausing the whole crew, handing a tool back, dispatching an agent. A
+ *       toast confirms that your CLICK registered and then erases itself; a
+ *       Receipt renders what your click CAUSED and stays (R10, "the Commit").
+ *       An approval that erases itself teaches you that your judgment left no
+ *       trace, and judgment is the product. Error toasts stay: a failure has
+ *       to reach you whether or not you are looking at this panel.
+ * NEW   the reactor Gate. A confirm-mode event is the ONE thing on this
+ *       surface that is permission asked in the moment, and it was drawn as a
+ *       Line with two small buttons, identical in weight to the twelve rows of
+ *       standing policy around it. The governance canon's whole split is that
+ *       policy does not block and permission does, so the thing that blocks
+ *       now looks different from the things that do not. One at a time, the
+ *       Approvals idiom: the oldest waiting event is the Gate, the rest queue
+ *       behind it as one-line rows, and the end of the queue is visible from
+ *       the start.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,9 +84,11 @@ import {
   Empty,
   Failed,
   Field,
+  Gate,
   Input,
   Line,
   Num,
+  Receipt,
   Row,
   Select,
   Switch,
@@ -82,6 +103,16 @@ type EventType =
   | "decision.made";
 
 type OversightMode = "auto" | "confirm" | "review";
+
+/** What a decided write left behind. `handoff` is drawn only when something
+ *  real picks the work up, which on this surface is a dispatched agent and
+ *  nothing else. Never an arrow to nowhere. */
+type Committed = {
+  verb: string;
+  consequence: string;
+  at: string;
+  handoff?: { slug: string | null | undefined } | null;
+};
 
 /** The three stops, in plain words. The order is loosest to tightest, which is
  *  the order the trust ramp travels. */
@@ -115,6 +146,20 @@ const CONTROL_WORD = {
   color: "var(--sp-mute)",
 };
 
+/** What a reactor event is about, taken from its own payload. Falls back to the
+ *  short source id rather than inventing a title for it. */
+function eventLabel(e: { payload: unknown; source_id: string }): string {
+  const t = (e.payload as Record<string, unknown> | null)?.title;
+  return typeof t === "string" && t.trim() ? t : e.source_id.slice(0, 8);
+}
+
+/** relTime hands back "now" for anything under a minute, so "now ago" has to be
+ *  caught rather than concatenated. */
+function firedPhrase(iso: string): string {
+  const t = relTime(iso);
+  return t === "now" ? "just now" : `${t} ago`;
+}
+
 export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
@@ -146,16 +191,26 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     queryFn: () => listToolsFn(),
   });
 
+  // THE COMMIT. Every write below leaves a Receipt carrying what it caused,
+  // rather than a toast confirming that the click landed.
+  const [committed, setCommitted] = useState<Committed[]>([]);
+  const commit = (
+    verb: string,
+    consequence: string,
+    handoff?: { slug: string | null | undefined } | null,
+  ) => setCommitted((c) => [...c, { verb, consequence, at: new Date().toISOString(), handoff }]);
+
   const toolModeMut = useMutation({
     mutationFn: (v: { toolId: string; mode: OversightMode; name: string }) =>
       updateToolModeFn({ data: { toolId: v.toolId, mode: v.mode } }),
     onSuccess: (_d, v) => {
-      toast.success(
+      commit(
+        v.mode === "auto" ? "You handed it back" : "You tightened it",
         v.mode === "auto"
           ? `${v.name} runs on its own again.`
           : v.mode === "confirm"
-            ? `${v.name} will ask before each run.`
-            : `${v.name} now waits for your review.`,
+            ? `${v.name} asks you before every run from now on.`
+            : `${v.name} waits for your review before every run from now on.`,
       );
       qc.invalidateQueries({ queryKey: ["agent-tools"] });
     },
@@ -167,12 +222,13 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     mutationFn: (next: boolean) =>
       pauseFn({ data: { workspaceId: activeWorkspaceId!, paused: next, reason: reason || null } }),
     onSuccess: (_d, next) => {
-      // Pause copy is the reference contract; resume copy corrected: halted
-      // runs do not auto-resume in production, agents simply may run again.
-      toast.success(
+      // Resume copy stays honest: halted runs do not resume by themselves in
+      // production, agents simply become dispatchable again.
+      commit(
+        next ? "You stopped the crew" : "You let the crew run",
         next
-          ? "Agents paused. Every agent is holding, nothing was lost."
-          : "Agents resumed. They can run again.",
+          ? "Every agent is holding mid-step. Nothing was lost, and nothing runs until you turn this back on."
+          : "They can be dispatched again. Runs that were already halted do not pick themselves back up.",
       );
       setReason("");
       qc.invalidateQueries({ queryKey: ["governance"] });
@@ -194,34 +250,54 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const toggleSubMut = useMutation({
     mutationFn: (v: UpsertSubInput & { name: string }) => upsertSubFn({ data: v }),
     onSuccess: (_d, v) => {
-      toast.success(`${v.name} ${v.enabled ? "on" : "off"}.`);
+      commit(
+        v.enabled ? "You turned it on" : "You turned it off",
+        v.enabled
+          ? `${v.name} routes itself again, starting with the next matching event.`
+          : `${v.name} stops routing. Matching events sit there until you turn it back on.`,
+      );
       qc.invalidateQueries({ queryKey: ["reactor", "subs"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
   const addSubMut = useMutation({
     mutationFn: (v: UpsertSubInput) => upsertSubFn({ data: v }),
-    onSuccess: () => {
-      toast.success("Rule added. It fires on the next event.");
+    onSuccess: (_d, v) => {
+      commit(
+        "You added a pipeline",
+        v.approval_mode === "auto"
+          ? `${v.event_type} dispatches ${agentDisplayName(v.target_agent_slug)} the moment it fires, without asking you.`
+          : `${v.event_type} comes to you for a confirm before ${agentDisplayName(v.target_agent_slug)} runs.`,
+      );
       setAddOpen(false);
       qc.invalidateQueries({ queryKey: ["reactor", "subs"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
   const deleteSubMut = useMutation({
-    mutationFn: (id: string) => deleteSubFn({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Rule removed. It stops firing.");
+    mutationFn: (v: { id: string; name: string }) => deleteSubFn({ data: { id: v.id } }),
+    onSuccess: (_d, v) => {
+      commit("You removed a pipeline", `${v.name} stops firing. Nothing routes on that event now.`);
       qc.invalidateQueries({ queryKey: ["reactor", "subs"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
   const decideEvtMut = useMutation({
-    mutationFn: (v: { eventId: string; decision: "approve" | "reject" }) =>
-      decideEvtFn({ data: v }),
+    mutationFn: (v: {
+      eventId: string;
+      decision: "approve" | "reject";
+      agentSlug: string;
+      label: string;
+    }) => decideEvtFn({ data: { eventId: v.eventId, decision: v.decision } }),
     onSuccess: (_d, v) => {
-      toast.success(
-        v.decision === "approve" ? "Dispatching · the agent runs now." : "Skipped · nothing ran.",
+      // The one write on this surface that genuinely hands work to someone, so
+      // the receipt draws the arrow. Skipping hands it to nobody, so it does not.
+      commit(
+        v.decision === "approve" ? "You dispatched it" : "You skipped it",
+        v.decision === "approve"
+          ? `${agentDisplayName(v.agentSlug)} is running on ${v.label} now.`
+          : `Nothing ran. ${v.label} stays on the record as skipped.`,
+        v.decision === "approve" ? { slug: v.agentSlug } : null,
       );
       qc.invalidateQueries({ queryKey: ["reactor"] });
     },
@@ -242,6 +318,15 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const subs = subsQ.data?.subscriptions ?? [];
   const runs = data?.runs ?? [];
   const events = queueQ.data?.events ?? [];
+  // A confirm-mode event that nobody has settled is the one shape on this
+  // surface that BLOCKS. Oldest first, so the queue drains in the order it
+  // arrived rather than in whatever order the read came back.
+  const waiting = events
+    .filter((e) => e.status === "pending" && e.approval_mode === "confirm")
+    .slice()
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const live = waiting[0] ?? null;
+  const deciding = (id: string) => decideEvtMut.isPending && decideEvtMut.variables?.eventId === id;
   const tools = (toolsQ.data?.tools ?? []).filter(
     (t) => t.enabled !== false && t.mode !== "off",
   ) as Array<{
@@ -359,7 +444,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   variant="ghost"
                   title="It stops firing."
                   disabled={deleteSubMut.isPending}
-                  onClick={() => deleteSubMut.mutate(s.id)}
+                  onClick={() => deleteSubMut.mutate({ id: s.id, name: pipeName(s) })}
                 >
                   Remove
                 </Button>
@@ -641,83 +726,139 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         )}
       </Block>
 
-      <Block title="Reactor activity" sub="Confirm-mode rows are the ones waiting on you.">
+      {/* Permission asked in the moment, and the only thing on this surface
+          that is. One at a time, so there is one primary action on screen and
+          the end of the queue is visible from the start. */}
+      {live ? (
+        <Gate
+          question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
+          lines={[
+            <>
+              <Num>{live.event_type}</Num> fired {firedPhrase(live.created_at)}, and this pipeline
+              asks you before it dispatches.
+            </>,
+            <>Skipping runs nothing. The event stays on the record either way.</>,
+          ]}
+        >
+          <Button
+            variant="primary"
+            disabled={deciding(live.id)}
+            onClick={() =>
+              decideEvtMut.mutate({
+                eventId: live.id,
+                decision: "approve",
+                agentSlug: live.target_agent_slug,
+                label: eventLabel(live),
+              })
+            }
+          >
+            Dispatch it
+          </Button>
+          <Button
+            disabled={deciding(live.id)}
+            onClick={() =>
+              decideEvtMut.mutate({
+                eventId: live.id,
+                decision: "reject",
+                agentSlug: live.target_agent_slug,
+                label: eventLabel(live),
+              })
+            }
+          >
+            Skip it
+          </Button>
+        </Gate>
+      ) : null}
+
+      <Block
+        title="Reactor activity"
+        sub={
+          waiting.length > 1 ? (
+            <>
+              <Num>{waiting.length - 1}</Num> more are waiting behind the one above. Settle it and
+              the next takes its place.
+            </>
+          ) : (
+            "What the rules above routed, and what came of it."
+          )
+        }
+      >
         {queueQ.isError ? (
           <Failed onRetry={() => void queueQ.refetch()}>Reactor activity did not load.</Failed>
         ) : events.length === 0 ? (
           <Empty>No reactor events yet. One appears the moment a rule above matches.</Empty>
         ) : (
-          events.map((e) => {
-            const title =
-              ((e.payload as Record<string, unknown>)?.title as string) ?? e.source_id.slice(0, 8);
-            const isPending = e.status === "pending" && e.approval_mode === "confirm";
-            const statusClass =
-              e.status === "dispatched" ? "sp-pass" : e.status === "failed" ? "sp-fail" : undefined;
-            const deciding = decideEvtMut.isPending && decideEvtMut.variables?.eventId === e.id;
-            return (
-              <Line
-                key={e.id}
-                label={
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "var(--sp-space-2)",
-                    }}
-                  >
-                    {/* A row that waits on you leads in ember. Nothing else here does. */}
-                    <AgentMark
-                      slug={e.target_agent_slug}
-                      state={
-                        isPending
-                          ? "gate"
-                          : e.status === "failed"
-                            ? "failed"
-                            : e.status === "dispatched"
-                              ? "idle"
-                              : "quiet"
-                      }
-                    />
-                    <span>
-                      <Num>{e.event_type}</Num> → {agentDisplayName(e.target_agent_slug)}
+          events
+            // The one being asked is drawn as the Gate above, so it is not
+            // drawn twice.
+            .filter((e) => e.id !== live?.id)
+            .map((e) => {
+              const isPending = e.status === "pending" && e.approval_mode === "confirm";
+              const statusClass =
+                e.status === "dispatched"
+                  ? "sp-pass"
+                  : e.status === "failed"
+                    ? "sp-fail"
+                    : undefined;
+              return (
+                <Line
+                  key={e.id}
+                  label={
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "var(--sp-space-2)",
+                      }}
+                    >
+                      {/* Ember without the blink for the ones queued behind:
+                          exactly one mark on a screen may blink, and it is the
+                          Gate's. */}
+                      <AgentMark
+                        slug={e.target_agent_slug}
+                        state={
+                          isPending
+                            ? "waiting"
+                            : e.status === "failed"
+                              ? "failed"
+                              : e.status === "dispatched"
+                                ? "idle"
+                                : "quiet"
+                        }
+                      />
+                      <span>
+                        <Num>{e.event_type}</Num> to {agentDisplayName(e.target_agent_slug)}
+                      </span>
                     </span>
-                  </span>
-                }
-                sub={
-                  <>
-                    {e.error ? <span className="sp-fail">{e.error}</span> : title}
-                    {" · "}
-                    <Num>{relTime(e.created_at)}</Num>
-                  </>
-                }
-              >
-                {isPending ? (
-                  <>
-                    <Button
-                      disabled={deciding}
-                      onClick={() => decideEvtMut.mutate({ eventId: e.id, decision: "approve" })}
-                    >
-                      Dispatch
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      title="Nothing runs."
-                      disabled={deciding}
-                      onClick={() => decideEvtMut.mutate({ eventId: e.id, decision: "reject" })}
-                    >
-                      Skip
-                    </Button>
-                  </>
-                ) : (
+                  }
+                  sub={
+                    <>
+                      {e.error ? <span className="sp-fail">{e.error}</span> : eventLabel(e)}
+                      {" · "}
+                      <Num>{relTime(e.created_at)}</Num>
+                    </>
+                  }
+                >
                   <span style={CONTROL_WORD} className={statusClass}>
-                    {e.status}
+                    {isPending ? "waiting on you" : e.status}
                   </span>
-                )}
-              </Line>
-            );
-          })
+                </Line>
+              );
+            })
         )}
       </Block>
+
+      {/* THE COMMIT. What every decision above actually caused, kept on screen
+          rather than flashed once and lost. */}
+      {committed.map((c, i) => (
+        <Receipt
+          key={`${c.at}-${i}`}
+          verb={c.verb}
+          consequence={c.consequence}
+          handoff={c.handoff}
+          time={relTime(c.at)}
+        />
+      ))}
     </>
   );
 }

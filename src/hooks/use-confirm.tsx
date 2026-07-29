@@ -1,4 +1,22 @@
+/*
+ * The one confirm and the one prompt, used by 32 surfaces.
+ *
+ * Ported onto the rebuild's primitives 2026-07-30. Its CONTENTS were the last
+ * large legacy leak in the product: every destructive confirm in the app
+ * rendered shadcn utility classes (text-muted-foreground, bg-destructive) over
+ * the new theme, which is exactly the founder's "if something opens up, it
+ * should not render in the legacy theme".
+ *
+ * The Radix AlertDialog/Dialog MECHANISM is kept on purpose. anti-slop ban 11
+ * is about modal ABUSE, a whole surface behind an overlay, and its own stated
+ * exception is a short irreversible question, which is precisely this. Radix
+ * also brings the focus trap, the escape key, the focus return and the inert
+ * background, and re-implementing those badly is an accessibility regression
+ * wearing a primitive's name (the same reasoning recorded in primitives.tsx
+ * for why no pane primitive was built).
+ */
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { Button as SpButton, Field, Input as SpInput } from "@/components/shell/primitives";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,9 +35,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 
 // In-app replacements for window.confirm / window.prompt.
 // Promise-based, themed, keyboard-friendly. Mount the provider once in __root.
@@ -110,34 +125,22 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             )}
           </AlertDialogHeader>
           {confirmState?.typedConfirm && (
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                Type <span className="font-mono text-foreground">{confirmState.typedConfirm}</span>{" "}
-                to confirm
-              </Label>
-              <Input
+            <Field label={`Type ${confirmState.typedConfirm} to confirm`}>
+              <SpInput
                 autoFocus
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder={confirmState.typedConfirm}
               />
-            </div>
+            </Field>
           )}
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => resolveConfirm(false)}>
+            <SpButton onClick={() => resolveConfirm(false)}>
               {confirmState?.cancelLabel ?? "Cancel"}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={!typedOk}
-              onClick={() => resolveConfirm(true)}
-              className={
-                confirmState?.destructive
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  : undefined
-              }
-            >
+            </SpButton>
+            <SpButton variant="primary" disabled={!typedOk} onClick={() => resolveConfirm(true)}>
               {confirmState?.confirmLabel ?? "Confirm"}
-            </AlertDialogAction>
+            </SpButton>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -160,20 +163,21 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             }}
             className="space-y-3"
           >
-            {promptState?.label && <Label className="text-xs">{promptState.label}</Label>}
-            <Input
-              autoFocus
-              value={promptValue}
-              onChange={(e) => setPromptValue(e.target.value)}
-              placeholder={promptState?.placeholder}
-            />
+            <Field label={promptState?.label ?? ""}>
+              <SpInput
+                autoFocus
+                value={promptValue}
+                onChange={(e) => setPromptValue(e.target.value)}
+                placeholder={promptState?.placeholder}
+              />
+            </Field>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => resolvePrompt(null)}>
+              <SpButton type="button" onClick={() => resolvePrompt(null)}>
                 {promptState?.cancelLabel ?? "Cancel"}
-              </Button>
-              <Button type="submit" disabled={!promptValue.trim()}>
+              </SpButton>
+              <SpButton type="submit" variant="primary" disabled={!promptValue.trim()}>
                 {promptState?.confirmLabel ?? "Save"}
-              </Button>
+              </SpButton>
             </DialogFooter>
           </form>
         </DialogContent>

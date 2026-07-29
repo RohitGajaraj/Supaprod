@@ -3,7 +3,6 @@
 // both component files keep Vite fast-refresh (react-refresh rule: a file
 // must export only components). SourceLink stays in DecisionsPanel.
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
-import type { VerdictTone } from "@/components/supaprod/Primitives";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 export const SOURCE_LABEL: Record<DecisionSource, string> = {
@@ -13,10 +12,16 @@ export const SOURCE_LABEL: Record<DecisionSource, string> = {
   manual: "Manual",
 };
 
-export const STATUS_TONE: Record<DecisionRow["status"], VerdictTone> = {
-  approved: "moss",
-  rejected: "madder",
-  pending: "ember", // awaiting the human's call
+/** The outcome in plain words, and the one class that carries it.
+ *
+ *  Replaces the retired VerdictTone map. Green and red carry outcomes and own
+ *  those two; a call nobody has settled yet is not an outcome, so it stays
+ *  monochrome rather than wearing ember. Ember marks the human, and deciding
+ *  happens on Today, so the ember budget belongs there. */
+export const OUTCOME_WORD: Record<DecisionRow["status"], { word: string; tone: string }> = {
+  approved: { word: "Kept", tone: "sp-pass" },
+  rejected: { word: "Dropped", tone: "sp-fail" },
+  pending: { word: "Not settled", tone: "" },
 };
 
 export function ageOf(iso: string): string {

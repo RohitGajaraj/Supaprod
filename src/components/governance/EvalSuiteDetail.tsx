@@ -1,39 +1,38 @@
-// Eval suite drill-down — screen 7 of the Ember Editorial migration, ported
-// 1:1 from design-reference/supaprod/govern-detail.jsx (EvalDetail) onto real
-// data only. Rides ?suite= on /govern?tab=evals (tab body only — SurfaceHeader
-// + TabRow stay; DrillHeader back returns to the bare tab).
-//
-// Reference → production map (scout-audited; every datum is a DB field or a
-// derivation of one):
-//   · stat bento 1   latest completed eval_runs.avg_score vs pass_threshold
-//   · stat bento 2   GraphSlider trend of the last ≤8 completed runs with the
-//                    dashed gate baseline (labelled honestly when fewer)
-//   · stat bento 3   the reference's mock Dataset/owner bento is OMITTED (no
-//                    such columns) — real cases / enabled counts instead
-//   · CTA            "Re-run suite · ~Ns" from the latest run's real
-//                    total_latency_ms; no prior run → "Run suite · N cases"
-//   · Runs table     short uuid (no '#412' counters exist) · relTime ·
-//                    prompt version via getEvalRunPromptVersions (nullable —
-//                    falls back to eval_runs.model, then "—") · score vs
-//                    gate · pass/fail plus the real errored count the
-//                    reference drops · "open cases →" scopes Failing cases
-//   · Failing cases  VerdictChip-led cards (VerdictChip law) from a run's
-//                    eval_case_results. The reference's "fix" suggestion and
-//                    one-word verdicts are OMITTED (no such columns) —
-//                    expected + judge_reasoning (both real) explain instead
-//   · Config         real rows only — target prompt (no dataset exists),
-//                    judge, model, gate threshold with the truthful "a case
-//                    fails the run" copy (no gate-pause behavior exists),
-//                    supaprod (raw cron or "manual"; no owner / auto-memory
-//                    claim), enabled toggle, confirmed delete
-// Production functionality preserved: run now, enable/disable, delete
-// (confirmed), case CRUD (the Cases tab — the reference lacks one, but the
-// panel contract keeps it), failing-case judge reasoning.
-import { useState } from "react";
+/**
+ * ONE EVAL SUITE. The drill-down, ported onto the shell primitives 2026-07-29.
+ *
+ * This is the surface the founder's complaint is about: the suite list is
+ * ported, you click a suite, and the retired theme comes back. It was
+ * `DrillHeader` + three `bento` stat cards + a `GraphSlider` + a five column
+ * CSS grid pretending to be a table + `VerdictChip`, all drawing their own
+ * borders and their own palette. It is now `PageHead`, `Block`, `Line`, `Row`
+ * and `Value`, and it owns no colour at all.
+ *
+ * WHAT WENT, AND WHAT IT COST:
+ *   GONE  the GraphSlider. Eight points of sparkline is a picture of two
+ *         numbers you can just say: where it started, where it is now, and
+ *         which direction that is. The sentence replaces it, reads in
+ *         greyscale, and cannot lie about a sample of one.
+ *   GONE  the runs table's column grid. A run is one line: what it scored,
+ *         how many cleared, when. Its failures are a click away, which is
+ *         where depth belongs.
+ *   GONE  the check and cross glyphs, the arrows, the "-" placeholders. A
+ *         thing that has no score says so in words.
+ *   KEPT  every server call: run now, enable, delete confirmed, case create,
+ *         case toggle, case delete, and the failing-case judge reasoning.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Running the suite used to
+ * fire "Run complete: 8 passed, 2 failed." and vanish. That is a toast
+ * confirming your click. It now leaves a `Receipt` naming what the run found
+ * and whether the suite still clears its gate, which is what the run CAUSED.
+ *
+ * The delete confirmation stays a real modal (`useConfirm`). That is the one
+ * shape the standard still allows a modal for: a single irreversible question.
+ */
+import { Fragment, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/notify";
 import {
   getEvalSuite,
   getEvalRun,
@@ -45,8 +44,25 @@ import {
   updateEvalCase,
   deleteEvalCase,
 } from "@/lib/evals.functions";
-import { DrillHeader, MonoLabel, SubTabs, VerdictChip } from "@/components/supaprod/Primitives";
-import { GraphSlider } from "@/components/obsidian";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Num,
+  PageHead,
+  Prose,
+  Receipt,
+  Row,
+  Switch,
+  Textarea,
+  Value,
+} from "@/components/shell/primitives";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -97,8 +113,17 @@ type ResultRow = {
   case: { name: string; input: string; expected: string | null } | null;
 };
 
-const RUN_COLS = "80px 100px 70px 60px 110px 1fr";
-const SUB_TABS = ["Runs", "Failing cases", "Cases", "Config"];
+type Tab = "runs" | "failures" | "cases" | "config";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "runs", label: "Runs" },
+  { id: "failures", label: "What failed" },
+  { id: "cases", label: "Cases" },
+  { id: "config", label: "How it is set" },
+];
+
+/** What a run left behind, held only long enough to render the receipt. */
+type Ran = { passed: number; failed: number; errored: number; at: string };
 
 export function EvalSuiteDetail({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -106,11 +131,9 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   const getFn = useServerFn(getEvalSuite);
   const versionsFn = useServerFn(getEvalRunPromptVersions);
   const runFn = useServerFn(runEvalSuiteNow);
-  const updateFn = useServerFn(updateEvalSuite);
-  const deleteFn = useServerFn(deleteEvalSuite);
-  const confirm = useConfirm();
-  const [sub, setSub] = useState("Runs");
+  const [tab, setTab] = useState<Tab>("runs");
   const [failRunId, setFailRunId] = useState<string | null>(null);
+  const [ran, setRan] = useState<Ran[]>([]);
 
   const back = () => navigate({ to: "/engine-room", search: { room: "quality", view: "suites" } });
 
@@ -127,83 +150,61 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   });
 
   const inv = () => {
-    suiteQ.refetch();
-    qc.invalidateQueries({ queryKey: ["eval_suites"] });
-    qc.invalidateQueries({ queryKey: ["eval_suite_trends"] });
-    qc.invalidateQueries({ queryKey: ["eval_run_prompt_versions", id] });
-    qc.invalidateQueries({ queryKey: ["eval_run"] });
+    void suiteQ.refetch();
+    void qc.invalidateQueries({ queryKey: ["eval_suites"] });
+    void qc.invalidateQueries({ queryKey: ["eval_suite_trends"] });
+    void qc.invalidateQueries({ queryKey: ["eval_coverage"] });
+    void qc.invalidateQueries({ queryKey: ["eval_run_prompt_versions", id] });
+    void qc.invalidateQueries({ queryKey: ["eval_run"] });
   };
 
   const run = useMutation({
     mutationFn: () => runFn({ data: { suite_id: id } }),
     onSuccess: (r: { passed: number; failed: number; errored?: number }) => {
-      toast.success(
-        `Run complete: ${r.passed} passed, ${r.failed} failed${r.errored ? `, ${r.errored} errored` : ""}.`,
-      );
+      setRan((prev) => [
+        ...prev,
+        {
+          passed: r.passed,
+          failed: r.failed,
+          errored: r.errored ?? 0,
+          at: new Date().toISOString(),
+        },
+      ]);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
+  const backButton = (
+    <Button variant="ghost" onClick={back}>
+      All of them
+    </Button>
+  );
+
   if (suiteQ.isLoading) {
-    return (
-      <div className="fade-up" style={{ padding: "32px 0", textAlign: "center" }}>
-        <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-          Loading suite…
-        </span>
-      </div>
-    );
+    return <Loading>Reading what this one watches.</Loading>;
   }
 
-  if (suiteQ.error) {
+  if (suiteQ.isError) {
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={back}
-          backLabel="All eval suites"
-          kicker="Eval suite"
-          title="Could not load"
-        />
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <p style={{ color: "var(--rose)", margin: 0 }}>
-            This suite did not load. {(suiteQ.error as Error).message}
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={() => void suiteQ.refetch()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
+      <>
+        <PageHead title="This suite did not load." />
+        <Failed onRetry={() => void suiteQ.refetch()}>
+          {(suiteQ.error as Error).message}. Nothing below would be its real state, so nothing is
+          shown.
+        </Failed>
+        <Block>{backButton}</Block>
+      </>
     );
   }
 
   if (!suiteQ.data?.suite) {
     return (
-      <div className="fade-up">
-        <DrillHeader
-          onBack={back}
-          backLabel="All eval suites"
-          kicker="Eval suite"
-          title="Suite not found"
-        />
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <p style={{ color: "var(--ink-muted)", margin: 0 }}>
-            This eval suite doesn't exist in this workspace; it may have been deleted.
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={back}
-          >
-            Back · all eval suites
-          </button>
-        </div>
-      </div>
+      <>
+        <PageHead title="No suite by that name." />
+        <Empty action={backButton}>
+          Nothing in this workspace answers to that id. It may have been deleted.
+        </Empty>
+      </>
     );
   }
 
@@ -215,312 +216,247 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   const enabledCases = cases.filter((c) => c.enabled).length;
   const latest = runs.find((r) => r.status === "completed" && r.avg_score != null);
   const score = latest ? Math.round(Number(latest.avg_score)) : null;
-  const below = score != null && score < suite.pass_threshold;
-  // Runs arrive newest-first; the trend reads oldest → newest, last ≤8 points.
+  const clears = score != null && score >= suite.pass_threshold;
+
+  // Runs arrive newest first; the trend reads oldest to newest, last 8 points.
   const trendData = runs
     .filter((r) => r.status === "completed" && r.avg_score != null)
     .slice()
     .reverse()
     .slice(-8)
     .map((r) => Number(r.avg_score));
+  const first = trendData[0];
+  const last = trendData[trendData.length - 1];
+  const move = trendData.length >= 2 ? Math.round(last - first) : null;
+
   const latestTimed = runs.find((r) => r.status === "completed" && r.total_latency_ms != null);
   const estimate = latestTimed
     ? Number(latestTimed.total_latency_ms) < 90_000
-      ? `~${Math.max(1, Math.round(Number(latestTimed.total_latency_ms) / 1000))}s`
-      : `~${Math.round(Number(latestTimed.total_latency_ms) / 60_000)} min`
+      ? `about ${Math.max(1, Math.round(Number(latestTimed.total_latency_ms) / 1000))} seconds`
+      : `about ${Math.round(Number(latestTimed.total_latency_ms) / 60_000)} minutes`
     : null;
   const latestCompletedId = runs.find((r) => r.status === "completed")?.id ?? null;
   const failTargetId = failRunId ?? latestCompletedId;
 
   return (
-    <div className="fade-up">
-      <DrillHeader
-        onBack={back}
-        backLabel="All eval suites"
-        kicker={`Eval suite · ${suite.surface}/${suite.prompt_key}`}
+    <>
+      <PageHead
         title={suite.name}
-        right={
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
+        sub={
+          score == null ? (
+            <>
+              Never run. It watches{" "}
+              <Num>
+                {suite.surface}/{suite.prompt_key}
+              </Num>
+              .
+            </>
+          ) : (
+            <>
+              <Value tone={clears ? "pass" : "fail"}>
+                {clears ? "It clears its gate" : "It is below its gate"}
+              </Value>{" "}
+              at <Num>{score}</Num> against <Num>{suite.pass_threshold}</Num>, watching{" "}
+              <Num>
+                {suite.surface}/{suite.prompt_key}
+              </Num>
+              .
+            </>
+          )
+        }
+      />
+
+      {suite.description ? <Prose>{suite.description}</Prose> : null}
+
+      <Block
+        title="Where it stands"
+        sub="Read from its completed runs. A suite with no runs has no score, and none is invented for it."
+      >
+        <Line
+          label="Cases"
+          sub={
+            cases.length === 0
+              ? "It cannot run until at least one exists."
+              : enabledCases === cases.length
+                ? "All of them run."
+                : `${cases.length - enabledCases} switched off, so they do not run.`
+          }
+        >
+          <Value>
+            <Num>{enabledCases}</Num> of <Num>{cases.length}</Num>
+          </Value>
+        </Line>
+
+        <Line
+          label="Direction"
+          sub={
+            trendData.length >= 2
+              ? `Across its last ${trendData.length} completed runs.`
+              : "It needs two completed runs before a direction means anything."
+          }
+        >
+          {move == null ? (
+            <Value>{trendData.length === 1 ? "one run so far" : "nothing to compare"}</Value>
+          ) : (
+            <Value tone={move > 0 ? "pass" : move < 0 ? "fail" : "quiet"}>
+              {move > 0 ? "up " : move < 0 ? "down " : "steady at "}
+              <Num>{move === 0 ? Math.round(last) : Math.abs(move)}</Num>
+            </Value>
+          )}
+        </Line>
+
+        {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+
+        <Actions>
+          <Button
+            variant="primary"
             disabled={run.isPending || enabledCases === 0}
-            title={enabledCases === 0 ? "Add and enable at least one case first" : undefined}
+            title={enabledCases === 0 ? "Write and switch on at least one case first" : undefined}
             onClick={() => run.mutate()}
           >
             {run.isPending
-              ? "Running…"
+              ? "Running it"
               : estimate
-                ? `Re-run suite · ${estimate}`
-                : `Run suite · ${enabledCases} cases`}
-          </button>
-        }
-      />
-      {suite.description ? (
-        <p
-          style={{
-            color: "var(--ink-subtle)",
-            margin: "-10px 0 16px",
-            maxWidth: 520,
-          }}
-        >
-          {suite.description}
-        </p>
-      ) : null}
+                ? `Run it again, ${estimate}`
+                : `Run it against ${enabledCases} case${enabledCases === 1 ? "" : "s"}`}
+          </Button>
+        </Actions>
 
-      <div
-        style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr", gap: "var(--geist-space-3x)", marginBottom: 14 }}
-      >
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 6 }}>Latest score</MonoLabel>
-          {score == null ? (
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-              not run yet
-            </span>
-          ) : (
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span
-                className="font-display tabular-nums"
-                style={{ color: below ? "var(--madder)" : undefined }}
-              >
-                {score}
-              </span>
-              <VerdictChip tone={below ? "madder" : "moss"}>{below ? "fail" : "pass"}</VerdictChip>
-              <span
-                className="mono-label"
-                style={{ color: below ? "var(--madder)" : "var(--emerald)" }}
-              >
-                {below ? `below gate ${suite.pass_threshold}` : `gate ${suite.pass_threshold} ✓`}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>
-            {trendData.length >= 2 ? `Trend · last ${trendData.length} runs` : "Trend"}
-          </MonoLabel>
-          {trendData.length >= 2 ? (
-            <GraphSlider
-              data={trendData}
-              baseline={suite.pass_threshold}
-              baselineLabel="gate"
-              w={300}
-              h={120}
-              color="var(--teal)"
-              formatValue={(v) => String(Math.round(v))}
-              ariaLabel="Eval score across recent runs"
-            />
-          ) : (
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-              {trendData.length === 1 ? "one run so far" : "not run yet"}
-            </span>
-          )}
-        </div>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 6 }}>Cases</MonoLabel>
-          <div style={{ color: "var(--ink-muted)", lineHeight: 1.5 }}>
-            {cases.length} {cases.length === 1 ? "case" : "cases"}
-            <br />
-            <span style={{ color: "var(--ink-subtle)" }}>{enabledCases} enabled</span>
-          </div>
-        </div>
+        {/* THE COMMIT. What the run found, not that the click registered. */}
+        {ran.map((r, i) => (
+          <Receipt
+            key={`${r.at}-${i}`}
+            verb="You ran it"
+            failed={r.failed > 0 || r.errored > 0}
+            time={relTime(r.at)}
+            consequence={
+              <>
+                <Num>{r.passed}</Num> cleared the gate, <Num>{r.failed}</Num> did not
+                {r.errored > 0 ? (
+                  <>
+                    , and <Num>{r.errored}</Num> never finished
+                  </>
+                ) : null}
+                .
+              </>
+            }
+          />
+        ))}
+      </Block>
+
+      <div className="sp-tabs" role="tablist" aria-label="What to read about this suite">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={tab === t.id}
+            onClick={() => {
+              setTab(t.id);
+              setFailRunId(null);
+            }}
+          >
+            {t.label}
+            {t.id === "runs" && runs.length > 0 ? (
+              <span className="sp-tab-count">{runs.length}</span>
+            ) : null}
+            {t.id === "cases" && cases.length > 0 ? (
+              <span className="sp-tab-count">{cases.length}</span>
+            ) : null}
+          </button>
+        ))}
       </div>
 
-      <SubTabs
-        tabs={SUB_TABS}
-        active={sub}
-        onSet={(t) => {
-          setSub(t);
-          setFailRunId(null);
-        }}
-      />
-
-      {sub === "Runs" ? (
-        runs.length === 0 ? (
-          <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
-            <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
-              No runs yet. Run suite · {enabledCases} cases against the live prompt.
-            </p>
-          </div>
-        ) : (
-          <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-            <div
-              className="mono-label"
-              style={{
-                display: "grid",
-                gridTemplateColumns: RUN_COLS,
-                gap: "var(--geist-space-3x)",
-                padding: "10px 18px",
-                borderBottom: "1px solid var(--hairline)",
-              }}
-            >
-              <span>Run</span>
-              <span>When</span>
-              <span>Prompt</span>
-              <span>Score</span>
-              <span>Pass / fail</span>
-              <span></span>
-            </div>
-            {runs.map((r, i) => {
+      {tab === "runs" ? (
+        <Block>
+          {runs.length === 0 ? (
+            <Empty>
+              It has not run yet. Run it above and every run from then on lands here, newest first.
+            </Empty>
+          ) : (
+            runs.map((r) => {
               const rScore = r.avg_score != null ? Math.round(Number(r.avg_score)) : null;
+              const rClears = rScore != null && rScore >= suite.pass_threshold;
+              const version = versions[r.id] ?? r.model ?? null;
               return (
-                <div
+                <Row
                   key={r.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: RUN_COLS,
-                    gap: "var(--geist-space-3x)",
-                    padding: "11px 18px",
-                    alignItems: "center",
-                    borderBottom: i < runs.length - 1 ? "1px solid var(--hairline)" : "none",
-                  }}
-                >
-                  <span className="mono-label" style={{ color: "var(--ink)" }}>
-                    {r.id.slice(0, 8)}
-                  </span>
-                  <span style={{ color: "var(--ink-subtle)" }}>{relTime(r.created_at)}</span>
-                  <span
-                    className="mono-label tabular-nums"
-                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                  >
-                    {versions[r.id] ?? r.model ?? "-"}
-                  </span>
-                  <span
-                    className="font-display tabular-nums"
-                    style={{
-                      color:
-                        rScore != null && rScore < suite.pass_threshold
-                          ? "var(--madder)"
-                          : "var(--ink)",
-                    }}
-                  >
-                    {rScore ?? "-"}
-                  </span>
-                  <span className="mono-label tabular-nums">
-                    <span style={{ color: "var(--emerald)" }}>{r.pass_count} ✓</span> ·{" "}
-                    <span style={{ color: r.fail_count ? "var(--rose)" : "var(--ink-faint)" }}>
-                      {r.fail_count} ✕
-                    </span>
-                    {(r.errored ?? 0) > 0 ? (
-                      <span style={{ color: "var(--rose)" }}> · {r.errored} err</span>
-                    ) : null}
-                  </span>
-                  <span style={{ textAlign: "right" }}>
-                    <button
-                      type="button"
-                      className="mono-label cursor-pointer hover:underline"
-                      style={{ color: "var(--ink-subtle)" }}
-                      onClick={() => {
-                        setFailRunId(r.id);
-                        setSub("Failing cases");
-                      }}
-                    >
-                      open cases →
-                    </button>
-                  </span>
-                </div>
+                  tight
+                  time={relTime(r.created_at)}
+                  lead={
+                    rScore == null ? (
+                      r.status === "completed" ? (
+                        "Finished without a score"
+                      ) : (
+                        `Did not finish, ${r.status}`
+                      )
+                    ) : (
+                      <>
+                        <Value tone={rClears ? "pass" : "fail"}>
+                          {rClears ? "Cleared" : "Below"}
+                        </Value>{" "}
+                        at <Num>{rScore}</Num>
+                      </>
+                    )
+                  }
+                  sub={
+                    <>
+                      <Num>{r.pass_count}</Num> passed, <Num>{r.fail_count}</Num> failed
+                      {(r.errored ?? 0) > 0 ? (
+                        <>
+                          , <Num>{r.errored}</Num> errored
+                        </>
+                      ) : null}
+                      {version ? (
+                        <>
+                          {" "}
+                          on <Num>{version}</Num>
+                        </>
+                      ) : null}
+                    </>
+                  }
+                  action={
+                    r.fail_count > 0 ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setFailRunId(r.id);
+                          setTab("failures");
+                        }}
+                      >
+                        What failed
+                      </Button>
+                    ) : undefined
+                  }
+                />
               );
-            })}
-          </div>
-        )
-      ) : sub === "Failing cases" ? (
+            })
+          )}
+        </Block>
+      ) : tab === "failures" ? (
         <FailingCases runId={failTargetId} />
-      ) : sub === "Cases" ? (
+      ) : tab === "cases" ? (
         <CaseList suiteId={id} cases={cases} onChange={inv} />
       ) : (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-          {(
-            [
-              ["Target prompt", `${suite.surface}/${suite.prompt_key}`],
-              ["Judge", suite.judge_model],
-              ["Model", suite.model ?? "-"],
-              ["Gate threshold", `≥ ${suite.pass_threshold}: below this, a case fails the run`],
-              ["Supaprod", suite.schedule_cron ?? "manual"],
-            ] as [string, string][]
-          ).map(([l, v]) => (
-            <div
-              key={l}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "150px 1fr",
-                gap: "var(--geist-space-3x)",
-                padding: "12px 18px",
-                borderBottom: "1px solid var(--hairline)",
-              }}
-            >
-              <span className="mono-label">{l}</span>
-              <span style={{ color: "var(--ink-muted)" }}>{v}</span>
-            </div>
-          ))}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "150px 1fr",
-              gap: "var(--geist-space-3x)",
-              padding: "12px 18px",
-              borderBottom: "1px solid var(--hairline)",
-            }}
-          >
-            <span className="mono-label">Suite</span>
-            <span style={{ }}>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={suite.enabled}
-                className="mono-label cursor-pointer hover:underline"
-                style={{
-                  color: suite.enabled ? "var(--emerald)" : "var(--ink-faint)",
-                }}
-                onClick={async () => {
-                  await updateFn({ data: { suite_id: id, enabled: !suite.enabled } });
-                  inv();
-                }}
-              >
-                {suite.enabled ? "enabled · runs count" : "disabled · paused"}
-              </button>
-            </span>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "150px 1fr",
-              gap: "var(--geist-space-3x)",
-              padding: "12px 18px",
-            }}
-          >
-            <span className="mono-label">Delete</span>
-            <span style={{ }}>
-              <button
-                type="button"
-                className="mono-label cursor-pointer hover:underline"
-                style={{ color: "var(--rose)" }}
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: "Delete this suite?",
-                    body: "Removes the suite and every case and run inside it. Can't be undone.",
-                    destructive: true,
-                    confirmLabel: "Delete suite",
-                  });
-                  if (!ok) return;
-                  await deleteFn({ data: { suite_id: id } });
-                  qc.invalidateQueries({ queryKey: ["eval_suites"] });
-                  back();
-                }}
-              >
-                delete suite · removes runs too
-              </button>
-            </span>
-          </div>
-        </div>
+        <Config suite={suite} onChanged={inv} onDeleted={back} />
       )}
-    </div>
+
+      <Block>{backButton}</Block>
+    </>
   );
 }
 
-/* Failing cases — a run's eval_case_results filtered to failures (runner-era
-   status 'failed' or seed-era completed + passed=false). Defaults to the
-   latest completed run; "open cases →" on a runs-table row scopes it. */
+/* ------------------------------------------------------------------ *
+ * What failed
+ * ------------------------------------------------------------------ */
+
+/** A run's case results filtered to failures (runner era status 'failed', or
+ *  seed era completed + passed=false). Defaults to the latest completed run;
+ *  "What failed" on a run row scopes it to that one. */
 function FailingCases({ runId }: { runId: string | null }) {
   const getRunFn = useServerFn(getEvalRun);
+  const [open, setOpen] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["eval_run", runId],
     queryFn: () => getRunFn({ data: { run_id: runId as string } }),
@@ -530,35 +466,28 @@ function FailingCases({ runId }: { runId: string | null }) {
 
   if (!runId) {
     return (
-      <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
-        <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
-          Not run yet. Failing cases appear after the first completed run.
-        </p>
-      </div>
+      <Block>
+        <Empty>
+          It has never completed a run, so nothing has failed yet. Failures appear here after the
+          first one.
+        </Empty>
+      </Block>
     );
   }
   if (q.isLoading) {
     return (
-      <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-        Loading cases…
-      </span>
+      <Block>
+        <Loading>Reading what this run found.</Loading>
+      </Block>
     );
   }
   if (q.isError) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <p style={{ color: "var(--rose)", margin: 0 }}>
-          This run's cases did not load. {(q.error as Error).message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 12 }}
-          onClick={() => void q.refetch()}
-        >
-          Retry
-        </button>
-      </div>
+      <Block>
+        <Failed onRetry={() => void q.refetch()}>
+          This run did not load, so the failures below would not be its real ones.
+        </Failed>
+      </Block>
     );
   }
 
@@ -569,81 +498,68 @@ function FailingCases({ runId }: { runId: string | null }) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {run ? (
-        <MonoLabel style={{ color: "var(--ink-faint)" }}>
-          run {run.id.slice(0, 8)} · {relTime(run.created_at)}
-        </MonoLabel>
-      ) : null}
+    <Block title="What failed" sub={run ? `From the run ${relTime(run.created_at)}.` : undefined}>
       {failing.length === 0 ? (
-        <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
-          <p style={{ color: "var(--ink-subtle)", margin: 0 }}>
-            No failing cases in this run.
-          </p>
-        </div>
+        <Empty>Nothing failed in this run. Every case cleared the gate.</Empty>
       ) : (
-        failing.map((r) => (
-          <div key={r.id} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <VerdictChip tone="madder">fail</VerdictChip>
-              <span style={{ fontWeight: 600 }}>{r.case?.name ?? r.case_id}</span>
-              {r.score != null ? (
-                <span className="mono-label" style={{ color: "var(--rose)" }}>
-                  scored {r.score}
-                </span>
+        failing.map((r) => {
+          const isOpen = open === r.id;
+          // A keyed Fragment, never a wrapper div: `.sp-row + .sp-row` is an
+          // adjacent-sibling divider and a div silently kills it.
+          return (
+            <Fragment key={r.id}>
+              <Row
+                tight
+                focused={isOpen}
+                lead={r.case?.name ?? r.case_id}
+                onClick={() => setOpen(isOpen ? null : r.id)}
+                sub={
+                  <>
+                    <Value tone="fail">failed</Value>
+                    {r.score != null ? (
+                      <>
+                        {" "}
+                        at <Num>{Math.round(Number(r.score))}</Num>
+                      </>
+                    ) : null}
+                    {r.error ? `, ${r.error}` : null}
+                  </>
+                }
+              />
+              {isOpen ? (
+                <>
+                  {r.case?.expected ? (
+                    <>
+                      <Line label="What it should have said" />
+                      <Prose>{r.case.expected}</Prose>
+                    </>
+                  ) : null}
+                  {r.actual ? (
+                    <>
+                      <Line label="What it said instead" />
+                      <Prose>{r.actual}</Prose>
+                    </>
+                  ) : null}
+                  {r.judge_reasoning ? (
+                    <>
+                      <Line label="Why the judge failed it" />
+                      <Prose>{r.judge_reasoning}</Prose>
+                    </>
+                  ) : null}
+                </>
               ) : null}
-            </div>
-            {r.actual ? (
-              <p
-                style={{
-                  color: "var(--ink-muted)",
-                  margin: "8px 0 6px",
-                  lineHeight: 1.5,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {r.actual}
-              </p>
-            ) : null}
-            {r.case?.expected ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  gap: "var(--geist-space-2x)",
-                  marginTop: r.actual ? 0 : 8,
-                }}
-              >
-                <span className="mono-label" style={{ flexShrink: 0 }}>
-                  expected
-                </span>
-                <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
-                  {r.case.expected}
-                </span>
-              </div>
-            ) : null}
-            {r.judge_reasoning ? (
-              <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginTop: 6 }}>
-                <span className="mono-label" style={{ flexShrink: 0 }}>
-                  judge
-                </span>
-                <span style={{ color: "var(--ink-subtle)" }}>
-                  {r.judge_reasoning}
-                </span>
-              </div>
-            ) : null}
-            {r.error ? (
-              <p style={{ color: "var(--rose)", margin: "6px 0 0" }}>{r.error}</p>
-            ) : null}
-          </div>
-        ))
+            </Fragment>
+          );
+        })
       )}
-    </div>
+    </Block>
   );
 }
 
-/* Case CRUD — moved verbatim from EvalsPanel's retired internal SuiteDetail
-   (the panel contract keeps create / toggle / delete reachable). */
+/* ------------------------------------------------------------------ *
+ * The cases
+ * ------------------------------------------------------------------ */
+
 function CaseList({
   suiteId,
   cases,
@@ -658,171 +574,286 @@ function CaseList({
   const deleteFn = useServerFn(deleteEvalCase);
   const confirm = useConfirm();
   const [formOpen, setFormOpen] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", input: "", expected: "", rubric: "" });
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          aria-expanded={formOpen}
-          onClick={() => setFormOpen((v) => !v)}
-        >
-          Add case · joins the suite
-        </button>
-      </div>
+  const create = useMutation({
+    mutationFn: () =>
+      createFn({
+        data: {
+          suite_id: suiteId,
+          name: form.name,
+          input: form.input,
+          expected: form.expected || null,
+          rubric: form.rubric || null,
+        },
+      }),
+    onSuccess: () => {
+      setFormOpen(false);
+      setForm({ name: "", input: "", expected: "", rubric: "" });
+      onChange();
+    },
+  });
 
+  const toggle = useMutation({
+    mutationFn: (v: { caseId: string; enabled: boolean }) =>
+      updateFn({ data: { case_id: v.caseId, enabled: v.enabled } }),
+    onSuccess: onChange,
+  });
+
+  const remove = useMutation({
+    mutationFn: (caseId: string) => deleteFn({ data: { case_id: caseId } }),
+    onSuccess: onChange,
+  });
+
+  const failure = create.error ?? toggle.error ?? remove.error;
+
+  return (
+    <>
       {formOpen ? (
-        <div className="bento fade-up" style={{ padding: "14px 16px" }}>
-          <MonoLabel style={{ marginBottom: 10 }}>New eval case</MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              className="input"
+        <Block title="A new case" sub="An input, what you expect back, and what the judge scores.">
+          <Field label="What to call it">
+            <Input
               value={form.name}
-              placeholder="Case name"
+              placeholder="Refuses to invent a number"
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
-            <textarea
-              className="input"
+          </Field>
+          <Field label="What it is sent">
+            <Textarea
               rows={3}
               value={form.input}
-              placeholder="Input: the user message to test"
+              placeholder="The message the surface receives"
               onChange={(e) => setForm({ ...form, input: e.target.value })}
-              style={{ resize: "none" }}
             />
-            <textarea
-              className="input"
+          </Field>
+          <Field label="What it should say back">
+            <Textarea
               rows={2}
               value={form.expected}
-              placeholder="Expected output (optional)"
+              placeholder="Leave this empty and the rubric alone decides"
               onChange={(e) => setForm({ ...form, expected: e.target.value })}
-              style={{ resize: "none" }}
             />
-            <input
-              className="input"
+          </Field>
+          <Field label="What the judge scores against">
+            <Input
               value={form.rubric}
-              placeholder="Rubric (optional), e.g. ≤ 5 lines, no emojis, mentions OKRs"
+              placeholder="Five lines or fewer, no invented figures, names the owner"
               onChange={(e) => setForm({ ...form, rubric: e.target.value })}
             />
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setFormOpen(false)}
+          </Field>
+
+          {create.isError ? <Failed>{(create.error as Error).message}</Failed> : null}
+
+          <Actions trailing={<Button onClick={() => setFormOpen(false)}>Leave it</Button>}>
+            <Button
+              variant="primary"
+              disabled={!form.name || !form.input || create.isPending}
+              title={!form.name || !form.input ? "It needs a name and an input" : undefined}
+              onClick={() => create.mutate()}
             >
-              Dismiss
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              disabled={!form.name || !form.input}
-              title={!form.name || !form.input ? "A case needs a name and an input" : undefined}
-              onClick={async () => {
-                await createFn({
-                  data: {
-                    suite_id: suiteId,
-                    name: form.name,
-                    input: form.input,
-                    expected: form.expected || null,
-                    rubric: form.rubric || null,
-                  },
-                });
-                setFormOpen(false);
-                setForm({ name: "", input: "", expected: "", rubric: "" });
-                onChange();
-              }}
-            >
-              Add case · joins the suite
-            </button>
-          </div>
-        </div>
+              {create.isPending ? "Adding it" : "Add it"}
+            </Button>
+          </Actions>
+        </Block>
       ) : null}
 
-      {cases.length === 0 && !formOpen ? (
-        <div className="bento" style={{ padding: "var(--geist-gap-section)", textAlign: "center" }}>
-          <p style={{ color: "var(--ink-subtle)" }}>
-            No cases yet. Add one: each case is an input, an optional expected output, and a rubric
-            the judge scores against.
-          </p>
-        </div>
-      ) : (
-        cases.map((c) => (
-          <div key={c.id} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 600 }}>{c.name}</span>
-              <span style={{ flex: 1 }}></span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={c.enabled}
-                className="mono-label cursor-pointer hover:underline"
-                style={{
-                  color: c.enabled ? "var(--emerald)" : "var(--ink-faint)",
-                }}
-                onClick={async () => {
-                  await updateFn({ data: { case_id: c.id, enabled: !c.enabled } });
-                  onChange();
-                }}
-              >
-                {c.enabled ? "on" : "off"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                style={{ color: "var(--rose)" }}
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: "Delete this case?",
-                    destructive: true,
-                    confirmLabel: "Delete",
-                  });
-                  if (!ok) return;
-                  await deleteFn({ data: { case_id: c.id } });
-                  onChange();
-                }}
-              >
-                Delete · leaves past runs
-              </button>
-            </div>
-            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
-                <span className="mono-label" style={{ flexShrink: 0 }}>
-                  input
-                </span>
-                <span style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}>
-                  {c.input}
-                </span>
-              </div>
-              {c.expected ? (
-                <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
-                  <span className="mono-label" style={{ flexShrink: 0 }}>
-                    expected
-                  </span>
-                  <span
-                    style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
-                  >
-                    {c.expected}
-                  </span>
-                </div>
-              ) : null}
-              {c.rubric ? (
-                <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "baseline" }}>
-                  <span className="mono-label" style={{ flexShrink: 0 }}>
-                    rubric
-                  </span>
-                  <span
-                    style={{ color: "var(--ink-muted)", whiteSpace: "pre-wrap" }}
-                  >
-                    {c.rubric}
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        ))
-      )}
-    </div>
+      <Block
+        title="Cases"
+        more={formOpen ? undefined : "New case"}
+        onMore={() => setFormOpen(true)}
+      >
+        {cases.length === 0 ? (
+          <Empty
+            action={
+              formOpen ? undefined : (
+                <Button variant="primary" onClick={() => setFormOpen(true)}>
+                  Write the first one
+                </Button>
+              )
+            }
+          >
+            No cases yet, so this suite cannot run. Each one is an input, an optional expected
+            answer, and a rubric the judge scores against.
+          </Empty>
+        ) : (
+          cases.map((c) => {
+            const isOpen = open === c.id;
+            // Keyed Fragment, never a wrapper div: see FailingCases above.
+            return (
+              <Fragment key={c.id}>
+                <Row
+                  tight
+                  focused={isOpen}
+                  lead={c.name}
+                  onClick={() => setOpen(isOpen ? null : c.id)}
+                  sub={c.enabled ? "Runs with the suite" : "Switched off, so it does not run"}
+                  action={
+                    <Switch
+                      checked={c.enabled}
+                      disabled={toggle.isPending}
+                      label={`${c.name} runs with the suite`}
+                      onChange={(next) => toggle.mutate({ caseId: c.id, enabled: next })}
+                    />
+                  }
+                />
+                {isOpen ? (
+                  <>
+                    <Line label="What it is sent" />
+                    <Prose>{c.input}</Prose>
+                    {c.expected ? (
+                      <>
+                        <Line label="What it should say back" />
+                        <Prose>{c.expected}</Prose>
+                      </>
+                    ) : null}
+                    {c.rubric ? (
+                      <>
+                        <Line label="What the judge scores against" />
+                        <Prose>{c.rubric}</Prose>
+                      </>
+                    ) : null}
+                    <Actions>
+                      <Button
+                        disabled={remove.isPending}
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "Delete this case?",
+                            body: "Past runs keep the result it produced. It stops running from now on.",
+                            destructive: true,
+                            confirmLabel: "Delete it",
+                          });
+                          if (!ok) return;
+                          remove.mutate(c.id);
+                        }}
+                      >
+                        Delete this case
+                      </Button>
+                    </Actions>
+                  </>
+                ) : null}
+              </Fragment>
+            );
+          })
+        )}
+
+        {failure ? <Failed>{(failure as Error).message}</Failed> : null}
+      </Block>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * How it is set
+ * ------------------------------------------------------------------ */
+
+function Config({
+  suite,
+  onChanged,
+  onDeleted,
+}: {
+  suite: Suite;
+  onChanged: () => void;
+  onDeleted: () => void;
+}) {
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateEvalSuite);
+  const deleteFn = useServerFn(deleteEvalSuite);
+  const confirm = useConfirm();
+
+  const enabled = useMutation({
+    mutationFn: (next: boolean) => updateFn({ data: { suite_id: suite.id, enabled: next } }),
+    onSuccess: onChanged,
+  });
+
+  const remove = useMutation({
+    mutationFn: () => deleteFn({ data: { suite_id: suite.id } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["eval_suites"] });
+      void qc.invalidateQueries({ queryKey: ["eval_coverage"] });
+      onDeleted();
+    },
+  });
+
+  return (
+    <Block title="How it is set" sub="Set once, and it holds for every run from now on.">
+      <Line
+        label="Running at all"
+        sub={
+          suite.enabled
+            ? "Switch it off and it stops running and stops counting toward coverage."
+            : "It is off. Nothing runs it, and the surface it watches counts as unguarded."
+        }
+      >
+        <Switch
+          checked={suite.enabled}
+          disabled={enabled.isPending}
+          label={`${suite.name} runs`}
+          onChange={(next) => enabled.mutate(next)}
+        />
+      </Line>
+
+      <Line label="What it watches" sub="The prompt every case is sent through.">
+        <Value>
+          <Num>
+            {suite.surface}/{suite.prompt_key}
+          </Num>
+        </Value>
+      </Line>
+
+      <Line label="Who scores it" sub="The model that reads the answer and rules on it.">
+        <Value>
+          <Num>{suite.judge_model}</Num>
+        </Value>
+      </Line>
+
+      <Line
+        label="What answers it"
+        sub={
+          suite.model
+            ? "Pinned, so a model change elsewhere cannot move this score."
+            : "Not pinned. It runs on whatever the surface is set to."
+        }
+      >
+        <Value>{suite.model ? <Num>{suite.model}</Num> : "the surface default"}</Value>
+      </Line>
+
+      <Line label="The score a case has to clear" sub="Anything under this fails the case.">
+        <Value>
+          <Num>{suite.pass_threshold}</Num>
+        </Value>
+      </Line>
+
+      <Line
+        label="When it runs by itself"
+        sub={
+          suite.schedule_cron ? "On this schedule, without being asked." : "Only when you run it."
+        }
+      >
+        <Value>{suite.schedule_cron ? <Num>{suite.schedule_cron}</Num> : "never"}</Value>
+      </Line>
+
+      {(enabled.error ?? remove.error) ? (
+        <Failed>{((enabled.error ?? remove.error) as Error).message}</Failed>
+      ) : null}
+
+      <Actions>
+        <Button
+          disabled={remove.isPending}
+          onClick={async () => {
+            const ok = await confirm({
+              title: "Delete this suite?",
+              body: "It takes every case and every run inside it. There is no way back from this one.",
+              destructive: true,
+              confirmLabel: "Delete it",
+            });
+            if (!ok) return;
+            remove.mutate();
+          }}
+        >
+          {remove.isPending ? "Deleting it" : "Delete this suite"}
+        </Button>
+      </Actions>
+    </Block>
   );
 }

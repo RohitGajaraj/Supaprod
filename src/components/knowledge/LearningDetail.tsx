@@ -1,35 +1,55 @@
-// LearningDetail - Brain -> Learnings drill-down, rebuilt on the shared
-// DetailKit anatomy (DESIGN-LOOM dim 17 / design-anatomy §3) so a learning
-// reads identically to a Discover signal, a Decide opportunity, and a Today
-// call: DetailHeader -> a neutral summary band (the compounding value first)
-// -> a compact StatStrip -> consistent DetailSections -> an actions footer.
-// Drill state rides ?learning= on /brain; the detail replaces only the tab
-// body. Reads listLearnings (the same ["learnings"] cache CompoundingPanel
-// fills, so the feed and this detail never drift) - which already carries the
-// re-scored opportunity's title, so no second query is needed.
-//
-// Trace ref: LRN (dim 17 registry). Timestamps via relTimeCaps (present tone),
-// the full id copyable. Provenance links back up the loop: the spec it graded
-// and the priority it re-ranked (the latter recentres the knowledge graph, so
-// the learning is never orphaned from its source). Real columns only: an
-// absent metric or ICE pair renders nothing, never a fabricated field.
+/**
+ * One outcome, opened. Brain > Outcomes > ?learning=.
+ *
+ * REBUILT on the shell primitives, 2026-07-29, for the same reason as
+ * DecisionDetail: the route was ported, this was not, so clicking a row in the
+ * feed put the legacy design back on screen.
+ *
+ * WHAT WENT, and why:
+ *   KILLED the DetailKit anatomy (DetailHeader, DetailSection, StatStrip,
+ *     StatCell, toneForScore). Retired system, and Block is the equivalent.
+ *   KILLED the material-medium card and the tinted summary band inside it.
+ *     Two bordered containers in one region, and the inner one was a card in a
+ *     card (anti-slop ban 5).
+ *   PROMOTED the headline into a Record. What the outcome moved is the single
+ *     most differentiated claim the product makes, and the record recess is the
+ *     one lit surface in the system. It was in a grey box under a mono label.
+ *   KILLED VerdictChip, MonoLabel and AuditTag. The verdict is a WORD carried
+ *     by sp-pass / sp-fail; a mixed result is not an outcome so it stays
+ *     monochrome. The trace id is plain mono via Num.
+ *   KILLED the three-cell ICE strip. Prior, new and change is the same number
+ *     said three ways, and the change is the only one that means anything. It
+ *     is one Line, and the before and after ride the second line as evidence.
+ *   KILLED the hand-rolled StateCard error and not-found boxes. A failed read
+ *     is Failed with a retry, never an empty state.
+ *   KILLED the two hand-built link buttons and the actions footer, which
+ *     duplicated the spec link the "Where it points" section already carried
+ *     (hard ban 10, the same door twice).
+ *
+ * UNCHANGED: listLearnings and the ["learnings"] cache CompoundingPanel fills,
+ * so the feed and this detail cannot drift; the ?learning= drill contract; the
+ * graph recentre and the spec deep link. Real columns only: an absent metric or
+ * ICE pair renders nothing rather than a fabricated field.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { AuditTag } from "@/components/supaprod/AuditTag";
 import { listLearnings } from "@/lib/outcome.functions";
-import { Button, MonoLabel, VerdictChip, type VerdictTone } from "@/components/obsidian";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-  toneForScore,
-  type StatTone,
-} from "@/components/discover/DetailKit";
-import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { PanelSkeleton } from "./PanelSkeleton";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  Prose,
+  Record as RecordRecess,
+  Value,
+} from "@/components/shell/primitives";
+import { whenOf } from "./CompoundingPanel";
 
 type LearningRow = {
   id: string;
@@ -47,54 +67,22 @@ type LearningRow = {
   recorded_by_agent_slug: string | null;
 };
 
-const VERDICT_TONE: Record<LearningRow["verdict"], VerdictTone> = {
-  validated: "VALIDATED",
-  missed: "MISSED",
-  mixed: "REVISE",
+/** How it landed, in plain words. Green and red carry outcomes and own those
+ *  two; a mixed result is not one, so it stays monochrome. Same map as the
+ *  feed, so a row and its drill can never disagree. */
+const OUTCOME: Record<LearningRow["verdict"], { word: string; tone: string }> = {
+  validated: { word: "It worked", tone: "sp-pass" },
+  missed: { word: "It missed", tone: "sp-fail" },
+  mixed: { word: "Mixed", tone: "" },
 };
 
 /** Coerce a PostgREST numeric (which arrives as a string) to a finite number,
- * or null. Mirrors CompoundingPanel/moat-vis so the ICE read never differs. */
+ *  or null. Mirrors CompoundingPanel and moat-vis so the ICE read never
+ *  differs between the feed and this drill. */
 function iceNum(v: number | string | null): number | null {
   if (v == null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
-}
-
-/** An absolute timestamp plus a quiet relative caption (the exemplar TimeLine,
- * matching OpportunityDetailSheet / CallDetailSheet). */
-function TimeLine({ iso }: { iso: string }) {
-  return (
-    <span
-      className="flex items-baseline"
-      style={{ gap: "8px", color: "var(--text-body)" }}
-    >
-      <span>{new Date(iso).toLocaleString()}</span>
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.06em",
-          color: "var(--text-faint)",
-        }}
-      >
-        {relTimeCaps(iso)}
-      </span>
-    </span>
-  );
-}
-
-function StateCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="material-medium"
-      style={{
-        background: "var(--card)",
-        padding: "16px 18px",
-      }}
-    >
-      {children}
-    </div>
-  );
 }
 
 export function LearningDetail({ id }: { id: string }) {
@@ -104,35 +92,23 @@ export function LearningDetail({ id }: { id: string }) {
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
 
-  if (learnings.isLoading) return <PanelSkeleton />;
+  if (learnings.isLoading) return <Loading>Reading the outcome.</Loading>;
 
   if (learnings.isError) {
     return (
-      <StateCard>
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>
-          Learning · failed to load
-        </MonoLabel>
-        <p style={{ color: "var(--text-muted)", marginBottom: 12 }}>
-          {(learnings.error as Error)?.message ?? "Unknown error"}
-        </p>
-        <Button variant="secondary" size="sm" onClick={() => void learnings.refetch()}>
-          Retry
-        </Button>
-      </StateCard>
+      <Failed onRetry={() => void learnings.refetch()}>
+        The outcomes did not load, so this is not a claim that this one is gone.{" "}
+        {(learnings.error as Error)?.message ?? ""}
+      </Failed>
     );
   }
 
   const l = ((learnings.data?.learnings ?? []) as LearningRow[]).find((x) => x.id === id);
   if (!l) {
     return (
-      <StateCard>
-        <MonoLabel style={{ marginBottom: 10, display: "block" }}>
-          Learning not found · it may have been removed
-        </MonoLabel>
-        <Button variant="secondary" size="sm" onClick={onBack}>
-          Back · all learnings
-        </Button>
-      </StateCard>
+      <Empty action={<Button onClick={onBack}>Back to all outcomes</Button>}>
+        That outcome is not on the record. It may have been removed since the link was made.
+      </Empty>
     );
   }
 
@@ -141,240 +117,144 @@ export function LearningDetail({ id }: { id: string }) {
   const delta =
     priorIce != null && newIce != null ? Math.round((newIce - priorIce) * 10) / 10 : null;
   const moved = delta != null && delta !== 0;
-
-  const deltaTone: StatTone =
-    delta == null || delta === 0 ? "muted" : delta > 0 ? "moss" : "madder";
-
-  // The compounding value, led first (the moat made visible): what the outcome
-  // moved, honestly stated. No movement reads as recorded-but-neutral.
-  const headline = moved
-    ? `Memory re-ranked ${l.opportunity_title ? `"${l.opportunity_title}"` : "a priority"} by ${
-        delta! > 0 ? "+" : ""
-      }${delta!.toFixed(1)} ICE from the real outcome.`
-    : "Recorded from the real outcome. It did not move a ranking.";
+  const outcome = OUTCOME[l.verdict];
+  const title = l.opportunity_title ?? "Recorded outcome";
+  const recordedBy = l.recorded_by_agent_slug
+    ? `${agentDisplayName(l.recorded_by_agent_slug)} recorded it`
+    : "unattributed";
 
   return (
-    <div className="fade-up" style={{ maxWidth: 760 }}>
-      <div style={{ marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={onBack}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-          }}
-        >
-          {"<-"} All learnings
-        </button>
-      </div>
+    <div>
+      <Actions>
+        <Button variant="ghost" onClick={onBack}>
+          All outcomes
+        </Button>
+      </Actions>
 
-      <div
-        className="material-medium"
-        style={{
-          display: "grid",
-          gap: "16px",
-          background: "var(--card)",
-          padding: "18px 20px",
-        }}
+      {/* The record speaking. What the outcome MOVED is the product's claim
+          made literal, so it gets the one lit surface rather than a grey box. */}
+      <RecordRecess
+        evidence={
+          priorIce != null && newIce != null ? (
+            <>
+              <Num>{priorIce.toFixed(1)}</Num> to <Num>{newIce.toFixed(1)}</Num> ICE
+            </>
+          ) : null
+        }
       >
-        <DetailHeader
-          title={l.opportunity_title ?? "Recorded outcome"}
-          chips={<VerdictChip tone={VERDICT_TONE[l.verdict]} />}
-          time={
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                RECORDED {relTimeCaps(l.created_at)}
-              </span>
-              {l.recorded_by_agent_slug ? (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  by {agentDisplayName(l.recorded_by_agent_slug)}
-                </span>
-              ) : null}
-            </div>
-          }
-          traceRef={<AuditTag kind="learning" id={l.id} copyable />}
-        />
+        {moved
+          ? `Memory re-ranked ${l.opportunity_title ? `"${l.opportunity_title}"` : "a priority"} by ${
+              delta! > 0 ? "+" : ""
+            }${delta!.toFixed(1)} ICE from the real outcome.`
+          : "Recorded from the real outcome. It did not move a ranking, and that is the honest result."}
+      </RecordRecess>
 
-        {/* Summary band: the compounding value first (calm neutral tint,
-            Tempo v5 glacier narrowing, 2026-07-11: a card accent, not a
-            status control, so it stays gray). */}
-        <div
-          style={{
-            display: "grid",
-            gap: "8px",
-            background: "color-mix(in srgb, var(--text-subtle) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--text-subtle) 22%, transparent)",
-            borderRadius: "var(--radius-card)",
-            padding: "13px 15px",
-          }}
-        >
-          <MonoLabel
-            style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-          >
-            What memory learned
-          </MonoLabel>
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 550,
-              color: "var(--text-primary)",
-              lineHeight: 1.5,
-            }}
-          >
-            {headline}
-          </span>
-        </div>
+      <Block
+        title={title}
+        // Three DIFFERENT facts, never more of the title: how it landed, who
+        // wrote it down, and when.
+        sub={
+          <>
+            <span className={outcome.tone || undefined}>{outcome.word}</span>
+            {" · "}
+            {recordedBy}
+            {" · "}
+            {whenOf(l.created_at)}
+          </>
+        }
+      >
+        {l.summary ? (
+          <Prose>
+            <p>{l.summary}</p>
+          </Prose>
+        ) : (
+          <Empty>
+            Nobody wrote a memo. The verdict is on the record without the story behind it.
+          </Empty>
+        )}
+      </Block>
 
-        {/* The ICE movement, glanceable. Rendered only when the outcome carried
-            a scored before/after pair (no fabricated numbers). */}
-        {priorIce != null && newIce != null ? (
-          <StatStrip columns={3}>
-            <StatCell label="Prior ICE" value={priorIce.toFixed(1)} tone={toneForScore(priorIce)} />
-            <StatCell label="New ICE" value={newIce.toFixed(1)} tone={toneForScore(newIce)} />
-            <StatCell
-              label="Change"
-              value={delta != null ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)}` : "0.0"}
-              tone={deltaTone}
-            />
-          </StatStrip>
-        ) : null}
-
-        {/* What happened: the outcome memo. */}
-        <DetailSection heading="What happened">
-          {l.summary ? (
-            <p style={{ lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
-              {l.summary}
-            </p>
-          ) : (
-            <p
-              style={{
-                color: "var(--text-subtle)",
-                fontStyle: "italic",
-                margin: 0,
-              }}
+      {/* Rendered only when the outcome actually carried a measurement or a
+          scored before-and-after pair. Never a fabricated field. */}
+      {(l.metric_label && l.metric_value) || delta != null ? (
+        <Block title="What it measured">
+          {l.metric_label && l.metric_value ? (
+            <Line label={l.metric_label}>
+              <Value>
+                <Num>{l.metric_value}</Num>
+              </Value>
+            </Line>
+          ) : null}
+          {delta != null ? (
+            <Line
+              label="Change in priority"
+              sub={
+                priorIce != null && newIce != null
+                  ? `${priorIce.toFixed(1)} before, ${newIce.toFixed(1)} after`
+                  : undefined
+              }
             >
-              No memo was recorded for this outcome.
-            </p>
-          )}
-        </DetailSection>
+              <Value tone={delta === 0 ? "quiet" : delta > 0 ? "pass" : "fail"}>
+                <Num>
+                  {delta > 0 ? "+" : ""}
+                  {delta.toFixed(1)}
+                </Num>{" "}
+                ICE
+              </Value>
+            </Line>
+          ) : null}
+        </Block>
+      ) : null}
 
-        {/* The metric, if one was captured. */}
-        {l.metric_label && l.metric_value ? (
-          <DetailSection heading="Measured result">
-            <div className="flex items-baseline" style={{ gap: "10px" }}>
-              <MonoLabel
-                style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-              >
-                {l.metric_label}
-              </MonoLabel>
-              <span
-                className="tabular-nums"
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {l.metric_value}
-              </span>
-            </div>
-          </DetailSection>
-        ) : null}
-
-        {/* Provenance: link back up the loop. The priority recentres the graph
-            (reuse the lineage view, never orphan); the spec opens in Plan. */}
-        {l.opportunity_id || l.prd_id ? (
-          <DetailSection heading="Where it points">
-            <div style={{ display: "grid", gap: "10px" }}>
-              {l.opportunity_id ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate({
-                      to: "/brain",
-                      search: {
-                        tab: "graph",
-                        focusKind: "opportunity",
-                        focusId: l.opportunity_id!,
-                      },
-                    })
-                  }
-                  className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    color: "var(--text-subtle)",
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
-                  Trace {l.opportunity_title ? `"${l.opportunity_title}"` : "the priority"} in the
-                  graph {"->"}
-                </button>
-              ) : null}
-              {l.prd_id ? (
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
-                  className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    color: "var(--text-subtle)",
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
-                  Open the spec it graded {"->"}
-                </button>
-              ) : null}
-            </div>
-          </DetailSection>
-        ) : null}
-
-        {/* Activity. */}
-        <DetailSection heading="Activity">
-          <div style={{ display: "grid", gap: "3px" }}>
-            <span style={{ color: "var(--text-subtle)" }}>Recorded</span>
-            <TimeLine iso={l.created_at} />
-          </div>
-        </DetailSection>
-
-        {/* Actions. */}
-        {l.prd_id ? (
-          <div
-            className="flex flex-wrap items-center"
-            style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
-          >
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
+      {/* Link back up the loop. The priority recentres the graph (reuse the
+          lineage view, never orphan); the spec opens in Plan. */}
+      {l.opportunity_id || l.prd_id ? (
+        <Block title="Where it points">
+          {l.opportunity_id ? (
+            <Line
+              label={l.opportunity_title ? `"${l.opportunity_title}"` : "The priority it re-ranked"}
+              sub="Its whole history, and everything it connects to"
             >
-              Open the spec
-            </Button>
-          </div>
-        ) : null}
-      </div>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  navigate({
+                    to: "/brain",
+                    search: {
+                      tab: "graph",
+                      focusKind: "opportunity",
+                      focusId: l.opportunity_id!,
+                    },
+                  })
+                }
+              >
+                Trace it in the graph
+              </Button>
+            </Line>
+          ) : null}
+          {l.prd_id ? (
+            <Line label="The spec it graded" sub="What was actually built, and what it promised">
+              <Button
+                variant="ghost"
+                onClick={() => navigate({ to: "/plan/spec/$id", params: { id: l.prd_id! } })}
+              >
+                Open the spec
+              </Button>
+            </Line>
+          ) : null}
+        </Block>
+      ) : null}
+
+      <Block title="Elsewhere">
+        <Line label="Trace id" sub="The id this outcome answers to across the record">
+          <Value>
+            <Num>{l.id}</Num>
+          </Value>
+        </Line>
+        <Line label="Recorded" sub={new Date(l.created_at).toLocaleString()}>
+          <Value>{whenOf(l.created_at)}</Value>
+        </Line>
+      </Block>
     </div>
   );
 }

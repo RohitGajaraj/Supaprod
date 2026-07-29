@@ -1,5 +1,36 @@
+/**
+ * SUPPORT SIGNALS. Ported onto the primitives, 2026-07-29.
+ *
+ * WHAT CHANGED, AND WHY.
+ *
+ * KILL the cluster card. Every theme was a bordered `bento` carrying a
+ * decorative dot, the theme, a tinted count pill, up to N truncated ticket
+ * subjects and a button, which is a card inside a list inside a panel and three
+ * levels of the cardocalypse. A theme is a thing you SCAN, decide is worth
+ * opening, and open. So it is a Row: the theme, one different fact under it,
+ * and it never wraps.
+ *
+ * KILL the inline reply drawer. It expanded between two rows, which quietly
+ * removes the `.sp-row + .sp-row` divider from whatever followed it, and it put
+ * the evidence (the ticket subjects) and the drafted reply in two different
+ * places for the same theme. Opening a theme now replaces the list with that
+ * theme in full, the same in-place detail the Crew surface uses. The browser's
+ * own back is one Escape away because nothing was taken off the screen.
+ *
+ * KILL the four result strings held in `useState` and rendered as coloured
+ * sentences. Adding tickets and running the pass are consequential writes, so
+ * each leaves a Receipt carrying what it actually caused, and a failure renders
+ * as Failed rather than as a red sentence that reads like a result.
+ *
+ * HONEST PROVENANCE, which the panel used to drop on the floor. `draftSupportReply`
+ * returns `{ ai, reply, reason }` and the old code read only `reply`, so a
+ * deterministic template rendered exactly like something an agent wrote. The
+ * detail now says which one it is. `templateDraftProvider` is the only wired
+ * backend today, so this will say "template" every time, and that is the point:
+ * the surface must not promise a permission the wiring lacks.
+ */
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -9,111 +40,37 @@ import {
   draftSupportReply,
   type SupportClusterRow,
 } from "@/lib/support-triage.functions";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Loading,
+  Num,
+  Prose,
+  Receipt,
+  Row,
+  Textarea,
+  Value,
+} from "@/components/shell/primitives";
 
-// M1 / LRN-01 (increment 2) — Support signals: the Engine Room panel that closes
-// the support -> Discover feed-back loop for the PM. Outcome-named per doctrine:
-// "Support signals" not "Support triage"; "Recurring themes" not "Clusters".
-//
-// Engine-Room: ticket clustering + signal-emission machinery -> behind Engine Room
-// > Quality & insight -> surfaced as "Support signals" showing recurring themes and
-// the Discover signals they emitted.
-
-function ClusterCard({
-  cluster,
-  onDraft,
-  draftOpen,
-}: {
-  cluster: SupportClusterRow;
-  onDraft: (key: string) => void;
-  draftOpen: boolean;
-}) {
-  return (
-    <div className="bento" style={{ padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginBottom: 4 }}>
-            {/* Neutral bullet: ember is reserved for interactive/selected/
-                primary elements, and a decorative list marker is none of
-                those (accent restraint, checklist 12). */}
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: 999,
-                background: "var(--text-faint)",
-                flexShrink: 0,
-              }}
-            />
-            <span className="mono-label" style={{ color: "var(--ink)" }}>
-              {cluster.theme}
-            </span>
-            <span
-              style={{
-                color: "var(--ink-muted)",
-                background: "var(--canvas)",
-                borderRadius: 4,
-                padding: "1px 6px",
-                marginLeft: 4,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {cluster.ticketCount} {cluster.ticketCount === 1 ? "ticket" : "tickets"}
-            </span>
-          </div>
-          {cluster.subjects.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                marginTop: 8,
-                marginLeft: 15,
-              }}
-            >
-              {cluster.subjects.map((s, i) => (
-                <p
-                  key={i}
-                  style={{
-                    color: "var(--ink-muted)",
-                    margin: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {s}
-                </p>
-              ))}
-            </div>
-          )}
-          {cluster.signalId && (
-            <div style={{ marginTop: 8, marginLeft: 15 }}>
-              <span
-                style={{
-                  color: "var(--emerald, #4f8a59)",
-                  // Geist Mono via the token, never the raw browser monospace
-                  // stack (checklist 12).
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
-                Signal sent to Discover
-              </span>
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ flexShrink: 0, marginTop: 2 }}
-          aria-expanded={draftOpen}
-          onClick={() => onDraft(cluster.clusterKey)}
-        >
-          {draftOpen ? "Close reply" : "Reply template"}
-        </button>
-      </div>
-    </div>
-  );
+/** Plain-words relative time. Mono is applied by the receipt, not here. */
+function ago(iso: string): string | null {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
 }
+
+type Landed =
+  | { at: string; kind: "import"; inserted: number }
+  | { at: string; kind: "pass"; themes: number; signals: number; held: number };
 
 export function SupportSignalsPanel() {
   const { activeWorkspace } = useWorkspace();
@@ -123,7 +80,10 @@ export function SupportSignalsPanel() {
   const fList = useServerFn(listSupportClusters);
   const fImport = useServerFn(bulkImportSupportTickets);
   const fTriage = useServerFn(runSupportTriage);
-  const fDraft = useServerFn(draftSupportReply);
+
+  const [text, setText] = useState("");
+  const [open, setOpen] = useState<SupportClusterRow | null>(null);
+  const [landed, setLanded] = useState<Landed[]>([]);
 
   const clustersQ = useQuery({
     queryKey: ["support-clusters", wsId],
@@ -131,238 +91,247 @@ export function SupportSignalsPanel() {
     enabled: !!wsId,
   });
 
-  const [text, setText] = useState("");
-  const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<string | null>(null);
-  const [running, setRunning] = useState(false);
-  const [triageResult, setTriageResult] = useState<string | null>(null);
-  const [draftKey, setDraftKey] = useState<string | null>(null);
-  const [draftText, setDraftText] = useState<string | null>(null);
-  const [draftLoading, setDraftLoading] = useState(false);
+  const refresh = () => void qc.invalidateQueries({ queryKey: ["support-clusters", wsId] });
+
+  const add = useMutation({
+    mutationFn: (body: string) =>
+      fImport({ data: { workspaceId: wsId!, text: body, source: "paste" } }),
+    onSuccess: (r) => {
+      setText("");
+      setLanded((l) => [
+        ...l,
+        { at: new Date().toISOString(), kind: "import", inserted: r.inserted },
+      ]);
+      refresh();
+    },
+  });
+
+  const pass = useMutation({
+    mutationFn: () => fTriage({ data: { workspaceId: wsId! } }),
+    onSuccess: (r) => {
+      setLanded((l) => [
+        ...l,
+        {
+          at: new Date().toISOString(),
+          kind: "pass",
+          themes: r.clusters,
+          signals: r.signalsEmitted,
+          held: r.quarantined,
+        },
+      ]);
+      refresh();
+    },
+  });
+
+  // One theme open at a time, and it takes the whole panel. A detail that
+  // pushes the list down leaves you reading two things at once.
+  if (open) {
+    return <ThemeDetail cluster={open} workspaceId={wsId} onBack={() => setOpen(null)} />;
+  }
 
   const clusters: SupportClusterRow[] = clustersQ.data?.clusters ?? [];
 
-  async function handleImport() {
-    if (!wsId || !text.trim()) return;
-    setImporting(true);
-    setImportResult(null);
-    try {
-      const r = await fImport({ data: { workspaceId: wsId, text, source: "paste" } });
-      setText("");
-      setImportResult(`${r.inserted} tickets added.`);
-      void qc.invalidateQueries({ queryKey: ["support-clusters", wsId] });
-    } catch {
-      setImportResult("Import failed. Please try again.");
-    } finally {
-      setImporting(false);
-    }
-  }
+  return (
+    <>
+      <Block
+        title="Paste what support is hearing"
+        sub="One ticket per line. Nothing leaves this workspace until you run the pass."
+      >
+        <Field label="Tickets, one per line" htmlFor="support-paste">
+          <Textarea
+            id="support-paste"
+            rows={5}
+            value={text}
+            placeholder="Users cannot export to CSV after the latest update"
+            onChange={(e) => setText(e.target.value)}
+          />
+        </Field>
+        <Actions>
+          <Button
+            variant="primary"
+            disabled={!wsId || add.isPending || !text.trim()}
+            title={!text.trim() ? "Paste at least one ticket first" : undefined}
+            onClick={() => add.mutate(text)}
+          >
+            {add.isPending ? "Adding" : "Add them"}
+          </Button>
+          <Button
+            disabled={!wsId || pass.isPending}
+            onClick={() => pass.mutate()}
+            title="Groups what is open into recurring themes and sends each one to Discover"
+          >
+            {pass.isPending ? "Reading them" : "Find the themes"}
+          </Button>
+        </Actions>
+        {add.isError ? <Failed>{(add.error as Error).message}</Failed> : null}
+        {pass.isError ? <Failed>{(pass.error as Error).message}</Failed> : null}
+      </Block>
 
-  async function handleTriage() {
-    if (!wsId) return;
-    setRunning(true);
-    setTriageResult(null);
-    try {
-      const r = await fTriage({ data: { workspaceId: wsId } });
-      if (r.clusters === 0) {
-        setTriageResult("No recurring themes found yet. Add more tickets and try again.");
-      } else {
-        const parts: string[] = [];
-        parts.push(`${r.clusters} recurring ${r.clusters === 1 ? "theme" : "themes"} found.`);
-        parts.push(
-          `${r.signalsEmitted} ${r.signalsEmitted === 1 ? "signal" : "signals"} sent to Discover.`,
-        );
-        if (r.quarantined > 0) {
-          parts.push(`${r.quarantined} held for review (injection screen).`);
-        }
-        setTriageResult(parts.join(" "));
-      }
-      void qc.invalidateQueries({ queryKey: ["support-clusters", wsId] });
-    } catch {
-      setTriageResult("Something went wrong. Please try again.");
-    } finally {
-      setRunning(false);
-    }
-  }
+      {/* What each write actually caused, on the surface, in your own voice. */}
+      {landed.map((l, i) =>
+        l.kind === "import" ? (
+          <Receipt
+            key={`${l.at}-${i}`}
+            verb="You added them"
+            time={ago(l.at)}
+            consequence={
+              <>
+                <Num>{l.inserted}</Num> {l.inserted === 1 ? "ticket is" : "tickets are"} waiting.
+                Nothing is grouped and nothing has reached Discover until you find the themes.
+              </>
+            }
+          />
+        ) : (
+          <Receipt
+            key={`${l.at}-${i}`}
+            verb="You found the themes"
+            time={ago(l.at)}
+            consequence={
+              l.themes === 0 ? (
+                <>Nothing repeats yet, so nothing was sent. Add more and run it again.</>
+              ) : (
+                <>
+                  <Num>{l.themes}</Num> {l.themes === 1 ? "theme" : "themes"} repeat, and{" "}
+                  <Num>{l.signals}</Num> reached Discover
+                  {l.held > 0 ? (
+                    <>
+                      . <Num>{l.held}</Num> {l.held === 1 ? "was" : "were"} held back, because
+                      something in the text tried to give an instruction
+                    </>
+                  ) : null}
+                  .
+                </>
+              )
+            }
+          />
+        ),
+      )}
 
-  async function handleDraft(key: string) {
-    if (draftKey === key) {
-      setDraftKey(null);
-      setDraftText(null);
-      return;
-    }
-    if (!wsId) return;
-    setDraftKey(key);
-    setDraftText(null);
-    setDraftLoading(true);
-    try {
-      const r = await fDraft({ data: { workspaceId: wsId, clusterKey: key } });
-      setDraftText(r.reply);
-    } catch {
-      setDraftText("Could not load reply template.");
-    } finally {
-      setDraftLoading(false);
-    }
-  }
+      <Block
+        title="Recurring themes"
+        sub="Each one is a signal in Discover, running the same pipeline as any other."
+      >
+        {!wsId ? (
+          <Empty>Pick a workspace and its support themes read from there.</Empty>
+        ) : clustersQ.isLoading ? (
+          <Loading>Reading what repeats.</Loading>
+        ) : clustersQ.isError ? (
+          <Failed onRetry={() => void clustersQ.refetch()}>
+            {(clustersQ.error as Error)?.message ??
+              "The themes did not load, so an empty list here would not mean nothing repeats."}
+          </Failed>
+        ) : clusters.length === 0 ? (
+          <Empty>
+            Nothing repeats yet. Paste tickets above and find the themes; anything said more than
+            once becomes a signal in Discover.
+          </Empty>
+        ) : (
+          clusters.map((c) => (
+            <Row
+              key={c.clusterKey}
+              lead={c.theme}
+              // The different fact, never a restatement of the theme the lead
+              // already carries: how many said it, and whether it got through.
+              sub={
+                <>
+                  <Num>{c.ticketCount}</Num> {c.ticketCount === 1 ? "ticket" : "tickets"}
+                  {c.signalId ? (
+                    <>
+                      {" "}
+                      <Value tone="pass">in Discover</Value>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
+                      <Value>not sent yet</Value>
+                    </>
+                  )}
+                </>
+              }
+              tight
+              onClick={() => setOpen(c)}
+            />
+          ))
+        )}
+      </Block>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * One theme, in place
+ * ------------------------------------------------------------------ */
+
+function ThemeDetail({
+  cluster,
+  workspaceId,
+  onBack,
+}: {
+  cluster: SupportClusterRow;
+  workspaceId: string | null;
+  onBack: () => void;
+}) {
+  const fDraft = useServerFn(draftSupportReply);
+  const q = useQuery({
+    queryKey: ["support-reply", workspaceId, cluster.clusterKey],
+    queryFn: () => fDraft({ data: { workspaceId: workspaceId!, clusterKey: cluster.clusterKey } }),
+    enabled: !!workspaceId,
+    staleTime: 60_000,
+  });
+
+  const back = (
+    <Button variant="ghost" onClick={onBack}>
+      All the themes
+    </Button>
+  );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--geist-space-4x)", marginTop: 4 }}>
-      {/* Paste area */}
-      <div className="bento" style={{ padding: 20 }}>
-        <div className="mono-label" style={{ marginBottom: 8 }}>
-          Paste support feedback
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginBottom: 12, maxWidth: 520 }}>
-          One ticket per line. Recurring themes are extracted as signals and sent to Discover
-          automatically when you run the signal pass below.
-        </p>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          aria-label="Support tickets, one per line"
-          placeholder="Users can't export to CSV after the latest update..."
-          rows={5}
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            resize: "vertical",
-            fontFamily: "inherit",
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid var(--hairline, rgba(0,0,0,0.1))",
-            background: "var(--paper)",
-            color: "var(--ink)",
-          }}
-        />
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-          <button
-            type="button"
-            className="btn btn-sm"
-            disabled={importing || !text.trim()}
-            title={!text.trim() ? "Paste at least one ticket first" : undefined}
-            onClick={handleImport}
-            style={{ background: "var(--ember)", color: "var(--cta-ink)", border: "none" }}
-          >
-            {importing ? "Adding..." : "Add tickets"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            disabled={running}
-            onClick={handleTriage}
-          >
-            {running ? "Extracting..." : "Extract signals"}
-          </button>
-          {importResult && (
-            <span
-              role={importResult.startsWith("Import failed") ? "alert" : undefined}
-              style={{
-                color: importResult.startsWith("Import failed")
-                  ? "var(--rose)"
-                  : "var(--ink-muted)",
-              }}
-            >
-              {importResult}
-            </span>
-          )}
-        </div>
-        {triageResult && (
-          <div
-            role={triageResult.startsWith("Something went wrong") ? "alert" : undefined}
-            style={{
-              marginTop: 10,
-              color: triageResult.startsWith("Something went wrong")
-                ? "var(--rose)"
-                : "var(--emerald, #4f8a59)",
-              fontWeight: 500,
-            }}
-          >
-            {triageResult}
-          </div>
+    <>
+      <Block
+        title={cluster.theme}
+        sub={
+          <>
+            <Num>{cluster.ticketCount}</Num> {cluster.ticketCount === 1 ? "person" : "people"} said
+            this.{" "}
+            {cluster.signalId
+              ? "It is a signal in Discover, and the opportunity pipeline has it."
+              : "It has not reached Discover yet. Find the themes again to send it."}
+          </>
+        }
+      >
+        {cluster.subjects.length === 0 ? (
+          <Empty>
+            No subject lines came through on these tickets, so there is nothing to quote.
+          </Empty>
+        ) : (
+          cluster.subjects.map((s, i) => <Row key={`${i}-${s}`} lead={s} tight />)
         )}
-      </div>
+      </Block>
 
-      {/* Clusters / empty state */}
-      {clustersQ.isLoading ? (
-        <div className="mono-label" style={{ color: "var(--ink-muted)", padding: 8 }}>
-          Loading
-        </div>
-      ) : clustersQ.isError ? (
-        <div className="bento" style={{ padding: 24 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load recurring themes
-          </div>
-          <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-            {(clustersQ.error as Error)?.message ?? "The read failed."}
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 14 }}
-            onClick={() => void clustersQ.refetch()}
-          >
-            Retry
-          </button>
-        </div>
-      ) : clusters.length === 0 ? (
-        <div className="bento" style={{ padding: 24 }}>
-          <div className="mono-label">No recurring themes yet</div>
-          <p style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
-            Paste support tickets above and run "Extract signals" to identify recurring themes. Each
-            recurring theme becomes a signal in Discover, feeding directly into the opportunity and
-            spec pipeline.
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div
-            className="mono-label"
-            style={{ color: "var(--ink-muted)", marginBottom: 2, paddingLeft: 2 }}
-          >
-            {clusters.length} recurring {clusters.length === 1 ? "theme" : "themes"}
-          </div>
-          {clusters.map((c) => (
-            <div key={c.clusterKey}>
-              <ClusterCard
-                cluster={c}
-                onDraft={handleDraft}
-                draftOpen={draftKey === c.clusterKey}
-              />
-              {draftKey === c.clusterKey && (
-                <div
-                  style={{
-                    marginTop: 4,
-                    padding: "14px 16px",
-                    background: "var(--canvas)",
-                    borderRadius: 8,
-                    border: "1px solid var(--hairline, rgba(0,0,0,0.08))",
-                  }}
-                >
-                  {draftLoading ? (
-                    <span className="mono-label" style={{ color: "var(--ink-muted)" }}>
-                      Loading...
-                    </span>
-                  ) : (
-                    <p
-                      style={{
-                        color: "var(--ink)",
-                        whiteSpace: "pre-wrap",
-                        margin: 0,
-                      }}
-                    >
-                      {draftText}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-          <p style={{ color: "var(--ink-subtle)", marginTop: 4 }}>
-            Signals appear in Discover under source "support-triage". Each recurring theme runs
-            through the same clustering and opportunity pipeline as any other signal.
-          </p>
-        </div>
-      )}
-    </div>
+      <Block
+        title="A reply you could send"
+        sub={
+          q.data && !q.data.ai
+            ? "Assembled from a template, not written by an agent. Read it before you send it."
+            : "Read it before you send it."
+        }
+      >
+        {q.isLoading ? (
+          <Loading>Assembling it.</Loading>
+        ) : q.isError ? (
+          <Failed onRetry={() => void q.refetch()}>
+            {(q.error as Error)?.message ?? "The reply did not assemble."}
+          </Failed>
+        ) : q.data ? (
+          <Prose>
+            {q.data.reply.split(/\n{2,}/).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </Prose>
+        ) : null}
+      </Block>
+
+      <Block>{back}</Block>
+    </>
   );
 }

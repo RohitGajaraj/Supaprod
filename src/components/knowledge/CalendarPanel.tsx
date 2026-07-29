@@ -34,13 +34,19 @@ import {
   disconnectSuiteConnection,
 } from "@/lib/calendar-connections.functions";
 import { listMeetings } from "@/lib/meetings.functions";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MeetingDetailBody } from "@/components/supaprod/MeetingDetailBody";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
+import {
+  Actions,
+  Block,
+  Button,
+  Failed,
+  Loading,
+  Receipt,
+} from "@/components/shell/primitives";
 
 type View = "list" | "month" | "year";
 const VIEW_KEY = "supaprod.calendar.view";
@@ -495,7 +501,7 @@ export function CalendarPanel({
               marginBottom: 10,
             }}
           >
-            <MonoLabel>Schedule · Scheduler finds open time</MonoLabel>
+            <span className="sp-block-title">Schedule it. The crew finds open time.</span>
             <button
               className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ color: "var(--ink-subtle)" }}
@@ -569,7 +575,7 @@ export function CalendarPanel({
               marginBottom: 10,
             }}
           >
-            <MonoLabel>Plan deep work · blocks inside your working hours</MonoLabel>
+            <span className="sp-block-title">Plan deep work, inside your working hours.</span>
             <button
               className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ color: "var(--ink-subtle)" }}
@@ -665,26 +671,15 @@ export function CalendarPanel({
           ))}
         </div>
       ) : loadError ? (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>calendar · failed to load</MonoLabel>
-          <p
-            style={{
-              color: "var(--ink-muted)",
-              marginBottom: 12,
-            }}
-          >
-            {loadError.message}
-          </p>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              void events.refetch();
-              void meetings.refetch();
-            }}
-          >
-            Retry · reloads the feed
-          </button>
-        </div>
+        <Failed
+          onRetry={() => {
+            void events.refetch();
+            void meetings.refetch();
+          }}
+        >
+          The calendar did not load, so this is not a claim that your next fourteen days are
+          empty. {loadError.message}
+        </Failed>
       ) : view === "list" && feed.length === 0 ? (
         // Window-named empty state (the honesty law): the list only shows the
         // next 14 days, so an empty list must say so - the count strip above
@@ -814,9 +809,9 @@ export function CalendarPanel({
                     ) : null}
                   </span>
                   {it.kind === "meeting" && it.processed ? (
-                    /* moss (accent restraint 2026-07-11): "extracted" is a
-                       completed outcome; machine blue never marks success. */
-                    <VerdictChip tone="moss">extracted</VerdictChip>
+                    /* A completed outcome is a WORD, and green carries it. The
+                       chip it used to wear is retired. */
+                    <span className="sp-pass">read</span>
                   ) : null}
                   <span
                     className="mono-label"
@@ -891,16 +886,21 @@ export function CalendarPanel({
         </div>
       )}
 
-      <Sheet
-        open={!!meetingId}
-        onOpenChange={(o) => {
-          if (!o) onMeetingChange(undefined);
-        }}
-      >
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          {meetingId && <MeetingDetailBody id={meetingId} />}
-        </SheetContent>
-      </Sheet>
+      {/* IN PLACE, never a slide-over. A whole meeting surface (transcript,
+          attendees, extracted decisions) inside a right-hand Sheet is exactly
+          the modal abuse anti-slop ban 11 exists to stop, and primitives.tsx
+          names the pane as deliberately absent with its reasons. It opens
+          under the feed now, the same pattern crew and admin/people use, so
+          the day it belongs to stays on screen beside it. */}
+      {meetingId ? (
+        <Block
+          title="The meeting you opened"
+          more="Close"
+          onMore={() => onMeetingChange(undefined)}
+        >
+          <MeetingDetailBody id={meetingId} />
+        </Block>
+      ) : null}
 
       {editing ? (
         <EventEditor
@@ -1458,7 +1458,7 @@ function EventEditor({
             borderBottom: "1px solid var(--hairline)",
           }}
         >
-          <MonoLabel icon={CalIcon}>Edit event · syncs back</MonoLabel>
+          <span className="sp-block-title">Edit the event. It syncs back.</span>
           <span style={{ flex: 1 }}></span>
           <button
             className="mono-label"

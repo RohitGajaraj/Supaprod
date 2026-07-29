@@ -1,126 +1,143 @@
-// RPT-25: the contradiction auditor, mounted on a decision detail view. On
-// demand it re-reads the workspace's prior decisions and shows "N of M
-// disagree" with a per-item rationale, then lets the operator propose a real
-// supersession edge (decision -> decision "contradicts") that the knowledge
-// graph reasons over. Matches the DecisionDetail anatomy: a DetailSection with a
-// right-aligned action, quiet monotone bodies, one accent on the count. No
-// em/en dashes in any string.
+// RPT-25: the contradiction auditor, mounted inside a decision's detail. On
+// demand it re-reads the workspace's prior decisions and shows how many
+// disagree with this call, with a per-item rationale, then lets the operator
+// record a real supersession edge (decision -> decision "contradicts") that the
+// knowledge graph reasons over.
+//
+// Ported to the rebuild primitives 2026-07-29, because the founder opened a
+// ported page and the legacy design came back the moment a decision was opened.
+// What went, and why:
+//
+//   KILLED the DetailKit DetailSection and the material-medium cards. A card
+//     per disagreeing decision, inside a card, inside the detail's own card, is
+//     three levels of the cardocalypse (anti-slop ban 5, one bordered container
+//     per region). Each one is a Row now, which is the shape a list of things
+//     you act on already has.
+//   KILLED MonoLabel and the obsidian Button. Mono is for data, never for a
+//     status word.
+//   KILLED the "Supersession proposed" success TOAST. Recording that one call
+//     supersedes another rewrites what the graph reasons over, which is not a
+//     four-second fact (agents/FINAL-agent-presence.md R10). It leaves a
+//     Receipt naming the decision it superseded.
+//   KILLED the audit error toast. A failed read renders Failed with a retry,
+//     never silence and never an empty state.
+//
+// UNCHANGED: auditDecision / proposeSupersession, and the
+// ["lineage","decision",id] invalidation that keeps the detail's Evidence
+// section true the moment an edge is recorded.
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/notify";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
-import { Button, MonoLabel } from "@/components/obsidian";
-import { DetailSection } from "@/components/discover/DetailKit";
+import { Block, Button, Failed, Loading, Num, Receipt, Row } from "@/components/shell/primitives";
 
 export function ContradictionAuditSection({ decisionId }: { decisionId: string }) {
   const qc = useQueryClient();
   const fAudit = useServerFn(auditDecision);
   const fPropose = useServerFn(proposeSupersession);
   const [proposed, setProposed] = useState<Set<string>>(new Set());
+  const [settled, setSettled] = useState<
+    { id: string; verb: string; consequence: string; failed?: boolean }[]
+  >([]);
+
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed },
+      ...prev,
+    ]);
 
   const audit = useMutation({
     mutationFn: () => fAudit({ data: { id: decisionId } }),
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const propose = useMutation({
-    mutationFn: (supersededId: string) =>
-      fPropose({ data: { supersedingId: decisionId, supersededId } }),
-    onSuccess: (_res, supersededId) => {
-      setProposed((prev) => new Set(prev).add(supersededId));
+    mutationFn: (vars: { supersededId: string; title: string }) =>
+      fPropose({ data: { supersedingId: decisionId, supersededId: vars.supersededId } }),
+    onSuccess: (_res, vars) => {
+      setProposed((prev) => new Set(prev).add(vars.supersededId));
       // The graph reads this decision's lineage under this key (DecisionDetail).
       qc.invalidateQueries({ queryKey: ["lineage", "decision", decisionId] });
-      toast.success("Supersession proposed. It now reads on the graph.");
+      commit(
+        "You superseded an earlier call",
+        `"${vars.title}" no longer stands. The graph reads this call in its place.`,
+      );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, vars) =>
+      commit(
+        "You tried to supersede an earlier call",
+        `"${vars.title}" still stands. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   const report = audit.data;
 
   return (
-    <DetailSection
-      heading="Contradiction audit"
-      action={
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={audit.isPending}
-          onClick={() => audit.mutate()}
-          title="Re-read the workspace's decisions and flag the ones that disagree with this call"
-        >
-          {audit.isPending ? "Reading..." : report ? "Re-read" : "Re-read decisions"}
-        </Button>
-      }
+    <Block
+      title="Contradiction audit"
+      more={audit.isPending ? undefined : report ? "Read them again" : "Read the prior decisions"}
+      onMore={() => audit.mutate()}
     >
-      {audit.isError ? (
-        <p style={{ color: "var(--madder)", lineHeight: 1.55, margin: 0 }}>
-          {(audit.error as Error)?.message ?? "The audit could not run."}
-        </p>
+      {audit.isPending ? (
+        <Loading>Re-reading the workspace&apos;s decisions.</Loading>
+      ) : audit.isError ? (
+        <Failed onRetry={() => audit.mutate()}>
+          The audit did not run, so this is not a claim that nothing disagrees.{" "}
+          {(audit.error as Error)?.message ?? ""}
+        </Failed>
       ) : !report ? (
-        <p style={{ color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
-          A standing auditor re-reads the workspace's decisions and flags the ones that disagree
-          with this call, so a stale decision never quietly outlives the one that replaced it.
+        <p className="sp-loading">
+          A standing auditor re-reads the workspace&apos;s decisions and flags the ones that
+          disagree with this call, so a stale decision never quietly outlives the one that replaced
+          it.
         </p>
       ) : report.count === 0 ? (
-        <p style={{ color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
-          Nothing disagrees. Read {report.scanned} prior{" "}
+        <p className="sp-loading">
+          Nothing disagrees. Read <Num>{report.scanned}</Num> prior{" "}
           {report.scanned === 1 ? "decision" : "decisions"}, all consistent with this call.
         </p>
       ) : (
-        <div style={{ display: "grid", gap: "10px" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 550,
-              color: "var(--text-primary)",
-              lineHeight: 1.5,
-            }}
-          >
-            {report.count} of {report.scanned} disagree with what you just decided.
-          </span>
+        <>
+          <p className="sp-loading">
+            <Num>{report.count}</Num> of <Num>{report.scanned}</Num> disagree with what you just
+            decided.
+          </p>
           {report.items.map((item) => {
             const done = proposed.has(item.decisionId);
-            const pending = propose.isPending && propose.variables === item.decisionId;
+            const pending =
+              propose.isPending && propose.variables?.supersededId === item.decisionId;
             return (
-              <div
+              <Row
                 key={item.decisionId}
-                className="material-medium"
-                style={{
-                  background: "var(--card)",
-                  padding: "11px 13px",
-                  display: "grid",
-                  gap: "7px",
-                }}
-              >
-                <span style={{ fontWeight: 550, color: "var(--text-body)" }}>
-                  {item.title}
-                </span>
-                <span style={{ color: "var(--text-subtle)", lineHeight: 1.55 }}>
-                  {item.rationale}
-                </span>
-                <div className="flex items-center" style={{ gap: "8px" }}>
-                  {done ? (
-                    <MonoLabel style={{ color: "var(--moss)" }}>
-                      Supersession recorded
-                    </MonoLabel>
+                lead={item.title}
+                // The different fact, never a restatement: WHY it disagrees.
+                sub={item.rationale}
+                action={
+                  done ? (
+                    <span className="sp-value" data-tone="pass">
+                      Superseded
+                    </span>
                   ) : (
                     <Button
-                      variant="secondary"
-                      size="sm"
                       disabled={pending}
-                      onClick={() => propose.mutate(item.decisionId)}
+                      onClick={() =>
+                        propose.mutate({ supersededId: item.decisionId, title: item.title })
+                      }
                       title="Record that this decision supersedes the earlier one"
                     >
-                      {pending ? "Recording..." : "Propose supersession"}
+                      {pending ? "Recording" : "Supersede it"}
                     </Button>
-                  )}
-                </div>
-              </div>
+                  )
+                }
+              />
             );
           })}
-        </div>
+        </>
       )}
-    </DetailSection>
+
+      {settled.map((s) => (
+        <Receipt key={s.id} verb={s.verb} consequence={s.consequence} failed={s.failed} />
+      ))}
+    </Block>
   );
 }

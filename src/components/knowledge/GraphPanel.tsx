@@ -1,10 +1,16 @@
-// O1, reframed by W3 (Loom) - the Graph tab shell. Two complementary views of
-// the same artifact_lineage: "Graph" is the living physics canvas (the
-// flagship), "List" the indented downstream lineage tree, kept as the
-// reduced-motion and screen-reader path (founder ruling 2026-06-20: keep
-// both). When the OS or the in-product toggle asks for reduced motion the
-// List leads by default; the Graph stays one click away and renders as a
-// settled still there.
+// O1 - the Graph tab shell. Two complementary views of the same
+// artifact_lineage: the living physics canvas (the flagship), and the indented
+// downstream outline, kept as the reduced-motion and screen-reader path
+// (founder ruling 2026-06-20: keep both). When the OS or the in-product toggle
+// asks for reduced motion the outline leads by default; the canvas stays one
+// click away and renders as a settled still there.
+//
+// Ported to the shell primitives, 2026-07-29. What went: the hand-built pill
+// tab group with its own 1px border, 2px padding, `--hairline`,
+// `--radius-control`, `--raised`, `loom-press` and four hand-written
+// focus-visible utility classes. `.sp-tabs` / `.sp-tab` is the ported tab strip
+// and the whole group is one line of markup now. The UPPERCASE MONO labels went
+// with it: mono is for data, never for a door's name.
 import { useEffect, useState } from "react";
 import { GraphCanvasView } from "./GraphCanvasView";
 import { GraphTreeView } from "./GraphTreeView";
@@ -13,8 +19,8 @@ import { usePrefersReducedMotion } from "./graph-visual";
 type GraphView = "graph" | "list";
 
 const VIEWS: { id: GraphView; label: string }[] = [
-  { id: "graph", label: "GRAPH" },
-  { id: "list", label: "LIST" },
+  { id: "graph", label: "Canvas" },
+  { id: "list", label: "Outline" },
 ];
 
 export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
@@ -31,9 +37,9 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
   return (
     <div>
       <div
-        className="flex w-fit"
+        className="sp-tabs"
         role="tablist"
-        aria-label="Graph view"
+        aria-label="How to read the graph"
         // Tabs keyboard contract: Left/Right move between the two views.
         onKeyDown={(e) => {
           if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
@@ -43,39 +49,19 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
           setView(next);
           e.currentTarget.querySelector<HTMLButtonElement>(`[data-tab-id="${next}"]`)?.focus();
         }}
-        style={{
-          gap: 2,
-          marginBottom: 12,
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-control)",
-          padding: 2,
-        }}
       >
         {VIEWS.map(({ id, label }) => (
           <button
             key={id}
             type="button"
             role="tab"
+            className="sp-tab"
             aria-selected={view === id}
             tabIndex={view === id ? 0 : -1}
             data-tab-id={id}
             onClick={() => {
               setUserChose(true);
               setView(id);
-            }}
-            className={
-              view === id
-                ? "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
-            }
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.08em",
-              padding: "4px 12px",
-              borderRadius: 6,
-              background: view === id ? "var(--raised)" : "transparent",
-              color: view === id ? "var(--text-primary)" : "var(--text-subtle)",
-              border: "none",
             }}
           >
             {label}

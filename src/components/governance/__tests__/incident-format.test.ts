@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   INCIDENT_PREFIX,
-  INCIDENT_TONE_VAR,
+  INCIDENT_VALUE_TONE,
   incidentRealId,
   incidentTraceRef,
   incidentTone,
@@ -26,48 +26,68 @@ describe("INCIDENT_PREFIX", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INCIDENT_TONE_VAR - Severity tone to CSS variable mapping
+// INCIDENT_VALUE_TONE - Severity tone to the `Value` primitive's vocabulary.
+//
+// This replaced INCIDENT_TONE_VAR on 2026-07-29. The old map handed back raw
+// CSS variables from the retired palette, which is how a panel ends up drawing
+// its own colour; the stylesheet owns every mix now, so a panel asks for a tone
+// and never for a hue. The tests below assert the CONTRACT the panel depends
+// on, which is that every incident kind lands on one of the four tones `Value`
+// knows and that a failure never reads as quiet.
 // ─────────────────────────────────────────────────────────────────────────────
-describe("INCIDENT_TONE_VAR", () => {
-  test("is a Record with string values", () => {
-    expect(typeof INCIDENT_TONE_VAR).toBe("object");
-    Object.values(INCIDENT_TONE_VAR).forEach((val) => {
-      expect(typeof val).toBe("string");
-      expect(val).toContain("var(--");
+const VALUE_TONES = ["quiet", "pass", "warn", "fail"] as const;
+
+describe("INCIDENT_VALUE_TONE", () => {
+  test("is a Record whose every value is a tone the Value primitive accepts", () => {
+    expect(typeof INCIDENT_VALUE_TONE).toBe("object");
+    Object.values(INCIDENT_VALUE_TONE).forEach((val) => {
+      expect(VALUE_TONES).toContain(val);
     });
   });
 
-  test("includes mapping for 'madder'", () => {
-    expect(INCIDENT_TONE_VAR.madder).toBe("var(--madder)");
+  test("carries no CSS variable: colour is the stylesheet's job, not the map's", () => {
+    Object.values(INCIDENT_VALUE_TONE).forEach((val) => {
+      expect(val).not.toContain("var(--");
+    });
   });
 
-  test("includes mapping for 'glacier'", () => {
-    expect(INCIDENT_TONE_VAR.glacier).toBe("var(--text-subtle)");
+  test("'madder' is a failure, so it reads as fail", () => {
+    expect(INCIDENT_VALUE_TONE.madder).toBe("fail");
   });
 
-  test("includes mapping for 'marigold'", () => {
-    expect(INCIDENT_TONE_VAR.marigold).toBe("var(--marigold)");
+  test("'glacier' is a category, not a status, so it stays quiet", () => {
+    expect(INCIDENT_VALUE_TONE.glacier).toBe("quiet");
   });
 
-  test("includes mapping for 'muted'", () => {
-    expect(INCIDENT_TONE_VAR.muted).toBe("var(--text-muted)");
+  test("'marigold' is caution, so it reads as warn", () => {
+    expect(INCIDENT_VALUE_TONE.marigold).toBe("warn");
+  });
+
+  test("'muted' stays quiet", () => {
+    expect(INCIDENT_VALUE_TONE.muted).toBe("quiet");
   });
 
   test("has exactly 4 tone mappings", () => {
-    expect(Object.keys(INCIDENT_TONE_VAR).length).toBe(4);
-  });
-
-  test("all values are valid CSS var() strings", () => {
-    Object.values(INCIDENT_TONE_VAR).forEach((val) => {
-      expect(val.startsWith("var(--")).toBe(true);
-      expect(val.endsWith(")")).toBe(true);
-    });
+    expect(Object.keys(INCIDENT_VALUE_TONE).length).toBe(4);
   });
 
   test("includes all IncidentTone variants", () => {
     const tones: IncidentTone[] = ["madder", "glacier", "marigold", "muted"];
     tones.forEach((tone) => {
-      expect(INCIDENT_TONE_VAR).toHaveProperty(tone);
+      expect(INCIDENT_VALUE_TONE).toHaveProperty(tone);
+    });
+  });
+
+  test("every incident kind resolves to a tone the Value primitive accepts", () => {
+    const kinds = ["execution", "pipeline", "runaway", "guardrail", "cost", "manual"] as const;
+    kinds.forEach((kind) => {
+      expect(VALUE_TONES).toContain(INCIDENT_VALUE_TONE[incidentTone(kind)]);
+    });
+  });
+
+  test("a run that failed never reads as quiet", () => {
+    (["execution", "pipeline", "runaway"] as const).forEach((kind) => {
+      expect(INCIDENT_VALUE_TONE[incidentTone(kind)]).toBe("fail");
     });
   });
 });

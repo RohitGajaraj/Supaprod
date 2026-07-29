@@ -1,24 +1,56 @@
-// Approvals tab — ported 1:1 from design-reference/supaprod/loop.jsx
-// (GovernScreen tab "Approvals" + ApprovalCard + RiskTag): "{n} waiting"
-// mono header with the real median response time, "Approve all low-risk"
-// ghost, and the detailed approval card — StepDot, "{agent} wants {tool}"
-// (agent mono ink, tool mono ink-body), RiskChip, "in {mission}", expiry
-// clock, summary, consequence-labeled approve/reject, Mission link. Resolved
-// cards dim to 0.45 with the resolved mono line. Production functionality
-// kept: decideApproval (approve EXECUTES the tool), extendApprovalTtl,
-// the exact-args payload and execution errors. W4 Obsidian reskin: semantic
-// tokens only (moss/madder/marigold, --text-*), calm mono-caps loading +
-// designed empty slate; no functional or server change. Tempo v5 color
-// audit (2026-07-11): glacier retired to neutral gray outside literal
-// status/link uses per the machine-voice narrowing.
-import { useMemo } from "react";
+/**
+ * APPROVALS. The Engine Room's copy of the queue: an agent has stopped mid run
+ * and cannot go on until a person rules on one tool call.
+ *
+ * PORTED 2026-07-29 onto src/components/shell/primitives.tsx, and reshaped to
+ * match `src/routes/_authenticated.approvals.tsx`, which is the same queue
+ * viewed from the front of the product. Two surfaces onto one queue must not
+ * say it two different ways.
+ *
+ * WHAT IT WAS. Twenty `bento` cards stacked, each carrying its own border, its
+ * own risk chip, its own args `<pre>`, and its own approve/reject/extend row.
+ * That is twenty primary actions on one screen and nothing to look at first,
+ * and it is the exact defect the approvals route killed:
+ *
+ *   "Why do we need so bigger things to display? If a user wants to know, he
+ *    will click deeper."
+ *
+ * WHAT IT IS NOW. One Gate plus a list. The soonest-to-expire pending call is
+ * the Gate, the biggest thing on the surface, with one primary action. Every
+ * other pending call, and the whole resolved history, is a one-line Row that
+ * never wraps. Clicking a row makes it the Gate. The end of the queue is
+ * visible from the start rather than being a scroll that never resolves.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10, which named this file).
+ * Approving used to fire `toast.success("Approved · <tool> ran.")` and the card
+ * vanished. A toast confirms that your click REGISTERED; a receipt renders what
+ * your click CAUSED. An approval that erases itself teaches you that your
+ * judgment left no trace, and judgment is the product. Every success toast here
+ * is now a `Receipt` carrying the real per-item consequence. A FAILED write
+ * still writes a receipt, marked failed, because never showing a success shape
+ * over a failed write is the one thing that makes the successful ones
+ * trustworthy.
+ *
+ * ONE CORRECTNESS FIX, not styling. "Approve all low risk" looped and threw on
+ * the first error, so a batch that approved two of five reported only the
+ * error and the two that ran were invisible. It now decides each one
+ * independently and reports both halves, which is what the test file has been
+ * documenting as a known gap.
+ *
+ * NO GLOBAL KEY HANDLER. The approvals ROUTE owns j/k/a/r because it owns the
+ * whole screen. This panel is mounted inside the Engine Room, which owns its
+ * own keyboard, so binding bare letters here would steal them from the room.
+ * Focus moves by click.
+ */
+import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { Check, Clock, ExternalLink, Shield, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+
 import { toast } from "@/lib/notify";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listGovernApprovals, extendApprovalTtl } from "@/lib/governance.functions";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   formatTrackRecord,
   type AgentTrackRecord,
@@ -26,29 +58,50 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Gate,
+  Loading,
+  Num,
+  Pre,
+  Receipt,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
 import { TrustGraduationsBlock } from "./TrustGraduations";
-import { relExpiry, fmtMedian, RESOLVED_LINE, toneForRisk } from "./governance-shared";
+import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_NOTE, toneForRisk } from "./governance-shared";
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
-function RiskChip({ risk }: { risk: string }) {
-  const tone = toneForRisk(risk);
-  return (
-    <span
-      className="uppercase"
-      style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.1em",
-        color: tone,
-        border: `1px solid color-mix(in srgb, ${tone} 45%, transparent)`,
-        borderRadius: 99,
-        padding: "1px 7px",
-      }}
-    >
-      {risk} risk
-    </span>
-  );
+/** The risk word, in the words a person would use. The chip says the level;
+ *  `RISK_NOTE` says what it would touch, and they never restate each other. */
+const RISK_WORD: Record<string, string> = {
+  low: "Low risk",
+  medium: "Medium risk",
+  high: "High risk",
+};
+
+function riskWord(risk: string): string {
+  return RISK_WORD[risk] ?? `${risk} risk`;
+}
+
+/** A settled call, held for the session. The durable record is the trust
+ *  ledger; duplicating it here would be a second source of the same truth. */
+type SettledReceipt = {
+  key: string;
+  verb: string;
+  consequence: React.ReactNode;
+  at: string;
+  failed?: boolean;
+};
+
+function clockNow(): string {
+  return new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
 export function ApprovalsPanel() {
@@ -56,201 +109,301 @@ export function ApprovalsPanel() {
   const fDecide = useServerFn(decideApproval);
   const fExtend = useServerFn(extendApprovalTtl);
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const q = useQuery({ queryKey: ["govern-approvals"], queryFn: () => fList() });
 
-  const inv = () => {
-    qc.invalidateQueries({ queryKey: ["govern-approvals"] });
-    qc.invalidateQueries({ queryKey: ["governance"] });
-  };
+  const [focusedId, setFocusedId] = React.useState<string | null>(null);
+  const [receipts, setReceipts] = React.useState<SettledReceipt[]>([]);
+
+  const inv = React.useCallback(() => {
+    void qc.invalidateQueries({ queryKey: ["govern-approvals"] });
+    void qc.invalidateQueries({ queryKey: ["governance"] });
+  }, [qc]);
+
+  const addReceipt = React.useCallback((r: Omit<SettledReceipt, "key" | "at">) => {
+    setReceipts((prev) => [{ ...r, key: `${Date.now()}-${prev.length}`, at: clockNow() }, ...prev]);
+  }, []);
 
   const decide = useMutation({
     mutationFn: (v: { approvalId: string; decision: "approve" | "reject"; tool: string }) =>
       fDecide({ data: { approvalId: v.approvalId, decision: v.decision } }),
     onSuccess: (r, v) => {
-      toast.success(
+      // No toast. The receipt IS the confirmation, and it says what the click
+      // caused rather than that it registered.
+      addReceipt(
         v.decision === "approve"
-          ? r.executed
-            ? `Approved · ${v.tool} ran.`
-            : "Approved."
-          : "Rejected · nothing ran.",
+          ? {
+              verb: "You approved",
+              consequence: r.executed ? (
+                <>{v.tool} ran.</>
+              ) : (
+                <>{v.tool} is cleared. The agent runs it on its next step.</>
+              ),
+            }
+          : {
+              verb: "You declined",
+              consequence: <>Nothing ran. The record now shows you said no to {v.tool}.</>,
+            },
       );
       inv();
     },
-    onError: (e: Error) => {
-      toast.error(e.message);
+    onError: (e: Error, v) => {
+      // A failed write still writes a receipt, and it goes honest immediately.
+      addReceipt({
+        verb: "Nothing was recorded",
+        consequence: (
+          <>
+            {v.tool} was left where it was. {e.message}
+          </>
+        ),
+        failed: true,
+      });
       inv();
     },
   });
 
+  // Each id decided independently, so a batch that half succeeds reports both
+  // halves. The old loop threw on the first error and the ones that had already
+  // run were invisible.
   const approveAll = useMutation({
-    mutationFn: async (ids: string[]) => {
-      for (const id of ids) await fDecide({ data: { approvalId: id, decision: "approve" } });
-      return ids.length;
+    mutationFn: async (items: { id: string; tool: string }[]) => {
+      const ran: string[] = [];
+      const failed: { tool: string; message: string }[] = [];
+      for (const it of items) {
+        try {
+          await fDecide({ data: { approvalId: it.id, decision: "approve" } });
+          ran.push(it.tool);
+        } catch (e) {
+          failed.push({ tool: it.tool, message: (e as Error).message });
+        }
+      }
+      return { ran, failed };
     },
-    onSuccess: (n) => {
-      toast.success(`${n} low-risk approvals ran.`);
+    onSuccess: ({ ran, failed }) => {
+      if (ran.length > 0) {
+        addReceipt({
+          verb: ran.length === 1 ? "You approved one call" : `You approved ${ran.length} calls`,
+          consequence: <>{ran.join(", ")} ran.</>,
+        });
+      }
+      if (failed.length > 0) {
+        addReceipt({
+          verb: failed.length === 1 ? "One was not recorded" : `${failed.length} were not recorded`,
+          consequence: <>{failed.map((f) => `${f.tool}: ${f.message}`).join(". ")}</>,
+          failed: true,
+        });
+      }
       inv();
     },
     onError: (e: Error) => {
-      toast.error(e.message);
+      addReceipt({
+        verb: "Nothing was recorded",
+        consequence: e.message,
+        failed: true,
+      });
       inv();
     },
   });
 
   const extend = useMutation({
-    mutationFn: (approvalId: string) => fExtend({ data: { approvalId, additionalHours: 24 } }),
-    onSuccess: () => {
-      toast.success("Extended · 24h more on the clock.");
+    mutationFn: (v: { approvalId: string; tool: string }) =>
+      fExtend({ data: { approvalId: v.approvalId, additionalHours: 24 } }),
+    onSuccess: (_r, v) => {
+      addReceipt({
+        verb: "You put it back on the clock",
+        consequence: <>{v.tool} has 24 more hours before it expires on its own.</>,
+      });
       inv();
     },
+    // An extension is not a judgment, so a failure here is a plain error rather
+    // than a receipt about a decision nobody made.
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (q.error) {
-    return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--madder)" }}>
-          Couldn't load approvals
-        </div>
-        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
-          {(q.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => q.refetch()}
-        >
-          Retry · reloads the queue
-        </button>
-      </div>
-    );
-  }
-
-  if (q.isLoading) {
-    return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the queue
-      </p>
-    );
-  }
-
-  const all = q.data?.approvals ?? [];
-  // Pending first (soonest expiry on top), resolved history below.
-  // Memoize derived arrays to avoid recalculating filter/sort every render
-  const pending = useMemo(
+  const all = React.useMemo(() => q.data?.approvals ?? [], [q.data]);
+  const pending = React.useMemo(
     () =>
       all
         .filter((a) => a.status === "pending")
         .sort((x, y) => (x.expires_at ?? "9999").localeCompare(y.expires_at ?? "9999")),
     [all],
   );
-  const resolved = useMemo(() => all.filter((a) => a.status !== "pending"), [all]);
-  const rows = useMemo(() => [...pending, ...resolved], [pending, resolved]);
-  const lowRisk = useMemo(() => pending.filter((a) => a.risk === "low"), [pending]);
+  const resolved = React.useMemo(() => all.filter((a) => a.status !== "pending"), [all]);
+  const lowRisk = React.useMemo(() => pending.filter((a) => a.risk === "low"), [pending]);
+
+  // The queue is worked soonest-to-expire first, and that one is the Gate until
+  // you pick another. A focused id that has since been settled falls back.
+  const focused = React.useMemo(
+    () => pending.find((a) => a.id === focusedId) ?? pending[0] ?? null,
+    [pending, focusedId],
+  );
+  const behind = React.useMemo(
+    () => pending.filter((a) => a.id !== focused?.id),
+    [pending, focused],
+  );
+
   const median = q.data?.medianResponseMs;
 
-  return (
-    <div>
-      {/* SW-4 trust ramp: graduation proposals ride the same judgment surface
-          as tool approvals: the system asking, the human deciding. */}
-      <TrustGraduationsBlock />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <MonoLabel icon={Shield}>
-          {pending.length} waiting
-          {median != null ? ` · median response ${fmtMedian(median)}` : ""}
-        </MonoLabel>
-        {lowRisk.length > 1 ? (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            disabled={approveAll.isPending}
-            onClick={() => approveAll.mutate(lowRisk.map((a) => a.id))}
-          >
-            <Check size={16} />
-            Approve all low-risk ({lowRisk.length})
-          </button>
-        ) : null}
-      </div>
+  if (q.isError) {
+    return (
+      <Block>
+        <Failed onRetry={() => void q.refetch()}>
+          The queue did not load, so nothing here is the real count.
+        </Failed>
+      </Block>
+    );
+  }
 
-      {rows.length === 0 ? (
-        <div
-          style={{
-            padding: "32px 24px",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            background: "var(--card)",
-            textAlign: "center",
-          }}
-        >
-          <span
-            className="uppercase"
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.11em",
-              color: "var(--moss-bright)",
-            }}
-          >
-            Nothing waiting
-          </span>
-          <p
-            style={{
-              color: "var(--text-subtle)",
-              marginTop: 8,
-              maxWidth: 440,
-              marginInline: "auto",
-              lineHeight: 1.5,
-            }}
-          >
-            The agents are running inside their lanes. When one needs a decision to run a tool, it
-            lands here, soonest to expire on top.
-          </p>
-        </div>
+  if (q.isLoading) {
+    return <Loading>Reading the queue.</Loading>;
+  }
+
+  return (
+    <>
+      {focused ? (
+        <FocusedCall
+          a={focused}
+          track={q.data?.trackByAgent?.[focused.agent_slug ?? ""] ?? null}
+          outcome={q.data?.outcomeByAgent?.[focused.agent_slug ?? ""] ?? null}
+          declines={rejectionCountFor(
+            q.data?.rejectionsByKey,
+            focused.agent_slug,
+            focused.tool_name,
+          )}
+          busy={decide.isPending}
+          extending={extend.isPending}
+          onApprove={() =>
+            decide.mutate({
+              approvalId: focused.id,
+              decision: "approve",
+              tool: focused.tool_name,
+            })
+          }
+          onReject={() =>
+            decide.mutate({
+              approvalId: focused.id,
+              decision: "reject",
+              tool: focused.tool_name,
+            })
+          }
+          onExtend={() => extend.mutate({ approvalId: focused.id, tool: focused.tool_name })}
+          onOpenMission={
+            focused.mission_id
+              ? () =>
+                  void navigate({
+                    to: "/build/$missionId",
+                    params: { missionId: focused.mission_id as string },
+                  })
+              : undefined
+          }
+        />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {rows.map((a) => (
-            <ApprovalCard
-              key={a.id}
-              a={a}
-              track={q.data?.trackByAgent?.[a.agent_slug ?? ""] ?? null}
-              outcome={q.data?.outcomeByAgent?.[a.agent_slug ?? ""] ?? null}
-              declines={rejectionCountFor(q.data?.rejectionsByKey, a.agent_slug, a.tool_name)}
-              busy={decide.isPending && decide.variables?.approvalId === a.id}
-              extending={extend.isPending && extend.variables === a.id}
-              onApprove={() =>
-                decide.mutate({ approvalId: a.id, decision: "approve", tool: a.tool_name })
-              }
-              onReject={() =>
-                decide.mutate({ approvalId: a.id, decision: "reject", tool: a.tool_name })
-              }
-              onExtend={() => extend.mutate(a.id)}
+        <Empty>
+          Nothing is waiting on you. The agents are running inside their lanes, and when one needs a
+          decision to run a tool it lands here, soonest to expire on top.
+        </Empty>
+      )}
+
+      {/* A graduation is a policy change with no clock on it; a tool approval is
+          an agent stopped mid run. So the tool call leads whenever there is one,
+          and the proposals fall back to rows behind it. Two gates at once would
+          be two primary actions and neither would be the one thing asking. */}
+      <TrustGraduationsBlock lead={!focused} />
+
+      {receipts.length > 0 ? (
+        <Block title="What you settled">
+          {receipts.map((r) => (
+            <Receipt
+              key={r.key}
+              verb={r.verb}
+              consequence={r.consequence}
+              time={r.at}
+              failed={r.failed}
             />
           ))}
-        </div>
-      )}
-    </div>
+        </Block>
+      ) : null}
+
+      {behind.length > 0 ? (
+        <Block
+          title="Waiting behind it"
+          sub={
+            <>
+              <Num>{pending.length}</Num> waiting
+              {median != null ? (
+                <>
+                  , and you usually answer in <Num>{fmtMedian(median)}</Num>
+                </>
+              ) : null}
+              . Open one to make it the call in front of you.
+            </>
+          }
+          more={lowRisk.length > 1 ? `Approve the ${lowRisk.length} low risk ones` : undefined}
+          onMore={
+            lowRisk.length > 1
+              ? () => approveAll.mutate(lowRisk.map((a) => ({ id: a.id, tool: a.tool_name })))
+              : undefined
+          }
+        >
+          {behind.map((a) => (
+            <Row
+              key={a.id}
+              marks={<AgentMark slug={a.agent_slug} state="waiting" />}
+              lead={
+                <>
+                  {agentDisplayName(a.agent_slug)} wants to run {a.tool_name}.
+                </>
+              }
+              sub={
+                <>
+                  {riskWord(a.risk)}
+                  {a.mission_title ? <>, in {a.mission_title}</> : null}
+                </>
+              }
+              time={relExpiry(a.expires_at)?.text ?? null}
+              tight
+              onClick={() => setFocusedId(a.id)}
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      {resolved.length > 0 ? (
+        <Block title="Already settled" sub="The last 50 calls this account decided, newest first.">
+          {resolved.map((a) => {
+            const line = RESOLVED_LINE[a.status];
+            return (
+              <Row
+                key={a.id}
+                marks={<AgentMark slug={a.agent_slug} state="quiet" />}
+                lead={
+                  <>
+                    {agentDisplayName(a.agent_slug)} and {a.tool_name}
+                  </>
+                }
+                sub={
+                  line ? (
+                    <Value tone={line.tone}>{line.text}</Value>
+                  ) : (
+                    <Value tone="quiet">{a.status}</Value>
+                  )
+                }
+                tight
+              />
+            );
+          })}
+        </Block>
+      ) : null}
+    </>
   );
 }
 
-/* Detailed approval card — the richer layout from the reference, fed by
-   production agent_approvals rows. */
-function ApprovalCard({
+/* ------------------------------------------------------------------ *
+ * The one call in front of you
+ * ------------------------------------------------------------------ */
+
+function FocusedCall({
   a,
   track,
   outcome,
@@ -260,6 +413,7 @@ function ApprovalCard({
   onApprove,
   onReject,
   onExtend,
+  onOpenMission,
 }: {
   a: GovernApproval;
   track: AgentTrackRecord | null;
@@ -270,179 +424,83 @@ function ApprovalCard({
   onApprove: () => void;
   onReject: () => void;
   onExtend: () => void;
+  onOpenMission?: () => void;
 }) {
+  const name = agentDisplayName(a.agent_slug);
   const trackLabel = formatTrackRecord(track);
   const outcomeLabel = formatOutcomeRecord(outcome);
-  const resolvedLine = a.status === "pending" ? undefined : RESOLVED_LINE[a.status];
-  const resolved = a.status !== "pending";
-  const expiry = a.status === "pending" ? relExpiry(a.expires_at) : null;
-  const dot = resolved
-    ? a.status === "approved" || a.status === "executed"
-      ? "completed"
-      : "failed"
-    : "gate";
+  const expiry = relExpiry(a.expires_at);
+
+  // One fact per line, and never four ways of saying one. Each entry below is a
+  // different thing the person needs before they can rule.
+  const lines: React.ReactNode[] = [];
+  if (a.rationale) lines.push(<span key="why">{a.rationale}</span>);
+  lines.push(
+    <span key="risk">
+      <Value tone={toneForRisk(a.risk)}>{riskWord(a.risk)}</Value>
+      {". "}
+      {RISK_NOTE[a.risk] ?? "How far this reaches is not recorded."}
+    </span>,
+  );
+  if (a.mission_title) lines.push(<span key="mission">It is part of {a.mission_title}.</span>);
+  if (trackLabel || outcomeLabel) {
+    lines.push(
+      <span key="record">
+        Its record with you: {trackLabel ?? "no decided calls yet"}
+        {outcomeLabel ? `, and ${outcomeLabel} turned out right` : ""}.
+      </span>,
+    );
+  }
+  if (declines > 0) {
+    lines.push(
+      <span key="declines">
+        You have said no to this pairing <Num>{declines}</Num> times before.
+      </span>,
+    );
+  }
+  if (expiry) {
+    lines.push(
+      <span key="expiry">
+        {expiry.expired
+          ? `It ${expiry.text}, so nothing runs until you decide or put it back on the clock.`
+          : `It ${expiry.text}.`}
+      </span>,
+    );
+  }
+  if (a.error) lines.push(<span key="error">The last attempt errored: {a.error}</span>);
+
   return (
-    <div
-      className="fade-up lift"
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "var(--geist-space-3x)",
-        padding: "14px 16px",
-        border: "1px solid var(--hairline)",
-        borderRadius: 8,
-        opacity: resolved ? 0.45 : 1,
-        transition: "opacity var(--dur-slow)",
-        background: "var(--card)",
-      }}
-    >
-      <span style={{ marginTop: 5 }}>
-        <StepDot status={dot} />
-      </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-          <span className="mono-label" style={{ color: "var(--text-primary)" }}>
-            {a.agent_slug ?? "agent"}
-          </span>
-          {trackLabel && (
-            <span
-              className="mono-label"
-              style={{ color: "var(--text-faint)" }}
-              title="This agent's decided-approval record across your past gates"
-            >
-              {trackLabel}
-            </span>
-          )}
-          {outcomeLabel && (
-            <span
-              className="mono-label"
-              style={{ color: "var(--text-faint)" }}
-              title="This agent's recorded outcome record: did the decided-on work actually turn out well, not just whether the gate was approved"
-            >
-              {outcomeLabel}
-            </span>
-          )}
-          <span style={{ color: "var(--text-faint)" }}>wants</span>
-          <span className="mono-label" style={{ color: "var(--text-body)" }}>
-            {a.tool_name}
-          </span>
-          <RiskChip risk={a.risk} />
-          {!resolved && declines > 0 && (
-            <span
-              className="mono-label"
-              style={{ color: "var(--marigold)" }}
-              title="You have declined this agent + tool before. Supaprod has registered it."
-            >
-              declined {declines}&times; before
-            </span>
-          )}
-          {a.mission_title ? (
-            <>
-              <span style={{ color: "var(--text-faint)" }}>in</span>
-              <span style={{ color: "var(--text-body)" }}>{a.mission_title}</span>
-            </>
-          ) : null}
-          <span style={{ flex: 1 }}></span>
-          {expiry ? (
-            <span
-              className="mono-label"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                color: expiry.expired ? "var(--marigold)" : undefined,
-              }}
-            >
-              <Clock size={16} />
-              {expiry.text}
-            </span>
-          ) : null}
-        </div>
-        {a.rationale ? (
-          <p
-            style={{
-              color: "var(--text-body)",
-              margin: "4px 0 10px",
-              lineHeight: 1.5,
-            }}
-          >
-            {a.rationale}
-          </p>
-        ) : (
-          <div style={{ height: 6 }} />
-        )}
-        {resolvedLine ? (
-          <span className="mono-label" style={{ color: resolvedLine.color }}>
-            {resolvedLine.text}
-          </span>
-        ) : (
-          <div style={{ display: "flex", gap: "var(--geist-space-2x)", alignItems: "center", flexWrap: "wrap" }}>
-            <button
-              type="button"
-              className="btn btn-approve btn-sm"
-              disabled={busy}
-              onClick={onApprove}
-            >
-              <Check size={16} />
-              Approve · runs {a.tool_name}
-            </button>
-            <button
-              type="button"
-              className="btn btn-reject btn-sm"
-              disabled={busy}
-              onClick={onReject}
-            >
-              <X size={16} />
-              Reject · nothing runs
-            </button>
-            {a.mission_id ? (
-              <Link
-                className="btn btn-sm hover:underline"
-                style={{ color: "var(--link)" }}
-                to="/build/$missionId"
-                params={{ missionId: a.mission_id }}
-              >
-                Mission
-                <ExternalLink size={16} />
-              </Link>
-            ) : null}
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={extending}
-              onClick={onExtend}
-            >
-              Extend · 24h more
-            </button>
-          </div>
-        )}
-        {a.error ? (
-          <div style={{ marginTop: 8, color: "var(--madder)" }}>{a.error}</div>
+    <>
+      <Gate question={`Let ${name} run ${a.tool_name}?`} lines={lines}>
+        <Button variant="primary" disabled={busy} onClick={onApprove}>
+          Approve, and it runs
+        </Button>
+        <Button disabled={busy} onClick={onReject}>
+          Decline, and nothing runs
+        </Button>
+      </Gate>
+
+      <Actions
+        trailing={
+          <Button variant="ghost" disabled={extending} onClick={onExtend}>
+            Give it 24 more hours
+          </Button>
+        }
+      >
+        {onOpenMission ? (
+          <Button variant="ghost" onClick={onOpenMission}>
+            Open the mission
+          </Button>
         ) : null}
-        <details style={{ marginTop: 8 }}>
-          <summary
-            className="mono-label transition hover:brightness-125"
-            style={{ cursor: "pointer", color: "var(--text-faint)", listStylePosition: "inside" }}
-          >
-            args · the exact payload
-          </summary>
-          <pre
-            className="scrollbar-thin"
-            style={{
-              marginTop: 6,
-              maxHeight: 200,
-              overflow: "auto",
-              border: "1px solid var(--hairline)",
-              borderRadius: 8,
-              background: "var(--surface-recessed)",
-              padding: 10,
-              lineHeight: 1.5,
-            }}
-          >
-            {JSON.stringify(a.args, null, 2)}
-          </pre>
-        </details>
-      </div>
-    </div>
+      </Actions>
+
+      {/* The exact payload. One click away rather than on the surface: it is
+          what an engineer opens to check the call, and it is never what a
+          product lead reads to make it. */}
+      <details>
+        <summary className="sp-block-more">The exact payload</summary>
+        <Pre>{JSON.stringify(a.args, null, 2)}</Pre>
+      </details>
+    </>
   );
 }

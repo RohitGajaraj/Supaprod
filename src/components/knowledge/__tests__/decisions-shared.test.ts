@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   SOURCE_LABEL,
-  STATUS_TONE,
+  OUTCOME_WORD,
   ageOf,
   hasSource,
   displayWho,
@@ -53,37 +53,42 @@ describe("SOURCE_LABEL", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATUS_TONE - Decision status to VerdictTone mapping
+// OUTCOME_WORD - what happened to a call, in plain words
+//
+// Replaced the retired STATUS_TONE / VerdictTone map, 2026-07-29. The chip it
+// fed is gone. Green and red carry outcomes and own those two; a call nobody
+// has settled yet is NOT an outcome, so it stays monochrome rather than
+// wearing ember, which marks the human and is spent on Today where the
+// deciding actually happens.
 // ─────────────────────────────────────────────────────────────────────────────
-describe("STATUS_TONE", () => {
-  test("is a Record with all string values", () => {
-    expect(typeof STATUS_TONE).toBe("object");
-    Object.values(STATUS_TONE).forEach((val) => {
-      expect(typeof val).toBe("string");
+describe("OUTCOME_WORD", () => {
+  test("has exactly three statuses", () => {
+    expect(Object.keys(OUTCOME_WORD).length).toBe(3);
+  });
+
+  test("approved reads as Kept, and green carries it", () => {
+    expect(OUTCOME_WORD.approved.word).toBe("Kept");
+    expect(OUTCOME_WORD.approved.tone).toBe("sp-pass");
+  });
+
+  test("rejected reads as Dropped, and red carries it", () => {
+    expect(OUTCOME_WORD.rejected.word).toBe("Dropped");
+    expect(OUTCOME_WORD.rejected.tone).toBe("sp-fail");
+  });
+
+  test("pending stays MONOCHROME and never wears ember", () => {
+    expect(OUTCOME_WORD.pending.word).toBe("Not settled");
+    expect(OUTCOME_WORD.pending.tone).toBe("");
+  });
+
+  test("every tone is an sp- class or empty, never a raw hue token", () => {
+    Object.values(OUTCOME_WORD).forEach(({ tone }) => {
+      expect(tone === "" || tone.startsWith("sp-")).toBe(true);
     });
   });
 
-  test("maps 'approved' to 'moss'", () => {
-    expect(STATUS_TONE.approved).toBe("moss");
-  });
-
-  test("maps 'rejected' to 'madder'", () => {
-    expect(STATUS_TONE.rejected).toBe("madder");
-  });
-
-  test("maps 'pending' to 'ember'", () => {
-    expect(STATUS_TONE.pending).toBe("ember");
-  });
-
-  test("has exactly 3 status tones", () => {
-    expect(Object.keys(STATUS_TONE).length).toBe(3);
-  });
-
-  test("all tones are valid VerdictTone values", () => {
-    const validTones = ["moss", "madder", "ember"];
-    Object.values(STATUS_TONE).forEach((tone) => {
-      expect(validTones).toContain(tone);
-    });
+  test("colour is spent on settled outcomes only", () => {
+    expect(Object.values(OUTCOME_WORD).filter((v) => v.tone !== "")).toHaveLength(2);
   });
 });
 

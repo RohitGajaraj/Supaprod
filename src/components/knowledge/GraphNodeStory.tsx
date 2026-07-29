@@ -1,12 +1,35 @@
-// O1 / DBR-1 - the "story" side panel for a graph node, opened by
-// double-click on the canvas. Reuses getLineage (immediate parents/children
-// with hydrated titles), so the graph stays a thin read surface over the
-// lineage we already record. W3 (Loom): ported to v4 tokens, no icon set
-// (text affordances only), close affordance, plain-word revision labels.
+/**
+ * One node's story, opened from the graph canvas.
+ *
+ * Ported to the shell primitives, 2026-07-29. This is one of the things the
+ * founder's complaint names directly: clicking a node on a ported page opened a
+ * card built from the retired system.
+ *
+ * WHAT WENT, and why:
+ *   KILLED the material-large card. The canvas next to it is the one bordered
+ *     container in this region (anti-slop ban 5). The story is Blocks now.
+ *   KILLED the local GhostButton, which hand-rolled the focus ring three times
+ *     over. Button takes the app-wide ring without being asked.
+ *   KILLED every MonoLabel. Mono is for data, never for a section caption
+ *     ("came from", "led to", "decision history") and never for a relation name.
+ *   KILLED the AuditTag chip and the hand-built trace span beside it. The trace
+ *     ref is plain mono via Num, and it reads the same for every kind rather
+ *     than switching instrument depending on whether the kind has an audit id.
+ *   KILLED the madder-bordered pill on every supersession link. A bordered pill
+ *     per row is a bordered container per row, and the border was carrying the
+ *     same meaning the word inside it already carried (hard ban 10). The label
+ *     is a word, and sp-fail carries the outcome.
+ *   KILLED the "Could not trace this node" paragraph with a hand-built retry.
+ *     Failed is the primitive, and it refuses to be mistaken for "nothing
+ *     downstream yet".
+ *
+ * UNCHANGED: getLineage, the ["graph-node-story", kind, id] key, the
+ * supersession story derivation, the recentre callback, and the retired-edge
+ * de-emphasis that keeps a reversed assertion visible as history.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getLineage } from "@/lib/lineage.functions";
-import { MonoLabel } from "@/components/obsidian/primitives";
 import {
   buildSupersessionStory,
   isSupersessionRelation,
@@ -15,54 +38,20 @@ import {
   type SupersessionStory,
 } from "@/lib/knowledge-graph-view";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
-import { kindCssColor, kindLabel, kindTracePrefix } from "./graph-visual";
+import { kindLabel, kindTracePrefix } from "./graph-visual";
 import { GraphNodeActions } from "./GraphNodeActions";
-import { AuditTag } from "@/components/supaprod/AuditTag";
-import type { AuditKind } from "@/lib/audit-id";
-
-// Graph node kinds that resolve to a standalone traceable audit entity. The
-// others (theme, roadmap_item, task, design_memory) have no audit id of their
-// own, so their chip stays a plain, non-clickable ref.
-const GRAPH_AUDIT_KIND: Record<string, AuditKind> = {
-  signal: "signal",
-  opportunity: "opportunity",
-  prd: "spec",
-  meeting: "meeting",
-  decision: "decision",
-  mission: "mission",
-};
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Loading,
+  Num,
+  Row,
+} from "@/components/shell/primitives";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
-
-function GhostButton({
-  onClick,
-  children,
-  style,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-      style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.06em",
-        color: "var(--text-subtle)",
-        background: "transparent",
-        border: "none",
-        padding: 0,
-        textAlign: "left",
-        ...style,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function GraphNodeStory({
   node,
@@ -94,91 +83,50 @@ export function GraphNodeStory({
   ) as StoryRow[];
 
   return (
-    <div
-      className="material-large"
-      style={{
-        background: "var(--card)",
-        padding: "16px 18px",
-      }}
-    >
-      <div className="flex items-center" style={{ gap: 7, marginBottom: 4 }}>
-        <span
-          aria-hidden="true"
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: 3,
-            background: kindCssColor(node.kind),
-            flexShrink: 0,
-          }}
-        />
-        <MonoLabel style={{ }}>{kindLabel(node.kind)}</MonoLabel>
-        <span style={{ flex: 1 }} />
-        {onClose ? <GhostButton onClick={onClose}>Close · Esc</GhostButton> : null}
-      </div>
-      <div
-        style={{
-          fontWeight: 500,
-          color: "var(--text-primary)",
-          marginBottom: 6,
-          lineHeight: 1.35,
-        }}
+    <div>
+      <Block
+        title={node.title || "Untitled"}
+        // Three DIFFERENT facts, never more of the title: what kind of thing it
+        // is, when it landed, and the id it answers to across the record.
+        sub={
+          <>
+            {kindLabel(node.kind)}
+            {node.createdAt ? ` · ${relTimeCaps(node.createdAt)}` : ""}
+            {" · "}
+            <Num>
+              {kindTracePrefix(node.kind)}
+              {traceRef(node.id)}
+            </Num>
+          </>
+        }
       >
-        {node.title || "(untitled)"}
-      </div>
-      {/* dim 17: the timestamp (present) + the quiet trace ref, so a graph node
-          is a first-class, auditable, citable object like every other detail. */}
-      <div className="flex flex-wrap items-center" style={{ gap: "var(--geist-space-2x)", marginBottom: 10 }}>
-        {node.createdAt ? (
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.06em",
-              color: "var(--text-subtle)",
-            }}
-          >
-            {relTimeCaps(node.createdAt)}
-          </span>
-        ) : null}
-        {GRAPH_AUDIT_KIND[node.kind] ? (
-          <AuditTag kind={GRAPH_AUDIT_KIND[node.kind]} id={node.id} title={node.id} />
-        ) : (
-          <span
-            title={node.id}
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.06em",
-              color: "var(--text-faint)",
-            }}
-          >
-            {kindTracePrefix(node.kind)}·{traceRef(node.id)}
-          </span>
-        )}
-      </div>
-      <GhostButton onClick={() => onFocus(node.kind, node.id)} style={{ marginBottom: 4 }}>
-        Center the graph here
-      </GhostButton>
+        <Actions trailing={onClose ? <Button variant="ghost" onClick={onClose}>Close</Button> : undefined}>
+          <Button onClick={() => onFocus(node.kind, node.id)}>Centre the graph here</Button>
+        </Actions>
 
-      <GraphNodeActions node={node} />
+        <GraphNodeActions node={node} />
+      </Block>
 
       {story.isLoading ? (
-        <MonoLabel style={{ marginTop: 10, display: "block" }}>
-          tracing…
-        </MonoLabel>
+        <Loading>Tracing what it connects to.</Loading>
       ) : story.isError ? (
-        <div style={{ marginTop: 10 }}>
-          <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            Could not trace this node: {(story.error as Error)?.message ?? "unknown error"}
-          </p>
-          <GhostButton onClick={() => void story.refetch()} style={{ marginTop: 6 }}>
-            Retry · traces again
-          </GhostButton>
-        </div>
+        <Failed onRetry={() => void story.refetch()}>
+          This node did not trace, so this is not a claim that nothing connects to it.{" "}
+          {(story.error as Error)?.message ?? ""}
+        </Failed>
       ) : (
         <>
           <SupersessionSection story={supersession} onFocus={onFocus} />
-          <StorySection label="came from" rows={ancestors} emptyText="no recorded source" />
-          <StorySection label="led to" rows={descendants} emptyText="nothing downstream yet" />
+          <StorySection
+            title="What it came from"
+            rows={ancestors}
+            emptyText="Nothing recorded upstream. It was written here rather than derived from something else."
+          />
+          <StorySection
+            title="What came out of it"
+            rows={descendants}
+            emptyText="Nothing downstream yet. Nothing has been built on this."
+          />
         </>
       )}
     </div>
@@ -186,53 +134,32 @@ export function GraphNodeStory({
 }
 
 function StorySection({
-  label,
+  title,
   rows,
   emptyText,
 }: {
-  label: string;
+  title: string;
   rows: StoryRow[];
   emptyText: string;
 }) {
   return (
-    <div style={{ marginTop: 12 }}>
-      <MonoLabel style={{ marginBottom: 6, display: "block" }}>
-        {label}
-      </MonoLabel>
+    <Block title={title}>
       {rows.length === 0 ? (
-        <p style={{ color: "var(--text-subtle)" }}>{emptyText}</p>
+        <Empty>{emptyText}</Empty>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {rows.slice(0, 8).map((r) => (
-            <div
-              key={r.id}
-              className="flex items-baseline"
-              style={{ color: "var(--text-body)", gap: 6 }}
-            >
-              <MonoLabel
-                style={{
-                  color: "var(--text-subtle)",
-                  flexShrink: 0,
-                }}
-              >
-                {r.relation}
-              </MonoLabel>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {r.peer_title || "(untitled)"}
-              </span>
-            </div>
-          ))}
-        </div>
+        rows.slice(0, 8).map((r) => (
+          <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />
+        ))
       )}
-    </div>
+    </Block>
   );
 }
 
-// DBR-1.5 read-side: the revision history for the selected node. Renders
-// nothing until the engine writes a supersedes/contradicts edge. When edges
-// exist it names, in plain language (madder-accented to match the canvas),
-// which beliefs this node replaced, and whether a later outcome replaced IT.
-// Links recenter the graph on the counterpart artifact.
+/** DBR-1.5 read side: the revision history for the selected node. Renders
+ *  nothing until the engine writes a supersedes or contradicts edge. When
+ *  edges exist it names, in plain words, which beliefs this node replaced and
+ *  whether a later outcome replaced IT. A row recentres the graph on its
+ *  counterpart. */
 function SupersessionSection({
   story,
   onFocus,
@@ -242,99 +169,45 @@ function SupersessionSection({
 }) {
   if (story.links.length === 0) return null;
   return (
-    <div style={{ marginTop: 12 }}>
-      <MonoLabel
-        style={{
-          marginBottom: 6,
-          display: "block",
-          color: "var(--madder)",
-        }}
-      >
-        decision history
-      </MonoLabel>
-      {story.revised && (
-        <p style={{ color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
-          A later recorded outcome revised this belief.
-        </p>
-      )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {story.links.slice(0, 8).map((l) => {
-          const canFocus = !!l.peerKind && !!l.peerId;
-          // Guard the date so a malformed valid_to can never render "Invalid Date".
-          const retiredOn =
-            l.retiredAt && !Number.isNaN(Date.parse(l.retiredAt))
-              ? new Date(l.retiredAt).toLocaleDateString()
-              : null;
-          return (
-            <button
-              key={l.id}
-              type="button"
-              disabled={!canFocus}
-              onClick={() => canFocus && onFocus(l.peerKind, l.peerId)}
-              aria-label={`${l.label} ${l.peerTitle || "untitled"}${
-                l.retired ? " (no longer current)" : ""
-              }`}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                background: "none",
-                border: "none",
-                borderRadius: 4,
-                padding: 0,
-                margin: 0,
-                font: "inherit",
-                textAlign: "left",
-                width: "100%",
-                cursor: canFocus ? "pointer" : "default",
-                display: "flex",
-                gap: 6,
-                alignItems: "baseline",
-                color: "var(--text-body)",
-                // Retired (reversed) assertions stay visible as history, de-emphasized.
-                opacity: l.retired ? 0.5 : 1,
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--madder)",
-                  flexShrink: 0,
-                  border: "1px solid var(--madder)",
-                  borderRadius: 4,
-                  padding: "1px 4px",
-                  opacity: 0.85,
-                  textDecoration: l.retired ? "line-through" : undefined,
-                }}
-              >
-                {l.label}
-              </span>
-              <span
-                style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  minWidth: 0,
-                  flexShrink: 1,
-                }}
-              >
-                {l.peerTitle || "(untitled)"}
-              </span>
-              {l.retired && (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-subtle)",
-                    flexShrink: 0,
-                  }}
-                >
-                  {retiredOn ? `· no longer current · ${retiredOn}` : "· no longer current"}
+    <Block
+      title="What this replaced"
+      // The one fact that matters most goes here rather than as a second
+      // paragraph inside: a belief that was itself revised is not current.
+      sub={
+        story.revised ? (
+          <span className="sp-fail">A later recorded outcome revised this belief.</span>
+        ) : undefined
+      }
+    >
+      {story.links.slice(0, 8).map((l) => {
+        const canFocus = !!l.peerKind && !!l.peerId;
+        // Guard the date so a malformed valid_to can never render "Invalid Date".
+        const retiredOn =
+          l.retiredAt && !Number.isNaN(Date.parse(l.retiredAt))
+            ? new Date(l.retiredAt).toLocaleDateString()
+            : null;
+        return (
+          <Row
+            key={l.id}
+            tight
+            lead={l.peerTitle || "Untitled"}
+            // The different fact: what the relation was, and whether the
+            // assertion still stands. Red carries the outcome; the retired
+            // edge stays visible as history rather than being hidden.
+            sub={
+              l.retired ? (
+                <span className="sp-fail">
+                  {l.label}
+                  {retiredOn ? ` · no longer current since ${retiredOn}` : " · no longer current"}
                 </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+              ) : (
+                l.label
+              )
+            }
+            onClick={canFocus ? () => onFocus(l.peerKind, l.peerId) : undefined}
+          />
+        );
+      })}
+    </Block>
   );
 }

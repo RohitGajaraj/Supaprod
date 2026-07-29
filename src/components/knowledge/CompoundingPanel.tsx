@@ -25,10 +25,14 @@
  * practice). A row with no slug reads "unattributed" rather than borrowing a
  * name the record does not hold.
  *
+ *   KILLED the VERDICT_TONE export and its VerdictTone import (2026-07-29). The
+ *     chip it fed is retired, LearningDetail no longer draws one, and nothing
+ *     else in the app read it. The outcome is a WORD now, and OUTCOME below is
+ *     the one map both this feed and the drill read.
+ *
  * UNCHANGED: getCompounding / listLearnings, the ["compounding"] and
  * ["learnings"] keys, the ?tab=learnings&learning= drill target, and the
- * exported VERDICT_TONE / whenOf / deltaOf that LearningDetail and the tests
- * import from here.
+ * exported whenOf / deltaOf that LearningDetail and the tests import from here.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -37,7 +41,6 @@ import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import type { VerdictTone } from "@/components/obsidian/verdict";
 import {
   AgentMark,
   Empty,
@@ -46,12 +49,6 @@ import {
   Record as RecordRecess,
   Row,
 } from "@/components/shell/primitives";
-
-export const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone> = {
-  validated: "VALIDATED",
-  missed: "MISSED",
-  mixed: "REVISE",
-};
 
 /** The outcome in plain words. Green and red carry outcomes and they own these
  *  two; a mixed result is not one, so it stays monochrome. */

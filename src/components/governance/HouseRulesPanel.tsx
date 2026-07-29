@@ -1,21 +1,103 @@
-// RF-04: House rules — the Engine Room tab for the steward's weekly drafts.
-// Pending drafts wait on a human decision (approve reaches the chokepoint,
-// reject discards it); approved rules can be replaced ("Supersede"), which
-// drafts a new pending rule and retires the old one once THAT is approved
-// (house-rules.functions.ts). Styled to match ApprovalsPanel: mono header,
-// StepDot status, quiet-Ember action buttons.
+/**
+ * HOUSE RULES. Ported onto the primitives, 2026-07-29.
+ *
+ * WHAT CHANGED, AND WHY. Every rule, whatever its state, was the same bordered
+ * card carrying a StepDot, the rule, its rationale, a learnings count and two
+ * equally-weighted buttons. So a rule already in force and a rule asking for a
+ * decision looked identical, and a queue of five drafts was five primary
+ * actions with nothing to look at first.
+ *
+ * The governance canon (docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md)
+ * gives the shape, because the two things are genuinely different acts:
+ *
+ *   Policy is set in advance and does not block. Permission is asked in the
+ *   moment and does.
+ *
+ * So a rule ALREADY IN FORCE is a boundary, and a boundary is a Line: the rule
+ * on the left, what changes it on the right, and a second line saying who it
+ * covers rather than restating the rule. A rule the steward has DRAFTED is a
+ * genuine human call, so exactly one at a time is a Gate, the biggest thing on
+ * the surface, with the rest as one-line rows behind it. That is the same shape
+ * the Crew surface uses for an agent proposing its own promotion, and it is the
+ * same act: the machine proposing, the human ruling on the boundary.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Adopting a rule used to fire
+ * a toast and the card vanished. A toast confirms that your click registered; a
+ * Receipt renders what your click CAUSED, which here is a real, specific thing:
+ * this sentence now rides every model call that agent makes. No arrow is drawn,
+ * because nothing picks a house rule up. It is a standing rule from now on, and
+ * an arrow to nowhere is worse than no arrow.
+ *
+ * `agent_slug` is on the row and was never drawn. A rule that binds one named
+ * worker and a rule that binds all of them are different boundaries, and the
+ * panel used to show them as the same one.
+ */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, ScrollText, X } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   listHouseRules,
   decideHouseRule,
   supersedeHouseRule,
   type HouseRule,
 } from "@/lib/house-rules.functions";
-import { MonoLabel, StepDot } from "@/components/supaprod/Primitives";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Gate,
+  Line,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+  Textarea,
+  Value,
+} from "@/components/shell/primitives";
+
+/** Plain-words relative time. Mono is applied by the row, not here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+/** Who the boundary binds. A rule with no agent binds all of them, and that is
+ *  a different boundary from one that binds a named worker. */
+function whoItBinds(slug: string | null): string {
+  return slug ? agentDisplayName(slug) : "every agent";
+}
+
+/** What is behind it. Second-line information on a boundary, never a
+ *  restatement of the rule the label already carries. */
+function provenance(r: HouseRule): string {
+  const n = r.source_learning_ids.length;
+  const who = whoItBinds(r.agent_slug);
+  const from =
+    n === 0 ? "written straight in" : `distilled from ${n} ${n === 1 ? "learning" : "learnings"}`;
+  return `Rides every ${who} call, ${from}.`;
+}
+
+/** What a judgment on this surface left behind. `adopted: null` is the third
+ *  act: you drafted a replacement, which decides nothing yet and changes
+ *  nothing yet, and saying otherwise would be the surface overclaiming. */
+type Settled = {
+  at: string;
+  adopted: boolean | null;
+  who: string;
+};
 
 export function HouseRulesPanel() {
   const fList = useServerFn(listHouseRules);
@@ -24,260 +106,248 @@ export function HouseRulesPanel() {
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["house-rules"], queryFn: () => fList({ data: {} }) });
-  const inv = () => qc.invalidateQueries({ queryKey: ["house-rules"] });
+  const inv = () => void qc.invalidateQueries({ queryKey: ["house-rules"] });
+
+  /** What your judgment left behind, rendered on the surface instead of
+   *  vanishing into a toast. */
+  const [settled, setSettled] = useState<Settled[]>([]);
+  const [replacing, setReplacing] = useState<HouseRule | null>(null);
+  const [draft, setDraft] = useState("");
 
   const decide = useMutation({
-    mutationFn: (v: { ruleId: string; decision: "approve" | "reject" }) => fDecide({ data: v }),
+    mutationFn: (v: { rule: HouseRule; decision: "approve" | "reject" }) =>
+      fDecide({ data: { ruleId: v.rule.id, decision: v.decision } }),
     onSuccess: (_r, v) => {
-      toast.success(
-        v.decision === "approve" ? "Approved · now applies to every AI call." : "Rejected.",
-      );
+      setSettled((s) => [
+        ...s,
+        {
+          at: new Date().toISOString(),
+          adopted: v.decision === "approve",
+          who: whoItBinds(v.rule.agent_slug),
+        },
+      ]);
       inv();
     },
+    // A failure is never silent. It is not a receipt, because nothing happened.
     onError: (e: Error) => toast.error(e.message),
   });
 
   const supersede = useMutation({
-    mutationFn: (v: { oldRuleId: string; ruleText: string; rationale?: string }) =>
-      fSupersede({ data: v }),
-    onSuccess: () => {
-      toast.success("Replacement drafted · approve it to retire the old rule.");
+    // `rationale` is optional on the schema, never nullable, so it is omitted
+    // rather than passed as null. tsc would not have caught that; zod would
+    // have thrown at the call.
+    mutationFn: (v: { rule: HouseRule; ruleText: string }) =>
+      fSupersede({ data: { oldRuleId: v.rule.id, ruleText: v.ruleText } }),
+    onSuccess: (_r, v) => {
+      setSettled((s) => [
+        ...s,
+        { at: new Date().toISOString(), adopted: null, who: whoItBinds(v.rule.agent_slug) },
+      ]);
+      setReplacing(null);
+      setDraft("");
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (q.error) {
-    return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--madder)" }}>
-          Couldn't load house rules
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-          {(q.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => void q.refetch()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  if (q.isLoading) return <Loading>Reading the rules in force.</Loading>;
 
-  if (q.isLoading) {
+  if (q.isError) {
     return (
-      <div
-        style={{
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
-        }}
-      >
-        Loading house rules…
-      </div>
+      <Failed onRetry={() => void q.refetch()}>
+        {(q.error as Error)?.message ??
+          "The rules did not load, so nothing below would be the real boundary."}
+      </Failed>
     );
   }
 
   const all = q.data?.rules ?? [];
   const pending = all.filter((r) => r.status === "pending");
-  const decided = all.filter((r) => r.status !== "pending");
+  const inForce = all.filter((r) => r.status === "approved");
+  const turnedDown = all.filter((r) => r.status === "rejected");
+
+  if (all.length === 0) {
+    return (
+      <Empty>
+        No standing rules yet. The steward drafts one once your validated learnings show the same
+        thing happening more than once, and it lands here for you to rule on.
+      </Empty>
+    );
+  }
+
+  // Exactly one thing asks at a time, so there is one primary action on the
+  // screen and the end of the queue is visible from the start.
+  const [live, ...behind] = pending;
+  const busyOn = (id: string) => decide.isPending && decide.variables?.rule.id === id;
 
   return (
-    <div>
-      <div style={{ marginBottom: 12 }}>
-        <MonoLabel icon={ScrollText}>{pending.length} waiting</MonoLabel>
-      </div>
-
-      {all.length === 0 ? (
-        <div
-          style={{
-            color: "var(--ink-faint)",
-            padding: "32px 0",
-            textAlign: "center",
-          }}
+    <>
+      {live ? (
+        <Gate
+          question={`Should ${whoItBinds(live.agent_slug)} follow this from now on?`}
+          lines={[
+            live.rule_text,
+            ...(live.rationale ? [live.rationale] : []),
+            live.source_learning_ids.length > 0 ? (
+              <>
+                Distilled from <Num>{live.source_learning_ids.length}</Num>{" "}
+                {live.source_learning_ids.length === 1 ? "learning" : "learnings"} the steward found
+                repeating.
+              </>
+            ) : (
+              "Written straight in, with no learnings behind it yet."
+            ),
+          ]}
         >
-          No house rules yet. The weekly steward pass drafts one once there is a real pattern across
-          your validated learnings.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[...pending, ...decided].map((r) => (
-            <HouseRuleCard
+          <Button
+            variant="primary"
+            disabled={busyOn(live.id)}
+            onClick={() => decide.mutate({ rule: live, decision: "approve" })}
+          >
+            Make it a rule
+          </Button>
+          <Button
+            disabled={busyOn(live.id)}
+            onClick={() => decide.mutate({ rule: live, decision: "reject" })}
+          >
+            Not this one
+          </Button>
+        </Gate>
+      ) : null}
+
+      {behind.length > 0 ? (
+        <Block title="Behind it" sub="Settle the one above and the next takes its place.">
+          {behind.map((r) => (
+            <Row
               key={r.id}
-              r={r}
-              busy={decide.isPending && decide.variables?.ruleId === r.id}
-              supersedeBusy={supersede.isPending && supersede.variables?.oldRuleId === r.id}
-              onApprove={() => decide.mutate({ ruleId: r.id, decision: "approve" })}
-              onReject={() => decide.mutate({ ruleId: r.id, decision: "reject" })}
-              onSupersede={(ruleText) =>
-                supersede.mutate({ oldRuleId: r.id, ruleText, rationale: "Manual replacement" })
-              }
+              marks={<AgentMark slug={r.agent_slug} state="waiting" />}
+              lead={r.rule_text}
+              sub={`For ${whoItBinds(r.agent_slug)}`}
+              time={ago(r.created_at)}
+              tight
             />
           ))}
-        </div>
-      )}
-    </div>
-  );
-}
+        </Block>
+      ) : null}
 
-const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · applies to every AI call", color: "var(--moss)" },
-  rejected: { text: "rejected · discarded", color: "var(--text-muted)" },
-};
+      {/* THE COMMIT. What your judgment caused, per rule, in your own voice. */}
+      {settled.map((s, i) => (
+        <Receipt
+          key={`${s.at}-${i}`}
+          verb={
+            s.adopted === null
+              ? "You drafted a replacement"
+              : s.adopted
+                ? "You made it a rule"
+                : "You turned it down"
+          }
+          consequence={
+            s.adopted === null ? (
+              <>
+                It is waiting above. The rule it replaces still rides every {s.who} call until you
+                make the new one.
+              </>
+            ) : s.adopted ? (
+              <>It rides every {s.who} call from now on.</>
+            ) : (
+              <>Nothing changed. {s.who} carries on as before.</>
+            )
+          }
+          time={ago(s.at)}
+        />
+      ))}
 
-function HouseRuleCard({
-  r,
-  busy,
-  supersedeBusy,
-  onApprove,
-  onReject,
-  onSupersede,
-}: {
-  r: HouseRule;
-  busy: boolean;
-  supersedeBusy: boolean;
-  onApprove: () => void;
-  onReject: () => void;
-  onSupersede: (ruleText: string) => void;
-}) {
-  const [replacing, setReplacing] = useState(false);
-  const [draft, setDraft] = useState(r.rule_text);
-  const resolved = r.status !== "pending";
-  const resolvedLine = resolved ? RESOLVED_LINE[r.status] : undefined;
-  const dot = resolved ? (r.status === "approved" ? "completed" : "failed") : "gate";
-
-  return (
-    <div
-      className="fade-up lift"
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "var(--geist-space-3x)",
-        padding: "14px 16px",
-        border: "1px solid var(--hairline)",
-        borderRadius: 8,
-        opacity: r.status === "rejected" ? 0.45 : 1,
-        transition: "opacity var(--dur-slow)",
-        background: "var(--canvas)",
-      }}
-    >
-      <span style={{ marginTop: 5 }}>
-        <StepDot status={dot} />
-      </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ color: "var(--ink)", margin: "0 0 6px", lineHeight: 1.5 }}>
-          {r.rule_text}
-        </p>
-        {r.rationale ? (
-          <p
-            style={{ color: "var(--ink-muted)", margin: "0 0 8px", lineHeight: 1.5 }}
-          >
-            {r.rationale}
-          </p>
-        ) : null}
-        <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-          {r.source_learning_ids.length} learning{r.source_learning_ids.length === 1 ? "" : "s"}{" "}
-          distilled
-        </span>
-
-        {resolvedLine ? (
-          <div
-            style={{
-              marginTop: 8,
-              display: "flex",
-              gap: "var(--geist-space-2x)",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <span className="mono-label" style={{ color: resolvedLine.color }}>
-              {resolvedLine.text}
-            </span>
-            {r.status === "approved" && !replacing ? (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setReplacing(true)}
-              >
-                Supersede · draft a replacement
-              </button>
-            ) : null}
-          </div>
+      <Block
+        title="In force"
+        sub="Set once, and they hold inside every call. Nothing here asks you again in the moment."
+      >
+        {inForce.length === 0 ? (
+          <Empty>
+            Nothing is standing yet. A rule you make above starts riding every call the moment you
+            make it.
+          </Empty>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              gap: "var(--geist-space-2x)",
-              alignItems: "center",
-              flexWrap: "wrap",
-              marginTop: 8,
-            }}
-          >
-            <button
-              type="button"
-              className="btn btn-approve btn-sm"
-              disabled={busy}
-              onClick={onApprove}
-            >
-              <Check size={16} />
-              Approve · applies to every AI call
-            </button>
-            <button
-              type="button"
-              className="btn btn-reject btn-sm"
-              disabled={busy}
-              onClick={onReject}
-            >
-              <X size={16} />
-              Reject
-            </button>
-          </div>
-        )}
-
-        {replacing ? (
-          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              aria-label="Replacement rule text"
-              rows={2}
-              style={{
-                padding: "var(--geist-space-2x)",
-                border: "1px solid var(--hairline)",
-                borderRadius: 6,
-                background: "var(--surface-1)",
-                color: "var(--ink)",
-                resize: "vertical",
-              }}
-            />
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                className="btn btn-approve btn-sm"
-                disabled={supersedeBusy || !draft.trim()}
-                title={!draft.trim() ? "Write the replacement rule first" : undefined}
+          inForce.map((r) => (
+            <Line key={r.id} label={r.rule_text} sub={provenance(r)}>
+              <Button
+                variant="ghost"
+                disabled={replacing?.id === r.id}
                 onClick={() => {
-                  onSupersede(draft.trim());
-                  setReplacing(false);
+                  setReplacing(r);
+                  setDraft(r.rule_text);
                 }}
               >
-                Draft replacement
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setReplacing(false)}
+                Replace it
+              </Button>
+            </Line>
+          ))
+        )}
+      </Block>
+
+      {/* The editor is its own region rather than an insert between two Lines:
+          `.sp-line + .sp-line` is the divider between boundaries, and dropping
+          a form in the middle of that chain silently removes one. */}
+      {replacing ? (
+        <Block
+          title="The replacement"
+          sub={`The old rule keeps working until you make this one. Nothing ${whoItBinds(replacing.agent_slug)} does changes in between.`}
+        >
+          <Field label="What it should say instead" htmlFor="house-rule-replacement">
+            <Textarea
+              id="house-rule-replacement"
+              rows={3}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+          </Field>
+          <Actions
+            trailing={
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setReplacing(null);
+                  setDraft("");
+                }}
               >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : null}
-      </div>
-    </div>
+                Leave it as it is
+              </Button>
+            }
+          >
+            <Button
+              variant="primary"
+              disabled={
+                supersede.isPending || !draft.trim() || draft.trim() === replacing.rule_text
+              }
+              title={
+                !draft.trim()
+                  ? "Write the replacement first"
+                  : draft.trim() === replacing.rule_text
+                    ? "This is the rule you already have"
+                    : undefined
+              }
+              onClick={() => supersede.mutate({ rule: replacing, ruleText: draft.trim() })}
+            >
+              Draft it
+            </Button>
+          </Actions>
+          {supersede.isError ? <Failed>{(supersede.error as Error).message}</Failed> : null}
+        </Block>
+      ) : null}
+
+      {turnedDown.length > 0 ? (
+        <Block title="Turned down" sub="Kept on the record. None of these is in force.">
+          {turnedDown.map((r) => (
+            <Row
+              key={r.id}
+              marks={<AgentMark slug={r.agent_slug} state="quiet" />}
+              lead={r.rule_text}
+              sub={<Value>Discarded, nothing changed</Value>}
+              time={ago(r.decided_at ?? r.created_at)}
+              tight
+            />
+          ))}
+        </Block>
+      ) : null}
+    </>
   );
 }

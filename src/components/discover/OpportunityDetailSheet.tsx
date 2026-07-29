@@ -34,9 +34,11 @@
  * it, and a bet nobody has reviewed says so instead of going quiet.
  */
 
+import * as React from "react";
 import type { ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 import { listBriefItems } from "@/lib/briefs.functions";
 import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
@@ -56,10 +58,10 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { iceNum } from "@/lib/moat-vis";
+import { formatAuditId } from "@/lib/audit-id";
+import { submitPulse } from "@/lib/pulse.functions";
+import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import type { CriticReview } from "@/lib/discovery.functions";
-import { AuditTag } from "@/components/supaprod/AuditTag";
-import { PulsePrompt } from "@/components/supaprod/PulsePrompt";
-import { AskInContext } from "@/components/obsidian/AskInContext";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -76,6 +78,8 @@ import {
   PageHead,
   Record as RecordRecess,
   Row,
+  Textarea,
+  Value,
   Who,
 } from "@/components/shell/primitives";
 import type { VerdictWord } from "./format";
@@ -182,6 +186,145 @@ function Meta({ children }: { children: ReactNode }) {
     >
       {children}
     </div>
+  );
+}
+
+/** The bet's trace id, and the one thing you can actually do with it.
+ *
+ * REPLACES `AuditTag`, and the replacement removes a DEAD CONTROL rather than
+ * restyling one. `AuditTag`'s primary click called `openLineage`, which
+ * dispatches a window event that only `AuditLineageSheet` listens for, and that
+ * sheet is mounted in exactly one place: `supaprod/AppShell.tsx`, which nothing
+ * imports since the shell rebuild. So on every ported surface the trace chip
+ * looked like a door and opened nothing. The same defect is live in the other
+ * sixteen files that render `AuditTag`; reported rather than fixed here,
+ * because those files belong to other lanes.
+ *
+ * Nothing is lost. This sheet already carries a working lineage door on the
+ * "Where it came from" heading, which opens the drawer the route mounts. What
+ * survives is the id itself, in mono because an identifier is data, and the
+ * copy, which was the only part of the chip that ever worked.
+ */
+function TraceRef({ id }: { id: string }) {
+  const tag = formatAuditId("opportunity", id);
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!copied) return;
+    const t = window.setTimeout(() => setCopied(false), 1400);
+    return () => window.clearTimeout(t);
+  }, [copied]);
+
+  return (
+    <>
+      <Num>{tag}</Num>{" "}
+      <button
+        type="button"
+        className="sp-block-more"
+        title="Copy the full id"
+        onClick={() => {
+          void navigator.clipboard?.writeText(id);
+          setCopied(true);
+        }}
+      >
+        {copied ? "Copied" : "Copy id"}
+      </button>
+    </>
+  );
+}
+
+/** Was the teardown any good.
+ *
+ * REPLACES `PulsePrompt`, which rendered two emoji buttons. Emoji in chrome is
+ * a hard ban, and a thumb is not a word: it cannot say WHAT was useful, which
+ * is the whole reason the optional note exists underneath it. Same server
+ * function, same `PulseSurface`, same two-step shape (the reaction submits on
+ * its own so no feedback is lost if the note is never written).
+ *
+ * No toast. The settled state says what was recorded, in place, which is the
+ * same reason every judgment on this surface leaves something behind.
+ */
+function TeardownPulse({ targetId }: { targetId: string }) {
+  const fSubmit = useServerFn(submitPulse);
+  const [verdict, setVerdict] = React.useState<"useful" | "not_useful" | null>(null);
+  const [note, setNote] = React.useState("");
+  const [noteSent, setNoteSent] = React.useState(false);
+
+  const react = useMutation({
+    mutationFn: (useful: boolean) => fSubmit({ data: { surface: "teardown", targetId, useful } }),
+    onSuccess: (_r, useful) => setVerdict(useful ? "useful" : "not_useful"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const sendNote = useMutation({
+    mutationFn: () =>
+      fSubmit({
+        data: {
+          surface: "teardown",
+          targetId,
+          useful: verdict === "useful",
+          note: note.trim(),
+        },
+      }),
+    onSuccess: () => setNoteSent(true),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Two buttons rather than `Choices`: nothing is picked yet and each one
+  // SUBMITS. `Choices` is a value you set and read back, and its "one" mode
+  // needs a current pick to hold the roving tab stop, which a question nobody
+  // has answered does not have. They sit straight in the Line's control slot,
+  // which is already a flex row: an `Actions` inside it carries a 16px top
+  // margin and would drop them off the line they belong to.
+  if (!verdict) {
+    return (
+      <Line label="Was this teardown useful?">
+        <Button disabled={react.isPending} onClick={() => react.mutate(true)}>
+          Yes
+        </Button>
+        <Button disabled={react.isPending} onClick={() => react.mutate(false)}>
+          No
+        </Button>
+      </Line>
+    );
+  }
+
+  if (noteSent) {
+    return (
+      <Line label="Was this teardown useful?">
+        <Value>Recorded, with your note.</Value>
+      </Line>
+    );
+  }
+
+  return (
+    <>
+      <Line label="Was this teardown useful?">
+        <Value tone={verdict === "useful" ? "pass" : "quiet"}>
+          Recorded: {verdict === "useful" ? "useful" : "not useful"}
+        </Value>
+      </Line>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (note.trim().length >= 2 && !sendNote.isPending) sendNote.mutate();
+        }}
+      >
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="What made you say that?"
+          aria-label="Why the teardown was or was not useful"
+          rows={2}
+          style={{ height: "auto", minHeight: 60, padding: "10px 12px", resize: "vertical" }}
+        />
+        <Actions>
+          <Button type="submit" disabled={note.trim().length < 2 || sendNote.isPending}>
+            {sendNote.isPending ? "Adding it" : "Add the reason"}
+          </Button>
+        </Actions>
+      </form>
+    </>
   );
 }
 
@@ -433,7 +576,31 @@ export function OpportunityDetailSheet({
   draftPending = false,
 }: OpportunityDetailSheetProps) {
   const { activeWorkspaceId } = useWorkspace();
+  const navigate = useNavigate();
+  const fStartMission = useServerFn(startOrchestratedMission);
   const challengerName = agentDisplayName(CHALLENGER);
+
+  // The bet, handed to the crew as real work. Same server function, same goal
+  // text and same destination the retired one-item menu used, so nothing about
+  // what the loop receives changes.
+  const handOff = useMutation({
+    mutationFn: () => {
+      if (!opportunity) throw new Error("No bet is open.");
+      const ref = opportunity.id.slice(0, 8).toUpperCase();
+      return fStartMission({
+        data: {
+          goal: `Red-team this opportunity before it is committed to: "${opportunity.title}" (ref ${ref})`,
+          title: opportunity.title.slice(0, 200),
+        },
+      });
+    },
+    onSuccess: (res) => {
+      onOpenChange(false);
+      navigate({ to: "/build", search: { mission: res.mission_id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // PostgREST can serialize the `numeric` ice_score column as a string, not a
   // number (the generated Supabase type lies) - iceNum coerces it the same way
   // moat-vis.ts and decision-judgment.functions.ts already do for the same
@@ -475,12 +642,11 @@ export function OpportunityDetailSheet({
                         {" ago"}
                       </>
                     ) : null}
+                    {" · "}
+                    <TraceRef id={opportunity.id} />
                   </>
                 }
               />
-            </div>
-            <div style={{ marginTop: "var(--sp-space-3)" }}>
-              <AuditTag kind="opportunity" id={opportunity.id} copyable />
             </div>
 
             {/* Why it ranks here. The ranking's own reason, then the one
@@ -592,7 +758,7 @@ export function OpportunityDetailSheet({
                 }
               />
               {opportunity.critic_review?.summary ? (
-                <PulsePrompt surface="teardown" targetId={opportunity.id} />
+                <TeardownPulse targetId={opportunity.id} />
               ) : null}
             </Block>
 
@@ -652,14 +818,25 @@ export function OpportunityDetailSheet({
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                {/* PC-29 layer 6: the one contextual delegation verb for a bet.
-                    It moved off the list row and into the depth, where every
-                    other write on this bet already lives. */}
-                <AskInContext
-                  stationOrKind="opportunity"
-                  targetId={opportunity.id}
-                  targetTitle={opportunity.title}
-                />
+                {/* PC-29 layer 6: hand the bet to the crew as real work.
+                    It was `AskInContext`, a dropdown of exactly one item behind
+                    a bot icon, whose one item read "Red-team this" and sat two
+                    controls away from "Challenge it". Two controls whose labels
+                    say the same thing is hard ban 10, and the two are genuinely
+                    different machinery: Challenge runs the Critic and writes
+                    back into this sheet, this starts a mission and leaves for
+                    Build. So the label now names the difference, and a one-item
+                    menu is a button.
+                    No toast: landing on the mission IS the consequence, and a
+                    toast on top of a navigation is the click confirming
+                    itself. */}
+                <Button
+                  disabled={busy || handOff.isPending}
+                  onClick={() => handOff.mutate()}
+                  title="Starts a mission with this bet attached, and opens it in Build"
+                >
+                  {handOff.isPending ? "Starting the mission" : "Start a mission"}
+                </Button>
               </Actions>
             </Block>
           </div>

@@ -1,38 +1,59 @@
-// Evals tab — ported 1:1 from design-reference/supaprod/loop.jsx (GovernScreen,
-// tab "Evals"): a 2-col grid of bento .lift cards — mono suite name + case
-// count on the top row, the serif 30 score with a trend mono label
-// ("↑ improving" moss / "→ steady" ink-subtle, plus an honest "↓ falling"
-// madder for real regressions), a right-aligned blue "runs · cases · config →"
-// mono, and a 4px progress bar (moss at/above the suite's own pass gate, ember
-// below — production's real threshold, not the reference's hardcoded 90).
-// Drill contract (LOOM W2, the /govern fold): cards navigate to
-// /engine-room?room=quality&view=suites&suite=<id> — the URL-driven
-// EvalSuiteDetail renders in the room body. The panel's old internal
-// state-driven SuiteDetail is retired; its functionality (run now,
-// enable/disable, delete confirmed, case CRUD, run history with judge
-// reasoning) lives in EvalSuiteDetail.
+/**
+ * EVALS. Ported onto the shell primitives, 2026-07-29.
+ *
+ * What it was: a two column grid of `bento .lift` cards carrying a display
+ * score, a `VerdictChip`, a 4px progress bar, and a hand-rolled coverage chip
+ * map that drew its own borders, its own tints, its own glow and its own
+ * selected ring out of raw palette variables. Nine literal colours in one
+ * component, and a selected state built on `box-shadow`, which the legacy sheet
+ * erases on focus anyway (styles.css:2174).
+ *
+ * What it is: `Block` per region, `Row` per suite, `Grid` + `Cell` for the
+ * coverage map. The cell was built for exactly this: a short set you SCAN
+ * across and PICK from, tinted rather than bordered, and its selected state is
+ * an overlay rather than a shadow. Nothing here carries a colour; it asks for a
+ * tone and the stylesheet owns the mix.
+ *
+ * The progress bars are gone. A bar whose only job is to redraw a number that
+ * is already on the line beside it is decoration, and it fails the greyscale
+ * test on its own. The score, the gate it is measured against and the word for
+ * whether it cleared it are all there in words.
+ *
+ * THE COMMIT. Creating a suite used to fire "Suite created. Add cases to start
+ * evaluating." and then navigate. The toast confirmed the click; the navigation
+ * already rendered the consequence, which is the new suite sitting there with
+ * no cases and no runs. The toast is gone and the navigation stays: you land on
+ * what you made rather than reading that you made it.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/lib/notify";
-import { FlaskConical } from "lucide-react";
 import {
   listEvalSuites,
   createEvalSuite,
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { EmptyState, MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
-// One source of truth for the canonical surface×prompt targets (shared with the EVAL-COVERAGE
-// scorer), so the "new suite" picker and the coverage banner can never drift.
+import {
+  Actions,
+  Block,
+  Button,
+  Cell,
+  Empty,
+  Failed,
+  Field,
+  Grid,
+  Input,
+  Line,
+  Loading,
+  Num,
+  Row,
+  Select,
+  Value,
+} from "@/components/shell/primitives";
+// One source of truth for the canonical surface x prompt targets (shared with the EVAL-COVERAGE
+// scorer), so the "new suite" picker and the coverage map can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";
 
 type SuiteRow = {
@@ -54,6 +75,16 @@ type SuiteRow = {
   } | null;
 };
 
+/** What a coverage state means to the person reading it, in plain words and in
+ *  the `Value` tone vocabulary. A missing guard is a gap to close, which is a
+ *  caution; a guard that has never completed a run is unproven, which is not an
+ *  outcome at all and so stays quiet. */
+const COVERAGE_STATE: Record<string, { word: string; tone: "quiet" | "pass" | "warn" }> = {
+  covered: { word: "guarded", tone: "pass" },
+  stale: { word: "never run", tone: "quiet" },
+  uncovered: { word: "no guard", tone: "warn" },
+};
+
 export function EvalsPanel() {
   const navigate = useNavigate();
   const listFn = useServerFn(listEvalSuites);
@@ -67,9 +98,10 @@ export function EvalsPanel() {
   const coverageFloor = coverageQ.data?.floor;
 
   const [createOpen, setCreateOpen] = useState(false);
-  // One-click "guard this surface": an uncovered/stale coverage chip seeds the create-suite form
-  // with that surface so the PM goes from "this surface has no guard" to a pre-targeted new suite in
-  // one click. Cleared whenever the form closes so a later manual "New suite" opens unseeded.
+  // One click "guard this surface": a gap cell seeds the create form with that
+  // surface, so you go from "this surface has nothing watching it" to a
+  // pre-targeted new suite without retyping what the cell already said.
+  // Cleared whenever the form closes, so a later manual open is unseeded.
   const [prefill, setPrefill] = useState<{ target: string; name: string } | null>(null);
   const openGuardFor = (t: { surface: string; key: string; label: string }) => {
     setPrefill({ target: `${t.surface}/${t.key}`, name: t.label });
@@ -82,217 +114,67 @@ export function EvalsPanel() {
   const openSuite = (id: string) =>
     navigate({ to: "/engine-room", search: { room: "quality", view: "suites", suite: id } });
 
-  if (suitesQ.error) {
+  // A read that FAILED is not an empty state. "Nothing here" and "we could not
+  // find out" are different facts and you act differently on each.
+  if (suitesQ.isError) {
     return (
-      <div
-        style={{
-          padding: "var(--geist-gap)",
-          backgroundColor: "var(--card)",
-          border: "1px solid color-mix(in srgb, var(--madder) 40%, transparent)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--shadow-elevated)",
-        }}
-      >
-        <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
-          Couldn't load eval suites
-        </div>
-        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
-          {(suitesQ.error as Error).message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => suitesQ.refetch()}
-        >
-          Retry · reloads suites
-        </button>
-      </div>
+      <Failed onRetry={() => void suitesQ.refetch()}>
+        The suites did not load, so nothing below would be the real coverage.
+      </Failed>
     );
   }
 
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          aria-expanded={createOpen}
-          onClick={() => {
-            setPrefill(null); // a manual open is unseeded; only a gap chip pre-targets
-            setCreateOpen((v) => !v);
-          }}
-        >
-          New suite · targets a prompt
-        </button>
-      </div>
+  if (suitesQ.isLoading) {
+    return <Loading>Reading what guards each surface.</Loading>;
+  }
 
-      {/* EVAL-COVERAGE: a calm, silent-when-fully-covered headline naming how many AI surfaces have
-          no eval guard, then a per-surface chip map so the gap is actionable (covered chips stay
-          quiet; only the gaps draw the eye). Degrades to silent on a query error; at full coverage
-          the summary is "" and the whole block stays hidden. The chip map is the read-side of the
-          same per-target report (no drift with the summary). */}
+  const openManually = () => {
+    setPrefill(null); // a manual open is unseeded; only a gap cell pre-targets
+    setCreateOpen(true);
+  };
+
+  return (
+    <>
+      {/* Coverage. Silent at full coverage: the summary is "" and the whole
+          region stays away rather than congratulating you. */}
       {coverageSummary ? (
-        <div style={{ marginBottom: 12 }}>
-          <div
-            className="mono-label tabular-nums"
-            style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}
-          >
-            <span style={{ color: "var(--text-faint)" }}>Coverage</span>
-            <span style={{ color: "var(--text-primary)" }}>{coverageSummary}</span>
-          </div>
+        <Block title="What has a guard on it" sub={coverageSummary}>
+          {coverageFloor?.configured && !coverageFloor.pass ? (
+            <Line label="The floor you set" sub={coverageFloor.reasons.join(". ")}>
+              <Value tone="fail">not met</Value>
+            </Line>
+          ) : null}
+
           {coverageTargets.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))",
-                gap: 6,
-                marginTop: 10,
-                alignItems: "stretch",
-              }}
-            >
+            <Grid>
               {coverageTargets.map((t) => {
-                // covered = success (moss, quiet); uncovered = alert (madder, solid); stale =
-                // unproven, rendered NEUTRAL + dashed (not marigold) so it (a) keeps caution
-                // tones reserved per the color-role contract and (b) is distinguishable from
-                // uncovered without relying on hue (colorblind-safe). The word also rides aria-label
-                // so state is announced, not color-only.
-                const meta =
-                  t.state === "covered"
-                    ? {
-                        word: "covered",
-                        dot: "var(--moss)",
-                        border: "color-mix(in oklab, var(--moss) 22%, transparent)",
-                        borderStyle: "solid",
-                        bg: "transparent",
-                        text: "var(--text-subtle)",
-                        glow: "none",
-                      }
-                    : t.state === "stale"
-                      ? {
-                          word: "unproven",
-                          dot: "var(--text-faint)",
-                          border: "color-mix(in oklab, var(--text-faint) 40%, transparent)",
-                          borderStyle: "dashed",
-                          bg: "transparent",
-                          text: "var(--text-body)",
-                          glow: "none",
-                        }
-                      : {
-                          word: "no guard",
-                          dot: "var(--tangerine)",
-                          border: "color-mix(in oklab, var(--tangerine) 42%, transparent)",
-                          borderStyle: "solid",
-                          bg: "color-mix(in oklab, var(--tangerine) 10%, transparent)",
-                          text: "var(--text-primary)",
-                          glow: "0 0 7px color-mix(in oklab, var(--tangerine) 45%, transparent)",
-                        };
-                // Every chip opens the create-guard form pre-targeted at its surface; the OPEN
-                // one is highlighted (ember ring + fill, the sanctioned selected-element accent)
-                // so it is never ambiguous which tile you are acting on. State (covered / gap /
-                // unproven) stays in the dot + tint.
+                const meta = COVERAGE_STATE[t.state] ?? COVERAGE_STATE.uncovered;
                 const targetId = `${t.surface}/${t.key}`;
-                const selected = createOpen && prefill?.target === targetId;
-                const chipStyle = {
-                  display: "flex" as const,
-                  flexDirection: "column" as const,
-                  alignItems: "center" as const,
-                  justifyContent: "flex-start" as const,
-                  gap: 7,
-                  minWidth: 0,
-                  padding: "9px 6px",
-                  borderRadius: 10,
-                  border: `1px ${selected ? "solid" : meta.borderStyle} ${
-                    selected ? "var(--ember)" : meta.border
-                  }`,
-                  background: selected
-                    ? "color-mix(in oklab, var(--ember) 14%, transparent)"
-                    : meta.bg,
-                  boxShadow: selected
-                    ? "inset 0 0 0 1px var(--ember), 0 0 12px color-mix(in oklab, var(--ember) 32%, transparent)"
-                    : "none",
-                  color: selected ? "var(--text-primary)" : meta.text,
-                  font: "inherit",
-                  textAlign: "center" as const,
-                  cursor: "pointer" as const,
-                  transition:
-                    "border-color 160ms var(--ease), background 160ms var(--ease), box-shadow 160ms var(--ease)",
-                };
-                const labelStyle = {
-                  lineHeight: 1.25,
-                  letterSpacing: "0.01em",
-                  whiteSpace: "normal" as const,
-                  wordBreak: "break-word" as const,
-                  color: selected ? "var(--text-primary)" : meta.text,
-                };
-                const dot = (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 7,
-                      height: 7,
-                      borderRadius: 999,
-                      background: meta.dot,
-                      boxShadow: meta.glow,
-                      flex: "none",
-                    }}
-                  />
-                );
                 return (
-                  <button
+                  <Cell
                     key={targetId}
-                    type="button"
-                    aria-pressed={selected}
-                    aria-label={
-                      t.state === "covered"
-                        ? `${t.label}: covered. Add another eval for this surface`
-                        : `Create an eval guard for ${t.label} (${meta.word})`
-                    }
+                    lead={t.label}
+                    sub={<Value tone={meta.tone}>{meta.word}</Value>}
+                    selected={createOpen && prefill?.target === targetId}
+                    onClick={() => openGuardFor(t)}
                     title={
                       t.state === "covered"
-                        ? `${t.label}: covered`
-                        : `Create an eval guard for ${t.label}`
+                        ? `${t.label} is guarded. Add another suite for it`
+                        : `Write a guard for ${t.label}`
                     }
-                    onClick={() => openGuardFor(t)}
-                    style={chipStyle}
-                  >
-                    {dot}
-                    <span style={labelStyle}>{t.label}</span>
-                  </button>
+                  />
                 );
               })}
-            </div>
+            </Grid>
           ) : null}
-        </div>
-      ) : null}
-
-      {/* Coverage-floor deploy gate: silent unless a floor is configured (EVAL_COVERAGE_FLOOR_PCT /
-          EVAL_COVERAGE_REQUIRED_SURFACES) AND not met. Dormant by default so it never nags. */}
-      {coverageFloor?.configured && !coverageFloor.pass ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: "var(--geist-space-2x)",
-            flexWrap: "wrap",
-            marginBottom: 12,
-          }}
-        >
-          {/* Short mono chrome label (uppercase reads fine), but the reason PROSE stays sentence
-              case — mono-label would shout the authored sentences. */}
-          <span className="mono-label" style={{ color: "var(--madder)" }}>
-            Coverage floor not met
-          </span>
-          <span style={{ color: "var(--text-primary)" }}>
-            {coverageFloor.reasons.join(" · ")}
-          </span>
-        </div>
+        </Block>
       ) : null}
 
       {createOpen ? (
         <CreateSuiteForm
-          // Re-key on the prefill so clicking a different gap chip while the form is already open
-          // remounts it with the new surface seeded (useState seeds on mount only).
+          // Re-key on the prefill so picking a different gap cell while the form
+          // is already open remounts it with the new surface seeded (useState
+          // seeds on mount only).
           key={prefill?.target ?? "manual"}
           initialTarget={prefill?.target}
           initialName={prefill?.name}
@@ -308,140 +190,67 @@ export function EvalsPanel() {
         />
       ) : null}
 
-      {suitesQ.isLoading ? (
-        <p
-          className="uppercase"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.11em",
-            color: "var(--text-subtle)",
-            padding: "24px 0",
-          }}
-        >
-          Reading the suites
-        </p>
-      ) : suites.length === 0 ? (
-        <EmptyState
-          icon={FlaskConical}
-          title="No eval suites yet"
-          body="An eval suite is a regression test on a prompt: golden cases, an LLM judge, and a pass gate. Quality drops get caught before they ship."
-          cta="New suite · targets a prompt"
-          onCta={() => {
-            setPrefill(null); // empty-state CTA is a manual open: keep it unseeded
-            setCreateOpen(true);
-          }}
-        />
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-          {suites.map((s) => {
+      <Block
+        title="What we test"
+        more={suites.length > 0 && !createOpen ? "New suite" : undefined}
+        onMore={openManually}
+      >
+        {suites.length === 0 ? (
+          <Empty
+            action={
+              createOpen ? undefined : (
+                <Button variant="primary" onClick={openManually}>
+                  Write the first one
+                </Button>
+              )
+            }
+          >
+            Nothing is watching any prompt yet. A suite is a regression test on one: golden cases, a
+            judge, and a score it has to clear. Until one exists, a quality drop reaches your users
+            before it reaches you.
+          </Empty>
+        ) : (
+          suites.map((s) => {
             const score = s.last_run?.avg_score != null ? Math.round(s.last_run.avg_score) : null;
             const t = trends[s.id];
             const diff = t && t.previous != null ? t.latest - t.previous : null;
+            const clears = score != null && score >= s.pass_threshold;
             return (
-              <button
+              <Row
                 key={s.id}
-                type="button"
-                className="hover:[background-color:var(--hover)] hover:[box-shadow:var(--shadow-raised)] active:scale-[0.98] cursor-pointer"
+                lead={s.name}
+                tight
                 onClick={() => openSuite(s.id)}
-                style={{
-                  textAlign: "left",
-                  display: "block",
-                  padding: "18px 20px",
-                  backgroundColor: "var(--card)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-card)",
-                  boxShadow: "var(--shadow-elevated)",
-                  transitionProperty: "background-color, box-shadow, transform",
-                  transitionDuration: "var(--dur-press)",
-                  transitionTimingFunction: "var(--ease)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                  }}
-                >
-                  <MonoLabel>{s.name}</MonoLabel>
-                  <span className="mono-label" style={{ }}>
-                    {s.case_count} cases
-                    {!s.enabled ? (
-                      <span style={{ color: "var(--text-subtle)" }}> · off</span>
-                    ) : null}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginTop: 8 }}>
-                  {score == null ? (
-                    <span className="mono-label" style={{ color: "var(--text-faint)" }}>
-                      not run yet
-                    </span>
+                sub={
+                  score == null ? (
+                    <>
+                      Never run.{" "}
+                      <Num>
+                        {s.case_count} case{s.case_count === 1 ? "" : "s"}
+                      </Num>
+                      {!s.enabled ? ", and it is switched off" : null}
+                    </>
                   ) : (
                     <>
-                      <span
-                        className="tabular-nums"
-                        style={{
-                          fontFamily: "var(--font-sans)",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {score}
-                      </span>
-                      <VerdictChip tone={score >= s.pass_threshold ? "moss" : "madder"}>
-                        {score >= s.pass_threshold ? "pass" : "fail"}
-                      </VerdictChip>
+                      <Value tone={clears ? "pass" : "fail"}>
+                        {clears ? "clears the gate" : "below the gate"}
+                      </Value>{" "}
+                      <Num>{score}</Num> against <Num>{s.pass_threshold}</Num>
                       {diff != null ? (
-                        <span
-                          className="mono-label"
-                          style={{
-                            color:
-                              diff > 0.5
-                                ? "var(--moss-bright)"
-                                : diff < -0.5
-                                  ? "var(--madder-bright)"
-                                  : "var(--text-subtle)",
-                          }}
-                        >
-                          {diff > 0.5 ? "↑ improving" : diff < -0.5 ? "↓ falling" : "→ steady"}
-                        </span>
+                        <>
+                          , {diff > 0.5 ? "improving" : diff < -0.5 ? "falling" : "holding steady"}
+                        </>
                       ) : null}
+                      {!s.enabled ? ", switched off" : null}
                     </>
-                  )}
-                  <span style={{ flex: 1 }}></span>
-                  <span
-                    className="mono-label"
-                    style={{ color: "var(--text-subtle)" }}
-                  >
-                    runs · cases · config →
-                  </span>
-                </div>
-                {score != null ? (
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 99,
-                      background: "var(--raised)",
-                      overflow: "hidden",
-                      marginTop: 10,
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${score}%`,
-                        // Outcome colors: moss = at/above the gate, madder =
-                        // a real regression (ember means needs-a-human only).
-                        background: score >= s.pass_threshold ? "var(--moss)" : "var(--madder)",
-                      }}
-                    ></div>
-                  </div>
-                ) : null}
-              </button>
+                  )
+                }
+              />
             );
-          })}
-        </div>
-      )}
-    </div>
+          })
+        )}
+      </Block>
+    </>
   );
 }
 
@@ -453,14 +262,14 @@ function CreateSuiteForm({
 }: {
   onClose: () => void;
   onCreated: (id: string) => void;
-  /** Pre-selected "surface/key" when opened from a coverage gap chip (one-click guard). */
+  /** Pre-selected "surface/key" when opened from a coverage gap cell (one click guard). */
   initialTarget?: string;
-  /** Pre-filled suite name when opened from a coverage gap chip. */
+  /** Pre-filled suite name when opened from a coverage gap cell. */
   initialName?: string;
 }) {
   const qc = useQueryClient();
   const createFn = useServerFn(createEvalSuite);
-  // Seed from a coverage gap chip when present; the picker only offers the canonical targets, so an
+  // Seed from a coverage gap cell when present; the picker only offers the canonical targets, so an
   // unknown initialTarget falls back to the default rather than an invalid surface/key.
   const seededTarget = SURFACE_KEYS.some((s) => `${s.surface}/${s.key}` === initialTarget)
     ? (initialTarget as string)
@@ -486,81 +295,60 @@ function CreateSuiteForm({
     },
     onSuccess: (row: { id: string }) => {
       qc.invalidateQueries({ queryKey: ["eval_suites"] });
-      toast.success("Suite created. Add cases to start evaluating.");
+      qc.invalidateQueries({ queryKey: ["eval_coverage"] });
+      // No toast. The next thing on screen is the suite itself, which is what
+      // the write caused.
       onCreated(row.id);
     },
-    onError: (e: Error) => toast.error(e.message),
   });
+
   return (
-    <div className="bento fade-up" style={{ padding: "14px 16px", marginBottom: 12 }}>
-      <MonoLabel style={{ marginBottom: 10 }}>New eval suite</MonoLabel>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Name
-          </div>
-          <input
-            className="input"
-            value={form.name}
-            placeholder="Chat tone regression"
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </label>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Target prompt
-          </div>
-          <Select value={form.target} onValueChange={(v) => setForm({ ...form, target: v })}>
-            <SelectTrigger aria-label="Target prompt" style={{ borderRadius: 8, height: 35 }}>
-              <SelectValue placeholder="Pick a surface" />
-            </SelectTrigger>
-            <SelectContent>
-              {SURFACE_KEYS.map((s) => (
-                <SelectItem key={`${s.surface}/${s.key}`} value={`${s.surface}/${s.key}`}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Description
-          </div>
-          <input
-            className="input"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-        </label>
-        <label style={{ }}>
-          <div className="mono-label" style={{ marginBottom: 4 }}>
-            Pass gate (0 to 100)
-          </div>
-          <input
-            className="input"
-            type="number"
-            min={0}
-            max={100}
-            value={form.pass_threshold}
-            onChange={(e) => setForm({ ...form, pass_threshold: Number(e.target.value) })}
-          />
-        </label>
-      </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 10 }}>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
-          Dismiss
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
+    <Block title="A new guard" sub="It watches one prompt, and it runs against cases you write.">
+      <Field label="What to call it">
+        <Input
+          value={form.name}
+          placeholder="Chat tone regression"
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+      </Field>
+      <Field label="What it watches">
+        <Select value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })}>
+          {SURFACE_KEYS.map((s) => (
+            <option key={`${s.surface}/${s.key}`} value={`${s.surface}/${s.key}`}>
+              {s.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="Why it exists">
+        <Input
+          value={form.description}
+          placeholder="What would be broken if this drifted"
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
+      </Field>
+      <Field label="The score a case has to clear">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={form.pass_threshold}
+          onChange={(e) => setForm({ ...form, pass_threshold: Number(e.target.value) })}
+        />
+      </Field>
+
+      {m.isError ? <Failed>{(m.error as Error).message}</Failed> : null}
+
+      <Actions trailing={<Button onClick={onClose}>Leave it</Button>}>
+        <Button
+          variant="primary"
           disabled={!form.name || m.isPending}
-          title={!form.name ? "Name the suite first" : undefined}
+          title={!form.name ? "Name it first" : undefined}
           onClick={() => m.mutate()}
         >
-          {m.isPending ? "Creating…" : "Create suite · add cases next"}
-        </button>
-      </div>
-    </div>
+          {m.isPending ? "Writing it" : "Write it"}
+        </Button>
+      </Actions>
+    </Block>
   );
 }

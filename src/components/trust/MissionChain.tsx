@@ -1,26 +1,32 @@
 /**
- * SW-5 deliverable B - renders a mission's Trust Ledger chain as a vertical
- * walk of the nine links (signal -> ... -> outcome). Missing links are shown,
- * never hidden; the surface never fabricates a link. Per the Obsidian contract
- * this is the machine's own room, so no ember - moss marks a present link,
- * madder marks a real gap, and the faint ink ladder marks skipped / not-yet.
+ * One mission's chain of custody: the nine links from signal to outcome, in
+ * order, with the gaps shown rather than hidden. It never fabricates a link.
+ *
+ * PORTED 2026-07-29 onto shell/primitives. What changed and why:
+ *   · It was a `material-medium` card with its own padding, mounted inside
+ *     panels that are themselves bordered. That is a card in a card, and the
+ *     standard caps a region at one bordered container. It is a `Block` now,
+ *     which draws a rule where the register changes.
+ *   · The dot-and-connector rail is gone. It drew a 9px circle and a 1px line
+ *     per step to say a thing the ORDER of the rows already says, and it spent a
+ *     colour on each: moss for present, madder for missing, faint for skipped.
+ *     A link's state is a fact about that link, so it reads as a word on the row
+ *     that owns it. Grayscale the surface and nothing is lost, which is the test
+ *     the rail could not pass.
+ *   · A present link says nothing at all, because the row being there IS the
+ *     statement. Only a gap, a skip or a not-yet earns words.
  */
 
-import * as React from "react";
 import { traceRef } from "@/components/discover/format";
+import { Block, Num, Row, Value } from "@/components/shell/primitives";
 import type {
   ChainStep,
   ChainLinkStatus,
   MissionChain as MissionChainData,
 } from "@/lib/trust-chain.functions";
 
-const STATUS_DOT: Record<ChainLinkStatus, string> = {
-  present: "var(--moss)",
-  missing: "var(--madder)",
-  skipped: "var(--text-faint)",
-  pending: "var(--hairline-strong)",
-};
-
+/** What a link that is not present is. A present link takes no word: the row is
+ *  the statement, and labelling it would be the same fact said twice. */
 const STATUS_LABEL: Record<ChainLinkStatus, string> = {
   present: "",
   missing: "missing",
@@ -28,124 +34,71 @@ const STATUS_LABEL: Record<ChainLinkStatus, string> = {
   pending: "not yet",
 };
 
-function fmtTime(iso: string | null): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  } catch {
-    return "";
-  }
-}
-
-const mono: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
+/** A real gap is a failure of the record. A skip and a not-yet are neither good
+ *  nor bad, so they stay quiet: colour carries outcomes, never categories. */
+const STATUS_TONE: Record<ChainLinkStatus, "quiet" | "pass" | "warn" | "fail"> = {
+  present: "quiet",
+  missing: "fail",
+  skipped: "quiet",
+  pending: "quiet",
 };
 
-function StepRow({ step, last }: { step: ChainStep; last: boolean }) {
-  const dot = STATUS_DOT[step.status];
-  const dim = step.status === "pending" || step.status === "skipped";
+function fmtTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function StepRow({ step }: { step: ChainStep }) {
+  const word = STATUS_LABEL[step.status];
   return (
-    <div style={{ display: "flex", gap: "var(--geist-space-3x)", alignItems: "stretch" }}>
-      {/* rail: dot + connector */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 14 }}>
-        <span
-          aria-hidden="true"
-          style={{
-            width: 9,
-            height: 9,
-            borderRadius: 99,
-            marginTop: 4,
-            background: step.status === "present" ? dot : "transparent",
-            border: `1.5px solid ${dot}`,
-            flexShrink: 0,
-          }}
-        />
-        {!last ? (
-          <span
-            aria-hidden="true"
-            style={{ flex: 1, width: 1, background: "var(--hairline)", marginTop: 2 }}
-          />
-        ) : null}
-      </div>
-      {/* body */}
-      <div style={{ paddingBottom: last ? 0 : 14, minWidth: 0, flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span
-            style={{
-              fontWeight: 460,
-              color: dim ? "var(--text-muted)" : "var(--text-primary)",
-            }}
-          >
-            {step.label}
-          </span>
-          {step.status !== "present" ? (
-            <span
-              style={{
-                ...mono,
-                color: step.status === "missing" ? "var(--madder)" : "var(--text-faint)",
-              }}
-            >
-              {STATUS_LABEL[step.status]}
-            </span>
+    <Row
+      lead={
+        <>
+          {step.label}
+          {word ? (
+            <>
+              {" "}
+              <Value tone={STATUS_TONE[step.status]}>{word}</Value>
+            </>
           ) : null}
-          <div style={{ flex: 1 }} />
-          {step.occurredAt ? (
-            <span style={{ ...mono, color: "var(--text-faint)" }}>{fmtTime(step.occurredAt)}</span>
-          ) : null}
-          {step.backingId ? (
-            <span style={{ ...mono, color: "var(--text-faint)" }}>{traceRef(step.backingId)}</span>
-          ) : null}
-        </div>
-        <div
-          style={{
-            color: dim ? "var(--text-faint)" : "var(--text-body)",
-            marginTop: 2,
-          }}
-        >
-          {step.detail}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      sub={
+        step.backingId ? (
+          <>
+            {step.detail} <Num>{traceRef(step.backingId)}</Num>
+          </>
+        ) : (
+          step.detail
+        )
+      }
+      time={fmtTime(step.occurredAt)}
+      tight
+    />
   );
 }
 
 export function MissionChain({ chain }: { chain: MissionChainData }) {
   const missingCount = chain.steps.filter((s) => s.status === "missing").length;
   return (
-    <div
-      className="material-medium"
-      style={{
-        padding: "18px 20px",
-      }}
+    <Block
+      title={chain.missionTitle}
+      sub={
+        chain.unbroken ? (
+          <Value tone="pass">Every link is on the record.</Value>
+        ) : (
+          <Value tone="fail">
+            <Num>{missingCount}</Num> {missingCount === 1 ? "link is" : "links are"} missing from
+            the record.
+          </Value>
+        )
+      }
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
-        <h3
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 460,
-            color: "var(--text-primary)",
-            margin: 0,
-          }}
-          className="min-w-0 flex-1 truncate"
-        >
-          {chain.missionTitle}
-        </h3>
-        <span
-          style={{
-            ...mono,
-            color: chain.unbroken ? "var(--moss)" : "var(--madder)",
-          }}
-        >
-          {chain.unbroken ? "chain unbroken" : `${missingCount} missing`}
-        </span>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        {chain.steps.map((s, i) => (
-          <StepRow key={s.key} step={s} last={i === chain.steps.length - 1} />
-        ))}
-      </div>
-    </div>
+      {chain.steps.map((s) => (
+        <StepRow key={s.key} step={s} />
+      ))}
+    </Block>
   );
 }

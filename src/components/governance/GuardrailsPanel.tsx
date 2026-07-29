@@ -1,18 +1,46 @@
-// Guardrails tab — ported 1:1 from design-reference/supaprod/loop.jsx
-// (GovernScreen tab "Guardrails"): the bento table — Guardrail 160px /
-// Rule 1fr / Last fired 210px, name at weight 550, rule text-body, fired
-// mono (marigold when fired, text-faint "never"). Production functionality
-// kept: rule CRUD (row click opens the editor), enable switches (extra
-// 40px column), seed built-ins, the dry-run test harness, and the recent
-// hits log. "Last fired" derives from the real guardrail_hits log; rule prose
-// derives from kind/action/applies_to. W4 Obsidian reskin: semantic tokens
-// only (madder/marigold/moss/glacier, --text-*), a dark modal scrim, calm
-// mono-caps loading, and mono-caps relative time; no functional or server change.
+/**
+ * Guardrails. The rules that read every AI call before it leaves and after it
+ * comes back, and the log of what they caught.
+ *
+ * Ported off the retired system 2026-07-29. What changed, and why:
+ *
+ * KILL  the two bento tables. A four-column grid with its own header row, its
+ *       own hairlines and its own per-cell colour is a table pretending to be a
+ *       surface: it cannot be read on a narrow region, the header repeats what
+ *       every row already says, and it was the second and third bordered
+ *       container inside a region that is already one (anti-slop ban 5).
+ * KILL  the hand-rolled 34x19 switch. It was a div wearing role="switch" with
+ *       an absolutely positioned knob and a literal green. Switch is a real
+ *       control, it takes the app-wide focus ring without being asked, and the
+ *       stylesheet owns the green.
+ * KILL  the modal rule editor. Six fields, a dry-run harness and three actions
+ *       inside a fixed-position scrim is the exact shape ban 11 exists to stop
+ *       ("If it needs a scrollbar and three columns, it deserves its own
+ *       page"). It is IN-PLACE DETAIL now: opening a rule replaces the list,
+ *       the same pattern Crew and Admin people use. Escape still closes it, and
+ *       it is one back button away rather than one dismiss away.
+ * KILL  every success toast. A toast confirms that your click registered; a
+ *       Receipt renders what your click CAUSED, which is the whole difference
+ *       between a confirmation and a record (agents/FINAL-agent-presence.md
+ *       R10). Saving a rule now says what that rule will do to the next call.
+ * KILL  relTimeCaps. `3H AGO` is the retired mono-caps voice; a guardrail that
+ *       has never fired is a more useful fact than a timestamp, and it is said
+ *       in words.
+ *
+ * WHY THESE ARE LINES AND NOT CARDS. The governance canon
+ * (docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md): policy is set in
+ * advance and does not block; permission is asked in the moment and does. A
+ * guardrail is pure policy. It never interrupts anyone, so it reads as a
+ * sentence with a switch at the end of it, and nothing on this surface is a
+ * Gate.
+ *
+ * Every server function, query key and mutation is untouched: the rule CRUD,
+ * the enable toggle, the built-in seed, the dry-run harness and the hits log
+ * all behave exactly as before.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Shield } from "lucide-react";
-import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { InjectionDefenseCard } from "./InjectionDefenseCard";
 import {
@@ -23,8 +51,28 @@ import {
   seedBuiltInGuardrails,
   testGuardrailRule,
 } from "@/lib/guardrails.functions";
-import { EmptyState, MonoLabel } from "@/components/supaprod/Primitives";
-import { relTimeCaps } from "@/components/discover/format";
+import { relTime } from "@/components/product/format";
+import {
+  Actions,
+  Block,
+  Button,
+  Checkbox,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Num,
+  Pre,
+  Receipt,
+  Row,
+  Select,
+  Switch,
+  Textarea,
+  Value,
+} from "@/components/shell/primitives";
+import type { GovTone } from "./governance-shared";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";
 type Action = "block" | "warn" | "redact";
@@ -40,8 +88,12 @@ type RuleForm = {
   enabled: boolean;
 };
 
-const GRID = "160px 1fr 210px 40px";
-const HITS_GRID = "90px 150px 70px 70px 1fr";
+/** What a decided write left behind. Rendered as a Receipt, never as a toast. */
+type Committed = { verb: string; consequence: string; at: string };
+
+/* ------------------------------------------------------------------ *
+ * Vocabulary. What a rule does, said the way a person would say it.
+ * ------------------------------------------------------------------ */
 
 const ACTION_PHRASE: Record<Action, string> = {
   block: "Blocks",
@@ -49,23 +101,41 @@ const ACTION_PHRASE: Record<Action, string> = {
   redact: "Redacts",
 };
 const KIND_PHRASE: Record<Kind, string> = {
-  regex: "pattern matches",
-  keyword: "keyword matches",
-  pii: "PII matches",
-  injection: "prompt-injection matches",
-  secret: "secret matches",
+  regex: "anything matching this pattern",
+  keyword: "anything containing this word",
+  pii: "personal data matching this pattern",
+  injection: "prompt injection matching this pattern",
+  secret: "secrets matching this pattern",
 };
 const APPLIES_PHRASE: Record<Applies, string> = {
-  both: "in input + output",
-  input: "in input",
-  output: "in output",
+  both: "on the way out and on the way back",
+  input: "on the way out",
+  output: "on the way back",
 };
 
-const ACTION_COLOR: Record<string, string> = {
-  block: "var(--madder)",
-  warn: "var(--marigold)",
-  redact: "var(--text-body)",
+/** What each action costs the call it fires on. Different information from the
+ *  word itself, which is what keeps the second line honest (hard ban 10). */
+const ACTION_TONE: Record<string, GovTone> = {
+  block: "fail",
+  warn: "warn",
+  redact: "quiet",
 };
+
+function ruleSentence(action: string, kind: string, applies: string): string {
+  return `${ACTION_PHRASE[action as Action] ?? action} ${
+    KIND_PHRASE[kind as Kind] ?? kind
+  } ${APPLIES_PHRASE[applies as Applies] ?? applies}.`;
+}
+
+/** A rule that has never fired is a more useful fact than a timestamp: it is
+ *  the one that tells you whether the boundary is doing anything at all. */
+function lastFiredPhrase(iso: string | null): string {
+  if (!iso) return "It has never fired.";
+  const t = relTime(iso);
+  if (t === "now") return "It caught something just now.";
+  if (/^\d+[mhd]$/.test(t)) return `It last caught something ${t} ago.`;
+  return `It last caught something on ${t}.`;
+}
 
 function emptyRule(): RuleForm {
   return {
@@ -77,6 +147,10 @@ function emptyRule(): RuleForm {
     enabled: true,
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * The surface
+ * ------------------------------------------------------------------ */
 
 export function GuardrailsPanel() {
   const confirm = useConfirm();
@@ -91,7 +165,15 @@ export function GuardrailsPanel() {
   const overview = useQuery({ queryKey: ["guardrails"], queryFn: () => fOverview() });
 
   const [editing, setEditing] = useState<RuleForm | null>(null);
-  // Escape closes the editor, the innermost open layer here (checklist 9).
+  const [committed, setCommitted] = useState<Committed[]>([]);
+  const [testText, setTestText] = useState("");
+  const [testResult, setTestResult] = useState<{
+    text: string;
+    blocked: boolean;
+    hits: { matched: string }[];
+  } | null>(null);
+
+  // Escape leaves the editor, which is the innermost thing open here.
   useEffect(() => {
     if (!editing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -100,571 +182,453 @@ export function GuardrailsPanel() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [editing]);
-  const [testText, setTestText] = useState("");
-  const [testResult, setTestResult] = useState<{
-    text: string;
-    blocked: boolean;
-    hits: { matched: string }[];
-  } | null>(null);
+
+  const commit = (verb: string, consequence: string) =>
+    setCommitted((c) => [...c, { verb, consequence, at: new Date().toISOString() }]);
 
   const upsert = useMutation({
     mutationFn: (r: RuleForm) => fUpsert({ data: r }),
-    onSuccess: () => {
-      toast.success("Rule saved. It applies on the next AI call.");
+    onSuccess: (_d, r) => {
+      // THE COMMIT. What the rule will now do, per rule, in its own words.
+      commit(
+        r.id ? "You changed the rule" : "You wrote a rule",
+        r.enabled
+          ? `${r.name} ${ruleSentence(r.action, r.kind, r.applies_to).toLowerCase()} It starts on the next call.`
+          : `${r.name} is saved but switched off, so it checks nothing yet.`,
+      );
       setEditing(null);
       setTestResult(null);
+      setTestText("");
       qc.invalidateQueries({ queryKey: ["guardrails"] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
+
   const del = useMutation({
-    mutationFn: (id: string) => fDelete({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Rule deleted. It stops applying immediately.");
+    mutationFn: (v: { id: string; name: string }) => fDelete({ data: { id: v.id } }),
+    onSuccess: (_d, v) => {
+      commit("You deleted the rule", `${v.name} is gone. Nothing is checked against it now.`);
       setEditing(null);
       qc.invalidateQueries({ queryKey: ["guardrails"] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
+
   const tog = useMutation({
     mutationFn: (v: { id: string; enabled: boolean; name: string }) =>
       fToggle({ data: { id: v.id, enabled: v.enabled } }),
     onSuccess: (_d, v) => {
-      toast.success(`${v.name} ${v.enabled ? "on" : "off"}.`);
-      qc.invalidateQueries({ queryKey: ["guardrails"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const seed = useMutation({
-    mutationFn: () => fSeed(),
-    onSuccess: (r) => {
-      toast.success(
-        r.inserted > 0
-          ? `Seeded ${r.inserted} built-ins. Live on the next AI call.`
-          : "Built-ins already present.",
+      commit(
+        v.enabled ? "You turned it on" : "You turned it off",
+        v.enabled
+          ? `${v.name} checks every call from the next one on.`
+          : `${v.name} checks nothing until you turn it back on.`,
       );
       qc.invalidateQueries({ queryKey: ["guardrails"] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
+
+  const seed = useMutation({
+    mutationFn: () => fSeed(),
+    onSuccess: (r) => {
+      commit(
+        "You added the built-ins",
+        r.inserted > 0
+          ? `${r.inserted} more rules read every call from now on: personal data, secrets, and prompt injection.`
+          : "Nothing was added. Every built-in rule was already here.",
+      );
+      qc.invalidateQueries({ queryKey: ["guardrails"] });
+    },
+  });
+
   const test = useMutation({
     mutationFn: (r: RuleForm) =>
       fTest({
         data: { text: testText, side: r.applies_to === "output" ? "output" : "input", rule: r },
       }),
     onSuccess: (r) => setTestResult(r),
-    onError: (e: Error) => toast.error(e.message),
   });
 
-  if (overview.error) {
+  if (overview.isError) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--madder)" }}>
-          Couldn't load guardrails
-        </div>
-        <p style={{ color: "var(--text-body)", marginTop: 8 }}>
-          {(overview.error as Error)?.message}
-        </p>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => overview.refetch()}
-        >
-          Retry · reloads guardrails
-        </button>
-      </div>
+      <Block>
+        <Failed onRetry={() => void overview.refetch()}>
+          The rules did not load, so nothing below would be the real boundary.
+        </Failed>
+      </Block>
     );
   }
 
   if (overview.isLoading) {
     return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the rules
-      </p>
+      <Block>
+        <Loading>Reading the rules in force.</Loading>
+      </Block>
     );
   }
 
   const rules = overview.data?.rules ?? [];
   const hits = overview.data?.hits ?? [];
 
-  // Last fired per rule, from the real hits log (hits arrive newest-first).
+  // Last fired per rule, from the real hits log. Hits arrive newest first, so
+  // the first one seen for a name is the latest.
   const lastFired = new Map<string, string>();
   for (const h of hits) {
     if (!lastFired.has(h.rule_name)) lastFired.set(h.rule_name, h.created_at);
   }
 
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
+  if (editing) {
+    return (
+      <RuleEditor
+        rule={editing}
+        onChange={setEditing}
+        onBack={() => setEditing(null)}
+        onSave={() => upsert.mutate(editing)}
+        saving={upsert.isPending}
+        saveError={upsert.error as Error | null}
+        onDelete={async () => {
+          if (!editing.id) return;
+          const ok = await confirm({
+            title: `Delete "${editing.name}"?`,
+            body: "It stops checking calls the moment you do, and it does not come back.",
+            destructive: true,
+            confirmLabel: "Delete rule",
+          });
+          if (ok && editing.id) del.mutate({ id: editing.id, name: editing.name });
         }}
+        deleting={del.isPending}
+        deleteError={del.error as Error | null}
+        testText={testText}
+        onTestText={setTestText}
+        onTest={() => test.mutate(editing)}
+        testing={test.isPending}
+        testError={test.error as Error | null}
+        testResult={testResult}
+      />
+    );
+  }
+
+  const live = rules.filter((r) => r.enabled).length;
+
+  return (
+    <>
+      <Block
+        title="What the rules check"
+        sub={
+          rules.length === 0 ? undefined : (
+            <>
+              <Num>{live}</Num> of <Num>{rules.length}</Num> read every call. The rest are saved and
+              switched off.
+            </>
+          )
+        }
+        more={rules.length > 0 ? "Write a rule" : undefined}
+        onMore={() => setEditing(emptyRule())}
       >
-        <MonoLabel icon={Shield}>{rules.length} rules</MonoLabel>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            className="btn btn-ghost btn-sm"
-            disabled={seed.isPending}
-            onClick={() => seed.mutate()}
+        {rules.length === 0 ? (
+          <Empty
+            action={
+              <>
+                <Button variant="primary" disabled={seed.isPending} onClick={() => seed.mutate()}>
+                  Add the built-ins
+                </Button>
+                <Button variant="ghost" onClick={() => setEditing(emptyRule())}>
+                  Write your own
+                </Button>
+              </>
+            }
           >
-            Seed built-ins · PII, secrets, injection
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setEditing(emptyRule())}>
-            New rule · applies on the next call
-          </button>
-        </div>
-      </div>
-
-      {rules.length === 0 ? (
-        <EmptyState
-          icon={Shield}
-          title="No guardrails yet"
-          body="Seed the built-in set (PII redaction, secret blocking, prompt-injection flags) or write your own rule."
-          cta="Seed built-ins · PII, secrets, injection"
-          onCta={() => seed.mutate()}
-        />
-      ) : (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-          <div
-            className="mono-label"
-            style={{
-              display: "grid",
-              gridTemplateColumns: GRID,
-              gap: "var(--geist-space-3x)",
-              padding: "10px 18px",
-              borderBottom: "1px solid var(--hairline)",
-            }}
-          >
-            <span>Guardrail</span>
-            <span>Rule</span>
-            <span>Last fired</span>
-            <span></span>
-          </div>
-          {rules.map((g, i) => {
-            const fired = lastFired.get(g.name) ?? null;
-            const ruleText = `${ACTION_PHRASE[g.action as Action] ?? g.action} ${
-              KIND_PHRASE[g.kind as Kind] ?? g.kind
-            } ${APPLIES_PHRASE[g.applies_to as Applies] ?? g.applies_to}`;
-            return (
-              <div
-                key={g.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: GRID,
-                  gap: "var(--geist-space-3x)",
-                  padding: "13px 18px",
-                  alignItems: "baseline",
-                  borderBottom: i < rules.length - 1 ? "1px solid var(--hairline)" : "none",
-                  opacity: g.enabled ? 1 : 0.45,
-                }}
-              >
-                <button
-                  type="button"
-                  className="hover:underline active:opacity-80"
-                  onClick={() =>
-                    setEditing({
-                      id: g.id,
-                      name: g.name,
-                      kind: g.kind as Kind,
-                      pattern: g.pattern,
-                      action: g.action as Action,
-                      applies_to: g.applies_to as Applies,
-                      enabled: g.enabled,
-                    })
-                  }
-                  style={{ fontWeight: 550, textAlign: "left", cursor: "pointer", minWidth: 0 }}
-                  title="Edit · changes apply on the next call"
-                >
-                  {g.name}
-                  {g.built_in ? (
-                    <span
-                      className="mono-label"
-                      style={{ display: "block", color: "var(--text-faint)" }}
-                    >
-                      built-in
-                    </span>
-                  ) : null}
-                </button>
-                <span style={{ color: "var(--text-body)", minWidth: 0 }}>
-                  {ruleText}
-                  <span
-                    style={{
-                      display: "block",
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-faint)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {g.pattern}
-                  </span>
-                </span>
-                <span
-                  className="mono-label"
-                  style={{ color: fired ? "var(--marigold)" : "var(--text-faint)" }}
-                >
-                  {fired ? relTimeCaps(fired) : "never"}
-                </span>
-                <span style={{ alignSelf: "center" }}>
-                  <button
-                    role="switch"
-                    aria-checked={g.enabled}
-                    aria-label={`${g.name} guardrail`}
-                    disabled={tog.isPending}
-                    onClick={() => tog.mutate({ id: g.id, enabled: !g.enabled, name: g.name })}
-                    style={{
-                      width: 34,
-                      height: 19,
-                      borderRadius: 99,
-                      background: g.enabled ? "var(--moss)" : "var(--raised)",
-                      border: "1px solid var(--hairline)",
-                      position: "relative",
-                      flexShrink: 0,
-                      transition: "background var(--dur-base)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 2,
-                        left: g.enabled ? 16 : 2,
-                        width: 13,
-                        height: 13,
-                        borderRadius: 99,
-                        background: "var(--canvas)",
-                        transition: "left var(--dur-base)",
-                      }}
-                    />
-                  </button>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Recent fires — production hits log (no reference equivalent), quiet. */}
-      <div className="bento" style={{ padding: 0, overflow: "hidden", marginTop: 12 }}>
-        <div
-          className="mono-label"
-          style={{
-            display: "grid",
-            gridTemplateColumns: HITS_GRID,
-            gap: "var(--geist-space-3x)",
-            padding: "10px 18px",
-            borderBottom: "1px solid var(--hairline)",
-          }}
-        >
-          <span>When</span>
-          <span>Rule</span>
-          <span>Side</span>
-          <span>Action</span>
-          <span>Matched</span>
-        </div>
-        {hits.length === 0 ? (
-          <div
-            style={{
-              color: "var(--text-faint)",
-              padding: "20px 18px",
-              textAlign: "center",
-            }}
-          >
-            No guardrail activity yet.
-          </div>
+            Nothing checks your AI calls yet. The built-in set reads for personal data, secrets and
+            prompt injection, and you can write your own on top of it.
+          </Empty>
         ) : (
-          hits.map((h, i) => (
-            <div
-              key={h.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: HITS_GRID,
-                gap: "var(--geist-space-3x)",
-                padding: "11px 18px",
-                alignItems: "baseline",
-                borderBottom: i < hits.length - 1 ? "1px solid var(--hairline)" : "none",
-              }}
+          rules.map((g) => (
+            <Line
+              key={g.id}
+              label={g.name}
+              // Three different facts, none of them the name again: what it
+              // does, what it looks for, and whether it has ever done anything.
+              sub={
+                <>
+                  {ruleSentence(g.action, g.kind, g.applies_to)} <Num>{g.pattern}</Num>{" "}
+                  {lastFiredPhrase(lastFired.get(g.name) ?? null)}
+                  {g.built_in ? " It came with the product." : ""}
+                </>
+              }
             >
-              <span className="mono-label tabular-nums">{relTimeCaps(h.created_at)}</span>
-              <span
-                style={{
-                  fontWeight: 500,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  setEditing({
+                    id: g.id,
+                    name: g.name,
+                    kind: g.kind as Kind,
+                    pattern: g.pattern,
+                    action: g.action as Action,
+                    applies_to: g.applies_to as Applies,
+                    enabled: g.enabled,
+                  })
+                }
               >
-                {h.rule_name}
-              </span>
-              <span className="mono-label">{h.side}</span>
-              <span
-                className="mono-label"
-                style={{ color: ACTION_COLOR[h.action] ?? "var(--text-body)" }}
-              >
-                {h.action}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  color: "var(--text-body)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {h.matched}
-              </span>
-            </div>
+                Open
+              </Button>
+              <Switch
+                checked={g.enabled}
+                label={`${g.name} checks every call`}
+                disabled={tog.isPending}
+                onChange={(next) => tog.mutate({ id: g.id, enabled: next, name: g.name })}
+              />
+            </Line>
           ))
         )}
-      </div>
 
-      {/* Rule editor — production CRUD + dry-run test, restyled quiet-Ember. */}
-      {editing ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "var(--geist-space-4x)",
-            background: "color-mix(in oklab, var(--canvas) 82%, transparent)",
-          }}
-          onClick={() => setEditing(null)}
-        >
-          <div
-            className="bento fade-up"
-            role="dialog"
-            aria-modal="true"
-            aria-label={editing.id ? "Edit guardrail rule" : "New guardrail rule"}
-            style={{ width: "100%", maxWidth: 620, padding: 20, background: "var(--card)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 14,
-              }}
-            >
-              <h2 className="font-display" style={{ }}>
-                {editing.id ? "Edit rule" : "New rule"}
-              </h2>
-              <button
-                type="button"
-                className="mono-label cursor-pointer hover:underline active:opacity-80"
-                style={{ color: "var(--text-faint)" }}
-                onClick={() => setEditing(null)}
-              >
-                dismiss
-              </button>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <label className="mono-label" style={{ gridColumn: "span 2", display: "block" }}>
-                Name
-                <input
-                  className="input"
-                  autoFocus
-                  value={editing.name}
-                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  style={{ marginTop: 5 }}
-                />
-              </label>
-              <label className="mono-label" style={{ display: "block" }}>
-                Kind
-                <select
-                  className="input"
-                  value={editing.kind}
-                  onChange={(e) => setEditing({ ...editing, kind: e.target.value as Kind })}
-                  style={{ marginTop: 5 }}
-                >
-                  <option value="keyword">Keyword (literal substring)</option>
-                  <option value="regex">Regex</option>
-                  <option value="pii">PII (regex)</option>
-                  <option value="injection">Injection (regex)</option>
-                  <option value="secret">Secret (regex)</option>
-                </select>
-              </label>
-              <label className="mono-label" style={{ display: "block" }}>
-                Applies to
-                <select
-                  className="input"
-                  value={editing.applies_to}
-                  onChange={(e) =>
-                    setEditing({ ...editing, applies_to: e.target.value as Applies })
-                  }
-                  style={{ marginTop: 5 }}
-                >
-                  <option value="both">Both</option>
-                  <option value="input">Input only</option>
-                  <option value="output">Output only</option>
-                </select>
-              </label>
-              <label className="mono-label" style={{ gridColumn: "span 2", display: "block" }}>
-                Pattern
-                <textarea
-                  className="input"
-                  value={editing.pattern}
-                  onChange={(e) => setEditing({ ...editing, pattern: e.target.value })}
-                  rows={2}
-                  style={{
-                    marginTop: 5,
-                    resize: "none",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                />
-              </label>
-              <label className="mono-label" style={{ display: "block" }}>
-                Action
-                <select
-                  className="input"
-                  value={editing.action}
-                  onChange={(e) => setEditing({ ...editing, action: e.target.value as Action })}
-                  style={{ marginTop: 5 }}
-                >
-                  <option value="warn">Warn (log only)</option>
-                  <option value="redact">Redact</option>
-                  <option value="block">Block</option>
-                </select>
-              </label>
-              <label
-                className="mono-label"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--geist-space-2x)",
-                  alignSelf: "end",
-                  paddingBottom: 8,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={editing.enabled}
-                  onChange={(e) => setEditing({ ...editing, enabled: e.target.checked })}
-                />
-                Enabled
-              </label>
-            </div>
+        {tog.error ? <Failed>{(tog.error as Error).message}</Failed> : null}
+        {seed.error ? <Failed>{(seed.error as Error).message}</Failed> : null}
 
-            <div
-              style={{
-                border: "1px solid var(--hairline)",
-                borderRadius: 8,
-                padding: "var(--geist-space-3x)",
-                marginTop: 12,
-              }}
-            >
-              <div className="mono-label" style={{ marginBottom: 6 }}>
-                Test · dry run, nothing is saved
-              </div>
-              <textarea
-                className="input"
-                value={testText}
-                onChange={(e) => setTestText(e.target.value)}
-                placeholder="Paste sample text to test this rule against…"
-                rows={2}
-                style={{ resize: "none", fontFamily: "var(--font-mono)" }}
-              />
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  disabled={!testText.trim() || test.isPending}
-                  title={!testText.trim() ? "Paste sample text to test first" : undefined}
-                  onClick={() => test.mutate(editing)}
-                >
-                  {test.isPending ? (
+        {rules.length > 0 ? (
+          <Actions>
+            <Button variant="ghost" disabled={seed.isPending} onClick={() => seed.mutate()}>
+              Add any missing built-ins
+            </Button>
+          </Actions>
+        ) : null}
+      </Block>
+
+      <Block
+        title="What they caught"
+        sub="Every time a rule fired, and on what. The match is stored, the rest of the call is not."
+      >
+        {hits.length === 0 ? (
+          <Empty>
+            Nothing has been caught. Either nothing has tripped a rule, or no calls have run through
+            them yet.
+          </Empty>
+        ) : (
+          hits.map((h) => (
+            <Row
+              key={h.id}
+              tight
+              lead={
+                <>
+                  {h.rule_name} <Value tone={ACTION_TONE[h.action] ?? "warn"}>{h.action}</Value>
+                </>
+              }
+              sub={
+                <>
+                  {h.side === "output" ? "On the way back" : "On the way out"}
+                  {h.matched ? (
                     <>
-                      <span className="spinner" style={{ width: 11, height: 11 }} />
-                      Testing…
+                      {" · "}
+                      <Num>{h.matched}</Num>
                     </>
-                  ) : (
-                    "Run test · nothing is saved"
-                  )}
-                </button>
-                {testResult ? (
-                  <span
-                    className="mono-label"
-                    style={{ color: testResult.blocked ? "var(--madder)" : "var(--text-subtle)" }}
-                  >
-                    {testResult.hits.length} hit{testResult.hits.length === 1 ? "" : "s"} ·{" "}
-                    {testResult.blocked ? "blocked" : "allowed"}
-                  </span>
-                ) : null}
-              </div>
-              {testResult && testResult.hits.length > 0 ? (
-                <pre
-                  className="scrollbar-thin"
-                  style={{
-                    marginTop: 8,
-                    maxHeight: 120,
-                    overflow: "auto",
-                    background: "var(--surface-recessed)",
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 8,
-                    padding: "var(--geist-space-2x)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {testResult.text}
-                </pre>
-              ) : null}
-            </div>
+                  ) : null}
+                </>
+              }
+              time={relTime(h.created_at)}
+            />
+          ))
+        )}
+      </Block>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 14 }}>
-              {editing.id ? (
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: "var(--madder)", marginRight: "auto" }}
-                  disabled={del.isPending}
-                  onClick={async () => {
-                    const ok = await confirm({
-                      title: `Delete "${editing.name}"?`,
-                      body: "The rule stops applying immediately.",
-                      destructive: true,
-                      confirmLabel: "Delete rule",
-                    });
-                    if (ok && editing.id) del.mutate(editing.id);
-                  }}
-                >
-                  Delete · stops applying immediately
-                </button>
-              ) : null}
-              <button className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>
-                Dismiss
-              </button>
-              <button
-                className="btn btn-primary btn-sm"
-                disabled={!editing.name.trim() || !editing.pattern.trim() || upsert.isPending}
-                title={
-                  !editing.name.trim() || !editing.pattern.trim()
-                    ? "A rule needs a name and a pattern"
-                    : undefined
-                }
-                onClick={() => upsert.mutate(editing)}
-              >
-                Save · applies on the next call
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* THE COMMIT. What each decision above actually caused, kept on screen
+          rather than flashed and lost. */}
+      {committed.map((c, i) => (
+        <Receipt
+          key={`${c.at}-${i}`}
+          verb={c.verb}
+          consequence={c.consequence}
+          time={relTime(c.at)}
+        />
+      ))}
 
-      {/* FND-0.7-d: the weighted-evidence injection defense behind the regex rules. */}
       <InjectionDefenseCard />
-    </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * One rule, in place. Never a modal: six fields and a harness is a
+ * surface, and ban 11 exists to stop exactly this from being an overlay.
+ * ------------------------------------------------------------------ */
+
+function RuleEditor({
+  rule,
+  onChange,
+  onBack,
+  onSave,
+  saving,
+  saveError,
+  onDelete,
+  deleting,
+  deleteError,
+  testText,
+  onTestText,
+  onTest,
+  testing,
+  testError,
+  testResult,
+}: {
+  rule: RuleForm;
+  onChange: (next: RuleForm) => void;
+  onBack: () => void;
+  onSave: () => void;
+  saving: boolean;
+  saveError: Error | null;
+  onDelete: () => void;
+  deleting: boolean;
+  deleteError: Error | null;
+  testText: string;
+  onTestText: (next: string) => void;
+  onTest: () => void;
+  testing: boolean;
+  testError: Error | null;
+  testResult: { text: string; blocked: boolean; hits: { matched: string }[] } | null;
+}) {
+  const incomplete = !rule.name.trim() || !rule.pattern.trim();
+
+  return (
+    <>
+      <Block
+        title={rule.id ? "This rule" : "A new rule"}
+        // The sentence it currently spells out, which is the one thing the six
+        // fields below are hard to read as a whole.
+        sub={
+          incomplete
+            ? "A rule needs a name and something to look for before it can be saved."
+            : ruleSentence(rule.action, rule.kind, rule.applies_to)
+        }
+      >
+        <Field label="Name" htmlFor="rule-name">
+          <Input
+            id="rule-name"
+            autoFocus
+            value={rule.name}
+            onChange={(e) => onChange({ ...rule, name: e.target.value })}
+          />
+        </Field>
+
+        <Field label="What it looks for" htmlFor="rule-kind">
+          <Select
+            id="rule-kind"
+            value={rule.kind}
+            onChange={(e) => onChange({ ...rule, kind: e.target.value as Kind })}
+          >
+            <option value="keyword">A word, matched literally</option>
+            <option value="regex">A pattern</option>
+            <option value="pii">Personal data</option>
+            <option value="injection">Prompt injection</option>
+            <option value="secret">A secret</option>
+          </Select>
+        </Field>
+
+        <Field label="The pattern" htmlFor="rule-pattern">
+          <Textarea
+            id="rule-pattern"
+            rows={2}
+            value={rule.pattern}
+            onChange={(e) => onChange({ ...rule, pattern: e.target.value })}
+          />
+        </Field>
+
+        <Field label="Where it looks" htmlFor="rule-applies">
+          <Select
+            id="rule-applies"
+            value={rule.applies_to}
+            onChange={(e) => onChange({ ...rule, applies_to: e.target.value as Applies })}
+          >
+            <option value="both">On the way out and on the way back</option>
+            <option value="input">On the way out only</option>
+            <option value="output">On the way back only</option>
+          </Select>
+        </Field>
+
+        <Field label="What it does when it matches" htmlFor="rule-action">
+          <Select
+            id="rule-action"
+            value={rule.action}
+            onChange={(e) => onChange({ ...rule, action: e.target.value as Action })}
+          >
+            <option value="warn">Let it through, and write it down</option>
+            <option value="redact">Take the match out, and let the rest through</option>
+            <option value="block">Stop the call</option>
+          </Select>
+        </Field>
+
+        {/* A value you submit, not a boundary that goes live under your finger,
+            so it is a checkbox and stays monochrome. */}
+        <Line
+          label="Checking once you save"
+          htmlFor="rule-enabled"
+          sub="Leave this off to write the rule now and start it later."
+        >
+          <Checkbox
+            id="rule-enabled"
+            label="Checking once you save"
+            checked={rule.enabled}
+            onChange={(next) => onChange({ ...rule, enabled: next })}
+          />
+        </Line>
+      </Block>
+
+      <Block
+        title="Try it first"
+        sub="Runs this rule against your text and nothing else. Nothing is saved, and no call is affected."
+      >
+        <Field label="Sample text" htmlFor="rule-sample">
+          <Textarea
+            id="rule-sample"
+            rows={3}
+            value={testText}
+            onChange={(e) => onTestText(e.target.value)}
+          />
+        </Field>
+
+        <Actions>
+          <Button disabled={!testText.trim() || testing} onClick={onTest}>
+            {testing ? "Running" : "Run it"}
+          </Button>
+        </Actions>
+
+        {testError ? <Failed>{testError.message}</Failed> : null}
+
+        {testResult ? (
+          <>
+            <Line
+              label={testResult.blocked ? "It would stop this call" : "It would let this through"}
+              sub={
+                testResult.hits.length === 0
+                  ? "Nothing in your sample matched."
+                  : "What it matched is below, as the call would carry it."
+              }
+            >
+              <Value tone={testResult.blocked ? "fail" : "pass"}>
+                <Num>{testResult.hits.length}</Num>
+                {testResult.hits.length === 1 ? " match" : " matches"}
+              </Value>
+            </Line>
+            {testResult.hits.length > 0 ? <Pre>{testResult.text}</Pre> : null}
+          </>
+        ) : null}
+      </Block>
+
+      <Block>
+        {saveError ? <Failed>{saveError.message}</Failed> : null}
+        {deleteError ? <Failed>{deleteError.message}</Failed> : null}
+        <Actions
+          trailing={
+            rule.id ? (
+              <Button variant="ghost" disabled={deleting} onClick={onDelete}>
+                Delete this rule
+              </Button>
+            ) : null
+          }
+        >
+          <Button variant="primary" disabled={incomplete || saving} onClick={onSave}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onBack}>
+            Back to the rules
+          </Button>
+        </Actions>
+      </Block>
+    </>
   );
 }

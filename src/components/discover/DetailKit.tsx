@@ -1,36 +1,71 @@
-import { Children, type CSSProperties, type ReactNode } from "react";
-import { MonoLabel } from "@/components/obsidian";
-
 /**
- * DetailKit: the shared anatomy for every object detail side panel, so a
- * signal, an opportunity, a spec, a mission, an outcome, and a learning all
- * read as one premium, auditable thing (DESIGN-LOOM.md dim 17). A caller
- * assembles a detail view from these token driven primitives in the same order
- * every time: a refined header, then the summary stats, then a run of
- * consistent sections. The structure and feel are identical across object
- * types; only the content differs.
+ * DetailKit: the shared anatomy for every object detail view, so a signal, an
+ * opportunity, a spec, a mission, an outcome, a decision, a learning and a
+ * receipt all read as one thing.
  *
- * Semantic tokens only. Ember is deliberately absent from the tone set: it
- * stays reserved for the one Capture CTA.
+ * Ported off the retired system (2026-07-29). This file is the highest-leverage
+ * one in the discover set and it renders on none of its own surfaces: seven
+ * live detail views import it (plan/SpecDetail, shared/StageTimeline,
+ * knowledge/DecisionDetail, knowledge/LearningDetail,
+ * knowledge/ContradictionAuditSection, trust/ReceiptDetailSheet and
+ * discover/SignalRecord), so a legacy token in here is a legacy screen in seven
+ * places. That is exactly the founder's complaint: a ported page opens a detail
+ * and the old design comes back.
+ *
+ * What changed, and why:
+ *
+ * KILL the mono caps section heading (MonoLabel at 0.1em uppercase). Mono is
+ *      for DATA and for nothing else; a section heading is prose. The heading
+ *      is now `.sp-block-title`, sentence case, the same register every ported
+ *      surface uses.
+ * KILL the 2px vertical bar before each heading. It is the side-tab accent
+ *      wearing a smaller coat (anti-slop ban 4), and the rule above the section
+ *      already says "a new section starts here".
+ * KILL the bordered, tinted stat tile. A bordered cell inside a bordered sheet
+ *      is a card in a card (ban 5). The cell is now the `Cell` primitive:
+ *      tinted, never bordered, and it is the shape three lanes independently
+ *      rebuilt from raw tokens before `Grid`/`Cell` existed.
+ * KILL every legacy token. `--hairline`, `--text-primary`, `--text-subtle`,
+ *      `--text-muted`, `--moss`, `--madder`, `--amber`, `--ds-gray-1000`,
+ *      `--font-mono`, `--font-sans` and `--radius-control` are all gone.
+ * KEEP every exported symbol, every prop and every `StatTone` literal. Seven
+ *      files in five directories construct these; the contract is theirs and
+ *      this port changes not one call site.
+ *
+ * A NOTE ON THE TONE SET. The literals stay ("moss", "glacier", "madder",
+ * "amber", "muted", "neutral") because callers name them, but they no longer
+ * mean a hue from the retired palette. They map onto the four colours that
+ * carry an OUTCOME and nothing else: pass, fail, warn, and the neutral ink.
+ * Colour has jobs here; it never decorates a number.
  */
+
+import { Children, type CSSProperties, type ReactNode } from "react";
+import { Cell, Num } from "@/components/shell/primitives";
 
 /** The semantic tones a stat cell can carry. */
 export type StatTone = "moss" | "glacier" | "madder" | "amber" | "muted" | "neutral";
 
-const STAT_TONE_COLOR: Record<StatTone, string> = {
-  moss: "var(--moss)",
-  glacier: "var(--ds-gray-1000)",
-  madder: "var(--madder)",
-  amber: "var(--amber)",
-  muted: "var(--text-muted)",
-  neutral: "var(--text-primary)",
+/** Tone to the token that owns the colour, the same shape `OpportunityRow`'s
+ * `STATUS_META` uses so a status reads identically on a row and in a stat.
+ *
+ * Three of the six carry a real OUTCOME and take an outcome colour. "muted"
+ * takes the quiet ink because quiet is a fact about the value, not an outcome.
+ * "neutral" and "glacier" take nothing at all: the cell's lead is already full
+ * contrast ink, and a tone that carries no outcome gets no colour. If colour
+ * were carrying the hierarchy, the hierarchy was never there. */
+const STAT_TONE_INK: Record<StatTone, string | undefined> = {
+  moss: "var(--sp-pass)",
+  madder: "var(--sp-fail)",
+  amber: "var(--sp-warn)",
+  muted: "var(--sp-mute)",
+  glacier: undefined,
+  neutral: undefined,
 };
 
-/** A tier tone from a 0 to 10 score: strong reads moss, mid a full-contrast
- * neutral, low a quiet muted tone. The shared rule for every scored stat
- * cell, so a strength anchor reads the same on every object. Chromatic color
- * is reserved for the strong tier only (Tempo v5 glacier narrowing, 2026-07-11):
- * a mid score is not a status, so it stays gray. */
+/** A tier tone from a 0 to 10 score: strong reads as a pass, mid as full
+ * contrast neutral, low as quiet. The shared rule for every scored stat cell,
+ * so a strength anchor reads the same on every object. Colour is reserved for
+ * the strong tier only: a mid score is not an outcome, so it stays neutral. */
 export function toneForScore(score: number): StatTone {
   if (score >= 7) return "moss";
   if (score >= 4) return "neutral";
@@ -39,46 +74,40 @@ export function toneForScore(score: number): StatTone {
 
 export interface DetailHeaderProps {
   title: string;
-  /** The colored state chips (a status pill and a verdict for an opportunity;
-   * a sentiment chip for a signal), laid out in one row beneath the title. */
+  /** The state words for this object (a status and a verdict for an
+   * opportunity, a sentiment for a signal), folded into the one meta line. */
   chips?: ReactNode;
-  /** The faint, copyable trace ref, rendered quiet per dim 17. */
+  /** The copyable trace ref, quiet. */
   traceRef?: ReactNode;
-  /** The timestamp, carried with a touch more presence than the id. */
+  /** The timestamp. */
   time?: ReactNode;
 }
 
+/** Joins whatever the caller actually passed with the system's separator, so a
+ * missing chip never leaves a dangling dot. */
+function metaLine(parts: ReactNode[]): ReactNode[] {
+  const present = parts.filter(Boolean);
+  return present.flatMap((part, i) => (i === 0 ? [part] : [" · ", part]));
+}
+
 /**
- * The refined detail header: the object title on the first line, then a quiet
- * meta row of the state chips on the left and the time plus trace ref on the
- * right. Identical on every object type.
+ * The detail header: the object title, then ONE quiet meta line carrying its
+ * state, when it last moved, and its trace ref.
+ *
+ * It was a title plus a two-sided flex rail that pushed time and trace to the
+ * right edge. That rail was a second alignment axis inside a panel that already
+ * has one, and it broke to two lines on a narrow sheet. One line, one register,
+ * one separator: the same shape the ported surfaces use under `PageHead`.
+ *
+ * Stays an `<h2>`: this renders inside a surface that already owns the `<h1>`,
+ * so promoting it would give the page two top-level headings.
  */
 export function DetailHeader({ title, chips, traceRef, time }: DetailHeaderProps) {
-  const hasMeta = Boolean(chips || traceRef || time);
+  const meta = metaLine([chips, time, traceRef]);
   return (
-    <header style={{ display: "grid", gap: "10px" }}>
-      <h2
-        style={{
-          margin: 0,
-          paddingRight: "24px",
-          fontWeight: 600,
-          color: "var(--text-primary)",
-          lineHeight: 1.3,
-        }}
-      >
-        {title}
-      </h2>
-      {hasMeta ? (
-        <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
-          {chips}
-          {time || traceRef ? (
-            <span className="flex items-center" style={{ marginLeft: "auto", gap: "10px" }}>
-              {time}
-              {traceRef}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
+    <header>
+      <h2 className="sp-title">{title}</h2>
+      {meta.length > 0 ? <div className="sp-subtitle">{meta}</div> : null}
     </header>
   );
 }
@@ -89,48 +118,38 @@ export interface StatCellProps {
   tone?: StatTone;
 }
 
+/** Whether a stat's value is DATA rather than a word.
+ *
+ * The kit has to decide this per value, not per caller: the same `StatCell` is
+ * handed "8.5", "$0.04", "2h", "42" and "Backlog", "Shipped", "Review",
+ * "Manual" by seven files this lane may not edit. Mono is for every number,
+ * duration, count, cost, identifier and timestamp and for nothing else, so a
+ * blanket wrap would put "Backlog" in IBM Plex Mono and a blanket skip would
+ * take the tabular figures off every score. A leading digit, sign or currency
+ * mark is the honest test, and it is applied here once rather than guessed at
+ * in five directories. */
+function looksLikeData(value: string): boolean {
+  return /^[+\-$£€#]?\d/.test(value.trim());
+}
+
 /**
- * A premium, compact stat cell: a small rounded cell with a subtle tinted fill
- * and a hairline, the value in the tone color, the label in faint mono caps.
- * Kept tight so four cells sit in one row without forcing horizontal scroll.
- * The tint is derived from the tone token so it stays calm on the dark surface.
+ * One stat: the fact first, its name under it.
+ *
+ * It was a tinted, hairlined, centred tile. Nineteen of those in one region is
+ * nineteen bordered containers and the cap is one, so it is now the `Cell`
+ * primitive, which is tinted and never bordered, and which sits `recessed`
+ * because a detail view is already raised ground.
  */
 export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
-  const color = STAT_TONE_COLOR[tone];
+  const ink = STAT_TONE_INK[tone];
+  const body = looksLikeData(value) ? <Num>{value}</Num> : value;
   return (
-    <div
-      style={{
-        background: `color-mix(in srgb, ${color} 8%, transparent)`,
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-control)",
-        padding: "6px 8px",
-        textAlign: "center",
-        display: "grid",
-        gap: "3px",
-      }}
-    >
-      <div
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontWeight: 460,
-          color,
-          lineHeight: 1.05,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--text-subtle)",
-        }}
-      >
-        {label}
-      </div>
-    </div>
+    <Cell
+      tone="recessed"
+      lead={ink ? <span style={{ color: ink }}>{body}</span> : body}
+      sub={label}
+      title={`${label}: ${value}`}
+    />
   );
 }
 
@@ -141,17 +160,20 @@ export interface StatStripProps {
   columns?: number;
 }
 
-/** A horizontal grid of stat cells, the glanceable summary row of a detail. */
+/**
+ * The glanceable summary row of a detail: a short, fixed run of stats read
+ * across rather than down.
+ *
+ * Uses the `Grid` primitive's own class, with the column count written
+ * explicitly rather than left to the auto-fill. That is a real difference: the
+ * primitive's `auto-fill, minmax(196px, 1fr)` is right for a catalog of unknown
+ * length, and wrong here, where the caller knows there are exactly three stats
+ * and three stats reading 2 + 1 is a worse fact than three across.
+ */
 export function StatStrip({ children, columns }: StatStripProps) {
-  const count = columns ?? Children.toArray(children).length;
+  const count = Math.max(columns ?? Children.toArray(children).length, 1);
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${Math.max(count, 1)}, minmax(0, 1fr))`,
-        gap: "6px",
-      }}
-    >
+    <div className="sp-grid" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
       {children}
     </div>
   );
@@ -166,42 +188,22 @@ export interface DetailSectionProps {
 }
 
 /**
- * A consistent detail section: a hairline top divider, a mono caps heading
- * marked by a tiny quiet vertical bar so each section reads as its own marker
- * without loud color, then the content. Every section on every object type
- * reads the same, so the detail view has one predictable rhythm. The accent is
- * on the heading only; section bodies stay monotone.
+ * One section of a detail view: a rule where the content changes register, the
+ * heading, then the content.
+ *
+ * This is the `Block` primitive's exact markup, class for class, rather than
+ * `Block` itself. `Block` takes `more` plus `onMore`, which is a text button;
+ * three callers pass an arbitrary control here (a menu, an export, a delete).
+ * Sharing the classes rather than the component is what keeps a detail section
+ * and a surface section from drifting apart, which is how the last system rotted
+ * one screen at a time.
  */
 export function DetailSection({ heading, children, action, style }: DetailSectionProps) {
   return (
-    <section
-      style={{
-        display: "grid",
-        gap: "10px",
-        paddingTop: "15px",
-        borderTop: "1px solid var(--hairline)",
-        ...style,
-      }}
-    >
-      <div className="flex items-center justify-between" style={{ gap: "10px" }}>
-        <span className="flex items-center" style={{ gap: "8px" }}>
-          <span
-            aria-hidden="true"
-            style={{
-              width: "2px",
-              height: "11px",
-              borderRadius: "999px",
-              backgroundColor: "var(--text-faint)",
-              flexShrink: 0,
-            }}
-          />
-          <MonoLabel
-            style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-          >
-            {heading}
-          </MonoLabel>
-        </span>
-        {action}
+    <section className="sp-block" style={style}>
+      <div className="sp-block-head">
+        <span className="sp-block-title">{heading}</span>
+        {action ?? null}
       </div>
       {children}
     </section>

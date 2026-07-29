@@ -23,7 +23,7 @@ import {
   type SimulationNodeDatum,
 } from "d3-force-3d";
 import type { KnowledgeGraph } from "@/lib/knowledge-graph-view";
-import { MonoLabel } from "@/components/obsidian/primitives";
+import { Button, Num } from "@/components/shell/primitives";
 import {
   kindCssColor,
   kindLabel,
@@ -1010,26 +1010,22 @@ export function GraphUniverseCanvas({
   return (
     <div
       ref={wrapperRef}
-      className="material-large"
       style={{
         position: "relative",
         width: "100%",
         height: "clamp(420px, 58vh, 640px)",
-        background: "var(--surface-card-deep)",
+        // The ONE bordered container in this region. The recess reads as a
+        // window cut into the page rather than a card sitting on it.
+        background: "var(--sp-sink)",
+        border: "1px solid var(--sp-line)",
+        borderRadius: "var(--sp-radius-panel)",
         overflow: "hidden",
       }}
     >
-      {/* The faint multi-hue nebula behind the constellation (DESIGN-LOOM 5.6). */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background:
-            "radial-gradient(60% 55% at 32% 30%, color-mix(in oklab, var(--text-subtle) 3%, transparent), transparent 70%), radial-gradient(55% 50% at 72% 74%, color-mix(in oklab, var(--ember) 3%, transparent), transparent 72%)",
-        }}
-      />
+      {/* The nebula went with the retired system. Two stacked radial gradients,
+          one of them EMBER, is a blurred orb (anti-slop ban 2) spending the one
+          colour reserved for marking the human on a decorative wash. The recess
+          is the depth, and the constellation is the picture. */}
       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
       {hoverNode ? (
         <div
@@ -1041,13 +1037,14 @@ export function GraphUniverseCanvas({
             top: hover ? hover.sy + 14 : 0,
             maxWidth: 260,
             pointerEvents: "none",
-            // Token-traced glass (was dark-only rgba literals; both themes resolve).
-            background: "color-mix(in srgb, var(--surface-card) 82%, transparent)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-panel)",
-            boxShadow: "var(--shadow-overlay)",
+            // SOLID, not glass. Blur is chrome material for things that
+            // genuinely float (anti-slop ban 2), and a label read against a
+            // moving constellation is the one place it costs contrast rather
+            // than buying depth.
+            background: "var(--sp-float)",
+            border: "1px solid var(--sp-line)",
+            borderRadius: "var(--sp-radius-panel)",
+            boxShadow: "var(--sp-shadow)",
             padding: "10px 12px",
             zIndex: 5,
           }}
@@ -1063,14 +1060,14 @@ export function GraphUniverseCanvas({
                 flexShrink: 0,
               }}
             />
-            <MonoLabel style={{ }}>
+            <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
               {kindLabel(hoverNode.kind)}
-            </MonoLabel>
+            </span>
           </div>
           <div
             style={{
-              color: "var(--text-primary)",
-              lineHeight: 1.35,
+              color: "var(--sp-ink)",
+              lineHeight: "var(--sp-leading-row)",
               marginBottom: 6,
               overflow: "hidden",
               display: "-webkit-box",
@@ -1078,40 +1075,27 @@ export function GraphUniverseCanvas({
               WebkitBoxOrient: "vertical",
             }}
           >
-            {truncateTitle(hoverNode.title, 60) || "(untitled)"}
+            {truncateTitle(hoverNode.title, 60) || "Untitled"}
           </div>
-          <MonoLabel
-            className="tabular-nums"
-            style={{ display: "block" }}
-          >
-            {hoverNode.influence} {hoverNode.influence === 1 ? "link" : "links"}
+          <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+            <Num>{hoverNode.influence}</Num> {hoverNode.influence === 1 ? "link" : "links"}
             {(() => {
               const deg = degreeByKey.get(hoverNode.key);
               if (!deg || (deg.inbound === 0 && deg.outbound === 0)) return null;
               const parts: string[] = [];
               if (deg.inbound > 0) parts.push(`from ${deg.inbound}`);
               if (deg.outbound > 0) parts.push(`shaped ${deg.outbound}`);
-              return ` · ${parts.join(" · ")}`;
+              return ` · ${parts.join(", ")}`;
             })()}
-          </MonoLabel>
-          <div style={{ color: "var(--text-subtle)", marginTop: 5 }}>
+          </div>
+          <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", marginTop: 5 }}>
             Hover lights its connections, click to focus, double-click for the story
           </div>
         </div>
       ) : null}
-      <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 10 }}>
-        <button
-          type="button"
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: "4px 6px",
-          }}
+      <div style={{ position: "absolute", right: 10, bottom: 8 }}>
+        <Button
+          variant="ghost"
           onClick={() => {
             userMovedCam.current = false;
             camStateRef.current = { ...defaultCamRef.current };
@@ -1120,8 +1104,8 @@ export function GraphUniverseCanvas({
             if (reducedRef.current) renderOnceRef.current?.();
           }}
         >
-          Reset view
-        </button>
+          Recentre
+        </Button>
       </div>
     </div>
   );

@@ -1,149 +1,253 @@
-// AGENT-EXP: the Engine Room "Team" tab. The full agent roster grouped by
-// station (cast + the conductor + the hidden engine crew), plus the relocated
-// per-agent autonomy dial and the agent inspector. This is where WE (and the
-// power user) manage agents; the end user never sees this roster, only the relay.
-//
-// Engine-Room: full agent mesh roster + per-agent autonomy arcs + run/memory history
-//   -> THIS is the one door; nothing here sits on the calm front
-//   -> surfaced on demand as "your team: who they are, what they are trusted to do".
+/**
+ * THE TEAM TAB, in the Engine Room's Safety room.
+ *
+ * PORTED AND NARROWED 2026-07-29. What this panel used to be: a static render
+ * of the agent catalog, grouped by station, three name-and-blurb rows per
+ * group, carrying no live data and offering no action. That is the exact thing
+ * the founder rejected about the old Crew surface ("it is just a display of
+ * what it is, but there is no action items there"), and Crew has since been
+ * redesigned to do the same job LIVE and better: real mark states read from the
+ * run rows, the per-agent boundary, the per-tool policy, and the graduation
+ * queue.
+ *
+ * So this panel stops being a second copy of that. `_authenticated.crew.tsx`
+ * records the debt in its own header ("this leaves the same control in two
+ * places until that lane retires its copy"). This is that lane, and this is the
+ * retirement:
+ *
+ *   MOVED OUT, to /crew  the per-agent autonomy dial. It was TrustDial's four
+ *                        clickable rungs writing `agent_autonomy.arc`, and Crew
+ *                        writes the same column through `setAgentArc` with
+ *                        plain-words choices, with who-set-it on the second
+ *                        line, and composed with the tool policy underneath it.
+ *                        Two dials on the same column with two vocabularies is
+ *                        drift with a schedule. Every row here is now a door to
+ *                        the one that stayed.
+ *   KILLED               the static station roster. It listed thirteen names
+ *                        and blurbs from the catalog with no state and no
+ *                        click. Crew renders the same catalog live.
+ *   KEPT                 the whole crew at once, which is the read Crew cannot
+ *                        give you: Crew shows one agent per page, so finding
+ *                        the one whose record disagrees with its rung costs
+ *                        thirteen clicks. That is what an Engine Room is for.
+ *   KEPT                 the raw run and memory read (AgentInspector). Crew
+ *                        shows an agent's written lessons; nothing else shows
+ *                        what it actually ran and what it holds.
+ *
+ * Engine-Room: the live agent mesh, its record, and what each one has done
+ *   -> one door, revealed on demand, never on the calm front
+ *   -> named for the outcome ("who is working, and what their record says").
+ */
 
+import * as React from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+
 import { getSwarmHud } from "@/lib/swarm.functions";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { AgentMark } from "@/components/agents/AgentMark";
+import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
+import {
+  AgentMark,
+  Block,
+  Empty,
+  Failed,
+  Loading,
+  Num,
+  Row,
+  Value,
+  type MarkState,
+} from "@/components/shell/primitives";
+import { ladderLabel, type Arc } from "@/lib/trust-ladder";
 import { TrustDial } from "@/components/cockpit/TrustDial";
 import { AgentInspector } from "@/components/cockpit/AgentInspector";
 import { AgentScorecardPanel } from "@/components/engine-room/AgentScorecardPanel";
-import {
-  AGENT_STATION_ORDER,
-  AGENT_STATIONS,
-  agentDisplayName,
-  agentMark,
-  castByStation,
-  conductorEntry,
-  crewEntries,
-  type CatalogEntry,
-} from "@/lib/agent-vocabulary";
 
-function RosterRow({ entry, muted }: { entry: CatalogEntry; muted?: boolean }) {
-  const { hue } = agentMark(entry.slug);
-  return (
-    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "7px 2px" }}>
-      <AgentMark slug={entry.slug} size={26} />
-      <div style={{ minWidth: 0, opacity: muted ? 0.7 : 1 }}>
-        <div style={{ fontWeight: 540, color: hue }}>{entry.name}</div>
-        <div style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-          {entry.blurb}
-        </div>
-      </div>
-    </div>
-  );
+/** Plain-words relative time. Mono is applied by the row, not here. */
+export function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
 }
 
-function StationGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--text-subtle)",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div>{children}</div>
-    </div>
-  );
-}
+/** The statuses `agent_runs` writes while a run is still going. Anything else
+ *  is a run that has stopped, so the mark stops with it. */
+const LIVE_STATUS = new Set(["planning", "running", "awaiting_approval"]);
+const FAILED_STATUS = new Set(["failed", "completed_with_failures"]);
 
 export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }) {
-  const hudFn = useServerFn(getSwarmHud);
-  const q = useQuery({
+  const navigate = useNavigate();
+
+  const fHud = useServerFn(getSwarmHud);
+  const hud = useQuery({
     queryKey: ["swarm", "hud", workspaceId],
-    queryFn: () => hudFn({ data: { workspaceId } }),
+    queryFn: () => fHud({ data: { workspaceId } }),
     refetchInterval: 6000,
     refetchIntervalInBackground: false,
   });
-  const agents = q.data?.agents ?? [];
-  const nameById = new Map(
-    agents.map((a) => [a.agent_id, { name: agentDisplayName(a.slug, a.name), role: a.role }]),
+
+  // Trust is user scoped rather than workspace scoped (agents are not workspace
+  // rows in this app), so this key deliberately carries no workspace. It is the
+  // same key TrustDial and the scorecard read, so TanStack dedupes the fetch.
+  const fTrust = useServerFn(getAllAgentTrust);
+  const trustQ = useQuery({ queryKey: ["agent-trust"], queryFn: () => fTrust() });
+
+  const agents = hud.data?.agents ?? [];
+  const trust = (trustQ.data?.trust ?? []) as AgentTrust[];
+
+  const trustById = React.useMemo(() => {
+    const m = new Map<string, AgentTrust>();
+    for (const t of trust) m.set(t.agent_id, t);
+    return m;
+  }, [trust]);
+
+  const infoById = React.useMemo(() => {
+    const m = new Map<string, { name: string; slug: string; role: string }>();
+    for (const a of agents) {
+      m.set(a.agent_id, { name: agentDisplayName(a.slug, a.name), slug: a.slug, role: a.role });
+    }
+    return m;
+  }, [agents]);
+
+  // Most-trusted first, so the ranking itself is information. An agent with no
+  // record sorts to the bottom rather than being given a score it has not
+  // earned.
+  const rows = React.useMemo(
+    () =>
+      [...agents].sort((a, b) => {
+        const sa = trustById.get(a.agent_id)?.score ?? -1;
+        const sb = trustById.get(b.agent_id)?.score ?? -1;
+        return sb - sa;
+      }),
+    [agents, trustById],
   );
-  const conductor = conductorEntry();
-  const crew = crewEntries();
+
+  const working = agents.filter((a) => a.enabled && LIVE_STATUS.has(a.latest_run?.status ?? ""));
+  const off = agents.filter((a) => !a.enabled);
+
+  function stateFor(a: (typeof agents)[number]): MarkState {
+    if (!a.enabled) return "quiet";
+    const status = a.latest_run?.status ?? "";
+    if (LIVE_STATUS.has(status)) return "running";
+    if (FAILED_STATUS.has(status)) return "failed";
+    return "idle";
+  }
+
+  const open = (slug: string) => void navigate({ to: "/crew", search: { agent: slug } });
+
+  if (hud.isLoading && agents.length === 0) {
+    return (
+      <Block title="Who is working">
+        <Loading>Reading the crew.</Loading>
+      </Block>
+    );
+  }
+
+  // A read that failed is not an empty state. "Nobody is here" and "we could
+  // not find out who is here" are different facts, and the operator acts
+  // differently on each.
+  if (hud.isError) {
+    return (
+      <Block title="Who is working">
+        <Failed onRetry={() => hud.refetch()}>
+          The crew did not load, so nothing below would be the real state.
+        </Failed>
+      </Block>
+    );
+  }
+
+  const census =
+    agents.length === 0 ? null : (
+      <>
+        <Num>{working.length}</Num> of <Num>{agents.length}</Num> are working right now
+        {off.length > 0 ? (
+          <>
+            , <Num>{off.length}</Num> are switched off
+          </>
+        ) : null}
+        . Open one to change what it is allowed to do.
+      </>
+    );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-      {/* The roster below is static catalog data, but the dial + inspector
-          feed on the live HUD read: a failed read must say so rather than
-          render them silently empty (checklist 7). */}
-      {q.isError ? (
-        <div style={{ color: "var(--madder-bright)" }}>
-          Live agent status did not load; trust dials and the inspector may look empty.{" "}
-          <button
-            type="button"
-            className="cursor-pointer hover:underline active:opacity-80"
-            onClick={() => void q.refetch()}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              color: "var(--text-primary)",
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      ) : null}
-      <section
-        style={{
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          background: "var(--card)",
-          boxShadow: "var(--shadow-elevated)",
-          padding: "18px 20px",
-        }}
-      >
-        <MonoLabel>The team, by station</MonoLabel>
-        <p style={{ color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
-          The full mesh lives here. The user never sees this roster; they meet these agents in
-          motion, as the relay, named for what they do.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
-          {AGENT_STATION_ORDER.map((st) => {
-            const members = castByStation(st);
-            if (members.length === 0) return null;
+    <>
+      <Block title="Who is working" sub={census}>
+        {agents.length === 0 ? (
+          <Empty>
+            This account has no agent rows yet. The first mission that needs an agent creates it.
+          </Empty>
+        ) : (
+          rows.map((a) => {
+            const t = trustById.get(a.agent_id);
+            const name = agentDisplayName(a.slug, a.name);
+            const run = a.latest_run;
+            const live = a.enabled && LIVE_STATUS.has(run?.status ?? "");
             return (
-              <StationGroup key={st} label={AGENT_STATIONS[st].name}>
-                {members.map((e) => (
-                  <RosterRow key={e.slug} entry={e} />
-                ))}
-              </StationGroup>
+              <Row
+                key={a.agent_id}
+                marks={<AgentMark slug={a.slug} name={a.name} state={stateFor(a)} />}
+                lead={
+                  <>
+                    {name}
+                    {a.trust_arc ? (
+                      <>
+                        {" "}
+                        {/* ladderLabel falls back to the raw value for an arc it
+                            has not been told about, so an arc the catalog gains
+                            later reads as itself rather than as nothing. */}
+                        <Value tone="quiet">{ladderLabel(a.trust_arc as Arc)}</Value>
+                      </>
+                    ) : null}
+                  </>
+                }
+                // The second line is always a DIFFERENT fact from the lead: the
+                // record, never a restatement of the rung the lead already
+                // shows. A score over fewer than three signals is not evidence,
+                // so it is not drawn as one.
+                sub={
+                  !a.enabled ? (
+                    "Switched off. Nothing dispatches it."
+                  ) : live ? (
+                    <>
+                      Running now
+                      {run?.step_index != null ? (
+                        <>
+                          , step <Num>{run.step_index}</Num>
+                        </>
+                      ) : null}
+                    </>
+                  ) : t && t.breakdown.samples >= 3 ? (
+                    <>
+                      <Num>{t.score}</Num> out of <Num>100</Num>, from{" "}
+                      <Num>{t.breakdown.samples}</Num> signals
+                    </>
+                  ) : (
+                    "No record yet. Its boundary is yours to set until there is one."
+                  )
+                }
+                time={ago(run?.created_at)}
+                tight
+                onClick={() => open(a.slug)}
+              />
             );
-          })}
-          {conductor ? (
-            <StationGroup label="Conductor">
-              <RosterRow entry={conductor} />
-            </StationGroup>
-          ) : null}
-          {crew.length > 0 ? (
-            <StationGroup label="Engine crew · never shown to users">
-              {crew.map((e) => (
-                <RosterRow key={e.slug} entry={e} muted />
-              ))}
-            </StationGroup>
-          ) : null}
-        </div>
-      </section>
+          })
+        )}
+      </Block>
 
-      {/* Relocated from the retired Missions roster grid. */}
-      <TrustDial nameById={nameById} />
-      {/* RPT-37: the outcome-graded scorecard, per agent + per task type. */}
+      {/* The record speaking, across the whole crew at once. Renders nothing
+          when every agent sits where its record says it belongs. */}
+      <TrustDial infoById={infoById} />
+
+      {/* RPT-37: the outcome-graded scorecard, per agent and per task type. */}
       <AgentScorecardPanel />
+
       <AgentInspector agents={agents} />
-    </div>
+    </>
   );
 }

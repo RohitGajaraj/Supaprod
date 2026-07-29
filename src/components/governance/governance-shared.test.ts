@@ -1,5 +1,12 @@
 import { describe, expect, test, beforeEach } from "bun:test";
-import { relExpiry, fmtMedian, RESOLVED_LINE, RISK_TONE, toneForRisk } from "./governance-shared";
+import {
+  relExpiry,
+  fmtMedian,
+  RESOLVED_LINE,
+  RISK_NOTE,
+  RISK_TONE,
+  toneForRisk,
+} from "./governance-shared";
 
 describe("relExpiry", () => {
   let now: number;
@@ -250,51 +257,62 @@ describe("fmtMedian", () => {
   });
 });
 
+/**
+ * PORTED 2026-07-29. These blocks used to assert raw CSS variables from the
+ * retired palette (`var(--moss)`, `var(--madder)`, `var(--marigold)`), which
+ * pinned the governance surfaces to a stylesheet that no longer exists. The
+ * maps hand back the `Value` primitive's tone vocabulary now, so the
+ * assertions are about MEANING (is a failure a failure) rather than about a
+ * hue, and the stylesheet is free to change without breaking a unit test.
+ */
+
+const TONES = ["quiet", "pass", "warn", "fail"];
+
 describe("RESOLVED_LINE mapping", () => {
-  test("maps all expected approval statuses to display text and color", () => {
+  test("maps all expected approval statuses to display text and a tone", () => {
     const expectedStatuses = ["approved", "executed", "rejected", "failed", "cancelled", "expired"];
     expectedStatuses.forEach((status) => {
       const line = RESOLVED_LINE[status];
       expect(line).toBeTruthy();
       expect(line?.text).toBeTruthy();
-      expect(line?.color).toBeTruthy();
+      expect(TONES).toContain(line?.tone);
     });
   });
 
-  test("approved status shows success message in moss color", () => {
+  test("approved status reads as a pass", () => {
     const line = RESOLVED_LINE["approved"];
-    expect(line?.text).toBe("approved · agent resumed");
-    expect(line?.color).toBe("var(--moss)");
+    expect(line?.text).toBe("approved, the agent resumed");
+    expect(line?.tone).toBe("pass");
   });
 
-  test("executed status aliases to approved with moss color", () => {
+  test("executed status aliases to approved", () => {
     const line = RESOLVED_LINE["executed"];
-    expect(line?.text).toBe("approved · agent resumed");
-    expect(line?.color).toBe("var(--moss)");
+    expect(line?.text).toBe("approved, the agent resumed");
+    expect(line?.tone).toBe("pass");
   });
 
-  test("rejected status shows rejection message in muted color", () => {
+  test("rejected status is quiet, not an alert: a decline is a decision, not a fault", () => {
     const line = RESOLVED_LINE["rejected"];
-    expect(line?.text).toBe("rejected · nothing ran");
-    expect(line?.color).toBe("var(--text-muted)");
+    expect(line?.text).toBe("rejected, nothing ran");
+    expect(line?.tone).toBe("quiet");
   });
 
-  test("failed status shows error message in madder (alert) color", () => {
+  test("failed status reads as a failure", () => {
     const line = RESOLVED_LINE["failed"];
-    expect(line?.text).toBe("failed · the tool errored");
-    expect(line?.color).toBe("var(--madder)");
+    expect(line?.text).toBe("failed, the tool errored");
+    expect(line?.tone).toBe("fail");
   });
 
-  test("cancelled status shows cancellation message in faint color", () => {
+  test("cancelled status is quiet", () => {
     const line = RESOLVED_LINE["cancelled"];
-    expect(line?.text).toBe("cancelled · nothing ran");
-    expect(line?.color).toBe("var(--text-faint)");
+    expect(line?.text).toBe("cancelled, nothing ran");
+    expect(line?.tone).toBe("quiet");
   });
 
-  test("expired status shows expiration message in faint color", () => {
+  test("expired status is quiet", () => {
     const line = RESOLVED_LINE["expired"];
-    expect(line?.text).toBe("expired · nothing ran");
-    expect(line?.color).toBe("var(--text-faint)");
+    expect(line?.text).toBe("expired, nothing ran");
+    expect(line?.tone).toBe("quiet");
   });
 
   test("unknown status key returns undefined (safe fallback)", () => {
@@ -302,10 +320,20 @@ describe("RESOLVED_LINE mapping", () => {
     expect(line).toBeUndefined();
   });
 
-  test("all colors are CSS variable references", () => {
+  test("every tone is one the Value primitive can draw", () => {
     Object.values(RESOLVED_LINE).forEach((line) => {
       if (line) {
-        expect(line.color).toContain("var(--");
+        expect(TONES).toContain(line.tone);
+      }
+    });
+  });
+
+  test("no line carries a dash or a middot: plain words, and never AI punctuation", () => {
+    Object.values(RESOLVED_LINE).forEach((line) => {
+      if (line) {
+        expect(line.text).not.toContain("—");
+        expect(line.text).not.toContain("–");
+        expect(line.text).not.toContain("·");
       }
     });
   });
@@ -326,25 +354,25 @@ describe("RESOLVED_LINE mapping", () => {
 });
 
 describe("RISK_TONE mapping", () => {
-  test("maps all expected risk levels to semantic colors", () => {
+  test("maps all expected risk levels to a drawable tone", () => {
     const expectedRisks = ["low", "medium", "high"];
     expectedRisks.forEach((risk) => {
       const tone = RISK_TONE[risk];
       expect(tone).toBeTruthy();
-      expect(tone).toContain("var(--");
+      expect(TONES).toContain(tone);
     });
   });
 
-  test("low risk is mapped to moss (safe outcome)", () => {
-    expect(RISK_TONE["low"]).toBe("var(--moss)");
+  test("low risk reads as a pass: it stays in the workspace and it can be undone", () => {
+    expect(RISK_TONE["low"]).toBe("pass");
   });
 
-  test("medium risk is mapped to marigold (caution)", () => {
-    expect(RISK_TONE["medium"]).toBe("var(--marigold)");
+  test("medium risk reads as a warning: it reaches outside", () => {
+    expect(RISK_TONE["medium"]).toBe("warn");
   });
 
-  test("high risk is mapped to madder (alert)", () => {
-    expect(RISK_TONE["high"]).toBe("var(--madder)");
+  test("high risk reads as a failure tone: it is hard to walk back", () => {
+    expect(RISK_TONE["high"]).toBe("fail");
   });
 
   test("unknown risk levels are handled by toneForRisk default", () => {
@@ -352,72 +380,83 @@ describe("RISK_TONE mapping", () => {
     expect(RISK_TONE["unknown"]).toBeUndefined();
   });
 
-  test("all color values are CSS variables", () => {
+  test("no entry hands back a raw colour: the stylesheet owns every mix", () => {
     Object.values(RISK_TONE).forEach((tone) => {
-      expect(tone).toContain("var(--");
-      expect(tone).toContain(")");
+      expect(tone).not.toContain("var(--");
+      expect(TONES).toContain(tone);
     });
   });
 
-  test("high risk does not use ember (ember is reserved for primary CTA)", () => {
-    expect(RISK_TONE["high"]).not.toContain("ember");
+  test("no risk level claims ember: ember marks the human, and nothing else", () => {
+    Object.values(RISK_TONE).forEach((tone) => {
+      expect(tone).not.toContain("ember");
+    });
   });
 });
 
 describe("toneForRisk helper function", () => {
-  test("returns moss for low risk", () => {
-    expect(toneForRisk("low")).toBe("var(--moss)");
+  test("returns pass for low risk", () => {
+    expect(toneForRisk("low")).toBe("pass");
   });
 
-  test("returns marigold for medium risk", () => {
-    expect(toneForRisk("medium")).toBe("var(--marigold)");
+  test("returns warn for medium risk", () => {
+    expect(toneForRisk("medium")).toBe("warn");
   });
 
-  test("returns madder for high risk", () => {
-    expect(toneForRisk("high")).toBe("var(--madder)");
+  test("returns fail for high risk", () => {
+    expect(toneForRisk("high")).toBe("fail");
   });
 
-  test("returns marigold (conservative default) for unknown risk levels", () => {
-    expect(toneForRisk("unknown")).toBe("var(--marigold)");
-    expect(toneForRisk("extreme")).toBe("var(--marigold)");
-    expect(toneForRisk("")).toBe("var(--marigold)");
+  test("returns warn (the conservative read) for unknown risk levels", () => {
+    expect(toneForRisk("unknown")).toBe("warn");
+    expect(toneForRisk("extreme")).toBe("warn");
+    expect(toneForRisk("")).toBe("warn");
   });
 
-  test("always returns a color variable string, never null or undefined", () => {
+  test("always returns a drawable tone, never null or undefined", () => {
     const risks = ["low", "medium", "high", "unknown", "critical", ""];
     risks.forEach((risk) => {
       const result = toneForRisk(risk);
       expect(result).toBeTruthy();
       expect(typeof result).toBe("string");
-      expect(result).toContain("var(--");
+      expect(TONES).toContain(result);
     });
   });
 
-  test("unknown risks default to marigold for consistency across the governance UI", () => {
-    // This documents the safe fallback: any new risk level introduced will display
-    // with caution coloring (marigold) instead of accidentally using an undefined color.
-    expect(toneForRisk("moderate")).toBe("var(--marigold)");
-    expect(toneForRisk("advisory")).toBe("var(--marigold)");
+  test("unknown risks default to warn for consistency across the governance UI", () => {
+    // The safe fallback: any new risk level reads as caution rather than as an
+    // undefined tone that would silently render quiet, which is the one wrong
+    // answer here (a risk nobody classified must not look harmless).
+    expect(toneForRisk("moderate")).toBe("warn");
+    expect(toneForRisk("advisory")).toBe("warn");
+  });
+});
+
+describe("RISK_NOTE", () => {
+  test("says what the risk would touch, for every level RISK_TONE knows", () => {
+    Object.keys(RISK_TONE).forEach((risk) => {
+      expect(RISK_NOTE[risk]).toBeTruthy();
+    });
+  });
+
+  test("never restates the level: no note contains its own risk word", () => {
+    Object.entries(RISK_NOTE).forEach(([risk, note]) => {
+      expect(note.toLowerCase()).not.toContain(`${risk} risk`);
+    });
   });
 });
 
 describe("governance-shared semantic consistency", () => {
-  test("resolved success states use moss color (same as low risk)", () => {
-    const successLine = RESOLVED_LINE["approved"];
-    const lowRiskTone = RISK_TONE["low"];
-    expect(successLine?.color).toBe(lowRiskTone);
+  test("a resolved success and a low risk read in the same voice", () => {
+    expect(RESOLVED_LINE["approved"]?.tone).toBe(RISK_TONE["low"]);
   });
 
-  test("resolved error state uses madder (same as high risk)", () => {
-    const failedLine = RESOLVED_LINE["failed"];
-    const highRiskTone = RISK_TONE["high"];
-    expect(failedLine?.color).toBe(highRiskTone);
+  test("a resolved error and a high risk read in the same voice", () => {
+    expect(RESOLVED_LINE["failed"]?.tone).toBe(RISK_TONE["high"]);
   });
 
-  test("medium risk and caution states both use consistent warning/caution tones", () => {
-    const mediumRiskTone = RISK_TONE["medium"];
-    expect(mediumRiskTone).toBe("var(--marigold)");
-    // No-op states like cancelled use text-faint (quieter), while medium risk uses warning color
-    // This is intentional: risk level is more prominent than status state
+  test("a declined call is quieter than a medium risk: a decision is not a fault", () => {
+    expect(RESOLVED_LINE["rejected"]?.tone).toBe("quiet");
+    expect(RISK_TONE["medium"]).toBe("warn");
   });
 });

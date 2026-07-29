@@ -1,21 +1,57 @@
-// v6 Phase 3 / Track 2 — the Gauntlet: the three north-star proof metrics on a
-// real surface. Styling follows AnalyticsPanel (bento cards, MonoLabel, serif
-// tabular headline, faint sub-line). Every number is read from real tables;
-// when the data is sparse each card says "not enough data yet" rather than
-// inventing a figure (honesty rule — the claim never outruns the wiring).
+/**
+ * THE GAUNTLET. The proof metrics, on a real surface, read from real tables.
+ *
+ * Ported off the retired Ember Editorial system (2026-07-29). MonoLabel, the
+ * cards, the trend chips and every legacy token are gone. What changed,
+ * and why:
+ *
+ * KEEP, and keep exactly, the honesty rule this panel was written around: when
+ *      the data is sparse a card says "not enough data yet" rather than
+ *      inventing a figure, and it says what would unlock it. The claim never
+ *      outruns the wiring. What changed is only how that fact is DRAWN: a
+ *      sparse metric is an Empty, which names who acts next, and a metric whose
+ *      READ FAILED is a Failed with a retry. Those are different facts and the
+ *      old panel rendered both as the same grey line.
+ * KEEP every server function, every query key and the one exported symbol.
+ *
+ * KILL the six cards. Six bordered boxes in a region that is already one
+ *      bordered container is anti-slop ban 5, and the same
+ *      label-number-sentence-substat template repeated six times is ban 6. Each
+ *      metric reads label left, fact right, so each is a Line with a Value.
+ *      That also rules out a Grid of Cells: a Grid is for a catalog scanned
+ *      ACROSS, and these are measurements of one loop, read down.
+ * KILL all nine lucide icons. CheckCircle2, Gauge, Flame, Sparkles, Target and
+ *      Layers each sat beside a heading that already said what they said, which
+ *      is decoration at the size of a label (ban 8). ArrowUpRight,
+ *      ArrowDownRight and Minus went with the trend chip: a trend is a WORD,
+ *      and "rising" says more than an arrow and survives greyscale.
+ * KILL the TrendChip's colour. Green for up and red for down asserted that a
+ *      direction is an outcome. The product defines no such threshold for
+ *      acceptance or for ritual days, so a colour there was a judgment nothing
+ *      backs. The direction is a plain word inside the evidence line now.
+ * KILL the "-" value. A dash reads as zero at a glance, and zero is a claim
+ *      about what happened. A metric with nothing behind it has no figure at
+ *      all and says so in words.
+ * KILL the Geist Pixel headline on the moat metric, the serif display faces and
+ *      the mono uppercase labels. Mono is for data only, and it reaches the
+ *      screen through Num.
+ * KILL the single combined error card at the foot. Six independent reads
+ *      collapsed into one message, so a working metric was hidden behind a
+ *      neighbour's failure and one retry refetched all six. Each read now fails
+ *      in its own place and retries only itself.
+ *
+ * THE ONE LIT SURFACE. Outcome accuracy gets the Record, and it is the only
+ * Record here. Record is a claim that confirms or contradicts YOU, and outcome
+ * accuracy is the one measure on this panel that does: it is the record telling
+ * you how often the bets you shipped actually validated. Memory compounding and
+ * the depth split are statistics about the store, so they stay Lines.
+ *
+ * NO WRITE happens here. Every control is a retry on a read, so there is no
+ * consequence to leave a receipt for.
+ */
+import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import {
-  CheckCircle2,
-  Gauge,
-  Flame,
-  Sparkles,
-  Target,
-  Layers,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
-} from "lucide-react";
 import {
   getAcceptanceRate,
   getAutonomyRatio,
@@ -24,379 +60,74 @@ import {
   getOutcomeAccuracy,
   getMemoryLift,
   type Trend,
-  type MemoryCompounding,
-  type OutcomeAccuracy,
-  type MemoryLiftResult,
 } from "@/lib/gauntlet.functions";
-import { MonoLabel } from "@/components/supaprod/Primitives";
+import {
+  Block,
+  Empty,
+  Failed,
+  Line,
+  Loading,
+  Num,
+  Record as RecordRecess,
+  Value,
+} from "@/components/shell/primitives";
 
-function pct(n: number | null): string {
-  if (n == null) return "-";
+function pct(n: number | null): string | null {
+  if (n == null) return null;
   return `${Math.round(n * 100)}%`;
 }
 
-function TrendChip({
-  trend,
-  hidden,
-  windowLabel = "7d vs prior 7d",
-}: {
-  trend: Trend;
-  hidden?: boolean;
-  windowLabel?: string;
-}) {
-  if (hidden) return null;
-  const map = {
-    up: { Icon: ArrowUpRight, color: "var(--moss)", label: "rising" },
-    down: { Icon: ArrowDownRight, color: "var(--madder)", label: "falling" },
-    flat: { Icon: Minus, color: "var(--text-faint)", label: "flat" },
-  } as const;
-  const { Icon, color, label } = map[trend];
-  return (
-    <span
-      className="mono-label"
-      style={{ display: "inline-flex", alignItems: "center", gap: 3, color }}
-    >
-      <Icon size={16} strokeWidth={1.5} />
-      {label} · {windowLabel}
-    </span>
-  );
+/** A direction, as a word. No colour: the product defines no threshold that
+ *  makes a rising acceptance rate good or a falling one bad, so a hue here
+ *  would assert a judgment nothing backs. */
+const TREND_WORD: Record<Trend, string> = {
+  up: "rising",
+  down: "falling",
+  flat: "holding steady",
+};
+
+/** A read that threw. Kept separate from "nothing here yet", because the two
+ *  are different facts and a person acts differently on each. */
+function readError(isError: boolean, error: unknown): string | null {
+  if (!isError) return null;
+  return error instanceof Error ? error.message : "The read failed.";
 }
 
-/** One metric card — serif headline, optional trend chip, one plain-language
- *  line of what it means, and an honest sub-stat. */
-function MetricCard({
-  icon,
+/**
+ * One metric. Three states, always: a read in flight, a read that failed, and
+ * an answer. An answer with nothing behind it carries no figure rather than a
+ * dash, and its evidence line says what would unlock it.
+ */
+function Measure({
   label,
-  value,
-  trend,
-  trendHidden,
-  meaning,
-  substat,
+  evidence,
+  figure,
   loading,
+  error,
+  onRetry,
 }: {
-  icon: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
   label: string;
-  value: string;
-  trend?: Trend;
-  trendHidden?: boolean;
-  meaning: string;
-  substat: string;
+  /** What backs the figure, or what would unlock it. Never a restatement. */
+  evidence: React.ReactNode;
+  /** Absent when there is nothing defensible to show. */
+  figure: React.ReactNode | null;
   loading: boolean;
+  error: string | null;
+  onRetry: () => void;
 }) {
-  return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <MonoLabel icon={icon} style={{ marginBottom: 6 }}>
-        {label}
-      </MonoLabel>
-      <div
-        className="font-display tabular-nums"
-        style={{ color: value === "-" ? "var(--text-faint)" : "var(--text-primary)" }}
-      >
-        {loading ? "…" : value}
-      </div>
-      <div style={{ minHeight: 14, marginTop: 2 }}>
-        {!loading && trend && <TrendChip trend={trend} hidden={trendHidden} />}
-      </div>
-      <p style={{ color: "var(--text-subtle)", marginTop: 8, lineHeight: 1.45 }}>
-        {meaning}
-      </p>
-      <div
-        className="mono-label"
-        style={{ color: "var(--text-faint)", marginTop: 8 }}
-      >
-        {loading ? "loading…" : substat}
-      </div>
-    </div>
-  );
-}
-
-/** The moat metric - full width below the operational three. The honest,
- *  scale-independent proof the decision memory compounds: how much of what the
- *  loop stored it has recalled back, plus growth and the priorities outcomes
- *  moved. NDR is explicitly deferred to billing (M-C), never invented. */
-function MemoryCompoundsCard({
-  data,
-  loading,
-}: {
-  data: MemoryCompounding | undefined;
-  loading: boolean;
-}) {
-  const ready = data?.tableReady ?? false;
-  const stored = data?.stored ?? 0;
-  const hasData = ready && stored > 0;
-  return (
-    <div className="bento" style={{ padding: "var(--card-pad)", marginTop: 12 }}>
-      <MonoLabel icon={Sparkles} style={{ marginBottom: 8 }}>
-        Memory compounds · the moat
-      </MonoLabel>
-      {loading ? (
-        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
-          loading…
-        </div>
-      ) : hasData ? (
-        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ minWidth: 110 }}>
-            {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
-                the moat metric is the single number this whole panel exists
-                to prove, so it gets the display face - the three operational
-                metrics above stay on font-display. */}
-            <div
-              className="font-pixel tabular-nums"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {pct(data!.reuseRate)}
-            </div>
-            <div
-              className="mono-label"
-              style={{ color: "var(--text-faint)", marginTop: 2 }}
-            >
-              recalled back
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-              Of the memories the loop stored, the share it has recalled at least once. A store the
-              loop reads back is a moat; one it never reopens is a log.
-            </p>
-            <div style={{ display: "flex", gap: "var(--geist-space-4x)", flexWrap: "wrap", marginTop: 10 }}>
-              {(
-                [
-                  ["stored", String(data!.stored)],
-                  ["new this week", `+${data!.newThisWeek}`],
-                  ["moved a priority", String(data!.prioritiesMoved)],
-                ] as [string, string][]
-              ).map(([label, value]) => (
-                <span key={label} className="mono-label" style={{ }}>
-                  <strong
-                    className="tabular-nums"
-                    style={{ color: "var(--text-primary)", fontWeight: 600 }}
-                  >
-                    {value}
-                  </strong>{" "}
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-          {ready
-            ? "Not enough data yet, no memories stored. The loop writes one each time it records an outcome or an agent reflects on a run, then recalls them on its next pass."
-            : "Not enough data yet, memory tracking lights up on the next sync."}
-        </p>
-      )}
-      <div
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-faint)",
-          marginTop: 10,
-        }}
-      >
-        NDR and expansion land here once billing ships (pricing, M-C).
-      </div>
-    </div>
-  );
-}
-
-/** MOAT-METRIC — outcome accuracy, the second half of the moat proof, full
- *  width above Memory compounds. Of the bets you shipped and reviewed, the share
- *  that validated, and whether it is climbing. Honest when sparse; it never
- *  claims causal "memory lift" (no on/off control), only the trend the data
- *  supports. Pairs with Memory compounds: judgment validating + memory reused. */
-function OutcomeAccuracyCard({
-  data,
-  loading,
-}: {
-  data: OutcomeAccuracy | undefined;
-  loading: boolean;
-}) {
-  const ready = data?.tableReady ?? false;
-  const decided = data?.decided ?? 0;
-  const hasData = ready && decided > 0;
-  return (
-    <div className="bento" style={{ padding: "var(--card-pad)", marginTop: 12 }}>
-      <MonoLabel icon={Target} style={{ marginBottom: 8 }}>
-        Outcome accuracy · the moat
-      </MonoLabel>
-      {loading ? (
-        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
-          loading…
-        </div>
-      ) : hasData ? (
-        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ minWidth: 110 }}>
-            <div
-              className="font-display tabular-nums"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {pct(data!.rate)}
-            </div>
-            <div style={{ minHeight: 14, marginTop: 2 }}>
-              {data!.priorRate != null && data!.rate != null ? (
-                <TrendChip trend={data!.trend} windowLabel="vs prior period" />
-              ) : (
-                <div className="mono-label" style={{ color: "var(--text-faint)" }}>
-                  validated share
-                </div>
-              )}
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-              Of the bets you shipped and then reviewed, the share that validated. Climbing as the
-              loop's memory compounds is the moat working, not just storing.
-            </p>
-            <div style={{ display: "flex", gap: "var(--geist-space-4x)", flexWrap: "wrap", marginTop: 10 }}>
-              {(
-                [
-                  ["validated", String(data!.validated)],
-                  ["missed", String(data!.missed)],
-                  ["mixed", String(data!.mixed)],
-                ] as [string, string][]
-              ).map(([label, value]) => (
-                <span key={label} className="mono-label" style={{ }}>
-                  <strong
-                    className="tabular-nums"
-                    style={{ color: "var(--text-primary)", fontWeight: 600 }}
-                  >
-                    {value}
-                  </strong>{" "}
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-          {ready
-            ? "Not enough data yet, no reviewed outcomes. Record an outcome on a shipped spec and its verdict lands here."
-            : "Not enough data yet, outcome tracking lights up on the next sync."}
-        </p>
-      )}
-      <div
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-faint)",
-          marginTop: 10,
-        }}
-      >
-        Accuracy is the validated share; causal memory-lift needs an on/off control we don't claim.
-      </div>
-    </div>
-  );
-}
-
-/** MOAT-METRIC — the memory-depth split (the lift half of the moat proof). An
- *  honest, observational cut: of your reviewed bets, did the half decided LATER in
- *  the store's growth (more precedent accumulated) validate more often than the
- *  half decided earlier. Correlational, never causal — the colour stays neutral
- *  for either sign and the confound is named inline and in the footnote. Below the
- *  size / depth-contrast / noise gates it reads "not enough data yet" with a
- *  reason, never an invented number. Pairs with Outcome accuracy and Memory
- *  compounds as the three honest faces of the moat. */
-function MemoryDepthSplitCard({
-  data,
-  loading,
-}: {
-  data: MemoryLiftResult | undefined;
-  loading: boolean;
-}) {
-  const ready = data?.tableReady ?? false;
-  const bounded = data?.memoryBounded ?? true;
-  const lift = data?.liftPoints ?? null;
-  const hasNumber = !!data && ready && bounded && lift != null;
-
-  // Not-computable copy — keyed on the reason so the user learns what would unlock it.
-  let notMsg = "Not enough data yet.";
-  if (data && ready && !bounded) {
-    // The store grew past what we score in one pass — an honest refusal to
-    // under-report depth, NOT a sparse-data state. Say so rather than imply "empty".
-    notMsg = "Your memory store is larger than we can score in one pass right now.";
-  } else if (data && ready && bounded && lift == null) {
-    if (data.reason === "not-enough-outcomes") {
-      notMsg =
-        "Not enough reviewed bets yet. Two halves of 8 or more reviewed outcomes unlock this.";
-    } else if (data.reason === "depth-contrast-too-small") {
-      notMsg = "Not enough variation in precedent across your reviewed bets to compare them yet.";
-    } else if (data.reason === "lift-within-noise") {
-      notMsg = `Measured, but within the margin of error at this sample. Earlier half ${pct(
-        data.sparseRate,
-      )} (n=${data.sparseN}), later half ${pct(data.richRate)} (n=${data.richN}). Too close to call.`;
-    } else if (data.reason === "data-quality") {
-      notMsg = "Not enough clean data yet.";
-    }
+  if (loading) return <Loading>Reading {label.toLowerCase()}.</Loading>;
+  if (error) {
+    return (
+      <Failed onRetry={onRetry}>
+        {label} did not load, so nothing here is a claim about it. {error}
+      </Failed>
+    );
   }
-
-  const absLift = lift == null ? 0 : Math.abs(lift);
-  const headline = lift == null ? "-" : `${lift > 0 ? "+" : ""}${lift} pts`;
-  const meaning =
-    lift == null
-      ? ""
-      : lift === 0
-        ? "The two halves of your reviewed bets validated about equally, whether decided with little or lots of memory accumulated. Read this as association, not a memory on/off test."
-        : `The half of your reviewed bets made later in your memory's growth validated ${absLift} pts ${
-            lift > 0 ? "more" : "less"
-          } often than the earlier half. Later also means more practice, so read this as association, not a memory on/off test.`;
-
+  if (figure == null) return <Line label={label} sub={evidence} />;
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)", marginTop: 12 }}>
-      <MonoLabel icon={Layers} style={{ marginBottom: 8 }}>
-        Memory-depth split · the moat
-      </MonoLabel>
-      {loading ? (
-        <div className="mono-label" style={{ color: "var(--text-faint)" }}>
-          loading…
-        </div>
-      ) : hasNumber ? (
-        <div style={{ display: "flex", gap: "var(--geist-gap)", alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ minWidth: 110 }}>
-            {/* Neutral ink for either sign — this is an association, not a win. */}
-            <div
-              className="font-display tabular-nums"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {headline}
-            </div>
-            <div
-              className="mono-label"
-              style={{ color: "var(--text-faint)", marginTop: 2 }}
-            >
-              later half vs earlier half
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>
-              {meaning}
-            </p>
-            <div
-              className="mono-label"
-              style={{ marginTop: 10, color: "var(--text-subtle)" }}
-            >
-              Earlier half: {pct(data!.sparseRate)} validated (n={data!.sparseN}) / Later half:{" "}
-              {pct(data!.richRate)} validated (n={data!.richN}). One outcome moves this about{" "}
-              {data!.swingPoints} pts.
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p style={{ color: "var(--text-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
-      )}
-      <div
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-faint)",
-          marginTop: 10,
-          lineHeight: 1.5,
-        }}
-      >
-        Correlational, within your account. We compare bets by how much memory had accumulated when
-        each was decided, not a memory on/off test. Bets with deeper memory are usually also later
-        bets, so getting better over time, easier later bets, or survivorship could explain this
-        rather than memory itself.
-      </div>
-    </div>
+    <Line label={label} sub={evidence}>
+      <Value>{figure}</Value>
+    </Line>
   );
 }
 
@@ -436,141 +167,250 @@ export function GauntletMetricsPanel() {
   const a = acceptQ.data;
   const c = autonomyQ.data;
   const b = ritualQ.data;
+  const accuracy = accuracyQ.data;
+  const lift = liftQ.data;
+  const mem = memQ.data;
 
-  // Metric A copy.
-  const acceptValue = a == null || a.rate == null ? "-" : pct(a.rate);
-  const acceptSub =
-    a == null
-      ? ""
-      : a.decided === 0
-        ? "not enough data yet. No calls decided in 14d."
-        : `${a.approved} approved · ${a.rejected} rejected · last 14d`;
+  /* ---- Metric A: acceptance ---- */
+  const acceptEvidence: React.ReactNode =
+    a == null || a.decided === 0 ? (
+      "Of the calls you decided, the share you approved. Not enough data yet: no call was decided in the last 14 days."
+    ) : (
+      <>
+        Of the calls you decided, the share you approved. <Num>{a.approved}</Num> approved,{" "}
+        <Num>{a.rejected}</Num> rejected over the last <Num>14</Num> days
+        {a.priorRate != null && a.rate != null
+          ? `, ${TREND_WORD[a.trend]} against the 7 days before.`
+          : "."}
+      </>
+    );
 
-  // Metric C copy.
-  const autonomyValue = c == null || c.ratio == null ? "-" : pct(c.ratio);
-  const autonomySub =
-    c == null
-      ? ""
-      : c.unattended + c.gated === 0
-        ? "not enough data yet. No side-effecting actions in 14d."
-        : `${c.unattended} ran unattended · ${c.gated} came to you · last 14d`;
+  /* ---- Metric C: autonomy ---- */
+  const autonomyEvidence: React.ReactNode =
+    c == null || c.unattended + c.gated === 0 ? (
+      "Of the actions with a side effect, the share the loop carried on its own instead of stopping to ask. Not enough data yet: nothing with a side effect ran in the last 14 days."
+    ) : (
+      <>
+        Of the actions with a side effect, the share the loop carried on its own instead of stopping
+        to ask. <Num>{c.unattended}</Num> ran unattended, <Num>{c.gated}</Num> came to you over the
+        last <Num>14</Num> days
+        {c.priorRatio != null && c.ratio != null
+          ? `, ${TREND_WORD[c.trend]} against the 7 days before.`
+          : "."}
+      </>
+    );
 
-  // Metric B copy — retention shown as days-active (7d) + streak.
+  /* ---- Metric B: ritual retention ---- */
   const ritualReady = b?.tableReady ?? false;
-  const ritualValue = b == null || !ritualReady ? "-" : `${b.daysActive7}/7`;
-  const ritualSub =
-    b == null
-      ? ""
-      : !ritualReady
-        ? "not enough data yet. Ritual tracking lights up on next sync."
-        : b.daysActive7 === 0
-          ? "not enough data yet. Open Today to start the streak."
-          : `streak ${b.currentStreak}d · ${b.daysActive30} of last 30 days${
-              b.realData == null ? "" : b.realData ? " · real inputs" : " · demo seed"
-            }`;
+  const ritualEvidence: React.ReactNode =
+    b == null || !ritualReady ? (
+      "Days in the last week you opened Today and cleared the queue. Not enough data yet: ritual tracking starts on the next sync."
+    ) : b.daysActive7 === 0 ? (
+      // Not a sparse read. The table answered and the answer is zero, so the
+      // figure stands and the line says what zero means rather than pretending
+      // the number is missing.
+      "Days in the last week you opened Today and cleared the queue. You have not opened it once in the last seven days, so the streak starts the next time you do."
+    ) : (
+      <>
+        Days in the last week you opened Today and cleared the queue. A streak of{" "}
+        <Num>{b.currentStreak}</Num> {b.currentStreak === 1 ? "day" : "days"}, and{" "}
+        <Num>{b.daysActive30}</Num> of the last <Num>30</Num>
+        {b.realData == null ? "." : b.realData ? ", against real inputs." : ", on a demo seed."}
+      </>
+    );
+
+  /* ---- The moat: outcome accuracy ---- */
+  const accuracyError = readError(accuracyQ.isError, accuracyQ.error);
+  const accuracyReady = accuracy?.tableReady ?? false;
+  const accuracyRate = pct(accuracy?.rate ?? null);
+  const accuracyHasData = accuracy != null && accuracyReady && accuracy.decided > 0;
+
+  /* ---- The moat: memory-depth split ---- */
+  const liftError = readError(liftQ.isError, liftQ.error);
+  const liftReady = lift?.tableReady ?? false;
+  const liftBounded = lift?.memoryBounded ?? true;
+  const liftPoints = lift?.liftPoints ?? null;
+  const liftHasNumber = lift != null && liftReady && liftBounded && liftPoints != null;
+
+  // Why there is no number, keyed on the reason, so a person learns what would
+  // unlock it. The over-cap case is NOT a sparse-data state and must not read
+  // like one: it is a refusal to under-report depth, and no retry would change
+  // it, which is why it is an Empty rather than a Failed.
+  let liftBlocked = "Not enough data yet.";
+  if (lift && liftReady && !liftBounded) {
+    liftBlocked =
+      "Your memory store is larger than we can score in one pass right now, so this is withheld rather than under-reported.";
+  } else if (lift && liftReady && liftBounded && liftPoints == null) {
+    if (lift.reason === "not-enough-outcomes") {
+      liftBlocked =
+        "Not enough reviewed bets yet. Two halves of 8 or more reviewed outcomes unlock this.";
+    } else if (lift.reason === "depth-contrast-too-small") {
+      liftBlocked =
+        "Not enough variation in precedent across your reviewed bets to compare them yet.";
+    } else if (lift.reason === "lift-within-noise") {
+      liftBlocked = `Measured, but inside the margin of error at this sample. Earlier half ${pct(lift.sparseRate) ?? "not computable"} (n=${lift.sparseN}), later half ${pct(lift.richRate) ?? "not computable"} (n=${lift.richN}). Too close to call.`;
+    } else if (lift.reason === "data-quality") {
+      liftBlocked = "Not enough clean data yet.";
+    }
+  } else if (lift && !liftReady) {
+    liftBlocked = "Not enough data yet: the precedent timeline lights up on the next sync.";
+  }
+
+  /* ---- The moat: memory compounds ---- */
+  const memError = readError(memQ.isError, memQ.error);
+  const memReady = mem?.tableReady ?? false;
+  const memHasData = mem != null && memReady && mem.stored > 0;
 
   return (
-    <div>
-      <div
-        style={{
-          fontFamily: "var(--font-sans)",
-          color: "var(--text-faint)",
-          marginBottom: 12,
-          lineHeight: 1.5,
-        }}
+    <>
+      <Block
+        title="The three proof metrics"
+        sub="Read from real activity. The loop runs the reversible work and you make the calls, so a sparse window says so rather than inventing a number."
       >
-        The Gauntlet · the three proof metrics, read from real activity. The loop runs the
-        reversible work; you make the calls. Sparse windows read "not enough data yet", never an
-        invented number.
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
-        <MetricCard
-          icon={CheckCircle2}
+        <Measure
           label="Acceptance rate"
-          value={acceptValue}
-          trend={a?.trend}
-          trendHidden={a == null || a.priorRate == null || a.rate == null}
-          meaning="Of the calls you actually decided, the share you approved: how often the agents' proposals match your judgment."
-          substat={acceptSub}
+          evidence={acceptEvidence}
+          figure={a?.rate != null ? <Num>{pct(a.rate)}</Num> : null}
           loading={acceptQ.isLoading}
+          error={readError(acceptQ.isError, acceptQ.error)}
+          onRetry={() => void acceptQ.refetch()}
         />
-        <MetricCard
-          icon={Gauge}
+        <Measure
           label="Autonomy ratio"
-          value={autonomyValue}
-          trend={c?.trend}
-          trendHidden={c == null || c.priorRatio == null || c.ratio == null}
-          meaning="Of side-effecting actions, the share the loop ran unattended vs the share it gated for your call. Rising means it carries more reversible work itself."
-          substat={autonomySub}
+          evidence={autonomyEvidence}
+          figure={c?.ratio != null ? <Num>{pct(c.ratio)}</Num> : null}
           loading={autonomyQ.isLoading}
+          error={readError(autonomyQ.isError, autonomyQ.error)}
+          onRetry={() => void autonomyQ.refetch()}
         />
-        <MetricCard
-          icon={Flame}
+        <Measure
           label="Ritual retention"
-          value={ritualValue}
-          meaning="Days in the last week you opened Today to clear the queue, the daily ritual that keeps the loop honest and you in the loop."
-          substat={ritualSub}
+          evidence={ritualEvidence}
+          figure={b != null && ritualReady ? <Num>{`${b.daysActive7}/7`}</Num> : null}
           loading={ritualQ.isLoading}
+          error={readError(ritualQ.isError, ritualQ.error)}
+          onRetry={() => void ritualQ.refetch()}
         />
-      </div>
+      </Block>
 
-      {/* MOAT-METRIC — outcome accuracy, the memory-depth split, and memory
-          compounds as the three honest faces of the moat proof (judgment
-          validating + accuracy-by-memory-depth + memory reused). */}
-      <OutcomeAccuracyCard data={accuracyQ.data} loading={accuracyQ.isLoading} />
-
-      <MemoryDepthSplitCard data={liftQ.data} loading={liftQ.isLoading} />
-
-      <MemoryCompoundsCard data={memQ.data} loading={memQ.isLoading} />
-
-      {(acceptQ.error ||
-        autonomyQ.error ||
-        ritualQ.error ||
-        memQ.error ||
-        accuracyQ.error ||
-        liftQ.error) && (
-        <div className="bento" style={{ padding: "var(--geist-space-4x)", marginTop: 12 }}>
-          <div className="mono-label" style={{ color: "var(--madder)" }}>
-            Couldn't load some metrics
-          </div>
-          <p style={{ color: "var(--text-body)", marginTop: 6 }}>
-            {
-              (
-                (acceptQ.error ||
-                  autonomyQ.error ||
-                  ritualQ.error ||
-                  memQ.error ||
-                  accuracyQ.error ||
-                  liftQ.error) as Error
-              ).message
+      {/* The one Record on this surface. It is the record speaking about YOUR
+          judgment, which is what separates a claim from a statistic. */}
+      <Block
+        title="Outcome accuracy"
+        sub="We do not claim a causal memory lift here. That needs an on and off control we do not have, so this is the validated share and nothing more."
+      >
+        {accuracyQ.isLoading ? (
+          <Loading>Reading what your bets came to.</Loading>
+        ) : accuracyError ? (
+          <Failed onRetry={() => void accuracyQ.refetch()}>
+            Outcome accuracy did not load, so nothing here is a claim about your bets.{" "}
+            {accuracyError}
+          </Failed>
+        ) : accuracyHasData ? (
+          <RecordRecess
+            evidence={
+              <>
+                <Num>{accuracy.validated}</Num> validated · <Num>{accuracy.missed}</Num> missed ·{" "}
+                <Num>{accuracy.mixed}</Num> mixed, over <Num>90</Num> days
+              </>
             }
-          </p>
-          <button
-            type="button"
-            className="uppercase cursor-pointer transition-opacity hover:opacity-70"
-            onClick={() => {
-              void acceptQ.refetch();
-              void autonomyQ.refetch();
-              void ritualQ.refetch();
-              void memQ.refetch();
-              void accuracyQ.refetch();
-              void liftQ.refetch();
-            }}
-            style={{
-              marginTop: 10,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.11em",
-              color: "var(--text-primary)",
-              background: "none",
-              border: "none",
-              padding: 0,
-            }}
           >
-            RETRY
-          </button>
-        </div>
-      )}
-    </div>
+            Of the bets you shipped and then reviewed, <Num>{accuracyRate}</Num> validated
+            {accuracy.priorRate != null && accuracy.rate != null
+              ? `, ${TREND_WORD[accuracy.trend]} against the period before.`
+              : "."}
+          </RecordRecess>
+        ) : (
+          <Empty>
+            {accuracyReady
+              ? "Not enough data yet. Record an outcome on a shipped spec and its verdict lands here."
+              : "Not enough data yet. Outcome tracking lights up on the next sync."}
+          </Empty>
+        )}
+      </Block>
+
+      <Block
+        title="Memory-depth split"
+        sub="Correlational, within your account. It compares bets by how much precedent had accumulated when each was decided, never a memory on and off test, so getting better with practice could explain it instead."
+      >
+        {liftQ.isLoading ? (
+          <Loading>Reading the split.</Loading>
+        ) : liftError ? (
+          <Failed onRetry={() => void liftQ.refetch()}>
+            The split did not load, so nothing here is a claim about your precedent. {liftError}
+          </Failed>
+        ) : liftHasNumber ? (
+          /* Neutral for either sign. This is an association, not a win, so the
+             value takes no outcome tone. */
+          <Line
+            label="The later half against the earlier half"
+            sub={
+              <>
+                Earlier half <Num>{pct(lift.sparseRate)}</Num> validated (n=
+                <Num>{lift.sparseN}</Num>), later half <Num>{pct(lift.richRate)}</Num> (n=
+                <Num>{lift.richN}</Num>). One outcome moves this about <Num>{lift.swingPoints}</Num>{" "}
+                pts.
+              </>
+            }
+          >
+            <Value>
+              <Num>{`${liftPoints > 0 ? "+" : ""}${liftPoints} pts`}</Num>
+            </Value>
+          </Line>
+        ) : (
+          <Empty>{liftBlocked}</Empty>
+        )}
+      </Block>
+
+      <Block
+        title="Memory compounds"
+        sub="Of what the loop stored, the share it has read back at least once. A store the loop reopens is a moat; one it never reopens is a log. Net dollar retention is deliberately absent: it needs recurring revenue, so it lands once billing ships."
+      >
+        {memQ.isLoading ? (
+          <Loading>Reading the store.</Loading>
+        ) : memError ? (
+          <Failed onRetry={() => void memQ.refetch()}>
+            The store did not load, so nothing here is a claim about what it remembers. {memError}
+          </Failed>
+        ) : memHasData ? (
+          <>
+            <Line
+              label="Recalled back"
+              sub={
+                <>
+                  <Num>{mem.recalled}</Num> of the <Num>{mem.stored}</Num> memories it holds
+                </>
+              }
+            >
+              <Value>
+                <Num>{pct(mem.reuseRate)}</Num>
+              </Value>
+            </Line>
+            <Line
+              label="New this week"
+              sub="The loop writes one each time it records an outcome or an agent reflects on a run."
+            >
+              <Value>
+                <Num>{`+${mem.newThisWeek}`}</Num>
+              </Value>
+            </Line>
+            <Line
+              label="Outcomes that moved a priority"
+              sub="A recorded outcome that actually changed where a bet sits in the ranking."
+            >
+              <Value>
+                <Num>{mem.prioritiesMoved}</Num>
+              </Value>
+            </Line>
+          </>
+        ) : (
+          <Empty>
+            {memReady
+              ? "Not enough data yet, nothing is stored. The loop writes a memory each time it records an outcome or an agent reflects on a run, then reads them back on its next pass."
+              : "Not enough data yet. Memory tracking lights up on the next sync."}
+          </Empty>
+        )}
+      </Block>
+    </>
   );
 }

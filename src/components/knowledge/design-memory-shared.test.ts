@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { CATEGORY_LABEL, SOURCE_LABEL, STATUS_TONE } from "./design-memory-shared";
+import { CATEGORY_LABEL, SOURCE_LABEL, STATUS_WORD } from "./design-memory-shared";
 import type {
   DesignMemoryCategory,
   DesignMemorySourceKind,
   DesignMemoryStatus,
 } from "@/lib/design-memory.functions";
-import type { VerdictTone } from "@/components/obsidian/verdict";
 
 describe("CATEGORY_LABEL", () => {
   test("defines all expected category types", () => {
@@ -114,51 +113,54 @@ describe("SOURCE_LABEL", () => {
   });
 });
 
-describe("STATUS_TONE", () => {
+// STATUS_WORD replaced the retired VerdictTone map, 2026-07-29. The chip it fed
+// is gone; the outcome is a WORD carried by the one class that means it, and
+// "not settled" is deliberately monochrome because a call nobody has settled
+// yet is not an outcome.
+describe("STATUS_WORD", () => {
   test("defines all expected status types", () => {
     const expectedKeys = ["approved", "rejected", "pending"];
     expectedKeys.forEach((key) => {
-      expect(STATUS_TONE).toHaveProperty(key);
+      expect(STATUS_WORD).toHaveProperty(key);
     });
   });
 
-  test("maps status 'approved' to 'KEPT' verdict tone", () => {
-    expect(STATUS_TONE.approved).toBe("KEPT");
+  test("approved reads as in force, and green carries it", () => {
+    expect(STATUS_WORD.approved.word).toBe("In force");
+    expect(STATUS_WORD.approved.tone).toBe("sp-pass");
   });
 
-  test("maps status 'rejected' to 'KILL' verdict tone", () => {
-    expect(STATUS_TONE.rejected).toBe("KILL");
+  test("rejected reads as dropped, and red carries it", () => {
+    expect(STATUS_WORD.rejected.word).toBe("Dropped");
+    expect(STATUS_WORD.rejected.tone).toBe("sp-fail");
   });
 
-  test("maps status 'pending' to 'PENDING' verdict tone", () => {
-    expect(STATUS_TONE.pending).toBe("PENDING");
+  test("pending stays MONOCHROME: an unsettled rule is not an outcome", () => {
+    expect(STATUS_WORD.pending.word).toBe("Not settled");
+    expect(STATUS_WORD.pending.tone).toBe("");
   });
 
-  test("all status tones are valid VerdictTone values (uppercase)", () => {
-    const validTones: VerdictTone[] = ["SHIP", "WATCH", "PENDING", "REVISE", "KILL", "KEPT"];
-    Object.values(STATUS_TONE).forEach((tone) => {
-      expect(validTones).toContain(tone);
+  test("every tone is an sp- class or empty, never a raw colour", () => {
+    Object.values(STATUS_WORD).forEach(({ tone }) => {
+      expect(tone === "" || tone.startsWith("sp-")).toBe(true);
     });
   });
 
-  test("all status tone values are non-empty strings", () => {
-    Object.values(STATUS_TONE).forEach((tone) => {
-      expect(typeof tone).toBe("string");
-      expect(tone.length).toBeGreaterThan(0);
+  test("every word is a non-empty plain-language string", () => {
+    Object.values(STATUS_WORD).forEach(({ word }) => {
+      expect(typeof word).toBe("string");
+      expect(word.length).toBeGreaterThan(0);
     });
   });
 
   test("can look up status by key at runtime", () => {
     const status: DesignMemoryStatus = "approved";
-    expect(STATUS_TONE[status]).toBe("KEPT");
+    expect(STATUS_WORD[status].word).toBe("In force");
   });
 
-  test("status tones use established verdict vocabulary (not arbitrary strings)", () => {
-    // These values should align with the VerdictChip / verdict system's known tones
-    expect(STATUS_TONE.approved).toBe("KEPT");
-    expect(STATUS_TONE.rejected).toBe("KILL");
-    // PENDING is a safe middle ground used elsewhere in the codebase
-    expect(STATUS_TONE.pending).toBe("PENDING");
+  test("green and red are spent ONLY on a settled outcome", () => {
+    const coloured = Object.values(STATUS_WORD).filter((v) => v.tone !== "");
+    expect(coloured).toHaveLength(2);
   });
 });
 
@@ -188,12 +190,12 @@ describe("integration: mapping lookups", () => {
     });
   });
 
-  test("can iterate over statuses and look up tones", () => {
+  test("can iterate over statuses and look up their words", () => {
     const statuses: DesignMemoryStatus[] = ["approved", "rejected", "pending"];
     statuses.forEach((status) => {
-      const tone = STATUS_TONE[status];
-      expect(tone).toBeDefined();
-      expect(typeof tone).toBe("string");
+      const entry = STATUS_WORD[status];
+      expect(entry).toBeDefined();
+      expect(typeof entry.word).toBe("string");
     });
   });
 
@@ -206,9 +208,10 @@ describe("integration: mapping lookups", () => {
       expect(v).not.toBeNull();
       expect(v).not.toBeUndefined();
     });
-    Object.values(STATUS_TONE).forEach((v) => {
+    Object.values(STATUS_WORD).forEach((v) => {
       expect(v).not.toBeNull();
       expect(v).not.toBeUndefined();
+      expect(v.word).not.toBeUndefined();
     });
   });
 });
@@ -224,10 +227,10 @@ describe("consistency: label capitalization", () => {
     });
   });
 
-  test("STATUS_TONE uses uppercase (verdict convention), not sentence-case", () => {
-    Object.values(STATUS_TONE).forEach((tone) => {
-      // All verdict tones are uppercase
-      expect(tone).toBe(tone.toUpperCase());
+  test("STATUS_WORD reads as sentence case, because it is a WORD not a chip", () => {
+    Object.values(STATUS_WORD).forEach(({ word }) => {
+      expect(word[0]).toBe(word[0].toUpperCase());
+      expect(word).not.toBe(word.toUpperCase());
     });
   });
 });

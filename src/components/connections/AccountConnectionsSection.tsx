@@ -37,13 +37,16 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ConnectTrustDialog } from "./ConnectTrustDialog";
+import { ProviderMark } from "./provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import {
   Actions,
   Block,
   Button,
+  Cell,
   Empty,
   Failed,
+  Grid,
   Input,
   Line,
   Loading,
@@ -124,6 +127,26 @@ import {
  *    whose connection stopped authorising says "not reading" in red on the same
  *    line as the binding it has stopped feeding. There is no agent mark on this
  *    pane because no agent acts here, and drawing one would be decoration.
+ *
+ * RECOGNITION, added later the same night on the founder's second look: "it's
+ * very blank. Please add the small satellite so that it knows exactly what it
+ * is." Both regions now draw a provider mark (provider-marks.tsx), and the two
+ * hand-rolled shapes this file carried were retired into the primitives that
+ * had since been built for them:
+ *   - The local CATALOG_GRID + CatalogCell existed because, at the time, the
+ *     system had no neutral grid of cells and the only one was the crew
+ *     roster's, whose class names say AGENT. That gap was reported here and has
+ *     been filled: Grid and Cell are primitives now, so the local pair goes.
+ *     The cell gains a real focus ring, a real hover computed from its own
+ *     tint, and a mark slot, none of which the inline copy had.
+ *   - The connected list moved from Line to Row. Same list, same order, same
+ *     credential chain, same Manage control; Row is simply the primitive with a
+ *     mark slot, and it centres the mark across both lines instead of hanging
+ *     it off the first one.
+ * The catalogue wears BRAND hues because there the provider is the subject.
+ * The connected list stays monochrome because there the subject is state, and
+ * a brand hue beside "not reading" would compete with the one thing a person
+ * has to act on.
  *
  * WHAT IS STILL TRUE. Four states per provider, resolved by statusFor():
  * connected (a real account row or suite account), env-active (an admin-managed
@@ -295,124 +318,18 @@ function useConnectorActions(qc: QueryClient) {
 // Per-provider status the two regions are built from.
 type CardStatus = "connected" | "active" | "connect" | "soon";
 
-/** A source line never wraps. Founder ruling: one or two lines, depth on click. */
-const CLAMP = {
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-} as const;
-
-/** The catalog grid.
- *
- *  A GRID rather than a column, because a catalog is scanned and a boundary is
- *  read. Nineteen providers in one column is nineteen rows; the same nineteen
- *  at three or four across is five. That is the founder's vertical scroll, and
- *  it is arithmetic rather than taste.
- *
- *  Reported as a gap: the system has no neutral grid-of-cells primitive. The
- *  only one that exists is the crew roster's .sp-agrid / .sp-acard, whose names
- *  say "agent" and whose hover lives in the stylesheet, which this lane does not
- *  own. So the grid and the cell are built from tokens here rather than
- *  borrowing a shape that means something else.
- */
-const CATALOG_GRID = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(196px, 1fr))",
-  gap: "var(--sp-space-2)",
-} as const;
-
-/** The cell.
- *
- *  No border: a bordered cell repeated nineteen times is nineteen bordered
- *  containers in one region, which the anti-slop standard caps at one. It reads
- *  as a cell because it is tinted, and the WHOLE cell is the affordance rather
- *  than carrying a button, which is what keeps it two lines tall.
- */
-function CatalogCell({
-  label,
-  sub,
-  onConnect,
-  hint,
-  disabled,
-}: {
-  label: string;
-  sub: string;
-  /** Absent when nobody can connect this yet. An affordance is a promise. */
-  onConnect?: () => void;
-  hint?: string;
-  disabled?: boolean;
-}) {
-  const [lit, setLit] = useState(false);
-
-  const shell = {
-    display: "block",
-    width: "100%",
-    textAlign: "left" as const,
-    font: "inherit",
-    border: 0,
-    padding: "10px 12px",
-    borderRadius: "var(--sp-radius-card)",
-    background: "var(--sp-lift)",
-  };
-
-  const body = (
-    <>
-      <span
-        style={{
-          display: "block",
-          fontSize: "var(--sp-text-body)",
-          fontWeight: "var(--sp-weight-medium)",
-          color: "var(--sp-ink)",
-          ...CLAMP,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          display: "block",
-          marginTop: 1,
-          fontSize: "var(--sp-text-label)",
-          color: "var(--sp-mute)",
-          ...CLAMP,
-        }}
-      >
-        {sub}
-      </span>
-    </>
-  );
-
-  // Not connectable: a plain box, so it never lights up under the cursor. A
-  // hover state on something that does nothing is a lie about what will happen.
-  if (!onConnect) {
-    return (
-      <div style={{ ...shell, opacity: 0.5 }} title={hint}>
-        {body}
-      </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onConnect}
-      onMouseEnter={() => setLit(true)}
-      onMouseLeave={() => setLit(false)}
-      onFocus={() => setLit(true)}
-      onBlur={() => setLit(false)}
-      style={{
-        ...shell,
-        background: lit && !disabled ? "var(--sp-float)" : "var(--sp-lift)",
-        color: "inherit",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-        transition: "background var(--sp-dur-fast) var(--sp-ease)",
-      }}
-    >
-      {body}
-    </button>
-  );
+/** What the cell says on hover, and it is the second half of the founder's ask:
+ *  "how do we connect". Both halves are real registry facts rather than copy -
+ *  `description` is the provider's own line, and `connectMethod` is derived
+ *  from its auth method, which is exactly what connectProvider() then does:
+ *  the GitHub App path is an install redirect, everything else opens the
+ *  provider's own consent screen. */
+function connectHintFor(entry: CatalogEntry): string {
+  const how =
+    entry.connectMethod === "github_app"
+      ? "Connecting installs the Supaprod GitHub App."
+      : `Connecting opens ${entry.label}'s own sign-in.`;
+  return `${entry.description} ${how}`;
 }
 
 export function AccountConnectionsSection({
@@ -724,24 +641,25 @@ export function AccountConnectionsSection({
     }
 
     return (
-      <Line
+      <Row
         key={e.id}
-        label={e.label}
-        sub={
-          <span style={{ display: "block", ...CLAMP }}>
-            {parts.map((p, i) => (
-              <span key={i}>
-                {i > 0 ? " · " : null}
-                {p}
-              </span>
-            ))}
+        tight
+        // Monochrome here on purpose. This region's subject is STATE, and the
+        // red "not reading" beside it has to be the only colour on the line.
+        marks={<ProviderMark provider={e.id} />}
+        lead={e.label}
+        sub={parts.map((p, i) => (
+          <span key={i}>
+            {i > 0 ? " · " : null}
+            {p}
           </span>
+        ))}
+        action={
+          <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
+            Manage
+          </Button>
         }
-      >
-        <Button variant="ghost" onClick={() => onOpenDetail(e.id)}>
-          Manage
-        </Button>
-      </Line>
+      />
     );
   };
 
@@ -821,22 +739,28 @@ export function AccountConnectionsSection({
             {q ? `Nothing matches ${query.trim()}.` : "Nothing left to connect in that kind."}
           </Empty>
         ) : (
-          <div style={CATALOG_GRID}>
+          <Grid>
             {filteredCatalog.map((a) => {
               const spec = CONNECTOR_REGISTRY[a.entry.id];
               const can = statusFor(spec) === "connect";
               return (
-                <CatalogCell
+                <Cell
                   key={a.entry.id}
-                  label={a.entry.label}
+                  // BRAND hue, and this is the one region that earns it: you
+                  // are scanning twenty products to find one, so the provider
+                  // IS the subject here.
+                  mark={<ProviderMark provider={a.entry.id} tone="brand" size={18} />}
+                  lead={a.entry.label}
                   sub={can ? a.entry.flowLabel : "Waiting on an admin"}
-                  hint={can ? undefined : setupHintFor(spec)}
-                  disabled={busy}
-                  onConnect={can ? () => setTrustFor(spec) : undefined}
+                  title={can ? connectHintFor(a.entry) : setupHintFor(spec)}
+                  // A cell nobody can connect dims and never lights up: an
+                  // affordance is a promise.
+                  disabled={can ? busy : true}
+                  onClick={can ? () => setTrustFor(spec) : undefined}
                 />
               );
             })}
-          </div>
+          </Grid>
         )}
       </Block>
 
@@ -1000,6 +924,16 @@ export function ConnectorDetail({
     );
   }
 
+  // This whole drill is ABOUT one provider, so the provider is the subject and
+  // the mark earns its brand hue here as it does in the catalogue. Sized to the
+  // title beside it, inline, no tile (ban 8).
+  const titled = (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-space-2)" }}>
+      <ProviderMark provider={provider} tone="brand" size={20} />
+      {spec.label}
+    </span>
+  );
+
   if (list.isLoading || bindingsQ.isLoading || (isSuite && suite.isLoading)) {
     return (
       <>
@@ -1016,7 +950,7 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={spec.label} />
+        <PageHead title={titled} />
         <Failed
           onRetry={() => {
             void list.refetch();
@@ -1057,7 +991,7 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={spec.label} sub={spec.description} />
+        <PageHead title={titled} sub={spec.description} />
         <Line
           label="Active through a workspace credential"
           // Active means the secret is set. Whether it still authenticates is a
@@ -1091,7 +1025,7 @@ export function ConnectorDetail({
     return (
       <>
         {back}
-        <PageHead title={spec.label} sub={spec.description} />
+        <PageHead title={titled} sub={spec.description} />
         <Empty>Not available yet. {hint}</Empty>
       </>
     );
@@ -1103,7 +1037,7 @@ export function ConnectorDetail({
       <>
         {back}
         <PageHead
-          title={spec.label}
+          title={titled}
           sub={`${spec.description} Connect it once and what it syncs starts feeding the company brain.`}
         />
         <Actions>
@@ -1151,7 +1085,7 @@ export function ConnectorDetail({
     <>
       {back}
       <PageHead
-        title={spec.label}
+        title={titled}
         // The three stat cards, said as one sentence. Numbers in mono.
         sub={
           <>

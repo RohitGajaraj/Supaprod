@@ -11,6 +11,7 @@ import {
 } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { BindingPicker } from "@/components/connections/BindingPicker";
+import { ProviderName, UNDER_MARK } from "@/components/connections/provider-marks";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 import { Block, Button, Empty, Failed, Line, Loading, Num } from "@/components/shell/primitives";
 
@@ -26,7 +27,10 @@ import { Block, Button, Empty, Failed, Line, Loading, Num } from "@/components/s
  *
  * KILLED, and what each cost:
  *   - The 28px ProviderLogo tile. Ban 8: the decoration was taller than the
- *     line it introduced, and the provider's name is right beside it.
+ *     line it introduced, and the provider's name is right beside it. (The
+ *     provider is RECOGNISABLE again as of the same night, with a drawn mark
+ *     inline at the size of its label rather than a tile taller than it. The
+ *     ban was on the container, never on the identity.)
  *   - The moss/madder status pill. "Bound" under a heading that says bindings
  *     is the redundancy ban; the resource name IS the proof it is bound. Red
  *     survives for the one state a person must act on: bound, but the
@@ -145,8 +149,14 @@ export function WorkspaceBindingsSection() {
             return (
               <Line
                 key={`${spec.id}:${rt.kind}`}
-                label={`${spec.label} ${rt.label.toLowerCase()}`}
-                sub={sub}
+                // Monochrome: the subject of this line is where the source is
+                // POINTED and whether it is still reading, not the brand.
+                label={
+                  <ProviderName provider={spec.id}>
+                    {`${spec.label} ${rt.label.toLowerCase()}`}
+                  </ProviderName>
+                }
+                sub={<span style={UNDER_MARK}>{sub}</span>}
               >
                 {binding ? (
                   <Button

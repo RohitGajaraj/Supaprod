@@ -45,9 +45,17 @@ export function incidentTone(kind: IncidentKind): IncidentTone {
   return KIND_TONE[kind] ?? "muted";
 }
 
-export const INCIDENT_TONE_VAR: Record<IncidentTone, string> = {
-  madder: "var(--madder)",
-  glacier: "var(--text-subtle)",
-  marigold: "var(--marigold)",
-  muted: "var(--text-muted)",
+/**
+ * The tone as the `Value` primitive speaks it (src/components/shell/primitives.tsx).
+ *
+ * PORTED 2026-07-29: this used to be `INCIDENT_TONE_VAR`, a map of raw CSS
+ * variables from the retired palette, which is how a panel ends up drawing its
+ * own colour. The stylesheet owns every mix now, so a panel asks for a tone and
+ * never for a hue.
+ */
+export const INCIDENT_VALUE_TONE: Record<IncidentTone, "quiet" | "pass" | "warn" | "fail"> = {
+  madder: "fail",
+  glacier: "quiet",
+  marigold: "warn",
+  muted: "quiet",
 };

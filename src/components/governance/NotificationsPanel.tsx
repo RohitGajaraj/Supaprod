@@ -1,94 +1,116 @@
+/**
+ * ATTENTION: one calm feed of what needs the operator right now. Ported onto
+ * the primitives, 2026-07-29.
+ *
+ * WHAT CHANGED, AND WHY. It was a stack of `bento` cards, each carrying a
+ * coloured dot plus a mono-caps severity word plus a title plus a detail: four
+ * elements to say two facts, and the severity repeated on every single card.
+ * The severity is now said ONCE, as the heading of the group it names (hard ban
+ * 10: label, sublabel and helper all saying the same thing). What is left is a
+ * list of one-line rows, which is what a feed is.
+ *
+ * The order carries the hierarchy rather than the colour: what is blocked on
+ * you is first, and the page greys out cleanly. Nothing here wears a hue.
+ *
+ * Each row navigates by the server-supplied `href`, which carries a query
+ * string (`/engine-room?room=spend&view=caps`), so it goes through the router's
+ * own `href` option rather than `to`, which does not parse one.
+ *
+ * KNOWN DEFECT, REPORTED NOT PAPERED OVER: nothing in `src/` mounts this
+ * component. `AttentionBell` is its doorway and points at
+ * `/engine-room?room=record&view=verify`, but no room renders the feed, so the
+ * bell's count is live and its destination is not. That is a wiring fix in the
+ * Engine Room, not a styling one, and it is left for the lane that owns it.
+ */
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getNotifications, type AppNotification } from "@/lib/notifications.functions";
+import { Block, Empty, Failed, Loading, Row } from "@/components/shell/primitives";
 
-// R3 · Attention, one calm feed of what needs the operator right now: approvals
-// waiting, spend nearing caps, a stalled loop. Engine-Room: names the outcome
-// ("what needs you"), not the mechanism; read-only, each item links to its home.
+/** Plain-words relative time. Mono is applied by the row, not here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
 
-const SEVERITY_STYLE: Record<AppNotification["severity"], { color: string; label: string }> = {
-  action: { color: "var(--amber, #d97706)", label: "Needs you" },
-  warning: { color: "var(--rose, #dc2626)", label: "Warning" },
-  info: { color: "var(--ink-muted)", label: "Heads up" },
-};
+/** The severity, said once per group instead of once per row. `sub` says what
+ *  the group MEANS for you, never a restatement of its own title. */
+const GROUPS: { severity: AppNotification["severity"]; title: string; sub: string }[] = [
+  {
+    severity: "action",
+    title: "Needs you",
+    sub: "Each one is stopped until you rule on it.",
+  },
+  {
+    severity: "warning",
+    title: "Worth a look",
+    sub: "Nothing is stopped. These are heading somewhere you would not choose.",
+  },
+  {
+    severity: "info",
+    title: "Heads up",
+    sub: "Nothing to do. Here so nothing later comes as a surprise.",
+  },
+];
 
 export function NotificationsPanel() {
   const fGet = useServerFn(getNotifications);
+  const navigate = useNavigate();
   const q = useQuery({ queryKey: ["notifications"], queryFn: () => fGet() });
+
+  if (q.isLoading) return <Loading>Reading what needs you.</Loading>;
+
+  // A read that FAILED is not an empty state. "Nothing needs you" and "we could
+  // not find out what needs you" are different facts, and an operator acts
+  // differently on each.
+  if (q.isError) {
+    return (
+      <Failed onRetry={() => void q.refetch()}>
+        {(q.error as Error)?.message ??
+          "This did not load, so an empty feed here would not mean you are clear."}
+      </Failed>
+    );
+  }
 
   const items = q.data?.notifications ?? [];
 
-  if (q.isLoading) {
-    return (
-      <div className="mono-label" style={{ color: "var(--ink-muted)", padding: 8 }}>
-        Loading
-      </div>
-    );
-  }
-
-  if (q.isError) {
-    return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load notifications
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-          {(q.error as Error)?.message ?? "The read failed."}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => void q.refetch()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   if (items.length === 0) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label">All clear</div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 460 }}>
-          Nothing needs you right now. Approvals waiting on a decision, spend nearing a cap, and a
-          stalled loop will show up here.
-        </p>
-      </div>
+      <Empty>
+        Nothing needs you. A call waiting on a decision, spend nearing a cap, or a loop that has
+        stalled arrives here the moment it happens.
+      </Empty>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {items.map((n) => {
-        const s = SEVERITY_STYLE[n.severity];
+    <>
+      {GROUPS.map((g) => {
+        const rows = items.filter((n) => n.severity === g.severity);
+        if (rows.length === 0) return null;
         return (
-          <a
-            key={n.id}
-            href={n.href}
-            className="bento lift"
-            style={{ padding: "var(--geist-space-4x)", display: "block", textDecoration: "none", color: "inherit" }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 999,
-                  background: s.color,
-                  flexShrink: 0,
-                }}
+          <Block key={g.severity} title={g.title} sub={g.sub}>
+            {rows.map((n) => (
+              <Row
+                key={n.id}
+                lead={n.title}
+                sub={n.detail}
+                time={ago(n.created_at)}
+                tight
+                onClick={() => void navigate({ href: n.href })}
               />
-              <span className="mono-label" style={{ color: s.color }}>
-                {s.label}
-              </span>
-            </div>
-            <div style={{ fontWeight: 500, marginTop: 6 }}>{n.title}</div>
-            <p style={{ color: "var(--ink-muted)", marginTop: 4 }}>{n.detail}</p>
-          </a>
+            ))}
+          </Block>
         );
       })}
-    </div>
+    </>
   );
 }

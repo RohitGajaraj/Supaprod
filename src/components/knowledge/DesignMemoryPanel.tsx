@@ -17,10 +17,25 @@
 // Ember marks the ONE thing asking, and this list can hold a dozen pending
 // entries at once; spending the gate colour a dozen times is exactly how it
 // stops meaning "look here".
+//
+// SECOND PASS, 2026-07-29. The founder opened a ported page, clicked something,
+// and the legacy design came back. Two defects here, both of them that shape:
+//
+//   KILLED the "Add design language" DIALOG. Three modes, a URL field, a 20,000
+//     character textarea and a paragraph of standing copy is exactly what
+//     anti-slop ban 11 exists to stop, and primitives.tsx names the pane as
+//     deliberately absent with its reasons. The composer is IN PLACE now, the
+//     same shape admin/people and crew use: it opens under the toolbar, above
+//     the list it is about to add to.
+//   KILLED every success toast. agents/FINAL-agent-presence.md R10: a toast
+//     confirms that your click registered and then erases itself; a receipt
+//     renders what your click CAUSED. Importing eleven standing rules into your
+//     design system is not a four-second fact. Each write now leaves a Receipt
+//     carrying the real count the server returned, and a failed write leaves a
+//     failed receipt rather than a red flash and silence.
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/notify";
 import {
   listDesignMemory,
   decideDesignMemory,
@@ -32,22 +47,17 @@ import {
   type DesignMemoryCategory,
 } from "@/lib/design-memory.functions";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Actions,
+  Block,
   Button,
   Empty,
   Failed,
   Field,
   Input,
   Loading,
+  Num,
   Prose,
+  Receipt,
   Row,
   Textarea,
 } from "@/components/shell/primitives";
@@ -100,12 +110,28 @@ function FilterGroup<T extends string>({
 // rows and expands on demand, so Brand never becomes a long wall.
 const VISIBLE_DESIGN_MEMORY = 8;
 
+/** What a write left behind. Session local on purpose: the durable record is
+ *  the list itself, and a second copy of it here would be a second source of
+ *  one truth. */
+type Settled = { id: string; verb: string; consequence: string; failed?: boolean; at: string };
+
+function nowStamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
 export function DesignMemoryPanel() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [settled, setSettled] = useState<Settled[]>([]);
+
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed, at: nowStamp() },
+      ...prev,
+    ]);
 
   const qc = useQueryClient();
   const fList = useServerFn(listDesignMemory);
@@ -121,9 +147,25 @@ export function DesignMemoryPanel() {
   });
 
   const decide = useMutation({
-    mutationFn: (data: { id: string; decision: "approve" | "reject" }) => fDecide({ data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["design-memory"] }),
-    onError: (e: Error) => toast.error(e.message),
+    mutationFn: (vars: { id: string; decision: "approve" | "reject"; title: string }) =>
+      fDecide({ data: { id: vars.id, decision: vars.decision } }),
+    onSuccess: (_res, vars) => {
+      qc.invalidateQueries({ queryKey: ["design-memory"] });
+      // The real consequence, not a confirmation of the click: an approved rule
+      // binds into every mockup the design crew draws from here.
+      commit(
+        vars.decision === "approve" ? "You approved a rule" : "You dropped a rule",
+        vars.decision === "approve"
+          ? `"${vars.title}" now binds every mockup the design crew draws.`
+          : `"${vars.title}" stays off the record. Nothing draws from it.`,
+      );
+    },
+    onError: (e: Error, vars) =>
+      commit(
+        vars.decision === "approve" ? "You tried to approve a rule" : "You tried to drop a rule",
+        e.message || "The write failed. Nothing changed.",
+        true,
+      ),
   });
 
   const rows = items.data?.items ?? [];
@@ -154,8 +196,34 @@ export function DesignMemoryPanel() {
           labelOf={(s) => (s === "all" ? "Any status" : STATUS_LABEL[s])}
         />
         <span style={{ flex: 1 }} />
-        <Button onClick={() => setAddOpen(true)}>Add design language</Button>
+        <Button
+          aria-expanded={addOpen}
+          aria-controls="design-memory-composer"
+          onClick={() => setAddOpen((o) => !o)}
+        >
+          {addOpen ? "Close" : "Add design language"}
+        </Button>
       </div>
+
+      {/* IN PLACE, never a dialog. It sits above the list it is about to add
+          to, so you can still read what is already settled while you add. */}
+      {addOpen ? (
+        <AddDesignLanguage
+          id="design-memory-composer"
+          onClose={() => setAddOpen(false)}
+          onCommit={commit}
+        />
+      ) : null}
+
+      {settled.map((s) => (
+        <Receipt
+          key={s.id}
+          verb={s.verb}
+          consequence={s.consequence}
+          time={s.at}
+          failed={s.failed}
+        />
+      ))}
 
       {items.isLoading ? (
         <Loading>Reading what the design crew treats as settled.</Loading>
@@ -176,21 +244,25 @@ export function DesignMemoryPanel() {
               row={d}
               expanded={expanded === d.id}
               onToggle={() => setExpanded(expanded === d.id ? null : d.id)}
-              onDecide={(decision) => decide.mutate({ id: d.id, decision })}
+              onDecide={(decision) => decide.mutate({ id: d.id, decision, title: d.title })}
               deciding={decide.isPending}
             />
           ))}
           {rows.length > VISIBLE_DESIGN_MEMORY ? (
             <Actions>
               <Button variant="ghost" onClick={() => setShowAll((v) => !v)}>
-                {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_DESIGN_MEMORY} more`}
+                {showAll ? (
+                  "Show fewer"
+                ) : (
+                  <>
+                    Show <Num>{rows.length - VISIBLE_DESIGN_MEMORY}</Num> more
+                  </>
+                )}
               </Button>
             </Actions>
           ) : null}
         </>
       )}
-
-      <AddDesignMemoryDialog open={addOpen} onOpenChange={setAddOpen} />
     </>
   );
 }
@@ -251,12 +323,16 @@ function DesignMemoryRowView({
 
 type AddMode = "url" | "paste" | "defaults";
 
-function AddDesignMemoryDialog({
-  open,
-  onOpenChange,
+/** The composer, in place. Three ways to say the same thing to the record, so
+ *  the mode is a tab strip and only the fields for the picked mode are drawn. */
+function AddDesignLanguage({
+  id,
+  onClose,
+  onCommit,
 }: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
+  id: string;
+  onClose: () => void;
+  onCommit: (verb: string, consequence: string, failed?: boolean) => void;
 }) {
   const [mode, setMode] = useState<AddMode>("url");
   const [url, setUrl] = useState("");
@@ -267,66 +343,82 @@ function AddDesignMemoryDialog({
   const fImportText = useServerFn(importDesignMemoryFromText);
   const fSeedDefaults = useServerFn(seedDefaultDesignMemory);
 
-  const close = () => {
-    onOpenChange(false);
+  const done = () => {
     setUrl("");
     setText("");
     setMode("url");
+    onClose();
   };
 
   const doImportUrl = useMutation({
     mutationFn: () => fImportUrl({ data: { url } }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["design-memory"] });
-      toast.success(
+      onCommit(
+        "You imported a page",
         res.inserted > 0
-          ? `Imported ${res.inserted} entries for review`
-          : "Nothing extractable from that page",
+          ? `${res.inserted} rules are waiting on your approval below. None of them bind yet.`
+          : "Nothing on that page read as a design rule, so nothing was added.",
       );
-      close();
+      done();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      onCommit(
+        "You tried to import a page",
+        e.message || "The read failed. Nothing was added.",
+        true,
+      ),
   });
 
   const doImportText = useMutation({
     mutationFn: () => fImportText({ data: { text } }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["design-memory"] });
-      toast.success(
+      onCommit(
+        "You pasted a constitution",
         res.inserted > 0
-          ? `Extracted ${res.inserted} entries for review`
-          : "Nothing extractable from that text",
+          ? `${res.inserted} rules are waiting on your approval below. None of them bind yet.`
+          : "Nothing in that text read as a design rule, so nothing was added.",
       );
-      close();
+      done();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      onCommit(
+        "You tried to paste a constitution",
+        e.message || "The write failed. Nothing was added.",
+        true,
+      ),
   });
 
   const doSeedDefaults = useMutation({
     mutationFn: () => fSeedDefaults(),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["design-memory"] });
-      toast.success(
-        res.alreadySeeded ? "Design memory already has entries" : `Added ${res.inserted} defaults`,
+      onCommit(
+        "You started from defaults",
+        res.alreadySeeded
+          ? "Nothing was added. This workspace already had entries, so the defaults were left out."
+          : `${res.inserted} safe defaults are in force. Approve and reject on real mockups teaches it your language from here.`,
       );
-      close();
+      done();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      onCommit(
+        "You tried to start from defaults",
+        e.message || "The write failed. Nothing was added.",
+        true,
+      ),
   });
 
   const submitting = doImportUrl.isPending || doImportText.isPending || doSeedDefaults.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(o) : close())}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add design language</DialogTitle>
-          <DialogDescription>
-            Every entry lands as a standing decision you approve or reject. Nothing binds into a
-            mockup until you approve it.
-          </DialogDescription>
-        </DialogHeader>
-
+    <div id={id}>
+      <Block
+        title="Add design language"
+        // Different information from the title, not a restatement of it.
+        sub="Every entry lands as a standing decision you approve or reject. Nothing binds into a mockup until you approve it."
+      >
         <FilterGroup
           label="How to add"
           options={["url", "paste", "defaults"] as const}
@@ -338,8 +430,9 @@ function AddDesignMemoryDialog({
         />
 
         {mode === "url" ? (
-          <Field label="Public page URL">
+          <Field label="Public page URL" htmlFor="design-memory-url">
             <Input
+              id="design-memory-url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://your-marketing-site.com"
@@ -347,8 +440,9 @@ function AddDesignMemoryDialog({
             />
           </Field>
         ) : mode === "paste" ? (
-          <Field label="Design constitution">
+          <Field label="Design constitution" htmlFor="design-memory-text">
             <Textarea
+              id="design-memory-text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Paste your brand or style guide text"
@@ -358,25 +452,23 @@ function AddDesignMemoryDialog({
             />
           </Field>
         ) : (
-          <p
-            style={{
-              fontSize: "var(--sp-text-prose)",
-              lineHeight: "var(--sp-leading-body)",
-              color: "var(--sp-body)",
-              margin: "var(--sp-space-3) 0 0",
-            }}
-          >
-            Starts with a small generic set (type scale, spacing rhythm, one primary action, two
-            button styles, plain-worded copy), approved automatically since they are safe defaults,
-            not a claim about your brand. Approve and reject on future mockups teaches it your
-            actual language from there.
-          </p>
+          <Prose>
+            <p>
+              Starts with a small generic set (type scale, spacing rhythm, one primary action, two
+              button styles, plain-worded copy), approved automatically since they are safe
+              defaults, not a claim about your brand. Approve and reject on future mockups teaches
+              it your actual language from there.
+            </p>
+          </Prose>
         )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={close} disabled={submitting}>
-            Cancel
-          </Button>
+        <Actions
+          trailing={
+            <Button variant="ghost" onClick={done} disabled={submitting}>
+              Cancel
+            </Button>
+          }
+        >
           <Button
             variant="primary"
             disabled={
@@ -392,8 +484,8 @@ function AddDesignMemoryDialog({
           >
             {submitting ? "Working" : "Add"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </Actions>
+      </Block>
+    </div>
   );
 }

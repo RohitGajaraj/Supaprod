@@ -1,6 +1,6 @@
 import { describe, expect, test, mock, beforeEach } from "bun:test";
 import type { ReactElement } from "react";
-import { DecisionsPanel, SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
+import { DecisionsPanel, SourceLink } from "./DecisionsPanel";
 import type { DecisionRow } from "@/lib/decisions.functions";
 
 /**
@@ -161,23 +161,10 @@ describe("SourceLink", () => {
   });
 });
 
-describe("OBS_STATUS_TONE mapping", () => {
-  test("maps approved status to KEPT tone", () => {
-    expect(OBS_STATUS_TONE.approved).toBe("KEPT");
-  });
-
-  test("maps rejected status to KILL tone", () => {
-    expect(OBS_STATUS_TONE.rejected).toBe("KILL");
-  });
-
-  test("maps pending status to PENDING tone", () => {
-    expect(OBS_STATUS_TONE.pending).toBe("PENDING");
-  });
-
-  test("contains exactly three entries", () => {
-    expect(Object.keys(OBS_STATUS_TONE)).toHaveLength(3);
-  });
-});
+// OBS_STATUS_TONE is gone (2026-07-29). It existed only to feed a VerdictChip,
+// the chip is retired, and the outcome vocabulary now lives once in
+// decisions-shared.ts as OUTCOME_WORD so the list and the drill cannot drift.
+// Its coverage moved with it: __tests__/decisions-shared.test.ts.
 
 describe("DecisionsPanel data states", () => {
   /**

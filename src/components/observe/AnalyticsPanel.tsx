@@ -1,24 +1,65 @@
-// Analytics tab — ported from design-reference/supaprod/govern-detail.jsx
-// (AnalyticsTab): range sub-tab pills, three stat bentos (serif 26 tabular
-// values, 11px faint sub-line), and the span-3 "Spend by …" bentos with
-// per-row ember share bars and right-aligned mono spend. Production keeps the
-// per-SURFACE rollup as the top-level whole-spend view (every AI call, ink
-// labels); the reference's per-AGENT rollup sits underneath it as the
-// also-real layer of the 'agent' surface: gray labels (the reference's
-// violet orchid tint is retired per accent restraint 2026-07-11), rows drill to
-// /govern?tab=analytics&agent=<slug> (AgentSpendDetail replaces the tab
-// body). Reference's "of $X cap" spend sub-line renders only where a real
-// cap exists (ai_budgets daily cap on 24h, monthly cap on 30d); the "ttft"
-// sub-datum is omitted — ai_events.ttft_ms is never written.
-// Production functionality kept, restyled quiet-Ember: by-model rollup, the
-// recent-runs list with its event-detail drawer (existing drill-down), the
-// guardrail-hit stats, and the daily activity bars.
+/**
+ * Spend and usage, the whole rollup. Lives at /engine-room?room=spend&view=usage.
+ *
+ * Ported off the retired Ember/bento system onto the primitives (2026-07-29).
+ * The room around this panel is already one bordered container, so nothing in
+ * here draws a second one. What changed, and why:
+ *
+ * KILL the bentos. Nine bordered, padded cards stacked inside a room that is
+ *      already a bordered container is ban 5, and it made three headline
+ *      numbers, two rollups and a chart read as nine equally important
+ *      subjects. Sections are Blocks now: a rule where the register changes.
+ * KILL MonoLabel everywhere. Uppercase mono caps was the label voice of the
+ *      retired system. Mono is for DATA only, so every label is sentence case
+ *      and every number, duration, count, cost, share and timestamp is inside
+ *      Num.
+ * KILL the ember share bars on both rollups. A bar per row is a second way of
+ *      saying the number already at the end of the row, and ember marks the
+ *      human rather than a quantity. The agent rollup keeps its real share as
+ *      a percentage, because the server computes it against the agent
+ *      subtotal and that is genuinely not derivable from what is on screen.
+ * KILL the daily activity chart. Not restyled, deleted: getAnalyticsOverview
+ *      OMITS a day with no events from `daily`, and the chart plotted by
+ *      index, so a sparse window drew a continuous shape over a
+ *      discontinuous series. That is a fabricated shape, and the same room
+ *      already carries a properly zero-filled trend at ?view=trend. The two
+ *      true facts in that data are stated in words instead: the busiest day,
+ *      and how many days in the window recorded anything at all.
+ * KILL the verdict chips on the run list. A pill inside a row is a card
+ *      inside a card, and "ok" repeated down every row is not information.
+ *      Only a failure says anything now, in the fail tone.
+ * KILL the "detail" affordance text on every run row. The row is a button.
+ * KILL the slide-over drawer. See THE DRAWER below.
+ * KILL the whole-panel error return. One failed read used to blank the panel
+ *      including the two sections that read from their own queries. Failure
+ *      is scoped to the read that failed now.
+ *
+ * KEEP every server function, every query key, every navigation target, and
+ *      the one exported symbol (AnalyticsPanel, lazily mounted by SpendRoom).
+ *
+ * THE DRAWER. primitives.tsx names the pane, the slide-over and the drawer as
+ * deliberately absent, with its reasons. The event detail is rendered IN
+ * PLACE: opening a run replaces the run list with the run, and one Back
+ * button returns. Same query, same key, same enabled flag.
+ *
+ * HONESTY. Three reads feed this panel and each one owns three states: a read
+ * in flight says so, a read that failed says so and offers a retry, and only a
+ * read that genuinely returned nothing renders an empty state. Two windows
+ * disagree with the picker on purpose and the panel discloses it rather than
+ * implying otherwise: listAiEvents returns the last 100 calls regardless of
+ * the range, and getGuardrailStats is a fixed 30 days.
+ *
+ * The reference's "of $X cap" sub-line still renders only where a real cap
+ * covers the window (ai_budgets daily cap on 24h, monthly cap on 30d), and it
+ * is now additive rather than replacing the run count, so a failed budget read
+ * can never quietly swap one fact for another. The reference's "ttft"
+ * sub-datum stays omitted: ai_events.ttft_ms is never written.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import * as React from "react";
 import { useState } from "react";
-import { ChevronRight, Gauge, X } from "lucide-react";
+
 import {
   getAnalyticsOverview,
   getAgentSpendBreakdown,
@@ -28,9 +69,25 @@ import {
   getGuardrailStats,
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
-import { MonoLabel, SubTabs, VerdictChip } from "@/components/supaprod/Primitives";
-import { SketchBarChart } from "@/components/supaprod/Sketch";
 import { relTime } from "@/components/product/format";
+import {
+  Actions,
+  AgentMark,
+  Block,
+  Button,
+  Cell,
+  Choices,
+  Empty,
+  Failed,
+  Grid,
+  Line,
+  Loading,
+  Num,
+  Pre,
+  Prose,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
 
 function fmtUsd(n: number) {
   if (n === 0) return "$0";
@@ -45,13 +102,28 @@ function fmtMs(ms: number) {
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
+function errText(e: unknown) {
+  return e instanceof Error ? e.message : "The read failed.";
+}
 
-const RANGES: { id: string; days: number }[] = [
-  { id: "24h", days: 1 },
-  { id: "7d", days: 7 },
-  { id: "30d", days: 30 },
-  { id: "90d", days: 90 },
-];
+/** The window. `n` and `unit` are split so the numeral can wear mono and the
+ *  word cannot: a unit is a word a person reads, not data. */
+const RANGES = [
+  { id: "24h", days: 1, n: 24, unit: "hours" },
+  { id: "7d", days: 7, n: 7, unit: "days" },
+  { id: "30d", days: 30, n: 30, unit: "days" },
+  { id: "90d", days: 90, n: 90, unit: "days" },
+] as const;
+type RangeId = (typeof RANGES)[number]["id"];
+
+/** Which breakdown is being read. A mutually exclusive pick, so it is a
+ *  radiogroup with arrow keys rather than three toggle buttons. */
+const SECTIONS = [
+  { id: "models", label: "Models" },
+  { id: "runs", label: "Runs" },
+  { id: "guardrails", label: "Guardrails" },
+] as const;
+type SectionId = (typeof SECTIONS)[number]["id"];
 
 export function AnalyticsPanel() {
   const navigate = useNavigate();
@@ -63,8 +135,8 @@ export function AnalyticsPanel() {
   const fDetail = useServerFn(getEventDetail);
   const fGuards = useServerFn(getGuardrailStats);
 
-  const [range, setRange] = useState("7d");
-  const [section, setSection] = useState("Models");
+  const [range, setRange] = useState<RangeId>("7d");
+  const [section, setSection] = useState<SectionId>("models");
   const [openId, setOpenId] = useState<string | null>(null);
   const days = RANGES.find((r) => r.id === range)?.days ?? 7;
 
@@ -87,39 +159,18 @@ export function AnalyticsPanel() {
   const events = useQuery({
     queryKey: ["analytics-events"],
     queryFn: () => fEvents({ data: { limit: 100 } }),
-    enabled: section === "Runs",
+    enabled: section === "runs",
   });
   const guards = useQuery({
     queryKey: ["analytics-guards"],
     queryFn: () => fGuards(),
-    enabled: section === "Guardrails",
+    enabled: section === "guardrails",
   });
   const detail = useQuery({
     queryKey: ["event-detail", openId],
     queryFn: () => fDetail({ data: { eventId: openId! } }),
     enabled: !!openId,
   });
-
-  if (overview.error) {
-    return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load analytics
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-          {(overview.error as Error).message}
-        </p>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => overview.refetch()}
-        >
-          Retry · reloads analytics
-        </button>
-      </div>
-    );
-  }
 
   const s = overview.data?.summary;
   const bySurface = overview.data?.bySurface ?? [];
@@ -128,9 +179,12 @@ export function AnalyticsPanel() {
   const daily = overview.data?.daily ?? [];
   const ue = unitQ.data;
   const totalCost = s?.totalCost ?? 0;
+  const runs = s?.totalRuns ?? 0;
+  const errors = s?.errors ?? 0;
+
   // "of $X cap" is only honest where a real cap covers the window: ai_budgets
-  // daily_usd_cap for 24h, monthly_usd_cap for 30d — and only when set. No
-  // weekly/quarterly cap concept exists, so 7d/90d keep the runs · errors line.
+  // daily_usd_cap for 24h, monthly_usd_cap for 30d, and only when set. No
+  // weekly or quarterly cap concept exists, so 7d and 90d never claim one.
   const capForRange =
     range === "24h"
       ? (budgetQ.data?.daily_usd_cap ?? null)
@@ -138,583 +192,401 @@ export function AnalyticsPanel() {
         ? (budgetQ.data?.monthly_usd_cap ?? null)
         : null;
 
+  // The two true facts inside `daily`. It carries only the days that recorded
+  // an event, which is exactly why the count of them is worth saying.
+  const busiest = daily.length ? daily.reduce((a, b) => (b.runs > a.runs ? b : a)) : null;
+
+  const eventRows = events.data?.events ?? [];
+  const guardHits = guards.data?.hits ?? [];
+
   return (
     <div>
-      <SubTabs tabs={RANGES.map((r) => r.id)} active={range} onSet={setRange} />
+      <Choices
+        label="How far back to read"
+        mode="one"
+        value={range}
+        onPick={(id) => setRange(id)}
+        options={RANGES.map((r) => ({
+          id: r.id,
+          label: (
+            <>
+              <Num>{r.n}</Num> {r.unit}
+            </>
+          ),
+        }))}
+      />
 
-      {overview.isLoading ? (
-        <div
-          style={{
-            color: "var(--ink-faint)",
-            padding: "32px 0",
-            textAlign: "center",
-          }}
-        >
-          Loading analytics…
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
-          <div className="bento" style={{ padding: "var(--card-pad)" }}>
-            <MonoLabel style={{ marginBottom: 6 }}>Spend · {range}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ }}>
-              {fmtUsd(totalCost)}
-            </div>
-            <div style={{ color: "var(--ink-faint)" }}>
-              {capForRange != null ? (
-                <>of {fmtUsd(Number(capForRange))} cap</>
-              ) : (
-                <>{s?.totalRuns ?? 0} runs</>
-              )}
-              {(s?.errors ?? 0) > 0 ? (
-                <span style={{ color: "var(--rose)" }}> · {s!.errors} errors</span>
-              ) : null}
-            </div>
-          </div>
-          <div className="bento" style={{ padding: "var(--card-pad)" }}>
-            <MonoLabel style={{ marginBottom: 6 }}>Tokens · {range}</MonoLabel>
-            <div className="font-display tabular-nums" style={{ }}>
-              {fmtNum(s?.totalTokens ?? 0)}
-            </div>
-            <div style={{ color: "var(--ink-faint)" }}>in + out</div>
-          </div>
-          {/* Reference headline is the median; its "ttft" sub-datum is never
-              written in production, so the real avg + p95 ride the sub-line. */}
-          <div className="bento" style={{ padding: "var(--card-pad)" }}>
-            <MonoLabel style={{ marginBottom: 6 }}>Median latency</MonoLabel>
-            <div className="font-display tabular-nums" style={{ }}>
-              {fmtMs(s?.p50Latency ?? 0)}
-            </div>
-            <div style={{ color: "var(--ink-faint)" }}>
-              avg {fmtMs(s?.avgLatency ?? 0)} · p95 {fmtMs(s?.p95Latency ?? 0)}
-            </div>
-          </div>
-
-          {/* ENG-06 · unit economics — cost-per-outcome roll-up (operator view).
-              Renders only once outcomes exist so the panel stays quiet on cold
-              workspaces. The calm-front half is the Today cost-per-outcome line. */}
-          {ue && ue.outcomes > 0 ? (
-            <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                  marginBottom: 12,
-                }}
-              >
-                <MonoLabel>Unit economics · {range}</MonoLabel>
-                <span className="mono-label" style={{ }}>
-                  what each outcome cost
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "var(--geist-space-3x)",
-                }}
-              >
-                <div>
-                  <MonoLabel style={{ marginBottom: 6 }}>Agent spend</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ }}>
-                    {fmtUsd(ue.totalSpendUsd)}
-                  </div>
-                  <div style={{ color: "var(--ink-faint)" }}>
-                    over {ue.outcomes} outcome{ue.outcomes === 1 ? "" : "s"}
-                  </div>
-                </div>
-                <div>
-                  <MonoLabel style={{ marginBottom: 6 }}>Outcomes</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ }}>
-                    {ue.specs} · {ue.decisions} · {ue.missions}
-                  </div>
-                  <div style={{ color: "var(--ink-faint)" }}>
-                    specs · decisions · shipped
-                  </div>
-                </div>
-                <div>
-                  <MonoLabel style={{ marginBottom: 6 }}>Cost per outcome</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ }}>
-                    {ue.costPerOutcomeUsd != null ? fmtUsd(ue.costPerOutcomeUsd) : "-"}
-                  </div>
-                  <div style={{ color: "var(--ink-faint)" }}>spend ÷ outcomes</div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 12,
-              }}
-            >
-              <MonoLabel>Spend by surface · {range}</MonoLabel>
-              <span className="mono-label" style={{ }}>
-                every AI call rolls up here
-              </span>
-            </div>
-            {bySurface.length === 0 ? (
-              <p style={{ color: "var(--ink-subtle)" }}>
-                No AI calls in this window yet.
-              </p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {bySurface.map((x) => {
-                  const pct = totalCost > 0 ? (x.cost / totalCost) * 100 : 0;
-                  return (
-                    <div
-                      key={x.surface}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "var(--geist-space-3x)",
-                        padding: "6px 8px",
-                        borderRadius: 8,
-                      }}
-                    >
-                      <span className="mono-label" style={{ width: 90, color: "var(--ink)" }}>
-                        {x.surface}
-                      </span>
-                      <span
-                        style={{
-                          flex: 1,
-                          height: 5,
-                          borderRadius: 99,
-                          background: "var(--surface-2)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: "block",
-                            height: "100%",
-                            width: `${pct}%`,
-                            background: "var(--ember)",
-                            opacity: 0.85,
-                          }}
-                        ></span>
-                      </span>
-                      <span
-                        className="mono-label tabular-nums"
-                        style={{ width: 56, textAlign: "right", color: "var(--ink)" }}
-                      >
-                        {fmtUsd(x.cost)}
-                      </span>
-                      <span
-                        className="mono-label tabular-nums"
-                        style={{ width: 64, textAlign: "right", color: "var(--ink-faint)" }}
-                      >
-                        {x.runs} runs
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Spend by agent — the reference's per-agent rollup (govern-detail
-              AnalyticsTab), real layer underneath the 'agent' surface row
-              above. Bars are pct of the agent-spend SUBTOTAL; rows drill to
-              the per-agent detail. */}
-          <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 12,
-              }}
-            >
-              <MonoLabel icon={Gauge}>Spend by agent · {range}</MonoLabel>
-              <span className="mono-label" style={{ }}>
-                click an agent to drill down
-              </span>
-            </div>
-            {byAgentQ.isLoading ? (
-              <p style={{ color: "var(--ink-faint)" }}>Loading agent spend…</p>
-            ) : byAgentQ.isError ? (
-              <p style={{ color: "var(--madder)" }}>
-                Agent spend did not load.{" "}
-                <button
-                  type="button"
-                  className="cursor-pointer hover:underline"
-                  onClick={() => void byAgentQ.refetch()}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    color: "var(--ink)",
-                  }}
-                >
-                  Retry
-                </button>
-              </p>
-            ) : byAgents.length === 0 ? (
-              <p style={{ color: "var(--ink-subtle)" }}>
-                No agent calls in this window yet.
-              </p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {byAgents.map((x) => (
-                  <button
-                    key={x.slug}
-                    type="button"
-                    className="lift"
-                    onClick={() =>
-                      navigate({
-                        to: "/engine-room",
-                        search: { room: "spend", view: "usage", agent: x.slug },
-                      })
-                    }
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "var(--geist-space-3x)",
-                      padding: "6px 8px",
-                      borderRadius: 8,
-                      border: "1px solid transparent",
-                      textAlign: "left",
-                    }}
-                  >
-                    <span
-                      className="mono-label"
-                      title={x.name}
-                      style={{
-                        width: 90,
-                        flexShrink: 0,
-                        // Gray name column (accent restraint 2026-07-11):
-                        // machine blue marks agent actions, not name labels.
-                        color: "var(--ink-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {x.name}
-                    </span>
-                    <span
-                      style={{
-                        flex: 1,
-                        height: 5,
-                        borderRadius: 99,
-                        background: "var(--surface-2)",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "block",
-                          height: "100%",
-                          width: `${x.pct}%`,
-                          background: "var(--ember)",
-                          opacity: 0.85,
-                        }}
-                      ></span>
-                    </span>
-                    <span
-                      className="mono-label tabular-nums"
-                      style={{ width: 56, textAlign: "right", color: "var(--ink)" }}
-                    >
-                      {fmtUsd(x.cost)}
-                    </span>
-                    <ChevronRight size={16} style={{ color: "var(--ink-faint)", flexShrink: 0 }} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {daily.length > 0 ? (
-            <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
-              <MonoLabel style={{ marginBottom: 12 }}>Daily activity · runs</MonoLabel>
-              {/* Interactive pencil bar chart: hover or focus a bar to read that
-                  day's runs; peak and floor are always shown. */}
-              <SketchBarChart
-                data={daily.map((d) => ({ label: d.day.slice(5), value: d.runs }))}
-                color="var(--tangerine)"
-                formatValue={(v) => String(Math.round(v))}
-                ariaLabel="Agent runs per day"
-              />
-            </div>
-          ) : null}
-        </div>
-      )}
-
-      <div style={{ marginTop: 18 }}>
-        <SubTabs tabs={["Models", "Runs", "Guardrails"]} active={section} onSet={setSection} />
-
-        {section === "Models" ? (
-          <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-            <div
-              className="mono-label"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 70px 80px 80px",
-                gap: "var(--geist-space-3x)",
-                padding: "10px 18px",
-                borderBottom: "1px solid var(--hairline)",
-              }}
-            >
-              <span>Model</span>
-              <span>Runs</span>
-              <span>Tokens</span>
-              <span>Spend</span>
-            </div>
-            {byModel.length === 0 ? (
-              <p style={{ color: "var(--ink-subtle)", padding: "14px 18px" }}>
-                No AI calls in this window yet.
-              </p>
-            ) : (
-              byModel.map((r, i) => (
-                <div
-                  key={r.model}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 70px 80px 80px",
-                    gap: "var(--geist-space-3x)",
-                    padding: "12px 18px",
-                    alignItems: "baseline",
-                    borderBottom: i < byModel.length - 1 ? "1px solid var(--hairline)" : "none",
-                  }}
-                >
-                  <span className="mono-label" style={{ color: "var(--ink)" }}>
-                    {r.model}
-                  </span>
-                  <span className="tabular-nums" style={{ color: "var(--ink-muted)" }}>
-                    {r.runs}
-                  </span>
-                  <span className="mono-label tabular-nums">{fmtNum(r.tokens)}</span>
-                  <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
-                    {fmtUsd(r.cost)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        ) : section === "Runs" ? (
-          <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-            {events.isLoading ? (
-              <p style={{ color: "var(--ink-faint)", padding: "14px 18px" }}>
-                Loading runs…
-              </p>
-            ) : events.isError ? (
-              <p style={{ color: "var(--madder)", padding: "14px 18px" }}>
-                Runs did not load.{" "}
-                <button
-                  type="button"
-                  className="cursor-pointer hover:underline"
-                  onClick={() => void events.refetch()}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    color: "var(--ink)",
-                  }}
-                >
-                  Retry
-                </button>
-              </p>
-            ) : (events.data?.events ?? []).length === 0 ? (
-              <p style={{ color: "var(--ink-subtle)", padding: "14px 18px" }}>
-                No AI events yet. Run an agent or a chat first.
-              </p>
-            ) : (
-              (events.data?.events ?? []).map((e, i, arr) => (
-                <button
-                  key={e.id}
-                  type="button"
-                  className="lift"
-                  onClick={() => setOpenId(e.id)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "var(--geist-space-3x)",
-                    padding: "11px 18px",
-                    width: "100%",
-                    textAlign: "left",
-                    borderBottom: i < arr.length - 1 ? "1px solid var(--hairline)" : "none",
-                  }}
-                >
-                  <VerdictChip tone={e.status === "ok" ? "moss" : "madder"}>
-                    {e.status === "ok" ? "ok" : "failed"}
-                  </VerdictChip>
-                  <span className="mono-label" style={{ width: 80, flexShrink: 0 }}>
-                    {e.surface}
-                  </span>
-                  <span
-                    style={{
-                      flex: 1,
-                      color: "var(--ink-muted)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {(e.input_preview ?? "").slice(0, 100)}
-                  </span>
-                  <span className="mono-label tabular-nums">{fmtNum(e.total_tokens)}</span>
-                  <span className="mono-label tabular-nums">{fmtMs(e.latency_ms)}</span>
-                  <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
-                    {fmtUsd(Number(e.est_cost_usd))}
-                  </span>
-                  <span
-                    className="mono-label"
-                    style={{ color: "var(--action-blue)" }}
-                  >
-                    detail →
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
+      {/* THE HEADLINE FACTS, as Lines rather than a Grid of Cells. Each one is
+          a named quantity read as label-left, fact-right, and a Cell's lead is
+          the value with nowhere to put its own name, which would leave four
+          unlabelled numbers side by side. The Grid is used further down, on the
+          judge scores, where five siblings are genuinely scanned across and
+          compared against each other. */}
+      <Block title="What it cost">
+        {overview.isLoading ? (
+          <Loading>Reading the AI event ledger.</Loading>
+        ) : overview.isError ? (
+          <Failed onRetry={() => void overview.refetch()}>
+            The event ledger did not load, so nothing here is a claim about what you spent.{" "}
+            {errText(overview.error)}
+          </Failed>
+        ) : runs === 0 ? (
+          <Empty>
+            Nothing ran in this window. Widen it, or run an agent and the first call lands here
+            within a minute.
+          </Empty>
         ) : (
-          <div className="bento" style={{ padding: "var(--card-pad)" }}>
-            <MonoLabel style={{ marginBottom: 10 }}>Guardrail hits · last 30 days</MonoLabel>
-            {guards.isLoading ? (
-              <p style={{ color: "var(--ink-faint)" }}>Loading guardrail hits…</p>
-            ) : guards.isError ? (
-              <p style={{ color: "var(--madder)" }}>
-                Guardrail hits did not load.{" "}
-                <button
-                  type="button"
-                  className="cursor-pointer hover:underline"
-                  onClick={() => void guards.refetch()}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    color: "var(--ink)",
-                  }}
-                >
-                  Retry
-                </button>
-              </p>
-            ) : (guards.data?.hits ?? []).length === 0 ? (
-              <p style={{ color: "var(--ink-subtle)" }}>
-                No guardrail hits. Inputs and outputs have been clean.
-              </p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {(guards.data?.hits ?? []).map((h, i, arr) => (
-                  <div
-                    key={`${h.name}-${h.action}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "8px 0",
-                      borderBottom: i < arr.length - 1 ? "1px solid var(--hairline)" : "none",
-                    }}
-                  >
-                    <span
-                      className="mono-label"
-                      style={{
-                        color: h.action === "block" ? "var(--rose)" : "var(--marigold)",
-                      }}
-                    >
-                      {h.action}
-                    </span>
-                    <span style={{ flex: 1, color: "var(--ink-muted)" }}>{h.name}</span>
-                    <span className="mono-label tabular-nums">{h.count}×</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          <>
+            <Line
+              label="Spend"
+              sub={
+                <>
+                  <Num>{runs}</Num> calls
+                  {errors > 0 ? (
+                    <>
+                      {", "}
+                      <span className="sp-fail">
+                        <Num>{errors}</Num> of them failed
+                      </span>
+                    </>
+                  ) : null}
+                  {capForRange != null ? (
+                    <>
+                      {". The cap for this window is "}
+                      <Num>{fmtUsd(Number(capForRange))}</Num>
+                    </>
+                  ) : null}
+                  .
+                </>
+              }
+            >
+              <Value>
+                <Num>{fmtUsd(totalCost)}</Num>
+              </Value>
+            </Line>
 
-      {openId && (
-        <Drawer onClose={() => setOpenId(null)}>
-          {/* An error never wears the loading state's clothes (checklist 7):
-              a failed detail read names itself and offers one retry. */}
-          {detail.isError ? (
-            <div style={{ color: "var(--madder)" }}>
-              This event did not load. {(detail.error as Error)?.message}{" "}
-              <button
-                type="button"
-                className="cursor-pointer hover:underline active:opacity-80"
-                onClick={() => void detail.refetch()}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  color: "var(--ink)",
-                }}
+            <Line
+              label="Tokens"
+              sub="Prompt and completion together, across every AI call the product made."
+            >
+              <Value>
+                <Num>{fmtNum(s?.totalTokens ?? 0)}</Num>
+              </Value>
+            </Line>
+
+            {/* The reference headline is the median. Its "ttft" sub-datum is
+                never written in production, so the real average and p95 ride
+                the second line instead of a number nobody records. */}
+            <Line
+              label="Median latency"
+              sub={
+                <>
+                  Average <Num>{fmtMs(s?.avgLatency ?? 0)}</Num>, and the slowest call in twenty
+                  took <Num>{fmtMs(s?.p95Latency ?? 0)}</Num>.
+                </>
+              }
+            >
+              <Value>
+                <Num>{fmtMs(s?.p50Latency ?? 0)}</Num>
+              </Value>
+            </Line>
+
+            {/* Only where the window spans more than one day. `daily` buckets
+                by UTC calendar day while the window is a rolling one, so a
+                24 hour window can legitimately hold two day buckets and a
+                "busiest day" would be arithmetic rather than a fact. For the
+                same reason the count below never compares itself to the
+                window length. */}
+            {busiest && days > 1 ? (
+              <Line
+                label="Busiest day"
+                sub={
+                  <>
+                    <Num>{busiest.runs}</Num> calls that day. <Num>{daily.length}</Num>{" "}
+                    {daily.length === 1 ? "day" : "days"} in this window recorded anything at all.
+                  </>
+                }
               >
-                Retry
-              </button>
-            </div>
-          ) : detail.isLoading || !detail.data ? (
-            <div style={{ color: "var(--ink-faint)" }}>Loading event…</div>
+                <Value>
+                  <Num>{busiest.day}</Num>
+                </Value>
+              </Line>
+            ) : null}
+          </>
+        )}
+      </Block>
+
+      {/* Fed by the same read as the block above, so it renders only once that
+          read succeeded. Repeating one failure twice on one screen tells the
+          reader nothing the first line did not. */}
+      {overview.isSuccess && bySurface.length > 0 ? (
+        <Block
+          title="Where it went"
+          sub="Every AI call in the product rolls up here, busiest first."
+        >
+          {bySurface.map((x) => (
+            <Row
+              key={x.surface}
+              tight
+              lead={x.surface}
+              sub={
+                <>
+                  <Num>{fmtUsd(x.cost)}</Num> · <Num>{x.runs}</Num> calls
+                  {x.errors > 0 ? (
+                    <>
+                      {" · "}
+                      <span className="sp-fail">
+                        <Num>{x.errors}</Num> failed
+                      </span>
+                    </>
+                  ) : null}
+                </>
+              }
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      {/* The per-agent layer underneath the 'agent' surface row above. Its own
+          read, so its own three states. A row that resolved to a real agent
+          wears that agent's mark: the row IS that agent's spend, so the mark is
+          attribution rather than decoration. A pseudo-ref (orchestrator:plan,
+          unattributed) resolved to nothing, so it wears no mark and says so,
+          rather than borrowing an identity it was never given. */}
+      <Block
+        title="Which agent spent it"
+        sub="Share is of agent spend, not of everything above. Open one for its runs and missions."
+      >
+        {byAgentQ.isLoading ? (
+          <Loading>Reading the agent ledger.</Loading>
+        ) : byAgentQ.isError ? (
+          <Failed onRetry={() => void byAgentQ.refetch()}>
+            Agent spend did not load, so this is not a claim that no agent ran.{" "}
+            {errText(byAgentQ.error)}
+          </Failed>
+        ) : byAgents.length === 0 ? (
+          <Empty>
+            No agent calls in this window. Everything else the product asked a model is in the
+            rollup above.
+          </Empty>
+        ) : (
+          byAgents.map((a) => {
+            // getAgentSpendBreakdown sets name to the agents row when the ref
+            // resolved and to the raw ref when it did not, so this is the
+            // honest test for whether there is an agent behind the row.
+            const resolved = a.name !== a.slug;
+            return (
+              <Row
+                key={a.slug}
+                tight
+                marks={
+                  resolved ? <AgentMark slug={a.slug} name={a.name} state="idle" /> : undefined
+                }
+                lead={a.name}
+                sub={
+                  <>
+                    <Num>{fmtUsd(a.cost)}</Num> · <Num>{Math.round(a.pct)}%</Num> of agent spend ·{" "}
+                    <Num>{a.calls}</Num> calls
+                    {resolved ? null : " · no agent on the record for these"}
+                  </>
+                }
+                onClick={() =>
+                  navigate({
+                    to: "/engine-room",
+                    search: { room: "spend", view: "usage", agent: a.slug },
+                  })
+                }
+              />
+            );
+          })
+        )}
+      </Block>
+
+      {/* ENG-06 unit economics, the operator half of cost-per-outcome. Stays
+          silent on a workspace that has produced no outcomes yet, because a
+          block of dashes teaches nobody anything. A failed read is never
+          silent: that is the difference between "nothing yet" and "we could
+          not find out". */}
+      {unitQ.isError ? (
+        <Block title="What each outcome cost">
+          <Failed onRetry={() => void unitQ.refetch()}>
+            The outcome ledger did not load. {errText(unitQ.error)}
+          </Failed>
+        </Block>
+      ) : unitQ.isLoading ? (
+        <Block title="What each outcome cost">
+          <Loading>Reading the outcome ledger.</Loading>
+        </Block>
+      ) : ue && ue.outcomes > 0 ? (
+        <Block title="What each outcome cost">
+          <Line
+            label="Cost per outcome"
+            sub="Blended across specs, decisions and shipped missions on purpose. Per-type attribution would claim a precision this data does not have."
+          >
+            <Value>
+              {ue.costPerOutcomeUsd != null ? (
+                <Num>{fmtUsd(ue.costPerOutcomeUsd)}</Num>
+              ) : (
+                "not yet countable"
+              )}
+            </Value>
+          </Line>
+          <Line
+            label="Agent spend"
+            sub="From the agent runs ledger, which counts only model calls tied to a run. It will not match the spend above, and that disagreement is real."
+          >
+            <Value>
+              <Num>{fmtUsd(ue.totalSpendUsd)}</Num>
+            </Value>
+          </Line>
+          <Line
+            label="Outcomes"
+            sub={
+              <>
+                <Num>{ue.specs}</Num> specs, <Num>{ue.decisions}</Num> decisions,{" "}
+                <Num>{ue.missions}</Num> shipped.
+              </>
+            }
+          >
+            <Value>
+              <Num>{ue.outcomes}</Num>
+            </Value>
+          </Line>
+        </Block>
+      ) : null}
+
+      {/* THE DRAWER, converted. Opening a run REPLACES the breakdown rather
+          than floating over it, which is what the absent pane would have done.
+          A Block is a rule and never appears inside another Block, so the run
+          takes the whole region rather than nesting inside it, and the way
+          back is one real Button at the top of the first thing you read. */}
+      {section === "runs" && openId ? (
+        detail.isError ? (
+          <Block title="The call you opened">
+            <Actions>
+              <Button onClick={() => setOpenId(null)}>Back to the runs</Button>
+            </Actions>
+            <Failed onRetry={() => void detail.refetch()}>
+              This call did not load. {errText(detail.error)}
+            </Failed>
+          </Block>
+        ) : detail.isLoading || !detail.data ? (
+          <Block title="The call you opened">
+            <Actions>
+              <Button onClick={() => setOpenId(null)}>Back to the runs</Button>
+            </Actions>
+            <Loading>Reading the call.</Loading>
+          </Block>
+        ) : (
+          <EventDetail data={detail.data as EventDetailData} onBack={() => setOpenId(null)} />
+        )
+      ) : (
+        /* The three breakdowns. The picker's own words name each one, so the
+           block heading says something else: what all three have in common,
+           and where their windows disagree with the picker at the top. */
+        <Block
+          title="Underneath the totals"
+          sub="Models follow the window above. The run list is the last 100 calls and guardrail hits are the last 30 days, whichever window is picked."
+        >
+          <Choices
+            label="Which breakdown to read"
+            mode="one"
+            value={section}
+            onPick={(id) => setSection(id)}
+            options={SECTIONS.map((x) => ({ id: x.id, label: x.label }))}
+          />
+
+          {section === "models" ? (
+            overview.isLoading ? (
+              <Loading>Reading the AI event ledger.</Loading>
+            ) : overview.isError ? (
+              <Failed onRetry={() => void overview.refetch()}>
+                The event ledger did not load, so this is not a claim that no model ran.
+              </Failed>
+            ) : byModel.length === 0 ? (
+              <Empty>No AI calls in this window, so no model has a line yet.</Empty>
+            ) : (
+              byModel.map((m) => (
+                <Row
+                  key={m.model}
+                  tight
+                  lead={m.model}
+                  sub={
+                    <>
+                      <Num>{fmtUsd(m.cost)}</Num> · <Num>{m.runs}</Num> calls ·{" "}
+                      <Num>{fmtNum(m.tokens)}</Num> tokens
+                    </>
+                  }
+                />
+              ))
+            )
+          ) : section === "runs" ? (
+            events.isLoading ? (
+              <Loading>Reading the last calls on the record.</Loading>
+            ) : events.isError ? (
+              <Failed onRetry={() => void events.refetch()}>
+                The calls did not load, so this is not a claim that nothing ran.{" "}
+                {errText(events.error)}
+              </Failed>
+            ) : eventRows.length === 0 ? (
+              <Empty>
+                No AI call is on the record yet. Run an agent or ask a question and the first one
+                lands here.
+              </Empty>
+            ) : (
+              eventRows.map((e) => (
+                <Row
+                  key={e.id}
+                  tight
+                  lead={(e.input_preview ?? "").trim() || "No preview was recorded."}
+                  // "ok" repeated down a hundred rows is not information. Only a
+                  // failure says anything, and it says it in the fail tone.
+                  sub={
+                    <>
+                      {e.status === "ok" ? null : (
+                        <>
+                          <span className="sp-fail">failed</span>
+                          {" · "}
+                        </>
+                      )}
+                      {e.surface} · <Num>{fmtNum(e.total_tokens)}</Num> tokens ·{" "}
+                      <Num>{fmtMs(e.latency_ms)}</Num> · <Num>{fmtUsd(Number(e.est_cost_usd))}</Num>
+                    </>
+                  }
+                  time={relTime(e.created_at)}
+                  onClick={() => setOpenId(e.id)}
+                />
+              ))
+            )
+          ) : guards.isLoading ? (
+            <Loading>Reading the guardrail hits.</Loading>
+          ) : guards.isError ? (
+            <Failed onRetry={() => void guards.refetch()}>
+              The guardrail hits did not load, so this is not a claim that nothing fired.{" "}
+              {errText(guards.error)}
+            </Failed>
+          ) : guardHits.length === 0 ? (
+            <Empty>
+              No guardrail has fired in the last 30 days. Inputs and outputs stayed clean.
+            </Empty>
           ) : (
-            <EventDetail data={detail.data as EventDetailData} />
+            guardHits.map((h) => (
+              <Row
+                key={`${h.name}-${h.action}`}
+                tight
+                lead={h.name}
+                sub={
+                  <>
+                    <span className={h.action === "block" ? "sp-fail" : "sp-warn"}>{h.action}</span>{" "}
+                    · <Num>{h.count}</Num> times
+                  </>
+                }
+              />
+            ))
           )}
-        </Drawer>
+        </Block>
       )}
     </div>
-  );
-}
-
-/* Event-detail drawer — production's existing AI-event drill-down, restyled
-   quiet-Ember (canvas panel, hairline edge). */
-function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  // Escape closes the drawer (the innermost open layer here).
-  React.useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  const closeRef = React.useRef<HTMLButtonElement | null>(null);
-  React.useEffect(() => {
-    closeRef.current?.focus();
-  }, []);
-  return (
-    <>
-      <div
-        aria-hidden="true"
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 40 }}
-        onClick={onClose}
-      />
-      <aside
-        className="fade-up"
-        role="dialog"
-        aria-modal="true"
-        aria-label="AI event detail"
-        style={{
-          position: "fixed",
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: "100%",
-          maxWidth: 560,
-          background: "var(--canvas)",
-          borderLeft: "1px solid var(--hairline)",
-          zIndex: 50,
-          overflow: "auto",
-          padding: "var(--geist-gap)",
-        }}
-      >
-        <button
-          type="button"
-          ref={closeRef}
-          onClick={onClose}
-          aria-label="Close"
-          className="cursor-pointer transition-opacity hover:opacity-70 active:opacity-60"
-          style={{ position: "absolute", right: 16, top: 16, color: "var(--ink-subtle)" }}
-        >
-          <X size={14} />
-        </button>
-        {children}
-      </aside>
-    </>
   );
 }
 
@@ -748,154 +620,159 @@ type EventDetailData = {
   feedback: { rating: number; comment: string | null }[];
 };
 
-function EventDetail({ data }: { data: EventDetailData }) {
+/**
+ * One AI call, rendered in place of the run list rather than over it. The
+ * pane, the slide-over and the drawer are deliberately absent from the
+ * primitives; this is the shape /admin/people uses for the same job.
+ */
+function EventDetail({ data, onBack }: { data: EventDetailData; onBack: () => void }) {
+  const back = (
+    <Actions>
+      <Button onClick={onBack}>Back to the runs</Button>
+    </Actions>
+  );
   const e = data.event;
-  if (!e) return <div style={{ color: "var(--ink-subtle)" }}>Event not found.</div>;
+  if (!e) {
+    return (
+      <Block title="The call you opened">
+        {back}
+        <Empty>That call is no longer on the record.</Empty>
+      </Block>
+    );
+  }
   const ev = data.eval;
+  const ok = e.status === "ok";
+
+  // Five sibling scores, compared against each other rather than read down:
+  // that is the one thing on this panel a Grid is for.
+  const scores: [string, number | null][] = ev
+    ? [
+        ["Hallucination", ev.hallucination_score],
+        ["Groundedness", ev.groundedness],
+        ["Relevance", ev.relevance],
+        ["Coherence", ev.coherence],
+        ["Toxicity", ev.toxicity],
+      ]
+    : [];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div>
-        <MonoLabel>AI event · via {e.via}</MonoLabel>
-        <div className="font-display" style={{ marginTop: 4 }}>
-          {e.surface}
-        </div>
-        <div className="mono-label" style={{ marginTop: 4, color: "var(--ink-subtle)" }}>
-          {e.model} · {relTime(e.created_at)}
-        </div>
-      </div>
+    <>
+      <Block
+        title="The call you opened"
+        sub={
+          <>
+            {e.surface} · {e.model} · via {e.via} · <Num>{relTime(e.created_at)}</Num>
+          </>
+        }
+      >
+        {back}
+        <Line label="Status">
+          <Value tone={ok ? "pass" : "fail"}>{ok ? "ok" : "failed"}</Value>
+        </Line>
+        <Line
+          label="Tokens"
+          sub={
+            <>
+              Prompt <Num>{e.prompt_tokens}</Num>, completion <Num>{e.completion_tokens}</Num>.
+            </>
+          }
+        >
+          <Value>
+            <Num>{fmtNum(e.total_tokens)}</Num>
+          </Value>
+        </Line>
+        <Line label="Latency">
+          <Value>
+            <Num>{fmtMs(e.latency_ms)}</Num>
+          </Value>
+        </Line>
+        <Line label="Cost">
+          <Value>
+            <Num>{fmtUsd(Number(e.est_cost_usd))}</Num>
+          </Value>
+        </Line>
+      </Block>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
-        {(
-          [
-            ["Tokens", `${e.prompt_tokens}/${e.completion_tokens}`],
-            ["Latency", fmtMs(e.latency_ms)],
-            ["Cost", fmtUsd(Number(e.est_cost_usd))],
-            ["Status", e.status],
-          ] as [string, string][]
-        ).map(([l, v]) => (
-          <div key={l} className="bento" style={{ padding: "10px 12px", textAlign: "center" }}>
-            <div className="mono-label" style={{ marginBottom: 4 }}>
-              {l}
-            </div>
-            <div className="tabular-nums" style={{ }}>
-              {v}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {ev && (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 10 }}>Judge scores</MonoLabel>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}
-          >
-            {(
-              [
-                ["Hallucination", ev.hallucination_score],
-                ["Groundedness", ev.groundedness],
-                ["Relevance", ev.relevance],
-                ["Coherence", ev.coherence],
-                ["Toxicity", ev.toxicity],
-              ] as [string, number | null][]
-            ).map(([l, v]) => (
-              <div key={l} style={{ textAlign: "center" }}>
-                <div className="mono-label" style={{ }}>
-                  {l}
-                </div>
-                <div className="font-display tabular-nums" style={{ marginTop: 2 }}>
-                  {v == null ? "-" : `${(v * 100).toFixed(0)}%`}
-                </div>
-              </div>
+      {ev ? (
+        <Block
+          title="What the judge scored"
+          sub="A score the judge did not return says so, rather than reading as a zero."
+        >
+          <Grid>
+            {scores.map(([label, v]) => (
+              <Cell
+                key={label}
+                lead={v == null ? "not scored" : <Num>{Math.round(v * 100)}%</Num>}
+                sub={label}
+              />
             ))}
-          </div>
-          {ev.judge_rationale && (
-            <p
-              style={{
-                color: "var(--ink-subtle)",
-                marginTop: 10,
-                paddingTop: 10,
-                borderTop: "1px solid var(--hairline)",
-                lineHeight: 1.5,
-              }}
-            >
-              {ev.judge_rationale}
-            </p>
-          )}
-        </div>
-      )}
+          </Grid>
+          {ev.judge_rationale ? <Prose>{ev.judge_rationale}</Prose> : null}
+        </Block>
+      ) : null}
 
-      {data.guardrailHits.length > 0 && (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>Guardrails</MonoLabel>
+      {data.guardrailHits.length > 0 ? (
+        <Block title="What the guardrails caught">
           {data.guardrailHits.map((h, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: "var(--geist-space-2x)",
-                padding: "3px 0",
-                alignItems: "baseline",
-              }}
-            >
-              <span
-                className="mono-label"
-                style={{
-                  color: h.action === "block" ? "var(--rose)" : "var(--marigold)",
-                }}
-              >
-                {h.action}
-              </span>
-              <span style={{ color: "var(--ink-muted)" }}>{h.rule_name}</span>
-              <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                {h.side}
-              </span>
-            </div>
+            <Row
+              key={`${h.rule_name}-${h.side}-${i}`}
+              tight
+              lead={h.rule_name}
+              sub={
+                <>
+                  <span className={h.action === "block" ? "sp-fail" : "sp-warn"}>{h.action}</span>{" "}
+                  on the {h.side}
+                  {h.matched ? ` · matched ${h.matched}` : null}
+                </>
+              }
+            />
           ))}
-        </div>
-      )}
+        </Block>
+      ) : null}
 
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 8 }}>Input</MonoLabel>
-        <pre
-          style={{
-            fontFamily: "var(--font-mono)",
-            whiteSpace: "pre-wrap",
-            color: "var(--ink-muted)",
-            lineHeight: 1.5,
-          }}
+      {data.feedback.length > 0 ? (
+        <Block
+          title="What a person said about it"
+          sub="Someone rated this call after it ran. The rating prints as it was stored, rather than being translated into a scale nobody set."
         >
-          {e.input_preview ?? "(empty)"}
-        </pre>
-      </div>
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 8 }}>Output</MonoLabel>
-        <pre
-          style={{
-            fontFamily: "var(--font-mono)",
-            whiteSpace: "pre-wrap",
-            color: "var(--ink)",
-            lineHeight: 1.5,
-          }}
-        >
-          {e.output_preview ?? "(empty)"}
-        </pre>
-      </div>
-      {e.error_message && (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8, color: "var(--rose)" }}>Error</MonoLabel>
-          <pre
-            style={{
-              fontFamily: "var(--font-mono)",
-              whiteSpace: "pre-wrap",
-              color: "var(--rose)",
-              lineHeight: 1.5,
-            }}
-          >
-            {e.error_message}
-          </pre>
-        </div>
-      )}
-    </div>
+          {data.feedback.map((f, i) => (
+            <Row
+              key={i}
+              tight
+              lead={f.comment?.trim() || "No comment was left."}
+              sub={
+                <>
+                  Rated <Num>{f.rating}</Num>
+                </>
+              }
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      <Block title="What went in">
+        {e.input_preview ? (
+          <Pre>{e.input_preview}</Pre>
+        ) : (
+          <Empty>No input preview was recorded for this call.</Empty>
+        )}
+      </Block>
+
+      <Block title="What came back">
+        {e.output_preview ? (
+          <Pre>{e.output_preview}</Pre>
+        ) : (
+          <Empty>No output preview was recorded for this call.</Empty>
+        )}
+      </Block>
+
+      {e.error_message ? (
+        <Block title="Why it failed">
+          <Pre>
+            <span className="sp-fail">{e.error_message}</span>
+          </Pre>
+        </Block>
+      ) : null}
+    </>
   );
 }

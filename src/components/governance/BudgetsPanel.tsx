@@ -1,17 +1,50 @@
-// Budgets tab — ported 1:1 from design-reference/supaprod/loop.jsx
-// (GovernScreen tab "Budgets"): 2-col bentos for Today + the current month —
-// mono label, "edit cap" blue mono toggle that becomes the inline 76px-input
-// form, serif 30 "$burn of $cap", the 5px progress bar (rose >80% else
-// ember) and the note row. The reference's projections are omitted —
-// production computes none. The span-2 explainer copy is corrected to what
-// production actually enforces (no $5 spend-ceiling guardrail exists; the
-// real second limiter is per-mission caps). Production functionality kept:
-// token caps + alert threshold, per-surface caps (add / toggle / remove),
-// and budget alerts with acknowledge — restyled quiet-Ember.
+/**
+ * The ceiling on your spend.
+ *
+ * PORTED 2026-07-29 onto src/components/shell/primitives.tsx. This is a
+ * governance surface, so the shape follows the canon
+ * (docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md): policy is set in
+ * advance and does not block. A cap is exactly that, so every cap on this
+ * surface is a `Line`, a sentence with a control at the end of it, never a card
+ * demanding attention.
+ *
+ * WAS: six `bento` cards in a two-column grid, each with its own border, its
+ * own padding and its own inline form. Six bordered containers in one region,
+ * where the standard allows one (anti-slop.md ban 5). The burn number sat over
+ * a 5px progress bar that switched between two hues at 80%, which is colour
+ * carrying a threshold the number beside it already stated.
+ *
+ * IS: one `sp-subtitle` stating what is actually in force, then three `Block`s
+ * of `Line`s. The bar is gone; the burn is a `Value` whose tone IS the
+ * threshold, and the threshold is `alert_at_pct`, which is the same number the
+ * runtime warns at rather than a hard-coded 80 in the view.
+ *
+ * THREE THINGS THIS PASS CHANGED BEYOND STYLING, each recorded because a
+ * governance surface that overclaims is worse than one that looks dated.
+ *
+ * 1. THE TOKEN CAPS ARE GONE. `daily_token_cap` and `monthly_token_cap` are
+ *    written by `updateGlobalBudget` and read by NOTHING: `checkBudget`
+ *    (runtime.server.ts:820) selects only the two USD caps, and no other call
+ *    path reads either column. Drawing a control that sets an inert number is
+ *    the exact defect the Crew surface refused, "a control that draws a setting
+ *    the runtime would silently override". The stored values are passed through
+ *    untouched on every write, so nothing is destroyed and the controls can
+ *    come back the day the runtime reads them.
+ *
+ * 2. THE EXPLAINER NO LONGER PROMISES PER-MISSION CAPS. `checkMissionCaps`
+ *    really does halt a run on `mission_spend_cap_usd`, but every writer on the
+ *    main path passes `?? null` (handoff.server.ts:419, loop.server.ts:491), so
+ *    only a fan-out child is ever given one. Telling a person their missions
+ *    are individually capped would be describing a ceiling that does not exist.
+ *
+ * 3. THE BURN IS WINDOW-AWARE. `checkBudget` only enforces while
+ *    `day_window === today`, and `incrementBudget` zeroes the counter when the
+ *    window rolls. Reading `daily_usd_used` without checking the window renders
+ *    yesterday's total as today's, which is a wrong number on a spend screen.
+ */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Gauge, Shield } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { toast } from "@/lib/notify";
 import {
   getBudgetOverview,
@@ -20,8 +53,24 @@ import {
   deleteSurfaceBudget,
   acknowledgeAlert,
 } from "@/lib/budgets.functions";
-import { MonoLabel, VerdictChip } from "@/components/supaprod/Primitives";
-import { relTime, fmtUsd } from "@/components/product/format";
+import {
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+  Select,
+  Switch,
+  Value,
+} from "@/components/shell/primitives";
+import { fmtUsd } from "@/components/product/format";
 
 const SURFACES = [
   "agent",
@@ -37,8 +86,6 @@ const SURFACES = [
   "scheduler",
 ];
 
-const SURFACE_GRID = "1fr 160px 160px 120px";
-
 type GlobalBudget = {
   daily_usd_cap: number | string | null;
   monthly_usd_cap: number | string | null;
@@ -47,6 +94,10 @@ type GlobalBudget = {
   alert_at_pct: number | null;
   daily_usd_used?: number | string | null;
   monthly_usd_used?: number | string | null;
+  /** The window the counters belong to. Stale means the counters are last
+   *  window's and the runtime is treating them as zero. */
+  day_window?: string | null;
+  month_window?: string | null;
 };
 
 type SurfaceRow = {
@@ -56,6 +107,8 @@ type SurfaceRow = {
   enabled: boolean;
   daily_usd_used: number | string;
   monthly_usd_used: number | string;
+  day_window?: string | null;
+  month_window?: string | null;
 };
 
 type AlertRow = {
@@ -71,8 +124,60 @@ type AlertRow = {
   acknowledged: boolean;
 };
 
-/** Full payload for updateGlobalBudget with one field replaced — the server
-    schema wants every cap on each write. */
+/** What a judgment left behind, kept per region so a receipt sits under the
+ *  thing it changed rather than at the bottom of the page. */
+type Done = { verb: string; consequence: ReactNode; at: string };
+
+/** The same window arithmetic the runtime does, so the screen and the enforcer
+ *  cannot disagree about what today is. */
+function windowKeys() {
+  const today = new Date().toISOString().slice(0, 10);
+  return { today, thisMonth: `${today.slice(0, 7)}-01` };
+}
+
+/** Spend in the CURRENT window. A counter from a window that has rolled is not
+ *  this window's spend, and the runtime already treats it as zero. */
+function burnIn(
+  used: number | string | null | undefined,
+  stored: string | null | undefined,
+  live: string,
+) {
+  if (stored !== live) return 0;
+  return Number(used ?? 0);
+}
+
+/** Plain-words relative time, the same vocabulary the Crew surface uses. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+/**
+ * How a burn reads against its own ceiling. The warn step is `alert_at_pct`,
+ * the same threshold `incrementBudget` writes its alert at, so the colour on
+ * screen changes at the moment the record says it does.
+ */
+function burnTone(
+  burn: number,
+  cap: number | null,
+  alertPct: number,
+): "quiet" | "pass" | "warn" | "fail" {
+  if (cap == null || cap <= 0) return "quiet";
+  if (burn >= cap) return "fail";
+  if (burn >= (alertPct / 100) * cap) return "warn";
+  return "pass";
+}
+
+/** Full payload for updateGlobalBudget with one field replaced. The server
+    schema wants every cap on each write, and the token caps ride through
+    untouched: nothing reads them today, and nothing should destroy them. */
 function globalPayload(g: GlobalBudget | null, patch: Partial<Record<string, number | null>>) {
   return {
     daily_usd_cap: g?.daily_usd_cap != null ? Number(g.daily_usd_cap) : null,
@@ -101,45 +206,65 @@ export function BudgetsPanel() {
 
   const [editCap, setEditCap] = useState<"daily" | "monthly" | null>(null);
   const [capDraft, setCapDraft] = useState("");
+  const [pctDraft, setPctDraft] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newSurface, setNewSurface] = useState({ surface: "chat", daily: "", monthly: "" });
+  const [capDone, setCapDone] = useState<Done[]>([]);
+  const [surfaceDone, setSurfaceDone] = useState<Done[]>([]);
+
+  const g = (overview.data?.global as GlobalBudget | null) ?? null;
 
   const setCapMut = useMutation({
-    mutationFn: (v: { key: "daily" | "monthly"; label: string; value: number }) =>
+    mutationFn: (v: { key: "daily" | "monthly"; value: number }) =>
       saveGlobal({
         data: globalPayload(
-          (overview.data?.global as GlobalBudget | null) ?? null,
+          g,
           v.key === "daily" ? { daily_usd_cap: v.value } : { monthly_usd_cap: v.value },
         ),
       }),
     onSuccess: (_d, v) => {
-      toast.success(`${v.label} cap set to $${v.value}. Over-cap calls are blocked.`);
+      // THE COMMIT. A toast confirms that the click registered; this says what
+      // the click will actually stop.
+      setCapDone((d) => [
+        ...d,
+        {
+          verb: "You set the ceiling",
+          consequence: (
+            <>
+              A call is refused once {v.key === "daily" ? "today's" : "this month's"} spend reaches{" "}
+              <Num>{fmtUsd(v.value)}</Num>.
+            </>
+          ),
+          at: new Date().toISOString(),
+        },
+      ]);
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [adv, setAdv] = useState<{
-    daily_token_cap: string;
-    monthly_token_cap: string;
-    alert_at_pct: string;
-  } | null>(null);
-  const saveAdvMut = useMutation({
-    mutationFn: (v: { daily_token_cap: string; monthly_token_cap: string; alert_at_pct: string }) =>
-      saveGlobal({
-        data: globalPayload((overview.data?.global as GlobalBudget | null) ?? null, {
-          daily_token_cap: v.daily_token_cap.trim() ? Number(v.daily_token_cap) : null,
-          monthly_token_cap: v.monthly_token_cap.trim() ? Number(v.monthly_token_cap) : null,
-          alert_at_pct: v.alert_at_pct.trim() ? Number(v.alert_at_pct) : 80,
-        }),
-      }),
-    onSuccess: () => {
-      toast.success("Caps saved. Enforced on the next AI call.");
-      setAdv(null);
+  const setPctMut = useMutation({
+    mutationFn: (pct: number) => saveGlobal({ data: globalPayload(g, { alert_at_pct: pct }) }),
+    onSuccess: (_d, pct) => {
+      setPctDraft(null);
+      setCapDone((d) => [
+        ...d,
+        {
+          verb: "You moved the warning",
+          consequence: (
+            <>
+              A note lands on the record when a window crosses <Num>{pct}%</Num> of its ceiling.
+              Nothing is stopped at that point.
+            </>
+          ),
+          at: new Date().toISOString(),
+        },
+      ]);
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [newSurface, setNewSurface] = useState({ surface: "chat", daily: "", monthly: "" });
   const addSurfaceMut = useMutation({
     mutationFn: () =>
       upsertSurface({
@@ -151,12 +276,41 @@ export function BudgetsPanel() {
         },
       }),
     onSuccess: () => {
-      toast.success(`${newSurface.surface} cap set. Over-cap calls are blocked.`);
+      const { surface, daily, monthly } = newSurface;
+      setSurfaceDone((d) => [
+        ...d,
+        {
+          verb: "You capped it",
+          consequence: (
+            <>
+              {surface} is refused{" "}
+              {daily.trim() ? (
+                <>
+                  past <Num>{fmtUsd(Number(daily))}</Num> in a day
+                </>
+              ) : null}
+              {daily.trim() && monthly.trim() ? " and " : null}
+              {monthly.trim() ? (
+                <>
+                  past <Num>{fmtUsd(Number(monthly))}</Num> in a month
+                </>
+              ) : null}
+              {!daily.trim() && !monthly.trim()
+                ? "by nothing: you set no amount, so the row is on but empty"
+                : null}
+              .
+            </>
+          ),
+          at: new Date().toISOString(),
+        },
+      ]);
       setNewSurface({ surface: "chat", daily: "", monthly: "" });
+      setAdding(false);
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
   const toggleSurfaceMut = useMutation({
     mutationFn: (row: SurfaceRow) =>
       upsertSurface({
@@ -168,65 +322,68 @@ export function BudgetsPanel() {
         },
       }),
     onSuccess: (_d, row) => {
-      toast.success(`${row.surface} cap ${row.enabled ? "off" : "on"}.`);
+      setSurfaceDone((d) => [
+        ...d,
+        {
+          verb: row.enabled ? "You lifted it" : "You put it back",
+          consequence: row.enabled ? (
+            <>Nothing stops {row.surface} now except the account ceiling.</>
+          ) : (
+            <>{row.surface} is held to its own amount again.</>
+          ),
+          at: new Date().toISOString(),
+        },
+      ]);
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
   const removeSurfaceMut = useMutation({
     mutationFn: (surface: string) => delSurface({ data: { surface } }),
     onSuccess: (_d, surface) => {
-      toast.success(`${surface} cap removed. It stops applying.`);
+      setSurfaceDone((d) => [
+        ...d,
+        {
+          verb: "You removed it",
+          consequence: <>{surface} has no ceiling of its own now.</>,
+          at: new Date().toISOString(),
+        },
+      ]);
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
   const ackMut = useMutation({
     mutationFn: (id: string) => ackFn({ data: { id } }),
     onSuccess: () => inv(),
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (overview.error) {
+  if (overview.isLoading) return <Loading>Reading what you have spent.</Loading>;
+
+  // A read that FAILED is not an empty state. "No cap is set" and "we could not
+  // find out" are different facts, and one of them is dangerous to guess at on
+  // a spend screen.
+  if (overview.isError) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load budgets
-        </div>
-        <p style={{ color: "var(--ink-muted)", marginTop: 8 }}>
-          {(overview.error as Error)?.message}
-        </p>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => overview.refetch()}
-        >
-          Retry · reloads budgets
-        </button>
-      </div>
+      <Block>
+        <Failed onRetry={() => void overview.refetch()}>
+          Your budgets did not load, so nothing here would be the real ceiling.
+        </Failed>
+      </Block>
     );
   }
 
-  if (overview.isLoading) {
-    return (
-      <div
-        style={{
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
-        }}
-      >
-        Loading budgets…
-      </div>
-    );
-  }
-
-  const g = (overview.data?.global as GlobalBudget | null) ?? null;
   const surfaces = (overview.data?.surfaces ?? []) as SurfaceRow[];
   const alerts = (overview.data?.alerts ?? []) as AlertRow[];
+  const { today, thisMonth } = windowKeys();
   const monthLabel = new Date().toLocaleDateString("en-US", { month: "long" });
+  const alertPct = g?.alert_at_pct ?? 80;
+  const pctIsDefault = g?.alert_at_pct == null;
 
-  const cards: {
+  const windows: {
     key: "daily" | "monthly";
     label: string;
     burn: number;
@@ -236,444 +393,372 @@ export function BudgetsPanel() {
     {
       key: "daily",
       label: "Today",
-      burn: Number(g?.daily_usd_used ?? 0),
+      burn: burnIn(g?.daily_usd_used, g?.day_window, today),
       cap: g?.daily_usd_cap != null ? Number(g.daily_usd_cap) : null,
-      note: "Resets at midnight",
+      note: "Starts again at midnight, UTC.",
     },
     {
       key: "monthly",
       label: monthLabel,
-      burn: Number(g?.monthly_usd_used ?? 0),
+      burn: burnIn(g?.monthly_usd_used, g?.month_window, thisMonth),
       cap: g?.monthly_usd_cap != null ? Number(g.monthly_usd_cap) : null,
-      note: "BYO keys in Settings",
+      note: "Starts again on the first.",
     },
   ];
 
+  const capped = windows.filter((w) => w.cap != null);
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-      {cards.map(({ key, label, burn, cap, note }) => {
-        const pct = cap ? Math.min(100, (burn / cap) * 100) : 0;
-        const editing = editCap === key;
-        return (
-          <div key={key} className="bento" style={{ padding: "var(--card-pad)" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 10,
-              }}
+    <>
+      <p className="sp-subtitle">
+        {capped.length === 0 ? (
+          "No ceiling is set, so nothing stops a call on how much it costs."
+        ) : (
+          <>
+            {windows.map((w, i) => (
+              <span key={w.key}>
+                {i > 0 ? " " : null}
+                {w.label}, <Num>{fmtUsd(w.burn)}</Num>
+                {w.cap != null ? (
+                  <>
+                    {" "}
+                    of <Num>{fmtUsd(w.cap)}</Num>.
+                  </>
+                ) : (
+                  " and no ceiling."
+                )}
+              </span>
+            ))}
+          </>
+        )}
+      </p>
+
+      <Block
+        title="What you will not spend past"
+        sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. There is no separate ceiling on any one mission."
+      >
+        {windows.map((w) => {
+          const editing = editCap === w.key;
+          return (
+            <Line
+              key={w.key}
+              label={w.label}
+              // The different fact: when the counter resets, not the number the
+              // control already shows.
+              sub={w.note}
             >
-              <MonoLabel icon={Gauge}>{label}</MonoLabel>
               {editing ? (
                 <form
-                  style={{ display: "flex", gap: 6 }}
+                  style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}
                   onSubmit={(e) => {
                     e.preventDefault();
                     const v = parseFloat(capDraft);
-                    if (v > 0) setCapMut.mutate({ key, label, value: v });
+                    if (v > 0) setCapMut.mutate({ key: w.key, value: v });
                     setEditCap(null);
                   }}
                 >
-                  <input
-                    className="input"
+                  <Input
                     autoFocus
                     value={capDraft}
                     onChange={(e) => setCapDraft(e.target.value)}
-                    style={{ width: 76 }}
                     inputMode="decimal"
-                    aria-label={`${label} cap`}
+                    aria-label={`${w.label} ceiling in dollars`}
+                    // Wide enough for $99999.99 and no wider: the field should
+                    // not imply a number nobody would type.
+                    style={{ width: 108 }}
                   />
-                  <button
-                    className="btn btn-primary btn-sm"
-                    type="submit"
-                    style={{ }}
-                  >
-                    Set cap
-                  </button>
+                  <Button variant="primary" type="submit" disabled={setCapMut.isPending}>
+                    Set it
+                  </Button>
+                  <Button variant="ghost" onClick={() => setEditCap(null)}>
+                    Leave it
+                  </Button>
                 </form>
               ) : (
-                <button
-                  className="mono-label transition hover:brightness-125"
-                  style={{ color: "var(--ink-subtle)" }}
-                  onClick={() => {
-                    setEditCap(key);
-                    setCapDraft(cap != null ? String(cap) : "");
-                  }}
-                >
-                  {cap != null ? "edit cap" : "set cap"}
-                </button>
+                <>
+                  <Value tone={burnTone(w.burn, w.cap, alertPct)}>
+                    <Num>{fmtUsd(w.burn)}</Num>
+                    {w.cap != null ? (
+                      <>
+                        {" "}
+                        of <Num>{fmtUsd(w.cap)}</Num>
+                      </>
+                    ) : (
+                      " spent, no ceiling"
+                    )}
+                  </Value>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setEditCap(w.key);
+                      setCapDraft(w.cap != null ? String(w.cap) : "");
+                    }}
+                  >
+                    {w.cap != null ? "Change it" : "Set one"}
+                  </Button>
+                </>
               )}
-            </div>
-            <div className="font-display tabular-nums" style={{ }}>
-              ${burn.toFixed(2)}{" "}
-              <span style={{ color: "var(--ink-faint)" }}>
-                {cap != null ? `of $${cap}` : "no cap"}
-              </span>
-            </div>
-            <div
-              style={{
-                height: 5,
-                borderRadius: 99,
-                background: "var(--surface-2)",
-                overflow: "hidden",
-                margin: "12px 0 8px",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${pct}%`,
-                  background: pct > 80 ? "var(--rose)" : "var(--ember)",
-                  transition: "width var(--dur-slow)",
-                }}
-              ></div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                color: "var(--ink-subtle)",
-                flexWrap: "wrap",
-                gap: 4,
-              }}
-            >
-              <span>{note}</span>
-            </div>
-          </div>
-        );
-      })}
+            </Line>
+          );
+        })}
 
-      <div
-        className="bento"
-        style={{
-          gridColumn: "span 2",
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <Shield size={16} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
-        <span style={{ color: "var(--ink-subtle)" }}>
-          Caps are hard limits: an over-cap AI call is blocked mid-mission and the run halts with
-          the reason on record. Per-mission token and spend caps separately halt any one mission
-          that passes its own limit.
-        </span>
-      </div>
-
-      {/* Token caps + alert threshold — production-only controls, quiet. */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
-        <MonoLabel icon={Gauge} style={{ marginBottom: 10 }}>
-          Token caps · alert threshold
-        </MonoLabel>
-        {adv ? (
-          <form
-            style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}
-            onSubmit={(e) => {
-              e.preventDefault();
-              saveAdvMut.mutate(adv);
-            }}
-          >
-            <label className="mono-label" style={{ display: "block" }}>
-              Daily tokens
-              <input
-                className="input"
-                value={adv.daily_token_cap}
-                onChange={(e) => setAdv({ ...adv, daily_token_cap: e.target.value })}
-                inputMode="numeric"
-                placeholder="no cap"
-                style={{ display: "block", width: 110, marginTop: 4 }}
-              />
-            </label>
-            <label className="mono-label" style={{ display: "block" }}>
-              Monthly tokens
-              <input
-                className="input"
-                value={adv.monthly_token_cap}
-                onChange={(e) => setAdv({ ...adv, monthly_token_cap: e.target.value })}
-                inputMode="numeric"
-                placeholder="no cap"
-                style={{ display: "block", width: 110, marginTop: 4 }}
-              />
-            </label>
-            <label className="mono-label" style={{ display: "block" }}>
-              Alert at % of cap
-              <input
-                className="input"
-                value={adv.alert_at_pct}
-                onChange={(e) => setAdv({ ...adv, alert_at_pct: e.target.value })}
-                inputMode="numeric"
-                style={{ display: "block", width: 76, marginTop: 4 }}
-              />
-            </label>
-            <button
-              className="btn btn-primary btn-sm"
-              type="submit"
-              disabled={saveAdvMut.isPending}
-              style={{ }}
-            >
-              Save caps · enforced on the next call
-            </button>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => setAdv(null)}>
-              Dismiss
-            </button>
-          </form>
-        ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <span className="mono-label tabular-nums">
-              daily {g?.daily_token_cap != null ? Number(g.daily_token_cap) : "-"} · monthly{" "}
-              {g?.monthly_token_cap != null ? Number(g.monthly_token_cap) : "-"} · alert at{" "}
-              {g?.alert_at_pct ?? 80}%
-            </span>
-            <button
-              className="mono-label transition hover:brightness-125"
-              style={{ color: "var(--ink-subtle)" }}
-              onClick={() =>
-                setAdv({
-                  daily_token_cap: g?.daily_token_cap != null ? String(g.daily_token_cap) : "",
-                  monthly_token_cap:
-                    g?.monthly_token_cap != null ? String(g.monthly_token_cap) : "",
-                  alert_at_pct: String(g?.alert_at_pct ?? 80),
-                })
-              }
-            >
-              edit caps
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Per-surface caps — production-only granularity, quiet table. */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: 0, overflow: "hidden" }}>
-        <div
-          className="mono-label"
-          style={{
-            display: "grid",
-            gridTemplateColumns: SURFACE_GRID,
-            gap: "var(--geist-space-3x)",
-            padding: "10px 18px",
-            borderBottom: "1px solid var(--hairline)",
-          }}
+        <Line
+          label="Warn me before that"
+          htmlFor={pctDraft == null ? undefined : "budget-alert-pct"}
+          // A default nobody set is our choice, not their policy, so it says so
+          // and it is theirs to change.
+          sub={
+            pctIsDefault
+              ? "Nobody set this. It is our default, and it is yours to change. Nothing is stopped at this point, a note just lands on the record."
+              : "Nothing is stopped at this point. A note lands on the record so the ceiling is not the first you hear of it."
+          }
         >
-          <span>Surface caps</span>
-          <span>Today</span>
-          <span>{monthLabel}</span>
-          <span></span>
-        </div>
+          {pctDraft == null ? (
+            <>
+              <Value>
+                <Num>{alertPct}%</Num> of the ceiling
+              </Value>
+              <Button variant="ghost" onClick={() => setPctDraft(String(alertPct))}>
+                Change it
+              </Button>
+            </>
+          ) : (
+            <form
+              style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = Math.round(Number(pctDraft));
+                if (v >= 1 && v <= 100) setPctMut.mutate(v);
+              }}
+            >
+              <Input
+                id="budget-alert-pct"
+                autoFocus
+                value={pctDraft}
+                onChange={(e) => setPctDraft(e.target.value)}
+                inputMode="numeric"
+                // Three digits and a percent sign, nothing more.
+                style={{ width: 76 }}
+              />
+              <Button variant="primary" type="submit" disabled={setPctMut.isPending}>
+                Set it
+              </Button>
+              <Button variant="ghost" onClick={() => setPctDraft(null)}>
+                Leave it
+              </Button>
+            </form>
+          )}
+        </Line>
+
+        {setCapMut.error || setPctMut.error ? (
+          <Failed>{((setCapMut.error ?? setPctMut.error) as Error).message}</Failed>
+        ) : null}
+
+        {capDone.map((d, i) => (
+          <Receipt
+            key={`${d.at}-${i}`}
+            verb={d.verb}
+            consequence={d.consequence}
+            time={ago(d.at)}
+          />
+        ))}
+      </Block>
+
+      <Block
+        title="Ceilings on one thing at a time"
+        sub="A surface with its own amount is held to it as well as to the account ceiling. Switched off, the row stays but stops applying."
+      >
         {surfaces.length === 0 ? (
-          <div
-            style={{
-              color: "var(--ink-faint)",
-              padding: "16px 18px",
-              textAlign: "center",
-            }}
+          <Empty
+            action={
+              adding ? undefined : (
+                <Button variant="ghost" onClick={() => setAdding(true)}>
+                  Cap one
+                </Button>
+              )
+            }
           >
-            No per-surface caps yet.
-          </div>
+            Nothing is capped on its own. Every call is held only to the account ceiling above.
+          </Empty>
         ) : (
-          surfaces.map((row, i) => {
+          surfaces.map((row) => {
             const dCap = row.daily_usd_cap == null ? null : Number(row.daily_usd_cap);
             const mCap = row.monthly_usd_cap == null ? null : Number(row.monthly_usd_cap);
-            const dHot = dCap ? Number(row.daily_usd_used) / dCap >= 0.8 : false;
-            const mHot = mCap ? Number(row.monthly_usd_used) / mCap >= 0.8 : false;
+            const dBurn = burnIn(row.daily_usd_used, row.day_window, today);
+            const mBurn = burnIn(row.monthly_usd_used, row.month_window, thisMonth);
             return (
-              <div
+              <Line
                 key={row.surface}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: SURFACE_GRID,
-                  gap: "var(--geist-space-3x)",
-                  padding: "12px 18px",
-                  alignItems: "center",
-                  borderBottom: i < surfaces.length - 1 ? "1px solid var(--hairline)" : "none",
-                  opacity: row.enabled ? 1 : 0.45,
-                }}
+                label={row.surface}
+                sub={
+                  row.enabled ? (
+                    <>
+                      Today <Num>{fmtUsd(dBurn)}</Num>
+                      {dCap != null ? (
+                        <>
+                          {" "}
+                          of <Num>{fmtUsd(dCap)}</Num>
+                        </>
+                      ) : (
+                        ", no daily amount"
+                      )}
+                      . This month <Num>{fmtUsd(mBurn)}</Num>
+                      {mCap != null ? (
+                        <>
+                          {" "}
+                          of <Num>{fmtUsd(mCap)}</Num>
+                        </>
+                      ) : (
+                        ", no monthly amount"
+                      )}
+                      .
+                    </>
+                  ) : (
+                    "Switched off. Nothing here is stopped by this row, whatever it says."
+                  )
+                }
               >
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ fontWeight: 500 }}>{row.surface}</span>
-                  <span style={{ display: "block", color: "var(--ink-subtle)" }}>
-                    {row.enabled ? "enforced" : "off · not enforced"}
-                  </span>
-                </span>
-                <span
-                  className="mono-label tabular-nums"
-                  style={{ color: dHot ? "var(--ember)" : undefined }}
+                <Button
+                  variant="ghost"
+                  disabled={removeSurfaceMut.isPending}
+                  onClick={() => removeSurfaceMut.mutate(row.surface)}
                 >
-                  {fmtUsd(row.daily_usd_used)}
-                  {dCap != null ? ` of ${fmtUsd(dCap)}` : " · no cap"}
-                </span>
-                <span
-                  className="mono-label tabular-nums"
-                  style={{ color: mHot ? "var(--ember)" : undefined }}
-                >
-                  {fmtUsd(row.monthly_usd_used)}
-                  {mCap != null ? ` of ${fmtUsd(mCap)}` : " · no cap"}
-                </span>
-                <span
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <button
-                    className="mono-label transition hover:brightness-125 disabled:opacity-50"
-                    style={{
-                      color: "var(--ink-faint)",
-                      cursor: removeSurfaceMut.isPending ? "not-allowed" : "pointer",
-                    }}
-                    disabled={removeSurfaceMut.isPending}
-                    onClick={() => removeSurfaceMut.mutate(row.surface)}
-                  >
-                    remove
-                  </button>
-                  <button
-                    role="switch"
-                    aria-checked={row.enabled}
-                    aria-label={`${row.surface} cap`}
-                    disabled={toggleSurfaceMut.isPending}
-                    onClick={() => toggleSurfaceMut.mutate(row)}
-                    style={{
-                      width: 34,
-                      height: 19,
-                      borderRadius: 99,
-                      background: row.enabled ? "var(--deep-green)" : "var(--surface-2)",
-                      border: "1px solid var(--hairline)",
-                      position: "relative",
-                      flexShrink: 0,
-                      transition: "background var(--dur-base)",
-                      opacity: toggleSurfaceMut.isPending ? 0.5 : 1,
-                      cursor: toggleSurfaceMut.isPending ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 2,
-                        left: row.enabled ? 16 : 2,
-                        width: 13,
-                        height: 13,
-                        borderRadius: 99,
-                        background: "var(--canvas)",
-                        transition: "left var(--dur-base)",
-                      }}
-                    />
-                  </button>
-                </span>
-              </div>
+                  Remove
+                </Button>
+                <Switch
+                  checked={row.enabled}
+                  disabled={toggleSurfaceMut.isPending}
+                  label={`The ${row.surface} ceiling is in force`}
+                  onChange={() => toggleSurfaceMut.mutate(row)}
+                />
+              </Line>
             );
           })
         )}
-        <form
-          style={{
-            display: "flex",
-            gap: "var(--geist-space-2x)",
-            flexWrap: "wrap",
-            alignItems: "center",
-            padding: "12px 18px",
-            borderTop: "1px solid var(--hairline)",
-          }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            addSurfaceMut.mutate();
-          }}
-        >
-          <select
-            className="input"
-            value={newSurface.surface}
-            onChange={(e) => setNewSurface({ ...newSurface, surface: e.target.value })}
-            aria-label="Surface"
-            style={{ width: 120 }}
-          >
-            {SURFACES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <input
-            className="input"
-            value={newSurface.daily}
-            onChange={(e) => setNewSurface({ ...newSurface, daily: e.target.value })}
-            placeholder="daily $"
-            aria-label="Daily USD cap"
-            inputMode="decimal"
-            style={{ width: 76 }}
-          />
-          <input
-            className="input"
-            value={newSurface.monthly}
-            onChange={(e) => setNewSurface({ ...newSurface, monthly: e.target.value })}
-            placeholder="monthly $"
-            aria-label="Monthly USD cap"
-            inputMode="decimal"
-            style={{ width: 76 }}
-          />
-          <button
-            className="btn btn-primary btn-sm"
-            type="submit"
-            disabled={addSurfaceMut.isPending}
-            style={{ }}
-          >
-            Set cap · blocks over-cap calls
-          </button>
-        </form>
-      </div>
 
-      {/* Alerts — production cap warnings/blocks; verdict chips lead each row. */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
-        <MonoLabel icon={Shield} style={{ marginBottom: 10 }}>
-          Alerts · cap warnings and blocks
-        </MonoLabel>
-        {alerts.length === 0 ? (
-          <div style={{ color: "var(--ink-faint)", padding: "8px 0" }}>
-            No alerts yet.
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {alerts.map((a, i) => (
-              <div
-                key={a.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--geist-space-3x)",
-                  padding: "9px 0",
-                  borderBottom: i < alerts.length - 1 ? "1px solid var(--hairline)" : "none",
-                }}
+        {adding ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              addSurfaceMut.mutate();
+            }}
+          >
+            <Field label="Which one" htmlFor="new-surface">
+              <Select
+                id="new-surface"
+                value={newSurface.surface}
+                onChange={(e) => setNewSurface({ ...newSurface, surface: e.target.value })}
               >
-                <VerdictChip tone={a.kind === "block" ? "madder" : "ember"}>
-                  {a.kind === "block" ? "blocked" : "warn"}
-                </VerdictChip>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 500 }}>
-                    {a.scope === "global" ? "Global" : a.surface} · {a.window_kind} at{" "}
-                    {Number(a.pct).toFixed(0)}%
-                  </div>
-                  <div style={{ color: "var(--ink-subtle)" }}>
-                    {fmtUsd(a.usd_used)} of {fmtUsd(a.usd_cap)} · {relTime(a.created_at)}
-                  </div>
-                </div>
-                {a.acknowledged ? (
-                  <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                    acknowledged
-                  </span>
+                {SURFACES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="In a day" htmlFor="new-surface-daily">
+              <Input
+                id="new-surface-daily"
+                value={newSurface.daily}
+                onChange={(e) => setNewSurface({ ...newSurface, daily: e.target.value })}
+                placeholder="Leave it empty for no daily amount"
+                inputMode="decimal"
+              />
+            </Field>
+            <Field label="In a month" htmlFor="new-surface-monthly">
+              <Input
+                id="new-surface-monthly"
+                value={newSurface.monthly}
+                onChange={(e) => setNewSurface({ ...newSurface, monthly: e.target.value })}
+                placeholder="Leave it empty for no monthly amount"
+                inputMode="decimal"
+              />
+            </Field>
+            <Actions>
+              <Button variant="primary" type="submit" disabled={addSurfaceMut.isPending}>
+                Cap it
+              </Button>
+              <Button variant="ghost" onClick={() => setAdding(false)}>
+                Leave it
+              </Button>
+            </Actions>
+          </form>
+        ) : surfaces.length > 0 ? (
+          <Actions>
+            <Button variant="ghost" onClick={() => setAdding(true)}>
+              Cap another
+            </Button>
+          </Actions>
+        ) : null}
+
+        {addSurfaceMut.error || toggleSurfaceMut.error || removeSurfaceMut.error ? (
+          <Failed>
+            {
+              ((addSurfaceMut.error ?? toggleSurfaceMut.error ?? removeSurfaceMut.error) as Error)
+                .message
+            }
+          </Failed>
+        ) : null}
+
+        {surfaceDone.map((d, i) => (
+          <Receipt
+            key={`${d.at}-${i}`}
+            verb={d.verb}
+            consequence={d.consequence}
+            time={ago(d.at)}
+          />
+        ))}
+      </Block>
+
+      <Block
+        title="What the ceilings have said"
+        sub="Written when a window crossed the warning point. Acknowledging one clears it from here and changes nothing about the ceiling."
+      >
+        {alerts.length === 0 ? (
+          <Empty>
+            Nothing yet. The first note lands the moment a window crosses <Num>{alertPct}%</Num> of
+            its ceiling.
+          </Empty>
+        ) : (
+          alerts.map((a) => (
+            <Row
+              key={a.id}
+              lead={
+                <>
+                  {a.scope === "global" ? "Account spend" : `Spend on ${a.surface ?? "a surface"}`}{" "}
+                  reached <Num>{Number(a.pct).toFixed(0)}%</Num> of the{" "}
+                  {a.window_kind === "month" ? "monthly" : "daily"} ceiling
+                </>
+              }
+              sub={
+                <>
+                  {a.kind === "block" ? (
+                    <>
+                      <Value tone="fail">Refused</Value>{" "}
+                    </>
+                  ) : null}
+                  <Num>{fmtUsd(a.usd_used)}</Num> of <Num>{fmtUsd(a.usd_cap)}</Num>
+                </>
+              }
+              time={ago(a.created_at)}
+              tight
+              action={
+                a.acknowledged ? (
+                  <Value>Acknowledged</Value>
                 ) : (
-                  <button
-                    className="btn btn-ghost btn-sm"
+                  <Button
+                    variant="ghost"
                     disabled={ackMut.isPending && ackMut.variables === a.id}
                     onClick={() => ackMut.mutate(a.id)}
                   >
-                    Acknowledge · clears it
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+                    Acknowledge
+                  </Button>
+                )
+              }
+            />
+          ))
         )}
-      </div>
-    </div>
+      </Block>
+    </>
   );
 }

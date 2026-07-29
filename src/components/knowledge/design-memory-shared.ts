@@ -7,8 +7,6 @@ import type {
   DesignMemorySourceKind,
   DesignMemoryStatus,
 } from "@/lib/design-memory.functions";
-import type { VerdictTone } from "@/components/obsidian/verdict";
-
 export const CATEGORY_LABEL: Record<DesignMemoryCategory, string> = {
   token: "Token",
   type: "Type",
@@ -25,8 +23,11 @@ export const SOURCE_LABEL: Record<DesignMemorySourceKind, string> = {
   learned: "Learned",
 };
 
-export const STATUS_TONE: Record<DesignMemoryStatus, VerdictTone> = {
-  approved: "KEPT",
-  rejected: "KILL",
-  pending: "PENDING",
+/** The outcome in plain words, and the one class that carries it. Replaces the
+ *  retired VerdictTone map: green and red carry outcomes, and a rule nobody has
+ *  settled yet is not an outcome, so it stays monochrome. */
+export const STATUS_WORD: Record<DesignMemoryStatus, { word: string; tone: string }> = {
+  approved: { word: "In force", tone: "sp-pass" },
+  rejected: { word: "Dropped", tone: "sp-fail" },
+  pending: { word: "Not settled", tone: "" },
 };

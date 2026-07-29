@@ -48,6 +48,10 @@
  *      the door now; clicking it opens the document where it lives.
  *    MOVE - nothing off this surface. Account-level connecting already lives in
  *      Settings and this page has not tried to duplicate it since 2026-07-06.
+ *    ADD, later the same night on the founder's second look - the provider mark
+ *      on every synced row. That row already reserved a 34px mark slot and left
+ *      it empty, and which tool owns the document is the one fact its lead
+ *      does not say. Monochrome, because the row's subject is the sync state.
  *
  * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
  *    The document itself (the row opens it in the tool that owns it), the
@@ -83,6 +87,7 @@ import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { ProductBindingsSection } from "@/components/connections/ProductBindingsSection";
+import { ProviderMark } from "@/components/connections/provider-marks";
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
@@ -344,6 +349,10 @@ function SyncPage() {
               <Row
                 key={m.id}
                 tight
+                // The mark slot on this list was 34px of nothing, and the one
+                // fact it should have carried is which tool owns the document.
+                // Monochrome: the subject of the row is the sync state.
+                marks={<ProviderMark provider={m.provider} />}
                 lead={m.external_id}
                 sub={
                   <>

@@ -25,7 +25,7 @@ import {
 } from "d3-force";
 import { getLineage } from "@/lib/lineage.functions";
 import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
-import { MonoLabel } from "@/components/obsidian/primitives";
+import { Button, Num } from "@/components/shell/primitives";
 import {
   kindCssColor,
   kindLabel,
@@ -740,12 +740,16 @@ export function GraphForceCanvas({
   return (
     <div
       ref={wrapperRef}
-      className="material-large"
       style={{
         position: "relative",
         width: "100%",
         height: "clamp(420px, 58vh, 640px)",
-        background: "var(--surface-card-deep)",
+        // The ONE bordered container in this region. The recess reads as a
+        // window cut into the page rather than a card sitting on it, which is
+        // what a map wants.
+        background: "var(--sp-sink)",
+        border: "1px solid var(--sp-line)",
+        borderRadius: "var(--sp-radius-panel)",
         overflow: "hidden",
       }}
     >
@@ -767,19 +771,9 @@ export function GraphForceCanvas({
       {hoveredNode ? (
         <GraphHoverCard node={hoveredNode} sx={hover!.sx} sy={hover!.sy} bounds={sizeRef.current} />
       ) : null}
-      <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 10 }}>
-        <button
-          type="button"
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: "4px 6px",
-          }}
+      <div style={{ position: "absolute", right: 10, bottom: 8 }}>
+        <Button
+          variant="ghost"
           onClick={() => {
             userMovedCam.current = false;
             camRef.current = { x: 0, y: 0, k: 1 };
@@ -787,8 +781,8 @@ export function GraphForceCanvas({
             wake();
           }}
         >
-          Reset view
-        </button>
+          Recentre
+        </Button>
       </div>
     </div>
   );
@@ -833,13 +827,15 @@ function GraphHoverCard({
         bottom: flipY ? bounds.h - sy + 14 : undefined,
         maxWidth: 260,
         pointerEvents: "none",
-        // Token-traced glass (was dark-only rgba literals; both themes resolve).
-        background: "color-mix(in srgb, var(--surface-card) 82%, transparent)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-panel)",
-        boxShadow: "var(--shadow-overlay)",
+        // SOLID, not glass. Blur is chrome material for things that genuinely
+        // float (anti-slop ban 2), and a label you have to read against a
+        // moving constellation is the one place it costs contrast rather than
+        // buying depth. This floats, so it takes the float surface and the
+        // system shadow.
+        background: "var(--sp-float)",
+        border: "1px solid var(--sp-line)",
+        borderRadius: "var(--sp-radius-panel)",
+        boxShadow: "var(--sp-shadow)",
         padding: "10px 12px",
         zIndex: 5,
       }}
@@ -855,12 +851,14 @@ function GraphHoverCard({
             flexShrink: 0,
           }}
         />
-        <MonoLabel style={{ }}>{kindLabel(node.kind)}</MonoLabel>
+        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+          {kindLabel(node.kind)}
+        </span>
       </div>
       <div
         style={{
-          color: "var(--text-primary)",
-          lineHeight: 1.35,
+          color: "var(--sp-ink)",
+          lineHeight: "var(--sp-leading-row)",
           marginBottom: 6,
           overflow: "hidden",
           display: "-webkit-box",
@@ -868,17 +866,21 @@ function GraphHoverCard({
           WebkitBoxOrient: "vertical",
         }}
       >
-        {node.title || "(untitled)"}
+        {node.title || "Untitled"}
       </div>
-      <MonoLabel
-        className="tabular-nums"
-        style={{ display: "block" }}
-      >
-        {node.influence} {node.influence === 1 ? "link" : "links"}
-        {cameFrom !== null && ledTo !== null ? ` · from ${cameFrom} · led to ${ledTo}` : ""}
-      </MonoLabel>
-      <div style={{ color: "var(--text-subtle)", marginTop: 5 }}>
-        Click to focus · double-click for the story
+      <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+        <Num>{node.influence}</Num> {node.influence === 1 ? "link" : "links"}
+        {cameFrom !== null && ledTo !== null ? (
+          <>
+            {" · from "}
+            <Num>{cameFrom}</Num>
+            {", led to "}
+            <Num>{ledTo}</Num>
+          </>
+        ) : null}
+      </div>
+      <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", marginTop: 5 }}>
+        Click to focus, double-click for the story
       </div>
     </div>
   );

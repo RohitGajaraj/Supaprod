@@ -1,17 +1,34 @@
+/**
+ * What went wrong, newest first.
+ *
+ * PORTED 2026-07-29 onto src/components/shell/primitives.tsx.
+ *
+ * WAS: one bordered card per incident, each carrying its own severity pill with
+ * a coloured dot, its own trace ref, its own timestamp, a wrapped detail
+ * paragraph and its own "Open trace" affordance. Forty of those is forty
+ * bordered containers in one region, and the standard caps a region at one
+ * (anti-slop.md ban 5). The card also spent four lines on what a row says in
+ * two, which is the founder's own complaint: depth is a click away, not
+ * showcased on the surface.
+ *
+ * IS: a list of `Row`s, tight, each one line plus a different second fact. The
+ * severity is a `Value` tone rather than a pill with a dot, because the tone
+ * already carries the whole message a dot was repeating. The whole row opens
+ * its trace, or its mission where there is no trace, which is the same target
+ * the card had.
+ *
+ * NO AGENT MARK, deliberately. `Incident` carries no agent slug (the producer
+ * bakes the actor into the title text), so a mark here would be invented. The
+ * mark slot still renders empty, which is what keeps every lead on the same
+ * line as every other list in the app.
+ */
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, ArrowUpRight } from "lucide-react";
 import { getIncidents, type Incident } from "@/lib/incidents.functions";
-import { relTimeCaps } from "@/components/discover/format";
+import { Block, Empty, Failed, Loading, Num, Row, Value } from "@/components/shell/primitives";
 import { CostIncidentBadge } from "./CostIncidentBadge";
-import { incidentTraceRef, incidentTone, INCIDENT_TONE_VAR } from "./incident-format";
-
-// P7 · Incidents, read-only "what went wrong" log on the Engine Room: failed
-// tool executions, errored auto-pipeline events, guardrail blocks, cost
-// breaches, and runaway missions, newest first. Engine-Room: names the outcome
-// ("what went wrong"); dim 17: each incident is a first-class object (severity
-// pill, timestamp, trace ref) and single-clicks to its trace where one exists.
+import { incidentTraceRef, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
 
 const KIND_LABEL: Record<Incident["kind"], string> = {
   execution: "Execution",
@@ -22,236 +39,90 @@ const KIND_LABEL: Record<Incident["kind"], string> = {
   runaway: "Runaway",
 };
 
-function IncidentCard({ n }: { n: Incident }) {
+/** Plain-words relative time, the same vocabulary the Crew surface uses. Mono
+ *  is applied by the row, not here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+function IncidentRow({ n }: { n: Incident }) {
   const navigate = useNavigate();
-  const tone = INCIDENT_TONE_VAR[incidentTone(n.kind)];
+  const tone = INCIDENT_VALUE_TONE[incidentTone(n.kind)];
   const hasTrace = Boolean(n.traceId);
   // Trace wins when present; otherwise a mission-keyed incident opens its mission.
   const hasMission = !hasTrace && Boolean(n.missionId);
-  const clickable = hasTrace || hasMission;
   const open = () => {
     if (n.traceId) navigate({ to: "/traces/$traceId", params: { traceId: n.traceId } });
     else if (n.missionId) navigate({ to: "/build/$missionId", params: { missionId: n.missionId } });
   };
 
   return (
-    <article
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      aria-label={clickable ? `Open ${hasTrace ? "trace" : "mission"} for: ${n.title}` : undefined}
-      onClick={clickable ? open : undefined}
-      onKeyDown={
-        clickable
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                open();
-              }
-            }
-          : undefined
+    <Row
+      lead={n.title}
+      // The different fact: what kind of failure it was, and what actually
+      // happened. Never a restatement of the title.
+      sub={
+        <>
+          <Value tone={tone}>{KIND_LABEL[n.kind]}</Value> {n.detail}
+        </>
       }
-      // Hover via a conditional CSS class, not JS mouse handlers, so keyboard
-      // focus and touch never strand a stuck hover fill (checklist 1).
-      className={clickable ? "loom-press hover:[background-color:var(--raised)]" : undefined}
-      style={{
-        padding: "14px 16px",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        background: "var(--card)",
-        cursor: clickable ? "pointer" : "default",
-        transitionProperty: "background-color",
-        transitionDuration: "var(--dur-control)",
-        transitionTimingFunction: "var(--ease)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-        <span
-          className="uppercase"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.08em",
-            color: tone,
-            border: "1px solid var(--hairline)",
-            borderRadius: 999,
-            padding: "2px 8px",
-          }}
-        >
-          <span
-            aria-hidden
-            style={{ width: 6, height: 6, borderRadius: 999, background: tone, flexShrink: 0 }}
-          />
-          {KIND_LABEL[n.kind]}
-        </span>
-        {n.kind === "cost" ? (
+      time={ago(n.at)}
+      tight
+      onClick={hasTrace || hasMission ? open : undefined}
+      action={
+        n.kind === "cost" ? (
           <CostIncidentBadge amountUsd={n.amountUsd} windowKind={n.windowKind} />
-        ) : null}
-        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10 }}>
-          {n.at ? (
-            <span
-              className="tabular-nums"
-              title={new Date(n.at).toLocaleString()}
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
-                color: "var(--text-subtle)",
-              }}
-            >
-              {relTimeCaps(n.at)}
-            </span>
-          ) : null}
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.06em",
-              color: "var(--text-faint)",
-            }}
-          >
-            {incidentTraceRef(n.id)}
-          </span>
-        </span>
-      </div>
-      <div
-        style={{
-          fontWeight: 500,
-          color: "var(--text-primary)",
-          marginTop: 8,
-        }}
-      >
-        {n.title}
-      </div>
-      <p
-        style={{
-          color: "var(--text-body)",
-          marginTop: 4,
-          lineHeight: 1.5,
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {n.detail}
-      </p>
-      {clickable ? (
-        <span
-          className="uppercase"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            marginTop: 10,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.1em",
-            color: "var(--text-subtle)",
-          }}
-        >
-          {hasTrace ? "Open trace" : "Open mission"}
-          <ArrowUpRight size={16} strokeWidth={1.5} />
-        </span>
-      ) : null}
-    </article>
+        ) : (
+          <Num>{incidentTraceRef(n.id)}</Num>
+        )
+      }
+    />
   );
 }
 
 export function IncidentsPanel() {
   const fGet = useServerFn(getIncidents);
   const q = useQuery({ queryKey: ["incidents"], queryFn: () => fGet() });
-  const items = q.data?.incidents ?? [];
 
-  if (q.isLoading) {
-    return (
-      <p
-        className="uppercase"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.11em",
-          color: "var(--text-subtle)",
-          padding: "24px 0",
-        }}
-      >
-        Reading the record
-      </p>
-    );
-  }
+  if (q.isLoading) return <Loading>Reading what went wrong.</Loading>;
 
-  // An error may never wear an empty state's clothes (LOOM §9b): a failed read
-  // says so and offers one retry, never the calm "no incidents" slate.
+  // A failed read is not an empty state and must never wear one's clothes:
+  // "nothing went wrong" and "we could not find out" are different facts, and a
+  // person acts differently on each.
   if (q.isError) {
     return (
-      <div style={{ padding: "20px 0" }}>
-        <p
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--geist-space-2x)",
-            color: "var(--madder)",
-            marginBottom: 10,
-          }}
-        >
-          <AlertTriangle size={16} strokeWidth={1.5} />
-          The incidents record did not load. {(q.error as Error)?.message}
-        </p>
-        <button
-          type="button"
-          className="uppercase cursor-pointer hover:underline active:opacity-80"
-          onClick={() => void q.refetch()}
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.11em",
-            color: "var(--text-primary)",
-            background: "none",
-            border: "none",
-            padding: 0,
-          }}
-        >
-          RETRY
-        </button>
-      </div>
+      <Block>
+        <Failed onRetry={() => void q.refetch()}>
+          The record did not load, so an empty list here would not mean nothing went wrong.
+        </Failed>
+      </Block>
     );
   }
+
+  const items = q.data?.incidents ?? [];
 
   if (items.length === 0) {
     return (
-      <div
-        style={{
-          padding: "32px 24px",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          background: "var(--card)",
-          textAlign: "center",
-        }}
-      >
-        <span
-          className="uppercase"
-          style={{
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.11em",
-            color: "var(--moss-bright)",
-          }}
-        >
-          All clear
-        </span>
-        <p
-          style={{
-            color: "var(--text-subtle)",
-            marginTop: 8,
-            maxWidth: 460,
-            marginInline: "auto",
-            lineHeight: 1.5,
-          }}
-        >
-          Nothing has gone wrong recently. Failed tool calls, pipeline errors, guardrail blocks,
-          cost breaches, and spinning missions land here, newest first, each linked to its trace.
-        </p>
-      </div>
+      <Empty>
+        Nothing has gone wrong recently. A failed tool call, a pipeline error, a guardrail block, a
+        spend cap reached or a mission that will not stop lands here, newest first.
+      </Empty>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <>
       {items.map((n) => (
-        <IncidentCard key={n.id} n={n} />
+        <IncidentRow key={n.id} n={n} />
       ))}
-    </div>
+    </>
   );
 }

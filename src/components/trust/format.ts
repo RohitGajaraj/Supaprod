@@ -43,11 +43,18 @@ export function receiptStatusTone(status: string): ReceiptTone {
   return STATUS_TONE[status] ?? "subtle";
 }
 
-export const RECEIPT_TONE_VAR: Record<ReceiptTone, string> = {
-  moss: "var(--moss)",
-  madder: "var(--madder)",
-  muted: "var(--text-muted)",
-  subtle: "var(--text-subtle)",
+/**
+ * The tone as the `Value` primitive speaks it (src/components/shell/primitives.tsx).
+ *
+ * PORTED 2026-07-29: this used to be `RECEIPT_TONE_VAR`, a map of raw CSS
+ * variables from the retired palette. A receipt asks for a tone now and never
+ * for a hue, so the stylesheet owns every mix and the detail view owns none.
+ */
+export const RECEIPT_VALUE_TONE: Record<ReceiptTone, "quiet" | "pass" | "warn" | "fail"> = {
+  moss: "pass",
+  madder: "fail",
+  muted: "quiet",
+  subtle: "quiet",
 };
 
 /** A short, human status word for the pill (auto_approved reads "auto"). */

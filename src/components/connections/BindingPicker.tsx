@@ -18,7 +18,22 @@ import { listBindableResources, upsertBinding } from "@/lib/connections.function
  * Combobox that binds one provider resource (repo, team, database, …) to the
  * current workspace. Opens → searches the connection's bindable resources
  * (300ms debounce, server-side filter) → pick → upsertBinding → toast.
+ *
+ * NO PROVIDER MARK HERE, and that is a decision. The Line this trigger sits in
+ * already names the provider two inches to the left, with its mark; an icon
+ * beside a word that already says the same thing is the noise anti-slop.md §6
+ * explicitly rules out. The chevron on the trigger is not identity, it is the
+ * disclosure cue, and it stays.
  */
+
+/** "Search repositorys" was live on this surface. The resource labels come from
+ *  the registry as singulars, so the plural is made here rather than by
+ *  appending an s and hoping. */
+function plural(word: string): string {
+  if (/[sxz]$/.test(word) || /(ch|sh)$/.test(word)) return `${word}es`;
+  if (/[^aeiou]y$/.test(word)) return `${word.slice(0, -1)}ies`;
+  return `${word}s`;
+}
 export function BindingPicker({
   connectionId,
   resourceKind,
@@ -84,7 +99,7 @@ export function BindingPicker({
           <CommandInput
             value={query}
             onValueChange={setQuery}
-            placeholder={`Search ${kindLabel.toLowerCase()}s…`}
+            placeholder={`Search ${plural(kindLabel.toLowerCase())}`}
           />
           <CommandList>
             {q.isFetching && (
@@ -98,7 +113,7 @@ export function BindingPicker({
               </div>
             )}
             {!q.isFetching && !q.isError && (
-              <CommandEmpty>No {kindLabel.toLowerCase()}s found.</CommandEmpty>
+              <CommandEmpty>No {plural(kindLabel.toLowerCase())} found.</CommandEmpty>
             )}
             <CommandGroup>
               {items.map((it) => (

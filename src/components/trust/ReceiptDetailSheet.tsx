@@ -1,45 +1,101 @@
-// dim 17 (design-anatomy §3): a Trust Ledger receipt is a first-class,
-// auditable object, so a single click opens its full backing record in the
-// shared DetailKit anatomy, exactly like the Decide opportunity sheet and the
-// Today CallDetailSheet. It reads only real TrustReceipt columns (assembled in
-// trust-ledger.functions); an absent value renders nothing, never a fabricated
-// field. The receipt carries its registered trace prefix (DEC / ACT),
-// timestamps via relTimeCaps, a status pill, the outcome (standing / superseded)
-// with its supersede link, provenance that links back up the loop, and, for a
-// decision, the same public-share control the card offers.
-import { useState, type ReactNode } from "react";
-import { Copy, ExternalLink, Share2, Check, History } from "lucide-react";
+/**
+ * ONE RECEIPT IN FULL: what was decided, why, what backs it, who decided, and
+ * whether it still stands.
+ *
+ * PORTED 2026-07-29, and this file is the founder's complaint stated exactly:
+ *
+ *   "If something I click that opens up, let's say PRD it opens up, approval pin
+ *    it opens up or something of similar sort, that also needs to be of same
+ *    theme. It should not render in the legacy theme because it is of
+ *    inconsistency."
+ *
+ * The Receipts panel that mounts this was ported. This was not, so clicking a
+ * row on a ported surface slid a retired-theme sheet over it.
+ *
+ * IT IS NOT A SHEET ANY MORE. There is no pane, slide-over or drawer primitive
+ * and that absence is deliberate (see the header of `shell/primitives.tsx`): a
+ * slide-over is one step softer than the modal abuse the standard bans, and a
+ * pane is a focus trap, a scroll lock, an Escape handler and an inert page
+ * behind it, half of which is an accessibility regression wearing a primitive's
+ * name. A receipt is a detail view with an identity of its own, so it renders
+ * IN PLACE, the pattern `_authenticated.crew.tsx` and `_authenticated.admin.people.tsx`
+ * both use.
+ *
+ * The exported name and props are unchanged on purpose: `engine-room/rooms/ReceiptsPanel.tsx`
+ * mounts this and belongs to another lane tonight. `ReceiptDetail` is exported
+ * beside it so that lane can hoist the detail to REPLACE the list when it gets
+ * there, which is the stronger shape; today it renders under the list and the
+ * surface scrolls to it, which is the same information without the overlay.
+ *
+ * WHAT WAS CUT, and why each was redundant rather than lost:
+ *   · The three-cell stat strip (Outcome / Kind / Evidence). Outcome is what the
+ *     record band directly above it says in a sentence; Kind is in the subtitle;
+ *     Evidence was a count sitting on top of the list that IS the count. Label,
+ *     sublabel and helper all saying one thing is hard ban 10.
+ *   · The status pills and the mono-caps chrome. A receipt's state is a fact, so
+ *     it reads as a word in a sentence, not as a bordered capsule.
+ *   · Every icon. They sat at the size of a heading beside labels they repeated.
+ *   · The "Trace id copied" toast. Copying is not a write and has nothing to
+ *     report, so the control says so itself and settles back.
+ *
+ * It reads only real `TrustReceipt` columns (assembled in trust-ledger.functions).
+ * An absent value renders nothing, never a fabricated field.
+ */
+
+import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation } from "@tanstack/react-query";
-import { MonoLabel } from "@/components/obsidian";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { toast } from "@/lib/notify";
-import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
-import { StageTimeline } from "@/components/shared/StageTimeline";
-import { relTimeCaps, traceRef } from "@/components/discover/format";
-import { setDecisionShared } from "@/lib/decisions-share.functions";
+  Actions,
+  Block,
+  Button,
+  Failed,
+  Line,
+  Num,
+  Prose,
+  Record as RecordSays,
+  Row,
+  Value,
+} from "@/components/shell/primitives";
+import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
-import { AutoChip } from "@/components/supaprod/AutoChip";
+import { setDecisionShared } from "@/lib/decisions-share.functions";
+import { getStageEvents } from "@/lib/stage-events.functions";
 import type { ReceiptEdge, TrustReceipt } from "@/lib/trust-ledger.functions";
-import { RECEIPT_PREFIX, receiptStatusTone, receiptStatusLabel, RECEIPT_TONE_VAR } from "./format";
+import {
+  RECEIPT_PREFIX,
+  receiptStatusTone,
+  receiptStatusLabel,
+  RECEIPT_VALUE_TONE,
+} from "./format";
+
+/** Plain-words relative time, the same idiom the ported surfaces use. Mono is
+ *  applied by the row, never here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
 
 /**
  * TRUST-SHARE: publish a decision's receipt as a public provenance artifact.
  * The publish act is USER-INITIATED (a click), per the v11 ruling that sharing
- * is outward-facing, nothing auto-publishes. On success it surfaces the public
- * `/d/<slug>` link to copy (what a PM forwards to their VP). Shared by the
- * ledger card and this detail so the control behaves identically in both.
+ * is outward-facing and nothing auto-publishes. On success it surfaces the
+ * public `/d/<slug>` link to copy, which is what a product lead forwards to
+ * their VP. Shared by the ledger card and this detail so the control behaves
+ * identically in both.
  */
 export function ShareControl({ decisionId }: { decisionId: string }) {
   const fShare = useServerFn(setDecisionShared);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = React.useState(false);
   const m = useMutation({ mutationFn: () => fShare({ data: { id: decisionId, isPublic: true } }) });
 
   const slug = m.data?.share_slug ?? null;
@@ -50,26 +106,11 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
         ? `/d/${slug}`
         : null;
 
-  const chip: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 5,
-    fontFamily: "var(--font-mono)",
-    color: "var(--text-subtle)",
-    background: "transparent",
-    border: "1px solid var(--hairline)",
-    borderRadius: 99,
-    padding: "3px 9px",
-    cursor: "pointer",
-  };
-
   if (link) {
     return (
-      <button
-        type="button"
+      <Button
         title={link}
-        onClick={async (e) => {
-          e.stopPropagation();
+        onClick={async () => {
           try {
             await navigator.clipboard.writeText(link);
             setCopied(true);
@@ -78,56 +119,21 @@ export function ShareControl({ decisionId }: { decisionId: string }) {
             /* clipboard blocked, the link is in the title for manual copy */
           }
         }}
-        style={chip}
       >
-        {copied ? <Check size={16} strokeWidth={1.5} /> : <Copy size={16} strokeWidth={1.5} />}
-        {copied ? "Link copied" : "Copy public link"}
-      </button>
+        {copied ? "Link copied" : "Copy the public link"}
+      </Button>
     );
   }
   if (m.data && m.data.available === false) {
-    return (
-      <span
-        style={{ ...chip, cursor: "default", color: "var(--text-faint)" }}
-        title="Sharing lands on the next deploy"
-      >
-        Sharing not available yet
-      </span>
-    );
+    return <Value tone="quiet">Sharing lands on the next deploy.</Value>;
   }
   return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        m.mutate();
-      }}
-      disabled={m.isPending}
-      style={{ ...chip, opacity: m.isPending ? 0.6 : 1 }}
-    >
-      <Share2 size={16} strokeWidth={1.5} />
-      {m.isPending ? "Sharing" : m.isError ? "Retry share" : "Share"}
-    </button>
-  );
-}
-
-/** A quiet mono-caps status pill, so the object's state reads without a menu. */
-function StatusPill({ label, tone }: { label: string; tone: string }) {
-  return (
-    <span
-      style={{
-        fontFamily: "var(--font-mono)",
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-        color: tone,
-        border: "1px solid var(--hairline)",
-        borderRadius: "999px",
-        padding: "2px 8px",
-        lineHeight: 1.4,
-      }}
-    >
-      {label}
-    </span>
+    <>
+      <Button disabled={m.isPending} onClick={() => m.mutate()}>
+        {m.isPending ? "Publishing" : m.isError ? "Try publishing again" : "Publish it"}
+      </Button>
+      {m.isError ? <Failed>{(m.error as Error).message}</Failed> : null}
+    </>
   );
 }
 
@@ -140,49 +146,25 @@ export interface ReceiptDetailSheetProps {
   onOpenReceipt?: (id: string) => void;
 }
 
-/** The quiet inline link button every walkable row in this sheet uses. Text
- * stays neutral (Tempo v5 §2 narrows glacier to literal status chips and
- * `<a>`/`<Link>` hyperlinks; this is a button, not a link element) and
- * brightens to full-contrast on hover, matching the "Superseded by" row. */
-const LINK_BUTTON: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "6px",
-  marginLeft: "auto",
-  color: "var(--text-body)",
-  background: "transparent",
-  border: "none",
-  padding: 0,
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-};
+/* ------------------------------------------------------------------ *
+ * The detail
+ * ------------------------------------------------------------------ */
 
-/**
- * One receipt in full, on the shared DetailKit anatomy so it reads as one
- * language with every other object detail. It leads with the outcome (still
- * standing, or superseded), then the glanceable stat strip, then the supporting
- * sections (why, where it came from, when, and the supersession link).
- */
-export function ReceiptDetailSheet({
-  open,
-  onOpenChange,
-  receipt,
+export function ReceiptDetail({
+  receipt: r,
   onOpenReceipt,
-}: ReceiptDetailSheetProps) {
+  onClose,
+}: {
+  receipt: TrustReceipt;
+  onOpenReceipt?: (id: string) => void;
+  onClose?: () => void;
+}) {
   const navigate = useNavigate();
-  if (!receipt) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="sm:max-w-md overflow-y-auto" />
-      </Sheet>
-    );
-  }
+  const [copied, setCopied] = React.useState(false);
 
-  const r = receipt;
   const superseded = r.outcome === "superseded";
-  const statusTone = RECEIPT_TONE_VAR[receiptStatusTone(r.status)];
-  const decidedLabel = r.humanDecided ? "You" : r.actor ? r.actor : "Agent";
-  const kindLabel = r.kind === "decision" ? "Decision" : "Action";
+  const decidedBy = r.humanDecided ? "You" : (r.actor ?? "An agent");
+  const kindLabel = r.kind === "decision" ? "Decision" : "Autonomous action";
   const sources = r.sources ?? [];
   const edges = r.edges ?? [];
 
@@ -209,470 +191,306 @@ export function ReceiptDetailSheet({
     return null;
   };
 
-  const copyId = () => {
-    void navigator.clipboard?.writeText(r.id);
-    toast("Trace id copied");
-  };
+  const when = ago(r.occurredAt);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-        <SheetHeader className="sr-only">
-          <SheetTitle>{stripAutoPrefix(r.title)}</SheetTitle>
-          <SheetDescription>
-            One receipt in full: what changed, why, the evidence, who decided, and whether it still
-            stands.
-          </SheetDescription>
-        </SheetHeader>
+    <>
+      <Block
+        title={stripAutoPrefix(r.title)}
+        sub={
+          <>
+            {kindLabel}, decided by {decidedBy}
+            {when ? `, ${when} ago` : ""}.{" "}
+            <Value tone={RECEIPT_VALUE_TONE[receiptStatusTone(r.status)]}>
+              {receiptStatusLabel(r.status)}
+            </Value>
+            {isAutoTitle(r.title) ? <> Raised automatically by the loop.</> : null}
+          </>
+        }
+        more={onClose ? "Close" : undefined}
+        onMore={onClose}
+      >
+        {/* THE RECORD SPEAKING. A receipt either still governs or it has been
+            replaced, and that is a claim about the workspace rather than a
+            status column, so it takes the one lit surface in the product. */}
+        <RecordSays
+          evidence={
+            <>
+              {RECEIPT_PREFIX[r.kind]}
+              {"·"}
+              {traceRef(r.id)}
+            </>
+          }
+        >
+          {superseded
+            ? "A later decision replaced this one. It stays on the record for the audit trail, but do not act on it."
+            : r.outcome === "proven"
+              ? "This is the current record, and a recorded outcome has since proven it right."
+              : "This is the current record. No later call has superseded it."}
+        </RecordSays>
 
-        <div style={{ display: "grid", gap: "16px", marginTop: "2px" }}>
-          <DetailHeader
-            title={stripAutoPrefix(r.title)}
-            chips={
-              <>
-                <StatusPill label={receiptStatusLabel(r.status)} tone={statusTone} />
-                <StatusPill
-                  label={superseded ? "Superseded" : r.outcome === "proven" ? "Proven" : "Standing"}
-                  tone={superseded ? "var(--text-muted)" : "var(--moss)"}
-                />
-                {isAutoTitle(r.title) ? <AutoChip /> : null}
-              </>
-            }
-            time={
-              r.occurredAt ? (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  {relTimeCaps(r.occurredAt)}
-                </span>
-              ) : null
-            }
-            traceRef={
-              <button
-                type="button"
-                onClick={copyId}
-                aria-label="Copy trace id"
-                title="Copy the full trace id"
-                className="loom-press flex items-center hover:[color:var(--text-subtle)]"
-                style={{
-                  gap: "6px",
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.06em",
-                  color: "var(--text-faint)",
-                  background: "transparent",
-                  border: "none",
-                  padding: "3px 2px",
-                  cursor: "pointer",
-                }}
-              >
-                {RECEIPT_PREFIX[r.kind]}
-                {"\u00b7"}
-                {traceRef(r.id)}
-                <Copy className="h-3 w-3" />
-              </button>
-            }
+        {superseded && r.supersededBy ? (
+          onOpenReceipt ? (
+            <Row
+              lead="Open the record that replaced it"
+              sub={<Num>{r.supersededBy.slice(0, 8)}</Num>}
+              tight
+              onClick={() => onOpenReceipt(r.supersededBy as string)}
+            />
+          ) : (
+            <Line label="Replaced by">
+              <Num>{r.supersededBy.slice(0, 8)}</Num>
+            </Line>
+          )
+        ) : null}
+      </Block>
+
+      <Block title="Why">
+        {r.rationale ? (
+          <Prose>{r.rationale}</Prose>
+        ) : (
+          <Prose>No reasoning was recorded with this one.</Prose>
+        )}
+        {r.outcome === "proven" && r.provenBy ? (
+          <Prose>{r.provenBy.summary ?? `Proven by learning ${r.provenBy.id.slice(0, 8)}.`}</Prose>
+        ) : null}
+      </Block>
+
+      {edges.length ? (
+        <Block title="What backs it">
+          {edges.map((e) => {
+            const go = edgeGo(e);
+            return (
+              <Row
+                key={`${e.kind}-${e.id}-${e.relation}`}
+                lead={stripAutoPrefix(e.label)}
+                sub={[e.kind, e.relation ?? "linked"].filter(Boolean).join(", ")}
+                tight
+                onClick={go ?? undefined}
+              />
+            );
+          })}
+        </Block>
+      ) : null}
+
+      <Block title="Where it came from">
+        {sources.length ? (
+          sources.map((s) => {
+            const go = sourceGo(s);
+            return (
+              <Row
+                key={`${s.kind}-${s.id}`}
+                lead={s.label ?? s.id.slice(0, 8)}
+                sub={s.kind}
+                tight
+                onClick={go ?? undefined}
+              />
+            );
+          })
+        ) : (
+          <Prose>
+            {r.source.label
+              ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
+              : r.kind === "decision"
+                ? "Recorded directly, with nothing upstream linked to it."
+                : "An autonomous action, decided at its own approval gate."}
+          </Prose>
+        )}
+      </Block>
+
+      {r.build ? (
+        <Block title="What it built">
+          {r.build.branch ? (
+            <Line label="Branch">
+              <Num>{r.build.branch}</Num>
+            </Line>
+          ) : null}
+          {r.build.prUrl ? (
+            <Line label="Pull request">
+              <a href={r.build.prUrl} target="_blank" rel="noreferrer">
+                {r.build.prNumber != null ? <Num>#{r.build.prNumber}</Num> : "Open it on GitHub"}
+              </a>
+            </Line>
+          ) : r.build.prNumber != null ? (
+            <Line label="Pull request">
+              <Num>#{r.build.prNumber}</Num>
+            </Line>
+          ) : null}
+          <Line label="Status">
+            <Value>{r.build.status}</Value>
+          </Line>
+          <Line
+            label="Fix attempts used"
+            sub="Each one is a retry the engine spent before it came back to you."
+          >
+            <Num>{r.build.fixAttempts}</Num>
+          </Line>
+        </Block>
+      ) : null}
+
+      {r.deploys?.length ? (
+        <Block title="Where it landed">
+          {r.deploys.map((d, i) => (
+            <Row
+              key={`${d.environment}-${d.commitSha}-${i}`}
+              lead={d.environment}
+              sub={d.url ?? "No URL was recorded."}
+              time={ago(d.deployedAt)}
+              tight
+              action={
+                d.url ? (
+                  <a href={d.url} target="_blank" rel="noreferrer" className="sp-block-more">
+                    Open it
+                  </a>
+                ) : undefined
+              }
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      {/* Stage history from the real stage_events rows: the receipt's own (a
+          decision is a staged entity), plus its source spec or mission. Each
+          block is honest-empty, so absent history renders nothing. */}
+      {r.kind === "decision" ? (
+        <StageHistory entityType="decision" entityId={r.id} title="How it moved" />
+      ) : null}
+      {sources.map((s) =>
+        s.kind === "prd" ? (
+          <StageHistory
+            key={`stage-${s.id}`}
+            entityType="spec"
+            entityId={s.id}
+            title="How the spec moved"
           />
+        ) : s.kind === "mission" ? (
+          <StageHistory
+            key={`stage-${s.id}`}
+            entityType="mission"
+            entityId={s.id}
+            title="How the mission moved"
+          />
+        ) : null,
+      )}
 
-          {/* Outcome band: a calm neutral fill (never amber, never a chromatic
-              accent - Tempo v5 §2 narrows glacier to literal status chips and
-              links), the record's state in plain words. */}
-          <div
-            style={{
-              display: "grid",
-              gap: "8px",
-              background: "var(--raised)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-card)",
-              padding: "13px 15px",
+      <Block>
+        <Actions
+          trailing={
+            onClose ? (
+              <Button variant="ghost" onClick={onClose}>
+                Back to the record
+              </Button>
+            ) : undefined
+          }
+        >
+          <Button
+            title="Copy the full trace id"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(r.id);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              } catch {
+                /* clipboard blocked; the id is on the record above */
+              }
             }}
           >
-            <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
-              <MonoLabel
-                style={{ letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-              >
-                {superseded ? "Superseded" : "Still stands"}
-              </MonoLabel>
-              <span
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 550,
-                  color: "var(--text-primary)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {superseded
-                  ? "A later decision replaced this one. It stays on the record for the audit trail."
-                  : "This is the current record. It has not been superseded by a later call."}
-              </span>
-            </div>
-          </div>
+            {copied ? "Trace id copied" : "Copy the trace id"}
+          </Button>
+          {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
+        </Actions>
+      </Block>
+    </>
+  );
+}
 
-          <StatStrip>
-            <StatCell
-              label="Outcome"
-              value={superseded ? "Superseded" : "Standing"}
-              tone={superseded ? "muted" : "moss"}
-            />
-            <StatCell label="Kind" value={kindLabel} tone="neutral" />
-            <StatCell
-              label="Evidence"
-              value={String(r.evidenceCount)}
-              tone={r.evidenceCount > 0 ? "neutral" : "muted"}
-            />
-          </StatStrip>
+/** One entity's stage transitions, read from the real `stage_events` rows.
+ *
+ *  This used to be `shared/StageTimeline`, which is still written against the
+ *  retired system (DetailSection, MonoLabel, the shouty relTimeCaps). Reading
+ *  the same server function under the same query key costs no extra round trip
+ *  when both are mounted, and keeps this detail on one theme. */
+function StageHistory({
+  entityType,
+  entityId,
+  title,
+}: {
+  entityType: "spec" | "mission" | "decision";
+  entityId: string;
+  title: string;
+}) {
+  const fEvents = useServerFn(getStageEvents);
+  const q = useQuery({
+    queryKey: ["stage-events", entityType, entityId],
+    queryFn: () => fEvents({ data: { entityType, entityId } }),
+  });
 
-          <DetailSection heading="Why">
-            {r.rationale ? (
-              <span style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
-                {r.rationale}
-              </span>
-            ) : (
-              <span style={{ color: "var(--text-subtle)", fontStyle: "italic" }}>
-                No rationale recorded.
-              </span>
-            )}
-          </DetailSection>
+  // Honest-empty: history accrues from the day the seam landed, with no
+  // backfill, so an entity older than that legitimately has none. A read that
+  // FAILED is a different fact and says so.
+  if (q.isError) {
+    return (
+      <Block title={title}>
+        <Failed onRetry={() => q.refetch()}>Its history did not load.</Failed>
+      </Block>
+    );
+  }
+  const events = q.data?.events ?? [];
+  if (events.length === 0) return null;
 
-          {edges.length ? (
-            <DetailSection heading="Evidence">
-              <div style={{ display: "grid", gap: "8px" }}>
-                {edges.map((e) => {
-                  const go = edgeGo(e);
-                  const body = (
-                    <>
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          letterSpacing: "0.06em",
-                          textTransform: "uppercase",
-                          color: "var(--text-subtle)",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {e.relation ?? "linked"}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--text-body)",
-                          textAlign: "left",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {e.kind ? `${e.kind}: ` : ""}
-                        {stripAutoPrefix(e.label)}
-                      </span>
-                    </>
-                  );
-                  return go ? (
-                    <button
-                      key={`${e.kind}-${e.id}-${e.relation}`}
-                      type="button"
-                      onClick={go}
-                      className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                      style={{
-                        gap: "8px",
-                        background: "transparent",
-                        border: "none",
-                        padding: 0,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {body}
-                      <ExternalLink
-                        className="h-3 w-3"
-                        style={{ marginLeft: "auto", color: "var(--text-subtle)", flexShrink: 0 }}
-                      />
-                    </button>
-                  ) : (
-                    <div
-                      key={`${e.kind}-${e.id}-${e.relation}`}
-                      className="flex items-center"
-                      style={{ gap: "8px" }}
-                    >
-                      {body}
-                    </div>
-                  );
-                })}
-              </div>
-            </DetailSection>
-          ) : null}
+  return (
+    <Block title={title}>
+      {events.map((e) => (
+        <Row
+          key={e.id}
+          lead={e.from_stage ? `${e.from_stage} to ${e.to_stage}` : e.to_stage}
+          sub={e.actor}
+          time={ago(e.at)}
+          tight
+        />
+      ))}
+    </Block>
+  );
+}
 
-          {r.outcome === "proven" && r.provenBy ? (
-            <DetailSection heading="Proven by a recorded outcome">
-              <span style={{ lineHeight: 1.6, color: "var(--text-body)" }}>
-                {r.provenBy.summary ?? `Learning ${r.provenBy.id.slice(0, 8)}`}
-              </span>
-            </DetailSection>
-          ) : null}
+/* ------------------------------------------------------------------ *
+ * The in-place wrapper
+ * ------------------------------------------------------------------ */
 
-          <DetailSection heading="Where it came from">
-            {sources.length ? (
-              <div style={{ display: "grid", gap: "8px" }}>
-                {sources.map((s) => {
-                  const go = sourceGo(s);
-                  return (
-                    <div
-                      key={`${s.kind}-${s.id}`}
-                      className="flex items-center"
-                      style={{ gap: "8px" }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--text-body)",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {s.kind}: {s.label ?? s.id.slice(0, 8)}
-                      </span>
-                      {go ? (
-                        <button
-                          type="button"
-                          onClick={go}
-                          className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                          style={LINK_BUTTON}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          {s.kind === "prd" ? "Open the spec" : "Open in Build"}
-                        </button>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <span style={{ color: "var(--text-body)" }}>
-                {r.source.label
-                  ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
-                  : r.kind === "decision"
-                    ? "Recorded directly, with no upstream artifact linked."
-                    : "An autonomous action, decided at its approval gate."}
-              </span>
-            )}
-          </DetailSection>
+/**
+ * Kept under its old name and its old props so the panel that mounts it does
+ * not have to change tonight. It no longer overlays anything: when a receipt is
+ * open the detail renders where it stands and the surface scrolls to it, which
+ * is the click confirmed rather than the page taken away.
+ */
+export function ReceiptDetailSheet({
+  open,
+  onOpenChange,
+  receipt,
+  onOpenReceipt,
+}: ReceiptDetailSheetProps) {
+  const anchor = React.useRef<HTMLDivElement>(null);
+  const id = receipt?.id ?? null;
 
-          {r.build ? (
-            <DetailSection heading="The build">
-              <div style={{ display: "grid", gap: "10px" }}>
-                {r.build.branch ? (
-                  <div style={{ display: "grid", gap: "3px" }}>
-                    <span style={{ color: "var(--text-subtle)" }}>Branch</span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--text-body)",
-                        overflowWrap: "anywhere",
-                      }}
-                    >
-                      {r.build.branch}
-                    </span>
-                  </div>
-                ) : null}
-                {r.build.prUrl || r.build.prNumber != null ? (
-                  <div style={{ display: "grid", gap: "3px" }}>
-                    <span style={{ color: "var(--text-subtle)" }}>PR</span>
-                    {r.build.prUrl ? (
-                      <a
-                        href={r.build.prUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                        style={{ gap: "6px", color: "var(--glacier)" }}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        {r.build.prNumber != null ? `#${r.build.prNumber}` : "Open the PR"}
-                      </a>
-                    ) : (
-                      <span style={{ color: "var(--text-body)" }}>
-                        #{r.build.prNumber}
-                      </span>
-                    )}
-                  </div>
-                ) : null}
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ color: "var(--text-subtle)" }}>Status</span>
-                  <span style={{ color: "var(--text-body)" }}>
-                    {r.build.status}
-                  </span>
-                </div>
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ color: "var(--text-subtle)" }}>
-                    Fix attempts consumed
-                  </span>
-                  <span
-                    className="tabular-nums"
-                    style={{ color: "var(--text-body)" }}
-                  >
-                    {r.build.fixAttempts}
-                  </span>
-                </div>
-              </div>
-            </DetailSection>
-          ) : null}
+  React.useEffect(() => {
+    if (!open || !id) return;
+    // Motion confirms: it says the click landed and where it landed. It obeys
+    // the reader's own setting rather than deciding for them.
+    const still =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    anchor.current?.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });
+  }, [open, id]);
 
-          {r.deploys?.length ? (
-            <DetailSection heading="Deployed">
-              <div style={{ display: "grid", gap: "8px" }}>
-                {r.deploys.map((d, i) => (
-                  <div
-                    key={`${d.environment}-${d.commitSha}-${i}`}
-                    className="flex items-baseline"
-                    style={{ gap: "8px" }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                        color: "var(--text-subtle)",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {d.environment}
-                    </span>
-                    {d.url ? (
-                      <a
-                        href={d.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:[color:var(--text-primary)]"
-                        style={{
-                          color: "var(--glacier)",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {d.url}
-                      </a>
-                    ) : (
-                      <span style={{ color: "var(--text-subtle)" }}>
-                        No URL recorded
-                      </span>
-                    )}
-                    {d.deployedAt ? (
-                      <span
-                        style={{
-                          marginLeft: "auto",
-                          fontFamily: "var(--font-mono)",
-                          letterSpacing: "0.06em",
-                          color: "var(--text-faint)",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {relTimeCaps(d.deployedAt)}
-                      </span>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </DetailSection>
-          ) : null}
+  if (!open || !receipt) return null;
 
-          <DetailSection heading="Decided">
-            <div style={{ display: "grid", gap: "10px" }}>
-              <div style={{ display: "grid", gap: "3px" }}>
-                <span style={{ color: "var(--text-subtle)" }}>By</span>
-                <span style={{ color: "var(--text-body)" }}>
-                  {decidedLabel}
-                </span>
-              </div>
-              {r.occurredAt ? (
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ color: "var(--text-subtle)" }}>When</span>
-                  <span
-                    className="flex items-baseline"
-                    style={{ gap: "8px", color: "var(--text-body)" }}
-                  >
-                    <span>{new Date(r.occurredAt).toLocaleString()}</span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        letterSpacing: "0.06em",
-                        color: "var(--text-faint)",
-                      }}
-                    >
-                      {relTimeCaps(r.occurredAt)}
-                    </span>
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          </DetailSection>
-
-          {/* Stage history from the real stage_events rows: the receipt's own
-              (a decision is a staged entity), plus its source spec/mission.
-              StageTimeline is honest-empty, so absent history renders nothing. */}
-          {r.kind === "decision" ? (
-            <StageTimeline entityType="decision" entityId={r.id} variant="detailkit" />
-          ) : null}
-          {sources.map((s) =>
-            s.kind === "prd" ? (
-              <StageTimeline
-                key={`timeline-${s.id}`}
-                entityType="spec"
-                entityId={s.id}
-                variant="detailkit"
-              />
-            ) : s.kind === "mission" ? (
-              <StageTimeline
-                key={`timeline-${s.id}`}
-                entityType="mission"
-                entityId={s.id}
-                variant="detailkit"
-              />
-            ) : null,
-          )}
-
-          {superseded && r.supersededBy ? (
-            <DetailSection heading="Superseded by">
-              {onOpenReceipt ? (
-                <button
-                  type="button"
-                  onClick={() => onOpenReceipt(r.supersededBy!)}
-                  className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                  style={{
-                    gap: "8px",
-                    color: "var(--text-body)",
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                  }}
-                >
-                  <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
-                  <span style={{ fontFamily: "var(--font-mono)" }}>
-                    {r.supersededBy.slice(0, 8)}
-                  </span>
-                  <span style={{ color: "var(--text-body)" }}>
-                    Open the superseding record
-                  </span>
-                </button>
-              ) : (
-                <span
-                  className="flex items-center"
-                  style={{ gap: "8px", color: "var(--text-body)" }}
-                >
-                  <History size={16} strokeWidth={1.5} color="var(--text-muted)" />
-                  <span style={{ fontFamily: "var(--font-mono)" }}>
-                    {r.supersededBy.slice(0, 8)}
-                  </span>
-                </span>
-              )}
-            </DetailSection>
-          ) : null}
-
-          {r.kind === "decision" ? (
-            <div
-              className="flex flex-wrap items-center"
-              style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
-            >
-              <ShareControl decisionId={r.id} />
-            </div>
-          ) : null}
-        </div>
-      </SheetContent>
-    </Sheet>
+  return (
+    <div ref={anchor}>
+      <ReceiptDetail
+        receipt={receipt}
+        onOpenReceipt={onOpenReceipt}
+        onClose={() => onOpenChange(false)}
+      />
+    </div>
   );
 }

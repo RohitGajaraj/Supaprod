@@ -1,192 +1,80 @@
 import { describe, expect, test } from "bun:test";
 import { ConfidenceDisclosureChip } from "./ConfidenceDisclosureChip";
 
-// Helper to convert children array to string for easier testing.
-function childrenToString(children: unknown): string {
-  if (Array.isArray(children)) {
-    return children.map((c) => (typeof c === "string" ? c : String(c))).join("");
-  }
-  return String(children);
+/**
+ * The arithmetic and the tone mapping, read off the element tree.
+ *
+ * REWRITTEN 2026-07-29 with the port. Every assertion in the previous version
+ * was about inline style: `color: var(--emerald)`, `borderRadius: 99`,
+ * `padding: "2px 8px"`, a mono font stack, a `color-mix` border. Those pinned
+ * the chip to the retired palette, which is exactly what the port removed, and
+ * one of them (`fontSize: 9.5`) had already drifted from the component and was
+ * failing on main. A test that fails when the paint changes and passes when the
+ * meaning changes is testing the wrong thing.
+ *
+ * What is worth pinning is what the chip CLAIMS: the percent it discloses, the
+ * word it puts on it, and the tone that word carries. The DOM side of that lives
+ * in `__tests__/confidence-disclosure-chip.test.tsx`.
+ */
+
+type Rendered = { props: { tone?: string; children?: { props?: { title?: string } } } };
+
+function chipFor(confidence: number, tier: "high" | "medium" | "low") {
+  return ConfidenceDisclosureChip({ confidence, tier }) as unknown as Rendered;
 }
 
-describe("ConfidenceDisclosureChip", () => {
-  test("renders the tier label and percentage as visible children text", () => {
-    const high = ConfidenceDisclosureChip({ confidence: 0.85, tier: "high" });
-    expect(childrenToString(high.props.children)).toContain("85");
-    expect(childrenToString(high.props.children)).toContain("confident");
+function toneOf(confidence: number, tier: "high" | "medium" | "low"): string | undefined {
+  return chipFor(confidence, tier).props.tone;
+}
 
-    const medium = ConfidenceDisclosureChip({ confidence: 0.55, tier: "medium" });
-    expect(childrenToString(medium.props.children)).toContain("55");
-    expect(childrenToString(medium.props.children)).toContain("moderate");
+function titleOf(confidence: number, tier: "high" | "medium" | "low"): string {
+  return chipFor(confidence, tier).props.children?.props?.title ?? "";
+}
 
-    const low = ConfidenceDisclosureChip({ confidence: 0.2, tier: "low" });
-    expect(childrenToString(low.props.children)).toContain("20");
-    expect(childrenToString(low.props.children)).toContain("unsure");
+describe("ConfidenceDisclosureChip tone", () => {
+  test("a confident verdict reads as a pass", () => {
+    expect(toneOf(0.9, "high")).toBe("pass");
   });
 
-  test("renders as inline-flex span with gap and alignment", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.8,
-      tier: "high",
-    });
-
-    expect(chip.type).toBe("span");
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.display).toBe("inline-flex");
-    expect(styles.alignItems).toBe("center");
-    expect(styles.gap).toBe(4);
+  test("a moderate verdict stays quiet, because it is neither an outcome nor a warning", () => {
+    expect(toneOf(0.5, "medium")).toBe("quiet");
   });
 
-  test("high tier maps to emerald color", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.9,
-      tier: "high",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.color).toBe("var(--emerald)");
+  test("an unsure verdict reads as a caution, and never as ember", () => {
+    // Ember marks the human. This is the machine reporting on itself, so the
+    // low tier takes the warn tone rather than the accent reserved for a call
+    // that is genuinely waiting on a person.
+    expect(toneOf(0.25, "low")).toBe("warn");
+  });
+});
+
+describe("ConfidenceDisclosureChip disclosure", () => {
+  test("discloses the percent it is confident to", () => {
+    expect(titleOf(0.85, "high")).toContain("85%");
+    expect(titleOf(0.85, "high")).toContain("Supaprod discloses");
   });
 
-  test("medium tier maps to muted color", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "medium",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.color).toBe("var(--text-muted)");
+  test("clamps a negative probability to 0%", () => {
+    expect(titleOf(-0.5, "low")).toContain("0%");
   });
 
-  test("low tier maps to ember color", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.25,
-      tier: "low",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.color).toBe("var(--ember)");
+  test("clamps a probability over 1 to 100%", () => {
+    expect(titleOf(1.5, "high")).toContain("100%");
   });
 
-  test("border color uses tier tone at 40% opacity via color-mix", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.7,
-      tier: "high",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.border).toContain("color-mix(in oklab, var(--emerald) 40%, transparent)");
+  test("rounds to the nearest percent", () => {
+    expect(titleOf(0.555, "high")).toContain("56%");
   });
 
-  test("border is solid 1px with border-radius 99 (pill shape)", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "medium",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.borderRadius).toBe(99);
+  test("exactly 0 discloses 0%", () => {
+    expect(titleOf(0, "low")).toContain("0%");
   });
 
-  test("applies mono font and small font size", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "medium",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.fontFamily).toBe("var(--font-mono)");
-    expect(styles.fontSize).toBe(9.5);
-    expect(styles.fontWeight).toBe(600);
+  test("exactly 1 discloses 100%", () => {
+    expect(titleOf(1, "high")).toContain("100%");
   });
 
-  test("sets title attribute with confidence description", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.85,
-      tier: "high",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("85%");
-    expect(title).toContain("Supaprod discloses");
-  });
-
-  test("accepts optional custom style prop merged into base styles", () => {
-    const customStyle = { marginTop: 10, opacity: 0.8 };
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "medium",
-      style: customStyle,
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.marginTop).toBe(10);
-    expect(styles.opacity).toBe(0.8);
-    // Base styles still present
-    expect(styles.color).toBe("var(--text-muted)");
-  });
-
-  test("has whitespace nowrap to keep percentage and label on one line", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.65,
-      tier: "medium",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.whiteSpace).toBe("nowrap");
-  });
-
-  test("has padding and letter-spacing for readability", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "low",
-    });
-    const styles = (chip.props as { style?: Record<string, unknown> })?.style ?? {};
-    expect(styles.padding).toBe("2px 8px");
-    expect(styles.letterSpacing).toBe("0.06em");
-  });
-
-  test("clamps negative confidence to 0%", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: -0.5,
-      tier: "low",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("0%");
-  });
-
-  test("clamps excessive confidence to 100%", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 1.5,
-      tier: "high",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("100%");
-  });
-
-  test("rounds confidence to nearest percent", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.555,
-      tier: "high",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("56%");
-  });
-
-  test("edge case: exactly 0 confidence shows 0%", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0,
-      tier: "low",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("0%");
-  });
-
-  test("edge case: exactly 1 confidence shows 100%", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 1,
-      tier: "high",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("100%");
-  });
-
-  test("rounds 0.5 to 50% (banker's rounding)", () => {
-    const chip = ConfidenceDisclosureChip({
-      confidence: 0.5,
-      tier: "medium",
-    });
-    const title = (chip.props as { title?: string })?.title;
-    expect(title).toContain("50%");
+  test("exactly 0.5 discloses 50%", () => {
+    expect(titleOf(0.5, "medium")).toContain("50%");
   });
 });

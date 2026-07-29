@@ -1,19 +1,47 @@
-import { useState } from "react";
+/**
+ * THE CRITIC'S VERDICT, and what it can open.
+ *
+ * PORTED 2026-07-29. This is one of the two components the founder's complaint
+ * names directly: the spec surface that mounts it is already ported, so the
+ * chip sat in the new theme and clicking it slid a retired-theme sheet over the
+ * page. A verdict is a read, not a confirmation, so it was never a modal's job.
+ *
+ * IT IS NOT A SHEET ANY MORE. The review opens IN PLACE, under the chip that
+ * asked for it. There is no pane, slide-over or drawer primitive and that
+ * absence is deliberate (see the header of `shell/primitives.tsx`). The chip
+ * keeps its exported props unchanged because `_authenticated.plan.spec.$id.tsx`
+ * mounts it and belongs to another lane tonight.
+ *
+ * WHAT ELSE CHANGED:
+ *   · `VerdictChip` in moss / ember / madder became `Value`, so the stylesheet
+ *     owns the mix. Ember is gone from here entirely: ember marks the human, and
+ *     "revise" is the machine's opinion, not a call waiting on you.
+ *   · The four shield icons went. They sat at heading size beside the same word
+ *     they were illustrating.
+ *   · The "Critic re-ran" success toast went. Re-running the Critic is a
+ *     consequential write, and a toast confirms that your click registered
+ *     rather than what it caused. What it caused is the verdict itself, which is
+ *     on screen and changes in front of you, so the surface says it and the
+ *     toast is redundant. A failure still reports, as `Failed`.
+ */
+
+import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ShieldAlert, ShieldCheck, ShieldX, RefreshCw } from "lucide-react";
-import { toast } from "@/lib/notify";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
-import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
-import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 import { tierFromProbability } from "@/lib/confidence";
+import {
+  Actions,
+  Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
+  Failed,
+  Num,
+  Value,
+} from "@/components/shell/primitives";
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 
 type Props = {
   review: CriticReview | null | undefined;
@@ -23,69 +51,64 @@ type Props = {
   size?: "sm" | "md";
 };
 
-// Verdict chips per the DESIGN.md inline-annotation ruling: moss = ship,
-// ember = revise (the human's call), madder = kill. Icons stay in the sheet
-// header only — the chip itself is the mono-caps word.
-const VERDICT_STYLES: Record<
-  CriticReview["verdict"],
-  { label: string; tone: VerdictTone; Icon: typeof ShieldCheck }
-> = {
-  ship: { label: "Ship", tone: "moss", Icon: ShieldCheck },
-  revise: { label: "Revise", tone: "ember", Icon: ShieldAlert },
-  kill: { label: "Kill", tone: "madder", Icon: ShieldX },
-};
+/** The verdict as a word and a tone. Ship is a pass, kill is a fail, and revise
+ *  is the caution in between. No icons: the word is the shorter statement. */
+const VERDICT: Record<CriticReview["verdict"], { label: string; tone: "pass" | "warn" | "fail" }> =
+  {
+    ship: { label: "Ship", tone: "pass" },
+    revise: { label: "Revise", tone: "warn" },
+    kill: { label: "Kill", tone: "fail" },
+  };
 
-// RPT-41: the three fixed persona-board seats, labeled for the review sheet.
+/** The three fixed persona-board seats, in the words a person would use. */
 const PERSONA_LABELS: Record<string, string> = {
   exec: "Exec sponsor",
   engineering: "Engineering lead",
   customer_of_record: "Customer of record",
 };
 
-export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Props) {
+export function CriticBadge({ review, target, invalidateKey }: Props) {
   const qc = useQueryClient();
   const fRun = useServerFn(runCriticReview);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
 
   const run = useMutation({
     mutationFn: () => fRun({ data: { target_kind: target.kind, target_id: target.id } }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: invalidateKey });
-      toast.success("Critic re-ran");
+      // The consequence IS the verdict, and it is on screen. Invalidating makes
+      // it change in front of you, which is the receipt.
+      void qc.invalidateQueries({ queryKey: invalidateKey });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   if (!review) {
     return (
-      <button
-        type="button"
-        onClick={() => run.mutate()}
-        disabled={run.isPending}
-        className="mono-label inline-flex items-center gap-1 rounded-full border hairline px-2 py-0.5 text-ink-faint transition hover:text-ink-muted disabled:opacity-50"
-        style={{ }}
-        title="Run the Critic agent against this row"
-      >
-        <ShieldAlert className="h-3 w-3" />
-        {run.isPending ? "Reviewing…" : "Run Critic"}
-      </button>
+      <>
+        <Button
+          disabled={run.isPending}
+          onClick={() => run.mutate()}
+          title="Have the Critic read this and rule on it"
+        >
+          {run.isPending ? "Reading it" : "Ask the Critic"}
+        </Button>
+        {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+      </>
     );
   }
 
-  const v = VERDICT_STYLES[review.verdict];
-  const Icon = v.Icon;
+  const v = VERDICT[review.verdict];
   const riskCount = review.risks.length;
 
-  // DEF-03: a spec red-team surfaces spec-specific dimensions, so relabel the
-  // sections for PRDs (the generic "Missing evidence" is wrong for a spec).
+  // A spec red-team surfaces spec-specific dimensions, so the sections are
+  // relabelled for a spec: the generic "Missing evidence" is wrong for one.
   const isSpec = target.kind === "prd";
   const labels = isSpec
     ? {
         risks: { title: "Spec risks", empty: "No risks flagged." },
-        kill: { title: "Won't ship as written", empty: "Nothing blocks shipping as written." },
+        kill: { title: "Will not ship as written", empty: "Nothing blocks shipping as written." },
         gaps: {
-          title: "Untestable criteria & open questions",
-          empty: "Criteria are testable; no open questions.",
+          title: "Untestable criteria and open questions",
+          empty: "Criteria are testable, and nothing is open.",
         },
       }
     : {
@@ -94,155 +117,116 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
         gaps: { title: "Missing evidence", empty: "No evidence gaps called out." },
       };
 
-  // RPT-08: disclosed, not buried -- the confidence chip sits right next to
-  // the verdict on the compact chip itself, so a flat "SHIP" never reads as
-  // uniform certainty. Reuses the Critic's own already-computed `confidence`.
-  const confidenceTier = tierFromProbability(review.confidence);
-
   return (
     <>
-      <span className="inline-flex items-center" style={{ gap: 5 }}>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="hover:brightness-110 active:opacity-80"
-          aria-expanded={open}
-          title="Open Critic review"
-        >
-          <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: "var(--text-label-12)" } : undefined}>
-            {v.label}
-            {riskCount > 0 && (
-              <span style={{ opacity: 0.7 }}>
-                · {riskCount} risk{riskCount === 1 ? "" : "s"}
-              </span>
-            )}
-          </VerdictChip>
-        </button>
-        <ConfidenceDisclosureChip confidence={review.confidence} tier={confidenceTier} />
-      </span>
+      <button
+        type="button"
+        className="sp-block-more"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        title={open ? "Close the review" : "Read the whole review"}
+      >
+        <Value tone={v.tone}>{v.label}</Value>
+        {riskCount > 0 ? (
+          <>
+            {" "}
+            <Num>{riskCount}</Num> {riskCount === 1 ? "risk" : "risks"}
+          </>
+        ) : null}{" "}
+        <ConfidenceDisclosureChip
+          confidence={review.confidence}
+          tier={tierFromProbability(review.confidence)}
+        />
+      </button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <Icon className="h-4 w-4" />
-              {isSpec ? "Spec red-team" : "Critic verdict"}: {v.label}
-            </SheetTitle>
-            <SheetDescription>
-              Confidence {(review.confidence * 100).toFixed(0)}% · {review.reviewer_model} ·{" "}
-              {new Date(review.reviewed_at).toLocaleString()}
-            </SheetDescription>
-          </SheetHeader>
+      {open ? (
+        <div style={{ marginTop: "var(--sp-space-4)" }}>
+          <CtxBody>{review.summary || "It recorded a verdict and wrote no summary."}</CtxBody>
 
-          <div className="mt-6 space-y-5 text-sm">
-            <p>{review.summary || "No summary."}</p>
+          <Section title={labels.risks.title} items={review.risks} empty={labels.risks.empty} />
+          <Section
+            title={labels.kill.title}
+            items={review.kill_criteria}
+            empty={labels.kill.empty}
+          />
+          <Section
+            title={labels.gaps.title}
+            items={review.missing_evidence}
+            empty={labels.gaps.empty}
+          />
 
-            <Section title={labels.risks.title} items={review.risks} empty={labels.risks.empty} />
-            <Section
-              title={labels.kill.title}
-              items={review.kill_criteria}
-              empty={labels.kill.empty}
-            />
-            <Section
-              title={labels.gaps.title}
-              items={review.missing_evidence}
-              empty={labels.gaps.empty}
-            />
+          {review.design ? (
+            <>
+              <CtxHead>Design consistency</CtxHead>
+              {review.design.findings.length === 0 ? (
+                <CtxBody>
+                  Nothing flagged on hierarchy, accessibility, structure or consistency.
+                </CtxBody>
+              ) : (
+                review.design.findings.map((f, i) => (
+                  <CtxRow
+                    key={i}
+                    name={f.issue}
+                    sub={
+                      f.standing_decision
+                        ? `${f.principle}, against "${f.standing_decision}"`
+                        : f.principle
+                    }
+                  />
+                ))
+              )}
+            </>
+          ) : null}
 
-            {review.design ? (
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-                  Design consistency
-                </div>
-                {review.design.findings.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">
-                    No hierarchy, accessibility, IA, or consistency issues flagged.
-                  </p>
-                ) : (
-                  <ul className="space-y-2 list-disc pl-4">
-                    {review.design.findings.map((f, i) => (
-                      <li key={i} className="text-sm leading-snug">
-                        {f.issue}
-                        <span className="block text-xs text-muted-foreground">
-                          {f.principle}
-                          {f.standing_decision ? ` · violates "${f.standing_decision}"` : ""}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ) : null}
+          {review.board && review.board.length > 0 ? (
+            <>
+              <CtxHead>The review board</CtxHead>
+              {review.board.map((p) => {
+                const pv = VERDICT[p.verdict];
+                return (
+                  <CtxRow
+                    key={p.persona}
+                    name={
+                      <>
+                        {PERSONA_LABELS[p.persona] ?? p.persona}{" "}
+                        <Value tone={pv.tone}>{pv.label}</Value>
+                      </>
+                    }
+                    sub={
+                      p.objections.length === 0
+                        ? "No objections from this seat."
+                        : p.objections.join(" ")
+                    }
+                  />
+                );
+              })}
+            </>
+          ) : null}
 
-            {review.board && review.board.length > 0 ? (
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-3">
-                  Persona review board
-                </div>
-                <div className="space-y-4">
-                  {review.board.map((p) => {
-                    const pv = VERDICT_STYLES[p.verdict];
-                    return (
-                      <div key={p.persona}>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-medium">
-                            {PERSONA_LABELS[p.persona] ?? p.persona}
-                          </span>
-                          <VerdictChip tone={pv.tone}>{pv.label}</VerdictChip>
-                        </div>
-                        {p.objections.length === 0 ? (
-                          <p className="text-xs text-muted-foreground">
-                            No objections from this seat.
-                          </p>
-                        ) : (
-                          <ul className="space-y-1.5 list-disc pl-4">
-                            {p.objections.map((o, i) => (
-                              <li key={i} className="text-sm leading-snug">
-                                {o}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={() => run.mutate()}
-              disabled={run.isPending}
-              className="inline-flex items-center gap-1.5 rounded-md border hairline px-3 py-1.5 text-xs hover:bg-secondary/50 disabled:opacity-50"
-            >
-              <RefreshCw className="h-3 w-3" />
-              {run.isPending ? "Re-running…" : "Re-run Critic"}
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
+          <Actions>
+            <Button disabled={run.isPending} onClick={() => run.mutate()}>
+              {run.isPending ? "Reading it again" : "Have it read this again"}
+            </Button>
+          </Actions>
+          {run.isError ? <Failed>{(run.error as Error).message}</Failed> : null}
+        </div>
+      ) : null}
     </>
   );
 }
 
+/** One named section of the review. An empty one still says so: "no risks
+ *  flagged" and "the Critic did not look at risk" are different facts, and the
+ *  Critic always looks. */
 function Section({ title, items, empty }: { title: string; items: string[]; empty: string }) {
   return (
-    <div>
-      <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
-        {title}
-      </div>
+    <>
+      <CtxHead>{title}</CtxHead>
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{empty}</p>
+        <CtxBody>{empty}</CtxBody>
       ) : (
-        <ul className="space-y-1.5 list-disc pl-4">
-          {items.map((it, i) => (
-            <li key={i} className="text-sm leading-snug">
-              {it}
-            </li>
-          ))}
-        </ul>
+        items.map((it, i) => <CtxBody key={i}>{it}</CtxBody>)
       )}
-    </div>
+    </>
   );
 }

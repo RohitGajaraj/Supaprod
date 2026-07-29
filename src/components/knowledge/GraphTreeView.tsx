@@ -1,80 +1,86 @@
-// O1 list view - the parallel session's lineage tree, made focus-driven. Renders
-// the downstream provenance tree of the focused artifact (the canvas's "Center
-// the graph here" sets the focus, feeding both views). Kept as a secondary
-// outline alongside the visual graph (founder ruling 2026-06-20: keep both).
+/**
+ * The lineage OUTLINE: the downstream provenance tree of whatever node the
+ * canvas last centred on. Kept alongside the visual graph (founder ruling
+ * 2026-06-20: keep both), and it leads when reduced motion is on, so this is
+ * the accessible path through the same data rather than a lesser copy of it.
+ *
+ * Ported to the shell primitives, 2026-07-29. What went, and why:
+ *   KILLED the `bento` card, `--card-pad`, `--surface-2`, `--ink`,
+ *     `--ink-muted`, `--ink-subtle`, `--geist-space-*`, `mono-label`,
+ *     `btn btn-ghost btn-sm` and `spinner`. None of them resolve against this
+ *     shell, which is exactly the founder's complaint: a ported page whose
+ *     inner view still carried the previous system.
+ *   KILLED the `borderLeft` on the children container. A coloured or ruled
+ *     border down one side of a nested block is the single most recognisable
+ *     tell on the ban list (ban 4), and indentation was already carrying the
+ *     depth. Depth is spacing now.
+ *   KILLED the three-stat header row ("N nodes / N depth / N avg branching").
+ *     Average branching factor is a graph-theory statistic, not a fact a PM
+ *     acts on, and the count and depth were competing with the tree that says
+ *     the same thing by being drawn. One honest line, in words.
+ *   KILLED the hand-built retry paragraph. Failed is the primitive, and it
+ *     refuses to be mistaken for "this node has no lineage".
+ *
+ * UNCHANGED: getLineageTree, the ["lineage-tree", kind, id] key, the retired
+ * de-emphasis that keeps a reversed supersession visible as history, and the
+ * default-expanded root.
+ */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { getLineageTree, computeTreeStats } from "@/lib/knowledge-graph-explorer.functions";
 import { type ArtifactKind } from "@/lib/lineage.functions";
 import type { LineageNode } from "@/lib/knowledge-graph-explorer";
+import { Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { kindLabel } from "./graph-visual";
 
 function TreeNodeRenderer({ node }: { node: LineageNode }) {
   const [expanded, setExpanded] = useState(node.depth === 0);
   const hasChildren = node.children.length > 0;
   const superseding = node.relation === "supersedes" || node.relation === "contradicts";
+
+  // What the second line says, and it is never a restatement of the title:
+  // what kind of thing this is, how it got here, and whether the assertion
+  // still stands. Red carries the outcome; a retired revision stays visible as
+  // history rather than being hidden (invalidate, never delete).
+  const revision = superseding
+    ? `${node.relation === "contradicts" ? "contradicted" : "replaced"} what came before${
+        node.retired ? ", then was itself reversed" : ""
+      }`
+    : null;
+
+  const sub = (
+    <>
+      {kindLabel(node.kind)}
+      {revision ? (
+        <>
+          {" · "}
+          <span className="sp-fail">{revision}</span>
+        </>
+      ) : null}
+      {hasChildren ? ` · ${node.children.length} below` : null}
+      {node.rationale ? ` · ${node.rationale}` : null}
+    </>
+  );
+
   return (
-    <div style={{ marginLeft: node.depth * 20 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--geist-space-2x)",
-          padding: "6px 8px",
-          borderRadius: 4,
-          backgroundColor: node.depth === 0 ? "var(--surface-2)" : "transparent",
-          marginBottom: 4,
-          // #3: a reversed-and-retired supersession reads as faded history,
-          // matching the canvas (invalidate-don't-delete, kept not removed).
-          opacity: node.retired ? 0.5 : 1,
-        }}
-      >
-        {hasChildren ? (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="btn btn-ghost btn-sm"
-            style={{ padding: 0, minHeight: "unset", height: 20, width: 20 }}
-            aria-label={expanded ? "Collapse" : "Expand"}
-            aria-expanded={expanded}
-          >
-            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </button>
-        ) : (
-          <div style={{ width: 20 }} />
-        )}
-        <span className="mono-label" style={{ minWidth: 60 }}>
-          {node.kind}
-        </span>
-        <span style={{ color: "var(--ink)" }}>{node.title || "Untitled"}</span>
-        {superseding && (
-          <span
-            className="mono-label"
-            style={{ color: "var(--madder)" }}
-            title={
-              node.retired
-                ? "This revision was itself later reversed (kept as history)"
-                : "A later outcome revised this belief"
-            }
-          >
-            {node.relation === "contradicts" ? "contradicted" : "replaced"}
-            {node.retired ? " · later reversed" : ""}
-          </span>
-        )}
-        {node.rationale && (
-          <span style={{ color: "var(--ink-subtle)", marginLeft: "auto" }}>
-            {node.rationale}
-          </span>
-        )}
+    <>
+      {/* Indentation carries depth. Never a border down one side. */}
+      <div style={{ marginLeft: node.depth * 20, opacity: node.retired ? 0.55 : 1 }}>
+        <Row
+          tight
+          lead={node.title || "Untitled"}
+          sub={sub}
+          focused={expanded && hasChildren}
+          onClick={hasChildren ? () => setExpanded((v) => !v) : undefined}
+        />
       </div>
-      {expanded && hasChildren && (
-        <div style={{ borderLeft: "1px solid var(--hairline)", marginLeft: 10 }}>
-          {node.children.map((child) => (
+      {expanded && hasChildren
+        ? node.children.map((child) => (
             <TreeNodeRenderer key={`${child.kind}:${child.id}`} node={child} />
-          ))}
-        </div>
-      )}
-    </div>
+          ))
+        : null}
+    </>
   );
 }
 
@@ -89,82 +95,37 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
 
   if (!enabled) {
     return (
-      <div
-        className="bento"
-        style={{
-          padding: "var(--card-pad)",
-          textAlign: "center",
-          color: "var(--ink-muted)",
-        }}
-      >
-        <p>
-          Open the Graph view and choose &ldquo;Center the graph here&rdquo; on a node to outline
-          its downstream lineage here.
-        </p>
-      </div>
+      <Empty>
+        Nothing is centred yet. Open the Graph view and choose &ldquo;Centre the graph here&rdquo; on
+        a node, and everything downstream of it is outlined here.
+      </Empty>
     );
   }
-  if (tree.isLoading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", padding: "18px 2px" }}>
-        <span className="spinner" />
-        <span className="mono-label" style={{ }}>
-          loading tree…
-        </span>
-      </div>
-    );
-  }
+  if (tree.isLoading) return <Loading>Tracing what came out of it.</Loading>;
   if (tree.isError) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <p style={{ color: "var(--ink-muted)", margin: 0 }}>
-          Could not load the tree: {(tree.error as Error).message}
-        </p>
-        <button
-          type="button"
-          onClick={() => void tree.refetch()}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginTop: 10,
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-          }}
-        >
-          Retry · reloads the tree
-        </button>
-      </div>
+      <Failed onRetry={() => void tree.refetch()}>
+        The lineage did not load, so this is not a claim that nothing came out of this node.{" "}
+        {(tree.error as Error).message}
+      </Failed>
     );
   }
   if (!tree.data) return null;
 
   const stats = computeTreeStats(tree.data);
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <div
-        style={{
-          display: "flex",
-          gap: "var(--geist-space-3x)",
-          padding: "8px 0",
-          marginBottom: 12,
-          color: "var(--ink-muted)",
-          borderBottom: "1px solid var(--hairline)",
-        }}
-      >
-        <span>
-          <strong>{stats.nodeCount}</strong> node{stats.nodeCount !== 1 ? "s" : ""}
-        </span>
-        <span>
-          <strong>{stats.maxDepth}</strong> depth
-        </span>
-        <span>
-          <strong>{stats.branchingFactor.toFixed(1)}</strong> avg branching
-        </span>
-      </div>
+    <Block
+      title="Everything downstream"
+      // One honest line rather than three competing statistics. The tree below
+      // already shows the shape; this says how far it reaches.
+      sub={
+        <>
+          <Num>{stats.nodeCount}</Num> {stats.nodeCount === 1 ? "thing" : "things"} came out of
+          this, <Num>{stats.maxDepth}</Num> {stats.maxDepth === 1 ? "step" : "steps"} deep.
+        </>
+      }
+    >
       <TreeNodeRenderer node={tree.data} />
-    </div>
+    </Block>
   );
 }

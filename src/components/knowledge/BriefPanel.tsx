@@ -33,7 +33,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/lib/notify";
 import {
   listBriefItems,
   upsertBriefItem,
@@ -47,7 +46,9 @@ import {
   Button,
   Failed,
   Input,
+  Loading,
   Num,
+  Receipt,
   Textarea,
 } from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
@@ -150,6 +151,16 @@ export function BriefPanel() {
   // live as the flow saves each call.
   const [showFlow, setShowFlow] = useState(false);
 
+  // THE COMMIT (agents/FINAL-agent-presence.md R10). Editing the brief changes
+  // what EVERY agent reads before it acts, which is the largest blast radius
+  // any write on this surface has. It used to end in a toast, or in nothing at
+  // all. Session local: the durable record is the versioned brief itself.
+  const [settled, setSettled] = useState<
+    { id: string; verb: string; consequence: string; failed?: boolean }[]
+  >([]);
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [{ id: `${Date.now()}-${prev.length}`, verb, consequence, failed }, ...prev]);
+
   const save = useMutation({
     mutationFn: (v: {
       kind: BriefItemKind;
@@ -157,23 +168,41 @@ export function BriefPanel() {
       body: string;
       supersedesId?: string | null;
     }) => fUpsert({ data: v }),
-    onSuccess: () => {
+    onSuccess: (_res, v) => {
       void qc.invalidateQueries({ queryKey: ["brief-items"] });
+      commit(
+        v.supersedesId || SINGLETON_KINDS.includes(v.kind)
+          ? `You rewrote the ${KIND_LABEL[v.kind].toLowerCase()}`
+          : `You added a ${KIND_LABEL[v.kind].toLowerCase()}`,
+        `"${v.title}" goes into every agent's prompt from the next run. The version it replaced stays on the record.`,
+      );
       setEditing(null);
       setDraftTitle("");
       setDraftBody("");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, v) =>
+      commit(
+        `You tried to write the ${KIND_LABEL[v.kind].toLowerCase()}`,
+        `"${v.title}" was not saved. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   const retire = useMutation({
-    mutationFn: (id: string) => fRetire({ data: { id } }),
-    onSuccess: () => {
+    mutationFn: (vars: { id: string; title: string }) => fRetire({ data: { id: vars.id } }),
+    onSuccess: (_res, vars) => {
       void qc.invalidateQueries({ queryKey: ["brief-items"] });
-      // Destructive action pairs with a confirming toast (Tempo component contract).
-      toast.success("Bet retired. Its versions stay on the record.");
+      commit(
+        "You retired a bet",
+        `The crew stops carrying "${vars.title}" into its next run. Every version of it stays on the record.`,
+      );
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, vars) =>
+      commit(
+        "You tried to retire a bet",
+        `"${vars.title}" is still live. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   function startEdit(kind: BriefItemKind, existing?: BriefItem) {
@@ -201,10 +230,15 @@ export function BriefPanel() {
     });
   }
 
-  if (items.isLoading) return null;
+  if (items.isLoading) return <Loading>Reading the standing calls.</Loading>;
 
   if (items.isError) {
-    return <Failed onRetry={() => void items.refetch()}>{(items.error as Error).message}</Failed>;
+    return (
+      <Failed onRetry={() => void items.refetch()}>
+        The brief did not load, so this is not a claim that nothing is written down.{" "}
+        {(items.error as Error).message}
+      </Failed>
+    );
   }
 
   const bets = byKind.get("top_bet") ?? [];
@@ -223,6 +257,10 @@ export function BriefPanel() {
       <Actions>
         <Button onClick={() => setShowFlow(true)}>Walk them in order</Button>
       </Actions>
+
+      {settled.map((r) => (
+        <Receipt key={r.id} verb={r.verb} consequence={r.consequence} failed={r.failed} />
+      ))}
 
       {SINGLETON_KINDS.map((kind) => {
         const current = byKind.get(kind)?.[0];
@@ -300,7 +338,7 @@ export function BriefPanel() {
                       <Button
                         variant="ghost"
                         disabled={retire.isPending}
-                        onClick={() => retire.mutate(bet.id)}
+                        onClick={() => retire.mutate({ id: bet.id, title: bet.title })}
                       >
                         Retire
                       </Button>

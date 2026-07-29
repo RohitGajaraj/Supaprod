@@ -1,359 +1,173 @@
-// AMBIENT-ARC · Autonomy Trust Dial — Lane D.
-// RPT-17: now the NAMED per-agent trust ladder — Supervised -> Reviewed ->
-// Trusted -> Autonomous is the arc's own four values with the names a human
-// reads (src/lib/trust-ladder.ts is the pure labeling layer; the Arc enum
-// underneath is unchanged).
-//
-// Surfaces the per-agent autonomy arc that the engine already computes but
-// the cockpit never showed: observing -> proving -> trusted -> ambient, with
-// the live trust score, the engine's suggested next arc, and the evidence
-// behind it. The dial is also the control: clicking a stage moves the agent
-// there via setAgentArc (the operator always overrides; the loop's
-// resolveApprovalMode is a safety floor that never loosens a review-tool).
-// Every rung is reachable by a direct click — promote OR demote, same control
-// — and the top rung (Autonomous) is never set by the background
-// auto_advance_agent_arc nudge (it only ever promotes the two lower rungs on
-// a clean streak), so reaching Autonomous is always this explicit human click.
-//
-// "ambient" is the stage that was invisible before this: a trusted agent that
-// runs confirm-gated tools unattended where safe. The user-wide AutonomyCard
-// ladder deliberately omits it (it is per-agent), so this is its only home.
+/**
+ * THE RECORD SPEAKING, across the whole crew at once.
+ *
+ * PORTED AND REDUCED 2026-07-29. This used to be the Autonomy trust dial: four
+ * clickable rungs per agent, writing `agent_autonomy.arc` through `setAgentArc`,
+ * with a success toast on every click. That control now lives on `/crew`, where
+ * it says what each rung MEANS in plain words ("Runs alone, except the risky
+ * calls"), says who set it, and sits directly above the per-tool policy it
+ * composes with. Two controls writing one column from two screens with two
+ * vocabularies is drift with a schedule, so this one is gone and the act moved.
+ *
+ * What did NOT move, and is the only reason this file still exists: Crew shows
+ * one agent per page. Finding the agent whose record disagrees with the rope you
+ * gave it costs thirteen clicks there. Here it is one glance, and it is the
+ * product's own thesis rendered as an interaction: the machine earned something,
+ * or it has more room than its record backs, and the record says so before you
+ * ask. That is what an Engine Room is for.
+ *
+ * IT RENDERS NOTHING when every agent sits where its record puts it. Calm front,
+ * deep engine: a panel that is silent when there is nothing to say is worth more
+ * than one that always has a number on it.
+ *
+ * HONESTY FLOOR, and it is load-bearing: `suggestArc` returns "observing" for
+ * any agent with fewer than three signals (ai/trust.server.ts). Drawing that as
+ * advice would be inventing a verdict out of an absence of evidence, so this
+ * gates on `samples >= 3` exactly as `_authenticated.crew.tsx` does. An agent
+ * with no record is not an agent the record disagrees with.
+ */
+
+import { Fragment } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { ChevronDown, ShieldCheck } from "lucide-react";
-import { toast } from "@/lib/notify";
-import { MonoLabel } from "@/components/supaprod/Primitives";
-import { getAllAgentTrust, setAgentArc, type AgentTrust, type Arc } from "@/lib/trust.functions";
+
+import { getAllAgentTrust, type AgentTrust } from "@/lib/trust.functions";
+import { ladderIndex, ladderLabel } from "@/lib/trust-ladder";
 import {
-  TRUST_LADDER_CHAIN,
-  TRUST_LADDER_ORDER,
-  ladderIndex,
-  ladderLabel,
-} from "@/lib/trust-ladder";
-import { formatOutcomeRecord, formatTrackRecord } from "@/lib/agent-track-record";
+  Actions,
+  Block,
+  Button,
+  Failed,
+  Loading,
+  Num,
+  // Aliased, as `_authenticated.crew.tsx` aliases it: the primitive is a value
+  // and the TypeScript utility type of the same name is used in this file, and
+  // one shadowing the other is a bug waiting to be written.
+  Record as RecordSays,
+} from "@/components/shell/primitives";
 
-const STAGES = TRUST_LADDER_ORDER;
-
-const ARC_MEANING: Record<Arc, string> = {
-  observing: "Every action queues for your review. The agent is being watched.",
-  proving: "Auto-tools must confirm first. The agent is earning trust.",
-  trusted: "Confirm-tools run inline; review-tools still wait on you.",
-  ambient: "Runs confirm-gated tools unattended where it is safe to.",
+/** What each rung actually lets an agent do, in the words a person would use.
+ *  One fact, said once. The ladder's own labels say WHICH rung; this says what
+ *  the rung buys, so the two lines never restate each other. */
+const ARC_MEANING: Record<string, string> = {
+  observing: "everything waits for you",
+  proving: "it asks before it acts",
+  trusted: "it runs alone, except the risky calls",
+  ambient: "it runs alone, always",
 };
 
-/** Filled segments use the agent green; the ambient (top) stage glows ember. */
-function segmentColor(stageIdx: number, currentIdx: number): string {
-  if (stageIdx > currentIdx) return "var(--surface-2)";
-  if (STAGES[stageIdx] === "ambient") return "var(--ember)";
-  return "var(--emerald)";
-}
+type Info = { name: string; slug: string; role: string };
 
-type NameInfo = { name: string; role: string };
+/** One agent whose record and rung disagree. */
+type Disagreement = {
+  trust: AgentTrust;
+  info: Info | undefined;
+  direction: "up" | "down";
+};
 
-export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
+export function TrustDial({ infoById }: { infoById: Map<string, Info> }) {
+  const navigate = useNavigate();
   const fTrust = useServerFn(getAllAgentTrust);
-  // Trust is user + agent scoped (agents are not workspace-scoped in this app),
-  // so this query is intentionally workspace-agnostic: no workspace in the key.
-  const trustQ = useQuery({
-    queryKey: ["agent-trust"],
-    queryFn: () => fTrust(),
-  });
+
+  // Trust is user and agent scoped, so this query is deliberately workspace
+  // agnostic. Same key as the roster's read, so TanStack serves one fetch.
+  const trustQ = useQuery({ queryKey: ["agent-trust"], queryFn: () => fTrust() });
 
   const trust = (trustQ.data?.trust ?? []) as AgentTrust[];
 
   if (trustQ.isLoading && trust.length === 0) {
     return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <MonoLabel>Autonomy · trust dial</MonoLabel>
-        <p style={{ color: "var(--ink-faint)", padding: "16px 0", margin: 0 }}>
-          Reading trust…
-        </p>
-      </section>
+      <Block title="What the record says">
+        <Loading>Reading what each one has earned.</Loading>
+      </Block>
     );
   }
 
-  if (trustQ.error) {
+  // A failed read is not silence. Staying quiet here would say "every agent
+  // sits where it belongs", which is a claim this component cannot make when
+  // it could not read the record at all.
+  if (trustQ.isError) {
     return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <MonoLabel>Autonomy · trust dial</MonoLabel>
-        <p style={{ color: "var(--rose)", margin: 0 }}>
-          {(trustQ.error as Error).message}
-        </p>
-      </section>
+      <Block title="What the record says">
+        <Failed onRetry={() => trustQ.refetch()}>
+          The record did not load, so nothing here can tell you whether a boundary is wrong.
+        </Failed>
+      </Block>
     );
   }
 
-  if (trust.length === 0) {
-    return (
-      <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <MonoLabel>Autonomy · trust dial</MonoLabel>
-        <p
-          style={{
-            color: "var(--ink-faint)",
-            padding: "20px 0",
-            textAlign: "center",
-            border: "1px dashed var(--hairline)",
-            borderRadius: 12,
-            margin: 0,
-          }}
-        >
-          No agents to dial yet. Trust builds as agents run, get approved, and pass evals.
-        </p>
-      </section>
+  const disagreements: Disagreement[] = trust
+    .filter((t) => t.breakdown.samples >= 3 && t.suggested_arc !== t.arc)
+    .map((t) => ({
+      trust: t,
+      info: infoById.get(t.agent_id),
+      direction:
+        ladderIndex(t.suggested_arc) > ladderIndex(t.arc) ? ("up" as const) : ("down" as const),
+    }))
+    // The widest gap first: the agent furthest from where its record puts it is
+    // the one worth opening.
+    .sort(
+      (a, b) =>
+        Math.abs(ladderIndex(b.trust.suggested_arc) - ladderIndex(b.trust.arc)) -
+        Math.abs(ladderIndex(a.trust.suggested_arc) - ladderIndex(a.trust.arc)),
     );
-  }
 
-  // Sort by score so the most-trusted agents lead (ties keep input order).
-  const rows = [...trust].sort((a, b) => b.score - a.score);
+  // Silent when there is nothing to say.
+  if (disagreements.length === 0) return null;
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <MonoLabel>Autonomy · trust dial</MonoLabel>
-          <span
-            className="mono-label"
-            style={{
-              color: "var(--ink-faint)",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <ShieldCheck size={16} strokeWidth={1.5} /> earned, not granted
-          </span>
-        </div>
-        <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-          The ladder · {TRUST_LADDER_CHAIN}
-        </span>
-      </div>
-      <div className="material-medium" style={{ padding: 0, overflow: "hidden" }}>
-        {rows.map((t, i) => (
-          <TrustRow key={t.agent_id} trust={t} info={nameById.get(t.agent_id)} first={i === 0} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TrustRow({
-  trust,
-  info,
-  first,
-}: {
-  trust: AgentTrust;
-  info: NameInfo | undefined;
-  first: boolean;
-}) {
-  const qc = useQueryClient();
-  const fSetArc = useServerFn(setAgentArc);
-  const [open, setOpen] = useState(false);
-
-  const setArc = useMutation({
-    mutationFn: (arc: Arc) => fSetArc({ data: { agentId: trust.agent_id, arc } }),
-    onSuccess: (_res, arc) => {
-      qc.invalidateQueries({ queryKey: ["agent-trust"] });
-      qc.invalidateQueries({ queryKey: ["swarm", "hud"] });
-      toast.success(`Trust stage set to ${ladderLabel(arc)}`);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const currentIdx = ladderIndex(trust.arc);
-  const suggestedIdx = ladderIndex(trust.suggested_arc);
-  const canPromote = suggestedIdx > currentIdx;
-  const name = info?.name ?? `Agent ${trust.agent_id.slice(0, 6)}`;
-  const b = trust.breakdown;
-  // RPT-17: the outcome history that earned this rung, always visible (not
-  // gated behind "Why") — the same honest formatters DecisionCard uses for
-  // its per-agent track record, reused here over this read's own breakdown
-  // counts rather than a re-fetch, since the shapes already match.
-  const historyLabel = [
-    formatTrackRecord({ approved: b.approvals_approved, total: b.approvals_total }),
-    formatOutcomeRecord({ validated: b.outcomes_validated, total: b.outcomes_total }),
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
-  return (
-    <div
-      style={{
-        padding: "12px 16px",
-        borderTop: first ? "none" : "1px solid var(--hairline)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-      }}
+    <Block
+      title="What the record says"
+      // What qualifies a row for this section, said once. The ladder itself is
+      // NOT named here: each line below already says which rung it belongs at
+      // and what that rung buys, so printing the whole chain would be the
+      // fourth way of saying one thing.
+      sub="Every one below is set somewhere its own record does not put it."
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="font-display" style={{ }}>
-            {name}
-          </div>
-          <div
-            className="mono-label"
-            title={`stored arc: ${trust.arc}${info?.role ? ` · ${info.role}` : ""}`}
-            style={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {ladderLabel(trust.arc)}
-            {info?.role ? ` · ${info.role}` : ""}
-          </div>
-        </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div className="font-display tabular-nums" style={{ lineHeight: 1 }}>
-            {trust.score}
-          </div>
-          <div className="mono-label" style={{ }}>
-            trust · {b.samples} sample{b.samples === 1 ? "" : "s"}
-          </div>
-        </div>
-      </div>
-
-      {/* The dial: four clickable rungs of the named ladder — Supervised ->
-          Reviewed -> Trusted -> Autonomous. Filled up to the current rung;
-          the suggested rung (if higher) shows a dashed ember outline. Every
-          rung is a direct click: this IS the promote/demote control, always
-          user-held — nothing here ever moves on its own. */}
-      <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
-        click any rung to set it — promote or demote, always your call
-      </div>
-      <div style={{ display: "flex", gap: 4 }}>
-        {STAGES.map((stage, idx) => {
-          const isCurrent = idx === currentIdx;
-          const isSuggested = idx === suggestedIdx && canPromote;
-          return (
-            <button
-              key={stage}
-              type="button"
-              aria-label={`Set ${name} to ${ladderLabel(stage)}: ${ARC_MEANING[stage]}`}
-              aria-pressed={isCurrent}
-              title={ARC_MEANING[stage]}
-              disabled={setArc.isPending || isCurrent}
-              onClick={() => setArc.mutate(stage)}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                cursor: setArc.isPending || isCurrent ? "default" : "pointer",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                opacity: setArc.isPending ? 0.6 : 1,
-              }}
+      {disagreements.map((d) => {
+        const t = d.trust;
+        const b = t.breakdown;
+        const name = d.info?.name ?? `Agent ${t.agent_id.slice(0, 6)}`;
+        const slug = d.info?.slug ?? null;
+        return (
+          <Fragment key={t.agent_id}>
+            <RecordSays
+              evidence={
+                <>
+                  <Num>{t.score}</Num> out of <Num>100</Num>, from <Num>{b.samples}</Num> signals
+                  {b.approvals_total > 0 ? (
+                    <>
+                      , you said yes to <Num>{b.approvals_approved}</Num> of{" "}
+                      <Num>{b.approvals_total}</Num>
+                    </>
+                  ) : null}
+                  {b.outcomes_total > 0 ? (
+                    <>
+                      , <Num>{b.outcomes_validated}</Num> of <Num>{b.outcomes_total}</Num> turned
+                      out right
+                    </>
+                  ) : null}
+                </>
+              }
             >
-              <span
-                style={{
-                  height: 6,
-                  borderRadius: 99,
-                  background: segmentColor(idx, currentIdx),
-                  outline: isSuggested ? "1.5px dashed var(--ember)" : "none",
-                  outlineOffset: 2,
-                }}
-              />
-              <span
-                className="mono-label"
-                style={{
-                  textAlign: "left",
-                  color: isCurrent ? "var(--ink)" : "var(--ink-faint)",
-                  fontWeight: isCurrent ? 700 : 500,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {ladderLabel(stage)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {historyLabel ? (
-        <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
-          outcome history · {historyLabel}
-        </div>
-      ) : null}
-
-      <div
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
-      >
-        <p style={{ color: "var(--ink-subtle)", margin: 0, flex: 1, minWidth: 0 }}>
-          {ARC_MEANING[trust.arc]}
-        </p>
-        {canPromote ? (
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            style={{ flexShrink: 0 }}
-            disabled={setArc.isPending}
-            onClick={() => setArc.mutate(trust.suggested_arc)}
-          >
-            {setArc.isPending ? "Setting…" : `Promote to ${ladderLabel(trust.suggested_arc)}`}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ flexShrink: 0 }}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            Why
-            <ChevronDown
-              size={16}
-              strokeWidth={1.5}
-              style={{
-                transform: open ? "rotate(180deg)" : "none",
-                transition: "transform var(--dur-fast)",
-              }}
-            />
-          </button>
-        )}
-      </div>
-
-      {open ? (
-        <div
-          className="fade-up tabular-nums"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: "var(--geist-space-2x)",
-            paddingTop: 4,
-            borderTop: "1px solid var(--hairline)",
-          }}
-        >
-          <Stat label="Missions" value={`${b.missions_completed}/${b.missions_total}`} />
-          <Stat label="Approvals" value={`${b.approvals_approved}/${b.approvals_total}`} />
-          <Stat
-            label="Eval mean"
-            value={b.evals_total > 0 ? `${Math.round(b.eval_mean_score * 100)}` : "n/a"}
-          />
-          <Stat
-            label="Validated"
-            value={b.outcomes_total > 0 ? `${b.outcomes_validated}/${b.outcomes_total}` : "n/a"}
-          />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="font-display" style={{ }}>
-        {value}
-      </div>
-      <div className="mono-label" style={{ }}>
-        {label}
-      </div>
-    </div>
+              {d.direction === "up"
+                ? `${name} has earned more room than you have given it. On what it has actually done, it belongs at ${ladderLabel(t.suggested_arc)}, where ${ARC_MEANING[t.suggested_arc] ?? "it runs under that boundary"}.`
+                : `${name} has more room than its record backs. On what it has actually done, it belongs at ${ladderLabel(t.suggested_arc)}, where ${ARC_MEANING[t.suggested_arc] ?? "it runs under that boundary"}.`}
+            </RecordSays>
+            {slug ? (
+              <Actions>
+                <Button
+                  variant="ghost"
+                  onClick={() => void navigate({ to: "/crew", search: { agent: slug } })}
+                >
+                  {d.direction === "up" ? `Give ${name} that room` : `Pull ${name} back`}
+                </Button>
+              </Actions>
+            ) : null}
+          </Fragment>
+        );
+      })}
+    </Block>
   );
 }

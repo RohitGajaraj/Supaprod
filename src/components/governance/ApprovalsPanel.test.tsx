@@ -1,20 +1,30 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApprovalsPanel } from "./ApprovalsPanel";
 
 /**
  * ApprovalsPanel Test Suite
  *
- * Tests the governance approval queue panel, including:
- * - Loading and error states
- * - Rendering lists of pending and resolved approvals
- * - Individual approval actions (approve/reject/extend)
- * - Batch "Approve All Low-Risk" mutation with partial-failure handling
- * - TanStack Query state management
+ * REWRITTEN 2026-07-29 alongside the port onto the shell primitives. The suite
+ * was almost entirely placeholders, and the placeholders described a surface
+ * that no longer exists: approval CARDS, a "Nothing waiting" slate, and success
+ * TOASTS. Leaving those in place would be worse than having no tests, because a
+ * future reader would take them as the spec and rebuild the thing that was
+ * deliberately removed. The descriptions below name the surface as it is:
  *
- * Key gap: partial-failure scenarios when approveAll fails mid-batch.
- * This test documents the current behavior and expected fixes.
+ *   - one Gate (the soonest-to-expire pending call) plus one-line Rows
+ *   - Loading / Failed-with-retry / Empty, three distinct facts
+ *   - a Receipt for every settled call, and NEVER a success toast
+ *     (agents/FINAL-agent-presence.md R10)
+ *   - a batch approval that reports both halves of a partial failure
+ *
+ * The harness gap is unchanged and is the reason most of these are still
+ * pending: ApprovalsPanel reads through `useServerFn` + `useQuery` with no
+ * injection seam, so there is no way to drive it from a test without the
+ * mock.module pattern documented in DecisionsPanel.test.tsx. That is a real
+ * piece of work, not a formatting one, and it is called out here rather than
+ * faked with a test that asserts nothing.
  */
 
 describe("ApprovalsPanel", () => {
@@ -33,357 +43,183 @@ describe("ApprovalsPanel", () => {
     queryClient.clear();
   });
 
-  const mockApproval = (overrides?: Record<string, any>) => ({
-    id: "approval-1",
-    agent_slug: "builder",
-    tool_name: "execute_shell",
-    risk: "low",
-    status: "pending" as const,
-    expires_at: "2026-07-25T23:59:59Z",
-    rationale: "Agent needs to run a command to build the project",
-    args: { command: "bun run build" },
-    error: null,
-    mission_id: "mission-1",
-    mission_title: "Q3 Release",
-    ...overrides,
-  });
-
-  describe("Loading State", () => {
-    test("renders PanelSkeleton when approvals query is loading", async () => {
-      // Mock useQuery to return loading state
+  describe("Mounting", () => {
+    test("mounts without throwing, with no data and no router", () => {
+      // The one thing this suite can genuinely assert today. It is not nothing:
+      // the panel calls useNavigate, and a component that reaches for a router
+      // it cannot have would fail here rather than in the Engine Room.
       const { container } = render(
         <QueryClientProvider client={queryClient}>
           <ApprovalsPanel />
         </QueryClientProvider>,
       );
-
-      // Note: this requires the component to be enhanced with a test-friendly
-      // architecture that allows injecting mock data. See mock.module pattern
-      // documented in DecisionsPanel.test.tsx comments.
-
-      // Placeholder: currently the test cannot easily mock useQuery
-      // without refactoring ApprovalsPanel to accept injected dependencies.
-      // TODO: Implement mock.module harness wrapper for ApprovalsPanel
-    });
-
-    test("renders 'Reading the queue' message on initial load", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
+      expect(container).toBeTruthy();
     });
   });
 
-  describe("Error State", () => {
-    test("renders error card with message when query fails", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
+  describe("Read states, which are three different facts", () => {
+    test("in flight renders Loading, never an empty state", () => {
+      // Expected: <Loading>Reading the queue.</Loading>
+      // TODO: needs the mock.module harness for useQuery injection
     });
 
-    test("renders 'Retry' button that calls q.refetch()", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
+    test("a failed read renders Failed with a retry, never an empty state", () => {
+      // "Nothing here" and "we could not find out" are different facts and a
+      // person acts differently on each.
+      // Expected: Failed, copy naming that the count below is not the real one,
+      // and a retry that calls q.refetch()
+      // TODO: needs the mock.module harness
     });
 
-    test("shows error message from q.error.message", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-    });
-  });
-
-  describe("Empty State", () => {
-    test("renders 'Nothing waiting' message when approvals array is empty", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-    });
-
-    test("displays explanation text in empty state", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Expected: "The agents are running inside their lanes..."
+    test("an empty queue renders Empty naming who acts next", () => {
+      // Expected: the agents are running inside their lanes, and a call lands
+      // here when one needs a decision.
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("Rendering with Data", () => {
-    test("renders pending approvals sorted by soonest expiry first", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Test that pending approvals are sorted: earlier expires_at appears first
+  describe("One Gate plus a list", () => {
+    test("the soonest-to-expire pending call is the Gate", () => {
+      // Sort is on expires_at ascending, with a "9999" fallback for a null.
+      // TODO: needs the mock.module harness
     });
 
-    test("renders resolved approvals below pending", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Test render order: pending, then resolved
+    test("every other pending call is a one-line Row, not a second Gate", () => {
+      // The defect this replaced: twenty cards, twenty approve/reject pairs,
+      // and nothing to look at first.
+      // TODO: needs the mock.module harness
     });
 
-    test("displays pending count with 'X waiting' label", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // e.g., "3 waiting · median response 45s"
+    test("clicking a waiting Row makes it the Gate", () => {
+      // setFocusedId, and the Gate follows it.
+      // TODO: needs the mock.module harness
     });
 
-    test("shows median response time when available", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // fmtMedian helper should format medianResponseMs correctly
+    test("resolved calls render below, quiet, with their RESOLVED_LINE tone", () => {
+      // TODO: needs the mock.module harness
     });
 
-    test("omits median response time when not available", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-    });
-  });
-
-  describe("Individual Approval Actions", () => {
-    test("calls decide.mutate with approve decision when Approve button clicked", async () => {
-      // TODO: Requires mock.module pattern + component refactoring
-      // Verify: decide.mutate({ approvalId, decision: "approve", tool })
+    test("exactly one AgentMark wears state=gate", () => {
+      // The blink is the system's only one, so it has to mean "look here".
+      // Waiting rows take state=waiting, resolved rows take state=quiet.
+      // TODO: needs the mock.module harness
     });
 
-    test("calls decide.mutate with reject decision when Reject button clicked", async () => {
-      // TODO: Requires mock.module pattern + component refactoring
-      // Verify: decide.mutate({ approvalId, decision: "reject", tool })
-    });
-
-    test("shows success toast when approve succeeds with executed=true", async () => {
-      // TODO: Test toast.success is called with: "Approved · {tool} ran."
-    });
-
-    test("shows success toast when approve succeeds with executed=false", async () => {
-      // TODO: Test toast.success is called with: "Approved."
-    });
-
-    test("shows success toast with custom message on reject", async () => {
-      // TODO: Test toast.success is called with: "Rejected · nothing ran."
-    });
-
-    test("shows error toast and calls inv() on approve failure", async () => {
-      // TODO: Test toast.error and QueryClient invalidateQueries
-    });
-
-    test("calls extend.mutate when Extend button clicked", async () => {
-      // TODO: Verify: extend.mutate(approvalId) with additionalHours: 24
-    });
-
-    test("shows success toast on extend", async () => {
-      // TODO: Test toast.success: "Extended · 24h more on the clock."
-    });
-
-    test("shows error toast on extend failure", async () => {
-      // TODO: Test toast.error called
+    test("the payload sits behind a disclosure, never in a list row", () => {
+      // A <pre> in a row would make the row wrap, and a row never wraps.
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("Approve All Low-Risk (Batch Mutation)", () => {
-    test("renders 'Approve all low-risk' button when lowRisk.length > 1", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Test button text: "Approve all low-risk (N)"
+  describe("THE COMMIT: judgment leaves a receipt, never a toast", () => {
+    test("approving renders a Receipt saying the tool RAN", () => {
+      // Expected: verb "You approved", consequence "<tool> ran." when the
+      // server reports executed, and "<tool> is cleared..." when it does not.
+      // Explicitly NOT: toast.success("Approved · <tool> ran.")
+      // TODO: needs the mock.module harness
     });
 
-    test("hides 'Approve all' button when only 0 or 1 low-risk approval exists", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
+    test("declining renders a Receipt saying nothing ran", () => {
+      // Expected: verb "You declined", consequence naming the tool.
+      // TODO: needs the mock.module harness
     });
 
-    test("calls approveAll.mutate with array of low-risk IDs", async () => {
-      // TODO: Requires mock.module pattern + component refactoring
-      // Verify: approveAll.mutate([id1, id2, id3]) for all low-risk items
+    test("a FAILED write renders a Receipt marked failed, not a success shape", () => {
+      // Never a success shape over a failed write: that is the one thing that
+      // makes the successful receipts trustworthy.
+      // TODO: needs the mock.module harness
     });
 
-    test("shows success toast with count when approveAll succeeds", async () => {
-      // TODO: Test toast.success: "{N} low-risk approvals ran."
+    test("extending renders a Receipt about the clock, not about a judgment", () => {
+      // An extension is not a decision, so its verb says what it did to the
+      // clock. Its FAILURE is a plain error toast for the same reason: there is
+      // no judgment to write a receipt about.
+      // TODO: needs the mock.module harness
     });
 
-    test("shows error toast when approveAll fails", async () => {
-      // TODO: Test toast.error called with error message
-    });
-
-    test("calls inv() to invalidate queries on approveAll success", async () => {
-      // TODO: Verify QueryClient invalidateQueries called for both query keys
-    });
-
-    test("calls inv() to invalidate queries on approveAll error", async () => {
-      // TODO: Verify QueryClient invalidateQueries called even on error
-    });
-  });
-
-  describe("Partial-Failure Handling (CRITICAL)", () => {
-    test("KNOWN ISSUE: batch approval fails mid-loop with no partial-success indication", async () => {
-      // This test documents the current gap.
-      //
-      // SCENARIO: approveAll loops through [id1, id2, id3]
-      //   - id1: succeeds (fDecide resolves)
-      //   - id2: fails (fDecide rejects with "Permission denied")
-      //   - id3: never reached (loop breaks on id2 error)
-      //
-      // CURRENT BEHAVIOR:
-      //   - approveAll.mutationFn rejects (loop exits on first error)
-      //   - onError callback shows toast.error with generic message
-      //   - User sees: "Permission denied" or error.message
-      //   - User has NO indication that id1 was already approved
-      //
-      // EXPECTED FIX (once implemented):
-      //   Option A (Optimistic): Approve each ID sequentially, collect results,
-      //     show partial summary: "Approved 1/3 low-risk (others failed)"
-      //   Option B (Conservative): Pre-validate all IDs, fail fast if any invalid,
-      //     only mutate if all pre-checks pass
-      //   Option C (Granular): Change approveAll to approve each item
-      //     independently via individual mutations, not a batch loop
-
-      const approvals = [
-        mockApproval({ id: "a1", risk: "low" }),
-        mockApproval({ id: "a2", risk: "low" }),
-        mockApproval({ id: "a3", risk: "low" }),
-      ];
-
-      // Mock implementation: second approval fails mid-batch
-      // TODO: Implement once mock.module pattern is available
-      // const mocks = createTanstackMocks();
-      // mocks.setQueryState("govern-approvals", {
-      //   data: { approvals, medianResponseMs: 45000, ... },
-      //   isLoading: false,
-      // });
-      // mocks.mockServerFn("decideApproval", async (args) => {
-      //   if (args.data.approvalId === "a2") {
-      //     throw new Error("Permission denied");
-      //   }
-      //   return { executed: true };
-      // });
-      //
-      // const { container } = render(withMocks(<ApprovalsPanel />, mocks));
-      // fireEvent.click(screen.getByText(/Approve all low-risk/));
-      //
-      // await waitFor(() => {
-      //   // Currently shows generic error, not partial success
-      //   expect(screen.getByText("Permission denied")).toBeTruthy();
-      //   expect(screen.queryByText(/Approved 1/)).toBeNull();
-      // });
-    });
-
-    test("ENHANCEMENT: should show partial success when some approvals fail", async () => {
-      // TODO: Once batch mutation is refactored to handle partial failures,
-      // verify that the UI shows something like:
-      //   "Approved 1 of 3 · 2 failed (retry available)"
-    });
-
-    test("ENHANCEMENT: should support retry-failed-only", async () => {
-      // TODO: After batch failure, user should be able to retry just the
-      // failed items without re-approving the successful ones
+    test("no code path calls toast.success", () => {
+      // The single most important assertion in this file once the harness
+      // exists. Grep-level truth today: ApprovalsPanel imports toast only for
+      // the extend failure path.
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("TrustGraduationsBlock Integration", () => {
-    test("renders TrustGraduationsBlock component", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify component is rendered at top of ApprovalsPanel
+  describe("Approve all low risk", () => {
+    test("the control appears only when more than one low-risk call is waiting", () => {
+      // Rendered as Block `more`, so it is a quiet affordance on the list
+      // header rather than a second primary action competing with the Gate.
+      // TODO: needs the mock.module harness
+    });
+
+    test("decides each id independently rather than breaking on the first error", () => {
+      // FIXED 2026-07-29. The old mutationFn was a bare `for` loop of awaits, so
+      // one rejection threw out of the whole batch: ids before it had ALREADY
+      // been approved server-side and the UI reported only the error, so a
+      // person could not tell what had run. Each call is now caught
+      // individually and sorted into ran[] / failed[].
+      // TODO: needs the mock.module harness
+    });
+
+    test("a partial failure renders BOTH receipts, the successes and the failures", () => {
+      // SCENARIO: [a1, a2, a3], a2 rejects with "Permission denied".
+      // Expected: one Receipt "You approved 2 calls" naming the two tools that
+      // ran, AND one failed Receipt naming a2 and its message.
+      // Never a single number that quietly averages the two.
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("ApprovalCard Delegation", () => {
-    test("passes correct props to each ApprovalCard", async () => {
-      // TODO: Verify each rendered ApprovalCard receives:
-      //   - a: GovernApproval (the approval item)
-      //   - track: AgentTrackRecord | null
-      //   - outcome: AgentOutcomeRecord | null
-      //   - declines: number (from rejectionCountFor)
-      //   - busy: boolean (when decide.isPending && decide.variables?.approvalId === a.id)
-      //   - extending: boolean (when extend.isPending && extend.variables === a.id)
-      //   - onApprove, onReject, onExtend callbacks
+  describe("Trust graduations share the surface", () => {
+    test("the graduation block renders below the tool queue", () => {
+      // TODO: needs the mock.module harness
     });
 
-    test("renders correct number of ApprovalCard components", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify count matches: pending.length + resolved.length
+    test("it does NOT draw its Gate while a tool call is waiting", () => {
+      // ApprovalsPanel passes lead={!focused}. A tool approval has an agent
+      // stopped mid run; a graduation has no clock at all. Two Gates would be
+      // two primary actions and neither would read as the one thing asking.
+      // TODO: needs the mock.module harness
     });
 
-    test("ApprovalCard onApprove callback triggers decide.mutate", async () => {
-      // TODO: Verify callback wiring
-    });
-
-    test("ApprovalCard onReject callback triggers decide.mutate", async () => {
-      // TODO: Verify callback wiring
-    });
-
-    test("ApprovalCard onExtend callback triggers extend.mutate", async () => {
-      // TODO: Verify callback wiring
+    test("it DOES draw its Gate when the tool queue is clear", () => {
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("Resolution State Visualization", () => {
-    test("resolved approvals render at reduced opacity (0.45)", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify CSS class or inline style opacity
+  describe("Data flow", () => {
+    test("reads listGovernApprovals under the govern-approvals key", () => {
+      // TODO: needs a spy on useServerFn
     });
 
-    test("pending approvals render at full opacity (1)", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-    });
-
-    test("ApprovalCard shows resolved status line for non-pending approvals", async () => {
-      // TODO: Verify RESOLVED_LINE content and color based on status
-      // (approved, executed, rejected, etc.)
+    test("every settle invalidates govern-approvals and governance", () => {
+      // Both keys, on success AND on error: a failed decide can still have
+      // moved the server row, so refusing to refetch would leave a stale queue.
+      // TODO: needs the mock.module harness
     });
   });
 
-  describe("Keyboard/Accessibility", () => {
-    test("buttons have proper aria labels", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify: aria-label on Approve all button, etc.
+  describe("Edge cases", () => {
+    test("an approval with no expires_at sorts last, never first", () => {
+      // Fallback string "9999" in the localeCompare.
+      // TODO: needs the mock.module harness
     });
 
-    test("error card has role=region for screen readers", async () => {
-      // TODO: Verify role and aria-live
-    });
-  });
-
-  describe("Data Flow and Queries", () => {
-    test("calls listGovernApprovals on component mount", async () => {
-      // TODO: Requires spy on useServerFn(listGovernApprovals)
+    test("an approval with no mission_id renders no mission control", () => {
+      // An affordance is a promise. A button that opens nothing is a lie.
+      // TODO: needs the mock.module harness
     });
 
-    test("refetch is called after decide.mutate succeeds", async () => {
-      // TODO: Verify useQuery.refetch() or invalidateQueries
+    test("a missing track record renders 'no decided calls yet', never a zero", () => {
+      // formatTrackRecord returns null below one decided row, and a fabricated
+      // "approved 0/0" would be a number nobody measured.
+      // TODO: needs the mock.module harness
     });
 
-    test("refetch is called after extend.mutate succeeds", async () => {
-      // TODO: Verify query invalidation
-    });
-
-    test("queries are invalidated with correct keys", async () => {
-      // TODO: Verify: ["govern-approvals"] and ["governance"]
-    });
-  });
-
-  describe("Edge Cases", () => {
-    test("handles empty trackByAgent data gracefully", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify: track should be null when not in trackByAgent map
-    });
-
-    test("handles empty outcomeByAgent data gracefully", async () => {
-      // TODO: Requires mock.module pattern for useQuery injection
-      // Verify: outcome should be null when not in outcomeByAgent map
-    });
-
-    test("handles null rejection count gracefully", async () => {
-      // TODO: Verify: declines should be 0 when rejectionCountFor returns null
-    });
-
-    test("handles very long approval lists (100+ items) with memoization", async () => {
-      // TODO: Verify performance (all, pending, resolved, rows, lowRisk arrays)
-      // are memoized to prevent unnecessary re-renders
-    });
-
-    test("handles approval.expires_at with missing value", async () => {
-      // TODO: Verify sort fallback to "9999" or max date
-    });
-
-    test("handles approval without mission_id", async () => {
-      // TODO: Verify: Mission link should not render when mission_id is falsy
-    });
-  });
-
-  describe("Mutation State Transitions", () => {
-    test("decide.isPending prevents button clicks during approval", async () => {
-      // TODO: Requires mock.module pattern
-      // Verify button disabled={busy} when decide.isPending
-    });
-
-    test("extend.isPending disables Extend button only", async () => {
-      // TODO: Requires mock.module pattern
-      // Verify only extend button is disabled, not approve/reject
-    });
-
-    test("approveAll.isPending disables 'Approve all' button", async () => {
-      // TODO: Requires mock.module pattern
-      // Verify button disabled={approveAll.isPending}
+    test("an unknown risk level still renders a word and a tone", () => {
+      // riskWord falls through to "<risk> risk", toneForRisk falls through to
+      // warn. A risk nobody classified must not look harmless.
+      // TODO: needs the mock.module harness
     });
   });
 });

@@ -15,6 +15,12 @@
  * text with no door. KEPT: every server function, the CreateRepoModal, and the
  * pick-then-bind flow.
  *
+ * ADDED later the same night: the provider mark on each line. The CheckCircle2
+ * that was killed above was a STATUS glyph saying a thing the resource name
+ * already said; this is an IDENTITY mark saying which of twenty products the
+ * line belongs to, which nothing else on the line says. Different jobs, and
+ * only one of them was decoration.
+ *
  * Only renders when this workspace has at least one connection: a per-product
  * override of nothing is a decision nobody can make.
  */
@@ -23,6 +29,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { CreateRepoModal } from "./CreateRepoModal";
+import { ProviderName, UNDER_MARK } from "./provider-marks";
 import {
   listConnections,
   listProductBindings,
@@ -172,7 +179,17 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
           }
 
           return (
-            <Line key={pickKey} label={`${spec.label} ${rt.label.toLowerCase()}`} sub={sub}>
+            <Line
+              key={pickKey}
+              // Monochrome, same reason as the workspace list above: the subject
+              // here is which binding wins, not which brand it belongs to.
+              label={
+                <ProviderName provider={spec.id}>
+                  {`${spec.label} ${rt.label.toLowerCase()}`}
+                </ProviderName>
+              }
+              sub={<span style={UNDER_MARK}>{sub}</span>}
+            >
               {binding ? (
                 <Button
                   variant="ghost"
