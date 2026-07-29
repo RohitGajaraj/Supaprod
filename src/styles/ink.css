@@ -1,12 +1,354 @@
-/*
- * Ink - design system v6 (final sweep).
- * Semantic layer inherited from the public landing (the loved baseline):
- * ink surfaces, zinc text ramp, hairlines, and the three-voice grammar
- * (ember = human, machine blue = agent, memory gold = memory moments only).
- * Dark is the design target and lives on :root; light is a first-class
- * sibling under [data-theme="light"]. System tracking is handled by
- * use-theme.tsx. Never invent a hex outside this file.
- */
+/* ===================================================================
+ * THE DESIGN SYSTEM (rebuild 2026-07-29). Lifted from the approved
+ * prototype: docs/planning/rebuild-2026-07/structure/PROTOTYPE-v2.html
+ * Rules it obeys: docs/conventions/anti-slop.md (binding).
+ *
+ * NAMING. Every token in the new system is prefixed `--sp-`. The
+ * prototype used bare names (--bg, --ink, --line); those collide with
+ * live definitions in styles.css, and because this file is @imported
+ * FIRST, styles.css would silently win. Worse, the legacy
+ * [data-obsidian] blocks redefine --ink/--hover/--ease under a
+ * selector that beats :root, and the app shell mounts inside that
+ * scope. So the prototype's names are translated, one for one, in the
+ * comments beside each group.
+ *
+ * COEXISTENCE. Everything below the LEGACY fence is the previous
+ * system (--ink-*, --voice-*, --chip-*, --verdict-*), ~1400 call sites
+ * across src/. It stays until the surface port finishes. Do not
+ * repurpose those names; add to the --sp-* layer instead.
+ *
+ * THEME. Dark is the design target and lives on :root, because
+ * use-theme.tsx sets dark as `.dark` with NO data-theme attribute, and
+ * light as [data-theme="light"]. Never invent a hex outside this file.
+ * =================================================================== */
+
+/* ---- Fonts -------------------------------------------------------
+ * Mona Sans for everything a person reads. IBM Plex Mono for every
+ * number, duration, count, diff, identifier and timestamp, and for
+ * nothing else. Geist Pixel at the auth door and nowhere else.
+ * All SIL OFL 1.1, self hosted, no CDN request.
+ *
+ * Geist Pixel Square is also declared in styles.css. Declared again
+ * here on purpose so this file survives the legacy-stylesheet purge;
+ * same URL, so the browser fetches it once.
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: "Mona Sans";
+  src: url("/fonts/mona/MonaSans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mona Sans";
+  src: url("/fonts/mona/MonaSans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mona Sans";
+  src: url("/fonts/mona/MonaSans-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Mona Sans";
+  src: url("/fonts/mona/MonaSans-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/plex/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/plex/IBMPlexMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Pixel Square";
+  src: url("/fonts/geist/GeistPixel-Square.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  /* ---- Families ---- (prototype: --sans / --mono / --px) */
+  --sp-font-sans: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+  --sp-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sp-font-px: "Geist Pixel Square", var(--sp-font-mono);
+
+  /* ---- Type scale ----
+   * Role named, lifted verbatim from the prototype. These are tuned by
+   * hand, not generated: 25 / 19 / 14 / 11.5 sit on a 1.22 ladder, the
+   * 12 to 13.5 band does not, because that band is a density ramp for
+   * secondary text rather than a heading ladder. See the OPEN QUESTION
+   * note at the foot of this block. 12px floor on anything a person
+   * reads; the two values below it carry data, not prose. */
+  --sp-text-greet: 30px; /* the door greeting. Pixel face, one place */
+  --sp-text-title: 25px; /* page title (h1) */
+  --sp-text-gate: 19px; /* the gate question, biggest thing on a surface */
+  --sp-text-wordmark: 14.5px; /* brand wordmark, optical only */
+  --sp-text-body: 14px; /* base. rows, nav, agent names, inputs */
+  --sp-text-prose: 13.5px; /* secondary reading. live line, gate lines, ask */
+  --sp-text-meta: 13px; /* row second line, sublabels */
+  --sp-text-label: 12.5px; /* field labels, context headings */
+  --sp-text-data: 12px; /* mono. timestamps, counts, durations */
+  --sp-text-data-sm: 11.5px; /* mono. rail counts, stage numbers */
+  --sp-text-kbd: 11px; /* keycaps */
+  --sp-text-monogram: 9.5px; /* inside a 22px identity disc */
+
+  /* ---- Leading ---- */
+  --sp-leading-greet: 1.15;
+  --sp-leading-title: 1.24;
+  --sp-leading-gate: 1.32;
+  --sp-leading-row: 1.4; /* two-line rows, kept tight */
+  --sp-leading-tight: 1.5;
+  --sp-leading-body: 1.55; /* document default */
+  --sp-leading-note: 1.6;
+
+  /* ---- Tracking ---- (negative as size grows, positive on small caps) */
+  --sp-track-title: -0.028em;
+  --sp-track-gate: -0.019em;
+  --sp-track-wordmark: -0.017em;
+  --sp-track-num: -0.01em;
+  --sp-track-greet: 0.005em;
+  --sp-track-monogram: 0.01em;
+
+  /* ---- Weight ----
+   * Mona Sans is installed as four STATIC instances (400/500/600/700),
+   * not a variable font. The prototype asks for 550 and 650 in eight
+   * places; CSS font matching snaps those up to 600 and 700, so the
+   * system as built is four weights, not the three anti-slop.md commits
+   * to. Encoded here as what actually renders. See OPEN QUESTION 2. */
+  --sp-weight-regular: 400;
+  --sp-weight-medium: 500; /* labels, quiet emphasis */
+  --sp-weight-strong: 600; /* headings, active nav, names (was 550) */
+  --sp-weight-heavy: 700; /* identity monograms only (was 650) */
+
+  /* ---- Density ----
+   * The law (anti-slop.md §3): tight inside a group, generous between
+   * groups. 8 inside a component, 12 between components, 32 between
+   * groups. The ramp below governs gaps BETWEEN things. Padding INSIDE
+   * a single component stays literal in that component: it is optical
+   * and per shape, and tokenizing twenty one-off paddings would name
+   * decisions that were never made. */
+  --sp-space-1: 4px;
+  --sp-space-2: 8px; /* THE LAW: inside a component */
+  --sp-space-3: 12px; /* THE LAW: between components */
+  --sp-space-4: 16px;
+  --sp-space-5: 20px;
+  --sp-space-6: 24px;
+  --sp-space-7: 28px; /* the rule's breathing room, below a block edge */
+  --sp-space-8: 32px; /* THE LAW: between groups */
+  --sp-space-9: 40px; /* work region gutter */
+  --sp-space-10: 52px; /* main column to context column */
+  --sp-space-11: 72px; /* work region floor */
+
+  /* ---- Shell geometry ---- (step 2 builds against these) */
+  --sp-header-h: 56px;
+  --sp-rail-w: 236px;
+  --sp-rail-w-narrow: 64px;
+  --sp-navrow-h: 38px;
+  --sp-row-h: 36px; /* standard row */
+  --sp-row-h-decision: 44px; /* a row carrying a decision earns the height */
+  --sp-work-pad-y: 34px;
+  --sp-work-pad-x: 40px;
+  --sp-work-pad-bottom: 72px;
+  --sp-work-max: 1400px;
+  --sp-main-max: 74ch; /* measure, not pixels: it tracks the type */
+  --sp-title-max: 34ch;
+  --sp-gate-max: 36ch;
+  --sp-ctx-w: 316px;
+  --sp-ctx-gap: 52px;
+  --sp-pane-ask-w: 392px;
+  --sp-pane-settings-w: 352px;
+  --sp-pane-inset: 22px;
+  --sp-door-card-w: 344px;
+  /* The context column splits at a CONTAINER width of 1120px, asked of
+   * the work region and never of the window. @container conditions
+   * cannot read a custom property, so 1120px is written literally at
+   * the query and recorded here as the single source of the number. */
+  --sp-ctx-split: 1120px;
+
+  /* ---- Control and mark sizes ---- */
+  --sp-mark: 22px; /* agent mark, identity disc */
+  --sp-mark-glyph: 16px; /* the glyph inside a 22px mark */
+  --sp-mark-lg: 30px; /* crew roster */
+  --sp-ctl-xs: 30px; /* rail collapse */
+  --sp-ctl-sm: 34px; /* icon button, ask button, settings door */
+  --sp-ctl-md: 38px; /* button */
+  --sp-ctl-lg: 40px; /* text input */
+  --sp-ctl-xl: 42px; /* door submit, provider button */
+  --sp-icon: 17px; /* nav and toolbar icons, at the size of their label */
+  --sp-icon-sm: 15px;
+
+  /* ---- Radius ---- */
+  --sp-radius-xs: 4px; /* keycap */
+  --sp-radius-sm: 5px; /* diffstat cell */
+  --sp-radius-chip: 7px; /* chips, run chip, agent mark */
+  --sp-radius-ctl: 8px; /* buttons, inputs, live line */
+  --sp-radius-row: 9px; /* nav rows, list rows */
+  --sp-radius-card: 10px; /* agent card, ask composer */
+  --sp-radius-panel: 12px; /* record recess, gate detail */
+  --sp-radius-pane: 16px; /* floating panes */
+
+  /* ---- Motion ----
+   * Motion confirms, it never performs. The prototype carried ten
+   * distinct durations between 100ms and 300ms; the differences inside
+   * each cluster are imperceptible, so they collapse to four. Anything
+   * a person cannot tell apart was never a decision. */
+  --sp-ease: cubic-bezier(0.22, 1, 0.36, 1); /* the system ease */
+  --sp-ease-breath: cubic-bezier(0.45, 0, 0.55, 1); /* symmetric, for loops */
+  --sp-dur-press: 100ms; /* the 1px button push */
+  --sp-dur-fast: 140ms; /* hover, colour, background */
+  --sp-dur-mid: 200ms; /* rail width, toggle travel */
+  --sp-dur-slow: 280ms; /* pane slide, scrim */
+  /* Named loops. Each one is a fact that is genuinely still changing. */
+  --sp-dur-breathe: 2400ms; /* a running agent's glyph */
+  --sp-dur-spin: 1700ms; /* the ring around a running agent */
+  --sp-dur-attention: 1600ms; /* the one blink in the system: a gate */
+  --sp-dur-lamp: 8s; /* the record's spotlight, felt not watched */
+  --sp-dur-revolve: 190s; /* the door watermark */
+
+  /* ---- Stage families ----
+   * Agent identity is a stage family. The seven loop stages own seven
+   * hues, an agent inherits its stage's hue, and its silhouette says
+   * which agent. Doubly encoded, so it survives greyscale and colour
+   * blindness. Deliberately desaturated: worn as tints, never as fills.
+   * STATE IS NEVER A HUE, which is what keeps thirteen agent colours
+   * from competing with the four status colours below. */
+  --sp-stage-discover: #6fa9a0;
+  --sp-stage-decide: #c39a5e;
+  --sp-stage-plan: #8fa464;
+  --sp-stage-design: #ab7fa0;
+  --sp-stage-build: #6d97c2;
+  --sp-stage-ship: #bd8092;
+  --sp-stage-learn: #a89f66;
+
+  /* ---- Outcomes and gates ---- never on an agent mark */
+  --sp-pass: #4fc47a;
+  --sp-fail: #ef6a5f;
+  --sp-warn: #e8b44c;
+  --sp-gate: #ff6b2c; /* ember. marks the human, and nothing else */
+
+  /* ---- Surfaces (dark: the design target) ----
+   * prototype: --bg --sheet --lift --sink --float
+   * Never #000 or #fff; every neutral is tinted. */
+  --sp-bg: #0b0b0d; /* the canvas */
+  --sp-sheet: #111114; /* header, rail: the chrome that frames work */
+  --sp-lift: #17171b; /* a raised control */
+  --sp-sink: #0d0d10; /* a recess: the record, the gate detail */
+  --sp-float: #1c1c21; /* something genuinely floating */
+
+  /* ---- Text ramp ---- prototype: --ink --body --mute */
+  --sp-ink: #f4f4f7; /* the thing itself */
+  --sp-body: #b4b4bd; /* supporting prose */
+  --sp-mute: #8e8e99; /* labels, metadata, quiet state */
+
+  /* ---- Structure ---- prototype: --line --line2 --hover */
+  --sp-line: rgba(255, 255, 255, 0.1); /* a real edge */
+  --sp-line-soft: rgba(255, 255, 255, 0.055); /* a rule between sections */
+  --sp-hover: rgba(255, 255, 255, 0.045);
+  --sp-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.7), 0 4px 10px -3px rgba(0, 0, 0, 0.5);
+
+  /* ---- Atmosphere ---- the door field, the context starfield, the lamp */
+  --sp-star: rgba(255, 255, 255, 0.62);
+  --sp-grid: rgba(255, 255, 255, 0.028);
+  --sp-grid-strong: rgba(255, 255, 255, 0.052);
+  --sp-spot: rgba(255, 246, 236, 0.052);
+}
+
+/* ---- Light ----
+ * A working sheet with real elevation, not an inverted dark theme, and
+ * deliberately not cream. Warm at the founder's request: the neutrals
+ * are tinted toward the ember hue at very low chroma, so it reads as
+ * warm paper stock under a lamp rather than as a beige template. The
+ * canvas carries a real trace of yellow, panels are a warmer white
+ * above it, and the ink is a warm near-black rather than a neutral one,
+ * so nothing on the page reads as grey sitting on cream. Separation
+ * comes from elevation, not from a hard value gap. Low chroma
+ * throughout is the line between paper stock and a beige template. */
+[data-theme="light"] {
+  --sp-bg: #efe9dc;
+  --sp-sheet: #faf6ed;
+  --sp-lift: #f4efe3;
+  --sp-sink: #e8e1d0;
+  --sp-float: #fffdf7;
+
+  --sp-ink: #2b2318;
+  --sp-body: #5f5647;
+  --sp-mute: #8a8071;
+
+  --sp-line: rgba(70, 55, 30, 0.13);
+  --sp-line-soft: rgba(70, 55, 30, 0.065);
+  --sp-hover: rgba(70, 55, 30, 0.04);
+  --sp-shadow: 0 10px 26px -10px rgba(80, 60, 25, 0.16), 0 2px 5px -2px rgba(80, 60, 25, 0.09);
+
+  --sp-star: rgba(90, 70, 40, 0.26);
+  --sp-grid: rgba(80, 60, 25, 0.03);
+  --sp-grid-strong: rgba(80, 60, 25, 0.055);
+  --sp-spot: rgba(255, 252, 242, 0.92);
+
+  /* the same seven families, taken down for a warm ground */
+  --sp-stage-discover: #3d7a70;
+  --sp-stage-decide: #8f6a26;
+  --sp-stage-plan: #5c7234;
+  --sp-stage-design: #7b5070;
+  --sp-stage-build: #3f648a;
+  --sp-stage-ship: #8a5060;
+  --sp-stage-learn: #756d33;
+
+  --sp-pass: #2a7648;
+  --sp-fail: #af3b31;
+  --sp-warn: #8f6a26;
+  --sp-gate: #c2500f;
+}
+
+/* ---- The one atom that belongs with the tokens ----
+ * "IBM Plex Mono for every number, and for nothing else" is a type
+ * rule, not a component. Everything else the prototype draws is a
+ * primitive and lands in step 3. */
+.sp-num {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92em;
+  letter-spacing: var(--sp-track-num);
+}
+
+/* ===================================================================
+ * OPEN QUESTIONS raised by tokenizing. Both are recorded rather than
+ * decided, because deciding either would be redesigning an approved
+ * prototype.
+ *
+ * 1. anti-slop.md §3 says "type scale at a 1.22 ratio". The prototype
+ *    is not on one: 25/19 is 1.32, and 12 / 12.5 / 13 / 13.5 are a
+ *    quarter-step apart. Either the prototype's hand-tuned values are
+ *    canon and that line in anti-slop.md is aspirational, or the scale
+ *    is canon and the prototype needs a type pass. Lifted as built.
+ *
+ * 2. anti-slop.md §3 says "three weights maximum across the system".
+ *    Mona Sans is installed as static 400/500/600/700, so the
+ *    prototype's 550 and 650 render as 600 and 700 and the system is
+ *    four weights. Either 700 goes (identity monograms drop to 600) or
+ *    the rule reads four. Encoded as what renders today.
+ * =================================================================== */
+
+/* ===================================================================
+ * LEGACY: Ink v6, the pre-rebuild system.
+ *
+ * ~1400 call sites across src/ (--ink-subtle alone has 366). It stays
+ * until the surface port in step 4 finishes, then this fence and
+ * everything under it is deleted in one commit. Do not add to it, do
+ * not repurpose its names, and do not reference it from anything new.
+ *
+ * Semantic layer inherited from the public landing: ink surfaces, zinc
+ * text ramp, hairlines, and the three-voice grammar (ember = human,
+ * machine blue = agent, memory gold = memory moments only).
+ * =================================================================== */
 
 :root {
   /* Surfaces */

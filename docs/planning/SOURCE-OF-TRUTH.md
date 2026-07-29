@@ -23,8 +23,19 @@
 > | The structural reasoning | [`rebuild-2026-07/structure/SKETCH.html`](./rebuild-2026-07/structure/SKETCH.html) |
 >
 > **NEXT UNIT OF WORK, in order:**
-> 1. Lift the colour roles, type scale and density scale from the prototype into `src/styles/ink.css`
->    as real tokens. Fonts are already installed at `public/fonts/{mona,plex,geist}`.
+> 1. ~~Lift the colour roles, type scale and density scale from the prototype into
+>    `src/styles/ink.css` as real tokens.~~ **DONE 2026-07-29.** 119 tokens live, all prefixed
+>    **`--sp-`**: the prototype's bare names (`--bg`, `--ink`, `--line`) collide with `styles.css`,
+>    which wins the cascade because `ink.css` is `@import`ed first, and the legacy `[data-obsidian]`
+>    blocks beat `:root` inside the app scope. The old `--ink-*`/`--voice-*` layer stays below a
+>    fence in the same file until step 4 finishes porting its ~1400 call sites. Mona + IBM Plex
+>    `@font-face` added and verified fetching. Verified live: tokens resolve, light theme flips,
+>    build green, tokens and fonts present in the production bundle.
+>    **Two open questions recorded in the file, both need a founder call, neither blocks step 2:**
+>    (a) `anti-slop.md` claims a 1.22 type ratio; the prototype is not on one (25/19 is 1.32) so the
+>    prototype's hand-tuned values were lifted as built; (b) `anti-slop.md` says three weights
+>    maximum, but Mona is installed as static 400/500/600/700 so the prototype's 550/650 snap up
+>    (measured in-browser: identical glyph widths to 600/700) and the system is four weights.
 > 2. Build the shell: header 56 / rail 236-64 / work / Ask summoned. It replaces all THREE current
 >    shells (`AppShell.tsx`, `MissionShellView.tsx`, `RoomChrome.tsx`).
 > 3. Build the primitives: agent mark, attribution row, gate, record recess, diffstat, live line.
