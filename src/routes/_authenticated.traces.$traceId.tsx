@@ -1,32 +1,93 @@
 /**
- * One trace, in detail. The record room's drill layer, ported onto the
- * rebuild primitives (step 4).
+ * One trace, in detail. The engine room's drill layer.
  *
- * WHAT THE RETIRED VERSION WAS: a page-level TopBar with its own four-part
- * breadcrumb (a second header, on top of the shell's), a DrillHeader with a
- * back button and a kicker, then a seven-column CSS grid table drawn by hand
- * inside a `bento` card, each row carrying a hand-positioned waterfall bar,
- * and a second `bento` card underneath holding the inspector, which drew its
- * own bordered cards for guardrail hits and its own bordered tiles for eval
- * scores. Four levels of container, three separate skins, and every colour
- * literal written at the call site.
+ * REDESIGNED, NOT RE-SKINNED (SURFACE-JUSTIFICATION.md). The prototype does not
+ * draw this surface, so it owes the six answers and they ship here. The port
+ * before this one was mechanical: it swapped the hand-drawn seven-column grid
+ * for primitives and stopped. Mechanically clean is not designed.
  *
- * WHAT IT IS NOW: one surface that reads top to bottom and says three things:
- *   what ran  ·  the hop you picked  ·  the brief it was given
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO. An engineer holding a
+ *    trace id, sent here by a run that failed or a bill that jumped. They came
+ *    to name the one call that explains it. They are not browsing and they
+ *    leave the moment they can point at the hop.
  *
- * The hop table is an attribution list, because that is what it always was:
- * who did what, and how long it took. The seven columns collapse into the
- * row's own three slots, and the numbers an engineer came for ride the
- * "Show timing and cost" disclosure rather than being permanently on screen.
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE. To put the exact text
+ *    a model was sent and the exact text it returned in front of the person who
+ *    has to explain the outcome. Everything else is either the path to that hop
+ *    or a candidate for removal.
  *
- * MECHANISM WORDS ARE ALLOWED HERE and almost nowhere else: this is the
- * engine room's drill layer, the reader is an engineer, and trace / span /
- * hop / guardrail / eval are what a stack trace calls them.
+ * 3. KEEP / MOVE / KILL, element by element.
+ *    KEEP  the hop list. It is the surface. One row per model call and tool
+ *          call, in the order they ran, each already `tight`: who acted, what
+ *          they called, what came back, how long it took.
+ *    KEEP  the picked hop's full input, system prompt, output, arguments and
+ *          result. This is answer 2, literally.
+ *    KEEP  outcome, model, routing, latency, tokens, cost, span id, guardrail
+ *          hits, eval scores. Every one is a thing an engineer came to read.
+ *    KEEP  the timing-and-cost disclosure. Per-hop money is why half the
+ *          visits happen, and it is still wrong to have it permanently on
+ *          screen for the other half.
+ *    KILL  "The brief it was given". A whole titled block whose collapsed
+ *          state spent vertical space saying "a brief was injected", and whose
+ *          expanded state printed a substring of the root call's system prompt,
+ *          which this page already renders in full one click away. A second
+ *          home for one string. Gone with its state, its memo and its regex.
+ *    KILL  the nesting depth. A bare "2 deep" with no parent chain drawn is a
+ *          number nothing depends on, so the whole `withDepth` parent-chain
+ *          walk and the `Span` type that carried it are deleted with it.
+ *    KILL  the per-span "Surface" fact. When the surface is an agent the row's
+ *          own mark and name say so; when it is not, the row lead prints the
+ *          surface as the actor. Two renderings of one string, one line apart.
+ *    KILL  the trace-level model line in the context column. It showed the
+ *          FIRST span's model as though it were the trace's, which is wrong the
+ *          moment a run falls back, and every row already names its own model.
+ *    KILL  the tool call's "Ran 3d ago". A tool inside a trace is always the
+ *          age of the trace; it restated the head.
+ *    KILL  the paragraph under the hop list explaining that the hop list is a
+ *          list of hops, and the hand-rolled flex rows and bare Block wrappers
+ *          around the error and empty states.
+ *    MOVE  "When it ran" out of the context column and into the head, beside
+ *          hops and wall time, where the other whole-trace facts already live.
+ *          One label and one divider fewer in a 300px column.
  *
- * Nothing about the read changed: getTrace on ["trace", id], the same
- * interleave of ai_events spans with tool_calls by created_at, the same
- * parent-chain depth, the same brief extraction, and the same /build and
- * /engine-room targets.
+ * 4. WHAT IS ONE CLICK AWAY. Everything long. A hop row never carries a full
+ *    prompt, a full result or a stack trace; it carries one line plus a second
+ *    line of DIFFERENT information, and the full text belongs to the one hop in
+ *    focus. Long text scrolls inside its own capped box, so neither axis of the
+ *    page ever grows: JSON keeps its structure and scrolls sideways in the box,
+ *    prose wraps.
+ *
+ * 5. DELIGHT, AND CONFUSION. The moment is reading the literal system prompt a
+ *    model was handed and recognising a line you wrote. Nothing else in the
+ *    product answers "is it really doing what I told it" this directly. The
+ *    confusion this surface must not cause is a silent gap: the loop never
+ *    writes tool_calls.event_id, so tools cannot be nested under the call that
+ *    made them and are interleaved by timestamp instead. Rather than draw a
+ *    false hierarchy, the list says it is time order and says the reasoning
+ *    between calls lives on the run.
+ *
+ * 6. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Remove the agents and this
+ *    page changes: every hop is attributed at its leading edge, by mark and by
+ *    name, and the context column names every agent that touched the trace with
+ *    how many calls each made, so a two-agent trace reads as two workers rather
+ *    than as one anonymous engine. Judgment leaves a trace here twice: a
+ *    guardrail hit says which rule stopped which side, and the eval judge's own
+ *    words now render beside its scores instead of being fetched and thrown
+ *    away. Registers are kept apart per the DID / SAID law: what ran is a
+ *    receipt of facts in mono, what the judge said is quoted prose.
+ *    NOT CLAIMED: work in motion. getTrace returns a mission as {id, title}
+ *    with no status, so this surface cannot honestly tell you whether the run
+ *    is still going, and it never renders a running or waiting mark. An honest
+ *    silence beats a flattering animation. Gap reported, not faked.
+ *
+ * MECHANISM WORDS ARE CORRECT HERE and almost nowhere else: this is the engine
+ * room's drill layer, the reader is an engineer, and trace, span, hop, tool
+ * call, guardrail and eval are what a stack trace calls them. Mono carries
+ * every id, duration, token count and cost.
+ *
+ * The read is unchanged: getTrace on ["trace", id], the same interleave of
+ * ai_events with tool_calls by created_at, the same brief-bearing system
+ * prompt, and the same /build and /engine-room targets.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -39,10 +100,12 @@ import { evalScoreVerdict } from "@/components/observe/EvalScoreChips";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
+  Actions,
   AgentMark,
   Block,
   Button,
   Empty,
+  Failed,
   Num,
   PageHead,
   Row,
@@ -56,7 +119,7 @@ export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   head: () => ({ meta: [{ title: "Trace · Supaprod" }] }),
 });
 
-type EventRow = {
+type Span = {
   id: string;
   parent_event_id: string | null;
   created_at: string;
@@ -77,7 +140,6 @@ type EventRow = {
   system_preview?: string | null;
   error_message: string | null;
 };
-type Span = EventRow & { depth: number };
 type ToolCallRow = {
   id: string;
   tool_name: string;
@@ -98,6 +160,9 @@ type EvalRow = {
   hallucination_score: number | null;
   toxicity: number | null;
   pii_risk: number | null;
+  /** The judge's own words. Fetched by getTrace since the drill shipped and
+   *  never rendered until now: six numbers with no reason are six numbers. */
+  judge_rationale: string | null;
 };
 type Selected = { kind: "event" | "tool"; id: string };
 
@@ -124,7 +189,7 @@ function clip(s: string, n = 180) {
   return s.length > n ? `${s.slice(0, n)}…` : s;
 }
 
-/** Plain-words clock, so the context column reads as a sentence. */
+/** Plain-words clock for the one whole-trace timestamp in the head. */
 function since(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const t = new Date(iso).getTime();
@@ -141,30 +206,11 @@ function since(iso: string | null | undefined): string | null {
   return `on ${new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 }
 
-/** Depth via the ai_events parent chain. The retired table drew it as row
- *  indentation; a nested row inside a list reads as a card in a card, so the
- *  number rides the inspector instead. */
-function withDepth(events: EventRow[]): Span[] {
-  const byId = new Map(events.map((e) => [e.id, e]));
-  const cache = new Map<string, number>();
-  const depthOf = (id: string): number => {
-    if (cache.has(id)) return cache.get(id)!;
-    const e = byId.get(id);
-    if (!e || !e.parent_event_id || !byId.has(e.parent_event_id)) {
-      cache.set(id, 0);
-      return 0;
-    }
-    const d = depthOf(e.parent_event_id) + 1;
-    cache.set(id, d);
-    return d;
-  };
-  return events.map((e) => ({ ...e, depth: depthOf(e.id) }));
-}
-
 /** ai_events.status is written post-hoc: only ok / error / blocked exist.
  *  A blocked call is NOT a gate: ember marks the human and nothing else, and
  *  nobody is being asked anything here. It fails soft on the mark and says so
- *  in words on the row's second line. */
+ *  in words on the row's second line. Nothing on this page ever renders
+ *  `running`: a trace is a record, and the wiring cannot tell us otherwise. */
 function markState(status: string): MarkState {
   if (status === "error") return "failed";
   return "idle";
@@ -189,10 +235,11 @@ const factValue: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const paneStyle: React.CSSProperties = {
+/** Capped, and it scrolls on BOTH axes inside its own box. Horizontal
+ *  scrolling was named twice as a pain point, so a 400-line result may never
+ *  grow the page and a 300-column JSON line may never widen it. */
+const paneBase: React.CSSProperties = {
   margin: 0,
-  whiteSpace: "pre-wrap",
-  wordBreak: "break-word",
   fontFamily: "var(--sp-font-mono)",
   fontSize: "var(--sp-text-data)",
   lineHeight: 1.6,
@@ -226,11 +273,30 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function Pane({ label, children }: { label: string; children: React.ReactNode }) {
+/** `data` keeps structure and scrolls sideways in its box: indented JSON is
+ *  unreadable once it is word-broken. Prose wraps, because a paragraph that
+ *  scrolls sideways is the defect this rule exists to prevent. */
+function Pane({
+  label,
+  data = false,
+  children,
+}: {
+  label: string;
+  data?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div style={{ marginTop: 20 }}>
       <Label>{label}</Label>
-      <pre style={paneStyle}>{children}</pre>
+      <pre
+        style={
+          data
+            ? { ...paneBase, whiteSpace: "pre" }
+            : { ...paneBase, whiteSpace: "pre-wrap", wordBreak: "break-word" }
+        }
+      >
+        {children}
+      </pre>
     </div>
   );
 }
@@ -269,6 +335,7 @@ function SpanDetail({
   ).filter((s): s is { label: string; value: number; higherIsBetter: boolean } => {
     return s.value != null && Number.isFinite(s.value);
   });
+  const rationale = evalRow?.judge_rationale?.trim() || null;
 
   return (
     <>
@@ -292,14 +359,6 @@ function SpanDetail({
         <Fact label="Cost">
           <Num>{fmtUsd(Number(span.est_cost_usd))}</Num>
         </Fact>
-        <Fact label="Surface">
-          <Num>{span.surface}</Num>
-        </Fact>
-        {span.depth > 0 ? (
-          <Fact label="Nested">
-            <Num>{span.depth}</Num> deep
-          </Fact>
-        ) : null}
         <Fact label="Span id">
           <Num>{span.id}</Num>
         </Fact>
@@ -335,24 +394,42 @@ function SpanDetail({
         </div>
       ) : null}
 
-      {scores.length > 0 ? (
+      {scores.length > 0 || rationale ? (
         <div style={{ marginTop: 22 }}>
           <Label>Judged</Label>
-          <div style={factGrid}>
-            {scores.map((s) => {
-              const verdict = evalScoreVerdict(s.value, s.higherIsBetter);
-              const tone =
-                verdict === "pass" ? "sp-pass" : verdict === "watch" ? "sp-warn" : "sp-fail";
-              return (
-                <div key={s.label} style={{ minWidth: 0 }}>
-                  <Label>{s.label}</Label>
-                  <div style={factValue}>
-                    <span className={tone}>{verdict}</span> <Num>{s.value.toFixed(2)}</Num>
+          {scores.length > 0 ? (
+            <div style={factGrid}>
+              {scores.map((s) => {
+                const verdict = evalScoreVerdict(s.value, s.higherIsBetter);
+                const tone =
+                  verdict === "pass" ? "sp-pass" : verdict === "watch" ? "sp-warn" : "sp-fail";
+                return (
+                  <div key={s.label} style={{ minWidth: 0 }}>
+                    <Label>{s.label}</Label>
+                    <div style={factValue}>
+                      <span className={tone}>{verdict}</span> <Num>{s.value.toFixed(2)}</Num>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : null}
+          {rationale ? (
+            // DID versus SAID: the scores above are a record, this is a claim,
+            // and they must never share a treatment. Quoted, in prose, in the
+            // judge's own words rather than paraphrased into a fact.
+            <div
+              style={{
+                marginTop: scores.length > 0 ? 16 : 0,
+                fontSize: "var(--sp-text-meta)",
+                color: "var(--sp-body)",
+                maxWidth: "68ch",
+                lineHeight: "var(--sp-leading-body)",
+              }}
+            >
+              The judge said: &quot;{rationale}&quot;
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -373,7 +450,6 @@ function ToolDetail({ tool }: { tool: ToolCallRow }) {
         <Fact label="Took">
           <Num>{fmtMs(tool.latency_ms)}</Num>
         </Fact>
-        {since(tool.created_at) ? <Fact label="Ran">{since(tool.created_at)}</Fact> : null}
         <Fact label="Call id">
           <Num>{tool.id}</Num>
         </Fact>
@@ -386,10 +462,14 @@ function ToolDetail({ tool }: { tool: ToolCallRow }) {
       ) : null}
 
       {tool.args != null ? (
-        <Pane label="Arguments">{JSON.stringify(tool.args, null, 2)}</Pane>
+        <Pane label="Arguments" data>
+          {JSON.stringify(tool.args, null, 2)}
+        </Pane>
       ) : null}
       {tool.result != null ? (
-        <Pane label="Result">{JSON.stringify(tool.result, null, 2)}</Pane>
+        <Pane label="Result" data>
+          {JSON.stringify(tool.result, null, 2)}
+        </Pane>
       ) : null}
     </>
   );
@@ -412,12 +492,8 @@ export function TraceDetail({ id }: { id: string }) {
   // Tokens and cost per hop hide until asked for; the head and the context
   // column keep the trace-level totals either way, so nothing real vanishes.
   const [showCost, setShowCost] = React.useState(false);
-  const [showBrief, setShowBrief] = React.useState(false);
 
-  const spans = React.useMemo(
-    () => withDepth((trace.data?.events ?? []) as EventRow[]),
-    [trace.data],
-  );
+  const spans = React.useMemo(() => (trace.data?.events ?? []) as Span[], [trace.data]);
   const toolCalls = React.useMemo(
     () => (trace.data?.toolCalls ?? []) as ToolCallRow[],
     [trace.data],
@@ -454,17 +530,11 @@ export function TraceDetail({ id }: { id: string }) {
   const totalMs = Math.max(1, tEnd - t0);
 
   // Auto-select the root span once events load, so the detail is never empty.
+  // The root is also the span carrying the assembled system prompt, which is
+  // why the separate brief block was deleted rather than re-homed.
   React.useEffect(() => {
     if (!selected && spans.length > 0) setSelected({ kind: "event", id: spans[0].id });
   }, [spans, selected]);
-
-  // Pull the brief block out of the first agent system prompt, if present.
-  const briefBlock = React.useMemo(() => {
-    const root = spans.find((s) => s.system_preview);
-    const sys = root?.system_preview ?? "";
-    const m = sys.match(/--- Workspace Strategic Brief[\s\S]*?--- End brief ---/);
-    return m ? m[0] : null;
-  }, [spans]);
 
   const hitsByEvent = new Map<string, GuardrailHit[]>();
   for (const h of trace.data?.hits ?? []) {
@@ -489,11 +559,30 @@ export function TraceDetail({ id }: { id: string }) {
   const traceAgentSlug =
     spans.find((s) => s.surface === "agent" && s.surface_ref)?.surface_ref ?? null;
 
+  // Every agent that touched this trace, with how many calls each made. A
+  // handoff inside one trace is real and used to render as a single anonymous
+  // "who ran it"; two workers now read as two workers.
+  const actors = React.useMemo(() => {
+    const calls = new Map<string, number>();
+    for (const s of spans) {
+      if (s.surface === "agent" && s.surface_ref) {
+        calls.set(s.surface_ref, (calls.get(s.surface_ref) ?? 0) + 1);
+      }
+    }
+    return [...calls.entries()].map(([slug, n]) => ({ slug, n }));
+  }, [spans]);
+
   // IA spine: the record room's traces view is the canonical home for this
   // drill layer, and the shell header no longer carries a crumb trail.
   const back = React.useCallback(
     () => void navigate({ to: "/engine-room", search: { room: "record", view: "traces" } }),
     [navigate],
+  );
+
+  const shortTitle = (
+    <>
+      Trace <Num>{id.slice(0, 8)}</Num>
+    </>
   );
 
   if (trace.isLoading) {
@@ -507,18 +596,13 @@ export function TraceDetail({ id }: { id: string }) {
   if (trace.error) {
     return (
       <Surface>
-        <PageHead
-          title="This trace did not load."
-          sub={<span className="sp-fail">{(trace.error as Error).message}</span>}
-        />
-        <Block>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
-            <Button onClick={() => void trace.refetch()}>Try again</Button>
-            <Button variant="ghost" onClick={back}>
-              All traces
-            </Button>
-          </div>
-        </Block>
+        <PageHead title={shortTitle} />
+        <Failed onRetry={() => void trace.refetch()}>{(trace.error as Error).message}</Failed>
+        <Actions>
+          <Button variant="ghost" onClick={back}>
+            All traces
+          </Button>
+        </Actions>
       </Surface>
     );
   }
@@ -526,22 +610,16 @@ export function TraceDetail({ id }: { id: string }) {
   if (hopRows.length === 0) {
     return (
       <Surface>
-        <PageHead
-          title={
-            <>
-              Trace <Num>{id.slice(0, 8)}</Num>
-            </>
-          }
-        />
-        <Block>
-          <Empty>
-            No model calls or tool calls were recorded on this trace. It may have expired, or it
-            belongs to another account.
-          </Empty>
+        <PageHead title={shortTitle} />
+        <Empty>
+          No model calls or tool calls were recorded on this trace. It may have expired, or it
+          belongs to another account.
+        </Empty>
+        <Actions>
           <Button variant="ghost" onClick={back}>
             All traces
           </Button>
-        </Block>
+        </Actions>
       </Surface>
     );
   }
@@ -554,42 +632,46 @@ export function TraceDetail({ id }: { id: string }) {
       ) ?? null)
     : null;
 
-  const startedAt = hopRows.length ? new Date(t0).toISOString() : null;
+  const ranAgo = since(new Date(t0).toISOString());
 
   return (
     <Surface
       context={
         <>
           <div className="sp-ctx-head">Who ran it</div>
-          <div className="sp-ctx-row">
-            <AgentMark
-              slug={traceAgentSlug}
-              name={rootSurface}
-              state={totals.failed > 0 ? "failed" : "idle"}
-            />
-            <span>
-              <span className="sp-ctx-name">
-                {traceAgentSlug ? agentDisplayName(traceAgentSlug) : (rootSurface ?? "The engine")}
-              </span>
-              {spans[0]?.model ? (
-                <span className="sp-ctx-sub">
-                  <Num>{spans[0].model}</Num>
+          {actors.length > 0 ? (
+            actors.map((a) => (
+              <div className="sp-ctx-row" key={a.slug}>
+                <AgentMark
+                  slug={a.slug}
+                  state={totals.failed > 0 && actors.length === 1 ? "failed" : "idle"}
+                />
+                <span>
+                  <span className="sp-ctx-name">{agentDisplayName(a.slug)}</span>
+                  <span className="sp-ctx-sub">
+                    <Num>{a.n}</Num> {a.n === 1 ? "call" : "calls"}
+                  </span>
                 </span>
-              ) : null}
-            </span>
-          </div>
+              </div>
+            ))
+          ) : (
+            <div className="sp-ctx-row">
+              <AgentMark
+                slug={null}
+                name={rootSurface}
+                state={totals.failed > 0 ? "failed" : "idle"}
+              />
+              <span>
+                <span className="sp-ctx-name">{rootSurface ?? "The engine"}</span>
+                <span className="sp-ctx-sub">no agent on this trace</span>
+              </span>
+            </div>
+          )}
 
           <div className="sp-ctx-head">What it cost</div>
           <div className="sp-ctx-body">
             <Num>{totals.tokens.toLocaleString()}</Num> tokens · <Num>{fmtUsd(totals.cost)}</Num>
           </div>
-
-          {since(startedAt) ? (
-            <>
-              <div className="sp-ctx-head">When it ran</div>
-              <div className="sp-ctx-body">{since(startedAt)}</div>
-            </>
-          ) : null}
 
           <div className="sp-ctx-head">Trace id</div>
           <div className="sp-ctx-body" style={{ wordBreak: "break-all" }}>
@@ -614,19 +696,12 @@ export function TraceDetail({ id }: { id: string }) {
       }
     >
       <PageHead
-        title={
-          mission ? (
-            stripAutoPrefix(mission.title)
-          ) : (
-            <>
-              Trace <Num>{id.slice(0, 8)}</Num>
-            </>
-          )
-        }
+        title={mission ? stripAutoPrefix(mission.title) : shortTitle}
         sub={
           <>
             <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
             <Num>{fmtMs(totalMs)}</Num> wall
+            {ranAgo ? <> · {ranAgo}</> : null}
             {totals.failed > 0 ? (
               <>
                 {" · "}
@@ -649,6 +724,13 @@ export function TraceDetail({ id }: { id: string }) {
 
       <Block
         title="What ran"
+        // The one non-obvious thing about this list, said once: it is time
+        // order rather than a call tree, and the thinking is not in it.
+        sub={
+          mission
+            ? "In the order they ran, not nested: the reasoning between calls lives on the run."
+            : "In the order they ran. Previews are cut short."
+        }
         more={showCost ? "Hide timing and cost" : "Show timing and cost"}
         onMore={() => setShowCost((v) => !v)}
       >
@@ -760,12 +842,6 @@ export function TraceDetail({ id }: { id: string }) {
             />
           );
         })}
-
-        <div className="sp-subtitle" style={noteStyle}>
-          Every model call and tool call on this trace, in the order they ran. Previews are cut
-          short; pick a hop for its full input, prompt and output.
-          {mission ? " The reasoning between calls lives on the run." : null}
-        </div>
       </Block>
 
       {selRow ? (
@@ -778,22 +854,6 @@ export function TraceDetail({ id }: { id: string }) {
             />
           ) : (
             <ToolDetail tool={selRow.tool} />
-          )}
-        </Block>
-      ) : null}
-
-      {briefBlock ? (
-        <Block
-          title="The brief it was given"
-          more={showBrief ? "Hide it" : "Read it"}
-          onMore={() => setShowBrief((v) => !v)}
-        >
-          {showBrief ? (
-            <pre style={paneStyle}>{briefBlock}</pre>
-          ) : (
-            <div className="sp-subtitle" style={{ marginTop: 0 }}>
-              The workspace brief was injected into the system prompt for this run.
-            </div>
           )}
         </Block>
       ) : null}

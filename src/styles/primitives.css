@@ -977,3 +977,6 @@
   line-height: var(--sp-leading-body);
   max-width: 52ch;
 }
+.sp-empty .sp-acts {
+  margin-top: var(--sp-space-3);
+}
