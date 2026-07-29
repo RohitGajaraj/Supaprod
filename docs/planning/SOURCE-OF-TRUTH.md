@@ -17,8 +17,8 @@
 >
 > | | |
 > |---|---|
-> | The approved system | [`rebuild-2026-07/structure/PROTOTYPE-v2.html`](./rebuild-2026-07/structure/PROTOTYPE-v2.html) — serve it, do not open with `file://` |
-> | The rules it obeys | [`../conventions/anti-slop.md`](../conventions/anti-slop.md) — **binding**, incl. the founder's 11 hard bans |
+> | The approved system | [`rebuild-2026-07/structure/PROTOTYPE-v2.html`](./rebuild-2026-07/structure/PROTOTYPE-v2.html). Serve it, do not open with `file://` |
+> | The rules it obeys | [`../conventions/anti-slop.md`](../conventions/anti-slop.md), **binding**, incl. the founder's 11 hard bans |
 > | Everything decided, so it is not relitigated | [`../operations/session-handoff.md`](../operations/session-handoff.md), last section |
 > | The structural reasoning | [`rebuild-2026-07/structure/SKETCH.html`](./rebuild-2026-07/structure/SKETCH.html) |
 >
