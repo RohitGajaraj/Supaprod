@@ -315,7 +315,9 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
 .rl1 .who{font-weight:550}
 .rl2{font-size:13px;color:var(--mute);margin-top:2px;line-height:1.4}
 .rt{font-family:var(--mono);font-size:12px;color:var(--mute);flex:none}
-.mkw{flex:none;display:flex;align-items:center;gap:-4px}
+/* a fixed slot, so a row carrying two marks starts its text on the same line as
+   a row carrying one. ragged text starts were the real defect here. */
+.mkw{flex:none;display:flex;align-items:center;width:34px}
 /* the human reads as a different KIND of thing, not a different colour of the same
    thing: agents are thin open line, you are a solid filled disc. that contrast
    survives greyscale and needs no ring shouting at you. */
@@ -327,8 +329,15 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
    a line you wrote. not as permanent decoration. */
 .you.mine{box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gate) 55%,transparent),
   0 0 0 2.5px color-mix(in oklab,var(--gate) 12%,transparent)}
+/* the crew drafted it and you changed it. the disc sits in front and punches a
+   clean hole out of the glyph behind it, so neither mark is cut in half. */
 .pair{display:flex;align-items:center}
-.pair .you{margin-left:-6px;background:var(--bg)}
+.pair .am{margin-right:-10px}
+.pair .you{position:relative;z-index:1;
+  box-shadow:0 0 0 2.5px var(--bg),inset 0 0 0 1px var(--line),
+    inset 0 1px 0 0 color-mix(in oklab,var(--ink) 7%,transparent)}
+.pair .you.mine{box-shadow:0 0 0 2.5px var(--bg),
+  inset 0 0 0 1px color-mix(in oklab,var(--gate) 55%,transparent)}
 .g{color:var(--pass)}.b{color:var(--fail)}.w{color:var(--warn)}
 /* a diffstat reads as a diffstat: added green, removed red, side by side, mono.
    green and red are outcome colours and they are welcome wherever an outcome is. */
