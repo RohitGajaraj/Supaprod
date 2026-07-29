@@ -1,4 +1,4 @@
-// Q1-MCP-P3 · Settings -> Agent access — Lane F.
+// Q1-MCP-P3 · Settings -> Agent access, Lane F.
 //
 // The Phase-3 UI for the read-only MCP (Model Context Protocol) server whose
 // backend (token RPCs + the live /api/mcp JSON-RPC route, 4 tool dispatchers,

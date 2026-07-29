@@ -1,4 +1,4 @@
-// Design memory — the Brand surface (DSN-01). One list: entry / category /
+// Design memory, the Brand surface (DSN-01). One list: entry / category /
 // source / when, each a standing decision with provenance. Row click expands
 // rationale + approve/reject for a pending entry (mirrors DecisionsPanel's
 // inline pending actions). "Add design language" opens a 3-mode dialog: import
