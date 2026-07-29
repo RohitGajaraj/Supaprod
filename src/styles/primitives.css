@@ -607,6 +607,91 @@
   margin-top: 1px;
 }
 
+/* ---------- form controls ----------
+ * Added 2026-07-29 after the first parallel port pass: six surfaces each
+ * hand-rolled an <input> or <select> from raw tokens with inline styles,
+ * which is how a design system drifts apart one surface at a time. A control
+ * a person types into is not a gate, so it gets a calm single ring, never the
+ * double ring the gate focus uses. */
+.sp-input,
+.sp-select,
+.sp-textarea {
+  width: 100%;
+  font: inherit;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-ink);
+  background: var(--sp-sink);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-ctl);
+  padding: 0 12px;
+  height: var(--sp-ctl-lg);
+  outline: none;
+  transition:
+    border-color var(--sp-dur-fast) var(--sp-ease),
+    background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: var(--sp-leading-body);
+}
+.sp-input:focus,
+.sp-select:focus,
+.sp-textarea:focus {
+  border-color: var(--sp-mute);
+  background: var(--sp-sheet);
+}
+.sp-input::placeholder,
+.sp-textarea::placeholder {
+  color: var(--sp-mute);
+}
+.sp-input:disabled,
+.sp-select:disabled,
+.sp-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sp-field {
+  display: block;
+  margin-top: var(--sp-space-3);
+}
+/* ONE label. If there is a second line it carries different information,
+ * never a restatement (hard ban 10). */
+.sp-field-label {
+  display: block;
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-mute);
+  margin-bottom: 6px;
+}
+
+/* ---------- preformatted ----------
+ * Logs, diffs, exported markdown. It scrolls inside its own box rather than
+ * making the page scroll sideways: horizontal scrolling was named twice as a
+ * pain point, and a document is the one place it is unavoidable. */
+.sp-pre {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data);
+  line-height: var(--sp-leading-body);
+  color: var(--sp-body);
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: var(--sp-space-4) 18px;
+  overflow-x: auto;
+  white-space: pre;
+  margin-top: var(--sp-space-3);
+}
+
+/* A block's second line: what this section is for, said once. */
+.sp-block-sub {
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+  margin: -6px 0 var(--sp-space-3);
+  max-width: 68ch;
+}
+
 /* ---------- filter tabs ----------
  * Text tabs, not a facet explosion and not pills. The restraint law: a filter
  * row is navigation furniture, so it stays quiet until you need it. */

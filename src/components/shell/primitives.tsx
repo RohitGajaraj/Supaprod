@@ -116,11 +116,17 @@ export function PairMark({
 
 export function Block({
   title,
+  sub,
   more,
   onMore,
   children,
 }: {
   title?: string;
+  /** What this section is for, said ONCE. If it restates the title it should
+   *  not exist (hard ban 10: label, sublabel and helper all saying the same
+   *  thing). Six surfaces in the first port pass reached for this and
+   *  hand-rolled it, so it is a real slot rather than a convenience. */
+  sub?: React.ReactNode;
   more?: string;
   onMore?: () => void;
   children: React.ReactNode;
@@ -137,6 +143,7 @@ export function Block({
           ) : null}
         </div>
       )}
+      {sub ? <div className="sp-block-sub">{sub}</div> : null}
       {children}
     </section>
   );
@@ -321,6 +328,74 @@ export function Surface({
 /** Honest, names who acts next, never a bare "No results". */
 export function Empty({ children }: { children: React.ReactNode }) {
   return <p className="sp-empty">{children}</p>;
+}
+
+/** A read that FAILED is not an empty state, and must never wear one's clothes:
+ *  "nothing here" and "we could not find out" are different facts and the user
+ *  acts differently on each. Three surfaces in the first port pass stood Empty
+ *  in for this, so it is a primitive. */
+export function Failed({
+  children,
+  onRetry,
+  retryLabel = "Try again",
+}: {
+  children: React.ReactNode;
+  onRetry?: () => void;
+  retryLabel?: string;
+}) {
+  return (
+    <p className="sp-empty">
+      <span className="sp-fail">{children}</span>
+      {onRetry ? (
+        <>
+          {" "}
+          <button type="button" className="sp-block-more" onClick={onRetry}>
+            {retryLabel}
+          </button>
+        </>
+      ) : null}
+    </p>
+  );
+}
+
+/** One labelled control. ONE label: if a second line appears it carries
+ *  different information, never a restatement. */
+export function Field({
+  label,
+  children,
+  htmlFor,
+}: {
+  label: string;
+  children: React.ReactNode;
+  htmlFor?: string;
+}) {
+  return (
+    <label className="sp-field" htmlFor={htmlFor}>
+      <span className="sp-field-label">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input className="sp-input" {...props} />;
+}
+export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className="sp-select" {...props} />;
+}
+export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className="sp-textarea" {...props} />;
+}
+
+/** Logs, diffs, exported documents. Scrolls inside its own box so the page
+ *  never scrolls sideways. */
+export function Pre({ children }: { children: React.ReactNode }) {
+  return <pre className="sp-pre">{children}</pre>;
+}
+
+/** A row of actions. One primary among them, and only one. */
+export function Actions({ children }: { children: React.ReactNode }) {
+  return <div className="sp-acts">{children}</div>;
 }
 
 /** Every number, duration, count, diff, identifier and timestamp. */
