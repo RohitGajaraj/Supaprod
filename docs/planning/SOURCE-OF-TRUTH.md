@@ -85,8 +85,45 @@
 > >
 > > **Parallelism buys the mechanical half only** (kill the duplicate header, swap slop for
 > > primitives, delete dead decoration). It cannot buy a user lens, which is the verdict's own
-> > method note. So a parallel port pass is **PASS ONE and is never "done"**: the surfaces above
-> > are mechanically clean and still owe their five answers.
+> > method note. So a parallel port pass is **PASS ONE and is never "done"**.
+> >
+> > **The justification wave ran 2026-07-29 and every surface above now carries its five answers
+> > in its own file header.** What it cut, in the agents' own words: `decide` killed a button
+> > that "needed a tooltip to explain its own label"; `learn` killed a gate that "was the biggest
+> > thing on a surface whose subject is the past, and it decided nothing about the past";
+> > `discover` collapsed three panels after concluding "the raw signal feed is not a second job,
+> > it is the evidence behind the cluster in focus"; `engine-room` cut 104 lines that `/sync`
+> > already owns; `brain` went from 15 rendered panels to 6 plus 2 behind a click; `settings`
+> > went 3433 to 2351 and found a per-agent switch that called no server function.
+>
+> > [!IMPORTANT]
+> > **⭐ AGENTIC-FIRST IS A DESIGN REQUIREMENT, NOT A BACKEND FACT. Founder, 2026-07-29:**
+> > *"Our platform is all about AI-native, agentic-first, so most of the things need to be done by
+> > agents itself. We need to design the user experience that way, and agent-friendly, so that
+> > it's not just in the backend but proven and working in the frontend as well."*
+> >
+> > This is the same complaint as [`rebuild-2026-07/agents/FINAL-agent-presence.md`](./rebuild-2026-07/agents/FINAL-agent-presence.md)
+> > (top priority, 1395 lines), whose original form was: *"We are saying Supaprod is built for
+> > product managers who ship with agents. And where is that agents part coming into picture for
+> > us? Nowhere."* Its override decides it: **mechanism is machinery and stays behind the door;
+> > labour is not machinery, and who did the work is chrome.** The Engine-Room doctrine was right
+> > about dispatch and checkpoints and wrong about the workforce.
+> >
+> > **Now built (R10, the Commit):** settling a call no longer fires a toast. It writes a receipt
+> > carrying the item's own real consequence, and a failed write still writes one and goes honest
+> > immediately. *"A toast confirms that your click registered; the Commit renders what your click
+> > caused, and that difference is the product thesis expressed as an interaction."* No arrow is
+> > drawn to a receiving agent, because nothing in the decide response says who picks the work up
+> > and an arrow to nowhere is worse than none. Verified live: zero toasts, receipt present.
+> >
+> > **Still open from that doctrine:** R7 (attribution as a property of the object: seven tables
+> > gain three columns, a Byline mounts on sixteen surfaces), R4 (whether the crew earns a
+> > permanent shell region, which the four-region prototype answered differently), and R11 (first
+> > light starts one real run before the user types).
+> >
+> > SURFACE-JUSTIFICATION.md carries this as question 6, with a blunt test: **if you removed every
+> > agent from this product, would this surface look any different? If not, it is a filing cabinet
+> > with the agents in the basement.**
 >
 > **Known blocker, and the standing decision on it:** DB access has to go through the **Lovable**
 > MCP, never Supabase directly, because Supabase is provisioned and managed by Lovable here and
