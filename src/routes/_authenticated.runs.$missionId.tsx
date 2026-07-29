@@ -115,8 +115,9 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { STAGE_LABEL, usePublishRunStrip } from "@/components/shell/run-strip";
-import { getRunStages, type RunStageFact } from "@/lib/run-stages.functions";
+import { usePublishRunStrip } from "@/components/shell/run-strip";
+import { getRunStages } from "@/lib/run-stages.functions";
+import { StagePanel } from "@/components/runs/stages/StagePanel";
 import type { AgentStation } from "@/lib/agent-vocabulary";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -153,7 +154,6 @@ import {
   Empty,
   Failed,
   Gate,
-  Loading,
   Num,
   PageHead,
   Receipt,
@@ -490,51 +490,6 @@ function gateLines(a: StudioApproval): React.ReactNode[] {
 /* ------------------------------------------------------------------ *
  * The surface
  * ------------------------------------------------------------------ */
-
-/**
- * One of the six non-Build stages, as this run experienced it.
- *
- * It is deliberately small. The cross-run library for each stage still exists
- * (`/discover`, `/decide`, `/prds/$id`, `/learn`) and answers "every decision we
- * ever made"; this answers the narrower question "what happened at this stage,
- * on THIS run", which is the only question the strip is asking.
- *
- * A stage with nothing behind it says so. It does not draw a placeholder chart,
- * it does not say "0 signals" when what it means is "no link from this run back
- * to a signal", and it does not render as finished because the run moved past
- * it. Those distinctions are made in getRunStages and carried here verbatim.
- */
-function StagePanel({ fact }: { fact: RunStageFact | null }) {
-  const navigate = useNavigate();
-  if (!fact) return <Loading>Reading the record for this stage.</Loading>;
-
-  const label = STAGE_LABEL[fact.station];
-  const quiet = fact.state === "quiet";
-
-  return (
-    <Block title={label}>
-      {quiet ? (
-        <Empty>
-          {fact.note}. Nothing was recorded against {label.toLowerCase()} for this run, which is not
-          the same as nothing having happened.
-        </Empty>
-      ) : (
-        <Row
-          marks={<AgentMark slug={BUILDER} state={fact.state === "gate" ? "gate" : "quiet"} />}
-          lead={fact.note}
-          sub={`${label}, on this run`}
-        />
-      )}
-      {fact.href ? (
-        <Actions>
-          <Button onClick={() => void navigate({ to: fact.href! })}>
-            Open {label.toLowerCase()}
-          </Button>
-        </Actions>
-      ) : null}
-    </Block>
-  );
-}
 
 function BuildRun() {
   const { missionId } = Route.useParams();
@@ -1018,7 +973,14 @@ function BuildRun() {
           holds for this run, and a door to the surface that holds the rest.
           You never leave the run to walk its own lifecycle. */}
       {stage !== "build" ? (
-        <StagePanel fact={stages?.find((s) => s.station === stage) ?? null} />
+        <StagePanel
+          station={stage}
+          fact={stages?.find((s) => s.station === stage) ?? null}
+          evidence={stagesQ.data?.evidence ?? null}
+          initials={initials}
+          error={stagesQ.isError ? clip((stagesQ.error as Error)?.message ?? "", 200) : null}
+          onRetry={() => void stagesQ.refetch()}
+        />
       ) : isOrchestrator ? (
         <Block title="What happened, in order">
           <MissionOrchestratorDetail missionId={missionId} />
