@@ -12,7 +12,7 @@ import { BillingBanner } from "@/components/billing/BillingBanner";
 import { AskProvider } from "@/lib/ask-context";
 import { ROOM_ROUTE_IDS } from "@/lib/room-url";
 import { GlobalComposer } from "@/components/mission/composer";
-import { FocusDock } from "@/components/supaprod/FocusDock";
+// FocusDock retired by the rebuild; see the note at its former call site.
 
 export const Route = createFileRoute("/_authenticated")({
   // Disable SSR/prerender for the entire authenticated subtree. Without a
@@ -212,13 +212,15 @@ function AuthedLayout() {
                   MissionShell answers the same keys and events, so
                   GlobalComposer stands down there (it self-excludes). */}
             {!isOnboarding && <GlobalComposer />}
-            {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
-                  page, the cross-surface countdown while a block runs (Option F).
-                  Off Mission Control: its fixed bottom-center sliver sits on top
-                  of the room's docked Composer and intercepts its clicks (found
-                  in live smoke 2026-07-19), and the founder's Gate 1 retirements
-                  already drop the dock from the reimagined room. */}
-            {!isOnboarding && !isReimaginedSurface && <FocusDock />}
+            {/* The focus dock is RETIRED by the rebuild (2026-07-29). The
+                approved shell is four regions and not eight, and a fixed
+                bottom-center sliver floating over the work is a fifth. It was
+                already dropped from the room by the founder's Gate 1
+                retirements, and AppFrame now wraps every surface, so scoping it
+                per route would only have kept it alive on the pages being
+                ported. FocusDock.tsx stays in the tree unmounted (Addendum 1.1
+                rule 8) rather than deleted, so the countdown behaviour is
+                recoverable if the founder wants it back inside a region. */}
           </AskProvider>
         </FlowModeProvider>
       </WorkspaceProvider>

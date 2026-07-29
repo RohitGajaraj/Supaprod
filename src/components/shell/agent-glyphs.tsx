@@ -1,0 +1,195 @@
+/**
+ * Agent glyphs. Step 3 of the rebuild.
+ *
+ * THE ENCODING, and it is the whole point (anti-slop.md §3):
+ *   SHAPE = which agent. Thirteen distinct silhouettes, each drawn to say
+ *           what that agent does.
+ *   HUE   = which loop stage it belongs to. Seven families, not thirteen.
+ *
+ * Doubly encoded, so it survives greyscale and colour blindness, and it is
+ * readable at 22px where two letters were not. It also means a colour tells
+ * you something useful about an agent you have never met.
+ *
+ * WHY NOT agent-vocabulary's own hue + glyph: that catalog carries a
+ * PER-AGENT oklch hue and a lucide icon name. Thirteen competing hues is
+ * exactly what the stage-family model replaces, and a generic icon set says
+ * nothing about the job. agent-vocabulary stays the source of truth for who
+ * an agent IS (slug, name, station, blurb); this module is only how it draws.
+ *
+ * Keyed on the DISPLAY NAME rather than the slug, because the catalog rolls
+ * many slugs onto one identity (discovery-scout, discovery, scout, listener
+ * and competitor-watcher are all "Watch"). Thirteen names, thirteen glyphs,
+ * and a new alias slug needs no change here.
+ */
+
+import type { ReactElement, SVGProps } from "react";
+import { agentDisplayName, agentStation, type AgentStation } from "@/lib/agent-vocabulary";
+
+const g: SVGProps<SVGSVGElement> = {
+  viewBox: "0 0 16 16",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.4,
+  "aria-hidden": true,
+  focusable: false,
+};
+
+/** Watch: a signal arriving, with the source below it. */
+const Watch = () => (
+  <svg {...g} strokeLinecap="round">
+    <path d="M2.6 11.2a6 6 0 0 1 10.8 0" />
+    <path d="M5.4 9.8a3 3 0 0 1 5.2 0" />
+    <circle cx="8" cy="12.4" r=".9" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Research: looking closely at one thing. */
+const Research = () => (
+  <svg {...g} strokeLinecap="round">
+    <circle cx="6.9" cy="6.9" r="4" />
+    <path d="M10 10l3.4 3.4" />
+  </svg>
+);
+
+/** Listen: a waveform. Someone is speaking and it is being heard. */
+const Listen = () => (
+  <svg {...g} strokeLinecap="round">
+    <path d="M4 6.2v3.6M7 4v8M10 5.4v5.2M13 7v2" />
+  </svg>
+);
+
+/** Prioritize: a ranked list, longest first. */
+const Prioritize = () => (
+  <svg {...g} strokeLinecap="round">
+    <path d="M3 4.2h10M3 8h6.5M3 11.8h3.5" />
+  </svg>
+);
+
+/** Challenge: a diamond standing on its point. It is in the way on purpose. */
+const Challenge = () => (
+  <svg {...g} strokeLinejoin="round">
+    <path d="M8 2.6 13.4 8 8 13.4 2.6 8Z" />
+  </svg>
+);
+
+/** Chief of Staff: a hierarchy, not a sparkle. Sparkle-as-AI is a banned pattern. */
+const ChiefOfStaff = () => (
+  <svg {...g} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="6.2" y="2.2" width="3.6" height="3.6" rx=".8" />
+    <rect x="1.8" y="10.2" width="3.6" height="3.6" rx=".8" />
+    <rect x="10.6" y="10.2" width="3.6" height="3.6" rx=".8" />
+    <path d="M8 5.8v2.3M3.6 10.2V8.1h8.8v2.1" />
+  </svg>
+);
+
+/** Draft: a nib on a line. Something is being written. */
+const Draft = () => (
+  <svg {...g} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11.4 2.9 13.1 4.6 6 11.7l-2.4.7.7-2.4Z" />
+    <path d="M3 13.8h10" />
+  </svg>
+);
+
+/** Plan: staggered steps. An order of work, not a ranking. */
+const Plan = () => (
+  <svg {...g} strokeLinecap="round">
+    <path d="M2.8 4.2h5.4M5.6 8h6.4M8.4 11.8h4.8" />
+  </svg>
+);
+
+/** Design: a frame with a composition inside it. */
+const Design = () => (
+  <svg {...g} strokeLinejoin="round">
+    <rect x="2.9" y="2.9" width="10.2" height="10.2" rx="1.6" />
+    <path d="M2.9 10.1 6.4 6.7l2.6 2.6 2-1.9 2.1 2.1" />
+  </svg>
+);
+
+/** Engineer: a prompt. The place work is typed. */
+const Engineer = () => (
+  <svg {...g} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5.6 4 9.8 8l-4.2 4" />
+    <path d="M10.6 12.2h2.6" />
+  </svg>
+);
+
+/** Review: a check, enclosed. A bare tick read as an affordance and got
+ *  clicked; enclosed, it reads as a verdict instead. */
+const Review = () => (
+  <svg {...g} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="5.6" />
+    <path d="M5.4 8.1 7.2 10l3.4-4" />
+  </svg>
+);
+
+/** Announce: something broadcasting outward. */
+const Announce = () => (
+  <svg {...g} strokeLinecap="round">
+    <circle cx="4.4" cy="8" r="1.5" />
+    <path d="M8 4.6a4.6 4.6 0 0 1 0 6.8M11 2.6a7.6 7.6 0 0 1 0 10.8" />
+  </svg>
+);
+
+/** Measure: a trend, with the arrow saying which way it went. */
+const Measure = () => (
+  <svg {...g} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.8 11.4 6.2 7.9l2.4 2.4 4.6-5.1" />
+    <path d="M10.6 5.2h2.6v2.6" />
+  </svg>
+);
+
+/** The generic mark, for a slug the catalog does not know. Deliberately plain:
+ *  an unknown agent should look unknown rather than borrow another's identity. */
+const Unknown = () => (
+  <svg {...g} strokeLinecap="round">
+    <circle cx="8" cy="8" r="5.4" />
+  </svg>
+);
+
+const BY_NAME: Record<string, () => ReactElement> = {
+  Watch,
+  Research,
+  Listen,
+  Prioritize,
+  Challenge,
+  "Chief of Staff": ChiefOfStaff,
+  Draft,
+  Plan,
+  Design,
+  Engineer,
+  Review,
+  Announce,
+  Measure,
+};
+
+/** The glyph component for an agent slug, via its catalog display name. */
+export function glyphForSlug(slug: string | null | undefined): () => ReactElement {
+  return BY_NAME[agentDisplayName(slug)] ?? Unknown;
+}
+
+/** The seven stage families, in loop order. The station ids are the product's
+ *  own vocabulary (agent-vocabulary.ts); the token names are the prototype's.
+ *  Both are kept, rather than renaming either, because the stations are load
+ *  bearing in the database and the tokens are load bearing in the design. */
+const STATION_TOKEN: Record<AgentStation, string> = {
+  sense: "--sp-stage-discover",
+  decide: "--sp-stage-decide",
+  define: "--sp-stage-plan",
+  design: "--sp-stage-design",
+  build: "--sp-stage-build",
+  ship: "--sp-stage-ship",
+  learn: "--sp-stage-learn",
+};
+
+/** The stage hue for an agent slug, as a var() ready for a CSS custom property.
+ *  Build is the anchor when the station is unknown, matching the CSS fallback. */
+export function stageHueForSlug(slug: string | null | undefined): string {
+  const station = agentStation(slug);
+  return `var(${station ? STATION_TOKEN[station] : "--sp-stage-build"})`;
+}
+
+export function stageHueForStation(station: AgentStation): string {
+  return `var(${STATION_TOKEN[station]})`;
+}
+
+export { STATION_TOKEN };

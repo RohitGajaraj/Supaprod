@@ -1,0 +1,602 @@
+/* ===================================================================
+ * THE PRIMITIVES. Step 3 of the rebuild.
+ * Lifted from docs/planning/rebuild-2026-07/structure/PROTOTYPE-v2.html
+ * Tokens: src/styles/ink.css (--sp-*). No literal colour here.
+ *
+ * Six things, and surfaces are built out of these rather than designed
+ * one at a time:
+ *   agent mark · attribution row · gate · record recess · diffstat · block
+ *
+ * THE COLOUR LAW, which every rule below obeys:
+ *   Hue says WHICH STAGE. State is never a hue: a ring means running, low
+ *   opacity means quiet, ember means it needs you, red means it failed.
+ *   That is what keeps thirteen agent hues from competing with the four
+ *   status colours. Crew is monochrome everywhere but the Crew page.
+ * =================================================================== */
+
+/* ---------- agent mark ----------
+ * No chip, no box, no letters. The insignia stands on its own so it reads at
+ * a glance and the row stays quiet. The glyph IS the agent. */
+.sp-mark {
+  width: var(--sp-mark);
+  height: var(--sp-mark);
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-mute);
+  transition:
+    color var(--sp-dur-fast) var(--sp-ease),
+    opacity var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-mark svg {
+  width: var(--sp-mark-glyph);
+  height: var(--sp-mark-glyph);
+  display: block;
+}
+.sp-mark:hover {
+  color: var(--sp-ink);
+}
+
+/* ---- states. Colour appears here and almost nowhere else ---- */
+.sp-mark[data-state="quiet"] {
+  opacity: 0.42;
+}
+
+/* Running: a live ring turns around it and the glyph breathes. This is a real
+ * pulse on genuinely changing data, which is the one case the no-pulsing-dot
+ * rule allows, and it stops the moment the run does.
+ *
+ * A running agent wears ITS OWN stage hue, not a generic blue, so when two
+ * run at once you can tell them apart without a rainbow: the colours already
+ * mean something. Quiet agents stay monochrome, which is what keeps it legible. */
+@keyframes sp-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.52;
+  }
+}
+@keyframes sp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sp-mark[data-state="running"] {
+  color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 88%, var(--sp-ink));
+}
+.sp-mark[data-state="running"] svg {
+  animation: sp-breathe var(--sp-dur-breathe) var(--sp-ease-breath) infinite;
+}
+.sp-mark[data-state="running"]::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.2px solid transparent;
+  border-top-color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 78%, transparent);
+  border-right-color: color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 32%, transparent);
+  animation: sp-spin var(--sp-dur-spin) linear infinite;
+}
+
+/* Needs you: ember, and the only blink in the system. */
+@keyframes sp-attention {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.32;
+  }
+}
+.sp-mark[data-state="gate"] {
+  color: var(--sp-gate);
+}
+.sp-mark[data-state="gate"] svg {
+  animation: sp-attention var(--sp-dur-attention) var(--sp-ease-breath) infinite;
+}
+.sp-mark[data-state="failed"] {
+  color: var(--sp-fail);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-mark svg {
+    animation: none !important;
+  }
+  .sp-mark[data-state="running"]::after {
+    animation: none;
+    border-top-color: var(--sp-hue, var(--sp-stage-build));
+  }
+}
+
+/* Two or more running at once: the marks overlap into a stack that reads as
+ * one crew doing one job, with the count spelled out beside it. */
+.sp-stack {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.sp-stack .sp-mark {
+  margin-left: -7px;
+  position: relative;
+}
+.sp-stack .sp-mark:first-child {
+  margin-left: 0;
+}
+.sp-stack .sp-mark[data-state="running"]::after {
+  inset: -4px;
+}
+/* Each mark in a stack starts its turn at a different point, so two rings
+ * never sweep in lockstep and read as one object. */
+.sp-stack .sp-mark:nth-child(2)::after {
+  animation-delay: -0.55s;
+  animation-duration: 2.1s;
+}
+.sp-stack .sp-mark:nth-child(3)::after {
+  animation-delay: -1.1s;
+  animation-duration: 1.9s;
+}
+.sp-stack .sp-mark:nth-child(4)::after {
+  animation-delay: -1.6s;
+  animation-duration: 2.3s;
+}
+
+/* On the Crew page the glyph grows and takes its stage hue: that is the one
+ * surface where the roster is the subject, so colour is information there. */
+.sp-mark[data-size="lg"] {
+  width: var(--sp-mark-lg);
+  height: var(--sp-mark-lg);
+  color: var(--sp-hue, var(--sp-stage-build));
+}
+.sp-mark[data-size="lg"] svg {
+  width: 20px;
+  height: 20px;
+}
+.sp-mark[data-size="lg"]:hover {
+  color: var(--sp-hue, var(--sp-stage-build));
+  opacity: 0.72;
+}
+.sp-mark[data-size="lg"][data-state="gate"] {
+  color: var(--sp-gate);
+}
+.sp-mark[data-size="lg"][data-state="failed"] {
+  color: var(--sp-fail);
+}
+
+/* ---------- the human ----------
+ * You read as a different KIND of thing, not a different colour of the same
+ * thing: agents are a thin open line, you are a solid filled disc. That
+ * contrast survives greyscale and needs no ring shouting at you. */
+.sp-you {
+  width: var(--sp-mark);
+  height: var(--sp-mark);
+  border-radius: 50%;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: var(--sp-text-monogram);
+  font-weight: var(--sp-weight-heavy);
+  letter-spacing: var(--sp-track-monogram);
+  color: var(--sp-ink);
+  background: linear-gradient(160deg, var(--sp-float), var(--sp-lift));
+  box-shadow:
+    inset 0 0 0 1px var(--sp-line),
+    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
+}
+/* Ember appears on it only when the moment is genuinely yours: a call you
+ * settled, a line you wrote. Not as permanent decoration. */
+.sp-you[data-mine="true"] {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 55%, transparent),
+    0 0 0 2.5px color-mix(in oklab, var(--sp-gate) 12%, transparent);
+}
+/* The crew drafted it and you changed it. The disc sits in front and punches
+ * a clean hole out of the glyph behind it, so neither mark is cut in half. */
+.sp-pair {
+  display: flex;
+  align-items: center;
+}
+.sp-pair .sp-mark {
+  margin-right: -10px;
+}
+.sp-pair .sp-you {
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 0 2.5px var(--sp-bg),
+    inset 0 0 0 1px var(--sp-line),
+    inset 0 1px 0 0 color-mix(in oklab, var(--sp-ink) 7%, transparent);
+}
+.sp-pair .sp-you[data-mine="true"] {
+  box-shadow:
+    0 0 0 2.5px var(--sp-bg),
+    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 55%, transparent);
+}
+
+/* ---------- block ----------
+ * A rule wherever the content changes register: what needs you, what was
+ * done, what was learned. Space alone carries this on a wide screen and
+ * stops carrying it on a laptop, where the rhythm compresses and the
+ * sections run together. It is a rule, not decoration, so it never appears
+ * inside a section. */
+.sp-block {
+  margin-top: 36px;
+  padding-top: var(--sp-space-7);
+  border-top: 1px solid var(--sp-line-soft);
+}
+.sp-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.sp-block-title {
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-ink);
+}
+.sp-block-more {
+  font: inherit;
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.sp-block-more:hover {
+  color: var(--sp-ink);
+}
+
+/* ---------- attribution row ----------
+ * No card. Dividers only. One bordered container per region, maximum. */
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: var(--sp-row-h-decision);
+  padding: 9px 10px;
+  margin: 0 -10px;
+  border-radius: var(--sp-radius-row);
+  cursor: pointer;
+  text-align: left;
+  width: calc(100% + 20px);
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  transition: background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-row:hover {
+  background: var(--sp-hover);
+}
+.sp-row + .sp-row {
+  border-top: 1px solid var(--sp-line-soft);
+}
+/* A fixed slot, so a row carrying two marks starts its text on the same line
+ * as a row carrying one. Ragged text starts were the real defect here. */
+.sp-row-marks {
+  flex: none;
+  display: flex;
+  align-items: center;
+  width: 34px;
+}
+.sp-row-body {
+  flex: 1;
+  min-width: 0;
+}
+.sp-row-lead {
+  font-size: var(--sp-text-body);
+  color: var(--sp-ink);
+  line-height: var(--sp-leading-row);
+}
+.sp-row-who {
+  font-weight: var(--sp-weight-strong);
+}
+.sp-row-sub {
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+  margin-top: 2px;
+  line-height: var(--sp-leading-row);
+}
+.sp-row-time {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+  flex: none;
+}
+.sp-pass {
+  color: var(--sp-pass);
+}
+.sp-fail {
+  color: var(--sp-fail);
+}
+.sp-warn {
+  color: var(--sp-warn);
+}
+
+/* ---------- diffstat ----------
+ * A diffstat reads as a diffstat: added green, removed red, side by side,
+ * mono. Green and red are outcome colours and they are welcome wherever an
+ * outcome is. */
+.sp-diff {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+.sp-diff b {
+  font-weight: var(--sp-weight-medium);
+  padding: 3px 7px;
+  border-radius: var(--sp-radius-sm);
+}
+.sp-diff .sp-pass {
+  background: color-mix(in oklab, var(--sp-pass) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sp-pass) 26%, transparent);
+}
+.sp-diff .sp-fail {
+  background: color-mix(in oklab, var(--sp-fail) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sp-fail) 26%, transparent);
+}
+
+/* ---------- the gate ----------
+ * The biggest thing on the surface, and not a card in a card. */
+.sp-gate {
+  margin-top: 34px;
+  padding-top: 26px;
+  border-top: 1px solid var(--sp-line-soft);
+}
+.sp-gate-q {
+  font-size: var(--sp-text-gate);
+  font-weight: var(--sp-weight-strong);
+  letter-spacing: var(--sp-track-gate);
+  line-height: var(--sp-leading-gate);
+  max-width: var(--sp-gate-max);
+}
+.sp-gate-what {
+  margin-top: 14px;
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: var(--sp-space-4) 18px;
+}
+.sp-gate-line {
+  display: flex;
+  gap: 11px;
+  padding: 5px 0;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  align-items: baseline;
+}
+.sp-gate-line::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sp-mute);
+  flex: none;
+  transform: translateY(-2px);
+}
+.sp-gate-line b {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+}
+.sp-acts {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: var(--sp-space-4);
+  flex-wrap: wrap;
+}
+
+/* ---------- button ---------- one primary per screen */
+.sp-btn {
+  font: inherit;
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-medium);
+  height: var(--sp-ctl-md);
+  padding: 0 var(--sp-space-4);
+  border-radius: var(--sp-radius-ctl);
+  border: 1px solid var(--sp-line);
+  background: var(--sp-lift);
+  color: var(--sp-ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    transform var(--sp-dur-press) var(--sp-ease);
+}
+.sp-btn:hover {
+  background: var(--sp-float);
+}
+.sp-btn:active {
+  transform: translateY(1px);
+}
+.sp-btn[data-variant="primary"] {
+  background: var(--sp-ink);
+  color: var(--sp-bg);
+  border-color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+}
+.sp-btn[data-variant="primary"]:hover {
+  filter: brightness(0.93);
+}
+.sp-btn[data-variant="ghost"] {
+  border-color: transparent;
+  background: none;
+  color: var(--sp-mute);
+}
+.sp-btn[data-variant="ghost"]:hover {
+  color: var(--sp-ink);
+  background: var(--sp-hover);
+}
+.sp-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sp-btn:disabled:active {
+  transform: none;
+}
+/* The shortcut rides its own control. It was a stranded line before. */
+.sp-btn kbd {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-kbd);
+  margin-left: 7px;
+  padding: 1px 4px;
+  border-radius: var(--sp-radius-xs);
+  background: color-mix(in oklab, currentColor 13%, transparent);
+  opacity: 0.72;
+  font-weight: var(--sp-weight-regular);
+}
+.sp-btn[data-variant="primary"] kbd {
+  background: color-mix(in oklab, var(--sp-bg) 22%, transparent);
+  opacity: 0.62;
+}
+
+/* ---------- the record speaking ----------
+ * This is the moat, so it gets the one spotlight in the product. Not an edge,
+ * not a stripe, not a hue: actual light, falling on the mark and dying off
+ * fast, the way a lamp does. It is the only lit surface anywhere, which is
+ * what makes it register. Recorded as a deliberate override of the
+ * no-glow-on-dark rule in anti-slop.md. */
+.sp-record {
+  position: relative;
+  overflow: hidden;
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: 17px 19px;
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+/* It breathes once every eight seconds. Slow enough to be felt, not watched. */
+@keyframes sp-lamp {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.sp-record::before {
+  content: "";
+  position: absolute;
+  left: -40px;
+  top: -70px;
+  width: 280px;
+  height: 210px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--sp-spot), transparent 72%);
+  animation: sp-lamp var(--sp-dur-lamp) var(--sp-ease-breath) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-record::before {
+    animation: none;
+  }
+}
+.sp-record-mark {
+  width: 10px;
+  height: 10px;
+  background: var(--sp-ink);
+  transform: rotate(45deg);
+  flex: none;
+  margin-top: 6px;
+  position: relative;
+  z-index: 1;
+}
+.sp-record-body {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+.sp-record-text {
+  font-size: var(--sp-text-prose);
+  color: var(--sp-ink);
+  line-height: var(--sp-leading-tight);
+  display: block;
+}
+.sp-record-evidence {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+  margin-top: 6px;
+  display: block;
+}
+
+/* ---------- page head ---------- */
+.sp-title {
+  font-size: var(--sp-text-title);
+  font-weight: var(--sp-weight-strong);
+  letter-spacing: var(--sp-track-title);
+  line-height: var(--sp-leading-title);
+  max-width: var(--sp-title-max);
+  color: var(--sp-ink);
+}
+.sp-subtitle {
+  font-size: var(--sp-text-prose);
+  color: var(--sp-mute);
+  margin-top: var(--sp-space-2);
+}
+
+/* ---------- context column pieces ---------- quiet, never a second nav */
+.sp-ctx-head {
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-mute);
+  margin-bottom: 11px;
+}
+.sp-ctx-body + .sp-ctx-head,
+.sp-ctx-row + .sp-ctx-head {
+  margin-top: var(--sp-space-7);
+  padding-top: 22px;
+  border-top: 1px solid var(--sp-line-soft);
+}
+.sp-ctx-body {
+  font-size: var(--sp-text-meta);
+  color: var(--sp-body);
+  line-height: var(--sp-leading-body);
+}
+.sp-ctx-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: var(--sp-space-2) 0;
+}
+.sp-ctx-row + .sp-ctx-row {
+  border-top: 1px solid var(--sp-line-soft);
+}
+/* Both are their own line. As inline spans they ran together into
+ * "PrioritizeThis workspace", which is the kind of defect that only shows up
+ * once real data is in front of it. */
+.sp-ctx-name {
+  display: block;
+  font-size: var(--sp-text-meta);
+  color: var(--sp-ink);
+}
+.sp-ctx-sub {
+  display: block;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin-top: 1px;
+}
+
+/* ---------- empty state ----------
+ * Day one is the only day every user has. Honest, names who acts next. */
+.sp-empty {
+  padding: 26px 0;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-mute);
+  line-height: var(--sp-leading-body);
+  max-width: 52ch;
+}
