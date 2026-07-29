@@ -441,6 +441,11 @@
   min-width: 0;
   max-width: var(--sp-main-max);
 }
+/* Same column, no measure. For grids, tables and canvases, which lay
+ * themselves out in columns and are not read line by line. */
+.sp-wide {
+  min-width: 0;
+}
 /* The context column NEVER disappears. On a narrow region it stacks under
  * the main column instead of hiding, because hiding it loses information
  * that a 14 inch laptop needs just as much as a 32 inch one. */

@@ -179,10 +179,10 @@ function AuthedLayout() {
     // wrap them (founder ruling 2026-07-20: no bounce back to the retired shell).
     pathname === "/settings" ||
     pathname.startsWith("/settings/") ||
-    pathname === "/approvals" ||
-    pathname.startsWith("/approvals/") ||
     pathname === "/brain" ||
     pathname.startsWith("/brain/");
+  // /approvals came off this list on 2026-07-29: it is ported and now renders
+  // inside AppFrame like every other surface. The list only ever shrinks.
 
   return (
     // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the

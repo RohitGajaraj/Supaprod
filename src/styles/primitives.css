@@ -289,7 +289,11 @@
   flex: 1;
   min-width: 0;
 }
+/* Lead and sub are each their own line. As inline spans they ran together
+ * ("...every weekThe primary success metric..."), the same defect the context
+ * column had. Grepped for the pattern rather than fixing one instance. */
 .sp-row-lead {
+  display: block;
   font-size: var(--sp-text-body);
   color: var(--sp-ink);
   line-height: var(--sp-leading-row);
@@ -298,6 +302,7 @@
   font-weight: var(--sp-weight-strong);
 }
 .sp-row-sub {
+  display: block;
   font-size: var(--sp-text-meta);
   color: var(--sp-mute);
   margin-top: 2px;
@@ -586,6 +591,114 @@
 }
 .sp-ctx-sub {
   display: block;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin-top: 1px;
+}
+
+/* ---------- filter tabs ----------
+ * Text tabs, not a facet explosion and not pills. The restraint law: a filter
+ * row is navigation furniture, so it stays quiet until you need it. */
+.sp-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--sp-space-4);
+  flex-wrap: wrap;
+}
+.sp-tab {
+  font: inherit;
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+  background: none;
+  border: 0;
+  padding: 5px 10px;
+  border-radius: var(--sp-radius-chip);
+  cursor: pointer;
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-tab:hover {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
+}
+.sp-tab[aria-selected="true"] {
+  background: var(--sp-lift);
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-medium);
+}
+.sp-tab-count {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data-sm);
+  margin-left: 5px;
+  opacity: 0.7;
+}
+
+/* The row currently holding the keyboard's attention. A ring, because it is
+ * focus and not a state of the work. */
+.sp-row[data-focused="true"] {
+  background: var(--sp-hover);
+  box-shadow: inset 0 0 0 1px var(--sp-line);
+}
+
+/* ---------- the crew roster ----------
+ * The one surface where the roster is the subject, so colour is information
+ * here rather than decoration: each stage group is headed by its own hue and
+ * the marks wear it. Everywhere else in the product crew is monochrome. */
+.sp-stagegroup {
+  margin-top: 30px;
+}
+.sp-sg-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--sp-space-3);
+}
+/* A bar, not a dot and not a border-left on a card. A coloured stripe down
+ * the side of a card is the single most recognisable AI tell (ban 4); a short
+ * rule that heads a group is a label. */
+.sp-sg-bar {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  flex: none;
+  background: var(--sp-hue);
+}
+.sp-sg-name {
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-ink);
+}
+.sp-sg-count {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+}
+.sp-agrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: var(--sp-space-2);
+}
+.sp-acard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-3);
+  padding: 11px 13px;
+  border-radius: var(--sp-radius-card);
+  transition: background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-acard:hover {
+  background: var(--sp-hover);
+}
+.sp-aname {
+  font-size: var(--sp-text-body);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-ink);
+}
+.sp-asub {
   font-size: var(--sp-text-label);
   color: var(--sp-mute);
   margin-top: 1px;

@@ -286,13 +286,20 @@ export function PageHead({ title, sub }: { title: React.ReactNode; sub?: React.R
 export function Surface({
   children,
   context,
+  wide = false,
 }: {
   children: React.ReactNode;
   context?: React.ReactNode;
+  /** Drop the 74ch measure. The measure exists so a LINE OF PROSE stays
+   *  readable; it is the wrong constraint for a grid, a table or a canvas,
+   *  which want the room. Caught on the Crew roster, where the cap squeezed a
+   *  13-card grid into two columns with half the screen empty. Prose keeps
+   *  the measure; anything laid out in columns of its own passes wide. */
+  wide?: boolean;
 }) {
   return (
     <div className="sp-inner">
-      <div className="sp-main">{children}</div>
+      <div className={wide ? "sp-wide" : "sp-main"}>{children}</div>
       {context ? <aside className="sp-ctx">{context}</aside> : null}
     </div>
   );
