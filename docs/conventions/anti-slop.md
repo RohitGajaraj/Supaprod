@@ -71,6 +71,30 @@ the override and the reason. Decisions already taken this way:
 
 **A skill is a source, not an authority. Judge it.**
 
+### The eleven themselves can be overridden, once, with a reason
+
+Founder ruling, 2026-07-29, and it extends to the hard list:
+
+> *"If there is anything that's getting banned, you can just avoid it for one time because that
+> makes sense to showcase it, because somewhere this platform would be also used by developers.
+> And when we are catering to those users' demographics, we need to speak in their languages."*
+
+So a ban yields when **the banned thing is the clearest way to say a true thing to the audience in
+front of it.** Developers are part of that audience and they read certain conventions natively. The
+bar is not "it would look nice", it is "the alternative communicates worse".
+
+Every override is written down here with what it bought. Taken so far:
+
+| Broken | Where | What it bought |
+|---|---|---|
+| No glowing accents on dark | the auth door, one warm radial behind the card | lifts the card off the field. One surface, one bloom, no second instance anywhere. |
+| No decorative grid | the auth door, the public landing | the drafting field is the brand's own texture, and it is two weights rather than a default overlay. |
+| No pulsing status dot | the running agent mark | the rule's own exception: it animates because the data genuinely is changing. A spinning arc plus a breath, and it stops the moment the run does. |
+| Cream surfaces | the light theme | the founder asked for warm, and warm-tinted neutrals at very low chroma read as paper stock rather than as beige. |
+
+**The discipline that keeps this honest:** an override is a decision, so it gets a line in this
+table. An override nobody wrote down is just slop with a story.
+
 ---
 
 ## 3. The systems this repo has committed to
