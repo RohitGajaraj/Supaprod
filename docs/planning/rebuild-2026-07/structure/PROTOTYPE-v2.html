@@ -53,13 +53,18 @@
      are tinted toward the ember hue at very low chroma, so it reads as warm
      paper stock under a lamp rather than as a beige template. separation comes
      from elevation, not from a hard value gap. */
-  --bg:#eeebe6; --sheet:#f8f6f3; --lift:#f3f0ec; --sink:#e8e4de; --float:#fdfcfa;
-  --ink:#2a2622; --body:#5d564e; --mute:#847b71; --line:rgba(50,40,30,.11);
-  --line2:rgba(50,40,30,.055); --hover:rgba(50,40,30,.034);
-  --shadow:0 10px 26px -10px rgba(60,45,30,.15),0 2px 5px -2px rgba(60,45,30,.08);
-  --star:rgba(70,55,40,.24);
-  --grid:rgba(60,45,30,.028); --grid2:rgba(60,45,30,.05);
-  --spot:rgba(255,250,240,.85);
+  /* warm paper, and committed to it. the canvas carries a real trace of yellow,
+     panels are a warmer white above it, and the ink is a warm near-black rather
+     than a neutral one, so nothing on the page reads as grey sitting on cream.
+     chroma stays low throughout, which is the line between paper stock and a
+     beige template. */
+  --bg:#efe9dc; --sheet:#faf6ed; --lift:#f4efe3; --sink:#e8e1d0; --float:#fffdf7;
+  --ink:#2b2318; --body:#5f5647; --mute:#8a8071;
+  --line:rgba(70,55,30,.13); --line2:rgba(70,55,30,.065); --hover:rgba(70,55,30,.04);
+  --shadow:0 10px 26px -10px rgba(80,60,25,.16),0 2px 5px -2px rgba(80,60,25,.09);
+  --star:rgba(90,70,40,.26);
+  --grid:rgba(80,60,25,.03); --grid2:rgba(80,60,25,.055);
+  --spot:rgba(255,252,242,.92);
   /* the same seven families, taken down for a warm ground */
   --discover:#3d7a70; --decide:#8f6a26; --plan:#5c7234; --design:#7b5070;
   --build:#3f648a;   --ship:#8a5060;   --learn:#756d33;
@@ -129,9 +134,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
   border-radius:8px;cursor:pointer;transition:background .14s var(--ease)}
 .askb:hover{background:var(--float)}
 .askb .k{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
-.me{width:28px;height:28px;border-radius:50%;flex:none;border:1px solid var(--line);
-  display:grid;place-items:center;font-size:11.5px;font-weight:600;color:var(--ink);
-  background:var(--lift);cursor:pointer}
+.me{width:29px;height:29px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:11.5px;font-weight:650;letter-spacing:.01em;color:var(--ink);cursor:pointer;
+  background:linear-gradient(160deg,var(--float),var(--lift));
+  box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 0 color-mix(in oklab,var(--ink) 7%,transparent);
+  transition:box-shadow .16s var(--ease)}
+.me:hover{box-shadow:inset 0 0 0 1px var(--mute),inset 0 1px 0 0 color-mix(in oklab,var(--ink) 10%,transparent)}
 
 .mid{flex:1;display:flex;min-height:0}
 
@@ -139,13 +147,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
 .rail{width:236px;flex:none;background:var(--sheet);border-right:1px solid var(--line);
   display:flex;flex-direction:column;transition:width .22s var(--ease)}
 .app.narrow .rail{width:64px}
-.railtop{padding:14px 12px 10px}
-.crewline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
-.crewlab{font-size:12.5px;color:var(--mute);font-weight:500}
-.app.narrow .crewlab,.app.narrow .rlabel,.app.narrow .rcount,.app.narrow .crewlink{display:none}
+.app.narrow .rlabel,.app.narrow .rcount{display:none}
 /* 7 x 22 + 6 x 5 = 184. an explicit width is deterministic where auto-placement was not. */
-.crewgrid{display:flex;flex-wrap:wrap;gap:5px;width:190px;align-items:flex-start}
-.app.narrow .crewgrid{width:49px;margin:0 auto}
 
 /* agent mark: hue = stage family, monogram = the agent, shape = state */
 /* ============================================================
@@ -199,7 +202,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
 .stack .am{margin-left:-7px;position:relative}
 .stack .am:first-child{margin-left:0}
 .stack .am.run::after{inset:-4px}
-.stackn{font-family:var(--mono);font-size:12px;color:var(--build);margin-left:9px;flex:none}
 
 /* on the Crew page the glyph grows and takes its stage hue. */
 .am.lg{width:22px;height:22px;color:var(--h)}
@@ -216,7 +218,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14p
 .am.shp{--h:var(--ship)}
 .am.le{--h:var(--learn)}
 
-.nav{padding:6px 8px;flex:1;overflow-y:auto}
+.nav{padding:14px 8px 6px;flex:1;overflow-y:auto}
 .nrow{display:flex;align-items:center;gap:11px;height:38px;padding:0 10px;border-radius:9px;
   color:var(--body);cursor:pointer;text-decoration:none;font-size:14px;
   transition:background .13s var(--ease),color .13s var(--ease)}
@@ -314,9 +316,17 @@ h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max
 .rl2{font-size:13px;color:var(--mute);margin-top:2px;line-height:1.4}
 .rt{font-family:var(--mono);font-size:12px;color:var(--mute);flex:none}
 .mkw{flex:none;display:flex;align-items:center;gap:-4px}
+/* the human reads as a different KIND of thing, not a different colour of the same
+   thing: agents are thin open line, you are a solid filled disc. that contrast
+   survives greyscale and needs no ring shouting at you. */
 .you{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;
-  font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--ink);
-  border:1.5px solid var(--gate)}
+  font-size:9.5px;font-weight:650;letter-spacing:.01em;color:var(--ink);
+  background:linear-gradient(160deg,var(--float),var(--lift));
+  box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 0 color-mix(in oklab,var(--ink) 7%,transparent)}
+/* ember appears on it only when the moment is genuinely yours: a call you settled,
+   a line you wrote. not as permanent decoration. */
+.you.mine{box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gate) 55%,transparent),
+  0 0 0 2.5px color-mix(in oklab,var(--gate) 12%,transparent)}
 .pair{display:flex;align-items:center}
 .pair .you{margin-left:-6px;background:var(--bg)}
 .g{color:var(--pass)}.b{color:var(--fail)}.w{color:var(--warn)}
@@ -672,17 +682,6 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
     </header>
     <div class="mid">
       <aside class="rail">
-        <div class="railtop">
-          <div class="crewline"><span class="crewlab">Your crew</span>
-            <span class="crewlink" style="font-size:12.5px;color:var(--mute)">1 waiting</span></div>
-          <div class="crewgrid">
-            <span class="am d1 quiet" title="Scout"><svg><use href="#a-scout"/></svg></span><span class="am d2 quiet" title="Researcher"><svg><use href="#a-researcher"/></svg></span><span class="am d3 quiet" title="Listener"><svg><use href="#a-listener"/></svg></span>
-            <span class="am de1 quiet" title="Strategist"><svg><use href="#a-strategist"/></svg></span><span class="am de2 quiet" title="Critic"><svg><use href="#a-critic"/></svg></span><span class="am de3 quiet" title="Chief of Staff"><svg><use href="#a-cos"/></svg></span>
-            <span class="am p1 gate" title="Writer"><svg><use href="#a-writer"/></svg></span><span class="am p2 quiet" title="Planner"><svg><use href="#a-planner"/></svg></span><span class="am ds quiet" title="Designer"><svg><use href="#a-designer"/></svg></span>
-            <span class="am b1 quiet" title="Engineer"><svg><use href="#a-engineer"/></svg></span><span class="am b2 quiet" title="Reviewer"><svg><use href="#a-reviewer"/></svg></span><span class="am shp quiet" title="Publisher"><svg><use href="#a-publisher"/></svg></span>
-            <span class="am le quiet" title="Analyst"><svg><use href="#a-analyst"/></svg></span>
-          </div>
-        </div>
         <nav class="nav">
           <a class="nrow on"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span><span class="rcount hot">1</span></a>
           <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">4</span></a>
@@ -733,7 +732,7 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
                 <span class="rl2">for the reason you gave in March</span></span>
               <span class="rt">5h</span></div>
             <div class="r">
-              <span class="mkw pair"><span class="am p1" title="Writer"><svg><use href="#a-writer"/></svg></span><span class="you">RG</span></span>
+              <span class="mkw pair"><span class="am p1" title="Writer"><svg><use href="#a-writer"/></svg></span><span class="you mine">RG</span></span>
               <span class="rc"><span class="rl1"><span class="who">Writer</span> drafted the onboarding spec, and you edited it</span>
                 <span class="rl2">you rewrote the second section</span></span>
               <span class="rt">6h</span></div>
@@ -802,7 +801,6 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
       <span class="runchip"><span class="runlabel">Run</span><span class="num">41</span></span>
       <div class="live" id="liveRun">
         <span class="stack"><span class="am b1 run" title="Engineer"><svg><use href="#a-engineer"/></svg></span><span class="am d2 run" title="Researcher"><svg><use href="#a-researcher"/></svg></span><span class="am de2 run" title="Critic"><svg><use href="#a-critic"/></svg></span></span>
-        <span class="stackn num">3</span>
         <span class="lt">3 agents are working</span>
         <span class="sep drop2">&middot;</span>
         <span class="lf drop2 num">autofill.tsx</span>
@@ -828,17 +826,6 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
 
     <div class="mid">
       <aside class="rail">
-        <div class="railtop">
-          <div class="crewline"><span class="crewlab">Your crew</span>
-            <span class="crewlink" style="font-size:12.5px;color:var(--mute)">3 running</span></div>
-          <div class="crewgrid">
-            <span class="am d1 quiet" title="Scout"><svg><use href="#a-scout"/></svg></span><span class="am d2 run" title="Researcher"><svg><use href="#a-researcher"/></svg></span><span class="am d3 quiet" title="Listener"><svg><use href="#a-listener"/></svg></span>
-            <span class="am de1 quiet" title="Strategist"><svg><use href="#a-strategist"/></svg></span><span class="am de2 run" title="Critic"><svg><use href="#a-critic"/></svg></span><span class="am de3 quiet" title="Chief of Staff"><svg><use href="#a-cos"/></svg></span>
-            <span class="am p1 quiet" title="Writer"><svg><use href="#a-writer"/></svg></span><span class="am p2 quiet" title="Planner"><svg><use href="#a-planner"/></svg></span><span class="am ds quiet" title="Designer"><svg><use href="#a-designer"/></svg></span>
-            <span class="am b1 run" title="Engineer"><svg><use href="#a-engineer"/></svg></span><span class="am b2 quiet" title="Reviewer"><svg><use href="#a-reviewer"/></svg></span><span class="am shp quiet" title="Publisher"><svg><use href="#a-publisher"/></svg></span>
-            <span class="am le quiet" title="Analyst"><svg><use href="#a-analyst"/></svg></span>
-          </div>
-        </div>
         <nav class="nav">
           <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
           <a class="nrow on"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">1</span></a>
@@ -860,7 +847,7 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
 
           <div class="block">
             <div class="bh"><span class="bt">What happened, in order</span></div>
-            <div class="r"><span class="mkw"><span class="you">RG</span></span>
+            <div class="r"><span class="mkw"><span class="you mine">RG</span></span>
               <span class="rc"><span class="rl1">You asked for it</span>
                 <span class="rl2">"the redirect drops the query string"</span></span>
               <span class="rt num">09:02</span></div>
@@ -954,16 +941,6 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
     </header>
     <div class="mid">
       <aside class="rail">
-        <div class="railtop">
-          <div class="crewline"><span class="crewlab">Your crew</span></div>
-          <div class="crewgrid">
-            <span class="am d1 quiet" title="Scout"><svg><use href="#a-scout"/></svg></span><span class="am d2 quiet" title="Researcher"><svg><use href="#a-researcher"/></svg></span><span class="am d3 quiet" title="Listener"><svg><use href="#a-listener"/></svg></span>
-            <span class="am de1 quiet" title="Strategist"><svg><use href="#a-strategist"/></svg></span><span class="am de2 quiet" title="Critic"><svg><use href="#a-critic"/></svg></span><span class="am de3 quiet" title="Chief of Staff"><svg><use href="#a-cos"/></svg></span>
-            <span class="am p1 quiet" title="Writer"><svg><use href="#a-writer"/></svg></span><span class="am p2 quiet" title="Planner"><svg><use href="#a-planner"/></svg></span><span class="am ds quiet" title="Designer"><svg><use href="#a-designer"/></svg></span>
-            <span class="am b1 quiet" title="Engineer"><svg><use href="#a-engineer"/></svg></span><span class="am b2 quiet" title="Reviewer"><svg><use href="#a-reviewer"/></svg></span><span class="am shp quiet" title="Publisher"><svg><use href="#a-publisher"/></svg></span>
-            <span class="am le quiet" title="Analyst"><svg><use href="#a-analyst"/></svg></span>
-          </div>
-        </div>
         <nav class="nav">
           <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
           <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span></a>
