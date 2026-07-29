@@ -14,7 +14,7 @@
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { TopBar } from "@/components/supaprod/TopBar";
+import { PageHead, Surface } from "@/components/shell/primitives";
 import { Button } from "@/components/obsidian";
 import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
@@ -50,27 +50,15 @@ function AdminLayout() {
   const active = activeTabId(loc.pathname);
 
   return (
-    <>
-      <TopBar crumbs={["Admin"]} />
-      <div
-        style={{
-          padding: "var(--page-inset-v) var(--page-inset-h) 64px",
-          maxWidth: 1100,
-          margin: "0 auto",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 460,
-            fontSize: 20,
-            lineHeight: 1.3,
-            color: "var(--text-primary)",
-            marginBottom: 20,
-          }}
-        >
-          Who runs this workspace, and what is it costing?
-        </p>
+    // The app shell already draws the brand, the workspace scope, the live line
+    // and Ask, so this surface does not draw a second header. /admin was the
+    // last TopBar mount site in the product.
+    <Surface wide>
+      <PageHead
+        title="Who runs this workspace, and what is it costing?"
+        sub="Members, plans and spend. Everything here changes what other people can do."
+      />
+      <div>
         {me.isLoading ? (
           <AdminSkeleton rows={3} height={40} />
         ) : me.isError ? (
@@ -126,7 +114,7 @@ function AdminLayout() {
           <NoAccessCard anyAdminExists={!!me.data?.anyAdminExists} />
         )}
       </div>
-    </>
+    </Surface>
   );
 }
 
