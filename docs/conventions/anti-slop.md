@@ -140,6 +140,53 @@ prototype's voice section.
 6. **Draw the empty state and the failure state.** Day one is the only day every user has.
 7. **Check contrast with numbers**, not with your eye.
 
+## 5. The receipt rule (founder ruling, 2026-07-29)
+
+**A write with a consequence leaves a Receipt showing what it caused. There are no success
+toasts.**
+
+This was doctrine before it was written down, which is how several briefs in the
+2026-07-29 sweep came to cite this file for a rule it did not contain. It is written down
+now. The source is `docs/planning/rebuild-2026-07/agents/FINAL-agent-presence.md` R10,
+"the Commit":
+
+> A toast confirms that your click registered; the Commit renders what your click caused,
+> and that difference is the product thesis expressed as an interaction.
+
+- The consequence must be the action's OWN real effect, read from the response or from a
+  static per-tool effect line. Never a generic "Saved."
+- A failed write still writes a receipt and goes honest immediately. Never a success shape
+  over a failed write.
+- Draw a handoff arrow only when something genuinely picked the work up. An arrow to
+  nowhere is worse than no arrow.
+- The narrow exception is a write with no consequence to render: a preference the surface
+  already re-renders to show. There, the changed surface IS the receipt, and nothing extra
+  is drawn. That is not a licence for a toast; it is a licence for silence.
+
+## 6. Recognition is not decoration (founder ruling, 2026-07-29)
+
+**If a thing has an identity, draw it. A wall of text cards where every card is a different
+product is a scanning failure, not a clean design.**
+
+The founder's words, on the connector catalogue:
+
+> "Everything is like a card design, and it's very blank. Please add the small satellite so
+> that it knows exactly what it is. All such nuances you should be picking up, it's not just
+> me calling it out. Not just here, across all product surfaces."
+
+So this is a standing obligation on every surface, not a fix to one:
+
+- A list of PROVIDERS gets provider marks. A list of AGENTS gets agent marks. A list of
+  PEOPLE gets a person's initials. A list of FILES gets its kind. Identity that the reader
+  already carries in their head should be met halfway.
+- The mark must survive greyscale: SHAPE identifies, colour only reinforces. This is the
+  same rule `agent-glyphs.tsx` obeys and it is why the monochrome default is not a
+  constraint on recognition.
+- Monochrome-by-default still holds everywhere state is the subject. An identity surface is
+  the documented exception, the same argument that lets `/crew` wear stage hues.
+- This does not license icons as ornament. An icon beside a word that already says the same
+  thing is noise. The test is whether a reader could find the row FASTER because of it.
+
 ## Related
 
 - [`engine-room-doctrine.md`](./engine-room-doctrine.md) - the first UX law: calm front, deep engine.

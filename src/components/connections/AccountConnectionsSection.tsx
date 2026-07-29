@@ -657,12 +657,12 @@ export function AccountConnectionsSection({
   /** The head states the boundary currently in force, from real rows only.
    *  While the read is in flight or after it failed it says so instead. */
   const headSub: ReactNode = failed
-    ? "Your sources did not load, so nothing below is the whole picture."
+    ? "Your connectors did not load, so nothing below is the whole picture."
     : loading
       ? "Reading what the crew is connected to."
       : reading.length === 0
-        ? `The crew reads nothing yet. ${connectableCount > 0 ? `${connectableCount} sources are ready to connect.` : "Every source is still waiting on an admin to register its app."}`
-        : `The crew reads ${reading.length} ${reading.length === 1 ? "source" : "sources"}. ${connectableCount > 0 ? `${connectableCount} more are ready to connect.` : "Everything else is waiting on an admin."}`;
+        ? `The crew reads nothing yet. ${connectableCount > 0 ? `${connectableCount} connectors are ready to connect.` : "Every connector is still waiting on an admin to register its app."}`
+        : `The crew reads ${reading.length} ${reading.length === 1 ? "connector" : "connectors"}. ${connectableCount > 0 ? `${connectableCount} more are ready to connect.` : "Everything else is waiting on an admin."}`;
 
   const readingLine = (a: { entry: CatalogEntry }) => {
     const e = a.entry;
@@ -747,18 +747,18 @@ export function AccountConnectionsSection({
 
   return (
     <div id="connections">
-      <PageHead title="Sources" sub={headSub} />
+      <PageHead title="Connectors" sub={headSub} />
 
       <Block
         title="What the crew reads"
-        sub="Each line says which account carries the source and what it is pointed at in this workspace."
+        sub="Each line says which account carries the connector and what it is pointed at in this workspace."
       >
         {failed ? (
           <Failed onRetry={() => void list.refetch()}>
-            Your sources did not load. {(list.error as Error)?.message ?? "The read failed."}
+            Your connectors did not load. {(list.error as Error)?.message ?? "The read failed."}
           </Failed>
         ) : loading ? (
-          <Loading>Reading your sources.</Loading>
+          <Loading>Reading your connectors.</Loading>
         ) : readingSorted.length === 0 ? (
           <Empty>
             Nothing connected. The crew reads only what you connect, so every mission currently runs
@@ -770,7 +770,7 @@ export function AccountConnectionsSection({
       </Block>
 
       <Block
-        title="Add a source"
+        title="Add a connector"
         sub={
           failed || loading
             ? undefined
@@ -792,7 +792,7 @@ export function AccountConnectionsSection({
             value={query}
             onChange={(ev) => setQuery(ev.target.value)}
             placeholder="Search"
-            aria-label="Search sources"
+            aria-label="Search connectors"
             style={{ width: 200 }}
           />
           {/* The ten category headings, and their 32px of air apiece, said as
@@ -813,7 +813,7 @@ export function AccountConnectionsSection({
         </div>
 
         {failed ? (
-          <Empty>The catalog needs the sources read above. Retry it and this fills in.</Empty>
+          <Empty>The catalog needs the connectors read above. Retry it and this fills in.</Empty>
         ) : loading ? (
           <Loading>Reading the catalog.</Loading>
         ) : filteredCatalog.length === 0 ? (
@@ -850,14 +850,14 @@ export function AccountConnectionsSection({
         }}
       >
         <Line
-          label="Point a source at something else"
+          label="Point a connector at something else"
           sub="Which repo, team, channel or database each one reads, and any two-sided edit waiting to be settled."
         >
           <Link to="/sync" className="sp-btn" data-variant="ghost">
             Open sync
           </Link>
         </Line>
-        <Line label="Ask for a source we do not carry">
+        <Line label="Ask for a connector we do not carry">
           <Input
             value={wanted}
             onChange={(ev) => setWanted(ev.target.value)}
@@ -985,7 +985,7 @@ export function ConnectorDetail({
   const back = (
     <div style={{ marginBottom: "var(--sp-space-3)" }}>
       <Button variant="ghost" onClick={onBack}>
-        All sources
+        All connectors
       </Button>
     </div>
   );
@@ -994,7 +994,9 @@ export function ConnectorDetail({
   // hand-edited URL that slips a non-user-facing provider through.
   if (!spec || spec.userFacing === false) {
     return (
-      <Empty action={<Button onClick={onBack}>All sources</Button>}>No source by that name.</Empty>
+      <Empty action={<Button onClick={onBack}>All connectors</Button>}>
+        No connector by that name.
+      </Empty>
     );
   }
 

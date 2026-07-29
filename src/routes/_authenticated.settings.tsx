@@ -246,7 +246,7 @@ const GROUPS: DoorGroup[] = [
     id: "sources",
     label: "Sources and data",
     doors: [
-      { id: "connections", label: "Sources" },
+      { id: "connections", label: "Connectors" },
       { id: "interop", label: "Agent access" },
       { id: "data", label: "Your data" },
     ],

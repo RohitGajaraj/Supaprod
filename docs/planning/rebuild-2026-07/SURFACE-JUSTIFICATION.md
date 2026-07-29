@@ -143,3 +143,41 @@ mechanically clean and design-incomplete. Say that plainly rather than reporting
 - [`../../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md) - calm
   front, deep engine. The original form of "depth is a click away".
 - [`structure/PROTOTYPE-v2.html`](./structure/PROTOTYPE-v2.html) - the four screens that ARE decided.
+
+---
+
+## Question 7: would a stranger recognise what they are looking at?
+
+Added by founder ruling, 2026-07-29, after the connector catalogue shipped as 21
+text-only cards:
+
+> "Everything is like a card design, and it's very blank. Please add the small satellite so
+> that it knows exactly what it is. All such nuances you should be picking up, it's not
+> just me calling it out. Not just here, across all product surfaces, whatever we are
+> reskinning and recreating and rebuilding. You need to think from that perspective: if you
+> have to build the best platform, how would that be?"
+
+The first six questions interrogate whether a surface DESERVES its contents. This one asks
+whether a person can USE them at a glance. A surface can pass all six and still be a wall.
+
+Answer all of these, in the surface's own header:
+
+- **What identity is on this surface, and is it drawn?** Providers, agents, people, file
+  kinds, environments. If a reader already carries a picture of the thing in their head,
+  meet them halfway. See `anti-slop.md` section 6.
+- **What is the scanning path?** Name the one thing a reader's eye should land on first and
+  say why it wins. If three things compete, none of them won.
+- **What does the emptiest realistic state look like?** Not zero rows, which is easy, but
+  the state a real workspace sits in for its first month: some rows, most facts missing.
+  Day one is the only day every user has.
+- **What does a stranger not understand?** Every internal word on the surface. If it needs
+  a tooltip to explain its own label, the label is wrong. The 2026-07-29 justification wave
+  killed a button on `/decide` for exactly this.
+
+**The standard this is measured against is not "better than before". It is Linear, Stripe,
+Vercel, Raycast.** Ship what you would be happy to have screenshotted next to them.
+
+**And the meta-rule, which is the actual instruction: the founder should not have to call
+these out.** A surface arriving for review with blank cards, a competing hierarchy or an
+unexplained internal word has not been designed, it has been assembled, which is the exact
+verdict that rejected all four earlier design directions.
