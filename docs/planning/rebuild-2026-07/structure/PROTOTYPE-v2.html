@@ -398,17 +398,22 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
 /* ---------- the door ---------- */
 .door{height:calc(100vh - 46px);position:relative;display:grid;place-items:center;overflow:hidden;
   background:var(--bg)}
-/* a fine drafting grid, two weights: a light 24px rule with a heavier line every
-   fifth. it reads as squared paper rather than as a wireframe overlay. */
-.field{position:absolute;inset:0;
-  background-image:
-    linear-gradient(var(--grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px),
-    linear-gradient(var(--grid2) 1px,transparent 1px),
-    linear-gradient(90deg,var(--grid2) 1px,transparent 1px);
-  background-size:24px 24px,24px 24px,120px 120px,120px 120px;
-  mask-image:radial-gradient(128% 108% at 50% 44%,#000 8%,transparent 72%);
-  -webkit-mask-image:radial-gradient(128% 108% at 50% 44%,#000 8%,transparent 72%)}
+/* the grid is drawn as individual segments by script, not as a repeating tile.
+   most cells are simply absent, and the ones that survive carry their own
+   opacity, so it reads as a field glimpsed in patches rather than as graph
+   paper laid over the whole screen. deterministic, so it never reshuffles. */
+.field{position:absolute;inset:0;overflow:hidden}
+.field svg{position:absolute;inset:0;width:100%;height:100%;
+  mask-image:radial-gradient(135% 115% at 50% 46%,#000 4%,transparent 68%);
+  -webkit-mask-image:radial-gradient(135% 115% at 50% 46%,#000 4%,transparent 68%)}
+
+/* the mark, large and low, revolving once every three minutes off the bottom
+   right corner. this is the treatment the production login already uses. */
+.watermark{position:absolute;right:-140px;bottom:-160px;width:520px;height:520px;
+  color:var(--ink);opacity:.055;pointer-events:none;z-index:0;
+  animation:revolve 190s linear infinite}
+@media (prefers-reduced-motion:reduce){.watermark{animation:none}}
+@media (max-width:760px){.watermark{width:360px;height:360px;right:-110px;bottom:-120px}}
 .stars{position:absolute;inset:0}
 .stars i{position:absolute;border-radius:50%;background:var(--star)}
 
@@ -439,11 +444,10 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
     transparent 78%)}
 
 .card{position:relative;z-index:2;width:344px;text-align:center}
-/* the real mark, small, one turn every three minutes. a fast glint steals attention. */
-.doormark{width:44px;height:44px;color:var(--ink);opacity:.9;margin:0 auto 22px;display:block;
-  animation:revolve 180s linear infinite}
+/* the small mark is identity and holds still. the large one behind it is
+   atmosphere and turns. two things revolving would fight each other. */
+.doormark{width:42px;height:42px;color:var(--ink);opacity:.92;margin:0 auto 22px;display:block}
 @keyframes revolve{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.doormark{animation:none}}
 /* ember earns the greeting: it is the one human moment on this surface, and the
    only place the brand colour carries type anywhere in the product. */
 .greet{font-family:var(--px);font-size:30px;color:var(--gate);line-height:1.15;
@@ -647,8 +651,9 @@ kbd{font-family:var(--mono);font-size:11px;margin-left:7px;padding:1px 4px;borde
 <!-- ============ THE DOOR ============ -->
 <section class="screen on" id="s-door">
   <div class="door" id="door">
-    <div class="field"></div>
+    <div class="field" id="field"></div>
     <div class="stars" id="stars"></div>
+    <svg class="watermark" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-logo"/></svg>
 
     <div class="card">
       <svg class="doormark" aria-hidden="true"><use href="#i-logo"/></svg>
@@ -1093,6 +1098,34 @@ $('#themeb').addEventListener('click',()=>{
   else if(d===5) g='Friday.';
   else if(h>=12&&h<17) g='Afternoon.';
   $('#greet').textContent=g;
+})();
+
+/* the grid, drawn in patches. a repeating tile covers everything evenly, which is
+   what made it overpowering. here each segment is kept or dropped at random and
+   carries its own weight, so the field appears and disappears across the screen.
+   fixed seed, so it is the same field every time rather than a new one. */
+(function(){
+  const box=$('#field'); if(!box) return;
+  let seed=77021, rnd=()=>((seed=seed*1103515245%2147483647)/2147483647);
+  const CELL=26, W=2600, H=1600;
+  const line=(x1,y1,x2,y2,o,w)=>
+    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--grid2)" stroke-width="${w}" opacity="${o}"/>`;
+  let out='';
+  for(let y=0;y<=H;y+=CELL){
+    for(let x=0;x<=W;x+=CELL){
+      // roughly a third of the horizontal segments survive
+      if(rnd()<.34) out+=line(x,y,x+CELL,y,(.12+rnd()*.5).toFixed(2),1);
+      // and about a quarter of the vertical ones, so the weave is never complete
+      if(rnd()<.26) out+=line(x,y,x,y+CELL,(.10+rnd()*.42).toFixed(2),1);
+    }
+  }
+  // a few heavier rules, far apart, to give the field some structure
+  for(let i=0;i<7;i++){
+    const gx=Math.round(rnd()*(W/CELL))*CELL, gy=Math.round(rnd()*(H/CELL))*CELL;
+    out+=line(gx,0,gx,H,(.10+rnd()*.14).toFixed(2),1);
+    out+=line(0,gy,W,gy,(.08+rnd()*.13).toFixed(2),1);
+  }
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${out}</svg>`;
 })();
 
 /* the starfield is deterministic, so it never reshuffles between renders */
