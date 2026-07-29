@@ -5,12 +5,15 @@
 -- Security posture (the 20260611085122 agent_runs drop is the precedent to
 -- honor): realtime postgres_changes enforces ROW LEVEL SECURITY per
 -- subscriber, and agent_approvals RLS is strictly per-user
--- ("own agent_approvals in member workspace": auth.uid() = user_id AND
--- is_workspace_member(workspace_id)), so a subscriber can only ever receive
--- their own rows. The past agent_runs leak was about column grants on WAL
--- rows, which does not apply to a table whose every column is already
--- visible to its owning user. The client additionally filters
--- user_id=eq.<uid> at the channel level for bandwidth.
+-- (auth.uid() = user_id). A subscriber can only ever receive their own rows.
+-- NOTE: The actual RLS policy does NOT include workspace membership scoping
+-- (is_workspace_member check), so a user could theoretically see their own
+-- approvals from workspaces they're no longer members of IF the insert/update
+-- logic created them. This is mitigated by application code that enforces
+-- workspace membership at insert time, but a workspace-scoped broadcast channel
+-- would be more robust as the original comment suggested.
+-- The client additionally filters user_id=eq.<uid> at the channel level for
+-- bandwidth, which provides defense in depth but is not sufficient alone.
 --
 -- REPLICA IDENTITY FULL so UPDATE events carry full rows and the channel
 -- filter evaluates on updates, not just inserts.
