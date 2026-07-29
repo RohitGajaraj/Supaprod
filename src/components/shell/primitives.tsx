@@ -168,6 +168,7 @@ export function Row({
   onClick,
   tight = false,
   focused = false,
+  action,
 }: {
   /** The mark slot is a fixed width, so text starts on the same line whether
    *  the row carries one mark or two. */
@@ -181,7 +182,36 @@ export function Row({
    *  row whose full content has a detail view to open. */
   tight?: boolean;
   focused?: boolean;
+  /** A control belonging to THIS row (revert, copy, open elsewhere). It sits
+   *  outside the clickable region so it is never a button inside a button. */
+  action?: React.ReactNode;
 }) {
+  const body = (
+    <>
+      <span className="sp-row-marks">{marks}</span>
+      <span className="sp-row-body">
+        <span className="sp-row-lead">{lead}</span>
+        {sub ? <span className="sp-row-sub">{sub}</span> : null}
+      </span>
+      {time ? <span className="sp-row-time">{time}</span> : null}
+    </>
+  );
+
+  // A row that is clickable AND carries its own control cannot be one button:
+  // a button inside a button is invalid, and a 38px control would double the
+  // row height. So the row becomes a container, the readable part becomes the
+  // clickable region, and the control sits outside it at the trailing edge.
+  if (onClick && action) {
+    return (
+      <div className="sp-row" data-tight={tight} data-focused={focused} data-has-action="true">
+        <button type="button" className="sp-row-open" onClick={onClick}>
+          {body}
+        </button>
+        <span className="sp-row-action">{action}</span>
+      </div>
+    );
+  }
+
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
@@ -191,12 +221,8 @@ export function Row({
       onClick={onClick}
       {...(onClick ? { type: "button" as const } : {})}
     >
-      <span className="sp-row-marks">{marks}</span>
-      <span className="sp-row-body">
-        <span className="sp-row-lead">{lead}</span>
-        {sub ? <span className="sp-row-sub">{sub}</span> : null}
-      </span>
-      {time ? <span className="sp-row-time">{time}</span> : null}
+      {body}
+      {action ? <span className="sp-row-action">{action}</span> : null}
     </Tag>
   );
 }
@@ -210,9 +236,20 @@ export function Who({ children }: { children: React.ReactNode }) {
  * Diffstat
  * ------------------------------------------------------------------ */
 
-export function Diffstat({ added, removed }: { added: number; removed: number }) {
+export function Diffstat({
+  added,
+  removed,
+  unit = "lines",
+}: {
+  added: number;
+  removed: number;
+  /** What is being counted. The shape reads as LINES by default, so a panel
+   *  counting characters must say so rather than borrowing a meaning it does
+   *  not have. Reported from the changes panel, whose rows carry char deltas. */
+  unit?: string;
+}) {
   return (
-    <span className="sp-diff" aria-label={`${added} added, ${removed} removed`}>
+    <span className="sp-diff" aria-label={`${added} ${unit} added, ${removed} ${unit} removed`}>
       <b className="sp-pass">+{added}</b>
       <b className="sp-fail">&minus;{removed}</b>
     </span>
@@ -463,6 +500,25 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 }
 export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className="sp-textarea" {...props} />;
+}
+
+/** A read still in flight. The THIRD fact: Empty says "nothing here", Failed
+ *  says "we could not find out", and neither is true yet. It reserves the
+ *  height so the layout does not jump, and says so in words. No shimmer:
+ *  motion confirms, and this has nothing to confirm yet. */
+export function Loading({ children = "Reading." }: { children?: React.ReactNode }) {
+  return (
+    <p className="sp-loading" aria-live="polite">
+      {children}
+    </p>
+  );
+}
+
+/** Agent-written prose: release notes, a launch draft, a rationale. Pre is for
+ *  code and holds its whitespace; this is a document a person reads, so it
+ *  keeps the measure. */
+export function Prose({ children }: { children: React.ReactNode }) {
+  return <div className="sp-prose">{children}</div>;
 }
 
 /** Logs, diffs, exported documents. Scrolls inside its own box so the page

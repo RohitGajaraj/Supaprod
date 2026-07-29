@@ -840,6 +840,67 @@
   }
 }
 
+/* ---------- a read still in flight ----------
+ * The THIRD fact. Empty says "nothing here", Failed says "we could not find
+ * out", and neither is true while a read is still running. Three panels each
+ * hand-rolled a fixed-height box so the layout would not jump when the real
+ * content arrived, which is the right instinct and the wrong place for it.
+ * It reserves the height and says so in words; no shimmer, because motion
+ * confirms and this has nothing yet to confirm. */
+.sp-loading {
+  padding: 26px 0;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-mute);
+  line-height: var(--sp-leading-body);
+  min-height: 72px;
+}
+
+/* ---------- prose ----------
+ * Agent-written documents: release notes, launch drafts, a rationale. Pre is
+ * for code and holds its whitespace; the context column has its own voice.
+ * This is a generated document a person reads, so it keeps the measure. */
+.sp-prose {
+  font-size: var(--sp-text-prose);
+  line-height: var(--sp-leading-note);
+  color: var(--sp-body);
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: var(--sp-space-4) 18px;
+  margin-top: var(--sp-space-3);
+  max-width: 68ch;
+  white-space: pre-wrap;
+}
+.sp-prose > * + * {
+  margin-top: var(--sp-space-3);
+}
+
+/* A row that carries its own control. The control sits at the trailing edge,
+ * outside the row's clickable region, because a button inside a button is
+ * invalid and a 38px control would double the row height. */
+.sp-row-action {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-2);
+}
+.sp-row[data-has-action="true"] {
+  cursor: default;
+}
+.sp-row-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
 /* ---------- preformatted ----------
  * Logs, diffs, exported markdown. It scrolls inside its own box rather than
  * making the page scroll sideways: horizontal scrolling was named twice as a
