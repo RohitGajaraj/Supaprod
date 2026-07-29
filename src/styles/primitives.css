@@ -574,6 +574,19 @@
   margin-top: var(--sp-space-2);
 }
 
+/* An action that undoes or destroys sits apart from the ones that proceed,
+ * pushed to the trailing edge. Reported from Decide, where five controls sat at
+ * equal weight and "Drop it" needed to read as the kill. The separation is
+ * POSITIONAL, not chromatic: the interface is monochrome by default, red
+ * carries status rather than intent, and ember marks the human. Distance is the
+ * one emphasis that costs no colour. */
+.sp-acts-trailing {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
 /* ---------- context column pieces ---------- quiet, never a second nav */
 .sp-ctx-head {
   font-size: var(--sp-text-label);

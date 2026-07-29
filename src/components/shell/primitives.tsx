@@ -381,9 +381,24 @@ export function Surface({
   );
 }
 
-/** Honest, names who acts next, never a bare "No results". */
-export function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="sp-empty">{children}</p>;
+/** Honest, names who acts next, never a bare "No results".
+ *
+ *  `action` is the door. An empty state that names who acts next but gives you
+ *  no way to act is only half honest, and every ported surface was wrapping one
+ *  in a Gate to get a button. */
+export function Empty({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="sp-empty">
+      <p>{children}</p>
+      {action ? <div className="sp-acts">{action}</div> : null}
+    </div>
+  );
 }
 
 /** A read that FAILED is not an empty state, and must never wear one's clothes:
@@ -503,9 +518,62 @@ export function Switch({
   );
 }
 
-/** A row of actions. One primary among them, and only one. */
-export function Actions({ children }: { children: React.ReactNode }) {
-  return <div className="sp-acts">{children}</div>;
+/** A row of actions. One primary among them, and only one.
+ *
+ *  `trailing` is for the action that undoes or destroys. It is separated by
+ *  DISTANCE rather than by colour, because the interface is monochrome by
+ *  default, red carries status rather than intent, and ember marks the human.
+ *  Reported from Decide, where five controls sat at equal weight. */
+export function Actions({
+  children,
+  trailing,
+}: {
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <div className="sp-acts">
+      {children}
+      {trailing ? <span className="sp-acts-trailing">{trailing}</span> : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Context column. Quiet, and never a second navigation.
+ * ------------------------------------------------------------------ */
+
+/** A heading in the context column. */
+export function CtxHead({ children }: { children: React.ReactNode }) {
+  return <div className="sp-ctx-head">{children}</div>;
+}
+
+/** A paragraph in the context column. */
+export function CtxBody({ children }: { children: React.ReactNode }) {
+  return <div className="sp-ctx-body">{children}</div>;
+}
+
+/** An attributed line in the context column: a mark, a name, and one different
+ *  fact under it. Every ported surface was hand-copying this markup out of
+ *  today.tsx, which is how a system drifts one surface at a time. */
+export function CtxRow({
+  mark,
+  name,
+  sub,
+}: {
+  mark?: React.ReactNode;
+  name: React.ReactNode;
+  sub?: React.ReactNode;
+}) {
+  return (
+    <div className="sp-ctx-row">
+      {mark}
+      <span>
+        <span className="sp-ctx-name">{name}</span>
+        {sub ? <span className="sp-ctx-sub">{sub}</span> : null}
+      </span>
+    </div>
+  );
 }
 
 /** Every number, duration, count, diff, identifier and timestamp. */
