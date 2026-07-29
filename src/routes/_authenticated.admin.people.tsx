@@ -1,33 +1,133 @@
 /**
- * Admin Console v2 — People tab.
- * Step 2 ships the Users panel: search, drawer with identity + plan + credits
- * + workspaces + audit, and the core mutations (grant credits, reset cycle,
- * override plan, suspend/unsuspend). Invitations & Vouchers panels land in
- * subsequent steps of `docs/planning/admin-console-v2-plan.md`.
+ * ADMIN / PEOPLE. Redesigned, not re-skinned (SURFACE-JUSTIFICATION.md).
  *
- * OBS-13 chrome pass: re-skinned from parchment to Obsidian v3 (dark cockpit,
- * mono metadata, no icon set). Every query, mutation, and data shape below
- * is unchanged — only the markup, tokens, and copy-that-was-jargon changed.
+ * The prototype does not draw this surface, so it owes the six answers. The
+ * parent /admin route is already ported and draws the Surface, the h1 and the
+ * tab strip, so this file renders bare content and never a second head.
  *
- * Loom W2-ADMIN pass (2026-07-04): search errors no longer read as "No users
- * match." (register D-11), the drawer shows a real error with retry instead
- * of going blank, the search is debounced (D-22), and every mutation
- * surfaces thrown failures via onError.
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
+ *    Whoever answers the support address, with ONE person's email in front of
+ *    them, because that person cannot sign in, was billed wrong, or ran out of
+ *    credits mid-run. They came to change that one account and leave. Nobody
+ *    has ever opened this page to read a directory.
+ *
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE.
+ *    Changing one person's standing: what they may spend, which plan they are
+ *    on, and whether they may sign in at all. Every other surface in the
+ *    product changes your own work; this changes someone else's, and there is
+ *    nowhere else in Supaprod that can reach a user who is not in your
+ *    workspace.
+ *
+ * 3. KEEP / MOVE / KILL, every element that was on the page.
+ *    KEEP the search. It is the door to the one person, and it is the only
+ *      thing on the surface before you have found them.
+ *    KEEP all five writes: grant credits, reset the monthly cycle, override
+ *      the plan, clear the override, block or allow sign-in. Each is a
+ *      decision genuinely made here and nowhere else.
+ *    KEEP Invitations. Who is allowed IN is the same job as who is in.
+ *    KEEP the audit history, and it now says what actually changed. It was
+ *      rendering the raw action string and throwing the payload away, so
+ *      "grant_credits" was on screen and "500 credits, balance became 1,200"
+ *      was not. Same read, same rows, the useful half stopped being discarded.
+ *    MOVE Vouchers to /admin/pricing. A voucher is a priced instrument, a
+ *      discount on the ladder that page owns. It only lived under People
+ *      because it shipped in the same sprint as Invitations. Nothing deep
+ *      links to it: the sub tab was local state with no address, so no saved
+ *      link breaks.
+ *    KILL the Sheet drawer. A slide-over carrying identity, plan, credits,
+ *      workspaces, an audit trail and five mutations is exactly the modal
+ *      abuse anti-slop ban 11 exists to stop, and primitives.tsx names the
+ *      pane as deliberately absent with its reasons. The person in focus is
+ *      rendered IN PLACE now, which is what every other ported surface does.
+ *    KILL the seven-column table. Scanning a directory is one question, "is
+ *      this the right email", and the table answered six more beside it while
+ *      scrolling sideways to do it. A row is two lines now.
+ *    KILL the "Suspended: no" column. Repeating "no" on every row is not
+ *      information. A blocked account says so; a working one says nothing.
+ *    KILL the row count "50 users". The query asks for 50 and the label
+ *      printed whatever came back, so a workspace with four hundred users read
+ *      as fifty. That is a fabricated number. It asks for 51 now and says
+ *      "more than 50" honestly when the extra one arrives.
+ *    KILL the two hand-rolled twenty-line "native submit button" copies. They
+ *      existed because the old Button hardcoded type="button" and could not
+ *      submit a form. The rebuild's Button spreads its props after the type,
+ *      so type="submit" works and both copies go.
+ *    KILL the local th(), td(), fieldStyle and FOCUS_RING constants, and the
+ *      hand-built pill tab group. Every one of them is a primitive now, and
+ *      real buttons and inputs take the app-wide focus ring without being
+ *      told.
+ *    KILL the standing sentence "Manage who can use Supaprod, grant credits,
+ *      run promo campaigns". It listed the tabs directly underneath it in
+ *      different words (hard ban 10).
+ *    KILL every success toast. See THE COMMIT below.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
+ *    A list row is the email and one different fact, their plan and balance.
+ *    The plan override, the per account credit breakdown, the workspaces they
+ *    belong to and everything an admin has already done to them belong to the
+ *    one person in focus, which is one click. The grant field and the override
+ *    field are one click further still, because reading an account is common
+ *    and changing it is not.
+ *
+ * 5. DELIGHT, AND CONFUSION.
+ *    The moment is opening a person and reading what was already done to them
+ *    before you do it again: "Credits granted. 500, balance became 1,200",
+ *    dated. Support work is repeated work, and the account remembering its own
+ *    history is the thing that stops two admins granting the same goodwill
+ *    twice. What would confuse, and is therefore not drawn: a failed search
+ *    reading as "no users match", a blank account form after a failed read
+ *    whose save would overwrite the real thing, and a control with no server
+ *    function behind it.
+ *
+ * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
+ *    Nowhere, and that is the correct answer here rather than a gap. This
+ *    surface governs HUMANS. No agent grants credits, overrides a plan or
+ *    blocks a sign-in; every row in admin_audit_log with target_kind 'user'
+ *    was written by a person, and the table records actor_user_id as a bare
+ *    uuid with no email to join against, so even the human actor cannot be
+ *    named honestly and is therefore not claimed. An AgentMark here would be
+ *    decoration, and the presence doctrine's test is whether the crew's
+ *    presence PROVES something, not whether it is visible. The one true crew
+ *    fact is stated in words on the credits line: the balance set here is what
+ *    the crew spends on this person's behalf.
+ *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10). Every write used to end in
+ * a toast, so the record of what you did to someone else's account lasted four
+ * seconds. A toast confirms that your click registered; a receipt renders what
+ * your click CAUSED. All five writes leave a receipt on the surface carrying
+ * the real consequence returned by the server (the new balance, the tier, the
+ * expiry), and a failed write leaves a failed receipt rather than silence. No
+ * handoff arrow is drawn on any of them, because nothing in the product picks
+ * up a credit grant, and an arrow to nowhere is worse than no arrow.
+ *
+ * UNCHANGED: every query key, every server function, every confirmation on a
+ * destructive action, and the in-band {error} handling that keeps a failed
+ * read from wearing an empty state's clothes.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { toast } from "@/lib/notify";
+
 import { useConfirm } from "@/hooks/use-confirm";
-import { MonoLabel, Button } from "@/components/obsidian";
+import { inBandError, useDebouncedValue } from "@/components/admin/admin-ui";
+import { InvitationsPanel } from "@/components/admin/InvitationsPanel";
 import {
-  AdminErrorCard,
-  AdminSkeleton,
-  inBandError,
-  useDebouncedValue,
-} from "@/components/admin/admin-ui";
+  Actions,
+  Block,
+  Button,
+  Empty,
+  Failed,
+  Field,
+  Input,
+  Line,
+  Loading,
+  Num,
+  Receipt,
+  Row,
+  Select,
+  Value,
+} from "@/components/shell/primitives";
 import {
   adminSearchUsers,
   adminGetUserDetail,
@@ -43,265 +143,163 @@ export const Route = createFileRoute("/_authenticated/admin/people")({
   component: AdminPeople,
 });
 
-// Shared focus treatment: 2px ember ring, offset 2. every interactive
-// element in this file uses this exact class pattern (Tempo contract SS2).
-const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
+/** One screen of results. The search asks for one more than this so the
+ *  surface can say "more than 50" without inventing a total it was never
+ *  given. */
+const PAGE = 50;
 
-const SUB_TABS = [
-  { id: "users", label: "Users" },
-  { id: "invitations", label: "Invitations" },
-  { id: "vouchers", label: "Vouchers" },
-] as const;
-type SubTab = (typeof SUB_TABS)[number]["id"];
+/** How many history rows before the surface has a bottom. */
+const AUDIT_CAP = 6;
+
+type Panel = "people" | "invitations";
 
 function AdminPeople() {
-  const [sub, setSub] = useState<SubTab>("users");
+  const [panel, setPanel] = useState<Panel>("people");
   return (
-    <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-4)" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-helper)",
-          color: "var(--text-subtle)",
-          margin: 0,
-        }}
-      >
-        Manage who can use Supaprod · grant credits · run promo campaigns
-      </p>
-      <div
-        style={{
-          display: "inline-flex",
-          gap: 2,
-          padding: 3,
-          background: "var(--raised)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-control)",
-          width: "fit-content",
-        }}
-      >
-        {SUB_TABS.map((t) => {
-          const isActive = sub === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setSub(t.id)}
-              aria-pressed={isActive}
-              className={`${FOCUS_RING}${isActive ? "" : " [color:var(--text-subtle)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"}`}
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-label)",
-                textTransform: "uppercase",
-                letterSpacing: "0.11em",
-                padding: "var(--space-2) var(--space-3)",
-                borderRadius: "6px",
-                border: "none",
-                // Inactive background lives in the hover class above; an
-                // inline value would beat the utility and kill hover.
-                background: isActive ? "var(--hover)" : undefined,
-                color: isActive ? "var(--text-primary)" : undefined,
-                cursor: "pointer",
-                transitionProperty: "background-color, color",
-                transitionDuration: "var(--dur-control)",
-                transitionTimingFunction: "var(--ease)",
-              }}
-            >
-              {t.label}
-            </button>
-          );
-        })}
+    <div>
+      <div className="sp-tabs" role="tablist" aria-label="Who can use Supaprod">
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={panel === "people"}
+          onClick={() => setPanel("people")}
+        >
+          People
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={panel === "invitations"}
+          onClick={() => setPanel("invitations")}
+        >
+          Invitations
+        </button>
       </div>
-      {sub === "users" ? (
-        <UsersPanel />
-      ) : sub === "invitations" ? (
-        <InvitationsPanel />
-      ) : (
-        <VouchersPanel />
-      )}
+      {panel === "people" ? <PeoplePanel /> : <InvitationsPanel />}
     </div>
   );
 }
 
-import { InvitationsPanel } from "@/components/admin/InvitationsPanel";
-import { VouchersPanel } from "@/components/admin/VouchersPanel";
+/* ================================================================== *
+ * The record of what you just did
+ * ================================================================== */
 
-function UsersPanel() {
+type Settled = { id: string; verb: string; consequence: string; failed?: boolean; at: string };
+
+function nowStamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/* ================================================================== *
+ * The directory, and the person in focus
+ * ================================================================== */
+
+function PeoplePanel() {
   const fSearch = useServerFn(adminSearchUsers);
   const [q, setQ] = useState("");
-  // One query per pause, not per keystroke (register D-22).
+  // One query per pause, not per keystroke.
   const debouncedQ = useDebouncedValue(q);
   const [selected, setSelected] = useState<string | null>(null);
+
   const search = useQuery({
     queryKey: ["admin-users", debouncedQ],
-    queryFn: () => fSearch({ data: { q: debouncedQ, limit: 50, offset: 0 } }),
+    queryFn: () => fSearch({ data: { q: debouncedQ, limit: PAGE + 1, offset: 0 } }),
   });
 
-  // A failed search must never wear the empty state's clothes (D-11): the
-  // server fn returns errors in-band, so check both the thrown and the
-  // in-band shape before deciding "no users match".
+  // A failed search must never wear the empty state's clothes: the server fn
+  // returns errors in band, so both the thrown and the in-band shape are
+  // checked before anything decides "nobody matches".
   const searchError = search.isError
     ? search.error instanceof Error
       ? search.error.message
-      : "Request failed."
+      : "The request failed."
     : inBandError(search.data);
 
-  const rows = useMemo<AdminUserRow[]>(() => {
+  const found = useMemo<AdminUserRow[]>(() => {
     const d = search.data;
     if (!d || "error" in (d as object)) return [];
     return d as AdminUserRow[];
   }, [search.data]);
 
+  const capped = found.length > PAGE;
+  const rows = capped ? found.slice(0, PAGE) : found;
+
   return (
-    <div
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "var(--space-4)",
-        display: "grid",
-        gap: "var(--space-3)",
-      }}
-    >
-      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by email or display name…"
-          aria-label="Search users by email or display name"
-          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
-          style={{
-            flex: 1,
-            padding: "var(--space-2) var(--space-3)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            background: "var(--raised)",
-            color: "var(--text-primary)",
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--tempo-text-base)",
-          }}
-        />
-        <MonoLabel tone="muted">
-          {search.isLoading ? "Loading…" : searchError ? "search failed" : `${rows.length} users`}
-        </MonoLabel>
-      </div>
-      {search.isLoading ? (
-        <AdminSkeleton rows={5} height={44} />
-      ) : searchError ? (
-        <AdminErrorCard what="users" message={searchError} onRetry={() => search.refetch()} />
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--hairline-strong)" }}>
-                <th style={th()}>Email</th>
-                <th style={th()}>Name</th>
-                <th style={th()}>Plan</th>
-                <th style={th()}>Credits</th>
-                <th style={th()}>Suspended</th>
-                <th style={th()}>Joined</th>
-                <th style={th()}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr
-                  key={r.user_id}
-                  className="hover:[background-color:var(--hover)]"
-                  style={{
-                    borderTop: "1px solid var(--hairline)",
-                    transitionProperty: "background-color",
-                    transitionDuration: "var(--dur-control)",
-                    transitionTimingFunction: "var(--ease)",
-                  }}
-                >
-                  <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
-                  <td style={td()}>{r.display_name ?? "-"}</td>
-                  <td style={{ ...td(), textTransform: "capitalize" }}>{r.plan_tier}</td>
-                  <td
-                    style={{
-                      ...td(),
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {r.balance_credits.toLocaleString()}
-                  </td>
-                  <td
-                    style={{
-                      ...td(),
-                      color: r.suspended ? "var(--madder)" : "var(--text-body)",
-                    }}
-                  >
-                    {r.suspended ? "yes" : "no"}
-                  </td>
-                  <td
-                    style={{
-                      ...td(),
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-helper)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </td>
-                  <td style={td()}>
-                    <Button variant="quiet" onClick={() => setSelected(r.user_id)}>
-                      Open →
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      padding: "var(--space-4)",
-                      textAlign: "center",
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "var(--tempo-text-base)",
-                      color: "var(--text-subtle)",
-                    }}
-                  >
-                    No users match.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <UserDrawer userId={selected} onClose={() => setSelected(null)} />
-    </div>
+    <>
+      <Block
+        title="Find a person"
+        sub={
+          capped
+            ? `More than ${PAGE} people match. Only the first ${PAGE} were read, so narrow the search rather than scrolling.`
+            : "Search the whole platform by email or display name, not just this workspace."
+        }
+      >
+        <Field label="Email or display name" htmlFor="admin-people-find">
+          <Input
+            id="admin-people-find"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="jane@example.com"
+          />
+        </Field>
+
+        {search.isLoading ? (
+          <Loading>Reading the directory.</Loading>
+        ) : searchError ? (
+          <Failed onRetry={() => void search.refetch()}>
+            The directory did not load, so this is not a claim that nobody matches. {searchError}
+          </Failed>
+        ) : rows.length === 0 ? (
+          <Empty>
+            {q.trim()
+              ? "Nobody matches that. Try the email they signed up with."
+              : "Type an email or a name. Nothing is listed until you ask for someone."}
+          </Empty>
+        ) : (
+          rows.map((r) => (
+            <Row
+              key={r.user_id}
+              tight
+              focused={selected === r.user_id}
+              lead={r.email}
+              // The DIFFERENT fact, not more of the email. A blocked account
+              // says so; a working one stays quiet.
+              sub={
+                <>
+                  {r.suspended ? <span className="sp-fail">sign-in blocked</span> : r.plan_tier}
+                  {" · "}
+                  <Num>{r.balance_credits.toLocaleString()}</Num> credits
+                </>
+              }
+              time={new Date(r.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+              onClick={() => setSelected(selected === r.user_id ? null : r.user_id)}
+            />
+          ))
+        )}
+      </Block>
+
+      {/* Keyed by the person, so every local state in there resets when the
+          subject changes. Without it the receipts from the last account stay
+          on screen under the next one's name, which is a lie about what you
+          did and to whom. */}
+      {selected ? <PersonInFocus key={selected} userId={selected} /> : null}
+    </>
   );
 }
 
-function th(): React.CSSProperties {
-  return {
-    padding: "var(--space-2) var(--space-3)",
-    fontFamily: "var(--font-mono)",
-    fontSize: "var(--text-mono-label)",
-    letterSpacing: "0.11em",
-    textTransform: "uppercase",
-    textAlign: "left",
-    fontWeight: 500,
-    color: "var(--text-subtle)",
-  };
-}
-function td(): React.CSSProperties {
-  return {
-    padding: "var(--space-3)",
-    verticalAlign: "middle",
-    fontFamily: "var(--font-sans)",
-    fontSize: "var(--tempo-text-base)",
-    color: "var(--text-body)",
-  };
-}
+/* ================================================================== *
+ * One person
+ * ================================================================== */
 
 type UserDetail = {
   user?: { id: string; email: string; created_at: string; last_sign_in_at: string | null };
-  profile?: { suspended?: boolean; display_name?: string };
+  profile?: { suspended?: boolean; display_name?: string | null };
   accounts?: Array<{
     id: string;
     plan_tier: string;
@@ -311,7 +309,7 @@ type UserDetail = {
   }>;
   workspaces?: Array<{ id: string; name: string; role: string }>;
   subscription?: {
-    plan_tier?: string;
+    plan_tier?: string | null;
     plan_override_tier?: string | null;
     plan_override_expires_at?: string | null;
     plan_override_reason?: string | null;
@@ -324,7 +322,49 @@ type UserDetail = {
   }>;
 };
 
-function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+const PLAN_TIERS = ["free", "pro", "max", "team", "enterprise"] as const;
+
+/** Plain words for the action strings admin_audit writes. An action this map
+ *  does not know prints raw rather than being guessed at. */
+const ACTION_WORDS: Record<string, string> = {
+  grant_credits: "Credits changed",
+  reset_credit_cycle: "Monthly cycle reset",
+  override_plan: "Plan overridden",
+  clear_plan_override: "Plan override cleared",
+  suspend: "Sign-in blocked",
+  unsuspend: "Sign-in allowed",
+};
+
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** What the stored payload actually says, in words. Returns null where the
+ *  payload holds nothing, which is honest: some actions carry no detail. */
+function auditDetail(action: string, payload: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  const delta = num(payload.delta);
+  const balance = num(payload.new_balance);
+  if (delta !== null) {
+    parts.push(`${delta > 0 ? "+" : ""}${delta.toLocaleString()} credits`);
+  }
+  if (balance !== null) parts.push(`balance became ${balance.toLocaleString()}`);
+  const tier = str(payload.tier);
+  if (tier) parts.push(`on ${tier}`);
+  const expires = str(payload.expires_at);
+  if (expires) parts.push(`until ${expires.slice(0, 10)}`);
+  else if (action === "override_plan" && "expires_at" in payload && payload.expires_at === null) {
+    parts.push("with no expiry");
+  }
+  const reason = str(payload.reason);
+  if (reason) parts.push(reason);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+function PersonInFocus({ userId }: { userId: string }) {
   const qc = useQueryClient();
   const confirm = useConfirm();
   const fDetail = useServerFn(adminGetUserDetail);
@@ -336,519 +376,431 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
 
   const detail = useQuery({
     queryKey: ["admin-user-detail", userId],
-    enabled: !!userId,
     queryFn: async () => {
-      const r = await fDetail({ data: { userId: userId! } });
+      const r = await fDetail({ data: { userId } });
       if ("error" in r) throw new Error(r.error);
       return JSON.parse(r.json) as UserDetail;
     },
   });
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
-    qc.invalidateQueries({ queryKey: ["admin-users"] });
-  };
+  // THE COMMIT. Session local on purpose: the durable record is the audit
+  // trail below, and a second copy of it here would be a second source of one
+  // truth.
+  const [settled, setSettled] = useState<Settled[]>([]);
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed, at: nowStamp() },
+      ...prev,
+    ]);
 
-  // Every mutation also handles the thrown (network/transport) failure path:
-  // a failed admin action must never end in silence (register D-11).
-  const mutationFailed = (e: unknown) =>
-    toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+  const [openCredits, setOpenCredits] = useState(false);
+  const [openPlan, setOpenPlan] = useState(false);
+  const [openAudit, setOpenAudit] = useState(false);
+
+  const [delta, setDelta] = useState(100);
+  const [grantReason, setGrantReason] = useState("Support goodwill");
+  const [tier, setTier] = useState<string>("max");
+  const [days, setDays] = useState(7);
+  const [planReason, setPlanReason] = useState("");
+
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
+    void qc.invalidateQueries({ queryKey: ["admin-users"] });
+  };
 
   const grant = useMutation({
     mutationFn: (vars: { delta: number; reason: string }) =>
-      fGrant({ data: { userId: userId!, delta: vars.delta, reason: vars.reason } }),
-    onSuccess: (r) => {
-      if ("error" in r) return toast.error(r.error);
-      toast.success(`Balance now ${r.balance.toLocaleString()}`);
+      fGrant({ data: { userId, delta: vars.delta, reason: vars.reason } }),
+    onSuccess: (r, vars) => {
+      if ("error" in r) return commit("You tried to change the balance", r.error, true);
+      commit(
+        vars.delta >= 0 ? "You granted credits" : "You took credits back",
+        `${Math.abs(vars.delta).toLocaleString()} credits, balance is now ${r.balance.toLocaleString()}`,
+      );
       invalidate();
     },
-    onError: mutationFailed,
+    onError: (e) =>
+      commit(
+        "You tried to change the balance",
+        e instanceof Error ? e.message : "The write failed. Nothing changed.",
+        true,
+      ),
   });
+
   const reset = useMutation({
-    mutationFn: () => fReset({ data: { userId: userId! } }),
+    mutationFn: () => fReset({ data: { userId } }),
     onSuccess: (r) => {
-      if ("error" in r) return toast.error(r.error);
-      toast.success("Monthly cycle reset.");
+      if ("error" in r) return commit("You tried to reset the cycle", r.error, true);
+      commit(
+        "You reset the monthly cycle",
+        "This month's grant counter is back to zero. Top-ups were left alone.",
+      );
       invalidate();
     },
-    onError: mutationFailed,
+    onError: (e) =>
+      commit(
+        "You tried to reset the cycle",
+        e instanceof Error ? e.message : "The write failed. Nothing changed.",
+        true,
+      ),
   });
+
   const override = useMutation({
     mutationFn: (vars: { planTier: string; expiresAt: string | null; reason: string }) =>
-      fOverride({ data: { userId: userId!, ...vars } }),
-    onSuccess: (r) => {
-      if ("error" in r) return toast.error(r.error);
-      toast.success("Plan override saved.");
+      fOverride({ data: { userId, ...vars } }),
+    onSuccess: (r, vars) => {
+      if ("error" in r) return commit("You tried to change the plan", r.error, true);
+      commit(
+        "You put them on a different plan",
+        `${vars.planTier}${vars.expiresAt ? `, until ${vars.expiresAt.slice(0, 10)}` : ", with no expiry"}`,
+      );
       invalidate();
     },
-    onError: mutationFailed,
+    onError: (e) =>
+      commit(
+        "You tried to change the plan",
+        e instanceof Error ? e.message : "The write failed. Nothing changed.",
+        true,
+      ),
   });
+
   const clearOverride = useMutation({
-    mutationFn: () => fClear({ data: { userId: userId! } }),
+    mutationFn: () => fClear({ data: { userId } }),
     onSuccess: (r) => {
-      if ("error" in r) return toast.error(r.error);
-      toast.success("Override cleared.");
+      if ("error" in r) return commit("You tried to clear the override", r.error, true);
+      commit("You cleared the override", "They are back on the plan they actually pay for.");
       invalidate();
     },
-    onError: mutationFailed,
+    onError: (e) =>
+      commit(
+        "You tried to clear the override",
+        e instanceof Error ? e.message : "The write failed. Nothing changed.",
+        true,
+      ),
   });
+
   const suspend = useMutation({
     mutationFn: (vars: { suspend: boolean; reason: string }) =>
-      fSuspend({ data: { userId: userId!, ...vars } }),
+      fSuspend({ data: { userId, ...vars } }),
     onSuccess: (r, vars) => {
-      if ("error" in r) return toast.error(r.error);
-      toast.success(vars.suspend ? "Account suspended." : "Account restored.");
+      if ("error" in r) return commit("You tried to change sign-in", r.error, true);
+      commit(
+        vars.suspend ? "You blocked sign-in" : "You allowed sign-in",
+        vars.suspend
+          ? "They cannot start a new session. Sessions already open run until they expire."
+          : "They can sign in again from the next attempt.",
+      );
       invalidate();
     },
-    onError: mutationFailed,
+    onError: (e) =>
+      commit(
+        "You tried to change sign-in",
+        e instanceof Error ? e.message : "The write failed. Nothing changed.",
+        true,
+      ),
   });
 
+  if (detail.isLoading) {
+    return (
+      <Block title="The person you picked">
+        <Loading>Reading the account.</Loading>
+      </Block>
+    );
+  }
+
+  // A failed read must not render an account form whose save would act on
+  // assumptions about a row nobody actually saw.
+  if (detail.isError) {
+    return (
+      <Block title="The person you picked">
+        <Failed onRetry={() => void detail.refetch()}>
+          The account did not load, so nothing here is safe to change yet.{" "}
+          {(detail.error as Error)?.message ?? "The read failed."}
+        </Failed>
+      </Block>
+    );
+  }
+
   const d = detail.data;
+  if (!d) return null;
+
+  const account = d.accounts?.[0] ?? null;
+  const blocked = d.profile?.suspended === true;
+  const sub = d.subscription;
+  const overrideTier = sub?.plan_override_tier ?? null;
+  const overrideExpiry = sub?.plan_override_expires_at ?? null;
+  const workspaces = d.workspaces ?? [];
+  const audit = d.audit ?? [];
+  const shownAudit = openAudit ? audit : audit.slice(0, AUDIT_CAP);
+  const busy =
+    grant.isPending ||
+    reset.isPending ||
+    override.isPending ||
+    clearOverride.isPending ||
+    suspend.isPending;
+
+  const workspaceLine =
+    workspaces.length === 0
+      ? "In no workspaces, so nothing they own is at stake here."
+      : workspaces
+          .slice(0, 3)
+          .map((w) => `${w.name} (${w.role})`)
+          .join(", ") + (workspaces.length > 3 ? `, and ${workspaces.length - 3} more` : "");
 
   return (
-    <Sheet open={!!userId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="right"
-        style={{
-          width: "min(560px, 100vw)",
-          overflow: "auto",
-          backgroundColor: "var(--card)",
-        }}
+    <>
+      <Block
+        title={d.user?.email ?? "The person you picked"}
+        sub={[
+          d.profile?.display_name || null,
+          d.user?.created_at ? `joined ${d.user.created_at.slice(0, 10)}` : null,
+          d.user?.last_sign_in_at
+            ? `last signed in ${d.user.last_sign_in_at.slice(0, 10)}`
+            : "never signed in",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
       >
-        <SheetHeader>
-          <SheetTitle
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontWeight: 460,
-              fontSize: "var(--text-card-title)",
-              lineHeight: 1.3,
-              color: "var(--text-primary)",
+        <Line
+          label="Sign-in"
+          sub={
+            blocked
+              ? "Blocked. Sessions already open run until they expire on their own."
+              : "Allowed. This is the only switch that stops an account outright."
+          }
+        >
+          <Value tone={blocked ? "fail" : "pass"}>{blocked ? "blocked" : "allowed"}</Value>
+          <Button
+            disabled={busy}
+            onClick={() => {
+              void (async () => {
+                const ok = await confirm({
+                  title: blocked ? "Allow sign-in again?" : "Block sign-in?",
+                  body: blocked
+                    ? "They can sign in from the next attempt."
+                    : "They cannot start a new session. Sessions already open run until they expire.",
+                  confirmLabel: blocked ? "Allow sign-in" : "Block sign-in",
+                  destructive: !blocked,
+                });
+                if (ok) suspend.mutate({ suspend: !blocked, reason: "" });
+              })();
             }}
           >
-            {d?.user?.email ?? "User"}
-          </SheetTitle>
-        </SheetHeader>
-        {detail.isLoading ? (
-          <div style={{ marginTop: "var(--space-4)" }}>
-            <AdminSkeleton rows={5} height={40} />
-          </div>
-        ) : detail.isError ? (
-          // A failed detail read used to leave the drawer blank (D-11).
-          <div style={{ marginTop: "var(--space-4)" }}>
-            <AdminErrorCard
-              what="this user"
-              message={detail.error instanceof Error ? detail.error.message : undefined}
-              onRetry={() => detail.refetch()}
-            />
-          </div>
-        ) : !d ? null : (
-          <div style={{ marginTop: "var(--space-4)", display: "grid", gap: "var(--space-6)" }}>
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Identity
-              </MonoLabel>
-              <div
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  color: "var(--text-body)",
-                  display: "grid",
-                  gap: "var(--space-1)",
-                }}
-              >
-                <div>Name · {d.profile?.display_name ?? "-"}</div>
-                <div>Joined · {d.user?.created_at?.slice(0, 10)}</div>
-                <div>Last sign-in · {d.user?.last_sign_in_at?.slice(0, 10) ?? "never"}</div>
-                <div>
-                  Suspended ·{" "}
-                  <span
-                    style={{ color: d.profile?.suspended ? "var(--madder)" : "var(--text-body)" }}
+            {blocked ? "Allow" : "Block"}
+          </Button>
+        </Line>
+
+        <Line
+          label="Plan"
+          sub={
+            overrideTier
+              ? `Overridden to ${overrideTier}${overrideExpiry ? `, expires ${overrideExpiry.slice(0, 10)}` : ", with no expiry"}${sub?.plan_override_reason ? ` · ${sub.plan_override_reason}` : ""}`
+              : sub
+                ? "What they pay for. No override in force."
+                : "No subscription row, so they are on the free floor."
+          }
+        >
+          <Value tone={overrideTier ? "warn" : "quiet"}>
+            {overrideTier ?? sub?.plan_tier ?? account?.plan_tier ?? "free"}
+          </Value>
+          <Button
+            variant="ghost"
+            aria-expanded={openPlan}
+            disabled={busy}
+            onClick={() => setOpenPlan((v) => !v)}
+          >
+            Change
+          </Button>
+        </Line>
+
+        {openPlan ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              override.mutate({
+                planTier: tier,
+                expiresAt: days > 0 ? new Date(Date.now() + days * 86400_000).toISOString() : null,
+                reason: planReason,
+              });
+            }}
+          >
+            <Field label="Put them on" htmlFor="admin-plan-tier">
+              <Select id="admin-plan-tier" value={tier} onChange={(e) => setTier(e.target.value)}>
+                {PLAN_TIERS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="For how many days" htmlFor="admin-plan-days">
+              <Input
+                id="admin-plan-days"
+                type="number"
+                min={0}
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+              />
+            </Field>
+            <Field label="Why" htmlFor="admin-plan-reason">
+              <Input
+                id="admin-plan-reason"
+                value={planReason}
+                onChange={(e) => setPlanReason(e.target.value)}
+                placeholder="Recorded on the account. Zero days means it never expires."
+              />
+            </Field>
+            <Actions
+              trailing={
+                overrideTier ? (
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() => clearOverride.mutate()}
+                    type="button"
                   >
-                    {d.profile?.suspended ? "yes" : "no"}
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Plan & override
-              </MonoLabel>
-              {d.subscription ? (
-                <div
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-base)",
-                    color: "var(--text-body)",
-                    display: "grid",
-                    gap: "var(--space-1)",
-                  }}
-                >
-                  <div>Base plan · {d.subscription.plan_tier ?? "-"}</div>
-                  <div>Override tier · {d.subscription.plan_override_tier ?? "-"}</div>
-                  <div>
-                    Override expires ·{" "}
-                    {d.subscription.plan_override_expires_at?.slice(0, 10) ?? "-"}
-                  </div>
-                </div>
-              ) : (
-                <p
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-sm)",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  No subscription row.
-                </p>
-              )}
-              <PlanOverrideForm
-                pending={override.isPending}
-                onSubmit={(planTier, days, reason) => {
-                  const expiresAt =
-                    days > 0 ? new Date(Date.now() + days * 86400_000).toISOString() : null;
-                  override.mutate({ planTier, expiresAt, reason });
-                }}
-                onClear={() => clearOverride.mutate()}
-                clearPending={clearOverride.isPending}
-              />
-            </section>
-
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Credits
-              </MonoLabel>
-              {(d.accounts ?? []).map((a) => (
-                <div
-                  key={a.id}
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-helper)",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  Account {a.id.slice(0, 8)} · balance{" "}
-                  <span style={{ color: "var(--text-primary)" }}>
-                    {a.balance_credits.toLocaleString()}
-                  </span>{" "}
-                  · cycle {a.monthly_grant_credits.toLocaleString()} · topup{" "}
-                  {a.topup_credits.toLocaleString()}
-                </div>
-              ))}
-              <GrantCreditsForm
-                pending={grant.isPending}
-                onSubmit={(delta, reason) => grant.mutate({ delta, reason })}
-              />
-              <Button
-                variant="secondary"
-                style={{ marginTop: "var(--space-2)" }}
-                disabled={reset.isPending}
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: "Reset monthly cycle?",
-                    body: "Clears this month's grant counter. One-time top-ups are preserved.",
-                    confirmLabel: "Reset cycle",
-                  });
-                  if (ok) reset.mutate();
-                }}
-              >
-                Reset monthly cycle
+                    Clear the override
+                  </Button>
+                ) : undefined
+              }
+            >
+              <Button variant="primary" type="submit" disabled={busy}>
+                {override.isPending ? "Saving" : "Save the plan"}
               </Button>
-            </section>
+            </Actions>
+          </form>
+        ) : null}
 
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Workspaces
-              </MonoLabel>
-              {(d.workspaces ?? []).length === 0 ? (
-                <p
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-sm)",
-                    color: "var(--text-subtle)",
+        <Line
+          label="Credits"
+          sub={
+            account
+              ? `${account.monthly_grant_credits.toLocaleString()} from this cycle, ${account.topup_credits.toLocaleString()} bought. This is what the crew spends on their behalf.`
+              : "No account row, so there is nothing to spend from and a grant will fail."
+          }
+        >
+          <Value>
+            <Num>{(account?.balance_credits ?? 0).toLocaleString()}</Num>
+          </Value>
+          <Button
+            variant="ghost"
+            aria-expanded={openCredits}
+            disabled={busy || !account}
+            onClick={() => setOpenCredits((v) => !v)}
+          >
+            Adjust
+          </Button>
+        </Line>
+
+        {openCredits && account ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!Number.isFinite(delta) || delta === 0) return;
+              grant.mutate({ delta: Math.trunc(delta), reason: grantReason || "Admin grant" });
+            }}
+          >
+            <Field label="Add or take away" htmlFor="admin-credit-delta">
+              <Input
+                id="admin-credit-delta"
+                type="number"
+                value={delta}
+                onChange={(e) => setDelta(Number(e.target.value))}
+              />
+            </Field>
+            <Field label="Why" htmlFor="admin-credit-reason">
+              <Input
+                id="admin-credit-reason"
+                value={grantReason}
+                onChange={(e) => setGrantReason(e.target.value)}
+                placeholder="Recorded on the account and in the ledger."
+              />
+            </Field>
+            <Actions
+              trailing={
+                <Button
+                  variant="ghost"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    void (async () => {
+                      const ok = await confirm({
+                        title: "Reset the monthly cycle?",
+                        body: "This month's grant counter goes back to zero. Credits they bought are left alone.",
+                        confirmLabel: "Reset the cycle",
+                      });
+                      if (ok) reset.mutate();
+                    })();
                   }}
                 >
-                  Not in any workspaces.
-                </p>
-              ) : (
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: "var(--space-4)",
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-base)",
-                    color: "var(--text-body)",
-                    display: "grid",
-                    gap: "var(--space-1)",
-                  }}
-                >
-                  {(d.workspaces ?? []).map((w) => (
-                    <li key={w.id}>
-                      {w.name} ·{" "}
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "var(--text-mono-label)",
-                          letterSpacing: "0.11em",
-                          textTransform: "uppercase",
-                          color: "var(--text-subtle)",
-                        }}
-                      >
-                        {w.role}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Access
-              </MonoLabel>
+                  Reset the monthly cycle
+                </Button>
+              }
+            >
               <Button
-                variant="secondary"
-                disabled={suspend.isPending}
-                onClick={async () => {
-                  const isSuspended = d.profile?.suspended;
-                  const ok = await confirm({
-                    title: isSuspended ? "Restore sign-in?" : "Suspend sign-in?",
-                    body: isSuspended
-                      ? "User regains the ability to sign in."
-                      : "User is blocked from new sign-ins. Existing sessions stay until they expire.",
-                    confirmLabel: isSuspended
-                      ? "Restore · allows sign-in"
-                      : "Suspend · blocks sign-in",
-                    destructive: !isSuspended,
-                  });
-                  if (ok) suspend.mutate({ suspend: !isSuspended, reason: "" });
-                }}
+                variant="primary"
+                type="submit"
+                disabled={busy || !Number.isFinite(delta) || delta === 0}
               >
-                {d.profile?.suspended ? "Restore · allows sign-in" : "Suspend · blocks sign-in"}
+                {grant.isPending
+                  ? "Saving"
+                  : delta >= 0
+                    ? `Add ${Math.trunc(delta).toLocaleString()}`
+                    : `Take back ${Math.abs(Math.trunc(delta)).toLocaleString()}`}
               </Button>
-            </section>
+            </Actions>
+          </form>
+        ) : null}
 
-            <section>
-              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
-                Recent audit
-              </MonoLabel>
-              {(d.audit ?? []).length === 0 ? (
-                <p
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-sm)",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  No prior admin actions.
-                </p>
-              ) : (
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: "var(--space-4)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-helper)",
-                    color: "var(--text-faint)",
-                    display: "grid",
-                    gap: "var(--space-1)",
-                  }}
-                >
-                  {(d.audit ?? []).slice(0, 10).map((row) => (
-                    <li key={row.id}>
-                      <span style={{ color: "var(--text-primary)" }}>{row.action}</span> ·{" "}
-                      {row.created_at.slice(0, 16).replace("T", " ")}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </div>
+        <Line label="Workspaces" sub={workspaceLine}>
+          <Value>
+            <Num>{workspaces.length}</Num>
+          </Value>
+        </Line>
+      </Block>
+
+      {settled.length > 0 ? (
+        <Block title="What you changed">
+          {settled.map((s) => (
+            <Receipt
+              key={s.id}
+              verb={s.verb}
+              consequence={s.consequence}
+              failed={s.failed}
+              time={s.at}
+            />
+          ))}
+        </Block>
+      ) : null}
+
+      <Block
+        title="What was already done here"
+        sub="Every admin write against this account, newest first. Read it before repeating one."
+        more={
+          audit.length > AUDIT_CAP
+            ? openAudit
+              ? "Show fewer"
+              : `Show all ${audit.length}`
+            : undefined
+        }
+        onMore={() => setOpenAudit((v) => !v)}
+      >
+        {audit.length === 0 ? (
+          <Empty>Nothing has been done to this account yet. You would be the first.</Empty>
+        ) : (
+          shownAudit.map((r) => (
+            <Row
+              key={r.id}
+              tight
+              lead={ACTION_WORDS[r.action] ?? r.action}
+              // The payload, which the old list read and threw away. Where it
+              // holds nothing the row says so rather than inventing detail.
+              sub={auditDetail(r.action, r.payload ?? {}) ?? "No detail recorded."}
+              time={r.created_at.slice(0, 16).replace("T", " ")}
+            />
+          ))
         )}
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function GrantCreditsForm({
-  pending,
-  onSubmit,
-}: {
-  pending: boolean;
-  onSubmit: (delta: number, reason: string) => void;
-}) {
-  const [delta, setDelta] = useState(100);
-  const [reason, setReason] = useState("Admin grant");
-  const fieldStyle: React.CSSProperties = {
-    padding: "6px 10px",
-    border: "1px solid var(--hairline)",
-    borderRadius: "var(--radius-control)",
-    background: "var(--raised)",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-sans)",
-    fontSize: "var(--tempo-text-sm)",
-  };
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!Number.isFinite(delta) || delta === 0) return;
-        onSubmit(Math.trunc(delta), reason || "Admin grant");
-      }}
-      style={{
-        display: "flex",
-        gap: "var(--space-2)",
-        marginTop: "var(--space-2)",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <input
-        type="number"
-        value={delta}
-        onChange={(e) => setDelta(Number(e.target.value))}
-        aria-label="Credits to grant"
-        className={FOCUS_RING}
-        style={{ ...fieldStyle, width: 100 }}
-      />
-      <input
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-        placeholder="Reason"
-        aria-label="Reason for the credit grant"
-        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
-        style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
-      />
-      {/*
-        Native submit button (kept out of the Button primitive on purpose):
-        this form relies on the browser's implicit type="submit" behavior to
-        fire onSubmit above. The Button primitive hardcodes type="button",
-        which would silently break the grant action. Hand-styled to match
-        Button's "secondary" look exactly.
-      */}
-      <button
-        disabled={pending}
-        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
-        style={{
-          fontFamily: "var(--font-sans)",
-          borderRadius: "var(--radius-control)",
-          backgroundColor: "var(--hover)",
-          color: "var(--text-primary)",
-          fontSize: "13px",
-          fontWeight: 500,
-          padding: "8px 18px",
-          border: "1px solid var(--hairline-strong)",
-          transitionProperty: "background-color, color, transform, opacity",
-          transitionDuration: "var(--dur-control)",
-          transitionTimingFunction: "var(--ease)",
-        }}
-      >
-        {pending ? "Granting…" : `Grant ${delta} · adds to balance`}
-      </button>
-    </form>
-  );
-}
-
-function PlanOverrideForm({
-  pending,
-  onSubmit,
-  onClear,
-  clearPending,
-}: {
-  pending: boolean;
-  onSubmit: (planTier: string, days: number, reason: string) => void;
-  onClear: () => void;
-  clearPending: boolean;
-}) {
-  const [tier, setTier] = useState("max");
-  const [days, setDays] = useState(7);
-  const [reason, setReason] = useState("");
-  const fieldStyle: React.CSSProperties = {
-    padding: "6px 10px",
-    border: "1px solid var(--hairline)",
-    borderRadius: "var(--radius-control)",
-    background: "var(--raised)",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-sans)",
-    fontSize: "var(--tempo-text-sm)",
-  };
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(tier, days, reason);
-      }}
-      style={{
-        display: "flex",
-        gap: "var(--space-2)",
-        marginTop: "var(--space-2)",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <select
-        value={tier}
-        onChange={(e) => setTier(e.target.value)}
-        aria-label="Override plan tier"
-        className={FOCUS_RING}
-        style={fieldStyle}
-      >
-        <option value="free">free</option>
-        <option value="pro">pro</option>
-        <option value="max">max</option>
-        <option value="team">team</option>
-        <option value="enterprise">enterprise</option>
-      </select>
-      <input
-        type="number"
-        value={days}
-        min={0}
-        onChange={(e) => setDays(Number(e.target.value))}
-        aria-label="Override duration in days"
-        className={FOCUS_RING}
-        style={{ ...fieldStyle, width: 80 }}
-      />
-      <span
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-helper)",
-          color: "var(--text-subtle)",
-        }}
-      >
-        days (0 = no expiry)
-      </span>
-      <input
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-        placeholder="Reason"
-        aria-label="Reason for the plan override"
-        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
-        style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
-      />
-      {/* Native submit button — see the comment in GrantCreditsForm above;
-          same reasoning applies (this form's onSubmit relies on it). */}
-      <button
-        disabled={pending}
-        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:var(--surface-2)] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
-        style={{
-          fontFamily: "var(--font-sans)",
-          borderRadius: "var(--radius-control)",
-          backgroundColor: "var(--hover)",
-          color: "var(--text-primary)",
-          fontSize: "13px",
-          fontWeight: 500,
-          padding: "8px 18px",
-          border: "1px solid var(--hairline-strong)",
-          transitionProperty: "background-color, color, transform, opacity",
-          transitionDuration: "var(--dur-control)",
-          transitionTimingFunction: "var(--ease)",
-        }}
-      >
-        {pending ? "Saving…" : "Override · temporary plan"}
-      </button>
-      <Button variant="quiet" onClick={onClear} disabled={clearPending}>
-        Clear override
-      </Button>
-    </form>
+      </Block>
+    </>
   );
 }
